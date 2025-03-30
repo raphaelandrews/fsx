@@ -14,6 +14,9 @@ export const auth = betterAuth({
       verification
     },
   }),
+  emailAndPassword: {
+    enabled: true,
+  },
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,

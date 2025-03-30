@@ -20,11 +20,5 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ],
-  "dependencies": {
-    "@babel/core": "^7.26.10",
-    "@supabase/supabase-js": "^2.49.3",
-    "pg": "^8.14.1",
-    "postgres": "^3.4.5"
-  }
+  ]
 }

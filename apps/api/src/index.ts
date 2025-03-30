@@ -5,7 +5,7 @@ import { auth } from '@/src/lib/auth';
 import { mainRoutes } from "@/src/routes/main";
 import { protectedRoutes } from "@/src/routes/protected";
 
-const allowedOrigins = process.env.BETTER_AUTH_ALLOWED_ORIGINS?.split(",") || [];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
 const app = new Hono<{
   Variables: {
