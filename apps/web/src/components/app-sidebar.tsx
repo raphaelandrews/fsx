@@ -30,7 +30,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import UpdateRegister from "@/components/update-register";
 
 const data = {
   user: {
@@ -142,9 +141,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavInfo title="Institucional" items={data.institutional} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
-      <ModeToggle/>
       <SidebarFooter>
-        <UpdateRegister />
+        <ModeToggle />
       </SidebarFooter>
     </Sidebar>
   );

@@ -10,10 +10,10 @@ import {
 const UpdateRegister = () => {
   return (
     <Popover>
-      <PopoverTrigger asChild className="border-0 h-auto">
+      <PopoverTrigger asChild className="border-0 h-8 max-w-full">
         <Button variant="default" className="rounded-md px-3 py-1 gap-0">
           <Verified
-            className="!fill-[#1CA0F2] dark:stroke-[1.5] stroke-primary w-5 h-5 min-w-[1.25rem]"
+            className="!fill-[#1CA0F2] dark:stroke-[1.5] stroke-primary w-5 h-5 min-w-[1.25rem] min-h-[1.25rem]"
             aria-label="Verificado"
           />
           <div
