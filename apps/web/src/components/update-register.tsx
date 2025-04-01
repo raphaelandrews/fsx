@@ -1,27 +1,42 @@
 import { ChevronRight, Verified } from "lucide-react";
-
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useSidebar } from "@/components/ui/sidebar"; 
+import { cn } from "@/lib/utils"; 
 
 const UpdateRegister = () => {
+  const { state } = useSidebar(); 
+
   return (
     <Popover>
       <PopoverTrigger asChild className="border-0 h-8 max-w-full">
-        <Button variant="default" className="rounded-md px-3 py-1 gap-0">
+        <Button
+          variant="default"
+          className={cn(
+            "rounded-md px-3 py-1 gap-0 transition-all duration-300 ease-in-out flex items-center overflow-hidden",
+            state === "collapsed" ? "justify-center w-8" : "w-full"
+          )}
+        >
           <Verified
-            className="!fill-[#1CA0F2] dark:stroke-[1.5] stroke-primary w-5 h-5 min-w-[1.25rem] min-h-[1.25rem]"
+            className="!fill-[#1CA0F2] dark:stroke-[1.5] stroke-primary w-5 h-5 min-w-[1.25rem] min-h-[1.25rem] transition-transform duration-300 ease-in-out"
             aria-label="Verificado"
           />
-          <div
-            data-orientation="vertical"
-            className="shrink-0 bg-border w-[1px] mx-2 h-4"
-          />
-          Atualize seu cadastro!
-          <ChevronRight className="ml-1 h-4 w-4 min-w-[1rem]" />
+          {state !== "collapsed" && (
+            <>
+              <div
+                data-orientation="vertical"
+                className="shrink-0 bg-border w-[1px] mx-2 h-4 transition-opacity duration-300 ease-in-out"
+              />
+              <span className="transition-all duration-300 ease-in-out">
+                Atualize seu cadastro!
+              </span>
+              <ChevronRight className="ml-1 h-4 w-4 min-w-[1rem] transition-transform duration-300 ease-in-out" />
+            </>
+          )}
           <span className="sr-only">Open popover</span>
         </Button>
       </PopoverTrigger>

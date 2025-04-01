@@ -120,13 +120,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="data-[slot=sidebar-menu-button]:!p-1.5 text-primary hover:bg-sidebar active:bg-sidebar"
             >
               <Link
                 to="/"
-                activeProps={{
-                  className: "font-bold",
-                }}
               >
                 <ArrowUpCircleIcon className="h-5 w-5" />
                 <span className="text-xl font-bold">FSX</span>

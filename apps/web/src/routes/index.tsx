@@ -1,6 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/mode-toggle";
 
 import data from "@/data/home-data.json"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";

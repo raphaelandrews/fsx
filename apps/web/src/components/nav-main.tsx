@@ -1,11 +1,13 @@
 import * as React from "react";
-import { useLocation } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import {
   ChevronRightIcon,
   ChevronDownIcon,
   type LucideIcon,
+  Verified,
 } from "lucide-react";
 
+import UpdateRegister from "@/components/update-register";
 import {
   Collapsible,
   CollapsibleContent,
@@ -21,7 +23,6 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import UpdateRegister from "@/components/update-register";
 
 export function NavMain({
   items,
@@ -43,7 +44,7 @@ export function NavMain({
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           <SidebarMenuItem>
-           <UpdateRegister />
+            <UpdateRegister />
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
