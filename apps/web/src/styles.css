@@ -66,7 +66,7 @@ code {
 }
 
 .dark {
-  --background: oklch(0.18 0 0);
+  --background: oklch(0.16 0.0039 229.1);
   --foreground: oklch(0.985 0 0);
 
   --card: oklch(0.141 0.005 285.823);
@@ -166,5 +166,15 @@ code {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+.container {
+  @apply mx-auto px-8;
+}
+
+@media (max-width: 640px) {
+  .container {
+    @apply px-4;
   }
 }

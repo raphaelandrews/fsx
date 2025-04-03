@@ -12,10 +12,10 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as PathlessLayoutImport } from './routes/_pathlessLayout'
-import { Route as PostsRouteImport } from './routes/posts.route'
+import { Route as PostsRouteImport } from './routes/posts/route'
 import { Route as IndexImport } from './routes/index'
-import { Route as PostsIndexImport } from './routes/posts.index'
-import { Route as PostsPostIdImport } from './routes/posts.$postId'
+import { Route as PostsIndexImport } from './routes/posts/index'
+import { Route as PostsPostIdImport } from './routes/posts/$postId'
 import { Route as PathlessLayoutNestedLayoutImport } from './routes/_pathlessLayout/_nested-layout'
 import { Route as PathlessLayoutNestedLayoutRouteBImport } from './routes/_pathlessLayout/_nested-layout/route-b'
 import { Route as PathlessLayoutNestedLayoutRouteAImport } from './routes/_pathlessLayout/_nested-layout/route-a'
@@ -268,7 +268,7 @@ export const routeTree = rootRoute
       "filePath": "index.tsx"
     },
     "/posts": {
-      "filePath": "posts.route.tsx",
+      "filePath": "posts/route.tsx",
       "children": [
         "/posts/$postId",
         "/posts/"
@@ -289,11 +289,11 @@ export const routeTree = rootRoute
       ]
     },
     "/posts/$postId": {
-      "filePath": "posts.$postId.tsx",
+      "filePath": "posts/$postId.tsx",
       "parent": "/posts"
     },
     "/posts/": {
-      "filePath": "posts.index.tsx",
+      "filePath": "posts/index.tsx",
       "parent": "/posts"
     },
     "/_pathlessLayout/_nested-layout/route-a": {

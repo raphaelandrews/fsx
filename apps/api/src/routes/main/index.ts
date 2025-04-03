@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import playersRoute from "./players-route";
-import postsRoute from "./posts";
+import postsRoute from "./posts-route";
 
 export const mainRoutes = new Hono();
 

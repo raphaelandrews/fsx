@@ -44,6 +44,19 @@ app.use(
   })
 );
 
+app.use(
+  "/api/*",
+  cors({
+    origin: (origin, _) => {
+      if (allowedOrigins.includes(origin)) {
+        return origin;
+      }
+      return undefined;
+    },
+    credentials: true,
+  })
+);
+
 app.use("*", async (c, next) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
