@@ -13,7 +13,7 @@ import {
 import { PostNotFoundError } from "@/actions/posts/posts";
 import { postQueryOptions } from "@/actions/posts/postQueryOptions";
 
-export const Route = createFileRoute("/posts/$postId")({
+export const Route = createFileRoute("/noticias/$noticiaId")({
   loader: ({ context: { queryClient }, params: { postId } }) => {
     return queryClient.ensureQueryData(postQueryOptions(postId));
   },

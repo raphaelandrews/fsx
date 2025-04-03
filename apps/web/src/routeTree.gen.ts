@@ -12,10 +12,10 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as PathlessLayoutImport } from './routes/_pathlessLayout'
-import { Route as PostsRouteImport } from './routes/posts/route'
+import { Route as NoticiasRouteImport } from './routes/noticias/route'
 import { Route as IndexImport } from './routes/index'
-import { Route as PostsIndexImport } from './routes/posts/index'
-import { Route as PostsPostIdImport } from './routes/posts/$postId'
+import { Route as NoticiasIndexImport } from './routes/noticias/index'
+import { Route as NoticiasNoticiaIdImport } from './routes/noticias/$noticiaId'
 import { Route as PathlessLayoutNestedLayoutImport } from './routes/_pathlessLayout/_nested-layout'
 import { Route as PathlessLayoutNestedLayoutRouteBImport } from './routes/_pathlessLayout/_nested-layout/route-b'
 import { Route as PathlessLayoutNestedLayoutRouteAImport } from './routes/_pathlessLayout/_nested-layout/route-a'
@@ -27,9 +27,9 @@ const PathlessLayoutRoute = PathlessLayoutImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const PostsRouteRoute = PostsRouteImport.update({
-  id: '/posts',
-  path: '/posts',
+const NoticiasRouteRoute = NoticiasRouteImport.update({
+  id: '/noticias',
+  path: '/noticias',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -39,16 +39,16 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const PostsIndexRoute = PostsIndexImport.update({
+const NoticiasIndexRoute = NoticiasIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => PostsRouteRoute,
+  getParentRoute: () => NoticiasRouteRoute,
 } as any)
 
-const PostsPostIdRoute = PostsPostIdImport.update({
-  id: '/$postId',
-  path: '/$postId',
-  getParentRoute: () => PostsRouteRoute,
+const NoticiasNoticiaIdRoute = NoticiasNoticiaIdImport.update({
+  id: '/$noticiaId',
+  path: '/$noticiaId',
+  getParentRoute: () => NoticiasRouteRoute,
 } as any)
 
 const PathlessLayoutNestedLayoutRoute = PathlessLayoutNestedLayoutImport.update(
@@ -83,11 +83,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/posts': {
-      id: '/posts'
-      path: '/posts'
-      fullPath: '/posts'
-      preLoaderRoute: typeof PostsRouteImport
+    '/noticias': {
+      id: '/noticias'
+      path: '/noticias'
+      fullPath: '/noticias'
+      preLoaderRoute: typeof NoticiasRouteImport
       parentRoute: typeof rootRoute
     }
     '/_pathlessLayout': {
@@ -104,19 +104,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PathlessLayoutNestedLayoutImport
       parentRoute: typeof PathlessLayoutImport
     }
-    '/posts/$postId': {
-      id: '/posts/$postId'
-      path: '/$postId'
-      fullPath: '/posts/$postId'
-      preLoaderRoute: typeof PostsPostIdImport
-      parentRoute: typeof PostsRouteImport
+    '/noticias/$noticiaId': {
+      id: '/noticias/$noticiaId'
+      path: '/$noticiaId'
+      fullPath: '/noticias/$noticiaId'
+      preLoaderRoute: typeof NoticiasNoticiaIdImport
+      parentRoute: typeof NoticiasRouteImport
     }
-    '/posts/': {
-      id: '/posts/'
+    '/noticias/': {
+      id: '/noticias/'
       path: '/'
-      fullPath: '/posts/'
-      preLoaderRoute: typeof PostsIndexImport
-      parentRoute: typeof PostsRouteImport
+      fullPath: '/noticias/'
+      preLoaderRoute: typeof NoticiasIndexImport
+      parentRoute: typeof NoticiasRouteImport
     }
     '/_pathlessLayout/_nested-layout/route-a': {
       id: '/_pathlessLayout/_nested-layout/route-a'
@@ -137,18 +137,18 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-interface PostsRouteRouteChildren {
-  PostsPostIdRoute: typeof PostsPostIdRoute
-  PostsIndexRoute: typeof PostsIndexRoute
+interface NoticiasRouteRouteChildren {
+  NoticiasNoticiaIdRoute: typeof NoticiasNoticiaIdRoute
+  NoticiasIndexRoute: typeof NoticiasIndexRoute
 }
 
-const PostsRouteRouteChildren: PostsRouteRouteChildren = {
-  PostsPostIdRoute: PostsPostIdRoute,
-  PostsIndexRoute: PostsIndexRoute,
+const NoticiasRouteRouteChildren: NoticiasRouteRouteChildren = {
+  NoticiasNoticiaIdRoute: NoticiasNoticiaIdRoute,
+  NoticiasIndexRoute: NoticiasIndexRoute,
 }
 
-const PostsRouteRouteWithChildren = PostsRouteRoute._addFileChildren(
-  PostsRouteRouteChildren,
+const NoticiasRouteRouteWithChildren = NoticiasRouteRoute._addFileChildren(
+  NoticiasRouteRouteChildren,
 )
 
 interface PathlessLayoutNestedLayoutRouteChildren {
@@ -183,10 +183,10 @@ const PathlessLayoutRouteWithChildren = PathlessLayoutRoute._addFileChildren(
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/posts': typeof PostsRouteRouteWithChildren
+  '/noticias': typeof NoticiasRouteRouteWithChildren
   '': typeof PathlessLayoutNestedLayoutRouteWithChildren
-  '/posts/$postId': typeof PostsPostIdRoute
-  '/posts/': typeof PostsIndexRoute
+  '/noticias/$noticiaId': typeof NoticiasNoticiaIdRoute
+  '/noticias/': typeof NoticiasIndexRoute
   '/route-a': typeof PathlessLayoutNestedLayoutRouteARoute
   '/route-b': typeof PathlessLayoutNestedLayoutRouteBRoute
 }
@@ -194,8 +194,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '': typeof PathlessLayoutNestedLayoutRouteWithChildren
-  '/posts/$postId': typeof PostsPostIdRoute
-  '/posts': typeof PostsIndexRoute
+  '/noticias/$noticiaId': typeof NoticiasNoticiaIdRoute
+  '/noticias': typeof NoticiasIndexRoute
   '/route-a': typeof PathlessLayoutNestedLayoutRouteARoute
   '/route-b': typeof PathlessLayoutNestedLayoutRouteBRoute
 }
@@ -203,11 +203,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/posts': typeof PostsRouteRouteWithChildren
+  '/noticias': typeof NoticiasRouteRouteWithChildren
   '/_pathlessLayout': typeof PathlessLayoutRouteWithChildren
   '/_pathlessLayout/_nested-layout': typeof PathlessLayoutNestedLayoutRouteWithChildren
-  '/posts/$postId': typeof PostsPostIdRoute
-  '/posts/': typeof PostsIndexRoute
+  '/noticias/$noticiaId': typeof NoticiasNoticiaIdRoute
+  '/noticias/': typeof NoticiasIndexRoute
   '/_pathlessLayout/_nested-layout/route-a': typeof PathlessLayoutNestedLayoutRouteARoute
   '/_pathlessLayout/_nested-layout/route-b': typeof PathlessLayoutNestedLayoutRouteBRoute
 }
@@ -216,22 +216,22 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/posts'
+    | '/noticias'
     | ''
-    | '/posts/$postId'
-    | '/posts/'
+    | '/noticias/$noticiaId'
+    | '/noticias/'
     | '/route-a'
     | '/route-b'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '' | '/posts/$postId' | '/posts' | '/route-a' | '/route-b'
+  to: '/' | '' | '/noticias/$noticiaId' | '/noticias' | '/route-a' | '/route-b'
   id:
     | '__root__'
     | '/'
-    | '/posts'
+    | '/noticias'
     | '/_pathlessLayout'
     | '/_pathlessLayout/_nested-layout'
-    | '/posts/$postId'
-    | '/posts/'
+    | '/noticias/$noticiaId'
+    | '/noticias/'
     | '/_pathlessLayout/_nested-layout/route-a'
     | '/_pathlessLayout/_nested-layout/route-b'
   fileRoutesById: FileRoutesById
@@ -239,13 +239,13 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PostsRouteRoute: typeof PostsRouteRouteWithChildren
+  NoticiasRouteRoute: typeof NoticiasRouteRouteWithChildren
   PathlessLayoutRoute: typeof PathlessLayoutRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PostsRouteRoute: PostsRouteRouteWithChildren,
+  NoticiasRouteRoute: NoticiasRouteRouteWithChildren,
   PathlessLayoutRoute: PathlessLayoutRouteWithChildren,
 }
 
@@ -260,18 +260,18 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/posts",
+        "/noticias",
         "/_pathlessLayout"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/posts": {
-      "filePath": "posts/route.tsx",
+    "/noticias": {
+      "filePath": "noticias/route.tsx",
       "children": [
-        "/posts/$postId",
-        "/posts/"
+        "/noticias/$noticiaId",
+        "/noticias/"
       ]
     },
     "/_pathlessLayout": {
@@ -288,13 +288,13 @@ export const routeTree = rootRoute
         "/_pathlessLayout/_nested-layout/route-b"
       ]
     },
-    "/posts/$postId": {
-      "filePath": "posts/$postId.tsx",
-      "parent": "/posts"
+    "/noticias/$noticiaId": {
+      "filePath": "noticias/$noticiaId.tsx",
+      "parent": "/noticias"
     },
-    "/posts/": {
-      "filePath": "posts/index.tsx",
-      "parent": "/posts"
+    "/noticias/": {
+      "filePath": "noticias/index.tsx",
+      "parent": "/noticias"
     },
     "/_pathlessLayout/_nested-layout/route-a": {
       "filePath": "_pathlessLayout/_nested-layout/route-a.tsx",

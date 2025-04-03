@@ -3,7 +3,7 @@ import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
 
 import { postsQueryOptions } from "@/actions/posts/postsQueryOptions";
 
-export const Route = createFileRoute("/posts")({
+export const Route = createFileRoute("/noticias")({
   loader: ({ context: { queryClient } }) =>
     queryClient.ensureQueryData(postsQueryOptions),
   component: PostsLayoutComponent,
@@ -21,9 +21,9 @@ function PostsLayoutComponent() {
             return (
               <li key={post.id} className="whitespace-nowrap">
                 <Link
-                  to="/posts/$postId"
+                  to="/noticias/$noticiaId"
                   params={{
-                    postId: post.id,
+                    noticiaId: post.id,
                   }}
                   className="block py-1 text-blue-600 hover:opacity-75"
                   activeProps={{ className: "font-bold underline" }}

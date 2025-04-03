@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const PostCard = ({ id, image, title }: PostCardType) => {
   return (
-    <Link to="/posts/$postId" params={{ postId: id }}>
+    <Link to="/noticias/$noticiaId" params={{ noticiaId: id }}>
       <Card className="flex flex-col gap-2 p-0 border-none shadow-none bg-transparent">
         <CardHeader className="p-0 gap-0 rounded-lg overflow-hidden">
           <img

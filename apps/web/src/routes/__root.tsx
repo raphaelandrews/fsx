@@ -7,6 +7,9 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 
+import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
+
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
@@ -24,7 +27,11 @@ export const Route = createRootRouteWithContext<{
 function RootComponent() {
   return (
     <>
-      <Outlet />
+      <Header />
+      <div className="container relative min-h-[calc(100vh-9.5rem)]">
+        <Outlet />
+      </div>
+      <Footer className="container flex-col justify-between md:flex-row" />
       <ReactQueryDevtools buttonPosition="top-right" />
       <TanStackRouterDevtools position="bottom-right" />
     </>
