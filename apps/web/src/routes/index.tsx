@@ -1,6 +1,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { FileQuestionIcon, FlameIcon, NewspaperIcon, type LucideIcon } from "lucide-react";
+import {
+  BarChart2Icon,
+  FileQuestionIcon,
+  FlameIcon,
+  NewspaperIcon,
+  type LucideIcon,
+} from "lucide-react";
 
 import { postsQueryOptions } from "@/actions/posts/postsQueryOptions";
 import { cn } from "@/lib/utils";
@@ -67,6 +73,15 @@ function Home() {
             />
           ))}
         </div>
+      </HomeSection>
+
+      <HomeSection
+        label="Rating"
+        href={"/ratings"}
+        icon={BarChart2Icon}
+        main={false}
+      >
+        <DataTableTabs />
       </HomeSection>
 
       <HomeSection label="FAQ" icon={FileQuestionIcon} main={false}>
