@@ -178,9 +178,3 @@ code {
     @apply px-4;
   }
 }
-
-@media (min-width: 1440px) {
-  .container {
-    @apply max-w-[1400px];
-  }
-}

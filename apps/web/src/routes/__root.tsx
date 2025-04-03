@@ -28,7 +28,7 @@ function RootComponent() {
   return (
     <>
       <Header />
-      <div className="container relative min-h-[calc(100vh-9.5rem)]">
+      <div className="container relative xl:!max-w-[1400px] min-h-[calc(100vh-9.5rem)]">
         <Outlet />
       </div>
       <Footer className="container flex-col justify-between md:flex-row" />
