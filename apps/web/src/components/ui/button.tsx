@@ -21,10 +21,8 @@ const buttonVariants = cva(
         card: "bg-secondary dark:bg-primary-foreground/60 text-secondary-foreground dark:text-primary shadow hover:bg-secondary/80 dark:hover:bg-primary-foreground/90",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        freshTeal:
-          "bg-teal-950 text-teal-400 gap-1.5 border border-teal-600 shadow hover:border-teal-950",
-        freshSky:
-          "bg-sky-950 text-sky-400 gap-1.5 border border-sky-600 shadow hover:border-blue-950",
+        freshTeal:"bg-teal-950 text-teal-400 gap-1.5 border border-teal-600 shadow hover:border-teal-950",
+        freshSky:"bg-sky-950 text-sky-400 gap-1.5 border border-sky-600 shadow hover:border-blue-950",
       },
       size: {
         default: "h-9 px-4 py-2",

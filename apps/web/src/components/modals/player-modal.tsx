@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 
 import { ExternalLink, VerifiedIcon } from "lucide-react";
 import {
@@ -61,8 +61,10 @@ interface Props {
 }
 
 const PlayerModal = ({ id, open, setOpen }: Props) => {
-  const playerQuery = useSuspenseQuery(playerQueryOptions(id));
+  // Use regular useQuery instead of useSuspenseQuery to avoid causing suspense boundaries issues with the modal
+  const playerQuery = useQuery(playerQueryOptions(id));
   const player = playerQuery.data;
+  const [selectedRatingType, setSelectedRatingType] = useState("rapid");
 
   const useGradients = () => {
     const [headerGradient, avatarGradient] = useMemo(
@@ -110,10 +112,32 @@ const PlayerModal = ({ id, open, setOpen }: Props) => {
     );
   }, [player?.playersToTitles]);
 
-  const [selectedRatingType, setSelectedRatingType] = useState("rapid");
+  // If we're loading and the modal is open, show a loading state inside the modal
+  if (playerQuery.isLoading) {
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="[&>button#close-dialog]:top-1 [&>button#close-dialog]:right-1 gap-0 w-[90%] max-w-[500px] h-[80vh] overflow-y-auto overflow-x-hidden">
+          <div className="flex flex-col items-center justify-center h-full">
+            <Skeleton className="w-20 h-20 rounded-full mb-4" />
+            <Skeleton className="w-48 h-6 mb-2" />
+            <Skeleton className="w-32 h-4" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
-  if (!player) {
-    return null;
+  // If there's an error or no player data, handle it gracefully
+  if (playerQuery.isError || !player) {
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="[&>button#close-dialog]:top-1 [&>button#close-dialog]:right-1 gap-0 w-[90%] max-w-[500px] h-[80vh] overflow-y-auto overflow-x-hidden">
+          <div className="flex flex-col items-center justify-center h-full">
+            <p>Error loading player data. Please try again.</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
   }
 
   return (
@@ -449,33 +473,33 @@ const getFillColorVariation = (
   isLowest: boolean
 ) => {
   if (isHighest && variation > 0) {
-    return "hsl(var(--chart-5))";
+    return "var(--chart-5)";
   }
 
   if (isLowest && variation < 0) {
-    return "hsl(var(--chart-6))";
+    return "var(--chart-6)";
   }
 
   if (variation < -20) {
-    return "hsl(var(--chart-3))";
+    return "var(--chart-3)";
   }
   if (variation < 0) {
-    return "hsl(var(--chart-4))";
+    return "var(--chart-4)";
   }
   if (variation >= 20) {
-    return "hsl(var(--chart-1))";
+    return "var(--chart-1)";
   }
-  return "hsl(var(--chart-2))";
+  return "var(--chart-2)";
 };
 
 const chartConfig = {
   variation: {
     label: "Variação",
-    color: "hsl(var(--chart-5))",
+    color: "var(--chart-5)",
   },
   totalRating: {
     label: "Evolução do rating",
-    color: "hsl(var(--chart-5))",
+    color: "var(--chart-5)",
   },
 } satisfies ChartConfig;
 
@@ -521,7 +545,7 @@ export function VariationChart({
         />
         <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
         <ChartLegend content={<ChartLegendContent className="-mt-6" />} />
-        <Bar dataKey="variation" fill="hsl(var(--chart-5))" radius={4}>
+        <Bar dataKey="variation" fill="var(--chart-5)" radius={4}>
           {chartData.map((entry) => (
             <Cell
               key={`${entry.name}-${entry.variation}`}
@@ -592,7 +616,7 @@ export function TotalRatingChart({
         <Line
           dataKey="totalRating"
           type="natural"
-          stroke="hsl(var(--chart-1))"
+          stroke="var(--chart-1)"
           strokeWidth={2}
           dot={(props) => {
             return (
@@ -601,7 +625,7 @@ export function TotalRatingChart({
                 cy={props.cy}
                 r={4}
                 stroke="none"
-                fill="hsl(var(--chart-1))"
+                fill="var(--chart-1)"
               />
             );
           }}

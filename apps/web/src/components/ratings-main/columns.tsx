@@ -25,8 +25,8 @@ export const columnsClassic: ColumnDef<TopPlayerType>[] = [
     ),
     cell: ({ row }) => {
       const playerTitles = row.original.playersToTitles;
-      if (playerTitles && playerTitles.length > 0 && playerTitles[0].titles) {
-        const shortTitle = playerTitles[0].titles.shortTitle;
+      if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
+        const shortTitle = playerTitles[0].title.shortTitle;
         return (
           <Actions
             id={row.original.id}
@@ -82,8 +82,8 @@ export const columnsRapid: ColumnDef<TopPlayerType>[] = [
     ),
     cell: ({ row }) => {
       const playerTitles = row.original.playersToTitles;
-      if (playerTitles && playerTitles.length > 0 && playerTitles[0].titles) {
-        const shortTitle = playerTitles[0].titles.shortTitle;
+      if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
+        const shortTitle = playerTitles[0].title.shortTitle;
         return (
           <Actions
             id={row.original.id}
@@ -139,8 +139,8 @@ export const columnsBlitz: ColumnDef<TopPlayerType>[] = [
     ),
     cell: ({ row }) => {
       const playerTitles = row.original.playersToTitles;
-      if (playerTitles && playerTitles.length > 0 && playerTitles[0].titles) {
-        const shortTitle = playerTitles[0].titles.shortTitle;
+      if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
+        const shortTitle = playerTitles[0].title.shortTitle;
         return (
           <Actions
             id={row.original.id}

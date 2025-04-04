@@ -67,7 +67,7 @@ export const Actions = ({
         </div>
       </div>
 
-      {open && <PlayerModal id={id} open={open} setOpen={setOpen} />}
+      <PlayerModal id={id} open={open} setOpen={setOpen} />
     </>
   );
 };

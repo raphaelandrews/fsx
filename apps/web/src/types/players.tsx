@@ -83,20 +83,20 @@ export type TopPlayerType = {
   rapid: number;
   blitz: number;
   imageUrl?: string | null;
-  locations?: {
+  location?: {
     flag?: string | null;
     name: string;
   } | null;
   defendingChampions?:
     | {
-        championships: {
+        championship: {
           name: string;
         };
       }[]
     | null;
   playersToTitles?:
     | {
-        titles: {
+        title: {
           title: string;
           shortTitle: string;
           type: string;
