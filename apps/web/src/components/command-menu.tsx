@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { DialogProps } from "@radix-ui/react-dialog";
 import { LaptopIcon, MoonIcon, SearchIcon, SunIcon, User } from "lucide-react";
 
-import { playerQueryOptions } from "@/actions/players/playersQueryOptions";
+import { playerQueryOptions, searchPlayersQueryOptions } from "@/actions/players/playersQueryOptions";
 import { cn } from "@/lib/utils";
 
 import { useTheme } from "@/components/theme-provider";
@@ -37,7 +37,7 @@ export function CommandMenu({ ...props }: DialogProps) {
   const [value, setValue] = React.useState("");
 
   // Fetch players using TanStack Query
-  const { data: players, isLoading } = useSuspenseQuery(playerQueryOptions);
+  const { data: players, isLoading } = useSuspenseQuery(searchPlayersQueryOptions);
 
   // Filter players based on search input
   const filteredPlayers = React.useMemo(() => {

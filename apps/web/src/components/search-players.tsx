@@ -4,7 +4,7 @@ import type { DialogProps } from "@radix-ui/react-dialog";
 import { SearchIcon, User } from "lucide-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { playerQueryOptions } from "@/actions/players/playersQueryOptions";
+import { playerQueryOptions, searchPlayersQueryOptions } from "@/actions/players/playersQueryOptions";
 import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ export function SearchPlayers({ ...props }: DialogProps) {
   const [value, setValue] = React.useState("");
 
   // Fetch players using TanStack Query
-  const { data: players, isLoading } = useSuspenseQuery(playerQueryOptions);
+  const { data: players, isLoading } = useSuspenseQuery(searchPlayersQueryOptions);
 
   // Filter players based on search input
   const filteredPlayers = React.useMemo(() => {

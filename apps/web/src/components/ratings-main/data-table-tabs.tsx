@@ -1,124 +1,56 @@
-"use client"
-
-import { useEffect, useState } from "react";
-import { getPlayersTop } from "@/actions/get-players";
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable } from "./data-table";
 import { columnsBlitz, columnsClassic, columnsRapid } from "./columns";
-import type { Player } from "@/types";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { topPlayersQueryOptions } from "@/actions/players/playersQueryOptions";
+import { useState } from "react";
+import type { TopPlayerDataType } from "@/types";
 
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+type TabValue = "rapid" | "classic" | "blitz";
+type TabKey = keyof TopPlayerDataType;
+
+const tabMap: Record<TabValue, TabKey> = {
+  blitz: "topBlitz",
+  rapid: "topRapid",
+  classic: "topClassic",
+} as const;
 
 const DataTableTabs = () => {
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [loading, setLoading] = useState(true);
+  const topPlayersQuery = useSuspenseQuery(topPlayersQueryOptions);
+  const toPlayers = topPlayersQuery.data as unknown as TopPlayerDataType;
+  const [currentTab, setCurrentTab] = useState<TabValue>("rapid");
 
-  useEffect(() => {
-    const getData = async () => {
-      const res = await getPlayersTop();
-      setPlayers(res);
-      setLoading(false);
-    };
-
-    getData();
-  }, []);
-
-  const sortData = (res: Player[], rating: keyof Player) => {
-    const sortedData = [...res].sort(
-      (a, b) => (b[rating] as number) - (a[rating] as number)
-    );
-    setPlayers(sortedData);
-    setLoading(false);
-  };
-  
+  const currentData = toPlayers[tabMap[currentTab]];
+console.log(currentData)
   return (
-    <Tabs defaultValue="rapid">
+    <Tabs
+      value={currentTab}
+      onValueChange={(v) => setCurrentTab(v as TabValue)}
+    >
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 mb-4">
         <TabsList>
-          <TabsTrigger
-            value="classic"
-            className="w-20 sm:w-24"
-            onClick={() => sortData(players, "classic")}
-          >
+          <TabsTrigger value="classic" className="w-20 sm:w-24">
             Clássico
           </TabsTrigger>
-          <TabsTrigger
-            value="rapid"
-            className="w-20 sm:w-24"
-            onClick={() => sortData(players, "rapid")}
-          >
+          <TabsTrigger value="rapid" className="w-20 sm:w-24">
             Rápido
           </TabsTrigger>
-          <TabsTrigger
-            value="blitz"
-            className="w-20 sm:w-24"
-            onClick={() => sortData(players, "blitz")}
-          >
+          <TabsTrigger value="blitz" className="w-20 sm:w-24">
             Blitz
           </TabsTrigger>
         </TabsList>
       </div>
 
       <TabsContent value="classic">
-        {loading ? (
-          <div className="w-full h-full mt-6">
-            <Skeleton className="w-full h-[40px] aspect-square rounded-xl" />
-            <div className="flex flex-col gap-2 mt-3">
-              {[...Array(6)].map((_) => (
-                <Skeleton
-                  key={crypto.randomUUID()}
-                  className="h-[32px] aspect-square rounded-xl"
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <DataTable
-            data={players}
-            columns={columnsClassic}
-          />
-        )}
+        <DataTable data={currentData} columns={columnsClassic} />
       </TabsContent>
+
       <TabsContent value="rapid">
-        {loading ? (
-          <div className="w-full h-full mt-6">
-            <Skeleton className="w-full h-[40px] aspect-square rounded-xl" />
-            <div className="flex flex-col gap-2 mt-3">
-              {[...Array(6)].map((_) => (
-                <Skeleton
-                  key={crypto.randomUUID()}
-                  className="h-[32px] aspect-square rounded-xl"
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <DataTable
-            data={players}
-            columns={columnsRapid}
-          />
-        )}
+        <DataTable data={currentData} columns={columnsRapid} />
       </TabsContent>
+
       <TabsContent value="blitz">
-        {loading ? (
-          <div className="w-full h-full mt-6">
-            <Skeleton className="w-full h-[40px] aspect-square rounded-xl" />
-            <div className="flex flex-col gap-2 mt-3">
-              {[...Array(6)].map((_) => (
-                <Skeleton
-                  key={crypto.randomUUID()}
-                  className="h-[32px] aspect-square rounded-xl"
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <DataTable
-            data={players}
-            columns={columnsBlitz}
-          />
-        )}
+        <DataTable data={currentData} columns={columnsBlitz} />
       </TabsContent>
     </Tabs>
   );

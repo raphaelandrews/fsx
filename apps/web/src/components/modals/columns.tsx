@@ -7,7 +7,7 @@ export const columns: ColumnDef<any>[] = [
     cell: ({ row }) => {
       return (
         <p className="font-medium whitespace-nowrap">
-          {row.original.tournaments.name}
+          {row.original.tournament.name}
           {/*{FormatTournament(row.original.tournamentID)}*/}
         </p>
       );
@@ -19,7 +19,7 @@ export const columns: ColumnDef<any>[] = [
     cell: ({ row }) => {
       return (
         <div className="font-medium">
-          {row.original.old_rating}
+          {row.original.oldRating}
           <span
             className={`${FormatVariationColor(row.original.variation)} ml-2`}
           >
@@ -34,7 +34,7 @@ export const columns: ColumnDef<any>[] = [
     accessorKey: "ratingType",
     header: "Tipo",
     cell: ({ row }) => {
-      return <p className="font-medium">{FormatRatingType(row.original.rating_type)}</p>;
+      return <p className="font-medium">{FormatRatingType(row.original.ratingType)}</p>;
     },
   },
 ];

@@ -2,12 +2,12 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 
-import type { Player, PlayerMain } from "@/types";
+import type { Player, TopPlayerType } from "@/types";
 
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { Actions } from "./actions";
 
-export const columnsClassic: ColumnDef<PlayerMain>[] = [
+export const columnsClassic: ColumnDef<TopPlayerType>[] = [
   {
     id: "index",
     header: ({ column }) => <DataTableColumnHeader column={column} title="#" />,
@@ -24,17 +24,17 @@ export const columnsClassic: ColumnDef<PlayerMain>[] = [
       <DataTableColumnHeader column={column} title="Nome" />
     ),
     cell: ({ row }) => {
-      const playerTitles = row.original.players_to_titles;
+      const playerTitles = row.original.playersToTitles;
       if (playerTitles && playerTitles.length > 0 && playerTitles[0].titles) {
-        const shortTitle = playerTitles[0].titles.short_title;
+        const shortTitle = playerTitles[0].titles.shortTitle;
         return (
           <Actions
             id={row.original.id}
             name={row.original.name}
             nickname={row.original.nickname}
-            image={row.original.image_url}
+            image={row.original.imageUrl}
             shortTitle={shortTitle}
-            defendingChampions={row.original.defending_champions}
+            defendingChampions={row.original.defendingChampions}
           />
         );
       }
@@ -43,8 +43,8 @@ export const columnsClassic: ColumnDef<PlayerMain>[] = [
           id={row.original.id}
           name={row.original.name}
           nickname={row.original.nickname}
-          image={row.original.image_url}
-          defendingChampions={row.original.defending_champions}
+          image={row.original.imageUrl}
+          defendingChampions={row.original.defendingChampions}
         />
       );
     },
@@ -64,7 +64,7 @@ export const columnsClassic: ColumnDef<PlayerMain>[] = [
   },
 ];
 
-export const columnsRapid: ColumnDef<Player>[] = [
+export const columnsRapid: ColumnDef<TopPlayerType>[] = [
   {
     id: "index",
     header: ({ column }) => <DataTableColumnHeader column={column} title="#" />,
@@ -81,17 +81,17 @@ export const columnsRapid: ColumnDef<Player>[] = [
       <DataTableColumnHeader column={column} title="Nome" />
     ),
     cell: ({ row }) => {
-      const playerTitles = row.original.players_to_titles;
+      const playerTitles = row.original.playersToTitles;
       if (playerTitles && playerTitles.length > 0 && playerTitles[0].titles) {
-        const shortTitle = playerTitles[0].titles.short_title;
+        const shortTitle = playerTitles[0].titles.shortTitle;
         return (
           <Actions
             id={row.original.id}
             name={row.original.name}
             nickname={row.original.nickname}
-            image={row.original.image_url}
+            image={row.original.imageUrl}
             shortTitle={shortTitle}
-            defendingChampions={row.original.defending_champions}
+            defendingChampions={row.original.defendingChampions}
           />
         );
       }
@@ -100,8 +100,8 @@ export const columnsRapid: ColumnDef<Player>[] = [
           id={row.original.id}
           name={row.original.name}
           nickname={row.original.nickname}
-          image={row.original.image_url}
-          defendingChampions={row.original.defending_champions}
+          image={row.original.imageUrl}
+          defendingChampions={row.original.defendingChampions}
         />
       );
     },
@@ -121,7 +121,7 @@ export const columnsRapid: ColumnDef<Player>[] = [
   },
 ];
 
-export const columnsBlitz: ColumnDef<Player>[] = [
+export const columnsBlitz: ColumnDef<TopPlayerType>[] = [
   {
     id: "index",
     header: ({ column }) => <DataTableColumnHeader column={column} title="#" />,
@@ -138,17 +138,17 @@ export const columnsBlitz: ColumnDef<Player>[] = [
       <DataTableColumnHeader column={column} title="Nome" />
     ),
     cell: ({ row }) => {
-      const playerTitles = row.original.players_to_titles;
+      const playerTitles = row.original.playersToTitles;
       if (playerTitles && playerTitles.length > 0 && playerTitles[0].titles) {
-        const shortTitle = playerTitles[0].titles.short_title;
+        const shortTitle = playerTitles[0].titles.shortTitle;
         return (
           <Actions
             id={row.original.id}
             name={row.original.name}
             nickname={row.original.nickname}
-            image={row.original.image_url}
+            image={row.original.imageUrl}
             shortTitle={shortTitle}
-            defendingChampions={row.original.defending_champions}
+            defendingChampions={row.original.defendingChampions}
           />
         );
       }
@@ -157,8 +157,8 @@ export const columnsBlitz: ColumnDef<Player>[] = [
           id={row.original.id}
           name={row.original.name}
           nickname={row.original.nickname}
-          image={row.original.image_url}
-          defendingChampions={row.original.defending_champions}
+          image={row.original.imageUrl}
+          defendingChampions={row.original.defendingChampions}
         />
       );
     },

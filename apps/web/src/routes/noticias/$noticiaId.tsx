@@ -11,11 +11,11 @@ import {
 } from "@tanstack/react-query";
 
 import { PostNotFoundError } from "@/actions/posts/posts";
-import { postQueryOptions } from "@/actions/posts/postQueryOptions";
+import { postQueryOptions } from "@/actions/posts/postsQueryOptions";
 
 export const Route = createFileRoute("/noticias/$noticiaId")({
-  loader: ({ context: { queryClient }, params: { postId } }) => {
-    return queryClient.ensureQueryData(postQueryOptions(postId));
+  loader: ({ context: { queryClient }, params: { noticiaId } }) => {
+    return queryClient.ensureQueryData(postQueryOptions(noticiaId));
   },
   errorComponent: PostErrorComponent,
   component: PostComponent,
@@ -48,7 +48,7 @@ export function PostErrorComponent({ error }: ErrorComponentProps) {
 }
 
 function PostComponent() {
-  const postId = Route.useParams().postId;
+  const postId = Route.useParams().noticiaId;
   const { data: post } = useSuspenseQuery(postQueryOptions(postId));
 
   return (

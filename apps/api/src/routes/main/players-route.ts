@@ -1,21 +1,12 @@
-import { championships } from './../../db/schema/championships';
-import { eq, desc, sql } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from 'zod';
 
 import { db } from "@/src/db";
-import { clubs, defendingChampions, locations, players, playersToRoles, playersToTitles, playersToTournaments, roles, titles, tournamentPodiums, tournaments } from "@/src/db/schema";
+import { players } from "@/src/db/schema";
 
 const playersRoute = new Hono();
-
-playersRoute.get("/top-ten-players", async (c) => {
-  const topTenPlayers = await db
-    .select()
-    .from(players)
-    .limit(10)
-  return c.json(topTenPlayers);
-})
 
 playersRoute.get("/search-players", async (c) => {
   const searchPlayers = await db
@@ -28,6 +19,52 @@ playersRoute.get("/search-players", async (c) => {
 
   return c.json(searchPlayers);
 })
+
+const baseConfig = {
+  columns: {
+    id: true,
+    name: true,
+    nickname: true,
+    blitz: true,
+    rapid: true,
+    classic: true,
+    imageUrl: true,
+  },
+  with: {
+    location: { columns: { name: true, flag: true } },
+    defendingChampions: {
+      columns: {},
+      with: { championship: { columns: { name: true } } }
+    },
+    playersToTitles: {
+      columns: {},
+      with: { title: { columns: { title: true, shortTitle: true, type: true } } }
+    }
+  },
+  where: eq(players.active, true)
+};
+
+playersRoute.get("/top-players", async (c) => {
+  const [rapid, classic, blitz] = await Promise.all([
+    db.query.players.findMany({ 
+      ...baseConfig,
+      orderBy: desc(players.rapid),
+      limit: 10
+    }),
+    db.query.players.findMany({ 
+      ...baseConfig,
+      orderBy: desc(players.classic),
+      limit: 10
+    }),
+    db.query.players.findMany({ 
+      ...baseConfig,
+      orderBy: desc(players.blitz),
+      limit: 10
+    })
+  ]);
+
+  return c.json({ topBlitz: blitz, topRapid: rapid, topClassic: classic });
+});
 
 playersRoute.get("/:id", zValidator("param", z.object({ id: z.string().optional() })), async (c) => {
   const { id } = c.req.valid("param");
@@ -70,11 +107,7 @@ playersRoute.get("/:id", zValidator("param", z.object({ id: z.string().optional(
         }
       },
       defendingChampions: {
-        columns: {
-          id: false,
-          playerId: false,
-          championshipId: false
-        },
+        columns: {},
         with: {
           championship: {
             columns: {
@@ -96,6 +129,43 @@ playersRoute.get("/:id", zValidator("param", z.object({ id: z.string().optional(
             }
           },
         },
+      },
+      playersToRoles: {
+        columns: {},
+        with: {
+          role: {
+            columns: {
+              role: true,
+              shortRole: true,
+              type: true
+            }
+          }
+        }
+      },
+      tournamentPodiums: {
+        columns: {
+          place: true
+        },
+        with: {
+          tournament: {
+            columns: {
+              name: true,
+              championshipId: true
+            }
+          }
+        }
+      },
+      playersToTitles: {
+        columns: {},
+        with: {
+          title: {
+            columns: {
+              title: true,
+              shortTitle: true,
+              type: true
+            }
+          }
+        }
       }
     },
   })

@@ -1,8 +1,19 @@
-import { queryOptions } from '@tanstack/react-query'
+import { queryOptions } from "@tanstack/react-query";
 
-import { fetchSearchPlayers } from './players'
+import { fetchPlayer, fetchSearchPlayers, fetchTopPlayers } from "./players";
 
-export const playerQueryOptions = queryOptions({
-  queryKey: ['search-players'],
+export const searchPlayersQueryOptions = queryOptions({
+  queryKey: ["search-players"],
   queryFn: () => fetchSearchPlayers(),
-})
+});
+
+export const playerQueryOptions = (playerId: number) =>
+  queryOptions({
+    queryKey: ["players", { playerId }],
+    queryFn: () => fetchPlayer(playerId),
+  });
+
+export const topPlayersQueryOptions = queryOptions({
+  queryKey: ["top-players"],
+  queryFn: () => fetchTopPlayers(),
+});

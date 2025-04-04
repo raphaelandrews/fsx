@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo, useState } from "react";
 
 import { formatDefendingChampions } from "@/lib/defending-champions";
@@ -16,7 +14,7 @@ interface Props {
   shortTitle?: string | null;
   defendingChampions?:
     | {
-        championships: {
+        championship: {
           name: string;
         };
       }[]
@@ -62,8 +60,8 @@ export const Actions = ({
         </div>
         <div className="flex items-center gap-2">
           {defendingChampions?.map((championship) => (
-            <div key={championship.championships.name}>
-              {formatDefendingChampions(championship.championships.name, 16)}
+            <div key={championship.championship.name}>
+              {formatDefendingChampions(championship.championship.name, 16)}
             </div>
           ))}
         </div>

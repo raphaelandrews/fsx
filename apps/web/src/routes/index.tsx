@@ -22,6 +22,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import DataTableTabs from "@/components/ratings-main/data-table-tabs";
 
 export const Route = createFileRoute("/")({
   loader: ({ context: { queryClient } }) =>
