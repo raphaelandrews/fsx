@@ -10,7 +10,7 @@
     "lint": "next lint --max-warnings 0",
     "check-types": "tsc --noEmit"
   },
-  "dependencies": {
+  "dwependencies": {
     "@repo/ui": "*",
     "next": "^15.2.4",
     "react": "^19.1.0",
