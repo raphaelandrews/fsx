@@ -1,4 +1,4 @@
-import { db } from "@/db";
+import db from "@/db";
 import { unstable_cache } from "./unstable-cache";
 import { count, desc, eq } from "drizzle-orm";
 import { posts } from "@/db/schema";
@@ -38,7 +38,7 @@ export const getFreshNews = unstable_cache(
 export const getPaginatedNews = unstable_cache(
   async (page: number = 1, pageSize: number = 12) => {
     const offset = (page - 1) * pageSize;
-    
+
     const [news, total] = await Promise.all([
       db.query.posts.findMany({
         columns: {
@@ -53,7 +53,7 @@ export const getPaginatedNews = unstable_cache(
         limit: pageSize,
         offset,
       }),
-      
+
       db.select({ count: count() })
         .from(posts)
         .where(eq(posts.published, true))
