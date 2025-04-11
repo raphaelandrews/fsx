@@ -8,17 +8,24 @@ import {
   NewspaperIcon,
 } from "lucide-react";
 
-
-import { getFreshNews } from "@/lib/queries";
+import {
+  getFreshAnnouncements,
+  getFreshNews,
+  getTopPlayers,
+} from "@/lib/queries";
 import { cn } from "@/lib/utils";
+import type { FreshAnnouncements } from "@/schemas/announcements";
 import type { FreshNews } from "@/schemas/posts";
 import { siteConfig } from "@/utils/site";
 
+import AnnouncementLink from "@/components/announcement-link";
 import NewsCard from "@/components/news-card";
 import UpdateRegister from "@/components/update-register";
 import { Announcement } from "@/components/announcement";
 import { Hero } from "@/components/hero";
 import { Faq } from "@/components/faq";
+import { DataTableTabs } from "@/components/ratings-main/data-table-tabs";
+import { TopPlayersSchema } from "@/schemas/players";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -40,8 +47,12 @@ export const metadata: Metadata = {
 };
 
 const Home = async () => {
-  const freshNews = await getFreshNews();
-
+  const [freshNews, freshAnnouncements, topPlayers] = await Promise.all([
+    getFreshNews(),
+    getFreshAnnouncements(),
+    getTopPlayers(), 
+  ]);
+  
   return (
     <>
       <UpdateRegister />
@@ -67,7 +78,7 @@ const Home = async () => {
 
       <HomeSection
         label="Notícias"
-        href={"/noticias/1"}
+        href="/noticias/1"
         icon={NewspaperIcon}
         main={false}
       >
@@ -78,6 +89,34 @@ const Home = async () => {
               id={news.id}
               image={news.image}
               title={news.title}
+            />
+          ))}
+        </div>
+      </HomeSection>
+
+      <HomeSection
+        label="Rating"
+        href={"/ratings"}
+        icon={BarChart2Icon}
+        main={false}
+      >
+        <DataTableTabs topPlayers={topPlayers} />
+      </HomeSection>
+
+      <HomeSection
+        label="Comunicados"
+        href="/comunicados/1"
+        icon={MegaphoneIcon}
+        main={false}
+      >
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 rounded-md">
+          {freshAnnouncements.map((announcement: FreshAnnouncements) => (
+            <AnnouncementLink
+              key={announcement.number}
+              id={announcement.id}
+              year={announcement.year}
+              number={announcement.number}
+              content={announcement.content}
             />
           ))}
         </div>

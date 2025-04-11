@@ -1,3 +1,5 @@
+import stringHash from "string-hash";
+
 const gradients = [
   'linear-gradient(to bottom right, #ef4444, #f97316)', //sunset
   'linear-gradient(to bottom right, #fb7185, #ef4444)', //poppy
@@ -31,7 +33,8 @@ const gradients = [
   'linear-gradient(to bottom right, #0f172a, #334155)', //darkness
 ];
 
-export const getGradient = () => {
-  const randomIndex = Math.floor(Math.random() * gradients.length);
-  return { backgroundImage: gradients[randomIndex] };
+export const getGradient = (seed: string) => {
+  const index = stringHash(seed) % gradients.length;
+  return { backgroundImage: gradients[index] };
 };
+

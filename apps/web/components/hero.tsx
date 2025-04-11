@@ -44,17 +44,17 @@ export function Hero({ id, image, title }: FreshNews) {
   }
 
   return (
-    <Link href={`/noticias/${id}`}>
+    <Link href={`/noticias/${id}`} prefetch={true}>
       <Card className="group border-none shadow-none bg-transparent">
         <CardHeader className="p-0 overflow-hidden">
-        {image && (
-          <img
-            src={image}
-            alt={title}
-            className="w-full rounded-lg transition-opacity duration-300"
-            style={{ opacity: imageLoaded ? 1 : 0 }}
-          />
-        )}
+          {image && (
+            <img
+              src={image}
+              alt={title}
+              className="w-full rounded-lg transition-opacity duration-300"
+              style={{ opacity: imageLoaded ? 1 : 0 }}
+            />
+          )}
         </CardHeader>
         <CardContent className="p-0 pt-2">
           <CardTitle className="font-medium md:text-xl line-clamp-2 webkit-line-clamp-2">

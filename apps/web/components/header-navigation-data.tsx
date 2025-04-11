@@ -87,7 +87,7 @@ export const navigationData: Navigation = () => [
       {
         label: "Comunicados",
         description: "Divulgação de titulações e outras informações.",
-        href: "/comunicados",
+        href: "/comunicados/1",
         icon: Megaphone,
         target: "_self",
       },

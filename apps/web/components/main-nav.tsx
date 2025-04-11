@@ -116,18 +116,20 @@ export function MainNav() {
 }
 
 const NavigationMenuImage = ({ href }: { href: string }) => {
-  const gradient = getGradient();
-
   return (
     <>
       {href === "#" && (
         <div
-          className={`${gradient} relative h-[265px] w-[164px] bg-gradient-to-br from-cyan-500 to-blue-500 overflow-hidden rounded-md border shadow`}
+          className={
+            "relative h-[265px] w-[164px] bg-gradient-to-br from-cyan-500 to-blue-500 overflow-hidden rounded-md border shadow"
+          }
         />
       )}
       {href === "##" && (
         <div
-          className={`${gradient} relative h-[265px] w-[164px] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 overflow-hidden rounded-md border shadow`}
+          className={
+            "relative h-[265px] w-[164px] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 overflow-hidden rounded-md border shadow"
+          }
         />
       )}
     </>
