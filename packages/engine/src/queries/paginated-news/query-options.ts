@@ -8,7 +8,7 @@ interface NewsQueriesConfig {
   defaultItemsPerPage?: number;
 }
 
-export function createNewsQueries(config: NewsQueriesConfig) {
+export function createPaginatedNewsQueries(config: NewsQueriesConfig) {
   const fetchPaginatedNews = async (page = 1) => {
     console.info(`Fetching news page ${page}...`);
     return axios

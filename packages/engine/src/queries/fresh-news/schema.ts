@@ -1,24 +1,27 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { posts } from "~/db/schema";
+
+import { posts } from "../../db/schema";
 
 const baseInsertSchema = createInsertSchema(posts);
 const postsSchema = createSelectSchema(posts);
 
-export const FreshNewsResponseSchema = postsSchema.extend({
-  id: z.string().max(80, "ID should be a valid string and max 80 characters."),
-  title: z.string().max(80, "Title cannot exceed 80 characters."),
-  image: z.string().optional(),
-  content: z.string().max(1000, "Content cannot exceed 1000 characters."),
-  slug: z.string().max(80, "Slug cannot exceed 80 characters."),
-  published: z.boolean(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-}).strict();
+export const FreshNewsResponseSchema = postsSchema
+  .pick({
+    id: true,
+    title: true,
+    image: true,
+    slug: true,
+  })
+  .extend({
+    id: z.string().max(80, "ID should be a valid string and max 80 characters."),
+    title: z.string().max(80, "Title cannot exceed 80 characters."),
+    image: z.string().optional(),
+    slug: z.string().max(80, "Slug cannot exceed 80 characters."),
+  })
+  .strict();
 
-export const SuccessFreshNewsResponseSchema = z.object({
-  posts: z.array(FreshNewsResponseSchema),
-});
+export const SuccessFreshNewsResponseSchema = z.array(FreshNewsResponseSchema);
 
 export const ErrorFreshNewsResponseSchema = z.object({
   error: z.string(),

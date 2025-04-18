@@ -1,8 +1,12 @@
 {
-  "name": "@repo/engine",
+  "name": "@fsx/engine",
   "version": "0.0.0",
   "private": true,
-  "exports": {},
+  "exports": {
+    "./db": "./src/db/index.ts",
+    "./db/schema": "./src/db/schema/index.ts",
+    "./queries": "./src/queries/index.ts"
+  },
   "scripts": {
     "lint": "biome check .",
     "check-types": "tsc --noEmit"

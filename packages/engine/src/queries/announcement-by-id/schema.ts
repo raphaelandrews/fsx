@@ -1,6 +1,7 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { announcements } from "~/db/schema";
+
+import { announcements } from "../../db/schema";
 
 const baseInsertSchema = createInsertSchema(announcements);
 const announcementByIdSchema = createSelectSchema(announcements);

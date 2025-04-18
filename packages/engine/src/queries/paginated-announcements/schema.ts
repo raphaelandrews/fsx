@@ -1,11 +1,12 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { announcements } from "~/db/schema";
+
+import { announcements } from "../../db/schema";
 
 const baseInsertSchema = createInsertSchema(announcements);
 const announcementsSchema = createSelectSchema(announcements);
 
-export const PaginationSchema = z.object({
+export const AnnouncementsPaginationSchema = z.object({
   currentPage: z.number().min(1, "Current page must be at least 1"),
   totalPages: z.number().min(1, "Total pages must be at least 1"),
   totalItems: z.number().min(0, "Total items cannot be negative"),
@@ -26,7 +27,7 @@ export const AnnouncementsResponseSchema = AnnouncementsBaseSchema.extend({
 
 export const PaginatedAnnouncementsResponseSchema = z.object({
   announcements: z.array(AnnouncementsResponseSchema),
-  pagination: PaginationSchema,
+  pagination: AnnouncementsPaginationSchema,
 });
 
 export const AnnouncementsMutationSchema = baseInsertSchema

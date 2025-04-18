@@ -1,14 +1,30 @@
 import { z } from "zod";
 import { createSelectSchema } from "drizzle-zod";
-import { players, locations, defendingChampions, championships, playersToTitles, titles } from "~/db/schema";
+import { players, locations, championships, titles } from "../../db/schema";
 
-const topPlayersSchema = createSelectSchema(players);
+const playerByIdSchema = createSelectSchema(players);
 
 const locationSchema = createSelectSchema(locations);
 const championshipSchema = createSelectSchema(championships);
 const titleSchema = createSelectSchema(titles);
 
-const topPlayerBaseSchema = topPlayersSchema.pick({
+const defendingChampionsSchema = z.object({
+  championship: championshipSchema.pick({
+    name: true,
+  }).extend({
+    name: z.string()
+  })
+}).strict();
+
+const playerToTitleSchema = z.object({
+  title: titleSchema.pick({ type: true, title: true, shortTitle: true }).extend({
+    title: z.string(),
+    shortTitle: z.string(),
+    type: z.enum(["internal", "external"])
+  })
+}).strict();
+
+export const TopPlayerSchema = playerByIdSchema.pick({
   id: true,
   name: true,
   nickname: true,
@@ -16,21 +32,24 @@ const topPlayerBaseSchema = topPlayersSchema.pick({
   rapid: true,
   classic: true,
   imageUrl: true,
-});
-
-const defendingChampionsSchema = createSelectSchema(defendingChampions).extend({
-  championship: championshipSchema.pick({ name: true })
-});
-
-const playerToTitleSchema = createSelectSchema(playersToTitles).extend({
-  title: titleSchema.pick({ type: true, title: true, shortTitle: true })
-});
-
-export const TopPlayerSchema = topPlayerBaseSchema.extend({
-  location: locationSchema.pick({ flag: true, name: true }).nullish(),
-  defendingChampions: z.array(defendingChampionsSchema),
-  playersToTitles: z.array(playerToTitleSchema),
-});
+}).extend({
+  id: z.number().int().positive(),
+  name: z.string().max(100, "Name cannot exceed 100 characters"),
+  nickname: z.string().max(20, "Nickname cannot exceed 20 characters").nullable().optional(),
+  blitz: z.number().int().min(0).max(32767),
+  rapid: z.number().int().min(0).max(32767),
+  classic: z.number().int().min(0).max(32767),
+  imageUrl: z.string().url().nullable().optional(),
+  location: locationSchema.pick({
+    name: true,
+    flag: true,
+  }).extend({
+    name: z.string().max(100, "Name cannot exceed 100 characters"),
+    nickname: z.string().max(20, "Nickname cannot exceed 20 characters").optional(),
+  }).nullable().optional(),
+  defendingChampions: z.array(defendingChampionsSchema).optional(),
+  playersToTitles: z.array(playerToTitleSchema).optional(),
+}).strict();
 
 export const SuccessTopPlayersResponseSchema = z.object({
   topBlitz: z.array(TopPlayerSchema),

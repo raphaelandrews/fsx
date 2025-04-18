@@ -1,6 +1,6 @@
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { players } from "~/db/schema";
+import { players } from "../../db/schema";
 
 const playerSelectSchema = createSelectSchema(players);
 

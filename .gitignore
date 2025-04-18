@@ -11,6 +11,7 @@ node_modules
 .env.development.local
 .env.test.local
 .env.production.local
+*.local
 
 # Testing
 coverage
@@ -24,9 +25,14 @@ coverage
 # Build Outputs
 .next/
 out/
+.output
 build
 dist
-
+dist-ssr
+/build/
+/api/
+/server/build
+/public/build
 
 # Debug
 npm-debug.log*
@@ -36,3 +42,12 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+.cache
+.vinxi
+
+# Sentry Config File
+.env.sentry-build-plugin
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
