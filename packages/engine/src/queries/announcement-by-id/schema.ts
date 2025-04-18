@@ -1,9 +1,8 @@
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 import { announcements } from "../../db/schema";
 
-const baseInsertSchema = createInsertSchema(announcements);
 const announcementByIdSchema = createSelectSchema(announcements);
 
 export const AnnouncementByIdBaseSchema = announcementByIdSchema.extend({
@@ -16,15 +15,6 @@ export const AnnouncementByIdResponseSchema = AnnouncementByIdBaseSchema.extend(
   id: z.number().int(),
 }).partial();
 
-export const AnnouncementMutationSchema = baseInsertSchema
-  .omit({ id: true })
-  .extend({
-    year: z.number().min(1900).max(2100),
-    number: z.string().length(3),
-    content: z.string().max(1000),
-  })
-  .partial();
-
 export const SuccessAnnouncementByIdResponseSchema = AnnouncementByIdResponseSchema;
 
 export const ErrorAnnouncementByIdResponseSchema = z.object({
@@ -32,6 +22,5 @@ export const ErrorAnnouncementByIdResponseSchema = z.object({
 });
 
 export type AnnouncementByIdResponse = z.infer<typeof AnnouncementByIdResponseSchema>;
-export type AnnouncementMutation = z.infer<typeof AnnouncementMutationSchema>;
 export type SuccessAnnouncementByIdResponse = z.infer<typeof SuccessAnnouncementByIdResponseSchema>;
 export type ErrorAnnouncementByIdResponse = z.infer<typeof ErrorAnnouncementByIdResponseSchema>;

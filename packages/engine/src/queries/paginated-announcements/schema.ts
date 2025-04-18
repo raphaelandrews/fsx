@@ -1,9 +1,8 @@
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 import { announcements } from "../../db/schema";
 
-const baseInsertSchema = createInsertSchema(announcements);
 const announcementsSchema = createSelectSchema(announcements);
 
 export const AnnouncementsPaginationSchema = z.object({
@@ -30,23 +29,18 @@ export const PaginatedAnnouncementsResponseSchema = z.object({
   pagination: AnnouncementsPaginationSchema,
 });
 
-export const AnnouncementsMutationSchema = baseInsertSchema
-  .omit({ id: true })
-  .extend({
-    year: z.number().min(1900).max(2100),
-    number: z.string().length(3),
-    content: z.string().max(1000),
-  })
-  .partial();
-
 export const SuccessAnnouncementsResponseSchema = AnnouncementsResponseSchema;
 
 export const ErrorAnnouncementsResponseSchema = z.object({
   error: z.string(),
+  pagination: z.object({
+    currentPage: z.number(),
+    totalPages: z.number(),
+    totalItems: z.number(),
+  }).optional(),
 });
 
 export type AnnouncementsResponse = z.infer<typeof AnnouncementsResponseSchema>;
-export type AnnouncementsMutation = z.infer<typeof AnnouncementsMutationSchema>;
 export type SuccessAnnouncementsResponse = z.infer<typeof SuccessAnnouncementsResponseSchema>;
 export type ErrorAnnouncementsResponse = z.infer<typeof ErrorAnnouncementsResponseSchema>;
 export type PaginatedAnnouncementsResponse = z.infer<typeof PaginatedAnnouncementsResponseSchema>;

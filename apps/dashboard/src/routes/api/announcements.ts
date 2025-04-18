@@ -4,12 +4,15 @@ import {  desc, count } from 'drizzle-orm';
 
 import { db } from '@fsx/engine/db';
 import { announcements } from '@fsx/engine/db/schema';
-import { AnnouncementByIdResponseSchema, AnnouncementsPaginationSchema } from '@fsx/engine/queries';
+import { AnnouncementsPaginationSchema, SuccessAnnouncementsResponseSchema } from '@fsx/engine/queries';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+const corsConfig = {
+  headers: {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400"
+  }
 };
 
 export const APIRoute = createAPIFileRoute('/api/announcements')({
@@ -34,7 +37,7 @@ export const APIRoute = createAPIFileRoute('/api/announcements')({
     if (!paginationResult.success) {
       return json(
         { error: "Invalid pagination parameters", details: paginationResult.error.format() },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsConfig.headers }
       );
     }
 
@@ -43,7 +46,7 @@ export const APIRoute = createAPIFileRoute('/api/announcements')({
     const offset = (pageNumber - 1) * announcementsPerPage;
 
     try {
-      const fetchedAnnouncements = await db.query.announcements.findMany({
+      const fetchAnnouncements = await db.query.announcements.findMany({
         columns: {
           id: true,
           year: true,
@@ -66,8 +69,8 @@ export const APIRoute = createAPIFileRoute('/api/announcements')({
       paginationResult.data.hasNextPage = pageNumber < totalPages;
       paginationResult.data.hasPreviousPage = pageNumber > 1;
 
-      const validatedAnnouncements = fetchedAnnouncements.map((announcement) =>
-        AnnouncementByIdResponseSchema.safeParse(announcement)
+      const validatedAnnouncements = fetchAnnouncements.map((announcement) =>
+        SuccessAnnouncementsResponseSchema.safeParse(announcement)
       );
 
       const invalidAnnouncements = validatedAnnouncements.filter(result => !result.success);
@@ -75,30 +78,30 @@ export const APIRoute = createAPIFileRoute('/api/announcements')({
       if (invalidAnnouncements.length > 0) {
         return json({ error: "Invalid announcement data", details: invalidAnnouncements.map(result => result.error.format()) }, {
           status: 500,
-          headers: corsHeaders,
+          headers: corsConfig.headers,
         });
       }
 
-      if (!fetchedAnnouncements.length) {
+      if (!fetchAnnouncements.length) {
         const errorResponse = {
           error: "No announcements found",
           pagination: paginationResult.data,
         };
-        return json(errorResponse, { status: 404, headers: corsHeaders });
+        return json(errorResponse, { status: 404, headers: corsConfig.headers });
       }
 
       const response = {
-        announcements: fetchedAnnouncements,
+        announcements: fetchAnnouncements,
         pagination: paginationResult.data,
       };
 
-      return json(response, { headers: corsHeaders });
+      return json(response, { headers: corsConfig.headers });
 
     } catch (e) {
       console.error(e);
       return json(
         { error: 'Internal server error' },
-        { status: 500, headers: corsHeaders }
+        { status: 500, headers: corsConfig.headers }
       );
     }
   },
@@ -106,10 +109,7 @@ export const APIRoute = createAPIFileRoute('/api/announcements')({
   OPTIONS: async () => {
     return new Response(null, {
       status: 204,
-      headers: {
-        ...corsHeaders,
-        "Access-Control-Max-Age": "86400",
-      },
+      ...corsConfig
     });
   },
 });

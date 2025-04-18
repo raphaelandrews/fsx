@@ -13,24 +13,23 @@ export const NewsPaginationSchema = z.object({
   hasPreviousPage: z.boolean(),
 });
 
-export const NewsResponseSchema = postsSchema.pick({
-  id: true,
-  title: true,
-  image: true,
-  slug: true,
-  createdAt: true,
-}).extend({
-  id: z.string().max(80),
-  title: z.string().max(80),
+export const NewsBaseSchema = postsSchema.extend({
+  title: z.string().max(80, "Title cannot exceed 80 characters."),
   image: z.string().optional(),
-  slug: z.string().max(80),
+  slug: z.string().max(80, "Slug cannot exceed 80 characters."),
   createdAt: z.string().datetime(),
 }).strict();
+
+export const NewsResponseSchema = NewsBaseSchema.extend({
+  id: z.string().max(80, "ID should be a valid string and max 80 characters."),
+}).partial();
 
 export const PaginatedNewsResponseSchema = z.object({
   news: z.array(NewsResponseSchema),
   pagination: NewsPaginationSchema,
 });
+
+export const SuccessNewsResponseSchema = NewsResponseSchema;
 
 export const ErrorNewsResponseSchema = z.object({
   error: z.string(),
@@ -41,5 +40,7 @@ export const ErrorNewsResponseSchema = z.object({
   }).optional(),
 });
 
-export type PaginatedNewsResponse = z.infer<typeof PaginatedNewsResponseSchema>;
+export type NewsResponse = z.infer<typeof NewsResponseSchema>;
+export type SuccessNewsResponse = z.infer<typeof SuccessNewsResponseSchema>;
 export type ErrorNewsResponse = z.infer<typeof ErrorNewsResponseSchema>;
+export type PaginatedNewsResponse = z.infer<typeof PaginatedNewsResponseSchema>;

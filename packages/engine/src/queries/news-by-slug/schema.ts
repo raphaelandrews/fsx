@@ -1,28 +1,21 @@
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 import { posts } from "../../db/schema";
 
 const postsSchema = createSelectSchema(posts);
 
-export const NewsBySlugResponseSchema = postsSchema
-  .pick({
-    id: true,
-    title: true,
-    image: true,
-    content: true,
-    slug: true,
-    createdAt: true,
-  })
-  .extend({
-    id: z.string().max(80),
-    title: z.string().max(80),
-    image: z.string().optional(),
-    content: z.string(),
-    slug: z.string().max(80),
-    createdAt: z.string().datetime(), 
-  })
-  .strict();
+export const NewsBySlugBaseSchema = postsSchema.extend({
+  title: z.string().max(80),
+  image: z.string().optional(),
+  content: z.string(),
+  slug: z.string().max(80),
+  createdAt: z.string().datetime(),
+}).strict();
+
+export const NewsBySlugResponseSchema = NewsBySlugBaseSchema.extend({
+  id: z.string().max(80, "ID should be a valid string and max 80 characters."),
+}).strict();
 
 export const SuccessNewsBySlugResponseSchema = NewsBySlugResponseSchema.nullable();
 

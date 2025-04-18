@@ -4,13 +4,9 @@ import { players } from "../../db/schema";
 
 const playerSelectSchema = createSelectSchema(players);
 
-export const SearchPlayerBaseSchema = playerSelectSchema.extend({
+export const SearchPlayerResponseSchema = playerSelectSchema.extend({
   id: z.number().int(),
   name: z.string().max(100), 
-}).strict();
-
-export const SearchPlayerResponseSchema = SearchPlayerBaseSchema.extend({
-  id: z.number().int(),
 }).partial();
 
 export const SuccessSearchPlayersResponseSchema = z.array(SearchPlayerResponseSchema);

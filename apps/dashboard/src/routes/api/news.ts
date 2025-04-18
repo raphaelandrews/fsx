@@ -3,7 +3,7 @@ import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { count, desc, eq } from 'drizzle-orm';
 import { db } from '@fsx/engine/db';
 import { posts } from '@fsx/engine/db/schema';
-import { PaginatedNewsResponseSchema, ErrorNewsResponseSchema } from '@fsx/engine/queries';
+import { NewsPaginationSchema, SuccessNewsResponseSchema } from '@fsx/engine/queries';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,9 +13,32 @@ const corsHeaders = {
 
 export const APIRoute = createAPIFileRoute('/api/news')({
   GET: async ({ request }) => {
+    console.info("Fetching news", request.url);
+
     const url = new URL(request.url);
-    const pageNumber = Math.max(1, Number(url.searchParams.get('page')) || 1);
-    const newsPerPage = 12;
+
+    const queryParams = {
+      page: Number(url.searchParams.get('page')) || 1,
+    };
+
+    const paginationResult = NewsPaginationSchema.safeParse({
+      currentPage: queryParams.page,
+      totalPages: 1,
+      totalItems: 0,
+      itemsPerPage: 12,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    });
+
+    if (!paginationResult.success) {
+      return json(
+        { error: "Invalid pagination parameters", details: paginationResult.error.format() },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    const pageNumber = paginationResult.data.currentPage;
+    const newsPerPage = paginationResult.data.itemsPerPage;
     const offset = (pageNumber - 1) * newsPerPage;
 
     try {
@@ -40,51 +63,51 @@ export const APIRoute = createAPIFileRoute('/api/news')({
 
       const totalCount = totalCountResult[0]?.value || 0;
       const totalPages = Math.ceil(totalCount / newsPerPage);
+      paginationResult.data.totalItems = totalCount;
+      paginationResult.data.totalPages = totalPages;
+      paginationResult.data.hasNextPage = pageNumber < totalPages;
+      paginationResult.data.hasPreviousPage = pageNumber > 1;
 
       const formattedNews = fetchedNews.map(news => ({
         ...news,
         createdAt: news.createdAt?.toISOString() ?? new Date().toISOString(),
       }));
 
-      if (formattedNews.length === 0) {
-        const errorResponse = ErrorNewsResponseSchema.parse({
-          error: "No posts found",
-          pagination: {
-            currentPage: pageNumber,
-            totalPages,
-            totalItems: totalCount
-          }
-        });
-        return json(errorResponse, { 
-          status: 404, 
-          headers: corsHeaders 
+      const validatedNews = formattedNews.map((news) =>
+        SuccessNewsResponseSchema.safeParse(news)
+      );
+
+      const invalidNews = validatedNews.filter(result => !result.success);
+
+      if (invalidNews.length > 0) {
+        return json({ error: "Invalid news data", details: invalidNews.map(result => result.error.format()) }, {
+          status: 500,
+          headers: corsHeaders,
         });
       }
 
+      if (!fetchedNews.length) {
+        const errorResponse = {
+          error: "No news found",
+          pagination: paginationResult.data,
+        };
+        return json(errorResponse, { status: 404, headers: corsHeaders });
+      }
+
       const response = {
-        news: formattedNews,
-        pagination: {
-          currentPage: pageNumber,
-          totalPages,
-          totalItems: totalCount,
-          itemsPerPage: newsPerPage,
-          hasNextPage: pageNumber < totalPages,
-          hasPreviousPage: pageNumber > 1
-        }
+        news: fetchedNews,
+        pagination: paginationResult.data,
       };
 
-      const validatedResponse = PaginatedNewsResponseSchema.parse(response);
+      return json(response, { headers: corsHeaders });
 
-      return json(validatedResponse, { 
-        headers: corsHeaders 
-      });
     } catch (e) {
       console.error(e);
-      return json({ 
-        error: 'Internal server error' 
-      }, { 
-        status: 500, 
-        headers: corsHeaders 
+      return json({
+        error: 'Internal server error'
+      }, {
+        status: 500,
+        headers: corsHeaders
       });
     }
   },
