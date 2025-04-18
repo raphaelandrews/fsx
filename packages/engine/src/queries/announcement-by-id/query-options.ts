@@ -5,7 +5,7 @@ import axios from "redaxios";
 import type { AnnouncementByIdResponse } from "./schema";
 
 interface AnnouncementQueriesConfig {
-  deployUrl: string;
+  apiUrl: string;
 }
 
 export function createAnnouncementQueries(config: AnnouncementQueriesConfig) {
@@ -14,7 +14,7 @@ export function createAnnouncementQueries(config: AnnouncementQueriesConfig) {
     .handler(async ({ data: id }: { data: number }) => {
       console.info(`Fetching announcement with id ${id}...`);
       return axios
-        .get<Array<AnnouncementByIdResponse>>(`${config.deployUrl}/api/announcement/${id}`)
+        .get<Array<AnnouncementByIdResponse>>(`${config.apiUrl}/api/announcement/${id}`)
         .then((r) => r.data)
         .catch((err) => {
           console.error(`Error fetching announcement ${id}:`, err);

@@ -6,11 +6,13 @@ import { db } from '@fsx/engine/db';
 import { posts } from '@fsx/engine/db/schema';
 import { SuccessNewsBySlugResponseSchema, ErrorNewsBySlugResponseSchema } from '@fsx/engine/queries';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  "Access-Control-Max-Age": "86400"
+const corsConfig = {
+  headers: {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400"
+  }
 };
 
 export const APIRoute = createAPIFileRoute('/api/news/$slug')({
@@ -46,7 +48,7 @@ export const APIRoute = createAPIFileRoute('/api/news/$slug')({
       const validatedNewsBySlug = SuccessNewsBySlugResponseSchema.parse(formattedPost);
 
       return json(validatedNewsBySlug, { 
-        headers: corsHeaders 
+        headers: corsConfig.headers
       });
     } catch (e) {
       console.error(e);
@@ -55,7 +57,7 @@ export const APIRoute = createAPIFileRoute('/api/news/$slug')({
       });
       return json(errorResponse, { 
         status: 404, 
-        headers: corsHeaders 
+        headers: corsConfig.headers
       });
     }
   },
@@ -63,7 +65,7 @@ export const APIRoute = createAPIFileRoute('/api/news/$slug')({
   OPTIONS: async () => {
     return new Response(null, {
       status: 204,
-      headers: corsHeaders
+      ...corsConfig
     });
   },
 });

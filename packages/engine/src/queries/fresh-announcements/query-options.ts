@@ -5,7 +5,7 @@ import axios from "redaxios";
 import type { FreshAnnouncementsResponse } from "./schema";
 
 interface FreshAnnouncementQueriesConfig {
-  deployUrl: string;
+  apiUrl: string;
 }
 
 export function createFreshAnnouncementQueries(config: FreshAnnouncementQueriesConfig) {
@@ -13,7 +13,7 @@ export function createFreshAnnouncementQueries(config: FreshAnnouncementQueriesC
     .handler(async () => {
       console.info("Fetching fresh announcements...");
       return axios
-        .get<Array<FreshAnnouncementsResponse>>(`${config.deployUrl}/fresh-announcements`)
+        .get<Array<FreshAnnouncementsResponse>>(`${config.apiUrl}/fresh-announcements`)
         .then((r) => r.data)
         .catch((err) => {
           console.error("Error fetching fresh announcements:", err);

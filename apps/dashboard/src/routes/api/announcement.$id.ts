@@ -6,15 +6,18 @@ import { db } from '@fsx/engine/db';
 import { announcements } from '@fsx/engine/db/schema';
 import { SuccessAnnouncementByIdResponseSchema, ErrorAnnouncementByIdResponseSchema } from '@fsx/engine/queries';
 
+const corsConfig = {
+  headers: {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400"
+  }
+};
+
 export const APIRoute = createAPIFileRoute('/api/announcement/$id')({
   GET: async ({ request, params }) => {
     console.info(`Fetching announcements by id=${params.id}... @`, request.url);
-
-    const headers = new Headers({
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    });
 
     try {
       const announcementsById = await db.query.announcements.findFirst({
@@ -33,25 +36,20 @@ export const APIRoute = createAPIFileRoute('/api/announcement/$id')({
 
       const validatedAnnouncementsById = SuccessAnnouncementByIdResponseSchema.parse(announcementsById);
 
-      return json(validatedAnnouncementsById, { headers });
+      return json(validatedAnnouncementsById, { headers: corsConfig.headers });
     } catch (e) {
       console.error(e);
       const errorResponse = ErrorAnnouncementByIdResponseSchema.parse({
         error: `Announcement ${params.id} not found`,
       });
-      return json(errorResponse, { status: 404, headers });
+      return json(errorResponse, { status: 404, headers: corsConfig.headers });
     }
   },
 
   OPTIONS: async () => {
     return new Response(null, {
       status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Max-Age": "86400",
-      },
+      ...corsConfig
     });
   },
 });

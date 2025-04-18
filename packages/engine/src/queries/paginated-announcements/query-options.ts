@@ -4,7 +4,7 @@ import axios from 'redaxios';
 import type { PaginatedAnnouncementsResponse } from './schema';
 
 interface AnnouncementsQueriesConfig {
-  deployUrl: string;
+  apiUrl: string;
   defaultItemsPerPage?: number;
 }
 
@@ -13,7 +13,7 @@ export function createAnnouncementsQueries(config: AnnouncementsQueriesConfig) {
     console.info(`Fetching announcements page ${page}...`);
     return axios
       .get<PaginatedAnnouncementsResponse>(
-        `${config.deployUrl}/announcements?page=${page}`
+        `${config.apiUrl}/announcements?page=${page}`
       )
       .then((r) => r.data)
       .catch((err) => {

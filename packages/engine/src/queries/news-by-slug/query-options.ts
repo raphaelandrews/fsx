@@ -5,7 +5,7 @@ import axios from "redaxios";
 import type { NewsBySlugResponse } from "./schema";
 
 interface NewsQueriesConfig {
-  deployUrl: string;
+  apiUrl: string;
 }
 
 export function createNewsQueries(config: NewsQueriesConfig) {
@@ -14,7 +14,7 @@ export function createNewsQueries(config: NewsQueriesConfig) {
     .handler(async ({ data: slug }: { data: number }) => {
       console.info(`Fetching news with slug ${slug}...`);
       return axios
-        .get<NewsBySlugResponse>(`${config.deployUrl}/api/news/${slug}`)
+        .get<NewsBySlugResponse>(`${config.apiUrl}/api/news/${slug}`)
         .then((r) => r.data)
         .catch((err) => {
           console.error(`Error fetching news ${slug}:`, err);

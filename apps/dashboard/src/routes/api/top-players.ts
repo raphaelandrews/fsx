@@ -30,15 +30,18 @@ const baseConfig = {
   where: eq(players.active, true)
 };
 
+const corsConfig = {
+  headers: {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400"
+  }
+};
+
 export const APIRoute = createAPIFileRoute('/api/top-players')({
   GET: async ({ request }) => {
     console.info("Fetching top players", request.url);
-
-    const headers = new Headers({
-      "Access-Control-Allow-Origin": "*", 
-      "Access-Control-Allow-Methods": "GET",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    });
     
     try {
       const [rapid, classic, blitz] = await Promise.all([
@@ -65,25 +68,20 @@ export const APIRoute = createAPIFileRoute('/api/top-players')({
 
       const validatedTopPlayers = SuccessTopPlayersResponseSchema.parse({ topBlitz, topRapid, topClassic });
 
-      return json(validatedTopPlayers, { headers });
+      return json(validatedTopPlayers, { headers: corsConfig.headers });
     } catch (e) {
       console.error(e);
       const errorResponse = ErrorTopPlayersResponseSchema.parse({
         error: 'Players not found'
       });
-      return json(errorResponse, { status: 404, headers });
+      return json(errorResponse, { status: 404, headers: corsConfig.headers });
     }
   },
   
   OPTIONS: async () => {
     return new Response(null, {
       status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Max-Age": "86400",
-      },
+      ...corsConfig
     });
   },
 });

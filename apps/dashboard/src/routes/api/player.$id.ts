@@ -6,10 +6,13 @@ import { db } from '@fsx/engine/db';
 import { players } from '@fsx/engine/db/schema';
 import { ErrorPlayerByIdResponseSchema, SuccessPlayerByIdResponseSchema } from '@fsx/engine/queries';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+const corsConfig = {
+  headers: {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400"
+  }
 };
 
 export const APIRoute = createAPIFileRoute('/api/player/$id')({
@@ -120,14 +123,14 @@ export const APIRoute = createAPIFileRoute('/api/player/$id')({
         });
         return json(errorResponse, {
           status: 404,
-          headers: corsHeaders
+          headers: corsConfig.headers
         });
       }
 
       const validatedPlayerById = SuccessPlayerByIdResponseSchema.parse(playerById);
 
       return json(validatedPlayerById, {
-        headers: corsHeaders
+        headers: corsConfig.headers
       })
     } catch (e) {
       console.error(e)
@@ -136,7 +139,7 @@ export const APIRoute = createAPIFileRoute('/api/player/$id')({
       });
       return json(errorResponse, {
         status: 400,
-        headers: corsHeaders
+        headers: corsConfig.headers
       })
     }
   },
@@ -144,10 +147,8 @@ export const APIRoute = createAPIFileRoute('/api/player/$id')({
   OPTIONS: async () => {
     return new Response(null, {
       status: 204,
-      headers: {
-        ...corsHeaders,
-        "Access-Control-Max-Age": "86400",
-      },
+      ...corsConfig
     });
   },
-})
+});
+

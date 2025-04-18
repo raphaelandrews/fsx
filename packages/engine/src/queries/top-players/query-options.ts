@@ -5,7 +5,7 @@ import axios from "redaxios";
 import type { TopPlayer } from "./schema";
 
 interface TopPlayersQueriesConfig {
-  deployUrl: string;
+  apiUrl: string;
   defaultStaleTime?: number;
   defaultGcTime?: number;
 }
@@ -15,7 +15,7 @@ export function createTopPlayersQueries(config: TopPlayersQueriesConfig) {
     .validator(() => undefined)
     .handler(async () => {
       try {
-        const res = await axios.get<Array<TopPlayer>>(`${config.deployUrl}/api/top-players`);
+        const res = await axios.get<Array<TopPlayer>>(`${config.apiUrl}/api/top-players`);
         return res.data;
       } catch (err: unknown) {
         console.error("Error fetching top players:", err);

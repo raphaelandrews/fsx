@@ -1,14 +1,18 @@
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { count, desc, eq } from 'drizzle-orm';
+
 import { db } from '@fsx/engine/db';
 import { posts } from '@fsx/engine/db/schema';
 import { NewsPaginationSchema, SuccessNewsResponseSchema } from '@fsx/engine/queries';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+const corsConfig = {
+  headers: {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400"
+  }
 };
 
 export const APIRoute = createAPIFileRoute('/api/news')({
@@ -33,7 +37,7 @@ export const APIRoute = createAPIFileRoute('/api/news')({
     if (!paginationResult.success) {
       return json(
         { error: "Invalid pagination parameters", details: paginationResult.error.format() },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsConfig.headers }
       );
     }
 
@@ -82,7 +86,7 @@ export const APIRoute = createAPIFileRoute('/api/news')({
       if (invalidNews.length > 0) {
         return json({ error: "Invalid news data", details: invalidNews.map(result => result.error.format()) }, {
           status: 500,
-          headers: corsHeaders,
+          headers: corsConfig.headers,
         });
       }
 
@@ -91,7 +95,7 @@ export const APIRoute = createAPIFileRoute('/api/news')({
           error: "No news found",
           pagination: paginationResult.data,
         };
-        return json(errorResponse, { status: 404, headers: corsHeaders });
+        return json(errorResponse, { status: 404, headers: corsConfig.headers });
       }
 
       const response = {
@@ -99,7 +103,7 @@ export const APIRoute = createAPIFileRoute('/api/news')({
         pagination: paginationResult.data,
       };
 
-      return json(response, { headers: corsHeaders });
+      return json(response, { headers: corsConfig.headers });
 
     } catch (e) {
       console.error(e);
@@ -107,7 +111,7 @@ export const APIRoute = createAPIFileRoute('/api/news')({
         error: 'Internal server error'
       }, {
         status: 500,
-        headers: corsHeaders
+        headers: corsConfig.headers
       });
     }
   },
@@ -115,10 +119,7 @@ export const APIRoute = createAPIFileRoute('/api/news')({
   OPTIONS: async () => {
     return new Response(null, {
       status: 204,
-      headers: {
-        ...corsHeaders,
-        "Access-Control-Max-Age": "86400",
-      },
+      ...corsConfig
     });
   },
 });

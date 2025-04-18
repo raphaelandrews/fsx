@@ -4,7 +4,7 @@ import axios from 'redaxios';
 import type { PaginatedNewsResponse } from './schema';
 
 interface NewsQueriesConfig {
-  deployUrl: string;
+  apiUrl: string;
   defaultItemsPerPage?: number;
 }
 
@@ -12,7 +12,7 @@ export function createPaginatedNewsQueries(config: NewsQueriesConfig) {
   const fetchPaginatedNews = async (page = 1) => {
     console.info(`Fetching news page ${page}...`);
     return axios
-      .get<PaginatedNewsResponse>(`${config.deployUrl}/news?page=${page}`)
+      .get<PaginatedNewsResponse>(`${config.apiUrl}/news?page=${page}`)
       .then((r) => r.data)
       .catch((err) => {
         if (err.response?.status === 404) {

@@ -5,7 +5,7 @@ import axios from "redaxios";
 import type { PlayerByIdResponse } from "./schema";
 
 interface PlayerQueriesConfig {
-  deployUrl: string;
+  apiUrl: string;
 }
 
 export function createPlayerQueries(config: PlayerQueriesConfig) {
@@ -14,7 +14,7 @@ export function createPlayerQueries(config: PlayerQueriesConfig) {
     .handler(async ({ data: id }: { data: number }) => {
       console.info(`Fetching player with id ${id}...`);
       return axios
-        .get<PlayerByIdResponse>(`${config.deployUrl}/api/player/${id}`)
+        .get<PlayerByIdResponse>(`${config.apiUrl}/api/player/${id}`)
         .then((r) => r.data)
         .catch((err) => {
           console.error(`Error fetching player ${id}:`, err);

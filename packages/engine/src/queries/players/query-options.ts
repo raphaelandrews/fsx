@@ -4,7 +4,7 @@ import axios from "redaxios";
 import type { PaginatedPlayersResponse } from "./schema";
 
 interface PlayersQueriesConfig {
-  deployUrl: string;
+  apiUrl: string;
   defaultStaleTime?: number;
   defaultGcTime?: number;
 }
@@ -12,7 +12,7 @@ interface PlayersQueriesConfig {
 export function createPlayersQueries(config: PlayersQueriesConfig) {
   const fetchPaginatedPlayers = async (page = 1, limit = 20) => {
     return axios
-      .get<PaginatedPlayersResponse>(`${config.deployUrl}/api/players?page=${page}&limit=${limit}`)
+      .get<PaginatedPlayersResponse>(`${config.apiUrl}/api/players?page=${page}&limit=${limit}`)
       .then((r) => r.data)
       .catch((err) => {
         if (err.response?.status === 404) {

@@ -5,7 +5,7 @@ import axios from "redaxios";
 import type { SearchPlayerResponse } from "./schema";
 
 interface SearchPlayersQueriesConfig {
-  deployUrl: string;
+  apiUrl: string;
   defaultStaleTime?: number;
   defaultGcTime?: number;
 }
@@ -16,7 +16,7 @@ export function createSearchPlayersQueries(config: SearchPlayersQueriesConfig) {
     .handler(async () => {
       try {
         const res = await axios.get<Array<SearchPlayerResponse>>(
-          `${config.deployUrl}/api/search-players`
+          `${config.apiUrl}/api/search-players`
         );
         return res.data;
       } catch (err: unknown) {
