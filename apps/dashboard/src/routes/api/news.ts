@@ -1,52 +1,36 @@
-import { json } from '@tanstack/react-start';
-import { createAPIFileRoute } from '@tanstack/react-start/api';
-import { count, desc, eq } from 'drizzle-orm';
+import { json } from "@tanstack/react-start";
+import { createAPIFileRoute } from "@tanstack/react-start/api";
+import { eq, desc, count } from "drizzle-orm";
+import type { z } from "zod";
 
-import { db } from '@fsx/engine/db';
-import { posts } from '@fsx/engine/db/schema';
-import { NewsPaginationSchema, SuccessNewsResponseSchema } from '@fsx/engine/queries';
+import { db } from "@fsx/engine/db";
+import { posts } from "@fsx/engine/db/schema";
+import { APINewsResponseSchema } from "@fsx/engine/queries";
 
-const corsConfig = {
-  headers: {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Max-Age": "86400"
-  }
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Content-Security-Policy': "default-src 'self'",
+  'Permissions-Policy': 'interest-cohort=()',
+  'X-Content-Type-Options': 'nosniff',
+  'Retry-After': '120',
+  'Cache-Control': 'public, max-age=300, stale-while-revalidate=600'
 };
 
-export const APIRoute = createAPIFileRoute('/api/news')({
+const createResponse = (data: z.infer<typeof APINewsResponseSchema>, status = 200) =>
+  json(data, { headers: corsHeaders, status });
+
+export const APIRoute = createAPIFileRoute("/api/news")({
   GET: async ({ request }) => {
-    console.info("Fetching news", request.url);
+    console.info(`Fetching news from ${request.url}`);
 
     const url = new URL(request.url);
-
-    const queryParams = {
-      page: Number(url.searchParams.get('page')) || 1,
-    };
-
-    const paginationResult = NewsPaginationSchema.safeParse({
-      currentPage: queryParams.page,
-      totalPages: 1,
-      totalItems: 0,
-      itemsPerPage: 12,
-      hasNextPage: false,
-      hasPreviousPage: false,
-    });
-
-    if (!paginationResult.success) {
-      return json(
-        { error: "Invalid pagination parameters", details: paginationResult.error.format() },
-        { status: 400, headers: corsConfig.headers }
-      );
-    }
-
-    const pageNumber = paginationResult.data.currentPage;
-    const newsPerPage = paginationResult.data.itemsPerPage;
-    const offset = (pageNumber - 1) * newsPerPage;
+    const page = Number(url.searchParams.get("page")) || 1;
+    const perPage = 12;
 
     try {
-      const fetchedNews = await db.query.posts.findMany({
+      const news = await db.query.posts.findMany({
         columns: {
           id: true,
           title: true,
@@ -56,70 +40,52 @@ export const APIRoute = createAPIFileRoute('/api/news')({
         },
         where: eq(posts.published, true),
         orderBy: [desc(posts.createdAt)],
-        limit: newsPerPage,
-        offset: offset
+        limit: perPage,
+        offset: (page - 1) * perPage,
       });
 
-      const totalCountResult = await db
-        .select({ value: count() })
-        .from(posts)
-        .where(eq(posts.published, true));
-
-      const totalCount = totalCountResult[0]?.value || 0;
-      const totalPages = Math.ceil(totalCount / newsPerPage);
-      paginationResult.data.totalItems = totalCount;
-      paginationResult.data.totalPages = totalPages;
-      paginationResult.data.hasNextPage = pageNumber < totalPages;
-      paginationResult.data.hasPreviousPage = pageNumber > 1;
-
-      const formattedNews = fetchedNews.map(news => ({
-        ...news,
-        createdAt: news.createdAt?.toISOString() ?? new Date().toISOString(),
-      }));
-
-      const validatedNews = formattedNews.map((news) =>
-        SuccessNewsResponseSchema.safeParse(news)
-      );
-
-      const invalidNews = validatedNews.filter(result => !result.success);
-
-      if (invalidNews.length > 0) {
-        return json({ error: "Invalid news data", details: invalidNews.map(result => result.error.format()) }, {
-          status: 500,
-          headers: corsConfig.headers,
-        });
+      if (!news) {
+        return createResponse({
+          success: false,
+          error: { code: 404, message: `News page ${page} not found` },
+        }, 404);
       }
 
-      if (!fetchedNews.length) {
-        const errorResponse = {
-          error: "No news found",
-          pagination: paginationResult.data,
-        };
-        return json(errorResponse, { status: 404, headers: corsConfig.headers });
-      }
+      const [{ value: total }] = await db.select({ value: count() }).from(posts);
+      const totalItems = total ?? 0;
+      const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
 
-      const response = {
-        news: fetchedNews,
-        pagination: paginationResult.data,
+      const pagination = {
+        currentPage: page, totalPages, totalItems, itemsPerPage: perPage,
+        hasNextPage: page < totalPages, hasPreviousPage: page > 1
       };
 
-      return json(response, { headers: corsConfig.headers });
+      const formattedNews = news.map((item) => ({
+        ...item,
+        createdAt: item.createdAt?.toISOString() ?? null,
+      }));
 
-    } catch (e) {
-      console.error(e);
-      return json({
-        error: 'Internal server error'
-      }, {
-        status: 500,
-        headers: corsConfig.headers
-      });
+      const validation = APINewsResponseSchema.safeParse({ success: true, data: { news: formattedNews, pagination } });
+
+      if (!validation.success) {
+        console.error("Validation failed:", validation.error);
+        return createResponse({ success: false, error: { code: 400, message: "Invalid data format", details: validation.error.errors } }, 400);
+      }
+
+      if (news.length === 0) {
+        return createResponse({ success: false, error: { code: 404, message: "No news found" } }, 404);
+      }
+
+      return createResponse(validation.data);
+
+    } catch (error: unknown) {
+      const details = process.env.NODE_ENV === "development"
+        ? error instanceof Error ? error.message : String(error)
+        : undefined;
+      console.error(error);
+      return createResponse({ success: false, error: { code: 500, message: "Internal server error", details } }, 500);
     }
   },
 
-  OPTIONS: async () => {
-    return new Response(null, {
-      status: 204,
-      ...corsConfig
-    });
-  },
+  OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
 });

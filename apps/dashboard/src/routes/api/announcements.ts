@@ -5,28 +5,31 @@ import type { z } from "zod";
 
 import { db } from "@fsx/engine/db";
 import { announcements } from "@fsx/engine/db/schema";
-import { APIResponseSchema } from "@fsx/engine/queries";
+import { APIAnnouncementsResponseSchema } from "@fsx/engine/queries";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  "Access-Control-Max-Age": "86400",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Content-Security-Policy': "default-src 'self'",
+  'Permissions-Policy': 'interest-cohort=()',
+  'X-Content-Type-Options': 'nosniff',
+  'Retry-After': '120',
+  'Cache-Control': 'public, max-age=300, stale-while-revalidate=600'
 };
 
-const createResponse = (data: z.infer<typeof APIResponseSchema>, status = 200) =>
+const createResponse = (data: z.infer<typeof APIAnnouncementsResponseSchema>, status = 200) =>
   json(data, { headers: corsHeaders, status });
 
 export const APIRoute = createAPIFileRoute("/api/announcements")({
   GET: async ({ request }) => {
-    console.info(`[${new Date().toISOString()}] GET ${request.url}`);
+    console.info(`Fetching announcements from ${request.url}`);
 
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page")) || 1;
     const perPage = 12;
 
     try {
-      // fetch items
       const items = await db.query.announcements.findMany({
         columns: { id: true, year: true, number: true, content: true },
         orderBy: [desc(announcements.year), desc(announcements.number)],
@@ -34,16 +37,24 @@ export const APIRoute = createAPIFileRoute("/api/announcements")({
         offset: (page - 1) * perPage,
       });
 
-      // count total
+      if (!items) {
+        return createResponse({
+          success: false,
+          error: { code: 404, message: `Announcements page ${page} not found` },
+        }, 404);
+      }
+
       const [{ value: total }] = await db.select({ value: count() }).from(announcements);
       const totalItems = total ?? 0;
       const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
 
-      const pagination = { currentPage: page, totalPages, totalItems, itemsPerPage: perPage,
-        hasNextPage: page < totalPages, hasPreviousPage: page > 1 };
+      const pagination = {
+        currentPage: page, totalPages, totalItems, itemsPerPage: perPage,
+        hasNextPage: page < totalPages, hasPreviousPage: page > 1
+      };
 
-      // validate
-      const parsed = APIResponseSchema.safeParse({ success: true, data: { announcements: items, pagination } });
+      const parsed = APIAnnouncementsResponseSchema.safeParse({ success: true, data: { announcements: items, pagination } });
+
       if (!parsed.success) {
         console.error("Validation failed:", parsed.error);
         return createResponse({ success: false, error: { code: 400, message: "Invalid data format", details: parsed.error.errors } }, 400);
@@ -55,11 +66,11 @@ export const APIRoute = createAPIFileRoute("/api/announcements")({
 
       return createResponse(parsed.data);
 
-    } catch (err: unknown) {
+    } catch (error: unknown) {
       const details = process.env.NODE_ENV === "development"
-        ? err instanceof Error ? err.message : String(err)
+        ? error instanceof Error ? error.message : String(error)
         : undefined;
-      console.error(err);
+      console.error(error);
       return createResponse({ success: false, error: { code: 500, message: "Internal server error", details } }, 500);
     }
   },
