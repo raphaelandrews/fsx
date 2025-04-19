@@ -1,19 +1,25 @@
 import { json } from '@tanstack/react-start'
 import { createAPIFileRoute } from '@tanstack/react-start/api'
 import { count, desc, eq } from 'drizzle-orm';
+import type { z } from "zod";
 
 import { db } from '@fsx/engine/db';
 import { players } from '@fsx/engine/db/schema';
-import { ErrorPlayersResponseSchema, PlayersPaginationSchema, SuccessPlayersResponseSchema } from '@fsx/engine/queries';
+import { APIPlayersResponseSchema } from "@fsx/engine/queries";
 
-const corsConfig = {
-  headers: {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Max-Age": "86400"
-  }
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Content-Security-Policy': "default-src 'self'",
+  'Permissions-Policy': 'interest-cohort=()',
+  'X-Content-Type-Options': 'nosniff',
+  'Retry-After': '120',
+  'Cache-Control': 'public, max-age=300, stale-while-revalidate=600'
 };
+
+const createResponse = (data: z.infer<typeof APIPlayersResponseSchema>, status = 200) =>
+  json(data, { headers: corsHeaders, status });
 
 export const APIRoute = createAPIFileRoute('/api/players')({
   GET: async ({ request }) => {
@@ -25,26 +31,6 @@ export const APIRoute = createAPIFileRoute('/api/players')({
       page: Number(url.searchParams.get('page')) || 1,
       limit: Number(url.searchParams.get('limit')) || 20,
     };
-
-    const paginationResult = PlayersPaginationSchema.safeParse({
-      currentPage: queryParams.page,
-      totalPages: 1,
-      totalItems: 0,
-      itemsPerPage: 12,
-      hasNextPage: false,
-      hasPreviousPage: false,
-    });
-
-    if (!paginationResult.success) {
-      return json(
-        { error: "Invalid pagination parameters", details: paginationResult.error.format() },
-        { status: 400, headers: corsConfig.headers }
-      );
-    }
-
-    const pageNumber = paginationResult.data.currentPage;
-    const limit = Math.min(50, Math.max(1, Number.parseInt(url.searchParams.get('limit') || '20')));
-    const offset = (pageNumber - 1) * limit;
 
     try {
       const fetchPlayers = await db.query.players.findMany({
@@ -70,66 +56,47 @@ export const APIRoute = createAPIFileRoute('/api/players')({
         },
         where: eq(players.active, true),
         orderBy: desc(players.rapid),
-        limit: limit,
-        offset: offset,
+        limit: queryParams.limit,
+        offset: (queryParams.page - 1) * queryParams.limit,
       });
 
-      const totalCountResult = await db
-        .select({ value: count() })
-        .from(players)
-        .where(eq(players.active, true))
-
-      const totalCount = totalCountResult[0]?.value || 0;
-      const totalPages = Math.ceil(totalCount / limit);
-      paginationResult.data.totalItems = totalCount;
-      paginationResult.data.totalPages = totalPages;
-      paginationResult.data.hasNextPage = pageNumber < totalPages;
-      paginationResult.data.hasPreviousPage = pageNumber > 1;
-
-      const validatedPlayers = fetchPlayers.map((player) =>
-        SuccessPlayersResponseSchema.safeParse(player)
-      );
-
-      const invalidPlayers = validatedPlayers.filter(result => !result.success);
-
-      if (invalidPlayers.length > 0) {
-        return json({ error: "Invalid announcement data", details: invalidPlayers.map(result => result.error.format()) }, {
-          status: 500,
-          headers: corsConfig.headers,
-        });
+      if (!fetchPlayers) {
+        return createResponse({
+          success: false,
+          error: { code: 404, message: `Players page ${queryParams.page} not found` },
+        }, 404);
       }
 
-      if (!fetchPlayers.length) {
-        const errorResponse = {
-          error: "No players found",
-          pagination: paginationResult.data,
-        };
-        return json(errorResponse, { status: 404, headers: corsConfig.headers });
-      }
+      const [{ value: total }] = await db.select({ value: count() }).from(players);
+      const totalItems = total ?? 0;
+      const totalPages = Math.max(1, Math.ceil(totalItems / queryParams.limit));
 
-      const response = {
-        players: fetchPlayers,
-        pagination: paginationResult.data,
+      const pagination = {
+        currentPage: queryParams.page, totalPages, totalItems, itemsPerPage: queryParams.limit,
+        hasNextPage: queryParams.page < totalPages, hasPreviousPage: queryParams.page > 1
       };
 
-      return json(response, { headers: corsConfig.headers });
+      const parsed = APIPlayersResponseSchema.safeParse({ success: true, data: { players: fetchPlayers, pagination } });
 
-    } catch (e) {
-      console.error(e);
-      const errorResponse = ErrorPlayersResponseSchema.parse({
-        error: 'Players not found'
-      });
-      return json(errorResponse, {
-        ...corsConfig,
-        status: 404
-      });
+      if (!parsed.success) {
+        console.error("Validation failed:", parsed.error);
+        return createResponse({ success: false, error: { code: 400, message: "Invalid data format", details: parsed.error.errors } }, 400);
+      }
+
+      if (fetchPlayers.length === 0) {
+        return createResponse({ success: false, error: { code: 404, message: "No players found" } }, 404);
+      }
+
+      return createResponse(parsed.data);
+
+    } catch (error: unknown) {
+      const details = process.env.NODE_ENV === "development"
+        ? error instanceof Error ? error.message : String(error)
+        : undefined;
+      console.error(error);
+      return createResponse({ success: false, error: { code: 500, message: "Internal server error", details } }, 500);
     }
   },
 
-  OPTIONS: async () => {
-    return new Response(null, {
-      status: 204,
-      ...corsConfig
-    });
-  },
+  OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
 });
