@@ -1,11 +1,24 @@
 import { json } from '@tanstack/react-start'
 import { createAPIFileRoute } from '@tanstack/react-start/api'
-import { count, desc, eq } from 'drizzle-orm';
-import type { z } from "zod";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  inArray,
+  gte,
+  lte,
+} from 'drizzle-orm'
+import type z from "zod"
 
-import { db } from '@fsx/engine/db';
-import { players } from '@fsx/engine/db/schema';
-import { APIPlayersResponseSchema } from "@fsx/engine/queries";
+import { db } from '@fsx/engine/db'
+import {
+  players,
+  playersToTitles,
+  titles,
+  clubs,
+} from '@fsx/engine/db/schema'
+import { APIPlayersResponseSchema } from '@fsx/engine/queries'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,86 +28,197 @@ const corsHeaders = {
   'Permissions-Policy': 'interest-cohort=()',
   'X-Content-Type-Options': 'nosniff',
   'Retry-After': '120',
-  'Cache-Control': 'public, max-age=300, stale-while-revalidate=600'
-};
+  'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
+}
 
 const createResponse = (data: z.infer<typeof APIPlayersResponseSchema>, status = 200) =>
   json(data, { headers: corsHeaders, status });
 
+function getBirthDateRange(group: string): [Date, Date] | undefined {
+  const today = new Date();
+  const year = today.getFullYear();
+
+  switch (group) {
+    case 'sub-8':
+      return [
+        new Date(year - 8, 0, 1),
+        new Date(year, 11, 31),
+      ];
+    case 'sub-10':
+      return [
+        new Date(year - 10, 0, 1),
+        new Date(year - 9, 11, 31),
+      ];
+    case 'sub-12':
+      return [
+        new Date(year - 12, 0, 1),
+        new Date(year - 11, 11, 31),
+      ];
+    case 'sub-14':
+      return [
+        new Date(year - 14, 0, 1),
+        new Date(year - 13, 11, 31),
+      ];
+    case 'sub-16':
+      return [
+        new Date(year - 16, 0, 1),
+        new Date(year - 15, 11, 31),
+      ];
+    case 'sub-18':
+      return [
+        new Date(year - 18, 0, 1),
+        new Date(year - 17, 11, 31),
+      ];
+    case 'master': 
+      return [
+        new Date(year - 50, 0, 1),
+        new Date(year - 40, 11, 31),
+      ];
+    case 'veterano':
+      return [
+        new Date(year - 64, 0, 1),
+        new Date(year - 51, 11, 31),
+      ];
+    case 'senior':
+      return [
+        new Date(1900, 0, 1),       
+        new Date(year - 65, 11, 31),
+      ];
+    default:
+      return undefined;
+  }
+}
+
 export const APIRoute = createAPIFileRoute('/api/players')({
   GET: async ({ request }) => {
-    console.info("Fetching players", request.url);
-
+    console.info('Fetching players', request.url);
     const url = new URL(request.url);
 
-    const queryParams = {
+    const validSortFields = ['rapid', 'blitz', 'classic']
+    const sortBy = validSortFields.includes(url.searchParams.get('sortBy') || '')
+      ? (url.searchParams.get('sortBy') as 'rapid' | 'blitz' | 'classic')
+      : 'rapid'
+
+    const qp = {
       page: Number(url.searchParams.get('page')) || 1,
       limit: Number(url.searchParams.get('limit')) || 20,
+      sex: url.searchParams.get('sex'),           
+      titles: url.searchParams.getAll('title'),   
+      clubs: url.searchParams.getAll('club'),     
+      group: url.searchParams.get('group') || undefined, 
+      locations: url.searchParams
+      .getAll('location')
+      .map(Number)
+      .filter(n => !Number.isNaN(n)),
     };
 
-    try {
-      const fetchPlayers = await db.query.players.findMany({
-        columns: {
-          id: true,
-          name: true,
-          nickname: true,
-          blitz: true,
-          rapid: true,
-          classic: true,
-          imageUrl: true,
-        },
-        with: {
-          location: { columns: { name: true, flag: true } },
-          defendingChampions: {
-            columns: {},
-            with: { championship: { columns: { name: true } } }
-          },
-          playersToTitles: {
-            columns: {},
-            with: { title: { columns: { title: true, shortTitle: true, type: true } } }
-          }
-        },
-        where: eq(players.active, true),
-        orderBy: desc(players.rapid),
-        limit: queryParams.limit,
-        offset: (queryParams.page - 1) * queryParams.limit,
-      });
+    const whereConditions = [eq(players.active, true)]
 
-      if (!fetchPlayers) {
-        return createResponse({
-          success: false,
-          error: { code: 404, message: `Players page ${queryParams.page} not found` },
-        }, 404);
+    if (qp.sex === 'true' || qp.sex === 'false') {
+      whereConditions.push(eq(players.sex, qp.sex === 'true'));
+    }
+    if (qp.titles.length) {
+      whereConditions.push(inArray(titles.shortTitle, qp.titles));
+    }
+    if (qp.clubs.length) {
+      whereConditions.push(inArray(clubs.name, qp.clubs));
+    }
+    if (qp.group) {
+      const range = getBirthDateRange(qp.group);
+      if (range) {
+        whereConditions.push(
+          gte(players.birth, range[0]),
+          lte(players.birth, range[1]),
+        );
       }
+    }
+    if (qp.locations.length) {
+      whereConditions.push(inArray(players.locationId, qp.locations));
+    }
 
-      const [{ value: total }] = await db.select({ value: count() }).from(players);
-      const totalItems = total ?? 0;
-      const totalPages = Math.max(1, Math.ceil(totalItems / queryParams.limit));
+    try {
+      const rows = await db
+        .select({
+          id: players.id,
+          name: players.name,
+          nickname: players.nickname,
+          classic: players.classic,
+          rapid: players.rapid,
+          blitz: players.blitz,
+          imageUrl: players.imageUrl,
+          birth: players.birth,
+          sex: players.sex,
+        })
+        .from(players)
+        .leftJoin(playersToTitles, eq(players.id, playersToTitles.playerId))
+        .leftJoin(titles, eq(playersToTitles.titleId, titles.id))
+        .leftJoin(clubs, eq(players.clubId, clubs.id))
+        .where(and(...whereConditions))
+        .orderBy(desc(players[sortBy]))
+        .limit(qp.limit)
+        .offset((qp.page - 1) * qp.limit);
 
+      const [{ value: total = 0 }] = await db
+        .select({ value: count() })
+        .from(players)
+        .leftJoin(playersToTitles, eq(players.id, playersToTitles.playerId))
+        .leftJoin(titles, eq(playersToTitles.titleId, titles.id))
+        .leftJoin(clubs, eq(players.clubId, clubs.id))
+        .where(and(...whereConditions));
+
+      const totalPages = Math.max(1, Math.ceil(total / qp.limit));
       const pagination = {
-        currentPage: queryParams.page, totalPages, totalItems, itemsPerPage: queryParams.limit,
-        hasNextPage: queryParams.page < totalPages, hasPreviousPage: queryParams.page > 1
+        currentPage: qp.page,
+        totalPages,
+        totalItems: total,
+        itemsPerPage: qp.limit,
+        hasNextPage: qp.page < totalPages,
+        hasPreviousPage: qp.page > 1,
       };
 
-      const parsed = APIPlayersResponseSchema.safeParse({ success: true, data: { players: fetchPlayers, pagination } });
+      const parsed = APIPlayersResponseSchema.safeParse({
+        success: true,
+        data: { players: rows, pagination },
+      });
 
       if (!parsed.success) {
-        console.error("Validation failed:", parsed.error);
-        return createResponse({ success: false, error: { code: 400, message: "Invalid data format", details: parsed.error.errors } }, 400);
+        console.error('Validation failed', parsed.error);
+        return createResponse({
+          success: false,
+          error: {
+            code: 400,
+            message: 'Invalid response format',
+            details: parsed.error.errors,
+          }
+        }, 400);
       }
-
-      if (fetchPlayers.length === 0) {
-        return createResponse({ success: false, error: { code: 404, message: "No players found" } }, 404);
+      if (!rows.length) {
+        return createResponse({
+          success: false,
+          error: { code: 404, message: 'No players found' }
+        }, 404);
       }
-
       return createResponse(parsed.data);
 
     } catch (error: unknown) {
-      const details = process.env.NODE_ENV === "development"
-        ? error instanceof Error ? error.message : String(error)
-        : undefined;
-      console.error(error);
-      return createResponse({ success: false, error: { code: 500, message: "Internal server error", details } }, 500);
+      const details =
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined
+      console.error(error)
+      return createResponse(
+        {
+          success: false,
+          error: {
+            code: 500,
+            message: 'Internal server error',
+            details,
+          },
+        },
+        500,
+      )
     }
   },
 
