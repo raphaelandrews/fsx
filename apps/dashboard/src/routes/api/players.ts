@@ -176,60 +176,95 @@ export const APIRoute = createAPIFileRoute('/api/players')({
         .leftJoin(championships, eq(defendingChampions.championshipId, championships.id))
         .leftJoin(titles, eq(playersToTitles.titleId, titles.id))
         .leftJoin(clubs, eq(players.clubId, clubs.id))
-        .leftJoin(locations, eq(players.clubId, locations.id))
+        .leftJoin(locations, eq(players.locationId, locations.id)) // Fixed: changed from clubs.id to players.locationId
         .where(and(...whereConditions))
         .orderBy(desc(players[sortBy]))
-        .limit(qp.limit)
-        .offset((qp.page - 1) * qp.limit);
 
-      const [{ value: total = 0 }] = await db
-        .select({ value: count() })
-        .from(players)
-        .leftJoin(playersToTitles, eq(players.id, playersToTitles.playerId))
-        .leftJoin(titles, eq(playersToTitles.titleId, titles.id))
-        .leftJoin(clubs, eq(players.clubId, clubs.id))
-        .where(and(...whereConditions));
+      // Process rows to create a consolidated map of players
+      const playersMap = new Map();
 
-      const totalPages = Math.max(1, Math.ceil(total / qp.limit));
+      for (const row of rows) {
+        if (!playersMap.has(row.id)) {
+          // Initialize player with default values for required fields
+          playersMap.set(row.id, {
+            id: row.id,
+            name: row.name,
+            nickname: row.nickname,
+            classic: row.classic,
+            rapid: row.rapid,
+            blitz: row.blitz,
+            imageUrl: row.imageUrl,
+            birth: row.birth,
+            sex: row.sex,
+            club: {
+              id: row.clubs?.id ?? 0, // Default to 0 if null/undefined
+              name: row.clubs?.name ?? "", // Default to empty string if null/undefined
+              logo: row.clubs?.logo ?? "", // Default to empty string if null/undefined
+            },
+            location: {
+              name: row.locations?.name ?? "", // Default to empty string if null/undefined
+              flag: row.locations?.flag ?? "", // Default to empty string if null/undefined
+            },
+            defendingChampions: [],
+            playersToTitles: [],
+          });
+        }
+
+        const player = playersMap.get(row.id);
+
+        // Add championship if it exists and is not already added
+        if (row.championships?.name) {
+          const championshipExists = player.defendingChampions.some(
+            (c: { championship: { name: string | undefined } }) => c.championship.name === row.championships?.name
+          );
+
+          if (!championshipExists) {
+            player.defendingChampions.push({
+              championship: { name: row.championships.name }
+            });
+          }
+        }
+
+        // Add title if it exists and is not already added
+        if (row.titles?.shortTitle) {
+          const titleExists = player.playersToTitles.some(
+            (t: { title: { shortTitle: string | undefined; type: string | undefined } }) =>
+              t.title.shortTitle === row.titles?.shortTitle && t.title.type === row.titles?.type
+          );
+
+          if (!titleExists) {
+            player.playersToTitles.push({
+              title: {
+                type: row.titles.type,
+                title: row.titles.title,
+                shortTitle: row.titles.shortTitle
+              }
+            });
+          }
+        }
+      }
+
+      // Count total unique players
+      const uniquePlayerCount = playersMap.size;
+
+      // Convert map to array and apply pagination
+      const uniquePlayers = Array.from(playersMap.values())
+        .sort((a, b) => b[sortBy] - a[sortBy])
+        .slice((qp.page - 1) * qp.limit, qp.page * qp.limit);
+
+      const totalPages = Math.max(1, Math.ceil(uniquePlayerCount / qp.limit));
       const pagination = {
         currentPage: qp.page,
         totalPages,
-        totalItems: total,
+        totalItems: uniquePlayerCount,
         itemsPerPage: qp.limit,
         hasNextPage: qp.page < totalPages,
         hasPreviousPage: qp.page > 1,
       };
 
-      const formattedPlayers = rows.map(player => ({
-        id: player.id,
-        name: player.name,
-        nickname: player.nickname,
-        classic: player.classic,
-        rapid: player.rapid,
-        blitz: player.blitz,
-        imageUrl: player.imageUrl,
-        birth: player.birth,
-        sex: player.sex,
-        club: {
-          id: player.clubs?.id,
-          name: player.clubs?.name,
-          logo: player.clubs?.logo,
-        },
-        location: {
-          name: player.locations?.name,
-          flag: player.locations?.flag,
-        },
-        defendingChampions: player.championships ? [{
-          championship: { name: player.championships.name }
-        }] : [],
-        playersToTitles: player.titles ? [{
-          title: { type: player.titles.type, title: player.titles.title, shortTitle: player.titles.shortTitle }
-        }] : [],
-      }));
-
       const parsed = APIPlayersResponseSchema.safeParse({
         success: true,
-        data: { players: formattedPlayers, pagination },
+        data: { players: uniquePlayers, pagination },
       });
 
       if (!parsed.success) {
@@ -243,12 +278,14 @@ export const APIRoute = createAPIFileRoute('/api/players')({
           }
         }, 400);
       }
-      if (!rows.length) {
+
+      if (!uniquePlayers.length) {
         return createResponse({
           success: false,
           error: { code: 404, message: 'No players found' }
         }, 404);
       }
+
       return createResponse(parsed.data);
 
     } catch (error: unknown) {
