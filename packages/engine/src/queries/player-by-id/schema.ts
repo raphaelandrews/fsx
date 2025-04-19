@@ -1,19 +1,9 @@
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
-import {
-    clubs,
-    players,
-    locations,
-    playersToTournaments,
-    tournamentPodiums,
-    tournaments,
-    roles,
-    titles,
-    championships
-} from "../../db/schema/index";
+import { players, clubs, locations, tournaments, championships, roles, titles, playersToTournaments, tournamentPodiums } from "../../db/schema";
 
-const playerByIdSchema = createSelectSchema(players);
+const playerSchema = createSelectSchema(players)
 
 const clubSchema = createSelectSchema(clubs);
 const locationSchema = createSelectSchema(locations);
@@ -52,36 +42,59 @@ const playerToTitleSchema = z.object({
     title: titleSchema.pick({ type: true, title: true, shortTitle: true })
 });
 
-export const PlayerByIdBaseSchema = playerByIdSchema.extend({
-    id: z.number().int().positive(),
-    name: z.string().max(100, "Name must be 100 characters or less"),
-    nickname: z.string().max(20, "Nickname must be 20 characters or less").nullable().optional(),
-    blitz: z.number().int().min(0).max(32767),
-    rapid: z.number().int().min(0).max(32767),
-    classic: z.number().int().min(0).max(32767),
-    active: z.boolean(),
-    imageUrl: z.string().url().nullable().optional(),
-    cbxId: z.number().nullable().optional(),
-    fideId: z.number().nullable().optional(),
-    verified: z.boolean(),
-}).strict();
+export const PlayerByIdSchema = playerSchema
+    .pick({
+        id: true,
+        name: true,
+        nickname: true,
+        blitz: true,
+        rapid: true,
+        classic: true,
+        active: true,
+        imageUrl: true,
+        cbxId: true,
+        fideId: true,
+        verified: true,
+    })
+    .extend({
+        id: z.number().int().positive(),
+        name: z.string().max(100, "Name must be 100 characters or less"),
+        nickname: z.string().max(20, "Nickname must be 20 characters or less").nullable().optional(),
+        blitz: z.number().int().min(0).max(32767),
+        rapid: z.number().int().min(0).max(32767),
+        classic: z.number().int().min(0).max(32767),
+        active: z.boolean(),
+        imageUrl: z.string().url().nullable().optional(),
+        cbxId: z.number().nullable().optional(),
+        fideId: z.number().nullable().optional(),
+        verified: z.boolean(),
+        club: clubSchema.pick({ name: true, logo: true }).nullable(),
+        location: locationSchema.pick({ flag: true, name: true }).nullable(),
+        defendingChampions: z.array(defendingChampionsSchema).optional(),
+        playersToTournaments: z.array(playerToTournamentSchema).optional(),
+        playersToRoles: z.array(playerToRoleSchema).optional(),
+        tournamentPodiums: z.array(tournamentPodiumSchema).optional(),
+        playersToTitles: z.array(playerToTitleSchema).optional()
+    });
 
-export const PlayerByIdResponseSchema = PlayerByIdBaseSchema.extend({
-    club: clubSchema.pick({ name: true, logo: true }).nullable(),
-    location: locationSchema.pick({ flag: true, name: true }).nullable(),
-    defendingChampions: z.array(defendingChampionsSchema).optional(),
-    playersToTournaments: z.array(playerToTournamentSchema).optional(),
-    playersToRoles: z.array(playerToRoleSchema).optional(),
-    tournamentPodiums: z.array(tournamentPodiumSchema).optional(),
-    playersToTitles: z.array(playerToTitleSchema).optional()
-}).partial();
-
-export const SuccessPlayerByIdResponseSchema = PlayerByIdResponseSchema;
-
-export const ErrorPlayerByIdResponseSchema = z.object({
-    error: z.string(),
+export const SuccessPlayerByIdResponseSchema = z.object({
+    success: z.literal(true),
+    data: PlayerByIdSchema,
 });
 
-export type PlayerByIdResponse = z.infer<typeof PlayerByIdResponseSchema>;
-export type SuccessPlayerByIdResponse = z.infer<typeof SuccessPlayerByIdResponseSchema>;
-export type ErrorPlayerByIdResponse = z.infer<typeof ErrorPlayerByIdResponseSchema>;
+const ErrorPlayerByIdResponseSchema = z.object({
+    success: z.literal(false),
+    error: z.object({
+        code: z.number(),
+        message: z.string(),
+        details: z.any().optional(),
+    }),
+});
+
+export const APIPlayerByIdResponseSchema = z.discriminatedUnion("success", [
+    SuccessPlayerByIdResponseSchema,
+    ErrorPlayerByIdResponseSchema,
+]);
+
+export type Player = z.infer<typeof PlayerByIdSchema>;
+export type APIPlayerByIdResponse = z.infer<typeof APIPlayerByIdResponseSchema>;

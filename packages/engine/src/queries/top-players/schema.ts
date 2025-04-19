@@ -3,7 +3,7 @@ import { createSelectSchema } from "drizzle-zod";
 
 import { players, locations, championships, titles } from "../../db/schema";
 
-const playerByIdSchema = createSelectSchema(players);
+const topPlayerSchema = createSelectSchema(players);
 
 const locationSchema = createSelectSchema(locations);
 const championshipSchema = createSelectSchema(championships);
@@ -25,38 +25,52 @@ const playerToTitleSchema = z.object({
   })
 }).strict();
 
-export const TopPlayerBaseSchema = playerByIdSchema.extend({
-  id: z.number().int(),
-  name: z.string().max(100, "Name cannot exceed 100 characters"),
-  nickname: z.string().max(20, "Nickname cannot exceed 20 characters").nullable().optional(),
-  blitz: z.number().int().min(0).max(32767),
-  rapid: z.number().int().min(0).max(32767),
-  classic: z.number().int().min(0).max(32767),
-  imageUrl: z.string().url().nullable().optional(),
-}).strict();
-
-export const TopPlayerResponseSchema = TopPlayerBaseSchema.extend({
-  location: locationSchema.pick({
+export const TopPlayers = topPlayerSchema
+  .pick({
+    id: true,
     name: true,
-    flag: true,
-  }).extend({
-    name: z.string().max(100, "Name cannot exceed 100 characters"),
-    nickname: z.string().max(20, "Nickname cannot exceed 20 characters").optional(),
-  }).nullable().optional(),
-  defendingChampions: z.array(defendingChampionsSchema).optional(),
-  playersToTitles: z.array(playerToTitleSchema).optional(),
-}).partial();
+    nickname: true,
+    blitz: true,
+    rapid: true,
+    classic: true,
+    imageUrl: true,
+  })
+  .extend({
+    id: z.number().int().positive(),
+    name: z.string().max(100, "Name must be 100 characters or less"),
+    nickname: z.string().max(20, "Nickname must be 20 characters or less").nullable().optional(),
+    blitz: z.number().int().min(0).max(32767),
+    rapid: z.number().int().min(0).max(32767),
+    classic: z.number().int().min(0).max(32767),
+    imageUrl: z.string().url().nullable().optional(),
+    location: locationSchema.pick({ flag: true, name: true }).nullable(),
+    defendingChampions: z.array(defendingChampionsSchema).optional(),
+    playersToTitles: z.array(playerToTitleSchema).optional()
+  });
 
-export const SuccessTopPlayersResponseSchema = z.object({
-  topBlitz: z.array(TopPlayerResponseSchema),
-  topRapid: z.array(TopPlayerResponseSchema),
-  topClassic: z.array(TopPlayerResponseSchema),
+export const SuccessTopPlayersSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    topClassic: z.array(TopPlayers),
+    topRapid: z.array(TopPlayers),
+    topBlitz: z.array(TopPlayers),
+  }),
 });
 
-export const ErrorTopPlayersResponseSchema = z.object({
-  error: z.string(),
+const ErrorTopPlayersSchema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    code: z.number(),
+    message: z.string(),
+    details: z.any().optional(),
+  }),
 });
 
-export type TopPlayer = z.infer<typeof TopPlayerResponseSchema>;
-export type SuccessTopPlayersResponse = z.infer<typeof SuccessTopPlayersResponseSchema>;
-export type ErrorTopPlayersResponse = z.infer<typeof ErrorTopPlayersResponseSchema>;
+export const APITopPlayersResponseSchema = z.discriminatedUnion("success", [
+  SuccessTopPlayersSchema,
+  ErrorTopPlayersSchema,
+]);
+
+export type TopPlayer = z.infer<typeof TopPlayers>;
+export type SuccessTopPlayersResponse = z.infer<typeof SuccessTopPlayersSchema>['data'];
+export type APITopPlayersResponse = z.infer<typeof APITopPlayersResponseSchema>;

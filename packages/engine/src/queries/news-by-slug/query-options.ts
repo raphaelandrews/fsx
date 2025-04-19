@@ -41,10 +41,13 @@ export function createNewsBySlugQueries(config: NewsQueriesConfig) {
     return queryOptions({
       queryKey: ["news", slug],
       queryFn: () => fetchNewsBySlug({ data: slug }),
-      staleTime: 5 * 60 * 1000,
-      retry: (failureCount, error) => {
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      staleTime: 1 * 60 * 1000,
+      gcTime: 5 * 60 * 1000,
+      retry: (failureCount, error: Error) => {
         if (error.message.includes("Invalid API")) return false;
-        return failureCount < 3;
+        return failureCount < 2;
       }
     });
   }

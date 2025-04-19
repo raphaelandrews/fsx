@@ -3,12 +3,6 @@ import { z } from "zod";
 
 import { players, locations, championships, titles } from "../../db/schema";
 
-const playersSchema = createSelectSchema(players);
-
-const locationSchema = createSelectSchema(locations);
-const championshipSchema = createSelectSchema(championships);
-const titleSchema = createSelectSchema(titles);
-
 export const PlayersPaginationSchema = z.object({
   currentPage: z.number().min(1, "Current page must be at least 1"),
   totalPages: z.number().min(1, "Total pages must be at least 1"),
@@ -18,62 +12,70 @@ export const PlayersPaginationSchema = z.object({
   hasPreviousPage: z.boolean(),
 });
 
+const playersSchema = createSelectSchema(players);
+
+const locationSchema = createSelectSchema(locations);
+const championshipSchema = createSelectSchema(championships);
+const titleSchema = createSelectSchema(titles);
+
 const defendingChampionsSchema = z.object({
   championship: championshipSchema.pick({
-    name: true,
+      name: true,
   }).extend({
-    name: z.string()
+      name: z.string()
   })
 }).strict();
 
 const playerToTitleSchema = z.object({
-  title: titleSchema.pick({ type: true, title: true, shortTitle: true }).extend({
-    title: z.string(),
-    shortTitle: z.string(),
-    type: z.enum(["internal", "external"])
-  })
-}).strict();
+  title: titleSchema.pick({ type: true, title: true, shortTitle: true })
+});
 
-
-export const PlayersBaseSchema = playersSchema.extend({
-  id: z.number().int(),
-  name: z.string().max(100, "Name cannot exceed 100 characters"),
-  nickname: z.string().max(20, "Nickname cannot exceed 20 characters").nullable().optional(),
-  blitz: z.number().int().min(0).max(32767),
-  rapid: z.number().int().min(0).max(32767),
-  classic: z.number().int().min(0).max(32767),
-  imageUrl: z.string().url().nullable().optional(),
-}).strict();
-
-export const PlayersResponseSchema = PlayersBaseSchema.extend({
-  location: locationSchema.pick({
+export const Players = playersSchema
+  .pick({
+    id: true,
     name: true,
-    flag: true,
-  }).extend({
-    name: z.string().max(100, "Name cannot exceed 100 characters"),
-    nickname: z.string().max(20, "Nickname cannot exceed 20 characters").optional(),
-  }).nullable().optional(),
-  defendingChampions: z.array(defendingChampionsSchema).optional(),
-  playersToTitles: z.array(playerToTitleSchema).optional(),
-}).partial();
+    nickname: true,
+    blitz: true,
+    rapid: true,
+    classic: true,
+    imageUrl: true,
+  })
+  .extend({
+    id: z.number().int().positive(),
+    name: z.string().max(100, "Name must be 100 characters or less"),
+    nickname: z.string().max(20, "Nickname must be 20 characters or less").nullable().optional(),
+    blitz: z.number().int().min(0).max(32767),
+    rapid: z.number().int().min(0).max(32767),
+    classic: z.number().int().min(0).max(32767),
+    imageUrl: z.string().url().nullable().optional(),
+    location: locationSchema.pick({ flag: true, name: true }).nullable(),
+    defendingChampions: z.array(defendingChampionsSchema).optional(),
+    playersToTitles: z.array(playerToTitleSchema).optional()
+  });
 
-export const PaginatedPlayersResponseSchema = z.object({
-  players: z.array(PlayersResponseSchema),
-  pagination: PlayersPaginationSchema,
+export const SuccessPlayersSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    players: z.array(Players),
+    pagination: PlayersPaginationSchema,
+  }),
 });
 
-export const SuccessPlayersResponseSchema = PlayersResponseSchema;
-
-export const ErrorPlayersResponseSchema = z.object({
-  error: z.string(),
-  pagination: z.object({
-    currentPage: z.number(),
-    totalPages: z.number(),
-    totalItems: z.number(),
-  }).optional(),
+const ErrorPlayersSchema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    code: z.number(),
+    message: z.string(),
+    details: z.any().optional(),
+  }),
 });
 
-export type PlayersResponse = z.infer<typeof PlayersResponseSchema>;
-export type SuccessPlayersesponse = z.infer<typeof SuccessPlayersResponseSchema>;
-export type ErrorPlayersResponse = z.infer<typeof ErrorPlayersResponseSchema>;
-export type PaginatedPlayersResponse = z.infer<typeof PaginatedPlayersResponseSchema>;
+export const APIPlayersResponseSchema = z.discriminatedUnion("success", [
+  SuccessPlayersSchema,
+  ErrorPlayersSchema,
+]);
+
+export type Player = z.infer<typeof Players>;
+export type SuccessPlayersResponse = z.infer<typeof SuccessPlayersSchema>['data'];
+export type APIPlayersResponse = z.infer<typeof APIPlayersResponseSchema>;
+export type PlayersPagination = z.infer<typeof PlayersPaginationSchema>;

@@ -2,39 +2,57 @@ import { queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import axios from "redaxios";
 
-import type { TopPlayer } from "./schema";
+import { APITopPlayersResponseSchema } from "./schema";
 
 interface TopPlayersQueriesConfig {
   apiUrl: string;
-  defaultStaleTime?: number;
-  defaultGcTime?: number;
 }
 
 export function createTopPlayersQueries(config: TopPlayersQueriesConfig) {
   const fetchTopPlayers = createServerFn({ method: "GET" })
-    .validator(() => undefined)
     .handler(async () => {
+      console.info("Fetching top players from:", config.apiUrl);
+
       try {
-        const res = await axios.get<Array<TopPlayer>>(`${config.apiUrl}/api/top-players`);
-        return res.data;
-      } catch (err: unknown) {
-        console.error("Error fetching top players:", err);
-        throw new Error("Failed to fetch top players");
+        const response = await axios.get(`${config.apiUrl}/top-players`);
+        const parsed = APITopPlayersResponseSchema.safeParse(response.data);
+
+        if (!parsed.success) {
+          console.error("Validation error:", parsed.error);
+          throw new Error("Invalid API response format");
+        }
+
+        if (!parsed.data.success) {
+          throw new Error(parsed.data.error.message);
+        }
+
+        return parsed.data.data;
+
+      } catch (error: unknown) {
+        console.error("Players fetch failed:", error);
+        const message = error instanceof Error ? error.message : "Failed to fetch playres";
+
+        throw new Error(message);
       }
     });
 
   function topPlayersQueryOptions() {
     return queryOptions({
       queryKey: ["top-players"],
-      queryFn: () => fetchTopPlayers({}),
+      queryFn: () => fetchTopPlayers(),
       refetchOnWindowFocus: false,
       refetchOnMount: false,
-      staleTime: config.defaultStaleTime ?? 1 * 60 * 1000,
-      gcTime: config.defaultGcTime ?? 5 * 60 * 1000,
+      staleTime: 1 * 60 * 1000,
+      gcTime: 5 * 60 * 1000,
+      retry: (failureCount, error: Error) => {
+        if (error.message.includes("Invalid API")) return false;
+        return failureCount < 2;
+      }
     });
   }
 
   return {
     topPlayersQueryOptions,
+    topPlayersQueryKey: () => ["top-players"]
   };
 }

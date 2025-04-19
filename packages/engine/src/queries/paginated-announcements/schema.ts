@@ -2,9 +2,18 @@ import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { announcements } from '../../db/schema';
 
-const announcementsBase = createSelectSchema(announcements);
+const AnnouncementsPaginationSchema = z.object({
+  currentPage: z.number().min(1, "Current page must be at least 1"),
+  totalPages: z.number().min(1, "Total pages must be at least 1"),
+  totalItems: z.number().min(0, "Total items cannot be negative"),
+  itemsPerPage: z.number().min(1, "Items per page must be at least 1"),
+  hasNextPage: z.boolean(),
+  hasPreviousPage: z.boolean(),
+});
 
-export const Announcements = announcementsBase.pick({
+const announcementsSchema = createSelectSchema(announcements);
+
+export const Announcements = announcementsSchema.pick({
   id: true,
   year: true,
   number: true,
@@ -17,15 +26,6 @@ export const Announcements = announcementsBase.pick({
     .length(3, "Number must be 3 characters long"),
   content: z.string()
     .max(1000, "Content cannot exceed 1000 characters"),
-});
-
-const AnnouncementsPaginationSchema = z.object({
-  currentPage: z.number().min(1, "Current page must be at least 1"),
-  totalPages: z.number().min(1, "Total pages must be at least 1"),
-  totalItems: z.number().min(0, "Total items cannot be negative"),
-  itemsPerPage: z.number().min(1, "Items per page must be at least 1"),
-  hasNextPage: z.boolean(),
-  hasPreviousPage: z.boolean(),
 });
 
 export const SuccessAnnouncementsSchema = z.object({
@@ -51,6 +51,6 @@ export const APIAnnouncementsResponseSchema = z.discriminatedUnion("success", [
 ]);
 
 export type Announcement = z.infer<typeof Announcements>;
-export type AnnouncementsPagination = z.infer<typeof AnnouncementsPaginationSchema>;
+export type SuccessAnnouncementsResponse = z.infer<typeof SuccessAnnouncementsSchema>['data'];
 export type APIAnnouncementsResponse = z.infer<typeof APIAnnouncementsResponseSchema>;
-export type SuccessAnnouncementsData = z.infer<typeof SuccessAnnouncementsSchema>['data'];
+export type AnnouncementsPagination = z.infer<typeof AnnouncementsPaginationSchema>;

@@ -39,10 +39,13 @@ export function createFreshAnnouncementQueries(config: FreshAnnouncementQueriesC
     return queryOptions({
       queryKey: ["fresh-announcements"],
       queryFn: () => fetchFreshAnnouncements(),
-      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      staleTime: 1 * 60 * 1000,
+      gcTime: 5 * 60 * 1000,
       retry: (failureCount, error: Error) => {
         if (error.message.includes("Invalid API")) return false;
-        return failureCount < 3;
+        return failureCount < 2;
       }
     });
   }

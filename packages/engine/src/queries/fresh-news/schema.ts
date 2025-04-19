@@ -4,7 +4,7 @@ import { posts } from "../../db/schema";
 
 const postsSchema = createSelectSchema(posts);
 
-export const FreshNewsSchema = postsSchema.pick({
+export const FreshNews = postsSchema.pick({
   id: true,
   title: true,
   image: true,
@@ -23,7 +23,7 @@ export const FreshNewsSchema = postsSchema.pick({
 
 export const SuccessFreshNewsResponseSchema = z.object({
   success: z.literal(true),
-  data: z.array(FreshNewsSchema)
+  data: z.array(FreshNews)
 });
 
 export const ErrorFreshNewsResponseSchema = z.object({
@@ -40,5 +40,5 @@ export const APIFreshNewsResponseSchema = z.discriminatedUnion("success", [
   ErrorFreshNewsResponseSchema
 ]);
 
-export type FreshNews = z.infer<typeof FreshNewsSchema>;
+export type FreshNews = z.infer<typeof FreshNews>;
 export type APIFreshNewsResponse = z.infer<typeof APIFreshNewsResponseSchema>;

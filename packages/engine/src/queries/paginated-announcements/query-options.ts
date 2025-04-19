@@ -1,7 +1,8 @@
-import { queryOptions } from '@tanstack/react-query';
+import { queryOptions, type QueryFunctionContext } from '@tanstack/react-query';
 import axios from 'redaxios';
 
-import type { SuccessAnnouncementsSchema } from './schema';
+import type { Announcement, AnnouncementsPagination } from './schema';
+import { APIAnnouncementsResponseSchema } from './schema';
 
 interface AnnouncementsQueriesConfig {
   apiUrl: string;
@@ -9,44 +10,48 @@ interface AnnouncementsQueriesConfig {
 }
 
 export function createAnnouncementsQueries(config: AnnouncementsQueriesConfig) {
-  const fetchPaginatedAnnouncements = async (page = 1) => {
-    console.info(`Fetching announcements page ${page}...`);
-    return axios
-      .get<typeof SuccessAnnouncementsSchema>(
-        `${config.apiUrl}/announcements?page=${page}`
-      )
-      .then((r) => r.data)
-      .catch((err) => {
-        if (err.response?.status === 404) {
-          return {
-            announcements: [],
-            pagination: {
-              currentPage: page,
-              totalPages: 0,
-              totalItems: 0,
-              itemsPerPage: config.defaultItemsPerPage ?? 12,
-              hasNextPage: false,
-              hasPreviousPage: page > 1,
-            },
-          };
-        }
-        throw err;
-      });
+  const fetchAnnouncements = async (
+    ctx: QueryFunctionContext<[string, number]>
+  ): Promise<{ announcements: Announcement[]; pagination: AnnouncementsPagination }> => {
+    const [, page] = ctx.queryKey;
+    console.info(`Fetching announcements page ${page} from ${config.apiUrl}`);
+
+    try {
+      const resp = await axios.get(`${config.apiUrl}/announcements?page=${page}`);
+      const parsed = APIAnnouncementsResponseSchema.safeParse(resp.data);
+
+      if (!parsed.success) {
+        console.error('Schema validation failed:', parsed.error);
+        throw new Error('Invalid API response format');
+      }
+
+      if (!parsed.data.success) {
+        throw new Error(parsed.data.error.message);
+      }
+
+      return parsed.data.data;
+    } catch (error: unknown) {
+      console.error('Error fetching announcements:', error);
+      const message = error instanceof Error ? error.message : 'Failed to fetch announcements';
+
+      throw new Error(message);
+    }
   };
 
-  function paginatedAnnouncementsQueryOptions(page = 1) {
+  function announcementsQueryOptions(page = 1) {
     return queryOptions({
-      queryKey: ['paginated-announcements', page],
-      queryFn: () => fetchPaginatedAnnouncements(page),
+      queryKey: ['announcements', page] as const,
+      queryFn: fetchAnnouncements,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
+      staleTime: 1 * 60 * 1000,
+      gcTime: 5 * 60 * 1000,
+      retry: (failureCount, error: Error) => {
+        if (error.message.includes("Invalid API")) return false;
+        return failureCount < 2;
+      }
     });
   }
 
-  return {
-    fetchPaginatedAnnouncements,
-    paginatedAnnouncementsQueryOptions,
-  };
+  return { fetchAnnouncements, announcementsQueryOptions };
 }

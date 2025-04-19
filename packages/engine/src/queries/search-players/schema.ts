@@ -2,19 +2,36 @@ import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { players } from "../../db/schema";
 
-const playerSelectSchema = createSelectSchema(players);
+const playersSchema = createSelectSchema(players);
 
-export const SearchPlayerResponseSchema = playerSelectSchema.extend({
-  id: z.number().int(),
-  name: z.string().max(100), 
-}).partial();
+export const SearchPlayers = playersSchema
+  .pick({
+    id: true,
+    name: true,
+  })
+  .extend({
+    id: z.number().int().positive(),
+    name: z.string().max(100, "Name must be 100 characters or less"),
+  });
 
-export const SuccessSearchPlayersResponseSchema = z.array(SearchPlayerResponseSchema);
-
-export const ErrorSearchPlayersResponseSchema = z.object({
-  error: z.string(),
+export const SuccessSearchPlayersSchema = z.object({
+  success: z.literal(true),
+  data: z.array(SearchPlayers),
 });
 
-export type SearchPlayerResponse = z.infer<typeof SearchPlayerResponseSchema>;
-export type SuccessSearchPlayersResponse = z.infer<typeof SuccessSearchPlayersResponseSchema>;
-export type ErrorSearchPlayersResponse = z.infer<typeof ErrorSearchPlayersResponseSchema>;
+const ErrorSearchPlayersSchema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    code: z.number(),
+    message: z.string(),
+    details: z.any().optional(),
+  }),
+});
+
+export const APISearchPlayersResponseSchema = z.discriminatedUnion("success", [
+  SuccessSearchPlayersSchema,
+  ErrorSearchPlayersSchema,
+]);
+
+export type SearchPlayer = z.infer<typeof SearchPlayers>;
+export type APISearchPlayersResponse = z.infer<typeof APISearchPlayersResponseSchema>;

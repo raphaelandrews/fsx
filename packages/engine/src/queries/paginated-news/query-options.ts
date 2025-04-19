@@ -1,50 +1,57 @@
-import { queryOptions } from '@tanstack/react-query';
+import { type QueryFunctionContext, queryOptions } from '@tanstack/react-query';
 import axios from 'redaxios';
 
-import type { PaginatedNewsResponse } from './schema';
+import type { News, NewsPagination } from './schema';
+import { APINewsResponseSchema } from './schema';
 
 interface NewsQueriesConfig {
   apiUrl: string;
   defaultItemsPerPage?: number;
 }
 
-export function createPaginatedNewsQueries(config: NewsQueriesConfig) {
-  const fetchPaginatedNews = async (page = 1) => {
-    console.info(`Fetching news page ${page}...`);
-    return axios
-      .get<PaginatedNewsResponse>(`${config.apiUrl}/news?page=${page}`)
-      .then((r) => r.data)
-      .catch((err) => {
-        if (err.response?.status === 404) {
-          return {
-            news: [],
-            pagination: {
-              currentPage: page,
-              totalPages: 0,
-              totalItems: 0,
-              itemsPerPage: config.defaultItemsPerPage ?? 12,
-              hasNextPage: false,
-              hasPreviousPage: page > 1,
-            },
-          };
-        }
-        throw err;
-      });
+export function createNewsQueries(config: NewsQueriesConfig) {
+  const fetchNews = async (
+    ctx: QueryFunctionContext<[string, number]>
+  ): Promise<{ news: News[]; pagination: NewsPagination }> => {
+    const [, page] = ctx.queryKey;
+    console.info(`Fetching news page ${page} from ${config.apiUrl}`);
+
+    try {
+      const resp = await axios.get(`${config.apiUrl}/news?page=${page}`);
+      const parsed = APINewsResponseSchema.safeParse(resp.data);
+
+      if (!parsed.success) {
+        console.error('Schema validation failed:', parsed.error);
+        throw new Error('Invalid API response format');
+      }
+
+      if (!parsed.data.success) {
+        throw new Error(parsed.data.error.message);
+      }
+
+      return parsed.data.data;
+    } catch (error: unknown) {
+      console.error('Error fetching news:', error);
+      const message = error instanceof Error ? error.message : 'Failed to fetch news';
+
+      throw new Error(message);
+    }
   };
 
-  function paginatedNewsQueryOptions(page = 1) {
+  function newsQueryOptions(page = 1) {
     return queryOptions({
-      queryKey: ['paginated-news', page],
-      queryFn: () => fetchPaginatedNews(page),
+      queryKey: ['news', page] as const,
+      queryFn: fetchNews,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
+      staleTime: 1 * 60 * 1000,
+      gcTime: 5 * 60 * 1000,
+      retry: (failureCount, error: Error) => {
+        if (error.message.includes("Invalid API")) return false;
+        return failureCount < 2;
+      }
     });
   }
 
-  return {
-    fetchPaginatedNews,
-    paginatedNewsQueryOptions,
-  };
+  return { fetchNews, newsQueryOptions };
 }

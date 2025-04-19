@@ -2,8 +2,6 @@ import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { posts } from "../../db/schema";
 
-const postsSchema = createSelectSchema(posts);
-
 export const NewsPaginationSchema = z.object({
   currentPage: z.number().min(1, "Current page must be at least 1"),
   totalPages: z.number().min(1, "Total pages must be at least 1"),
@@ -13,34 +11,48 @@ export const NewsPaginationSchema = z.object({
   hasPreviousPage: z.boolean(),
 });
 
-export const NewsBaseSchema = postsSchema.extend({
-  title: z.string().max(80, "Title cannot exceed 80 characters."),
-  image: z.string().optional(),
-  slug: z.string().max(80, "Slug cannot exceed 80 characters."),
-  createdAt: z.string().datetime(),
-}).strict();
+export const postsSchema = createSelectSchema(posts);
 
-export const NewsResponseSchema = NewsBaseSchema.extend({
-  id: z.string().max(80, "ID should be a valid string and max 80 characters."),
-}).partial();
+export const News = postsSchema
+  .pick({
+    id: true,
+    title: true,
+    image: true,
+    slug: true,
+    createdAt: true,
+  })
+  .extend({
+    title: z.string().max(80, "Title cannot exceed 80 characters"),
+    image: z.string().url("Invalid image URL").optional(),
+    slug: z.string()
+      .max(80, "Slug cannot exceed 80 characters")
+      .regex(/^[a-z0-9-]+$/, "Slug must be lowercase with hyphens"),
+    createdAt: z.string().datetime(),
+  });
 
-export const PaginatedNewsResponseSchema = z.object({
-  news: z.array(NewsResponseSchema),
-  pagination: NewsPaginationSchema,
+  export const SuccessNewsSchema = z.object({
+    success: z.literal(true),
+    data: z.object({
+      news: z.array(News),
+      pagination: NewsPaginationSchema,
+    }),
+  });
+
+export const ErrorNewsSchema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    code: z.number(),
+    message: z.string(),
+    details: z.any().optional(),
+  }),
 });
 
-export const SuccessNewsResponseSchema = NewsResponseSchema;
+export const APINewsResponseSchema = z.discriminatedUnion("success", [
+  SuccessNewsSchema,
+  ErrorNewsSchema,
+]);
 
-export const ErrorNewsResponseSchema = z.object({
-  error: z.string(),
-  pagination: z.object({
-    currentPage: z.number(),
-    totalPages: z.number(),
-    totalItems: z.number(),
-  }).optional(),
-});
-
-export type NewsResponse = z.infer<typeof NewsResponseSchema>;
-export type SuccessNewsResponse = z.infer<typeof SuccessNewsResponseSchema>;
-export type ErrorNewsResponse = z.infer<typeof ErrorNewsResponseSchema>;
-export type PaginatedNewsResponse = z.infer<typeof PaginatedNewsResponseSchema>;
+export type News = z.infer<typeof News>;
+export type SuccessNewsResponse = z.infer<typeof SuccessNewsSchema>['data'];
+export type APINewsResponse = z.infer<typeof APINewsResponseSchema>;
+export type NewsPagination = z.infer<typeof NewsPaginationSchema>;
