@@ -9,31 +9,30 @@ interface FreshAnnouncementQueriesConfig {
 }
 
 export function createFreshAnnouncementQueries(config: FreshAnnouncementQueriesConfig) {
-  const fetchFreshAnnouncements = createServerFn({ method: "GET" })
-    .handler(async () => {
-      try {
-        console.info("Fetching fresh announcements from:", config.apiUrl);
+  const fetchFreshAnnouncements = (async () => {
+    try {
+      console.info("Fetching fresh announcements from:", config.apiUrl);
 
-        const resp = await axios.get(`${config.apiUrl}/fresh-announcements`);
-        const parsed = APIFreshAnnouncementsResponseSchema.safeParse(resp.data);
+      const resp = await axios.get(`${config.apiUrl}/fresh-announcements`);
+      const parsed = APIFreshAnnouncementsResponseSchema.safeParse(resp.data);
 
-        if (!parsed.success) {
-          console.error("Schema validation failed:", parsed.error);
-          throw new Error("Invalid API response format");
-        }
-
-        if (!parsed.data.success) {
-          throw new Error(parsed.data.error.message);
-        }
-
-        return parsed.data.data;
-      } catch (error: unknown) {
-        console.error("Error fetching fresh announcements:", error);
-        const message = error instanceof Error ? error.message : "Failed to fetch fresh announcements";
-        
-        throw new Error(message);
+      if (!parsed.success) {
+        console.error("Schema validation failed:", parsed.error);
+        throw new Error("Invalid API response format");
       }
-    });
+
+      if (!parsed.data.success) {
+        throw new Error(parsed.data.error.message);
+      }
+
+      return parsed.data.data;
+    } catch (error: unknown) {
+      console.error("Error fetching fresh announcements:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch fresh announcements";
+
+      throw new Error(message);
+    }
+  });
 
   function freshAnnouncementsQueryOptions() {
     return queryOptions({

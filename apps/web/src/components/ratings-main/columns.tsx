@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-import type { TopPlayer } from "~/schemas";
+import type { TopPlayer } from "@fsx/engine/queries";
 
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { Actions } from "./actions";

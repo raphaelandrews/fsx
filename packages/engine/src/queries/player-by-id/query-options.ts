@@ -9,32 +9,30 @@ interface PlayerQueriesConfig {
 }
 
 export function createPlayerQueries(config: PlayerQueriesConfig) {
-  const fetchPlayerById = createServerFn({ method: "GET" })
-    .validator((id: number) => id)
-    .handler(async ({ data: id }: { data: number }) => {
-      try {
-        console.info(`Fetching player ${id} from: ${config.apiUrl}`);
+  const fetchPlayerById = (async ({ data: id }: { data: number }) => {
+    try {
+      console.info(`Fetching player ${id} from: ${config.apiUrl}`);
 
-        const response = await axios.get(`${config.apiUrl}/api/player/${id}`);
-        const parsed = APIPlayerByIdResponseSchema.safeParse(response.data);
+      const response = await axios.get(`${config.apiUrl}/player/${id}`);
+      const parsed = APIPlayerByIdResponseSchema.safeParse(response.data);
 
-        if (!parsed.success) {
-          console.error("Validation error:", parsed.error);
-          throw new Error("Invalid API response format");
-        }
-
-        if (!parsed.data.success) {
-          throw new Error(parsed.data.error.message);
-        }
-
-        return parsed.data.data;
-      } catch (err: unknown) {
-        console.error(`Error fetching player ${id}:`, err);
-        const message = err instanceof Error ? err.message : `Failed to fetch player ${id}`;
-
-        throw new Error(message);
+      if (!parsed.success) {
+        console.error("Validation error:", parsed.error);
+        throw new Error("Invalid API response format");
       }
-    });
+
+      if (!parsed.data.success) {
+        throw new Error(parsed.data.error.message);
+      }
+
+      return parsed.data.data;
+    } catch (err: unknown) {
+      console.error(`Error fetching player ${id}:`, err);
+      const message = err instanceof Error ? err.message : `Failed to fetch player ${id}`;
+
+      throw new Error(message);
+    }
+  });
 
   function playerByIdQueryOptions(id: number) {
     return queryOptions({

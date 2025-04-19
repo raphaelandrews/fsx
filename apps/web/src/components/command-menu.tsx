@@ -4,8 +4,11 @@ import { useNavigate } from "@tanstack/react-router";
 import type { DialogProps } from "@radix-ui/react-dialog";
 import { LaptopIcon, MoonIcon, SearchIcon, SunIcon, User } from "lucide-react";
 
-import { searchPlayersQueryOptions } from "~/queries/search-players";
 import { cn } from "~/lib/utils";
+import { API_BASE_URL } from "~/lib/utils";
+
+import { createSearchPlayersQueries } from "@fsx/engine/queries";
+
 import { useTheme } from "~/components/theme-provider";
 import { Button } from "~/components/ui/button";
 import {
@@ -18,6 +21,10 @@ import {
 } from "~/components/ui/command";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
+
+const { searchPlayersQueryOptions } = createSearchPlayersQueries({
+  apiUrl: API_BASE_URL,
+});
 
 function removeSpecialCharacters(text: string) {
   return (
@@ -35,10 +42,9 @@ export function CommandMenu({ ...props }: DialogProps) {
   const { setTheme } = useTheme();
   const [value, setValue] = React.useState("");
 
-  const { data: players, isLoading } = useSuspenseQuery({
-    ...searchPlayersQueryOptions(),
-    refetchOnWindowFocus: false,
-  });
+  const { data: players = [], isLoading } = useSuspenseQuery(
+    searchPlayersQueryOptions()
+  );
 
   const filteredPlayers = React.useMemo(() => {
     if (!value) return players.slice(0, 10);

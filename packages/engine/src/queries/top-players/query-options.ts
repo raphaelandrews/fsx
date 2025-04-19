@@ -9,8 +9,7 @@ interface TopPlayersQueriesConfig {
 }
 
 export function createTopPlayersQueries(config: TopPlayersQueriesConfig) {
-  const fetchTopPlayers = createServerFn({ method: "GET" })
-    .handler(async () => {
+  const fetchTopPlayers = (async () => {
       console.info("Fetching top players from:", config.apiUrl);
 
       try {

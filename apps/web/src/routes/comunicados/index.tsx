@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useCallback, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
@@ -6,10 +7,12 @@ import {
 } from "@tanstack/react-router";
 import { HomeIcon } from "lucide-react";
 import { z } from "zod";
-import { useEffect, useMemo, useCallback, useRef } from "react";
 
-import { paginatedAnnouncementsQueryOptions } from "~/queries/announcements";
+import { API_BASE_URL } from "~/lib/utils";
 
+import { createAnnouncementsQueries, createNewsQueries } from "@fsx/engine/queries";
+
+import AnnouncementLink from "~/components/announcement-link";
 import {
   PageHeader,
   PageHeaderDescription,
@@ -28,7 +31,10 @@ import {
 } from "~/components/ui/pagination";
 import { Announcement } from "~/components/announcement";
 import { Skeleton } from "~/components/ui/skeleton";
-import AnnouncementLink from "~/components/announcement-link";
+
+const { announcementsQueryOptions } = createAnnouncementsQueries({
+  apiUrl: API_BASE_URL,
+});
 
 const searchSchema = z.object({
   page: z
@@ -44,7 +50,7 @@ export const Route = createFileRoute("/comunicados/")({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context: { queryClient }, deps: { page } }) => {
-    const queryOptions = paginatedAnnouncementsQueryOptions(Number(page));
+    const queryOptions = announcementsQueryOptions(Number(page));
     const existingData = queryClient.getQueryData(queryOptions.queryKey);
     const state = existingData
       ? queryClient.getQueryState(queryOptions.queryKey)
@@ -67,9 +73,7 @@ function AnnouncementsIndexComponent() {
   const currentPage = Number(page);
   const navigate = useNavigate();
 
-  const { data, isLoading, isFetching, isPending } = useQuery({
-    ...paginatedAnnouncementsQueryOptions(currentPage),
-  });
+  const { data, isLoading, isFetching, isPending } = useQuery(announcementsQueryOptions(currentPage));
 
   const announcements = data?.announcements ?? [];
   const totalPages = data?.pagination?.totalPages ?? 0;
@@ -135,7 +139,7 @@ function AnnouncementsIndexComponent() {
   const prefetchPage = useCallback(
     (pageNum: number) => {
       if (!prefetchedPages.current.has(pageNum)) {
-        const queryOptions = paginatedAnnouncementsQueryOptions(pageNum);
+        const queryOptions = announcementsQueryOptions(pageNum);
         queryClient.prefetchQuery(queryOptions);
         prefetchedPages.current.add(pageNum);
       }

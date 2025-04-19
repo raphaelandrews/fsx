@@ -38,9 +38,9 @@ export const HeaderNavigationDrawer = () => {
           <Accordion type="multiple" className="space-y-2">
             <nav className="flex flex-col gap-1">
               {navItems.map((item) => (
-                <HeaderNavigationDrawerItem 
-                  {...item} 
-                  key={`${item.href}-drawer`} 
+                <HeaderNavigationDrawerItem
+                  {...item}
+                  key={`${item.href}-drawer`}
                 />
               ))}
             </nav>

@@ -12,13 +12,10 @@ import {
 
 import { cn } from "~/lib/utils";
 import { API_BASE_URL } from "~/lib/utils";
+import type { Announcement as AnnouncementType, NewsCard as NewsCardType } from "~/schemas";
 
-import {
-  createFreshAnnouncementQueries,
-  createFreshNewsQueries,
-  type Announcement as AnnouncementType,
-  type FreshNews,
-} from "@fsx/engine/queries";
+import { createFreshAnnouncementQueries } from '@repo/queries/fresh-announcements';
+import { createFreshNewsQueries } from '@repo/queries/fresh-news';
 
 import AnnouncementLink from "~/components/announcement-link";
 import UpdateRegister from "~/components/update-register";
@@ -33,13 +30,17 @@ import {
 import NewsCard from "~/components/news-card";
 import DataTableTabs from "~/components/ratings-main/data-table-tabs";
 
-const { freshNewsQueryOptions } = createFreshNewsQueries({
-  apiUrl: API_BASE_URL,
+
+const freshNewsQueries = createFreshNewsQueries({
+  deployUrl: API_BASE_URL
 });
 
-const { freshAnnouncementsQueryOptions } = createFreshAnnouncementQueries({
-  apiUrl: API_BASE_URL,
+const freshAnnouncementsQueries = createFreshAnnouncementQueries({
+  deployUrl: API_BASE_URL
 });
+
+const { freshNewsQueryOptions } = freshNewsQueries;
+const { freshAnnouncementsQueryOptions } = freshAnnouncementsQueries;
 
 export const Route = createFileRoute("/")({
   loader: ({ context: { queryClient } }) =>
@@ -71,13 +72,13 @@ function Home() {
         className="!mt-4"
       >
         <div className="grid sm:grid-cols-2 gap-8">
-          {mainNews.map((news: FreshNews) => (
+          {mainNews.map((news) => (
             <Hero
               key={news.id}
               id={news.id}
-              image={news.image ?? ""}
+              image={news.image ?? ''}
               title={news.title}
-              slug={news.slug ?? ""}
+              slug={news.slug ?? ''}
             />
           ))}
         </div>
@@ -90,13 +91,13 @@ function Home() {
         main={false}
       >
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-          {freshNews.map((news: FreshNews) => (
+          {freshNews.map((news) => (
             <NewsCard
               key={news.id}
               id={news.id}
-              image={news.image ?? ""}
+              image={news.image ?? ''}
               title={news.title}
-              slug={news.slug ?? ""}
+              slug={news.slug ?? ''}
             />
           ))}
         </div>

@@ -8,7 +8,9 @@ import { HomeIcon } from "lucide-react";
 import { z } from "zod";
 import { useEffect, useMemo, useCallback, useRef } from "react";
 
-import { paginatedNewsQueryOptions } from "~/queries/news";
+import { API_BASE_URL } from "~/lib/utils";
+
+import { createNewsQueries } from "@fsx/engine/queries";
 
 import NewsCard from "~/components/news-card";
 import {
@@ -30,6 +32,10 @@ import {
 import { Announcement } from "~/components/announcement";
 import { Skeleton } from "~/components/ui/skeleton";
 
+const { newsQueryOptions } = createNewsQueries({
+  apiUrl: API_BASE_URL,
+});
+
 const searchSchema = z.object({
   page: z
     .string()
@@ -44,7 +50,7 @@ export const Route = createFileRoute("/noticias/")({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context: { queryClient }, deps: { page } }) => {
-    const queryOptions = paginatedNewsQueryOptions(Number(page));
+    const queryOptions = newsQueryOptions(Number(page));
     const existingData = queryClient.getQueryData(queryOptions.queryKey);
     const state = existingData
       ? queryClient.getQueryState(queryOptions.queryKey)
@@ -67,9 +73,7 @@ function NewsIndexComponent() {
   const currentPage = Number(page);
   const navigate = useNavigate();
 
-  const { data, isLoading, isFetching, isPending } = useQuery({
-    ...paginatedNewsQueryOptions(currentPage),
-  });
+  const { data, isLoading, isFetching, isPending } = useQuery(newsQueryOptions(currentPage));
 
   const news = data?.news ?? [];
   const totalPages = data?.pagination?.totalPages ?? 0;
@@ -135,7 +139,7 @@ function NewsIndexComponent() {
 
   const prefetchPage = useCallback((pageNum: number) => {
     if (!prefetchedPages.current.has(pageNum)) {
-      const queryOptions = paginatedNewsQueryOptions(pageNum);
+      const queryOptions = newsQueryOptions(pageNum);
       queryClient.prefetchQuery(queryOptions);
       prefetchedPages.current.add(pageNum);
     }

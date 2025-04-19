@@ -3,8 +3,12 @@ import { useNavigate } from "@tanstack/react-router";
 import type { DialogProps } from "@radix-ui/react-dialog";
 import { SearchIcon, User } from "lucide-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
+
 import { cn } from "~/lib/utils";
-import { searchPlayersQueryOptions } from "~/queries/search-players";
+import { API_BASE_URL } from "~/lib/utils";
+
+import { createSearchPlayersQueries } from "@fsx/engine/queries";
+
 import { Button } from "~/components/ui/button";
 import {
   CommandDialog,
@@ -15,20 +19,20 @@ import {
 } from "~/components/ui/command";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
-import type { SearchPlayer } from "~/schemas";
 
-interface Player {
-  id: string;
-  name: string;
-}
+const { searchPlayersQueryOptions } = createSearchPlayersQueries({
+  apiUrl: API_BASE_URL,
+});
 
 function normalizeSearchText(text: string): string {
-  return text
-    .normalize("NFD")
-    // biome-ignore lint/suspicious/noMisleadingCharacterClass: <explanation>
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9\s]/g, "")
-    .toLowerCase();
+  return (
+    text
+      .normalize("NFD")
+      // biome-ignore lint/suspicious/noMisleadingCharacterClass: <explanation>
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9\s]/g, "")
+      .toLowerCase()
+  );
 }
 
 export function SearchPlayers({ ...props }: DialogProps) {
@@ -36,10 +40,9 @@ export function SearchPlayers({ ...props }: DialogProps) {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState("");
 
-  const { data: players = [], isLoading } = useSuspenseQuery({
-    ...searchPlayersQueryOptions(),
-    refetchOnWindowFocus: false,
-  });
+  const { data: players = [], isLoading } = useSuspenseQuery(
+    searchPlayersQueryOptions()
+  );
 
   const filteredPlayers = React.useMemo(() => {
     if (!searchValue.trim()) return players.slice(0, 10);
@@ -127,7 +130,7 @@ export function SearchPlayers({ ...props }: DialogProps) {
             ) : (
               filteredPlayers.map((player) => (
                 <CommandItem
-                  key={`player-${player.id}`} 
+                  key={`player-${player.id}`}
                   value={player.name}
                   onSelect={() => {
                     navigate({ to: `/jogadores/${player.id}` });

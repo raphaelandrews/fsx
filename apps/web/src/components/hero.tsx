@@ -3,13 +3,13 @@ import { useState, useEffect } from "react";
 import type { z } from "zod";
 
 import type {
-  NewsResponse,
+  FreshNews,
 } from "@fsx/engine/queries";
 
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 
-type NewsCardProps = z.infer<NewsResponse>
+type NewsCardProps = z.infer<typeof FreshNews>
 
 export function Hero({ id, title, image, slug }: NewsCardProps) {
   const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ export function Hero({ id, title, image, slug }: NewsCardProps) {
 
   useEffect(() => {
     const img = new Image();
-    img.src = image;
+    img.src = image ?? "";
     img.onload = () => {
       setImageLoaded(true);
       setLoading(false);

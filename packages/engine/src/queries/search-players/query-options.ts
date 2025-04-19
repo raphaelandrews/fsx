@@ -9,32 +9,31 @@ interface SearchPlayersQueriesConfig {
 }
 
 export function createSearchPlayersQueries(config: SearchPlayersQueriesConfig) {
-  const fetchSearchPlayers = createServerFn({ method: "GET" })
-    .handler(async () => {
-      try {
-        console.info("Fetching players from:", config.apiUrl);
+  const fetchSearchPlayers = (async () => {
+    try {
+      console.info("Fetching players from:", config.apiUrl);
 
-        const response = await axios.get(`${config.apiUrl}/search-players`);
-        const parsed = APISearchPlayersResponseSchema.safeParse(response.data);
+      const response = await axios.get(`${config.apiUrl}/search-players`);
+      const parsed = APISearchPlayersResponseSchema.safeParse(response.data);
 
-        if (!parsed.success) {
-          console.error("Validation error:", parsed.error);
-          throw new Error("Invalid API response format");
-        }
-
-        if (!parsed.data.success) {
-          throw new Error(parsed.data.error.message);
-        }
-
-        return parsed.data.data;
-
-      } catch (error: unknown) {
-        console.error("Players fetch failed:", error);
-        const message = error instanceof Error ? error.message : "Failed to fetch playres";
-
-        throw new Error(message);
+      if (!parsed.success) {
+        console.error("Validation error:", parsed.error);
+        throw new Error("Invalid API response format");
       }
-    });
+
+      if (!parsed.data.success) {
+        throw new Error(parsed.data.error.message);
+      }
+
+      return parsed.data.data;
+
+    } catch (error: unknown) {
+      console.error("Players fetch failed:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch playres";
+
+      throw new Error(message);
+    }
+  });
 
   function searchPlayersQueryOptions() {
     return queryOptions({

@@ -1,18 +1,16 @@
 import { useState } from "react";
 
-import type { AnnouncementsResponse } from "@fsx/engine/queries";
+import type { Announcement } from "@fsx/engine/queries";
 
 import AnnouncementsModal from "~/components/modals/announcements-modal";
 import { Card, CardContent } from "~/components/ui/card";
-
-type AnnouncementLinkProps = AnnouncementsResponse;
 
 const AnnouncementLink = ({
   id,
   year,
   number,
   content,
-}: AnnouncementLinkProps) => {
+}: Announcement) => {
   const [isOpen, setIsOpen] = useState(false);
   const toggleModal = () => setIsOpen((prev) => !prev);
 

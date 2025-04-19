@@ -1,16 +1,24 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { topPlayersQueryOptions } from "~/queries/top-players";
-import type { TopPlayerData } from "~/schemas";
+import { API_BASE_URL } from "~/lib/utils";
+
+import {
+  createTopPlayersQueries,
+  type SuccessTopPlayersResponse,
+} from "@fsx/engine/queries";
 
 import { DataTable } from "./data-table";
 import { columnsBlitz, columnsClassic, columnsRapid } from "./columns";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
+const { topPlayersQueryOptions} = createTopPlayersQueries({
+  apiUrl: API_BASE_URL,
+});
+
 type TabValue = "rapid" | "classic" | "blitz";
-type TabKey = keyof TopPlayerData;
+type TabKey = keyof SuccessTopPlayersResponse;
 
 const tabMap: Record<TabValue, TabKey> = {
   blitz: "topBlitz",
@@ -19,7 +27,7 @@ const tabMap: Record<TabValue, TabKey> = {
 } as const;
 
 const DataTableTabs = () => {
-  const { data: topPlayers } = useSuspenseQuery(topPlayersQueryOptions);
+  const { data: topPlayers } = useSuspenseQuery(topPlayersQueryOptions());
   const [currentTab, setCurrentTab] = useState<TabValue>("rapid");
 
   const currentData = topPlayers[tabMap[currentTab]];

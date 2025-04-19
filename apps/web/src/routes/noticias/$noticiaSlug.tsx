@@ -10,10 +10,13 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 
-import {
-  newsBySlugQueryOptions,
-  NewsNotFoundError,
-} from "~/queries/news-by-slug";
+import { API_BASE_URL } from "~/lib/utils";
+
+import { createNewsBySlugQueries } from "@fsx/engine/queries";
+
+const { newsBySlugQueryOptions } = createNewsBySlugQueries({
+  apiUrl: API_BASE_URL,
+});
 
 export const Route = createFileRoute("/noticias/$noticiaSlug")({
   loader: ({ context: { queryClient }, params: { noticiaSlug } }) => {
@@ -25,9 +28,10 @@ export const Route = createFileRoute("/noticias/$noticiaSlug")({
 
 export function NewsErrorComponent({ error }: ErrorComponentProps) {
   const router = useRouter();
-  if (error instanceof NewsNotFoundError) {
+  if (error) {
     return <div>{error.message}</div>;
   }
+
   const queryErrorResetBoundary = useQueryErrorResetBoundary();
 
   React.useEffect(() => {

@@ -10,15 +10,18 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 
-import {
-  announcementByIdQueryOptions,
-  AnnouncementNotFoundError,
-} from "~/queries/announcements-by-id";
+import { API_BASE_URL } from "~/lib/utils";
+
+import { createAnnouncementQueries } from "@fsx/engine/queries";
+
+const { announcementByIdQueryOptions } = createAnnouncementQueries({
+  apiUrl: API_BASE_URL,
+});
 
 export const Route = createFileRoute("/comunicados/$comunicadoId")({
   loader: ({ context: { queryClient }, params: { comunicadoId } }) => {
     return queryClient.ensureQueryData(
-      announcementByIdQueryOptions(comunicadoId)
+      announcementByIdQueryOptions(Number(comunicadoId))
     );
   },
   errorComponent: AnnouncementErrorComponent,
@@ -27,7 +30,7 @@ export const Route = createFileRoute("/comunicados/$comunicadoId")({
 
 export function AnnouncementErrorComponent({ error }: ErrorComponentProps) {
   const router = useRouter();
-  if (error instanceof AnnouncementNotFoundError) {
+  if (error) {
     return <div>{error.message}</div>;
   }
   const queryErrorResetBoundary = useQueryErrorResetBoundary();
@@ -54,7 +57,7 @@ export function AnnouncementErrorComponent({ error }: ErrorComponentProps) {
 function AnnouncementComponent() {
   const announcementId = Route.useParams().comunicadoId;
   const { data: announcement } = useSuspenseQuery(
-    announcementByIdQueryOptions(announcementId)
+    announcementByIdQueryOptions(Number(announcementId))
   );
 
   return (
