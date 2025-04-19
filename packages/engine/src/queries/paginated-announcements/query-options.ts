@@ -1,7 +1,7 @@
 import { queryOptions } from '@tanstack/react-query';
 import axios from 'redaxios';
 
-import type { PaginatedAnnouncementsResponse } from './schema';
+import type { SuccessAnnouncementsSchema } from './schema';
 
 interface AnnouncementsQueriesConfig {
   apiUrl: string;
@@ -12,7 +12,7 @@ export function createAnnouncementsQueries(config: AnnouncementsQueriesConfig) {
   const fetchPaginatedAnnouncements = async (page = 1) => {
     console.info(`Fetching announcements page ${page}...`);
     return axios
-      .get<PaginatedAnnouncementsResponse>(
+      .get<typeof SuccessAnnouncementsSchema>(
         `${config.apiUrl}/announcements?page=${page}`
       )
       .then((r) => r.data)
