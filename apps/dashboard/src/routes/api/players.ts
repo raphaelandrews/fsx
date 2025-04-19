@@ -17,6 +17,10 @@ import {
   playersToTitles,
   titles,
   clubs,
+  defendingChampions,
+  locations,
+  championships,
+  clubsRelations,
 } from '@fsx/engine/db/schema'
 import { APIPlayersResponseSchema } from '@fsx/engine/queries'
 
@@ -69,7 +73,7 @@ function getBirthDateRange(group: string): [Date, Date] | undefined {
         new Date(year - 18, 0, 1),
         new Date(year - 17, 11, 31),
       ];
-    case 'master': 
+    case 'master':
       return [
         new Date(year - 50, 0, 1),
         new Date(year - 40, 11, 31),
@@ -81,7 +85,7 @@ function getBirthDateRange(group: string): [Date, Date] | undefined {
       ];
     case 'senior':
       return [
-        new Date(1900, 0, 1),       
+        new Date(1900, 0, 1),
         new Date(year - 65, 11, 31),
       ];
     default:
@@ -102,14 +106,14 @@ export const APIRoute = createAPIFileRoute('/api/players')({
     const qp = {
       page: Number(url.searchParams.get('page')) || 1,
       limit: Number(url.searchParams.get('limit')) || 20,
-      sex: url.searchParams.get('sex'),           
-      titles: url.searchParams.getAll('title'),   
-      clubs: url.searchParams.getAll('club'),     
-      group: url.searchParams.get('group') || undefined, 
+      sex: url.searchParams.get('sex'),
+      titles: url.searchParams.getAll('title'),
+      clubs: url.searchParams.getAll('club'),
+      group: url.searchParams.get('group') || undefined,
       locations: url.searchParams
-      .getAll('location')
-      .map(Number)
-      .filter(n => !Number.isNaN(n)),
+        .getAll('location')
+        .map(Number)
+        .filter(n => !Number.isNaN(n)),
     };
 
     const whereConditions = [eq(players.active, true)]
@@ -148,11 +152,31 @@ export const APIRoute = createAPIFileRoute('/api/players')({
           imageUrl: players.imageUrl,
           birth: players.birth,
           sex: players.sex,
+          clubs: {
+            id: clubs.id,
+            name: clubs.name,
+            logo: clubs.logo,
+          },
+          locations: {
+            name: locations.name,
+            flag: locations.flag,
+          },
+          championships: {
+            name: championships.name
+          },
+          titles: {
+            type: titles.type,
+            title: titles.title,
+            shortTitle: titles.shortTitle,
+          },
         })
         .from(players)
         .leftJoin(playersToTitles, eq(players.id, playersToTitles.playerId))
+        .leftJoin(defendingChampions, eq(players.id, defendingChampions.playerId))
+        .leftJoin(championships, eq(defendingChampions.championshipId, championships.id))
         .leftJoin(titles, eq(playersToTitles.titleId, titles.id))
         .leftJoin(clubs, eq(players.clubId, clubs.id))
+        .leftJoin(locations, eq(players.clubId, locations.id))
         .where(and(...whereConditions))
         .orderBy(desc(players[sortBy]))
         .limit(qp.limit)
@@ -176,9 +200,36 @@ export const APIRoute = createAPIFileRoute('/api/players')({
         hasPreviousPage: qp.page > 1,
       };
 
+      const formattedPlayers = rows.map(player => ({
+        id: player.id,
+        name: player.name,
+        nickname: player.nickname,
+        classic: player.classic,
+        rapid: player.rapid,
+        blitz: player.blitz,
+        imageUrl: player.imageUrl,
+        birth: player.birth,
+        sex: player.sex,
+        club: {
+          id: player.clubs?.id,
+          name: player.clubs?.name,
+          logo: player.clubs?.logo,
+        },
+        location: {
+          name: player.locations?.name,
+          flag: player.locations?.flag,
+        },
+        defendingChampions: player.championships ? [{
+          championship: { name: player.championships.name }
+        }] : [],
+        playersToTitles: player.titles ? [{
+          title: { type: player.titles.type, title: player.titles.title, shortTitle: player.titles.shortTitle }
+        }] : [],
+      }));
+
       const parsed = APIPlayersResponseSchema.safeParse({
         success: true,
-        data: { players: rows, pagination },
+        data: { players: formattedPlayers, pagination },
       });
 
       if (!parsed.success) {
