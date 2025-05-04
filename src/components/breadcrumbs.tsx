@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 
+import { cn } from "~/lib/utils";
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,7 +10,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
-import { cn } from "~/lib/utils";
 
 const pathDisplayNames: Record<string, string> = {
   noticias: "Notícias",

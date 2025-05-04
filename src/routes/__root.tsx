@@ -10,9 +10,11 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import appCss from "~/styles/app.css?url";
+import { siteConfig } from "~/utils/config";
 import { seo } from "~/utils/seo";
 
 import { DefaultCatchBoundary } from "~/components/default-catch-boundary";
+import { Footer } from "~/components/footer";
 import { Header } from "~/components/header";
 import { NotFound } from "~/components/not-found";
 
@@ -29,10 +31,13 @@ export const Route = createRootRouteWithContext<{
         content: "width=device-width, initial-scale=1",
       },
       ...seo({
-        title:
-          "TanStack Start | Type-Safe, Client-First, Full-Stack React Framework",
+        title: `Home | ${siteConfig.name}`,
         description:
-          "TanStack Start is a type-safe, client-first, full-stack React framework. ",
+          "A Federação Sergipana de Xadrez (FSX) organiza e promove o xadrez em Sergipe desde 1989!",
+        image: `${siteConfig.url}/og/og.jpg`,
+        ogUrl: siteConfig.url,
+        imageWidth: "1920",
+        imageHeight: "1080",
       }),
     ],
     links: [
@@ -85,7 +90,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <Header />
-        {children}
+        <div className="container relative min-h-[calc(100vh-8.25rem)] sm:min-h-[calc(100vh-7.5rem)]">
+          {children}
+        </div>
+        <Footer />
         <TanStackRouterDevtools position="bottom-right" />
         <ReactQueryDevtools buttonPosition="bottom-left" />
         <Scripts />

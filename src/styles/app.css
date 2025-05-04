@@ -424,20 +424,16 @@ body {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground min-h-screen;
   } 
 
-  #web {
-    @apply min-h-screen;
+  .container {
+    @apply max-w-[960px] mx-auto px-8;
+  }
 
+  @media (max-width: 640px) {
     .container {
-      @apply mx-auto px-8;
-    }
-
-    @media (max-width: 640px) {
-      .container {
-        @apply px-4;
-      }
+      @apply px-3;
     }
   }
 }
