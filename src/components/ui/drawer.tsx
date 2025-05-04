@@ -50,6 +50,7 @@ function DrawerContent({
 }: React.ComponentProps<typeof DrawerPrimitive.Content>) {
   return (
     <DrawerPortal data-slot="drawer-portal">
+      <DrawerTitle className="sr-only">Drawer</DrawerTitle>
       <DrawerOverlay />
       <DrawerPrimitive.Content
         data-slot="drawer-content"

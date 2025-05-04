@@ -51,6 +51,7 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
   return (
     <DialogPortal data-slot="dialog-portal">
+      <DialogTitle className="sr-only">Dialog</DialogTitle>
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"

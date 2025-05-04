@@ -52,6 +52,7 @@ function SheetContent({
 }) {
   return (
     <SheetPortal>
+      <SheetTitle className="sr-only">Sheet</SheetTitle>
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"

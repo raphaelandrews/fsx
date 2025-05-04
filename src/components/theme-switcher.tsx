@@ -1,8 +1,7 @@
 import {
-  Moon,
-  Sun,
-  Palette,
-  Laptop,
+  MoonIcon,
+  SunIcon,
+  LaptopIcon,
   type LucideIcon,
   CloudyIcon,
   LeafIcon,
@@ -24,7 +23,7 @@ const themes: Array<{ value: ThemeStyle; label: string; icon: LucideIcon }> = [
   { value: "default", label: "Default", icon: PaletteIcon },
   { value: "mint", label: "Mint", icon: LeafIcon },
   { value: "sky", label: "Sky", icon: CloudyIcon },
-  { value: "peach", label: "Peach", icon: Sun },
+  { value: "peach", label: "Peach", icon: SunIcon },
 ];
 
 const colorSchemes: Array<{
@@ -32,9 +31,9 @@ const colorSchemes: Array<{
   label: string;
   icon: LucideIcon;
 }> = [
-  { value: "system", label: "System", icon: Laptop },
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "System", icon: LaptopIcon },
+  { value: "light", label: "Light", icon: SunIcon },
+  { value: "dark", label: "Dark", icon: MoonIcon },
 ];
 
 export function ThemeSwitcher() {
@@ -46,12 +45,12 @@ export function ThemeSwitcher() {
   }, []);
 
   const CurrentThemeIcon =
-    themes.find((t) => t.value === theme)?.icon || Palette;
+    themes.find((t) => t.value === theme)?.icon || PaletteIcon;
 
   if (!mounted) {
     return (
-      <Button variant="outline" size="icon">
-        <Palette className="h-[1.2rem] w-[1.2rem]" />
+      <Button variant="ghost" size="icon">
+        <PaletteIcon size={16} />
       </Button>
     );
   }
@@ -59,8 +58,8 @@ export function ThemeSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <CurrentThemeIcon className="h-[1.2rem] w-[1.2rem]" />
+        <Button variant="ghost" size="icon">
+          <CurrentThemeIcon size={16} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
