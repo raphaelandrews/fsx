@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import {
   BarChart2Icon,
   BookmarkIcon,
@@ -158,18 +158,24 @@ function NavGroup({
   };
   onClose: () => void;
 }) {
+  const router = useRouter();
+  const currentPath = router.state.location.pathname;
+
   return (
     <div>
       <div className="flex items-center font-medium text-xs text-muted-foreground h-6 px-2">
         {data.title}
       </div>
-      <div>
+      <div className="flex flex-col gap-0.5">
         {data.items.map((item) => {
+          const isActive = currentPath === item.url;
           return (
             <li key={item.label}>
               <Link
                 to={item.url}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm hover:bg-accent"
+                className={`flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm hover:bg-accent ${
+                  isActive ? "bg-accent" : ""
+                }`}
                 onClick={onClose}
               >
                 <item.icon size={16} />
