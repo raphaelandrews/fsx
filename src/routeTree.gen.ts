@@ -12,12 +12,82 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
+import { Route as TituladosIndexImport } from './routes/titulados/index'
+import { Route as SobreIndexImport } from './routes/sobre/index'
+import { Route as RatingsIndexImport } from './routes/ratings/index'
+import { Route as NoticiasIndexImport } from './routes/noticias/index'
+import { Route as MembrosIndexImport } from './routes/membros/index'
+import { Route as ComunicadosIndexImport } from './routes/comunicados/index'
+import { Route as CircuitosIndexImport } from './routes/circuitos/index'
+import { Route as CampeoesIndexImport } from './routes/campeoes/index'
+import { Route as NoticiasNoticiaSlugImport } from './routes/noticias/$noticiaSlug'
+import { Route as ComunicadosComunicadoIdImport } from './routes/comunicados/$comunicadoId'
 
 // Create/Update Routes
 
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const TituladosIndexRoute = TituladosIndexImport.update({
+  id: '/titulados/',
+  path: '/titulados/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SobreIndexRoute = SobreIndexImport.update({
+  id: '/sobre/',
+  path: '/sobre/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const RatingsIndexRoute = RatingsIndexImport.update({
+  id: '/ratings/',
+  path: '/ratings/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const NoticiasIndexRoute = NoticiasIndexImport.update({
+  id: '/noticias/',
+  path: '/noticias/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const MembrosIndexRoute = MembrosIndexImport.update({
+  id: '/membros/',
+  path: '/membros/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ComunicadosIndexRoute = ComunicadosIndexImport.update({
+  id: '/comunicados/',
+  path: '/comunicados/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CircuitosIndexRoute = CircuitosIndexImport.update({
+  id: '/circuitos/',
+  path: '/circuitos/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CampeoesIndexRoute = CampeoesIndexImport.update({
+  id: '/campeoes/',
+  path: '/campeoes/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const NoticiasNoticiaSlugRoute = NoticiasNoticiaSlugImport.update({
+  id: '/noticias/$noticiaSlug',
+  path: '/noticias/$noticiaSlug',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ComunicadosComunicadoIdRoute = ComunicadosComunicadoIdImport.update({
+  id: '/comunicados/$comunicadoId',
+  path: '/comunicados/$comunicadoId',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -32,6 +102,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/comunicados/$comunicadoId': {
+      id: '/comunicados/$comunicadoId'
+      path: '/comunicados/$comunicadoId'
+      fullPath: '/comunicados/$comunicadoId'
+      preLoaderRoute: typeof ComunicadosComunicadoIdImport
+      parentRoute: typeof rootRoute
+    }
+    '/noticias/$noticiaSlug': {
+      id: '/noticias/$noticiaSlug'
+      path: '/noticias/$noticiaSlug'
+      fullPath: '/noticias/$noticiaSlug'
+      preLoaderRoute: typeof NoticiasNoticiaSlugImport
+      parentRoute: typeof rootRoute
+    }
+    '/campeoes/': {
+      id: '/campeoes/'
+      path: '/campeoes'
+      fullPath: '/campeoes'
+      preLoaderRoute: typeof CampeoesIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/circuitos/': {
+      id: '/circuitos/'
+      path: '/circuitos'
+      fullPath: '/circuitos'
+      preLoaderRoute: typeof CircuitosIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/comunicados/': {
+      id: '/comunicados/'
+      path: '/comunicados'
+      fullPath: '/comunicados'
+      preLoaderRoute: typeof ComunicadosIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/membros/': {
+      id: '/membros/'
+      path: '/membros'
+      fullPath: '/membros'
+      preLoaderRoute: typeof MembrosIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/noticias/': {
+      id: '/noticias/'
+      path: '/noticias'
+      fullPath: '/noticias'
+      preLoaderRoute: typeof NoticiasIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/ratings/': {
+      id: '/ratings/'
+      path: '/ratings'
+      fullPath: '/ratings'
+      preLoaderRoute: typeof RatingsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/sobre/': {
+      id: '/sobre/'
+      path: '/sobre'
+      fullPath: '/sobre'
+      preLoaderRoute: typeof SobreIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/titulados/': {
+      id: '/titulados/'
+      path: '/titulados'
+      fullPath: '/titulados'
+      preLoaderRoute: typeof TituladosIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -39,32 +179,116 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/comunicados/$comunicadoId': typeof ComunicadosComunicadoIdRoute
+  '/noticias/$noticiaSlug': typeof NoticiasNoticiaSlugRoute
+  '/campeoes': typeof CampeoesIndexRoute
+  '/circuitos': typeof CircuitosIndexRoute
+  '/comunicados': typeof ComunicadosIndexRoute
+  '/membros': typeof MembrosIndexRoute
+  '/noticias': typeof NoticiasIndexRoute
+  '/ratings': typeof RatingsIndexRoute
+  '/sobre': typeof SobreIndexRoute
+  '/titulados': typeof TituladosIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/comunicados/$comunicadoId': typeof ComunicadosComunicadoIdRoute
+  '/noticias/$noticiaSlug': typeof NoticiasNoticiaSlugRoute
+  '/campeoes': typeof CampeoesIndexRoute
+  '/circuitos': typeof CircuitosIndexRoute
+  '/comunicados': typeof ComunicadosIndexRoute
+  '/membros': typeof MembrosIndexRoute
+  '/noticias': typeof NoticiasIndexRoute
+  '/ratings': typeof RatingsIndexRoute
+  '/sobre': typeof SobreIndexRoute
+  '/titulados': typeof TituladosIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/comunicados/$comunicadoId': typeof ComunicadosComunicadoIdRoute
+  '/noticias/$noticiaSlug': typeof NoticiasNoticiaSlugRoute
+  '/campeoes/': typeof CampeoesIndexRoute
+  '/circuitos/': typeof CircuitosIndexRoute
+  '/comunicados/': typeof ComunicadosIndexRoute
+  '/membros/': typeof MembrosIndexRoute
+  '/noticias/': typeof NoticiasIndexRoute
+  '/ratings/': typeof RatingsIndexRoute
+  '/sobre/': typeof SobreIndexRoute
+  '/titulados/': typeof TituladosIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/comunicados/$comunicadoId'
+    | '/noticias/$noticiaSlug'
+    | '/campeoes'
+    | '/circuitos'
+    | '/comunicados'
+    | '/membros'
+    | '/noticias'
+    | '/ratings'
+    | '/sobre'
+    | '/titulados'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/comunicados/$comunicadoId'
+    | '/noticias/$noticiaSlug'
+    | '/campeoes'
+    | '/circuitos'
+    | '/comunicados'
+    | '/membros'
+    | '/noticias'
+    | '/ratings'
+    | '/sobre'
+    | '/titulados'
+  id:
+    | '__root__'
+    | '/'
+    | '/comunicados/$comunicadoId'
+    | '/noticias/$noticiaSlug'
+    | '/campeoes/'
+    | '/circuitos/'
+    | '/comunicados/'
+    | '/membros/'
+    | '/noticias/'
+    | '/ratings/'
+    | '/sobre/'
+    | '/titulados/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ComunicadosComunicadoIdRoute: typeof ComunicadosComunicadoIdRoute
+  NoticiasNoticiaSlugRoute: typeof NoticiasNoticiaSlugRoute
+  CampeoesIndexRoute: typeof CampeoesIndexRoute
+  CircuitosIndexRoute: typeof CircuitosIndexRoute
+  ComunicadosIndexRoute: typeof ComunicadosIndexRoute
+  MembrosIndexRoute: typeof MembrosIndexRoute
+  NoticiasIndexRoute: typeof NoticiasIndexRoute
+  RatingsIndexRoute: typeof RatingsIndexRoute
+  SobreIndexRoute: typeof SobreIndexRoute
+  TituladosIndexRoute: typeof TituladosIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ComunicadosComunicadoIdRoute: ComunicadosComunicadoIdRoute,
+  NoticiasNoticiaSlugRoute: NoticiasNoticiaSlugRoute,
+  CampeoesIndexRoute: CampeoesIndexRoute,
+  CircuitosIndexRoute: CircuitosIndexRoute,
+  ComunicadosIndexRoute: ComunicadosIndexRoute,
+  MembrosIndexRoute: MembrosIndexRoute,
+  NoticiasIndexRoute: NoticiasIndexRoute,
+  RatingsIndexRoute: RatingsIndexRoute,
+  SobreIndexRoute: SobreIndexRoute,
+  TituladosIndexRoute: TituladosIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -77,11 +301,51 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/"
+        "/",
+        "/comunicados/$comunicadoId",
+        "/noticias/$noticiaSlug",
+        "/campeoes/",
+        "/circuitos/",
+        "/comunicados/",
+        "/membros/",
+        "/noticias/",
+        "/ratings/",
+        "/sobre/",
+        "/titulados/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/comunicados/$comunicadoId": {
+      "filePath": "comunicados/$comunicadoId.tsx"
+    },
+    "/noticias/$noticiaSlug": {
+      "filePath": "noticias/$noticiaSlug.tsx"
+    },
+    "/campeoes/": {
+      "filePath": "campeoes/index.tsx"
+    },
+    "/circuitos/": {
+      "filePath": "circuitos/index.tsx"
+    },
+    "/comunicados/": {
+      "filePath": "comunicados/index.tsx"
+    },
+    "/membros/": {
+      "filePath": "membros/index.tsx"
+    },
+    "/noticias/": {
+      "filePath": "noticias/index.tsx"
+    },
+    "/ratings/": {
+      "filePath": "ratings/index.tsx"
+    },
+    "/sobre/": {
+      "filePath": "sobre/index.tsx"
+    },
+    "/titulados/": {
+      "filePath": "titulados/index.tsx"
     }
   }
 }

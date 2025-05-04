@@ -63,27 +63,31 @@ export function ThemeSwitcher() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {themes.map((t) => (
-          <DropdownMenuItem
-            key={`theme-${t.value}`}
-            onClick={() => setTheme(t.value)}
-            className={theme === t.value ? "bg-accent" : ""}
-          >
-            <t.icon className="mr-2 h-4 w-4" />
-            {t.label}
-          </DropdownMenuItem>
-        ))}
+        <div className="flex flex-col gap-0.5">
+          {themes.map((t) => (
+            <DropdownMenuItem
+              key={`theme-${t.value}`}
+              onClick={() => setTheme(t.value)}
+              className={theme === t.value ? "bg-accent" : ""}
+            >
+              <t.icon size={16} />
+              {t.label}
+            </DropdownMenuItem>
+          ))}
+        </div>
         <DropdownMenuSeparator />
-        {colorSchemes.map((s) => (
-          <DropdownMenuItem
-            key={`scheme-${s.value}`}
-            onClick={() => setColorScheme(s.value)}
-            className={colorScheme === s.value ? "bg-accent" : ""}
-          >
-            <s.icon className="mr-2 h-4 w-4" />
-            {s.label}
-          </DropdownMenuItem>
-        ))}
+        <div className="flex flex-col gap-0.5">
+          {colorSchemes.map((s) => (
+            <DropdownMenuItem
+              key={`scheme-${s.value}`}
+              onClick={() => setColorScheme(s.value)}
+              className={colorScheme === s.value ? "bg-accent" : ""}
+            >
+              <s.icon size={16} />
+              {s.label}
+            </DropdownMenuItem>
+          ))}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
