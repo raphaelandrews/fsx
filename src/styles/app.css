@@ -424,11 +424,23 @@ body {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground min-h-screen;
+    @apply bg-background text-foreground min-h-screen selection:bg-cyan-100 dark:selection:bg-sky-950 selection:text-sea;
   } 
 
+  body::-webkit-scrollbar {
+    @apply w-2;
+  }
+  
+  body::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  body::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-lg;
+  }
+
   .container {
-    @apply max-w-[960px] mx-auto px-8;
+    @apply !max-w-[960px] mx-auto px-8;
   }
 
   @media (max-width: 640px) {
