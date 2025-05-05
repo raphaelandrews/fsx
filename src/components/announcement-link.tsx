@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import type { Announcement } from "~/db/queries";
 import { AnnouncementsModal } from "~/components/modals/announcements-modal";
+import { ScrollTextIcon } from "lucide-react";
 
 export function AnnouncementLink({ year, number, content }: Announcement) {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,9 +14,10 @@ export function AnnouncementLink({ year, number, content }: Announcement) {
         onClick={toggleModal}
         type="button"
         tabIndex={0}
-        className="text-left px-3 py-2 bg-primary-foreground rounded-md hover:bg-muted hover:cursor-pointer"
+        className="flex items-center gap-2 text-left px-3 py-2 bg-primary-foreground rounded-md hover:bg-muted hover:cursor-pointer"
         aria-label={`View announcement ${number}/${year}`}
       >
+        <ScrollTextIcon className="size-3.5 min-w-3.5" />
         <p className="font-medium text-sm text-primary line-clamp-1">
           <span className="text-xs">
             Nº {number}/{year}:
