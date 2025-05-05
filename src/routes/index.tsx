@@ -38,7 +38,6 @@ function Home() {
     queries: [freshNewsQueryOptions(), freshAnnouncementsQueryOptions()],
   });
 
-
   const mainNews = newsQuery.data.slice(0, 2);
   const freshNews = newsQuery.data.slice(2, 6);
   const announcements = announcementsQuery.data;

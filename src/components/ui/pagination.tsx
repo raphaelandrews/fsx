@@ -95,11 +95,11 @@ function PaginationPrevious({
       aria-label="Go to previous page"
       size="default"
       disabled={disabled}
-      className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
+      className={cn("size-7 p-1.25", className)}
       {...props}
     >
-      <ChevronLeftIcon />
-      <span className="hidden sm:block">Previous</span>
+      <ChevronLeftIcon size={16} />
+      <span className="sr-only">Previous</span>
     </PaginationLink>
   );
 }
@@ -114,11 +114,11 @@ function PaginationNext({
       aria-label="Go to next page"
       size="default"
       disabled={disabled}
-      className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
+      className={cn("size-7 p-1.25", className)}
       {...props}
     >
-      <span className="hidden sm:block">Next</span>
-      <ChevronRightIcon />
+      <span className="sr-only">Next</span>
+      <ChevronRightIcon size={16} />
     </PaginationLink>
   );
 }
@@ -133,11 +133,11 @@ function PaginationFirst({
       aria-label="Go to first page"
       size="default"
       disabled={disabled}
-      className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
+      className={cn("size-7 p-1.25", className)}
       {...props}
     >
-      <ChevronsLeftIcon />
-      <span className="hidden sm:block">First</span>
+      <ChevronsLeftIcon size={16} />
+      <span className="sr-only">First</span>
     </PaginationLink>
   );
 }
@@ -152,11 +152,11 @@ function PaginationLast({
       aria-label="Go to last page"
       size="default"
       disabled={disabled}
-      className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
+      className={cn("size-7 p-1.25", className)}
       {...props}
     >
-      <span className="hidden sm:block">Last</span>
-      <ChevronsRightIcon />
+      <ChevronsRightIcon size={16} />
+      <span className="sr-only">Last</span>
     </PaginationLink>
   );
 }
