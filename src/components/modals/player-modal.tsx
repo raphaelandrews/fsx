@@ -113,7 +113,7 @@ const PlayerModal = ({ id, open, setOpen }: Props) => {
   if (playerQuery.isLoading) {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="[&>button#close-dialog]:top-1 [&>button#close-dialog]:right-1 gap-0 w-[90%] max-w-[500px] h-[80vh] overflow-y-auto overflow-x-hidden">
+        <DialogContent className="[&>button#close-dialog]:top-1 [&>button#close-dialog]:right-1 gap-0 w-[90%] max-w-[500px] h-[80dvh] overflow-y-auto overflow-x-hidden">
           <div className="flex flex-col items-center justify-center h-full">
             <Skeleton className="w-20 h-20 rounded-full mb-4" />
             <Skeleton className="w-48 h-6 mb-2" />
@@ -127,7 +127,7 @@ const PlayerModal = ({ id, open, setOpen }: Props) => {
   if (playerQuery.isError || !player) {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="[&>button#close-dialog]:top-1 [&>button#close-dialog]:right-1 gap-0 w-[90%] max-w-[500px] h-[80vh] overflow-y-auto overflow-x-hidden">
+        <DialogContent className="[&>button#close-dialog]:top-1 [&>button#close-dialog]:right-1 gap-0 w-[90%] max-w-[500px] h-[80dvh] overflow-y-auto overflow-x-hidden">
           <div className="flex flex-col items-center justify-center h-full">
             <p>Error loading player data. Please try again.</p>
           </div>
@@ -138,7 +138,7 @@ const PlayerModal = ({ id, open, setOpen }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="[&>button#close-dialog]:top-1 [&>button#close-dialog]:right-1 gap-0 w-[90%] max-w-[500px] h-[80vh] overflow-y-auto overflow-x-hidden">
+      <DialogContent className="[&>button#close-dialog]:top-1 [&>button#close-dialog]:right-1 gap-0 w-[90%] max-w-[500px] h-[80dvh] overflow-y-auto overflow-x-hidden">
         <div className="max-w-[calc(100vw-10%-3rem+2px)]">
           <DialogHeader>
             <div className="relative mb-12">

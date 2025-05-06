@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { Breadcrumbs } from "./breadcrumbs";
-import { FloatingAside } from "./floating-aside";
+import { AsideMenu } from "./aside-menu";
 import { SearchPlayers } from "./search-players";
 import { ThemeSwitcher } from "./theme-switcher";
 
@@ -21,10 +21,8 @@ export function Header() {
         </div>
         <div className="flex items-center gap-1.5">
           <SearchPlayers />
-          <div className="flex items-center gap-1.5">
             <ThemeSwitcher />
-            <FloatingAside />
-          </div>
+            <AsideMenu />
         </div>
       </div>
     </header>

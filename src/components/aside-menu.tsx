@@ -107,7 +107,7 @@ const data = {
   },
 };
 
-export function FloatingAside() {
+export function AsideMenu() {
   const [open, setOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
 
@@ -125,7 +125,7 @@ export function FloatingAside() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger className="flex justify-center items-center size-7 border rounded-md hover:bg-accent hover:text-accent-foreground hover:cursor-pointer">
+      <SheetTrigger className="flex justify-center items-center size-7 border rounded-md shrink-0 hover:bg-accent hover:text-accent-foreground hover:cursor-pointer">
         <CommandIcon size={16} />
       </SheetTrigger>
       <SheetContent className="w-[240px] h-[calc(100%-4rem)] top-11 border border-r-0 rounded-l-lg [&_#sheet-close]:hidden">

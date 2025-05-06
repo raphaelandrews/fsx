@@ -90,7 +90,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <Header />
-        <div className="container relative pt-2 min-h-[calc(100vh-8.25rem)] sm:min-h-[calc(100vh-7.5rem)]">
+        <div className="container relative pt-2 min-h-[calc(100dvh-8.25rem)] sm:min-h-[calc(100dvh-7.5rem)]">
           {children}
         </div>
         <Footer />

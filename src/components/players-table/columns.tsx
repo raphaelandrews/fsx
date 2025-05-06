@@ -1,0 +1,400 @@
+import { useSearch } from "@tanstack/react-router";
+import type { ColumnDef, Row } from "@tanstack/react-table";
+
+import type { Players } from "~/db/queries";
+
+import { locations } from "./data/data";
+import { DataTableColumnHeader } from "./data-table-column-header";
+import { Actions } from "./actions";
+
+function getRowIndex(row: Row<Players>) {
+  const search = useSearch({ from: "/ratings/" });
+  const currentPage = (search.page as number) || 1;
+  const pageSize = (search.limit as number) || 20;
+  
+  return pageSize * (currentPage - 1) + row.index + 1;
+}
+
+export const columnsClassic: ColumnDef<Players>[] = [
+  {
+    id: "index",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="#" />,
+    cell: ({ row }) => getRowIndex(row),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "name",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Nome" />
+    ),
+    cell: ({ row }) => {
+      const player = row.original;
+      return (
+        <Actions
+          id={player.id}
+          name={player.name}
+          nickname={player.nickname}
+          imageUrl={player.imageUrl}
+          playersToTitles={player.playersToTitles}
+          defendingChampions={player.defendingChampions}
+        />
+      );
+    },
+  },
+  {
+    accessorKey: "classic",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Clássico" />
+    ),
+    cell: ({ row }) => {
+      return <div className="font-medium">{row.original.classic}</div>;
+    },
+  },
+  {
+    accessorKey: "locations",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Local" />
+    ),
+    cell: ({ row }) => {
+      const locationName = row.original.location?.name;
+      const location = locations.find(
+        (location) => location.value === locationName
+      );
+
+      return (
+        <div className="flex items-center gap-2">
+          <img
+            src={
+              (row.original.location?.flag as string)
+                ? (row.original.location?.flag as string)
+                : "https://raw.githubusercontent.com/raphaelandrews/fsx-db/main/logo-bg.png"
+            }
+            alt={
+              (row.original.location?.name as string)
+                ? (row.original.location?.name as string)
+                : "FSX"
+            }
+            title={
+              (row.original.location?.name as string)
+                ? (row.original.location?.name as string)
+                : "FSX"
+            }
+            className="w-4 h-4 rounded object-contain"
+            width={20}
+            height={20}
+          />
+          <div className="whitespace-nowrap">
+            {row.original.location?.name as string}
+          </div>
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "clubs",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Clube" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center gap-2">
+          <img
+            src={
+              (row.original.club?.logo as string)
+                ? (row.original.club?.logo as string)
+                : "https://raw.githubusercontent.com/raphaelandrews/fsx-db/main/logo-bg.png"
+            }
+            alt={
+              row.original.club?.name
+                ? (row.original.club?.name as string)
+                : "FSX"
+            }
+            title={
+              row.original.club?.name
+                ? (row.original.club?.name as string)
+                : "FSX"
+            }
+            className="w-4 h-4 rounded object-contain"
+            width={20}
+            height={20}
+          />
+          <div className="whitespace-nowrap">
+            {row.original.club?.name as string}
+          </div>
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "id",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="id" />
+    ),
+    cell: ({ row }) => {
+      return <div className="w-[80px]">{row.getValue("id")}</div>;
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+];
+
+export const columnsRapid: ColumnDef<Players>[] = [
+  {
+    id: "index",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="#" />,
+    cell: ({ row }) => getRowIndex(row),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "name",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Nome" />
+    ),
+    cell: ({ row }) => {
+      const player = row.original;
+      return (
+        <Actions
+          id={player.id}
+          name={player.name}
+          nickname={player.nickname}
+          imageUrl={player.imageUrl}
+          playersToTitles={player.playersToTitles}
+          defendingChampions={player.defendingChampions}
+        />
+      );
+    },
+  },
+  {
+    accessorKey: "rapid",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Rápido" />
+    ),
+    cell: ({ row }) => {
+      return <div className="font-medium">{row.original.rapid}</div>;
+    },
+  },
+  {
+    accessorKey: "locations",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Local" />
+    ),
+    cell: ({ row }) => {
+      const locationName = row.original.location?.name;
+      const location = locations.find(
+        (location) => location.value === locationName
+      );
+
+      return (
+        <div className="flex items-center gap-2">
+          <img
+            src={
+              (row.original.location?.flag as string)
+                ? (row.original.location?.flag as string)
+                : "https://raw.githubusercontent.com/raphaelandrews/fsx-db/main/logo-bg.png"
+            }
+            alt={
+              (row.original.location?.name as string)
+                ? (row.original.location?.name as string)
+                : "FSX"
+            }
+            title={
+              (row.original.location?.name as string)
+                ? (row.original.location?.name as string)
+                : "FSX"
+            }
+            className="w-4 h-4 rounded object-contain"
+            width={20}
+            height={20}
+          />
+          <div className="whitespace-nowrap">
+            {row.original.location?.name as string}
+          </div>
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "clubs",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Clube" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center gap-2">
+          <img
+            src={
+              (row.original.club?.logo as string)
+                ? (row.original.club?.logo as string)
+                : "https://raw.githubusercontent.com/raphaelandrews/fsx-db/main/logo-bg.png"
+            }
+            alt={
+              row.original.club?.name
+                ? (row.original.club?.name as string)
+                : "FSX"
+            }
+            title={
+              row.original.club?.name
+                ? (row.original.club?.name as string)
+                : "FSX"
+            }
+            className="w-4 h-4 rounded object-contain"
+            width={20}
+            height={20}
+          />
+          <div className="whitespace-nowrap">
+            {row.original.club?.name as string}
+          </div>
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "id",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="id" />
+    ),
+    cell: ({ row }) => {
+      return <div className="w-[80px]">{row.getValue("id")}</div>;
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+];
+
+export const columnsBlitz: ColumnDef<Players>[] = [
+  {
+    id: "index",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="#" />,
+    cell: ({ row }) => getRowIndex(row),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "name",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Nome" />
+    ),
+    cell: ({ row }) => {
+      const player = row.original;
+      return (
+        <Actions
+          id={player.id}
+          name={player.name}
+          nickname={player.nickname}
+          imageUrl={player.imageUrl}
+          playersToTitles={player.playersToTitles}
+          defendingChampions={player.defendingChampions}
+        />
+      );
+    },
+  },
+  {
+    accessorKey: "blitz",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Blitz" />
+    ),
+    cell: ({ row }) => {
+      return <div className="font-medium">{row.original.blitz}</div>;
+    },
+  },
+  {
+    accessorKey: "locations",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Local" />
+    ),
+    cell: ({ row }) => {
+      const locationName = row.original.location?.name;
+      const location = locations.find(
+        (location) => location.value === locationName
+      );
+
+      return (
+        <div className="flex items-center gap-2">
+          <img
+            src={
+              (row.original.location?.flag as string)
+                ? (row.original.location?.flag as string)
+                : "https://raw.githubusercontent.com/raphaelandrews/fsx-db/main/logo-bg.png"
+            }
+            alt={
+              (row.original.location?.name as string)
+                ? (row.original.location?.name as string)
+                : "FSX"
+            }
+            title={
+              (row.original.location?.name as string)
+                ? (row.original.location?.name as string)
+                : "FSX"
+            }
+            className="w-4 h-4 rounded object-contain"
+            width={20}
+            height={20}
+          />
+          <div className="whitespace-nowrap">
+            {row.original.location?.name as string}
+          </div>
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "clubs",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Clube" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center gap-2">
+          <img
+            src={
+              (row.original.club?.logo as string)
+                ? (row.original.club?.logo as string)
+                : "https://raw.githubusercontent.com/raphaelandrews/fsx-db/main/logo-bg.png"
+            }
+            alt={
+              row.original.club?.name
+                ? (row.original.club?.name as string)
+                : "FSX"
+            }
+            title={
+              row.original.club?.name
+                ? (row.original.club?.name as string)
+                : "FSX"
+            }
+            className="w-4 h-4 rounded object-contain"
+            width={20}
+            height={20}
+          />
+          <div className="whitespace-nowrap">
+            {row.original.club?.name as string}
+          </div>
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "id",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="id" />
+    ),
+    cell: ({ row }) => {
+      return <div className="w-[80px]">{row.getValue("id")}</div>;
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+];

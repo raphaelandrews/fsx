@@ -1,9 +1,226 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { useQuery } from "@tanstack/react-query";
+import {
+  createFileRoute,
+  useNavigate,
+  useSearch,
+} from "@tanstack/react-router";
+import type { Row } from "@tanstack/react-table";
+import { BarChart2Icon, InfoIcon } from "lucide-react";
+import { z } from "zod";
 
-export const Route = createFileRoute('/ratings/')({
-  component: RouteComponent,
-})
+import {
+  playersQueryOptions,
+  type Players,
+  type PlayersFilters,
+} from "~/db/queries";
 
-function RouteComponent() {
-  return <div>Hello "/ratings/"!</div>
+import { Announcement } from "~/components/announcement";
+import { DataTable } from "~/components/players-table/data-table";
+import {
+  columnsClassic,
+  columnsRapid,
+  columnsBlitz,
+} from "~/components/players-table/columns";
+import { PlayerRow } from "~/components/players-table/player-row";
+
+import { Button } from "~/components/ui/button";
+import {
+  PageHeader,
+  PageHeaderDescription,
+  PageHeaderHeading,
+} from "~/components/ui/page-header";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+
+const searchSchema = z
+  .object({
+    page: z.number().catch(1).default(1),
+    limit: z.number().optional().catch(undefined),
+    sortBy: z.enum(["rapid", "blitz", "classic"]).optional().catch(undefined),
+    sex: z.union([z.boolean(), z.null()]).optional().catch(undefined),
+    titles: z.array(z.string()).optional().catch([]),
+    clubs: z.array(z.string()).optional().catch([]),
+    groups: z.array(z.string()).optional().catch([]),
+    locations: z.array(z.string()).optional().catch([]),
+  })
+  .transform((val) => ({
+    ...val,
+    page: Math.max(1, val.page),
+  }));
+
+export const Route = createFileRoute("/ratings/")({
+  validateSearch: (search) => searchSchema.parse(search),
+  loaderDeps: ({ search }) => search,
+  loader: ({ context: { queryClient }, deps }) => {
+    const queryOptions = playersQueryOptions(deps);
+    const existingData = queryClient.getQueryData(queryOptions.queryKey);
+
+    if (!existingData) {
+      return queryClient.fetchQuery(queryOptions);
+    }
+
+    return existingData;
+  },
+  component: RatingIndexComponent,
+});
+
+function RatingIndexComponent() {
+  const search = useSearch({ from: "/ratings/" });
+  const navigate = useNavigate();
+
+  const defaultTab = search.sortBy || "rapid";
+  const pageSize = search.limit || 20;
+
+  const handleTabChange = (value: string) => {
+    const validValue = ["classic", "rapid", "blitz"].includes(value)
+      ? (value as "classic" | "rapid" | "blitz")
+      : "rapid";
+
+    navigate({
+      to: "/ratings",
+      search: (prev) => ({
+        ...prev,
+        sortBy: validValue,
+        page: 1,
+      }),
+    });
+  };
+
+  const filters: PlayersFilters = {
+    page: search.page,
+    limit: search.limit,
+    sortBy: search.sortBy || defaultTab,
+    sex: search.sex,
+    titles: search.titles,
+    clubs: search.clubs,
+    groups: search.groups,
+    locations: search.locations,
+  };
+
+  const { data, isLoading, isFetching } = useQuery(
+    playersQueryOptions(filters)
+  );
+
+  const players = data?.players ?? [];
+  const totalPages = data?.pagination?.totalPages ?? 0;
+
+  const renderSubComponent = ({ row }: { row: Row<Players> }) => {
+    return <PlayerRow id={row.original.id} />;
+  };
+
+  return (
+    <>
+      <PageHeader>
+        <Announcement icon={BarChart2Icon} />
+        <PageHeaderHeading>Ratings</PageHeaderHeading>
+        <PageHeaderDescription>
+          Confira as tabelas de rating.
+        </PageHeaderDescription>
+      </PageHeader>
+
+      <Tabs defaultValue={defaultTab} onValueChange={handleTabChange}>
+        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 mb-4">
+          <TabsList>
+            <TabsTrigger value="classic" className="w-20 sm:w-24">
+              Clássico
+            </TabsTrigger>
+            <TabsTrigger value="rapid" className="w-20 sm:w-24">
+              Rápido
+            </TabsTrigger>
+            <TabsTrigger value="blitz" className="w-20 sm:w-24">
+              Blitz
+            </TabsTrigger>
+          </TabsList>
+          <Info />
+        </div>
+
+        <TabsContent value="classic">
+          <div className="mt-4">
+            {isLoading ? (
+              <div className="text-center py-8">Loading...</div>
+            ) : players.length > 0 ? (
+              <DataTable
+                data={players}
+                columns={columnsClassic}
+                getRowCanExpand={() => true}
+                renderSubComponent={renderSubComponent}
+                totalPages={totalPages}
+              />
+            ) : (
+              <div className="text-center py-8">No players found</div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="rapid">
+          <div className="mt-4">
+            {isLoading ? (
+              <div className="text-center py-8">Loading...</div>
+            ) : players.length > 0 ? (
+              <DataTable
+                data={players}
+                columns={columnsRapid}
+                getRowCanExpand={() => true}
+                renderSubComponent={renderSubComponent}
+                totalPages={totalPages}
+              />
+            ) : (
+              <div className="text-center py-8">No players found</div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="blitz">
+          <div className="mt-4">
+            {isLoading ? (
+              <div className="text-center py-8">Loading...</div>
+            ) : players.length > 0 ? (
+              <DataTable
+                data={players}
+                columns={columnsBlitz}
+                getRowCanExpand={() => true}
+                renderSubComponent={renderSubComponent}
+                totalPages={totalPages}
+              />
+            ) : (
+              <div className="text-center py-8">No players found</div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </>
+  );
 }
+
+const Info = () => {
+  return (
+    <div className="flex items-center gap-5">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-8 h-8 rounded-full p-0">
+            <InfoIcon className="h-4 w-4 text-primary" />
+            <span className="sr-only">Open popover</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent>
+          <div className="flex justify-start items-start gap-2 text-sm">
+            <BarChart2Icon className="w-4 h-4 min-w-[1rem] rounded text-primary" />
+            <div className="flex flex-col gap-2">
+              <p>
+                Na tabela de rating constam apenas os jogadores ativos na FSX.
+              </p>
+              <p>
+                É considerado jogador ativo o enxadrista que participou de ao
+                menos um torneio nos últimos dois anos.
+              </p>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};

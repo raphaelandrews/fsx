@@ -58,7 +58,7 @@ export function ThemeSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" className="shrink-0">
           <CurrentThemeIcon size={16} />
         </Button>
       </DropdownMenuTrigger>
