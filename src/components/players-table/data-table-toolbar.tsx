@@ -14,7 +14,7 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
-  const search = useSearch({ from: "/ratings/" });
+  const search = useSearch({ from: "/_default/ratings/" });
   const navigate = useNavigate();
 
   const sexOptions = [

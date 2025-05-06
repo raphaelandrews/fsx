@@ -7,7 +7,6 @@ import {
   createFileRoute,
   ErrorComponent,
   type ErrorComponentProps,
-  Link,
   useRouter,
 } from "@tanstack/react-router";
 import {
@@ -23,10 +22,12 @@ import {
 } from "recharts";
 import { ExternalLink, VerifiedIcon } from "lucide-react";
 
+import { type PlayerById, playerByIdQueryOptions } from "~/db/queries";
 import { formatDefendingChampions } from "~/lib/defending-champions";
 import { FormatPodium, FormatPodiumTitle } from "~/lib/format-podium";
 import { getGradient } from "~/lib/generate-gradients";
 
+import ClientOnly from "~/components/client-only";
 import { columns } from "~/components/modals/columns";
 import { DataTable } from "~/components/modals/data-table";
 
@@ -53,8 +54,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-
-import { type PlayerById, playerByIdQueryOptions } from "~/db/queries";
+import { Skeleton } from "~/components/ui/skeleton";
 
 export const Route = createFileRoute("/_id/jogadores/$jogadorId")({
   loader: ({ context: { queryClient }, params: { jogadorId } }) => {
@@ -93,6 +93,80 @@ export function PlayerErrorComponent({ error }: ErrorComponentProps) {
   );
 }
 
+function PlayerSkeleton() {
+  return (
+    <section className="w-11/12 max-w-[500px] m-auto pt-12 pb-20 animate-pulse">
+      <div className="mb-12">
+        <Skeleton className="w-full h-32 rounded-md" />
+        <Skeleton className="absolute w-20 h-20 rounded-[10px] border-4 border-background left-1/2 -translate-y-1/2 -translate-x-1/2" />
+      </div>
+
+      <div className="flex justify-center items-center gap-1">
+        <Skeleton className="h-7 w-40" />
+        <Skeleton className="w-5 h-5 mt-1 rounded-full" />
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-1.5 mt-8">
+        <Skeleton className="h-6 w-20 rounded-full" />
+        <Skeleton className="h-6 w-24 rounded-full" />
+        <Skeleton className="w-10 h-10 rounded-md" />
+        <Skeleton className="w-10 h-10 rounded-md" />
+      </div>
+
+      <div className="mt-5 space-y-4">
+        <div>
+          <Skeleton className="h-4 w-20 mb-1" />
+          <Skeleton className="h-5 w-48" />
+        </div>
+        <div>
+          <Skeleton className="h-4 w-24 mb-1" />
+          <Skeleton className="h-5 w-32" />
+        </div>
+        <div>
+          <Skeleton className="h-4 w-16 mb-1" />
+          <Skeleton className="h-5 w-40" />
+        </div>
+        <div>
+          <Skeleton className="h-4 w-16 mb-1" />
+          <Skeleton className="h-5 w-28" />
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <Skeleton className="h-4 w-20 mb-2" />
+        <div className="grid grid-cols-3 gap-2">
+          <Skeleton className="h-20 rounded-md" />
+          <Skeleton className="h-20 rounded-md" />
+          <Skeleton className="h-20 rounded-md" />
+        </div>
+        <Skeleton className="h-4 w-12 mt-4 mb-2" />
+        <div className="grid grid-cols-3 gap-2">
+          <Skeleton className="h-20 rounded-md" />
+          <Skeleton className="h-20 rounded-md" />
+          <Skeleton className="h-20 rounded-md" />
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <Skeleton className="h-4 w-28 mb-1" />
+        <Skeleton className="h-3 w-32 mb-2" />
+        <div className="flex justify-end">
+          <Skeleton className="h-10 w-32 mt-2" />
+        </div>
+        <div className="mt-2 space-y-4">
+          <Skeleton className="h-[200px] w-full" />
+          <Skeleton className="h-[200px] w-full" />
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <Skeleton className="h-4 w-24 mb-2" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    </section>
+  );
+}
+
 function PlayerComponent() {
   const playerId = Route.useParams().jogadorId;
   const { data: player } = useSuspenseQuery(
@@ -104,7 +178,6 @@ function PlayerComponent() {
       () => [getGradient(), getGradient()],
       []
     );
-
     return { headerGradient, avatarGradient };
   };
   const { headerGradient, avatarGradient } = useGradients();
@@ -146,254 +219,262 @@ function PlayerComponent() {
   const [selectedRatingType, setSelectedRatingType] = React.useState("rapid");
 
   return (
-    <section className="w-11/12 max-w-[500px] m-auto pt-12 pb-20">
-      <div className="mb-12">
-        <div className="w-full h-32 rounded-md" style={headerGradient} />
-        <Avatar className="absolute w-20 h-20 rounded-[10px] border-4 border-background left-1/2 -translate-y-1/2 -translate-x-1/2">
-          <AvatarImage src={player.imageUrl ?? ""} alt={player.name} />
-          <AvatarFallback style={avatarGradient} />
-        </Avatar>
-      </div>
-
-      <div className="flex justify-center items-center gap-1">
-        <h2 className="font-medium text-lg text-center mt-1">
-          {internalTitle && (
-            <span className="text-gold">{internalTitle.title.shortTitle} </span>
-          )}
-          {player.nickname ? player.nickname : player.name}
-        </h2>
-
-        {player.verified && (
-          <Popover>
-            <PopoverTrigger asChild className="hover:cursor-pointer">
-              <VerifiedIcon
-                className="!fill-[#1CA0F2] dark:stroke-[1.5] stroke-background mt-1"
-                aria-label="Verificado"
-              />
-            </PopoverTrigger>
-            <PopoverContent>
-              <p className="text-primary font-semibold">Perfil verificado</p>
-              <p className="text-alternative font-medium text-sm mt-2">
-                Esse perfil atualizou os dados e foi verificado.
-              </p>
-              <a
-                href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
-                target="_blank"
-                rel="noreferrer"
-                className={`${buttonVariants({ variant: "default" })} w-full mt-3`}
-              >
-                Obter verificação
-              </a>
-            </PopoverContent>
-          </Popover>
-        )}
-      </div>
-
-      {(managementRole || refereeRole) && (
-        <div className="flex flex-col justify-center items-center gap-1.5 mt-8">
-          {managementRole && (
-            <Badge variant="default">{managementRole.role.role}</Badge>
-          )}
-          {refereeRole && (
-            <Badge variant="default">{refereeRole.role.role}</Badge>
-          )}
+    <ClientOnly fallback={<PlayerSkeleton />}>
+      <section className="w-11/12 max-w-[500px] m-auto pt-12 pb-20">
+        <div className="mb-12">
+          <div className="w-full h-32 rounded-md" style={headerGradient} />
+          <Avatar className="absolute w-20 h-20 rounded-[10px] border-4 border-background left-1/2 -translate-y-1/2 -translate-x-1/2">
+            <AvatarImage src={player.imageUrl ?? ""} alt={player.name} />
+            <AvatarFallback style={avatarGradient} />
+          </Avatar>
         </div>
-      )}
 
-      {player.defendingChampions && player.defendingChampions?.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-1.5 mt-8">
-          {player.defendingChampions?.map((championship) => (
-            <div key={championship.championship.name}>
-              {formatDefendingChampions(championship.championship.name, 20)}
-            </div>
-          ))}
-        </div>
-      )}
+        <div className="flex justify-center items-center gap-1">
+          <h2 className="font-medium text-lg text-center mt-1">
+            {internalTitle && (
+              <span className="text-gold">
+                {internalTitle.title.shortTitle}{" "}
+              </span>
+            )}
+            {player.nickname ? player.nickname : player.name}
+          </h2>
 
-      {orderPodiums.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-1.5 mt-8">
-          {orderPodiums.map((podium) => (
-            <Popover key={podium.place + podium.tournament.name}>
-              <PopoverTrigger className="text-primary p-2 rounded-md bg-muted dark:bg-primary-foreground/60">
-                {FormatPodium(
-                  podium.place,
-                  podium.tournament.championshipId ?? 0
-                )}
+          {player.verified && (
+            <Popover>
+              <PopoverTrigger asChild className="hover:cursor-pointer">
+                <VerifiedIcon
+                  className="!fill-[#1CA0F2] dark:stroke-[1.5] stroke-background mt-1"
+                  aria-label="Verificado"
+                />
               </PopoverTrigger>
-              <PopoverContent className="text-center max-w-72">
-                {FormatPodiumTitle(podium.place)} {podium.tournament.name}
+              <PopoverContent>
+                <p className="text-primary font-semibold">Perfil verificado</p>
+                <p className="text-alternative font-medium text-sm mt-2">
+                  Esse perfil atualizou os dados e foi verificado.
+                </p>
+                <a
+                  href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`${buttonVariants({ variant: "default" })} w-full mt-3`}
+                >
+                  Obter verificação
+                </a>
               </PopoverContent>
             </Popover>
-          ))}
-        </div>
-      )}
-
-      {!managementRole &&
-        !refereeRole &&
-        orderPodiums.length <= 0 &&
-        player.defendingChampions &&
-        player.defendingChampions?.length <= 0 && <div className="pt-3" />}
-
-      <div className="mt-5">
-        <Info label="Nome" content={player.name} />
-
-        {internalTitle && (
-          <Info label="Titulação">
-            {internalTitle && <p>{internalTitle.title.title}</p>}
-          </Info>
-        )}
-
-        {externalTitle && (
-          <Info label="Titulação CBX/FIDE">
-            {externalTitle && <p>{externalTitle.title.title}</p>}
-          </Info>
-        )}
-
-        {player.club && (
-          <Info label="Clube">
-            <div className="flex items-center gap-2">
-              <img
-                src={
-                  player.club.logo
-                    ? player.club.logo
-                    : "https://raw.githubusercontent.com/raphaelandrews/fsx-db/main/logo-bg.png"
-                }
-                alt={player.club.name}
-                title={player.club.name}
-                className="w-4 h-4 rounded object-contain"
-                width={16}
-                height={16}
-              />
-              <p>{player.club.name}</p>
-            </div>
-          </Info>
-        )}
-
-        {player.location && (
-          <Info label="Local">
-            <div className="flex items-center gap-2">
-              <img
-                src={player.location.flag ? player.location.flag : ""}
-                alt={player.location.name}
-                title={player.location.name}
-                width={16}
-                height={16}
-                className="w-4 h-4 rounded object-contain"
-              />
-              <p>{player.location?.name}</p>
-            </div>
-          </Info>
-        )}
-
-        <Info label="Status">
-          {player.active ? (
-            <div className="flex items-center gap-2">
-              <span className="relative flex w-2 h-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-600" />
-              </span>
-              <p>Ativo</p>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="relative flex w-2 h-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
-              </span>
-              <p>Inativo</p>
-            </div>
           )}
-        </Info>
-      </div>
-
-      <div className="mt-3">
-        <Info label="Ratings" />
-        <div className="grid grid-cols-3 gap-2">
-          <RatingCard label="Clássico" rating={player.classic} />
-          <RatingCard label="Rápido" rating={player.rapid} />
-          <RatingCard label="Blitz" rating={player.blitz} />
         </div>
 
-        <Info label="IDs" />
-        <div className="grid grid-cols-3 gap-2">
-          <RatingCard label="FSX" rating={player.id} />
-          <RatingCard
-            label="CBX"
-            link={
-              player.cbxId ? (
-                <a
-                  href={`https://www.cbx.org.br/jogador/${player.cbxId}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex justify-center text-primary hover:underline transition"
-                >
-                  {player.cbxId} <ExternalLink className="w-4 ml-2" />
-                </a>
-              ) : (
-                <span>-</span>
-              )
-            }
-          />
-          <RatingCard
-            label="FIDE"
-            link={
-              player.fideId ? (
-                <a
-                  href={`https://ratings.fide.com/profile/${player.fideId}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex justify-center text-primary hover:underline transition"
-                >
-                  {player.fideId} <ExternalLink className="w-4 ml-2" />
-                </a>
-              ) : (
-                <span>-</span>
-              )
-            }
-          />
-        </div>
-      </div>
-
-      {tournaments.length > 0 && (
-        <>
-          <Info label="Performance" />
-          <span className="text-xs">Últimos 12 torneios</span>
-          <div className="flex justify-end">
-            <Select
-              value={selectedRatingType}
-              onValueChange={(value) => setSelectedRatingType(value)}
-            >
-              <SelectTrigger className="w-auto mt-2">
-                <SelectValue placeholder="Selecione o tipo de rating" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="classic">Clássico</SelectItem>
-                <SelectItem value="rapid">Rápido</SelectItem>
-                <SelectItem value="blitz">Blitz</SelectItem>
-              </SelectContent>
-            </Select>
+        {(managementRole || refereeRole) && (
+          <div className="flex flex-col justify-center items-center gap-1.5 mt-8">
+            {managementRole && (
+              <Badge variant="default">{managementRole.role.role}</Badge>
+            )}
+            {refereeRole && (
+              <Badge variant="default">{refereeRole.role.role}</Badge>
+            )}
           </div>
-          <div className="mt-2">
-            <VariationChart
-              player={player}
-              selectedRatingType={selectedRatingType}
-            />
-            <TotalRatingChart
-              player={player}
-              selectedRatingType={selectedRatingType}
-            />
-          </div>
-        </>
-      )}
+        )}
 
-      {tournaments && (
-        <div className="mt-3">
-          <Info label="Torneios">
-            <DataTable columns={columns} data={tournaments} />
+        {player.defendingChampions && player.defendingChampions?.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1.5 mt-8">
+            {player.defendingChampions?.map((championship) => (
+              <div key={championship.championship.name}>
+                {formatDefendingChampions(championship.championship.name, 20)}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {orderPodiums.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1.5 mt-8">
+            {orderPodiums.map((podium) => (
+              <Popover key={podium.place + podium.tournament.name}>
+                <PopoverTrigger className="text-primary p-2 rounded-md bg-muted dark:bg-primary-foreground/60">
+                  {FormatPodium(
+                    podium.place,
+                    podium.tournament.championshipId ?? 0
+                  )}
+                </PopoverTrigger>
+                <PopoverContent className="text-center max-w-72">
+                  {FormatPodiumTitle(podium.place)} {podium.tournament.name}
+                </PopoverContent>
+              </Popover>
+            ))}
+          </div>
+        )}
+
+        {!managementRole &&
+          !refereeRole &&
+          orderPodiums.length <= 0 &&
+          player.defendingChampions &&
+          player.defendingChampions?.length <= 0 && <div className="pt-3" />}
+
+        <div className="mt-5">
+          <Info label="Nome" content={player.name} />
+
+          {internalTitle && (
+            <Info label="Titulação">
+              {internalTitle && <p>{internalTitle.title.title}</p>}
+            </Info>
+          )}
+
+          {externalTitle && (
+            <Info label="Titulação CBX/FIDE">
+              {externalTitle && <p>{externalTitle.title.title}</p>}
+            </Info>
+          )}
+
+          {player.club && (
+            <Info label="Clube">
+              <div className="flex items-center gap-2">
+                <img
+                  src={
+                    player.club.logo
+                      ? player.club.logo
+                      : "https://raw.githubusercontent.com/raphaelandrews/fsx-db/main/logo-bg.png"
+                  }
+                  alt={player.club.name}
+                  title={player.club.name}
+                  className="w-4 h-4 rounded object-contain"
+                  width={16}
+                  height={16}
+                />
+                <p>{player.club.name}</p>
+              </div>
+            </Info>
+          )}
+
+          {player.location && (
+            <Info label="Local">
+              <div className="flex items-center gap-2">
+                <img
+                  src={
+                    player.location.flag
+                      ? player.location.flag
+                      : "https://raw.githubusercontent.com/raphaelandrews/fsx-db/main/logo-bg.png"
+                  }
+                  alt={player.location.name}
+                  title={player.location.name}
+                  width={16}
+                  height={16}
+                  className="w-4 h-4 rounded object-contain"
+                />
+                <p>{player.location?.name}</p>
+              </div>
+            </Info>
+          )}
+
+          <Info label="Status">
+            {player.active ? (
+              <div className="flex items-center gap-2">
+                <span className="relative flex w-2 h-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-600" />
+                </span>
+                <p>Ativo</p>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="relative flex w-2 h-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
+                </span>
+                <p>Inativo</p>
+              </div>
+            )}
           </Info>
         </div>
-      )}
-    </section>
+
+        <div className="mt-3">
+          <Info label="Ratings" />
+          <div className="grid grid-cols-3 gap-2">
+            <RatingCard label="Clássico" rating={player.classic} />
+            <RatingCard label="Rápido" rating={player.rapid} />
+            <RatingCard label="Blitz" rating={player.blitz} />
+          </div>
+
+          <Info label="IDs" />
+          <div className="grid grid-cols-3 gap-2">
+            <RatingCard label="FSX" rating={player.id} />
+            <RatingCard
+              label="CBX"
+              link={
+                player.cbxId ? (
+                  <a
+                    href={`https://www.cbx.org.br/jogador/${player.cbxId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex justify-center text-primary hover:underline transition"
+                  >
+                    {player.cbxId} <ExternalLink className="w-4 ml-2" />
+                  </a>
+                ) : (
+                  <span>-</span>
+                )
+              }
+            />
+            <RatingCard
+              label="FIDE"
+              link={
+                player.fideId ? (
+                  <a
+                    href={`https://ratings.fide.com/profile/${player.fideId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex justify-center text-primary hover:underline transition"
+                  >
+                    {player.fideId} <ExternalLink className="w-4 ml-2" />
+                  </a>
+                ) : (
+                  <span>-</span>
+                )
+              }
+            />
+          </div>
+        </div>
+
+        {tournaments.length > 0 && (
+          <>
+            <Info label="Performance" />
+            <span className="text-xs">Últimos 12 torneios</span>
+            <div className="flex justify-end">
+              <Select
+                value={selectedRatingType}
+                onValueChange={(value) => setSelectedRatingType(value)}
+              >
+                <SelectTrigger className="w-auto mt-2">
+                  <SelectValue placeholder="Selecione o tipo de rating" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="classic">Clássico</SelectItem>
+                  <SelectItem value="rapid">Rápido</SelectItem>
+                  <SelectItem value="blitz">Blitz</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="mt-2">
+              <VariationChart
+                player={player}
+                selectedRatingType={selectedRatingType}
+              />
+              <TotalRatingChart
+                player={player}
+                selectedRatingType={selectedRatingType}
+              />
+            </div>
+          </>
+        )}
+
+        {tournaments && (
+          <div className="mt-3">
+            <Info label="Torneios">
+              <DataTable columns={columns} data={tournaments} />
+            </Info>
+          </div>
+        )}
+      </section>
+    </ClientOnly>
   );
 }
 
@@ -621,8 +702,10 @@ export function TotalRatingChart({
           stroke="hsl(var(--chart-1))"
           strokeWidth={2}
           dot={(props) => {
+            const key = props.index ?? props.payload?.name ?? Math.random();
             return (
               <circle
+                key={`dot-${key}`}
                 cx={props.cx}
                 cy={props.cy}
                 r={4}
@@ -636,6 +719,7 @@ export function TotalRatingChart({
           }}
         >
           <LabelList
+            key={`label-${selectedRatingType}`}
             position="top"
             offset={12}
             className="fill-foreground"

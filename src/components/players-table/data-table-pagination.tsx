@@ -25,7 +25,7 @@ export function DataTablePagination<TData>({
   table,
   totalPages,
 }: DataTablePaginationProps<TData>) {
-  const search = useSearch({ from: "/ratings/" });
+  const search = useSearch({ from: "/_default/ratings/" });
   const navigate = useNavigate();
 
   const currentPage = search.page || 1;

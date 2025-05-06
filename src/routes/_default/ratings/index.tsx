@@ -101,7 +101,7 @@ function RatingIndexComponent() {
     locations: search.locations,
   };
 
-  const { data, isLoading, isFetching } = useQuery(
+  const { data, isLoading } = useQuery(
     playersQueryOptions(filters)
   );
 

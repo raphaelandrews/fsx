@@ -8,7 +8,7 @@ import { DataTableColumnHeader } from "./data-table-column-header";
 import { Actions } from "./actions";
 
 function getRowIndex(row: Row<Players>) {
-  const search = useSearch({ from: "/ratings/" });
+  const search = useSearch({ from: "/_default/ratings/" });
   const currentPage = (search.page as number) || 1;
   const pageSize = (search.limit as number) || 20;
   
