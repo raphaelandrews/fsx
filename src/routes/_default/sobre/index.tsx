@@ -8,7 +8,7 @@ import {
   PageHeaderHeading,
 } from "~/components/ui/page-header";
 
-export const Route = createFileRoute("/sobre/")({
+export const Route = createFileRoute("/_default/sobre/")({
   component: RouteComponent,
 });
 

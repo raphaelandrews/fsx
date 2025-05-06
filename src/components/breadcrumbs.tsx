@@ -18,9 +18,12 @@ const pathDisplayNames: Record<string, string> = {
   comunicados: "Comunicados",
   circuitos: "Circuitos",
   ratings: "Ratings",
+  jogadores: "Jogadores",
   membros: "Membros",
   sobre: "Sobre",
 };
+
+const nonLinkablePaths = ['jogadores'];
 
 export function Breadcrumbs() {
   const router = useRouter();
@@ -67,26 +70,38 @@ export function Breadcrumbs() {
         {segments.map((segment, index) => {
           const pathSegment = `/${segments.slice(0, index + 1).join("/")}`;
           const isLast = index === segments.length - 1;
+          const isNonLinkable = nonLinkablePaths.includes(segment);
 
           return (
             <React.Fragment key={pathSegment}>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbPage>
-                  <Link
-                    to={pathSegment}
-                    className={cn(
-                      "font-medium hover:underline underline-offset-2 transition",
-                      `${
+                  {isNonLinkable ? (
+                    <span
+                      className={cn(
+                        "font-medium underline-offset-2 max-w-[200px] truncate block",
+                        isLast ? "text-foreground" : "text-muted-foreground"
+                      )}
+                      title={getDisplayName(segment)}
+                    >
+                      {getDisplayName(segment)}
+                    </span>
+                  ) : (
+                    <Link
+                      to={pathSegment}
+                      className={cn(
+                        "font-medium hover:underline underline-offset-2 transition max-w-[200px] truncate block",
                         isLast
                           ? "text-foreground"
                           : "text-muted-foreground hover:text-foreground"
-                      }`
-                    )}
-                    aria-current={isLast ? "page" : undefined}
-                  >
-                    {getDisplayName(segment)}
-                  </Link>
+                      )}
+                      title={getDisplayName(segment)}
+                      aria-current={isLast ? "page" : undefined}
+                    >
+                      {getDisplayName(segment)}
+                    </Link>
+                  )}
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </React.Fragment>

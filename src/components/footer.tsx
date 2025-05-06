@@ -1,6 +1,13 @@
-export function Footer() {
+import { cn } from "~/lib/utils";
+
+export function Footer({ className }: { className?: string }) {
   return (
-    <footer className="container flex flex-col justify-between items-center gap-4 py-6 md:flex-row">
+    <footer
+      className={cn(
+        className,
+        "container flex flex-col justify-between items-center gap-4 py-6 md:flex-row"
+      )}
+    >
       <p className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left">
         Built by 🏝️{" "}
         <a

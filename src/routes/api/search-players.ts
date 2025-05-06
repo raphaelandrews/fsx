@@ -29,6 +29,14 @@ export const APIRoute = createAPIFileRoute('/api/search-players')({
 
       console.info("Searching players with query:", query);
 
+      function normalizeText(text: string): string {
+        return text
+          .normalize('NFD')
+          // biome-ignore lint/suspicious/noMisleadingCharacterClass: <explanation>
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase();
+      }
+
       const searchQuery = await db
         .select({
           id: players.id,
@@ -37,7 +45,7 @@ export const APIRoute = createAPIFileRoute('/api/search-players')({
         .from(players)
         .where(
           query.trim() ?
-            sql`LOWER(${players.name}) LIKE ${`%${query.toLowerCase()}%`}` :
+            sql`LOWER(${players.name}) ILIKE ${`%${query}%`} OR LOWER(translate(${players.name}, 'áàâãäéèêëíìîïóòôõöúùûüýÿ', 'aaaaaeeeeiiiiooooouuuuyy')) ILIKE ${`%${normalizeText(query)}%`}` :
             sql`1=1`
         )
         .orderBy(desc(players.rapid))

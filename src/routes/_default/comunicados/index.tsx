@@ -40,7 +40,7 @@ const searchSchema = z.object({
     }),
 });
 
-export const Route = createFileRoute("/comunicados/")({
+export const Route = createFileRoute("/_default/comunicados/")({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context: { queryClient }, deps: { page } }) => {
@@ -63,7 +63,7 @@ export const Route = createFileRoute("/comunicados/")({
 });
 
 function AnnouncementsIndexComponent() {
-  const { page } = useSearch({ from: "/comunicados/" });
+  const { page } = useSearch({ from: "/_default/comunicados/" });
   const currentPage = Number(page);
   const navigate = useNavigate();
 

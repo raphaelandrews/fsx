@@ -24,7 +24,7 @@ import { FAQ } from "~/components/faq";
 import { NewsCard } from "~/components/news-card";
 import { UpdateRegister } from "~/components/update-register";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_default/")({
   loader: ({ context: { queryClient } }) =>
     Promise.all([
       queryClient.ensureQueryData(freshNewsQueryOptions()),

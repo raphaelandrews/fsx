@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 export function FormatPodium(
-  place: number | null | undefined,
+  place: number,
   championship_id: number
 ) {
   if (place === 1 && championship_id === 1) {
@@ -36,7 +36,7 @@ export function FormatPodium(
   }
 }
 
-export function FormatPodiumTitle(place: number | null | undefined) {
+export function FormatPodiumTitle(place: number) {
   if (place === 1) {
     return "Campeão(ã)";
   }

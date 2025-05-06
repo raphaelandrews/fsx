@@ -39,7 +39,7 @@ const searchSchema = z.object({
     }),
 });
 
-export const Route = createFileRoute("/noticias/")({
+export const Route = createFileRoute("/_default/noticias/")({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context: { queryClient }, deps: { page } }) => {
@@ -62,7 +62,7 @@ export const Route = createFileRoute("/noticias/")({
 });
 
 function NewsIndexComponent() {
-  const { page } = useSearch({ from: "/noticias/" });
+  const { page } = useSearch({ from: "/_default/noticias/" });
   const currentPage = Number(page);
   const navigate = useNavigate();
 

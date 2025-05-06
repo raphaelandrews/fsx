@@ -52,7 +52,7 @@ const searchSchema = z
     page: Math.max(1, val.page),
   }));
 
-export const Route = createFileRoute("/ratings/")({
+export const Route = createFileRoute("/_default/ratings/")({
   validateSearch: (search) => searchSchema.parse(search),
   loaderDeps: ({ search }) => search,
   loader: ({ context: { queryClient }, deps }) => {
@@ -69,7 +69,7 @@ export const Route = createFileRoute("/ratings/")({
 });
 
 function RatingIndexComponent() {
-  const search = useSearch({ from: "/ratings/" });
+  const search = useSearch({ from: "/_default/ratings/" });
   const navigate = useNavigate();
 
   const defaultTab = search.sortBy || "rapid";

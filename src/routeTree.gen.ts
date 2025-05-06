@@ -11,221 +11,316 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as IndexImport } from './routes/index'
-import { Route as TituladosIndexImport } from './routes/titulados/index'
-import { Route as SobreIndexImport } from './routes/sobre/index'
-import { Route as RatingsIndexImport } from './routes/ratings/index'
-import { Route as NoticiasIndexImport } from './routes/noticias/index'
-import { Route as MembrosIndexImport } from './routes/membros/index'
-import { Route as ComunicadosIndexImport } from './routes/comunicados/index'
-import { Route as CircuitosIndexImport } from './routes/circuitos/index'
-import { Route as CampeoesIndexImport } from './routes/campeoes/index'
-import { Route as NoticiasNoticiaSlugImport } from './routes/noticias/$noticiaSlug'
-import { Route as ComunicadosComunicadoIdImport } from './routes/comunicados/$comunicadoId'
+import { Route as IdRouteImport } from './routes/_id/route'
+import { Route as DefaultRouteImport } from './routes/_default/route'
+import { Route as DefaultIndexImport } from './routes/_default/index'
+import { Route as DefaultTituladosIndexImport } from './routes/_default/titulados/index'
+import { Route as DefaultSobreIndexImport } from './routes/_default/sobre/index'
+import { Route as DefaultRatingsIndexImport } from './routes/_default/ratings/index'
+import { Route as DefaultNoticiasIndexImport } from './routes/_default/noticias/index'
+import { Route as DefaultMembrosIndexImport } from './routes/_default/membros/index'
+import { Route as DefaultComunicadosIndexImport } from './routes/_default/comunicados/index'
+import { Route as DefaultCircuitosIndexImport } from './routes/_default/circuitos/index'
+import { Route as DefaultCampeoesIndexImport } from './routes/_default/campeoes/index'
+import { Route as IdJogadoresJogadorIdImport } from './routes/_id/jogadores/$jogadorId'
+import { Route as DefaultNoticiasNoticiaSlugImport } from './routes/_default/noticias/$noticiaSlug'
+import { Route as DefaultComunicadosComunicadoIdImport } from './routes/_default/comunicados/$comunicadoId'
 
 // Create/Update Routes
 
-const IndexRoute = IndexImport.update({
+const IdRouteRoute = IdRouteImport.update({
+  id: '/_id',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DefaultRouteRoute = DefaultRouteImport.update({
+  id: '/_default',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DefaultIndexRoute = DefaultIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => DefaultRouteRoute,
 } as any)
 
-const TituladosIndexRoute = TituladosIndexImport.update({
+const DefaultTituladosIndexRoute = DefaultTituladosIndexImport.update({
   id: '/titulados/',
   path: '/titulados/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => DefaultRouteRoute,
 } as any)
 
-const SobreIndexRoute = SobreIndexImport.update({
+const DefaultSobreIndexRoute = DefaultSobreIndexImport.update({
   id: '/sobre/',
   path: '/sobre/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => DefaultRouteRoute,
 } as any)
 
-const RatingsIndexRoute = RatingsIndexImport.update({
+const DefaultRatingsIndexRoute = DefaultRatingsIndexImport.update({
   id: '/ratings/',
   path: '/ratings/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => DefaultRouteRoute,
 } as any)
 
-const NoticiasIndexRoute = NoticiasIndexImport.update({
+const DefaultNoticiasIndexRoute = DefaultNoticiasIndexImport.update({
   id: '/noticias/',
   path: '/noticias/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => DefaultRouteRoute,
 } as any)
 
-const MembrosIndexRoute = MembrosIndexImport.update({
+const DefaultMembrosIndexRoute = DefaultMembrosIndexImport.update({
   id: '/membros/',
   path: '/membros/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => DefaultRouteRoute,
 } as any)
 
-const ComunicadosIndexRoute = ComunicadosIndexImport.update({
+const DefaultComunicadosIndexRoute = DefaultComunicadosIndexImport.update({
   id: '/comunicados/',
   path: '/comunicados/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => DefaultRouteRoute,
 } as any)
 
-const CircuitosIndexRoute = CircuitosIndexImport.update({
+const DefaultCircuitosIndexRoute = DefaultCircuitosIndexImport.update({
   id: '/circuitos/',
   path: '/circuitos/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => DefaultRouteRoute,
 } as any)
 
-const CampeoesIndexRoute = CampeoesIndexImport.update({
+const DefaultCampeoesIndexRoute = DefaultCampeoesIndexImport.update({
   id: '/campeoes/',
   path: '/campeoes/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => DefaultRouteRoute,
 } as any)
 
-const NoticiasNoticiaSlugRoute = NoticiasNoticiaSlugImport.update({
-  id: '/noticias/$noticiaSlug',
-  path: '/noticias/$noticiaSlug',
-  getParentRoute: () => rootRoute,
+const IdJogadoresJogadorIdRoute = IdJogadoresJogadorIdImport.update({
+  id: '/jogadores/$jogadorId',
+  path: '/jogadores/$jogadorId',
+  getParentRoute: () => IdRouteRoute,
 } as any)
 
-const ComunicadosComunicadoIdRoute = ComunicadosComunicadoIdImport.update({
-  id: '/comunicados/$comunicadoId',
-  path: '/comunicados/$comunicadoId',
-  getParentRoute: () => rootRoute,
-} as any)
+const DefaultNoticiasNoticiaSlugRoute = DefaultNoticiasNoticiaSlugImport.update(
+  {
+    id: '/noticias/$noticiaSlug',
+    path: '/noticias/$noticiaSlug',
+    getParentRoute: () => DefaultRouteRoute,
+  } as any,
+)
+
+const DefaultComunicadosComunicadoIdRoute =
+  DefaultComunicadosComunicadoIdImport.update({
+    id: '/comunicados/$comunicadoId',
+    path: '/comunicados/$comunicadoId',
+    getParentRoute: () => DefaultRouteRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_default': {
+      id: '/_default'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof DefaultRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/_id': {
+      id: '/_id'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof IdRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/_default/': {
+      id: '/_default/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof DefaultIndexImport
+      parentRoute: typeof DefaultRouteImport
     }
-    '/comunicados/$comunicadoId': {
-      id: '/comunicados/$comunicadoId'
+    '/_default/comunicados/$comunicadoId': {
+      id: '/_default/comunicados/$comunicadoId'
       path: '/comunicados/$comunicadoId'
       fullPath: '/comunicados/$comunicadoId'
-      preLoaderRoute: typeof ComunicadosComunicadoIdImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof DefaultComunicadosComunicadoIdImport
+      parentRoute: typeof DefaultRouteImport
     }
-    '/noticias/$noticiaSlug': {
-      id: '/noticias/$noticiaSlug'
+    '/_default/noticias/$noticiaSlug': {
+      id: '/_default/noticias/$noticiaSlug'
       path: '/noticias/$noticiaSlug'
       fullPath: '/noticias/$noticiaSlug'
-      preLoaderRoute: typeof NoticiasNoticiaSlugImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof DefaultNoticiasNoticiaSlugImport
+      parentRoute: typeof DefaultRouteImport
     }
-    '/campeoes/': {
-      id: '/campeoes/'
+    '/_id/jogadores/$jogadorId': {
+      id: '/_id/jogadores/$jogadorId'
+      path: '/jogadores/$jogadorId'
+      fullPath: '/jogadores/$jogadorId'
+      preLoaderRoute: typeof IdJogadoresJogadorIdImport
+      parentRoute: typeof IdRouteImport
+    }
+    '/_default/campeoes/': {
+      id: '/_default/campeoes/'
       path: '/campeoes'
       fullPath: '/campeoes'
-      preLoaderRoute: typeof CampeoesIndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof DefaultCampeoesIndexImport
+      parentRoute: typeof DefaultRouteImport
     }
-    '/circuitos/': {
-      id: '/circuitos/'
+    '/_default/circuitos/': {
+      id: '/_default/circuitos/'
       path: '/circuitos'
       fullPath: '/circuitos'
-      preLoaderRoute: typeof CircuitosIndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof DefaultCircuitosIndexImport
+      parentRoute: typeof DefaultRouteImport
     }
-    '/comunicados/': {
-      id: '/comunicados/'
+    '/_default/comunicados/': {
+      id: '/_default/comunicados/'
       path: '/comunicados'
       fullPath: '/comunicados'
-      preLoaderRoute: typeof ComunicadosIndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof DefaultComunicadosIndexImport
+      parentRoute: typeof DefaultRouteImport
     }
-    '/membros/': {
-      id: '/membros/'
+    '/_default/membros/': {
+      id: '/_default/membros/'
       path: '/membros'
       fullPath: '/membros'
-      preLoaderRoute: typeof MembrosIndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof DefaultMembrosIndexImport
+      parentRoute: typeof DefaultRouteImport
     }
-    '/noticias/': {
-      id: '/noticias/'
+    '/_default/noticias/': {
+      id: '/_default/noticias/'
       path: '/noticias'
       fullPath: '/noticias'
-      preLoaderRoute: typeof NoticiasIndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof DefaultNoticiasIndexImport
+      parentRoute: typeof DefaultRouteImport
     }
-    '/ratings/': {
-      id: '/ratings/'
+    '/_default/ratings/': {
+      id: '/_default/ratings/'
       path: '/ratings'
       fullPath: '/ratings'
-      preLoaderRoute: typeof RatingsIndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof DefaultRatingsIndexImport
+      parentRoute: typeof DefaultRouteImport
     }
-    '/sobre/': {
-      id: '/sobre/'
+    '/_default/sobre/': {
+      id: '/_default/sobre/'
       path: '/sobre'
       fullPath: '/sobre'
-      preLoaderRoute: typeof SobreIndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof DefaultSobreIndexImport
+      parentRoute: typeof DefaultRouteImport
     }
-    '/titulados/': {
-      id: '/titulados/'
+    '/_default/titulados/': {
+      id: '/_default/titulados/'
       path: '/titulados'
       fullPath: '/titulados'
-      preLoaderRoute: typeof TituladosIndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof DefaultTituladosIndexImport
+      parentRoute: typeof DefaultRouteImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface DefaultRouteRouteChildren {
+  DefaultIndexRoute: typeof DefaultIndexRoute
+  DefaultComunicadosComunicadoIdRoute: typeof DefaultComunicadosComunicadoIdRoute
+  DefaultNoticiasNoticiaSlugRoute: typeof DefaultNoticiasNoticiaSlugRoute
+  DefaultCampeoesIndexRoute: typeof DefaultCampeoesIndexRoute
+  DefaultCircuitosIndexRoute: typeof DefaultCircuitosIndexRoute
+  DefaultComunicadosIndexRoute: typeof DefaultComunicadosIndexRoute
+  DefaultMembrosIndexRoute: typeof DefaultMembrosIndexRoute
+  DefaultNoticiasIndexRoute: typeof DefaultNoticiasIndexRoute
+  DefaultRatingsIndexRoute: typeof DefaultRatingsIndexRoute
+  DefaultSobreIndexRoute: typeof DefaultSobreIndexRoute
+  DefaultTituladosIndexRoute: typeof DefaultTituladosIndexRoute
+}
+
+const DefaultRouteRouteChildren: DefaultRouteRouteChildren = {
+  DefaultIndexRoute: DefaultIndexRoute,
+  DefaultComunicadosComunicadoIdRoute: DefaultComunicadosComunicadoIdRoute,
+  DefaultNoticiasNoticiaSlugRoute: DefaultNoticiasNoticiaSlugRoute,
+  DefaultCampeoesIndexRoute: DefaultCampeoesIndexRoute,
+  DefaultCircuitosIndexRoute: DefaultCircuitosIndexRoute,
+  DefaultComunicadosIndexRoute: DefaultComunicadosIndexRoute,
+  DefaultMembrosIndexRoute: DefaultMembrosIndexRoute,
+  DefaultNoticiasIndexRoute: DefaultNoticiasIndexRoute,
+  DefaultRatingsIndexRoute: DefaultRatingsIndexRoute,
+  DefaultSobreIndexRoute: DefaultSobreIndexRoute,
+  DefaultTituladosIndexRoute: DefaultTituladosIndexRoute,
+}
+
+const DefaultRouteRouteWithChildren = DefaultRouteRoute._addFileChildren(
+  DefaultRouteRouteChildren,
+)
+
+interface IdRouteRouteChildren {
+  IdJogadoresJogadorIdRoute: typeof IdJogadoresJogadorIdRoute
+}
+
+const IdRouteRouteChildren: IdRouteRouteChildren = {
+  IdJogadoresJogadorIdRoute: IdJogadoresJogadorIdRoute,
+}
+
+const IdRouteRouteWithChildren =
+  IdRouteRoute._addFileChildren(IdRouteRouteChildren)
+
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/comunicados/$comunicadoId': typeof ComunicadosComunicadoIdRoute
-  '/noticias/$noticiaSlug': typeof NoticiasNoticiaSlugRoute
-  '/campeoes': typeof CampeoesIndexRoute
-  '/circuitos': typeof CircuitosIndexRoute
-  '/comunicados': typeof ComunicadosIndexRoute
-  '/membros': typeof MembrosIndexRoute
-  '/noticias': typeof NoticiasIndexRoute
-  '/ratings': typeof RatingsIndexRoute
-  '/sobre': typeof SobreIndexRoute
-  '/titulados': typeof TituladosIndexRoute
+  '': typeof IdRouteRouteWithChildren
+  '/': typeof DefaultIndexRoute
+  '/comunicados/$comunicadoId': typeof DefaultComunicadosComunicadoIdRoute
+  '/noticias/$noticiaSlug': typeof DefaultNoticiasNoticiaSlugRoute
+  '/jogadores/$jogadorId': typeof IdJogadoresJogadorIdRoute
+  '/campeoes': typeof DefaultCampeoesIndexRoute
+  '/circuitos': typeof DefaultCircuitosIndexRoute
+  '/comunicados': typeof DefaultComunicadosIndexRoute
+  '/membros': typeof DefaultMembrosIndexRoute
+  '/noticias': typeof DefaultNoticiasIndexRoute
+  '/ratings': typeof DefaultRatingsIndexRoute
+  '/sobre': typeof DefaultSobreIndexRoute
+  '/titulados': typeof DefaultTituladosIndexRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/comunicados/$comunicadoId': typeof ComunicadosComunicadoIdRoute
-  '/noticias/$noticiaSlug': typeof NoticiasNoticiaSlugRoute
-  '/campeoes': typeof CampeoesIndexRoute
-  '/circuitos': typeof CircuitosIndexRoute
-  '/comunicados': typeof ComunicadosIndexRoute
-  '/membros': typeof MembrosIndexRoute
-  '/noticias': typeof NoticiasIndexRoute
-  '/ratings': typeof RatingsIndexRoute
-  '/sobre': typeof SobreIndexRoute
-  '/titulados': typeof TituladosIndexRoute
+  '': typeof IdRouteRouteWithChildren
+  '/': typeof DefaultIndexRoute
+  '/comunicados/$comunicadoId': typeof DefaultComunicadosComunicadoIdRoute
+  '/noticias/$noticiaSlug': typeof DefaultNoticiasNoticiaSlugRoute
+  '/jogadores/$jogadorId': typeof IdJogadoresJogadorIdRoute
+  '/campeoes': typeof DefaultCampeoesIndexRoute
+  '/circuitos': typeof DefaultCircuitosIndexRoute
+  '/comunicados': typeof DefaultComunicadosIndexRoute
+  '/membros': typeof DefaultMembrosIndexRoute
+  '/noticias': typeof DefaultNoticiasIndexRoute
+  '/ratings': typeof DefaultRatingsIndexRoute
+  '/sobre': typeof DefaultSobreIndexRoute
+  '/titulados': typeof DefaultTituladosIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/comunicados/$comunicadoId': typeof ComunicadosComunicadoIdRoute
-  '/noticias/$noticiaSlug': typeof NoticiasNoticiaSlugRoute
-  '/campeoes/': typeof CampeoesIndexRoute
-  '/circuitos/': typeof CircuitosIndexRoute
-  '/comunicados/': typeof ComunicadosIndexRoute
-  '/membros/': typeof MembrosIndexRoute
-  '/noticias/': typeof NoticiasIndexRoute
-  '/ratings/': typeof RatingsIndexRoute
-  '/sobre/': typeof SobreIndexRoute
-  '/titulados/': typeof TituladosIndexRoute
+  '/_default': typeof DefaultRouteRouteWithChildren
+  '/_id': typeof IdRouteRouteWithChildren
+  '/_default/': typeof DefaultIndexRoute
+  '/_default/comunicados/$comunicadoId': typeof DefaultComunicadosComunicadoIdRoute
+  '/_default/noticias/$noticiaSlug': typeof DefaultNoticiasNoticiaSlugRoute
+  '/_id/jogadores/$jogadorId': typeof IdJogadoresJogadorIdRoute
+  '/_default/campeoes/': typeof DefaultCampeoesIndexRoute
+  '/_default/circuitos/': typeof DefaultCircuitosIndexRoute
+  '/_default/comunicados/': typeof DefaultComunicadosIndexRoute
+  '/_default/membros/': typeof DefaultMembrosIndexRoute
+  '/_default/noticias/': typeof DefaultNoticiasIndexRoute
+  '/_default/ratings/': typeof DefaultRatingsIndexRoute
+  '/_default/sobre/': typeof DefaultSobreIndexRoute
+  '/_default/titulados/': typeof DefaultTituladosIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | ''
     | '/'
     | '/comunicados/$comunicadoId'
     | '/noticias/$noticiaSlug'
+    | '/jogadores/$jogadorId'
     | '/campeoes'
     | '/circuitos'
     | '/comunicados'
@@ -236,9 +331,11 @@ export interface FileRouteTypes {
     | '/titulados'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | ''
     | '/'
     | '/comunicados/$comunicadoId'
     | '/noticias/$noticiaSlug'
+    | '/jogadores/$jogadorId'
     | '/campeoes'
     | '/circuitos'
     | '/comunicados'
@@ -249,46 +346,31 @@ export interface FileRouteTypes {
     | '/titulados'
   id:
     | '__root__'
-    | '/'
-    | '/comunicados/$comunicadoId'
-    | '/noticias/$noticiaSlug'
-    | '/campeoes/'
-    | '/circuitos/'
-    | '/comunicados/'
-    | '/membros/'
-    | '/noticias/'
-    | '/ratings/'
-    | '/sobre/'
-    | '/titulados/'
+    | '/_default'
+    | '/_id'
+    | '/_default/'
+    | '/_default/comunicados/$comunicadoId'
+    | '/_default/noticias/$noticiaSlug'
+    | '/_id/jogadores/$jogadorId'
+    | '/_default/campeoes/'
+    | '/_default/circuitos/'
+    | '/_default/comunicados/'
+    | '/_default/membros/'
+    | '/_default/noticias/'
+    | '/_default/ratings/'
+    | '/_default/sobre/'
+    | '/_default/titulados/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ComunicadosComunicadoIdRoute: typeof ComunicadosComunicadoIdRoute
-  NoticiasNoticiaSlugRoute: typeof NoticiasNoticiaSlugRoute
-  CampeoesIndexRoute: typeof CampeoesIndexRoute
-  CircuitosIndexRoute: typeof CircuitosIndexRoute
-  ComunicadosIndexRoute: typeof ComunicadosIndexRoute
-  MembrosIndexRoute: typeof MembrosIndexRoute
-  NoticiasIndexRoute: typeof NoticiasIndexRoute
-  RatingsIndexRoute: typeof RatingsIndexRoute
-  SobreIndexRoute: typeof SobreIndexRoute
-  TituladosIndexRoute: typeof TituladosIndexRoute
+  DefaultRouteRoute: typeof DefaultRouteRouteWithChildren
+  IdRouteRoute: typeof IdRouteRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  ComunicadosComunicadoIdRoute: ComunicadosComunicadoIdRoute,
-  NoticiasNoticiaSlugRoute: NoticiasNoticiaSlugRoute,
-  CampeoesIndexRoute: CampeoesIndexRoute,
-  CircuitosIndexRoute: CircuitosIndexRoute,
-  ComunicadosIndexRoute: ComunicadosIndexRoute,
-  MembrosIndexRoute: MembrosIndexRoute,
-  NoticiasIndexRoute: NoticiasIndexRoute,
-  RatingsIndexRoute: RatingsIndexRoute,
-  SobreIndexRoute: SobreIndexRoute,
-  TituladosIndexRoute: TituladosIndexRoute,
+  DefaultRouteRoute: DefaultRouteRouteWithChildren,
+  IdRouteRoute: IdRouteRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -301,51 +383,79 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
-        "/comunicados/$comunicadoId",
-        "/noticias/$noticiaSlug",
-        "/campeoes/",
-        "/circuitos/",
-        "/comunicados/",
-        "/membros/",
-        "/noticias/",
-        "/ratings/",
-        "/sobre/",
-        "/titulados/"
+        "/_default",
+        "/_id"
       ]
     },
-    "/": {
-      "filePath": "index.tsx"
+    "/_default": {
+      "filePath": "_default/route.tsx",
+      "children": [
+        "/_default/",
+        "/_default/comunicados/$comunicadoId",
+        "/_default/noticias/$noticiaSlug",
+        "/_default/campeoes/",
+        "/_default/circuitos/",
+        "/_default/comunicados/",
+        "/_default/membros/",
+        "/_default/noticias/",
+        "/_default/ratings/",
+        "/_default/sobre/",
+        "/_default/titulados/"
+      ]
     },
-    "/comunicados/$comunicadoId": {
-      "filePath": "comunicados/$comunicadoId.tsx"
+    "/_id": {
+      "filePath": "_id/route.tsx",
+      "children": [
+        "/_id/jogadores/$jogadorId"
+      ]
     },
-    "/noticias/$noticiaSlug": {
-      "filePath": "noticias/$noticiaSlug.tsx"
+    "/_default/": {
+      "filePath": "_default/index.tsx",
+      "parent": "/_default"
     },
-    "/campeoes/": {
-      "filePath": "campeoes/index.tsx"
+    "/_default/comunicados/$comunicadoId": {
+      "filePath": "_default/comunicados/$comunicadoId.tsx",
+      "parent": "/_default"
     },
-    "/circuitos/": {
-      "filePath": "circuitos/index.tsx"
+    "/_default/noticias/$noticiaSlug": {
+      "filePath": "_default/noticias/$noticiaSlug.tsx",
+      "parent": "/_default"
     },
-    "/comunicados/": {
-      "filePath": "comunicados/index.tsx"
+    "/_id/jogadores/$jogadorId": {
+      "filePath": "_id/jogadores/$jogadorId.tsx",
+      "parent": "/_id"
     },
-    "/membros/": {
-      "filePath": "membros/index.tsx"
+    "/_default/campeoes/": {
+      "filePath": "_default/campeoes/index.tsx",
+      "parent": "/_default"
     },
-    "/noticias/": {
-      "filePath": "noticias/index.tsx"
+    "/_default/circuitos/": {
+      "filePath": "_default/circuitos/index.tsx",
+      "parent": "/_default"
     },
-    "/ratings/": {
-      "filePath": "ratings/index.tsx"
+    "/_default/comunicados/": {
+      "filePath": "_default/comunicados/index.tsx",
+      "parent": "/_default"
     },
-    "/sobre/": {
-      "filePath": "sobre/index.tsx"
+    "/_default/membros/": {
+      "filePath": "_default/membros/index.tsx",
+      "parent": "/_default"
     },
-    "/titulados/": {
-      "filePath": "titulados/index.tsx"
+    "/_default/noticias/": {
+      "filePath": "_default/noticias/index.tsx",
+      "parent": "/_default"
+    },
+    "/_default/ratings/": {
+      "filePath": "_default/ratings/index.tsx",
+      "parent": "/_default"
+    },
+    "/_default/sobre/": {
+      "filePath": "_default/sobre/index.tsx",
+      "parent": "/_default"
+    },
+    "/_default/titulados/": {
+      "filePath": "_default/titulados/index.tsx",
+      "parent": "/_default"
     }
   }
 }

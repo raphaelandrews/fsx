@@ -12,7 +12,7 @@ import {
 
 import { newsBySlugQueryOptions } from "~/db/queries";
 
-export const Route = createFileRoute("/noticias/$noticiaSlug")({
+export const Route = createFileRoute("/_default/noticias/$noticiaSlug")({
   loader: ({ context: { queryClient }, params: { noticiaSlug } }) => {
     return queryClient.ensureQueryData(newsBySlugQueryOptions(noticiaSlug));
   },
@@ -50,7 +50,7 @@ export function NewsErrorComponent({ error }: ErrorComponentProps) {
 function NewsComponent() {
   const newsSlug = Route.useParams().noticiaSlug;
   const { data: news } = useSuspenseQuery(newsBySlugQueryOptions(newsSlug));
-console.log(news)
+
   return (
     <div className="space-y-2">
       <h1 className="text-xl font-bold underline">{news.title}</h1>
