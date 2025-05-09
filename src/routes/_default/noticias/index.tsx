@@ -1,7 +1,8 @@
-import { useEffect, useCallback, useRef } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
+  ErrorComponent,
+  type ErrorComponentProps,
   useNavigate,
   useSearch,
 } from "@tanstack/react-router";
@@ -28,6 +29,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "~/components/ui/pagination";
+import { NotFound } from "~/components/not-found";
 
 const searchSchema = z.object({
   page: z
@@ -42,45 +44,31 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/_default/noticias/")({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
-  loader: ({ context: { queryClient }, deps: { page } }) => {
-    const queryOptions = newsQueryOptions(Number(page));
-    const existingData = queryClient.getQueryData(queryOptions.queryKey);
-    const state = existingData
-      ? queryClient.getQueryState(queryOptions.queryKey)
-      : null;
-
-    if (
-      !existingData ||
-      (state && state.dataUpdatedAt < Date.now() - 5 * 60 * 1000)
-    ) {
-      return queryClient.fetchQuery(queryOptions);
-    }
-
-    return existingData;
+  loader: async ({ context: { queryClient }, deps: { page } }) => {
+    await queryClient.ensureQueryData(newsQueryOptions(Number(page)));
   },
-  component: NewsIndexComponent,
+  component: RouteComponent,
+  errorComponent: NewsErrorComponent,
+  notFoundComponent: () => {
+    return <NotFound>Ops, algo deu errado</NotFound>;
+  },
 });
 
-function NewsIndexComponent() {
+export function NewsErrorComponent({ error }: ErrorComponentProps) {
+  return <ErrorComponent error={error} />;
+}
+
+function RouteComponent() {
   const { page } = useSearch({ from: "/_default/noticias/" });
   const currentPage = Number(page);
   const navigate = useNavigate();
 
-  const { data } = useQuery(
-    newsQueryOptions(currentPage)
-  );
+  const { data } = useQuery(newsQueryOptions(currentPage));
 
   const news = data?.news ?? [];
   const totalPages = data?.pagination?.totalPages ?? 0;
 
-  const queryClient = useQueryClient();
-  const prefetchedPages = useRef<Set<number>>(new Set());
-
   const paginate = (newPage: number) => {
-    queryClient.invalidateQueries({
-      queryKey: ["paginated-news", currentPage],
-    });
-
     navigate({
       to: "/noticias",
       search: { page: String(newPage) },
@@ -126,25 +114,6 @@ function NewsIndexComponent() {
     return pageNumbers;
   };
 
-  const prefetchPage = useCallback(
-    (pageNum: number) => {
-      if (!prefetchedPages.current.has(pageNum)) {
-        const queryOptions = newsQueryOptions(pageNum);
-        queryClient.prefetchQuery(queryOptions);
-        prefetchedPages.current.add(pageNum);
-      }
-    },
-    [queryClient]
-  );
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  useEffect(() => {
-    const visiblePages = getPageNumbers(totalPages).filter(
-      (pageNum): pageNum is number => typeof pageNum === "number"
-    );
-    visiblePages.forEach(prefetchPage);
-  }, [currentPage, totalPages, prefetchPage]);
-
   return (
     <>
       <PageHeader>
@@ -172,16 +141,10 @@ function NewsIndexComponent() {
           <Pagination className="mt-16">
             <PaginationContent>
               <PaginationItem disabled={currentPage === 1}>
-                <PaginationFirst
-                  onClick={() => paginate(1)}
-                  onMouseEnter={() => prefetchPage(1)}
-                />
+                <PaginationFirst onClick={() => paginate(1)} />
               </PaginationItem>
               <PaginationItem disabled={currentPage === 1}>
-                <PaginationPrevious
-                  onClick={() => paginate(currentPage - 1)}
-                  onMouseEnter={() => prefetchPage(currentPage - 1)}
-                />
+                <PaginationPrevious onClick={() => paginate(currentPage - 1)} />
               </PaginationItem>
 
               {getPageNumbers(totalPages).map((pageNum) =>
@@ -193,7 +156,6 @@ function NewsIndexComponent() {
                   <PaginationItem key={`page-${pageNum}`}>
                     <PaginationLink
                       onClick={() => paginate(pageNum as number)}
-                      onMouseEnter={() => prefetchPage(pageNum as number)}
                       isActive={pageNum === currentPage}
                     >
                       {pageNum}
@@ -203,16 +165,10 @@ function NewsIndexComponent() {
               )}
 
               <PaginationItem disabled={currentPage === totalPages}>
-                <PaginationNext
-                  onClick={() => paginate(currentPage + 1)}
-                  onMouseEnter={() => prefetchPage(currentPage + 1)}
-                />
+                <PaginationNext onClick={() => paginate(currentPage + 1)} />
               </PaginationItem>
               <PaginationItem disabled={currentPage === totalPages}>
-                <PaginationLast
-                  onClick={() => paginate(totalPages)}
-                  onMouseEnter={() => prefetchPage(totalPages)}
-                />
+                <PaginationLast onClick={() => paginate(totalPages)} />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
@@ -221,5 +177,3 @@ function NewsIndexComponent() {
     </>
   );
 }
-
-export default NewsIndexComponent;

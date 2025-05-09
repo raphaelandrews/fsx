@@ -21,8 +21,8 @@ export function Header() {
         </div>
         <div className="flex items-center gap-1.5">
           <SearchPlayers />
-            <ThemeSwitcher />
-            <AsideMenu />
+          <ThemeSwitcher />
+          <AsideMenu />
         </div>
       </div>
     </header>

@@ -267,7 +267,7 @@ const PlayerModal = ({ id, open, setOpen }: Props) => {
                       typeof player.location.flag === "string" &&
                       player.location.flag.trim() !== ""
                         ? player.location.flag
-                        : undefined
+                        : "https://raw.githubusercontent.com/raphaelandrews/fsx-db/main/logo-bg.png"
                     }
                     alt={player.location.name as string}
                     title={player.location.name as string}

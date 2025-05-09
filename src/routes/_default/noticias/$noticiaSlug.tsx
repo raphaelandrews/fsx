@@ -1,60 +1,40 @@
-import * as React from "react";
 import {
   ErrorComponent,
   type ErrorComponentProps,
   createFileRoute,
-  useRouter,
 } from "@tanstack/react-router";
-import {
-  useQueryErrorResetBoundary,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { newsBySlugQueryOptions } from "~/db/queries";
+import { NotFound } from "~/components/not-found";
 
 export const Route = createFileRoute("/_default/noticias/$noticiaSlug")({
-  loader: ({ context: { queryClient }, params: { noticiaSlug } }) => {
-    return queryClient.ensureQueryData(newsBySlugQueryOptions(noticiaSlug));
+  loader: async ({ context: { queryClient }, params: { noticiaSlug } }) => {
+    await queryClient.ensureQueryData(newsBySlugQueryOptions(noticiaSlug));
   },
+  component: RouteComponent,
   errorComponent: NewsErrorComponent,
-  component: NewsComponent,
+  notFoundComponent: () => {
+    return <NotFound>Notícia não encontrada</NotFound>;
+  },
 });
 
 export function NewsErrorComponent({ error }: ErrorComponentProps) {
-  const router = useRouter();
-  if (error) {
-    return <div>{error.message}</div>;
-  }
-
-  const queryErrorResetBoundary = useQueryErrorResetBoundary();
-
-  React.useEffect(() => {
-    queryErrorResetBoundary.reset();
-  }, [queryErrorResetBoundary]);
-
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={() => {
-          router.invalidate();
-        }}
-      >
-        retry
-      </button>
-      <ErrorComponent error={error} />
-    </div>
-  );
+  return <ErrorComponent error={error} />;
 }
 
-function NewsComponent() {
+function RouteComponent() {
   const newsSlug = Route.useParams().noticiaSlug;
-  const { data: news } = useSuspenseQuery(newsBySlugQueryOptions(newsSlug));
+  const { data, isLoading } = useQuery(newsBySlugQueryOptions(newsSlug));
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-2">
-      <h1 className="text-xl font-bold underline">{news.title}</h1>
-      <h2 className="text-xl font-bold underline">{news.content}</h2>
+      <h1 className="text-xl font-bold underline">{data?.title}</h1>
+      <h2 className="text-xl font-bold underline">{data?.content}</h2>
     </div>
   );
 }

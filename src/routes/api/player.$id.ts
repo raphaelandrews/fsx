@@ -99,10 +99,11 @@ export const APIRoute = createAPIFileRoute('/api/player/$id')({
               tournament: {
                 columns: {
                   name: true,
-                  championshipId: true
+                  championshipId: true,
+                  date: true
                 }
               }
-            }
+            },
           },
           playersToTitles: {
             columns: {},
@@ -124,6 +125,14 @@ export const APIRoute = createAPIFileRoute('/api/player/$id')({
           success: false,
           error: { code: 404, message: `Player ${id} not found` },
         }, 404);
+      }
+
+      if (player.tournamentPodiums) {
+        player.tournamentPodiums.sort((a, b) => {
+          const dateA = a.tournament?.date ? new Date(a.tournament.date).getTime() : 0;
+          const dateB = b.tournament?.date ? new Date(b.tournament.date).getTime() : 0;
+          return dateA - dateB; 
+        });
       }
 
       const validation = APIPlayerByIdResponseSchema.safeParse({ success: true, data: player });

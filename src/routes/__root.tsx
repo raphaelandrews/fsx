@@ -14,8 +14,6 @@ import { siteConfig } from "~/utils/config";
 import { seo } from "~/utils/seo";
 
 import { DefaultCatchBoundary } from "~/components/default-catch-boundary";
-import { Footer } from "~/components/footer";
-import { Header } from "~/components/header";
 import { NotFound } from "~/components/not-found";
 
 export const Route = createRootRouteWithContext<{
