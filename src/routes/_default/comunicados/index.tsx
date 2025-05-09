@@ -2,6 +2,8 @@ import { useEffect, useMemo, useCallback, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
+  ErrorComponent,
+  HeadContent,
   useNavigate,
   useSearch,
 } from "@tanstack/react-router";
@@ -9,9 +11,12 @@ import { MegaphoneIcon } from "lucide-react";
 import { z } from "zod";
 
 import { announcementsQueryOptions } from "~/db/queries";
+import { siteConfig } from "~/utils/config";
+import { seo } from "~/utils/seo";
 
 import { Announcement } from "~/components/announcement";
 import { AnnouncementLink } from "~/components/announcement-link";
+import { NotFound } from "~/components/not-found";
 import {
   PageHeader,
   PageHeaderDescription,
@@ -59,6 +64,20 @@ export const Route = createFileRoute("/_default/comunicados/")({
 
     return existingData;
   },
+  head: () => ({
+    meta: [
+      ...seo({
+        title: `Comunicados | ${siteConfig.name}`,
+        description: "Comunicados da FSX",
+        ogUrl: `${siteConfig.url}/comunicados`,
+        image: `${siteConfig.url}/og/og-comunicados.jpg`,
+        imageWidth: "1920",
+        imageHeight: "1080",
+      }),
+    ],
+  }),
+  errorComponent: ErrorComponent,
+  notFoundComponent: () => <NotFound />,
   component: AnnouncementsIndexComponent,
 });
 
@@ -153,6 +172,7 @@ function AnnouncementsIndexComponent() {
 
   return (
     <>
+      <HeadContent />
       <PageHeader>
         <Announcement icon={MegaphoneIcon} />
         <PageHeaderHeading>Comunicados</PageHeaderHeading>

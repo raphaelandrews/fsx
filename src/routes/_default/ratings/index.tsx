@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
+  ErrorComponent,
+  HeadContent,
   useNavigate,
   useSearch,
 } from "@tanstack/react-router";
@@ -13,8 +15,11 @@ import {
   type Players,
   type PlayersFilters,
 } from "~/db/queries";
+import { seo } from "~/utils/seo";
+import { siteConfig } from "~/utils/config";
 
 import { Announcement } from "~/components/announcement";
+import { NotFound } from "~/components/not-found";
 import { DataTable } from "~/components/players-table/data-table";
 import {
   columnsClassic,
@@ -65,6 +70,20 @@ export const Route = createFileRoute("/_default/ratings/")({
 
     return existingData;
   },
+  head: () => ({
+    meta: [
+      ...seo({
+        title: `Ratings | ${siteConfig.name}`,
+        description: "Ratings da FSX",
+        ogUrl: `${siteConfig.url}/rating`,
+        image: `${siteConfig.url}/og/og-rating.jpg`,
+        imageWidth: "1920",
+        imageHeight: "1080",
+      }),
+    ],
+  }),
+  errorComponent: ErrorComponent,
+  notFoundComponent: () => <NotFound />,
   component: RatingIndexComponent,
 });
 
@@ -101,9 +120,7 @@ function RatingIndexComponent() {
     locations: search.locations,
   };
 
-  const { data, isLoading } = useQuery(
-    playersQueryOptions(filters)
-  );
+  const { data, isLoading } = useQuery(playersQueryOptions(filters));
 
   const players = data?.players ?? [];
   const totalPages = data?.pagination?.totalPages ?? 0;
@@ -114,6 +131,7 @@ function RatingIndexComponent() {
 
   return (
     <>
+      <HeadContent />
       <PageHeader>
         <Announcement icon={BarChart2Icon} />
         <PageHeaderHeading>Ratings</PageHeaderHeading>

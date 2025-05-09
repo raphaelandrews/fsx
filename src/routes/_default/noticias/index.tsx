@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
   ErrorComponent,
-  type ErrorComponentProps,
+  HeadContent,
   useNavigate,
   useSearch,
 } from "@tanstack/react-router";
@@ -10,6 +10,8 @@ import { HomeIcon } from "lucide-react";
 import { z } from "zod";
 
 import { newsQueryOptions } from "~/db/queries";
+import { siteConfig } from "~/utils/config";
+import { seo } from "~/utils/seo";
 
 import { Announcement } from "~/components/announcement";
 import { NewsCard } from "~/components/news-card";
@@ -47,16 +49,22 @@ export const Route = createFileRoute("/_default/noticias/")({
   loader: async ({ context: { queryClient }, deps: { page } }) => {
     await queryClient.ensureQueryData(newsQueryOptions(Number(page)));
   },
+  head: () => ({
+    meta: [
+      ...seo({
+        title: `Notícias | ${siteConfig.name}`,
+        description: "Notícias e eventos da Federação Sergipana de Xadrez",
+        ogUrl: `${siteConfig.url}/noticias`,
+        image: `${siteConfig.url}/og/og-noticias.jpg`,
+        imageWidth: "1920",
+        imageHeight: "1080",
+      }),
+    ],
+  }),
+  errorComponent: ErrorComponent,
+  notFoundComponent: () => <NotFound />,
   component: RouteComponent,
-  errorComponent: NewsErrorComponent,
-  notFoundComponent: () => {
-    return <NotFound>Ops, algo deu errado</NotFound>;
-  },
 });
-
-export function NewsErrorComponent({ error }: ErrorComponentProps) {
-  return <ErrorComponent error={error} />;
-}
 
 function RouteComponent() {
   const { page } = useSearch({ from: "/_default/noticias/" });
@@ -116,6 +124,7 @@ function RouteComponent() {
 
   return (
     <>
+      <HeadContent />
       <PageHeader>
         <Announcement icon={HomeIcon} />
         <PageHeaderHeading>Notícias</PageHeaderHeading>

@@ -24,7 +24,6 @@ import { Route as DefaultCircuitosIndexImport } from './routes/_default/circuito
 import { Route as DefaultCampeoesIndexImport } from './routes/_default/campeoes/index'
 import { Route as IdJogadoresJogadorIdImport } from './routes/_id/jogadores/$jogadorId'
 import { Route as DefaultNoticiasNoticiaSlugImport } from './routes/_default/noticias/$noticiaSlug'
-import { Route as DefaultComunicadosComunicadoIdImport } from './routes/_default/comunicados/$comunicadoId'
 
 // Create/Update Routes
 
@@ -106,13 +105,6 @@ const DefaultNoticiasNoticiaSlugRoute = DefaultNoticiasNoticiaSlugImport.update(
   } as any,
 )
 
-const DefaultComunicadosComunicadoIdRoute =
-  DefaultComunicadosComunicadoIdImport.update({
-    id: '/comunicados/$comunicadoId',
-    path: '/comunicados/$comunicadoId',
-    getParentRoute: () => DefaultRouteRoute,
-  } as any)
-
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -136,13 +128,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof DefaultIndexImport
-      parentRoute: typeof DefaultRouteImport
-    }
-    '/_default/comunicados/$comunicadoId': {
-      id: '/_default/comunicados/$comunicadoId'
-      path: '/comunicados/$comunicadoId'
-      fullPath: '/comunicados/$comunicadoId'
-      preLoaderRoute: typeof DefaultComunicadosComunicadoIdImport
       parentRoute: typeof DefaultRouteImport
     }
     '/_default/noticias/$noticiaSlug': {
@@ -222,7 +207,6 @@ declare module '@tanstack/react-router' {
 
 interface DefaultRouteRouteChildren {
   DefaultIndexRoute: typeof DefaultIndexRoute
-  DefaultComunicadosComunicadoIdRoute: typeof DefaultComunicadosComunicadoIdRoute
   DefaultNoticiasNoticiaSlugRoute: typeof DefaultNoticiasNoticiaSlugRoute
   DefaultCampeoesIndexRoute: typeof DefaultCampeoesIndexRoute
   DefaultCircuitosIndexRoute: typeof DefaultCircuitosIndexRoute
@@ -236,7 +220,6 @@ interface DefaultRouteRouteChildren {
 
 const DefaultRouteRouteChildren: DefaultRouteRouteChildren = {
   DefaultIndexRoute: DefaultIndexRoute,
-  DefaultComunicadosComunicadoIdRoute: DefaultComunicadosComunicadoIdRoute,
   DefaultNoticiasNoticiaSlugRoute: DefaultNoticiasNoticiaSlugRoute,
   DefaultCampeoesIndexRoute: DefaultCampeoesIndexRoute,
   DefaultCircuitosIndexRoute: DefaultCircuitosIndexRoute,
@@ -266,7 +249,6 @@ const IdRouteRouteWithChildren =
 export interface FileRoutesByFullPath {
   '': typeof IdRouteRouteWithChildren
   '/': typeof DefaultIndexRoute
-  '/comunicados/$comunicadoId': typeof DefaultComunicadosComunicadoIdRoute
   '/noticias/$noticiaSlug': typeof DefaultNoticiasNoticiaSlugRoute
   '/jogadores/$jogadorId': typeof IdJogadoresJogadorIdRoute
   '/campeoes': typeof DefaultCampeoesIndexRoute
@@ -282,7 +264,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '': typeof IdRouteRouteWithChildren
   '/': typeof DefaultIndexRoute
-  '/comunicados/$comunicadoId': typeof DefaultComunicadosComunicadoIdRoute
   '/noticias/$noticiaSlug': typeof DefaultNoticiasNoticiaSlugRoute
   '/jogadores/$jogadorId': typeof IdJogadoresJogadorIdRoute
   '/campeoes': typeof DefaultCampeoesIndexRoute
@@ -300,7 +281,6 @@ export interface FileRoutesById {
   '/_default': typeof DefaultRouteRouteWithChildren
   '/_id': typeof IdRouteRouteWithChildren
   '/_default/': typeof DefaultIndexRoute
-  '/_default/comunicados/$comunicadoId': typeof DefaultComunicadosComunicadoIdRoute
   '/_default/noticias/$noticiaSlug': typeof DefaultNoticiasNoticiaSlugRoute
   '/_id/jogadores/$jogadorId': typeof IdJogadoresJogadorIdRoute
   '/_default/campeoes/': typeof DefaultCampeoesIndexRoute
@@ -318,7 +298,6 @@ export interface FileRouteTypes {
   fullPaths:
     | ''
     | '/'
-    | '/comunicados/$comunicadoId'
     | '/noticias/$noticiaSlug'
     | '/jogadores/$jogadorId'
     | '/campeoes'
@@ -333,7 +312,6 @@ export interface FileRouteTypes {
   to:
     | ''
     | '/'
-    | '/comunicados/$comunicadoId'
     | '/noticias/$noticiaSlug'
     | '/jogadores/$jogadorId'
     | '/campeoes'
@@ -349,7 +327,6 @@ export interface FileRouteTypes {
     | '/_default'
     | '/_id'
     | '/_default/'
-    | '/_default/comunicados/$comunicadoId'
     | '/_default/noticias/$noticiaSlug'
     | '/_id/jogadores/$jogadorId'
     | '/_default/campeoes/'
@@ -391,7 +368,6 @@ export const routeTree = rootRoute
       "filePath": "_default/route.tsx",
       "children": [
         "/_default/",
-        "/_default/comunicados/$comunicadoId",
         "/_default/noticias/$noticiaSlug",
         "/_default/campeoes/",
         "/_default/circuitos/",
@@ -411,10 +387,6 @@ export const routeTree = rootRoute
     },
     "/_default/": {
       "filePath": "_default/index.tsx",
-      "parent": "/_default"
-    },
-    "/_default/comunicados/$comunicadoId": {
-      "filePath": "_default/comunicados/$comunicadoId.tsx",
       "parent": "/_default"
     },
     "/_default/noticias/$noticiaSlug": {
