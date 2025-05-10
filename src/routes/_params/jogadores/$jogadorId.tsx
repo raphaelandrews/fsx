@@ -27,10 +27,10 @@ import { formatDefendingChampions } from "~/lib/defending-champions";
 import { FormatPodium, FormatPodiumTitle } from "~/lib/format-podium";
 import { getGradient } from "~/lib/generate-gradients";
 
-import ClientOnly from "~/components/client-only";
 import { columns } from "~/components/modals/columns";
 import { DataTable } from "~/components/modals/data-table";
 
+import { ClientOnly } from "~/components/client-only";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { buttonVariants } from "~/components/ui/button";

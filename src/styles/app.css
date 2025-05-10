@@ -6,11 +6,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-geist: Geist, "sans-serif";
+  --font-sans: Geist, "sans-serif";
 }
 
 body {
-  @apply font-geist;
+  @apply font-sans;
 }
 
 @layer base {
@@ -50,7 +50,7 @@ body {
 }
 
 .wmde-markdown p {
-  @apply font-geist !text-primary !mb-0;
+  @apply font-sans !text-primary !mb-0;
 }
 
 /*===== Utils =====*/
