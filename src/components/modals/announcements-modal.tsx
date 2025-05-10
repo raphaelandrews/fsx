@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import React from "react";
 import { X } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
@@ -17,9 +17,9 @@ export function AnnouncementsModal({
   onOpenChange,
   open,
 }: Props) {
-  const modalRef = useRef<HTMLDivElement>(null);
+  const modalRef = React.useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!open) return;
 
     const handleClickOutside = (event: MouseEvent) => {

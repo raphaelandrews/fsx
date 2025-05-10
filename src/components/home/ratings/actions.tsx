@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React from "react";
 
 import { formatDefendingChampions } from "~/lib/defending-champions";
 import { getGradient } from "~/lib/generate-gradients";
@@ -29,8 +29,8 @@ export const Actions = ({
   shortTitle,
   defendingChampions,
 }: Props) => {
-  const [open, setOpen] = useState(false);
-  const gradient = useMemo(getGradient, []);
+  const [open, setOpen] = React.useState(false);
+  const gradient = React.useMemo(getGradient, []);
 
   const handleKeyboardEvent = (event: React.KeyboardEvent) => {
     if (event.key === "Enter" || event.key === " ") {

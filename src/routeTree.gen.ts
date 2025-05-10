@@ -11,7 +11,7 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as IdRouteImport } from './routes/_id/route'
+import { Route as ParamsRouteImport } from './routes/_params/route'
 import { Route as DefaultRouteImport } from './routes/_default/route'
 import { Route as DefaultIndexImport } from './routes/_default/index'
 import { Route as DefaultTituladosIndexImport } from './routes/_default/titulados/index'
@@ -22,13 +22,13 @@ import { Route as DefaultMembrosIndexImport } from './routes/_default/membros/in
 import { Route as DefaultComunicadosIndexImport } from './routes/_default/comunicados/index'
 import { Route as DefaultCircuitosIndexImport } from './routes/_default/circuitos/index'
 import { Route as DefaultCampeoesIndexImport } from './routes/_default/campeoes/index'
-import { Route as IdJogadoresJogadorIdImport } from './routes/_id/jogadores/$jogadorId'
-import { Route as DefaultNoticiasNoticiaSlugImport } from './routes/_default/noticias/$noticiaSlug'
+import { Route as ParamsNoticiasNoticiaSlugImport } from './routes/_params/noticias/$noticiaSlug'
+import { Route as ParamsJogadoresJogadorIdImport } from './routes/_params/jogadores/$jogadorId'
 
 // Create/Update Routes
 
-const IdRouteRoute = IdRouteImport.update({
-  id: '/_id',
+const ParamsRouteRoute = ParamsRouteImport.update({
+  id: '/_params',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -91,19 +91,17 @@ const DefaultCampeoesIndexRoute = DefaultCampeoesIndexImport.update({
   getParentRoute: () => DefaultRouteRoute,
 } as any)
 
-const IdJogadoresJogadorIdRoute = IdJogadoresJogadorIdImport.update({
-  id: '/jogadores/$jogadorId',
-  path: '/jogadores/$jogadorId',
-  getParentRoute: () => IdRouteRoute,
+const ParamsNoticiasNoticiaSlugRoute = ParamsNoticiasNoticiaSlugImport.update({
+  id: '/noticias/$noticiaSlug',
+  path: '/noticias/$noticiaSlug',
+  getParentRoute: () => ParamsRouteRoute,
 } as any)
 
-const DefaultNoticiasNoticiaSlugRoute = DefaultNoticiasNoticiaSlugImport.update(
-  {
-    id: '/noticias/$noticiaSlug',
-    path: '/noticias/$noticiaSlug',
-    getParentRoute: () => DefaultRouteRoute,
-  } as any,
-)
+const ParamsJogadoresJogadorIdRoute = ParamsJogadoresJogadorIdImport.update({
+  id: '/jogadores/$jogadorId',
+  path: '/jogadores/$jogadorId',
+  getParentRoute: () => ParamsRouteRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -116,11 +114,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DefaultRouteImport
       parentRoute: typeof rootRoute
     }
-    '/_id': {
-      id: '/_id'
+    '/_params': {
+      id: '/_params'
       path: ''
       fullPath: ''
-      preLoaderRoute: typeof IdRouteImport
+      preLoaderRoute: typeof ParamsRouteImport
       parentRoute: typeof rootRoute
     }
     '/_default/': {
@@ -130,19 +128,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DefaultIndexImport
       parentRoute: typeof DefaultRouteImport
     }
-    '/_default/noticias/$noticiaSlug': {
-      id: '/_default/noticias/$noticiaSlug'
-      path: '/noticias/$noticiaSlug'
-      fullPath: '/noticias/$noticiaSlug'
-      preLoaderRoute: typeof DefaultNoticiasNoticiaSlugImport
-      parentRoute: typeof DefaultRouteImport
-    }
-    '/_id/jogadores/$jogadorId': {
-      id: '/_id/jogadores/$jogadorId'
+    '/_params/jogadores/$jogadorId': {
+      id: '/_params/jogadores/$jogadorId'
       path: '/jogadores/$jogadorId'
       fullPath: '/jogadores/$jogadorId'
-      preLoaderRoute: typeof IdJogadoresJogadorIdImport
-      parentRoute: typeof IdRouteImport
+      preLoaderRoute: typeof ParamsJogadoresJogadorIdImport
+      parentRoute: typeof ParamsRouteImport
+    }
+    '/_params/noticias/$noticiaSlug': {
+      id: '/_params/noticias/$noticiaSlug'
+      path: '/noticias/$noticiaSlug'
+      fullPath: '/noticias/$noticiaSlug'
+      preLoaderRoute: typeof ParamsNoticiasNoticiaSlugImport
+      parentRoute: typeof ParamsRouteImport
     }
     '/_default/campeoes/': {
       id: '/_default/campeoes/'
@@ -207,7 +205,6 @@ declare module '@tanstack/react-router' {
 
 interface DefaultRouteRouteChildren {
   DefaultIndexRoute: typeof DefaultIndexRoute
-  DefaultNoticiasNoticiaSlugRoute: typeof DefaultNoticiasNoticiaSlugRoute
   DefaultCampeoesIndexRoute: typeof DefaultCampeoesIndexRoute
   DefaultCircuitosIndexRoute: typeof DefaultCircuitosIndexRoute
   DefaultComunicadosIndexRoute: typeof DefaultComunicadosIndexRoute
@@ -220,7 +217,6 @@ interface DefaultRouteRouteChildren {
 
 const DefaultRouteRouteChildren: DefaultRouteRouteChildren = {
   DefaultIndexRoute: DefaultIndexRoute,
-  DefaultNoticiasNoticiaSlugRoute: DefaultNoticiasNoticiaSlugRoute,
   DefaultCampeoesIndexRoute: DefaultCampeoesIndexRoute,
   DefaultCircuitosIndexRoute: DefaultCircuitosIndexRoute,
   DefaultComunicadosIndexRoute: DefaultComunicadosIndexRoute,
@@ -235,22 +231,25 @@ const DefaultRouteRouteWithChildren = DefaultRouteRoute._addFileChildren(
   DefaultRouteRouteChildren,
 )
 
-interface IdRouteRouteChildren {
-  IdJogadoresJogadorIdRoute: typeof IdJogadoresJogadorIdRoute
+interface ParamsRouteRouteChildren {
+  ParamsJogadoresJogadorIdRoute: typeof ParamsJogadoresJogadorIdRoute
+  ParamsNoticiasNoticiaSlugRoute: typeof ParamsNoticiasNoticiaSlugRoute
 }
 
-const IdRouteRouteChildren: IdRouteRouteChildren = {
-  IdJogadoresJogadorIdRoute: IdJogadoresJogadorIdRoute,
+const ParamsRouteRouteChildren: ParamsRouteRouteChildren = {
+  ParamsJogadoresJogadorIdRoute: ParamsJogadoresJogadorIdRoute,
+  ParamsNoticiasNoticiaSlugRoute: ParamsNoticiasNoticiaSlugRoute,
 }
 
-const IdRouteRouteWithChildren =
-  IdRouteRoute._addFileChildren(IdRouteRouteChildren)
+const ParamsRouteRouteWithChildren = ParamsRouteRoute._addFileChildren(
+  ParamsRouteRouteChildren,
+)
 
 export interface FileRoutesByFullPath {
-  '': typeof IdRouteRouteWithChildren
+  '': typeof ParamsRouteRouteWithChildren
   '/': typeof DefaultIndexRoute
-  '/noticias/$noticiaSlug': typeof DefaultNoticiasNoticiaSlugRoute
-  '/jogadores/$jogadorId': typeof IdJogadoresJogadorIdRoute
+  '/jogadores/$jogadorId': typeof ParamsJogadoresJogadorIdRoute
+  '/noticias/$noticiaSlug': typeof ParamsNoticiasNoticiaSlugRoute
   '/campeoes': typeof DefaultCampeoesIndexRoute
   '/circuitos': typeof DefaultCircuitosIndexRoute
   '/comunicados': typeof DefaultComunicadosIndexRoute
@@ -262,10 +261,10 @@ export interface FileRoutesByFullPath {
 }
 
 export interface FileRoutesByTo {
-  '': typeof IdRouteRouteWithChildren
+  '': typeof ParamsRouteRouteWithChildren
   '/': typeof DefaultIndexRoute
-  '/noticias/$noticiaSlug': typeof DefaultNoticiasNoticiaSlugRoute
-  '/jogadores/$jogadorId': typeof IdJogadoresJogadorIdRoute
+  '/jogadores/$jogadorId': typeof ParamsJogadoresJogadorIdRoute
+  '/noticias/$noticiaSlug': typeof ParamsNoticiasNoticiaSlugRoute
   '/campeoes': typeof DefaultCampeoesIndexRoute
   '/circuitos': typeof DefaultCircuitosIndexRoute
   '/comunicados': typeof DefaultComunicadosIndexRoute
@@ -279,10 +278,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_default': typeof DefaultRouteRouteWithChildren
-  '/_id': typeof IdRouteRouteWithChildren
+  '/_params': typeof ParamsRouteRouteWithChildren
   '/_default/': typeof DefaultIndexRoute
-  '/_default/noticias/$noticiaSlug': typeof DefaultNoticiasNoticiaSlugRoute
-  '/_id/jogadores/$jogadorId': typeof IdJogadoresJogadorIdRoute
+  '/_params/jogadores/$jogadorId': typeof ParamsJogadoresJogadorIdRoute
+  '/_params/noticias/$noticiaSlug': typeof ParamsNoticiasNoticiaSlugRoute
   '/_default/campeoes/': typeof DefaultCampeoesIndexRoute
   '/_default/circuitos/': typeof DefaultCircuitosIndexRoute
   '/_default/comunicados/': typeof DefaultComunicadosIndexRoute
@@ -298,8 +297,8 @@ export interface FileRouteTypes {
   fullPaths:
     | ''
     | '/'
-    | '/noticias/$noticiaSlug'
     | '/jogadores/$jogadorId'
+    | '/noticias/$noticiaSlug'
     | '/campeoes'
     | '/circuitos'
     | '/comunicados'
@@ -312,8 +311,8 @@ export interface FileRouteTypes {
   to:
     | ''
     | '/'
-    | '/noticias/$noticiaSlug'
     | '/jogadores/$jogadorId'
+    | '/noticias/$noticiaSlug'
     | '/campeoes'
     | '/circuitos'
     | '/comunicados'
@@ -325,10 +324,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_default'
-    | '/_id'
+    | '/_params'
     | '/_default/'
-    | '/_default/noticias/$noticiaSlug'
-    | '/_id/jogadores/$jogadorId'
+    | '/_params/jogadores/$jogadorId'
+    | '/_params/noticias/$noticiaSlug'
     | '/_default/campeoes/'
     | '/_default/circuitos/'
     | '/_default/comunicados/'
@@ -342,12 +341,12 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   DefaultRouteRoute: typeof DefaultRouteRouteWithChildren
-  IdRouteRoute: typeof IdRouteRouteWithChildren
+  ParamsRouteRoute: typeof ParamsRouteRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   DefaultRouteRoute: DefaultRouteRouteWithChildren,
-  IdRouteRoute: IdRouteRouteWithChildren,
+  ParamsRouteRoute: ParamsRouteRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -361,14 +360,13 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/_default",
-        "/_id"
+        "/_params"
       ]
     },
     "/_default": {
       "filePath": "_default/route.tsx",
       "children": [
         "/_default/",
-        "/_default/noticias/$noticiaSlug",
         "/_default/campeoes/",
         "/_default/circuitos/",
         "/_default/comunicados/",
@@ -379,23 +377,24 @@ export const routeTree = rootRoute
         "/_default/titulados/"
       ]
     },
-    "/_id": {
-      "filePath": "_id/route.tsx",
+    "/_params": {
+      "filePath": "_params/route.tsx",
       "children": [
-        "/_id/jogadores/$jogadorId"
+        "/_params/jogadores/$jogadorId",
+        "/_params/noticias/$noticiaSlug"
       ]
     },
     "/_default/": {
       "filePath": "_default/index.tsx",
       "parent": "/_default"
     },
-    "/_default/noticias/$noticiaSlug": {
-      "filePath": "_default/noticias/$noticiaSlug.tsx",
-      "parent": "/_default"
+    "/_params/jogadores/$jogadorId": {
+      "filePath": "_params/jogadores/$jogadorId.tsx",
+      "parent": "/_params"
     },
-    "/_id/jogadores/$jogadorId": {
-      "filePath": "_id/jogadores/$jogadorId.tsx",
-      "parent": "/_id"
+    "/_params/noticias/$noticiaSlug": {
+      "filePath": "_params/noticias/$noticiaSlug.tsx",
+      "parent": "/_params"
     },
     "/_default/campeoes/": {
       "filePath": "_default/campeoes/index.tsx",

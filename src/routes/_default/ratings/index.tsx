@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
   ErrorComponent,
-  HeadContent,
   useNavigate,
   useSearch,
 } from "@tanstack/react-router";
@@ -15,7 +14,6 @@ import {
   type Players,
   type PlayersFilters,
 } from "~/db/queries";
-import { seo } from "~/utils/seo";
 import { siteConfig } from "~/utils/config";
 
 import { Announcement } from "~/components/announcement";
@@ -26,7 +24,6 @@ import {
   columnsRapid,
   columnsBlitz,
 } from "~/components/players-table/columns";
-import { PlayerRow } from "~/components/players-table/player-row";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -72,14 +69,12 @@ export const Route = createFileRoute("/_default/ratings/")({
   },
   head: () => ({
     meta: [
-      ...seo({
+      {
         title: `Ratings | ${siteConfig.name}`,
         description: "Ratings da FSX",
         ogUrl: `${siteConfig.url}/rating`,
         image: `${siteConfig.url}/og/og-rating.jpg`,
-        imageWidth: "1920",
-        imageHeight: "1080",
-      }),
+      },
     ],
   }),
   errorComponent: ErrorComponent,
@@ -125,13 +120,8 @@ function RatingIndexComponent() {
   const players = data?.players ?? [];
   const totalPages = data?.pagination?.totalPages ?? 0;
 
-  const renderSubComponent = ({ row }: { row: Row<Players> }) => {
-    return <PlayerRow id={row.original.id} />;
-  };
-
   return (
     <>
-      <HeadContent />
       <PageHeader>
         <Announcement icon={BarChart2Icon} />
         <PageHeaderHeading>Ratings</PageHeaderHeading>
@@ -164,8 +154,6 @@ function RatingIndexComponent() {
               <DataTable
                 data={players}
                 columns={columnsClassic}
-                getRowCanExpand={() => true}
-                renderSubComponent={renderSubComponent}
                 totalPages={totalPages}
               />
             ) : (
@@ -182,8 +170,6 @@ function RatingIndexComponent() {
               <DataTable
                 data={players}
                 columns={columnsRapid}
-                getRowCanExpand={() => true}
-                renderSubComponent={renderSubComponent}
                 totalPages={totalPages}
               />
             ) : (
@@ -200,8 +186,6 @@ function RatingIndexComponent() {
               <DataTable
                 data={players}
                 columns={columnsBlitz}
-                getRowCanExpand={() => true}
-                renderSubComponent={renderSubComponent}
                 totalPages={totalPages}
               />
             ) : (

@@ -7,9 +7,9 @@ import {
   LeafIcon,
   PaletteIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import { type ThemeStyle, type ColorScheme, useTheme } from "./theme-provider";
+import { ClientOnly } from "~/components/client-only";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -38,57 +38,51 @@ const colorSchemes: Array<{
 
 export function ThemeSwitcher() {
   const { theme, colorScheme, setTheme, setColorScheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const CurrentThemeIcon =
     themes.find((t) => t.value === theme)?.icon || PaletteIcon;
 
-  if (!mounted) {
-    return (
-      <Button variant="ghost" size="icon">
-        <PaletteIcon size={16} />
-      </Button>
-    );
-  }
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="shrink-0">
-          <CurrentThemeIcon size={16} />
+    <ClientOnly
+      fallback={
+        <Button variant="ghost" size="icon">
+          <PaletteIcon size={16} />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <div className="flex flex-col gap-0.5">
-          {themes.map((t) => (
-            <DropdownMenuItem
-              key={`theme-${t.value}`}
-              onClick={() => setTheme(t.value)}
-              className={theme === t.value ? "bg-accent" : ""}
-            >
-              <t.icon size={16} />
-              {t.label}
-            </DropdownMenuItem>
-          ))}
-        </div>
-        <DropdownMenuSeparator />
-        <div className="flex flex-col gap-0.5">
-          {colorSchemes.map((s) => (
-            <DropdownMenuItem
-              key={`scheme-${s.value}`}
-              onClick={() => setColorScheme(s.value)}
-              className={colorScheme === s.value ? "bg-accent" : ""}
-            >
-              <s.icon size={16} />
-              {s.label}
-            </DropdownMenuItem>
-          ))}
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      }
+    >
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="shrink-0">
+            <CurrentThemeIcon size={16} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <div className="flex flex-col gap-0.5">
+            {themes.map((t) => (
+              <DropdownMenuItem
+                key={`theme-${t.value}`}
+                onClick={() => setTheme(t.value)}
+                className={theme === t.value ? "bg-accent" : ""}
+              >
+                <t.icon size={16} />
+                {t.label}
+              </DropdownMenuItem>
+            ))}
+          </div>
+          <DropdownMenuSeparator />
+          <div className="flex flex-col gap-0.5">
+            {colorSchemes.map((s) => (
+              <DropdownMenuItem
+                key={`scheme-${s.value}`}
+                onClick={() => setColorScheme(s.value)}
+                className={colorScheme === s.value ? "bg-accent" : ""}
+              >
+                <s.icon size={16} />
+                {s.label}
+              </DropdownMenuItem>
+            ))}
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </ClientOnly>
   );
 }

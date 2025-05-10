@@ -4,11 +4,11 @@ import { useNavigate } from "@tanstack/react-router";
 import type { DialogProps } from "@radix-ui/react-dialog";
 import { ArrowUpIcon, ArrowDownIcon, SearchIcon } from "lucide-react";
 
-import { getGradient } from "~/lib/generate-gradients";
-
 import { searchPlayersQueryOptions } from "~/db/queries";
+import { getGradient } from "~/lib/generate-gradients";
 import { cn } from "~/lib/utils";
 
+import { ClientOnly } from "~/components/client-only";
 import { Button } from "~/components/ui/button";
 import {
   CommandDialog,
@@ -76,15 +76,10 @@ const SearchResults = React.memo(
 
 export function SearchPlayers({ ...props }: DialogProps) {
   const navigate = useNavigate();
-  const [mounted, setMounted] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [isTyping, setIsTyping] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
 
   React.useEffect(() => {
     if (searchValue !== debouncedSearch) {
@@ -138,42 +133,40 @@ export function SearchPlayers({ ...props }: DialogProps) {
     return () => document.removeEventListener("keydown", handleGlobalKeyDown);
   }, [open]);
 
-  if (!mounted) {
-    return (
-      <Button
-        variant="outline"
-        className={cn(
-          "relative h-7 w-full justify-start rounded-[0.5rem] bg-muted/50 text-sm font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64"
-        )}
-        {...props}
-      >
-        <span className="hidden lg:inline-flex">Procurar jogadores...</span>
-        <span className="inline-flex lg:hidden">Procurar...</span>
-        <kbd className="pointer-events-none absolute right-2 top-0.75 hidden h-5 select-none items-center gap-1 rounded border bg-muted/80 px-1.5 font-mono text-[10px] font-medium sm:flex">
-          <span className="text-xs">⌘</span>K
-        </kbd>
-      </Button>
-    );
-  }
-
   return (
-    <>
-      <Button
-        variant="outline"
-        className={cn(
-          "relative h-7 w-full justify-start rounded-[0.5rem] bg-muted/50 text-sm font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64"
-        )}
-        onClick={() => handleOpenChange(true)}
-        {...props}
-      >
-        <span className="hidden lg:inline-flex">Procurar jogadores...</span>
-        <span className="inline-flex lg:hidden">Procurar...</span>
-        <kbd className="pointer-events-none absolute right-2 top-0.75 hidden h-5 select-none items-center gap-1 rounded border bg-muted/80 px-1.5 font-mono text-[10px] font-medium sm:flex">
-          <span className="text-xs">⌘</span>K
-        </kbd>
-      </Button>
+    <ClientOnly
+      fallback={
+        <Button
+          variant="outline"
+          className={cn(
+            "relative h-7 w-full justify-start rounded-[0.5rem] bg-muted/50 text-sm font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64"
+          )}
+          {...props}
+        >
+          <span className="hidden lg:inline-flex">Procurar jogadores...</span>
+          <span className="inline-flex lg:hidden">Procurar...</span>
+          <kbd className="pointer-events-none absolute right-2 top-0.75 hidden h-5 select-none items-center gap-1 rounded border bg-muted/80 px-1.5 font-mono text-[10px] font-medium sm:flex">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </Button>
+      }
+    >
+      <>
+        <Button
+          variant="outline"
+          className={cn(
+            "relative h-7 w-full justify-start rounded-[0.5rem] bg-muted/50 text-sm font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64"
+          )}
+          onClick={() => handleOpenChange(true)}
+          {...props}
+        >
+          <span className="hidden lg:inline-flex">Procurar jogadores...</span>
+          <span className="inline-flex lg:hidden">Procurar...</span>
+          <kbd className="pointer-events-none absolute right-2 top-0.75 hidden h-5 select-none items-center gap-1 rounded border bg-muted/80 px-1.5 font-mono text-[10px] font-medium sm:flex">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </Button>
 
-      {mounted && (
         <CommandDialog open={open} onOpenChange={handleOpenChange}>
           <div className="flex items-center border-b px-3">
             <SearchIcon className="mr-2 size-4 shrink-0 stroke-muted-foreground" />
@@ -234,7 +227,7 @@ export function SearchPlayers({ ...props }: DialogProps) {
             </div>
           </div>
         </CommandDialog>
-      )}
-    </>
+      </>
+    </ClientOnly>
   );
 }

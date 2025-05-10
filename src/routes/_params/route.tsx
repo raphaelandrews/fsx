@@ -3,7 +3,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { Footer } from "~/components/footer";
 import { Header } from "~/components/header";
 
-export const Route = createFileRoute("/_id")({
+export const Route = createFileRoute("/_params")({
   component: RouteComponent,
 });
 

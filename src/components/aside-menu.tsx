@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import React from "react";
 
+import { ClientOnly } from "~/components/client-only";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 
 const data = {
@@ -109,38 +110,33 @@ const data = {
 
 export function AsideMenu() {
   const [open, setOpen] = React.useState(false);
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="flex justify-center items-center size-7 border rounded-md">
-        <CommandIcon size={16} />
-      </div>
-    );
-  }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger className="flex justify-center items-center size-7 border rounded-md shrink-0 hover:bg-accent hover:text-accent-foreground hover:cursor-pointer">
-        <CommandIcon size={16} />
-      </SheetTrigger>
-      <SheetContent className="w-[240px] h-[calc(100%-4rem)] top-11 border border-r-0 rounded-l-lg [&_#sheet-close]:hidden">
-        <nav className="flex-1 overflow-auto p-2">
-          <ul className="flex flex-col gap-2">
-            <NavGroup data={data.navMain} onClose={() => setOpen(false)} />
-            <NavGroup data={data.highlights} onClose={() => setOpen(false)} />
-            <NavGroup
-              data={data.institutional}
-              onClose={() => setOpen(false)}
-            />
-          </ul>
-        </nav>
-      </SheetContent>
-    </Sheet>
+    <ClientOnly
+      fallback={
+        <div className="flex justify-center items-center size-7 border rounded-md">
+          <CommandIcon size={16} />
+        </div>
+      }
+    >
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger className="flex justify-center items-center size-7 border rounded-md shrink-0 hover:bg-accent hover:text-accent-foreground hover:cursor-pointer">
+          <CommandIcon size={16} />
+        </SheetTrigger>
+        <SheetContent className="w-[240px] h-[calc(100%-4rem)] top-11 border border-r-0 rounded-l-lg [&_#sheet-close]:hidden">
+          <nav className="flex-1 overflow-auto p-2">
+            <ul className="flex flex-col gap-2">
+              <NavGroup data={data.navMain} onClose={() => setOpen(false)} />
+              <NavGroup data={data.highlights} onClose={() => setOpen(false)} />
+              <NavGroup
+                data={data.institutional}
+                onClose={() => setOpen(false)}
+              />
+            </ul>
+          </nav>
+        </SheetContent>
+      </Sheet>
+    </ClientOnly>
   );
 }
 

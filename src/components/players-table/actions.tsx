@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React from "react";
 
 import { getGradient } from "~/lib/generate-gradients";
 import { formatDefendingChampions } from "~/lib/defending-champions";
@@ -33,10 +33,10 @@ export const Actions = ({
   playersToTitles,
   defendingChampions,
 }: Props) => {
-  const [open, setOpen] = useState(false);
-  const gradient = useMemo(() => getGradient(), []);
+  const [open, setOpen] = React.useState(false);
+  const gradient = React.useMemo(() => getGradient(), []);
 
-  const internalTitles = useMemo(() => {
+  const internalTitles = React.useMemo(() => {
     return playersToTitles?.filter(title => title.title.type === 'internal') || [];
   }, [playersToTitles]);
 

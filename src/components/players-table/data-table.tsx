@@ -2,8 +2,6 @@ import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  type Row,
-  type ExpandedState,
   type SortingState,
   type VisibilityState,
   flexRender,
@@ -32,20 +30,15 @@ import { DataTableToolbar } from "./data-table-toolbar";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  renderSubComponent: (props: { row: Row<TData> }) => React.ReactElement;
-  getRowCanExpand: (row: Row<TData>) => boolean;
   totalPages?: number;
 }
 
 export function DataTable<TData, TValue>({
   data,
   columns,
-  getRowCanExpand,
-  renderSubComponent,
   totalPages = 1,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
-  const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -56,12 +49,10 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-    getRowCanExpand,
     state: {
       sorting,
       columnVisibility,
       rowSelection,
-      expanded,
       columnFilters,
     },
     initialState: {
@@ -119,19 +110,12 @@ export function DataTable<TData, TValue>({
                     </TableCell>
                   ))}
                 </TableRow>
-                {row.getIsExpanded() && (
-                  <TableRow key={`${row.id}-expanded`}>
-                    <TableCell colSpan={row.getVisibleCells().length}>
-                      {renderSubComponent({ row })}
-                    </TableCell>
-                  </TableRow>
-                )}
               </React.Fragment>
             ))
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                Sem resultados.
               </TableCell>
             </TableRow>
           )}

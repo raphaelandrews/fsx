@@ -79,8 +79,6 @@ export const APIRoute = createAPIFileRoute('/api/top-players')({
       const topRapid = rapid;
       const topBlitz = blitz;
 
-      console.log({ topBlitz, topRapid, topClassic })
-
       const validation = APITopPlayersResponseSchema.safeParse({
         success: true,
         data: { topClassic, topRapid, topBlitz }

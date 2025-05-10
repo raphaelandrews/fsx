@@ -1,12 +1,7 @@
-import {
-  createFileRoute,
-  ErrorComponent,
-  HeadContent,
-} from "@tanstack/react-router";
+import { createFileRoute, ErrorComponent } from "@tanstack/react-router";
 import { ScrollIcon } from "lucide-react";
 
 import { siteConfig } from "~/utils/config";
-import { seo } from "~/utils/seo";
 
 import { Announcement } from "~/components/announcement";
 import { NotFound } from "~/components/not-found";
@@ -19,14 +14,12 @@ import {
 export const Route = createFileRoute("/_default/sobre/")({
   head: () => ({
     meta: [
-      ...seo({
+      {
         title: `Sobre | ${siteConfig.name}`,
         description: "Normas técnicas, documentos e história da FSX",
         ogUrl: `${siteConfig.url}/sobre`,
         image: `${siteConfig.url}/og/og.jpg`,
-        imageWidth: "1920",
-        imageHeight: "1080",
-      }),
+      },
     ],
   }),
   errorComponent: ErrorComponent,
@@ -37,7 +30,6 @@ export const Route = createFileRoute("/_default/sobre/")({
 function RouteComponent() {
   return (
     <>
-      <HeadContent />
       <PageHeader>
         <Announcement icon={ScrollIcon} />
         <PageHeaderHeading>Sobre</PageHeaderHeading>

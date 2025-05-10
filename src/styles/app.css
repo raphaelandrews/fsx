@@ -13,6 +13,57 @@ body {
   @apply font-geist;
 }
 
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground min-h-screen selection:bg-cyan-100 dark:selection:bg-sky-950 selection:text-sea;
+  } 
+
+  body::-webkit-scrollbar {
+    @apply w-2;
+  }
+  
+  body::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  body::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-lg;
+  }
+
+  .container {
+    @apply !max-w-[960px] mx-auto px-8;
+  }
+
+  @media (max-width: 640px) {
+    .container {
+      @apply px-3;
+    }
+  }
+}
+
+/*===== MDX editor =====*/
+.wmde-markdown {
+  @apply !bg-background;
+}
+
+.wmde-markdown p {
+  @apply font-geist !text-primary !mb-0;
+}
+
+/*===== Utils =====*/
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/*===== Styles =====*/
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -417,35 +468,4 @@ body {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground min-h-screen selection:bg-cyan-100 dark:selection:bg-sky-950 selection:text-sea;
-  } 
-
-  body::-webkit-scrollbar {
-    @apply w-2;
-  }
-  
-  body::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-  
-  body::-webkit-scrollbar-thumb {
-    @apply bg-border rounded-lg;
-  }
-
-  .container {
-    @apply !max-w-[960px] mx-auto px-8;
-  }
-
-  @media (max-width: 640px) {
-    .container {
-      @apply px-3;
-    }
-  }
 }

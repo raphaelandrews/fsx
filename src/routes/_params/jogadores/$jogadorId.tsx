@@ -56,7 +56,7 @@ import {
 } from "~/components/ui/select";
 import { Skeleton } from "~/components/ui/skeleton";
 
-export const Route = createFileRoute("/_id/jogadores/$jogadorId")({
+export const Route = createFileRoute("/_params/jogadores/$jogadorId")({
   loader: ({ context: { queryClient }, params: { jogadorId } }) => {
     return queryClient.ensureQueryData(
       playerByIdQueryOptions(Number(jogadorId))

@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
   ErrorComponent,
-  HeadContent,
   useNavigate,
   useSearch,
 } from "@tanstack/react-router";
@@ -11,7 +10,6 @@ import { z } from "zod";
 
 import { newsQueryOptions } from "~/db/queries";
 import { siteConfig } from "~/utils/config";
-import { seo } from "~/utils/seo";
 
 import { Announcement } from "~/components/announcement";
 import { NewsCard } from "~/components/news-card";
@@ -51,14 +49,12 @@ export const Route = createFileRoute("/_default/noticias/")({
   },
   head: () => ({
     meta: [
-      ...seo({
+      {
         title: `Notícias | ${siteConfig.name}`,
         description: "Notícias e eventos da Federação Sergipana de Xadrez",
         ogUrl: `${siteConfig.url}/noticias`,
         image: `${siteConfig.url}/og/og-noticias.jpg`,
-        imageWidth: "1920",
-        imageHeight: "1080",
-      }),
+      },
     ],
   }),
   errorComponent: ErrorComponent,
@@ -124,7 +120,6 @@ function RouteComponent() {
 
   return (
     <>
-      <HeadContent />
       <PageHeader>
         <Announcement icon={HomeIcon} />
         <PageHeaderHeading>Notícias</PageHeaderHeading>

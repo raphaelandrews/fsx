@@ -89,14 +89,7 @@ export function DataTableFacetedFilter({
             <CommandGroup>
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value);
-                console.log(
-                  "Selected values:",
-                  Array.from(selectedValues),
-                  "Current option:",
-                  option.value,
-                  "Is selected:",
-                  isSelected
-                );
+                
                 return (
                   <CommandItem
                     key={option.value}

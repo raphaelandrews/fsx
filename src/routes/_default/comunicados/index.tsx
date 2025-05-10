@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useCallback, useRef } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
   ErrorComponent,
-  HeadContent,
   useNavigate,
   useSearch,
 } from "@tanstack/react-router";
@@ -12,7 +11,6 @@ import { z } from "zod";
 
 import { announcementsQueryOptions } from "~/db/queries";
 import { siteConfig } from "~/utils/config";
-import { seo } from "~/utils/seo";
 
 import { Announcement } from "~/components/announcement";
 import { AnnouncementLink } from "~/components/announcement-link";
@@ -48,40 +46,25 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/_default/comunicados/")({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
-  loader: ({ context: { queryClient }, deps: { page } }) => {
-    const queryOptions = announcementsQueryOptions(Number(page));
-    const existingData = queryClient.getQueryData(queryOptions.queryKey);
-    const state = existingData
-      ? queryClient.getQueryState(queryOptions.queryKey)
-      : null;
-
-    if (
-      !existingData ||
-      (state && state.dataUpdatedAt < Date.now() - 5 * 60 * 1000)
-    ) {
-      return queryClient.fetchQuery(queryOptions);
-    }
-
-    return existingData;
+  loader: async ({ context: { queryClient }, deps: { page } }) => {
+    await queryClient.ensureQueryData(announcementsQueryOptions(Number(page)));
   },
   head: () => ({
     meta: [
-      ...seo({
+      {
         title: `Comunicados | ${siteConfig.name}`,
         description: "Comunicados da FSX",
         ogUrl: `${siteConfig.url}/comunicados`,
         image: `${siteConfig.url}/og/og-comunicados.jpg`,
-        imageWidth: "1920",
-        imageHeight: "1080",
-      }),
+      },
     ],
   }),
   errorComponent: ErrorComponent,
   notFoundComponent: () => <NotFound />,
-  component: AnnouncementsIndexComponent,
+  component: RouteComponent,
 });
 
-function AnnouncementsIndexComponent() {
+function RouteComponent() {
   const { page } = useSearch({ from: "/_default/comunicados/" });
   const currentPage = Number(page);
   const navigate = useNavigate();
@@ -93,19 +76,12 @@ function AnnouncementsIndexComponent() {
   const announcements = data?.announcements ?? [];
   const totalPages = data?.pagination?.totalPages ?? 0;
 
-  const SKELETON_KEYS = useMemo(
+  const SKELETON_KEYS = React.useMemo(
     () => Array.from({ length: 12 }, (_, i) => `skeleton-${i}`),
     []
   );
 
-  const queryClient = useQueryClient();
-  const prefetchedPages = useRef<Set<number>>(new Set());
-
   const paginate = (newPage: number) => {
-    queryClient.invalidateQueries({
-      queryKey: ["paginated-announcements", currentPage],
-    });
-
     navigate({
       to: "/comunicados",
       search: { page: String(newPage) },
@@ -151,28 +127,8 @@ function AnnouncementsIndexComponent() {
     return pageNumbers;
   };
 
-  const prefetchPage = useCallback(
-    (pageNum: number) => {
-      if (!prefetchedPages.current.has(pageNum)) {
-        const queryOptions = announcementsQueryOptions(pageNum);
-        queryClient.prefetchQuery(queryOptions);
-        prefetchedPages.current.add(pageNum);
-      }
-    },
-    [queryClient]
-  );
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  useEffect(() => {
-    const visiblePages = getPageNumbers(totalPages).filter(
-      (pageNum): pageNum is number => typeof pageNum === "number"
-    );
-    visiblePages.forEach(prefetchPage);
-  }, [currentPage, totalPages, prefetchPage]);
-
   return (
     <>
-      <HeadContent />
       <PageHeader>
         <Announcement icon={MegaphoneIcon} />
         <PageHeaderHeading>Comunicados</PageHeaderHeading>
@@ -202,16 +158,10 @@ function AnnouncementsIndexComponent() {
           <Pagination className="mt-16">
             <PaginationContent>
               <PaginationItem disabled={currentPage === 1}>
-                <PaginationFirst
-                  onClick={() => paginate(1)}
-                  onMouseEnter={() => prefetchPage(1)}
-                />
+                <PaginationFirst onClick={() => paginate(1)} />
               </PaginationItem>
               <PaginationItem disabled={currentPage === 1}>
-                <PaginationPrevious
-                  onClick={() => paginate(currentPage - 1)}
-                  onMouseEnter={() => prefetchPage(currentPage - 1)}
-                />
+                <PaginationPrevious onClick={() => paginate(currentPage - 1)} />
               </PaginationItem>
 
               {getPageNumbers(totalPages).map((pageNum) =>
@@ -223,7 +173,6 @@ function AnnouncementsIndexComponent() {
                   <PaginationItem key={`page-${pageNum}`}>
                     <PaginationLink
                       onClick={() => paginate(pageNum as number)}
-                      onMouseEnter={() => prefetchPage(pageNum as number)}
                       isActive={pageNum === currentPage}
                     >
                       {pageNum}
@@ -233,16 +182,10 @@ function AnnouncementsIndexComponent() {
               )}
 
               <PaginationItem disabled={currentPage === totalPages}>
-                <PaginationNext
-                  onClick={() => paginate(currentPage + 1)}
-                  onMouseEnter={() => prefetchPage(currentPage + 1)}
-                />
+                <PaginationNext onClick={() => paginate(currentPage + 1)} />
               </PaginationItem>
               <PaginationItem disabled={currentPage === totalPages}>
-                <PaginationLast
-                  onClick={() => paginate(totalPages)}
-                  onMouseEnter={() => prefetchPage(totalPages)}
-                />
+                <PaginationLast onClick={() => paginate(totalPages)} />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
@@ -251,5 +194,3 @@ function AnnouncementsIndexComponent() {
     </>
   );
 }
-
-export default AnnouncementsIndexComponent;

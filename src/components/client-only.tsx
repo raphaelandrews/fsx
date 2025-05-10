@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface ClientOnlyProps {
   children: React.ReactNode;
@@ -9,7 +9,7 @@ interface ClientOnlyProps {
  * Renders children only on the client-side after mounting.
  * Prevents hydration mismatches for components that rely heavily on client-side logic or ID generation.
  */
-function ClientOnly({ children, fallback = null }: ClientOnlyProps) {
+export function ClientOnly({ children, fallback = null }: ClientOnlyProps) {
   const [hasMounted, setHasMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -22,5 +22,3 @@ function ClientOnly({ children, fallback = null }: ClientOnlyProps) {
 
   return <>{children}</>;
 }
-
-export default ClientOnly;

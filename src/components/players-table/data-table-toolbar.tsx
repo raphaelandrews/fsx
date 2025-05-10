@@ -1,11 +1,12 @@
-import { XIcon } from "lucide-react";
-import type { Table } from "@tanstack/react-table";
 import { useNavigate, useSearch } from "@tanstack/react-router";
+import type { Table } from "@tanstack/react-table";
+import { XIcon } from "lucide-react";
+
+import { birthdays, clubs, locations, sexes, titles } from "./data/data";
+import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { birthdays, clubs, locations, sexes, titles } from "./data/data";
-import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
