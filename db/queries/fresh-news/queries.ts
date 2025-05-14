@@ -18,8 +18,9 @@ export const getFreshNews = unstable_cache(
       .orderBy(desc(posts.createdAt))
       .limit(6)
       .execute(),
-  ['fresh-news'],
+  ["fresh-news"],
   {
     revalidate: 60 * 60 * 24 * 30,
+    tags: ["fresh-news"],
   }
 );

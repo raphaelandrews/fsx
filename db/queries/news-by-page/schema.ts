@@ -12,9 +12,9 @@ export const NewsPaginationSchema = z.object({
   hasPreviousPage: z.boolean(),
 });
 
-export const postsSchema = createSelectSchema(posts);
+export const postsByPageSchema = createSelectSchema(posts);
 
-export const News = postsSchema
+export const NewsByPage = postsByPageSchema
   .pick({
     id: true,
     title: true,
@@ -31,15 +31,15 @@ export const News = postsSchema
     createdAt: z.string().datetime(),
   });
 
-  export const SuccessNewsSchema = z.object({
-    success: z.literal(true),
-    data: z.object({
-      news: z.array(News),
-      pagination: NewsPaginationSchema,
-    }),
-  });
+export const SuccessNewsByPageSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    news: z.array(NewsByPage),
+    pagination: NewsPaginationSchema,
+  }),
+});
 
-export const ErrorNewsSchema = z.object({
+export const ErrorNewsByPageSchema = z.object({
   success: z.literal(false),
   error: z.object({
     code: z.number(),
@@ -48,12 +48,12 @@ export const ErrorNewsSchema = z.object({
   }),
 });
 
-export const APINewsResponseSchema = z.discriminatedUnion("success", [
-  SuccessNewsSchema,
-  ErrorNewsSchema,
+export const APINewsByPageResponseSchema = z.discriminatedUnion("success", [
+  SuccessNewsByPageSchema,
+  ErrorNewsByPageSchema,
 ]);
 
-export type News = z.infer<typeof News>;
-export type SuccessNewsResponse = z.infer<typeof SuccessNewsSchema>['data'];
-export type APINewsResponse = z.infer<typeof APINewsResponseSchema>;
+export type NewsByPage = z.infer<typeof NewsByPage>;
+export type SuccessNewsByPageResponse = z.infer<typeof SuccessNewsByPageSchema>['data'];
+export type APINewsByPageResponse = z.infer<typeof APINewsByPageResponseSchema>;
 export type NewsPagination = z.infer<typeof NewsPaginationSchema>;

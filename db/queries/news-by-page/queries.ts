@@ -1,11 +1,12 @@
 import { desc, eq, count } from "drizzle-orm"
+
 import { db } from "@/db"
 import { posts } from "@/db/schema"
-import { unstable_cache } from "next/cache"
+import { unstable_cache } from "@/lib/unstable_cache";
 
 const perPage = 12
 
-export const getNews = unstable_cache(
+export const getNewsByPage = unstable_cache(
   async (page: number) => {
     const validPage = Math.max(1, page)
 
@@ -43,16 +44,15 @@ export const getNews = unstable_cache(
       },
     }
   },
-  ["news"],
+  ["news-list"],
   {
-    revalidate: 60 * 60 * 24 * 30,
-    tags: ["news"],
+    revalidate: 60 * 60 * 24 * 30, 
+    tags: ["news", "news-list"],
   },
 )
 
-export async function revalidateNews() {
+export async function revalidateNewsList() {
   "use server"
-
   const { revalidateTag } = await import("next/cache")
-  revalidateTag("news")
+  revalidateTag("news-list")
 }

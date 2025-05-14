@@ -5,7 +5,7 @@ export function Footer({ className }: { className?: string }) {
     <footer
       className={cn(
         className,
-        "container !max-w-[1120px] flex flex-col justify-between items-center gap-4 py-6 md:flex-row"
+        "container flex flex-col justify-between items-center gap-4 py-6 md:flex-row"
       )}
     >
       <p className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left">

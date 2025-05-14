@@ -1,7 +1,9 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { HomeIcon } from "lucide-react";
 
-import { getNews } from "@/db/queries";
+import { getNewsByPage } from "@/db/queries";
+import { siteConfig } from "@/lib/site";
 
 import { Announcement } from "@/components/announcement";
 import { NewsCard } from "@/components/news-card";
@@ -23,16 +25,43 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const revalidate = 2592000;
 
-interface PageProps {
+export const metadata: Metadata = {
+  title: "Notícias",
+  description: "Notícias da FSX",
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: `${siteConfig.url}/noticias`,
+    title: "FSX | Notícias",
+    description: "Notícias e eventos da Federação Sergipana de Xadrez",
+    siteName: "FSX | Notícias",
+    images: [
+      {
+        url: `${siteConfig.url}/og/og-noticias.jpg`,
+        width: 1920,
+        height: 1080,
+      },
+    ],
+  },
+};
+
+export async function generateStaticParams() {
+  return [
+    { searchParams: { page: "1" } },
+    { searchParams: { page: "2" } },
+    { searchParams: { page: "3" } },
+  ];
+}
+
+interface Props {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function NewsPage({ searchParams }: PageProps) {
+export default async function NewsPage({ searchParams }: Props) {
   const resolvedSearchParams = await searchParams;
   const currentPage = Number(resolvedSearchParams.page) || 1;
 
-  const { news, pagination } = await getNews(currentPage);
-
+  const { news, pagination } = await getNewsByPage(currentPage);
   const { totalPages, hasNextPage, hasPreviousPage } = pagination;
 
   const getPageNumbers = (totalPages: number, currentPage: number) => {

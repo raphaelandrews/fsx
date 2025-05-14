@@ -17,8 +17,9 @@ export const getFreshAnnouncements = unstable_cache(
       .orderBy(desc(announcements.year), desc(announcements.number))
       .limit(8)
       .execute(),
-  ['fresh-announcements'],
+  ["fresh-announcements"],
   {
     revalidate: 60 * 60 * 24 * 30,
+    tags: ["fresh-announcements"],
   }
 );

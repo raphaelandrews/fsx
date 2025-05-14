@@ -3,32 +3,31 @@ import { z } from "zod";
 
 import { posts } from "@/db/schema";
 
-const newsSchema = createSelectSchema(posts)
+export const postsSchema = createSelectSchema(posts);
 
-export const NewsBySlugSchema = newsSchema.pick({
-  id: true,
-  title: true,
-  image: true,
-  content: true,
-  slug: true,
-  createdAt: true
-})
+export const News = postsSchema
+  .pick({
+    id: true,
+    title: true,
+    image: true,
+    slug: true,
+    createdAt: true,
+  })
   .extend({
     title: z.string().max(80, "Title cannot exceed 80 characters"),
     image: z.string().url("Invalid image URL").optional(),
-    content: z.string(),
     slug: z.string()
       .max(80, "Slug cannot exceed 80 characters")
       .regex(/^[a-z0-9-]+$/, "Slug must be lowercase with hyphens"),
     createdAt: z.string().datetime(),
   });
 
-const SuccessNewsBySlugResponseSchema = z.object({
+export const SuccessNewsSchema = z.object({
   success: z.literal(true),
-  data: NewsBySlugSchema,
+  data: z.array(News),
 });
 
-const ErrorNewsBySlugResponseSchema = z.object({
+export const ErrorNewsSchema = z.object({
   success: z.literal(false),
   error: z.object({
     code: z.number(),
@@ -37,10 +36,11 @@ const ErrorNewsBySlugResponseSchema = z.object({
   }),
 });
 
-export const APINewsBySlugResponseSchema = z.discriminatedUnion("success", [
-  SuccessNewsBySlugResponseSchema,
-  ErrorNewsBySlugResponseSchema,
+export const APINewsResponseSchema = z.discriminatedUnion("success", [
+  SuccessNewsSchema,
+  ErrorNewsSchema,
 ]);
 
-export type NewsBySlug = z.infer<typeof NewsBySlugSchema>;
-export type APINewsBySlugResponse = z.infer<typeof APINewsBySlugResponseSchema>;
+export type News = z.infer<typeof News>;
+export type SuccessNewsResponse = z.infer<typeof SuccessNewsSchema>['data'];
+export type APINewsResponse = z.infer<typeof APINewsResponseSchema>;
