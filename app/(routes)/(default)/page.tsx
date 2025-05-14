@@ -18,7 +18,7 @@ import { UpdateRegister } from "./_components/update-register";
 import { AnnouncementLink } from "@/components/announcement-link";
 import { NewsCard } from "@/components/news-card";
 
-const Home = async () => {
+export default async function Page() {
   const [newsQuery, announcementsQuery, topPlayers] = await Promise.all([
     getFreshNews(),
     getFreshAnnouncements(),
@@ -89,6 +89,4 @@ const Home = async () => {
       </HomeSection>
     </>
   );
-};
-
-export default Home;
+}
