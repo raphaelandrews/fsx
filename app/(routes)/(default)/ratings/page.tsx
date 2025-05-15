@@ -71,7 +71,7 @@ export default async function Page({
   };
 
   const { players, pagination } = await getPlayersByPage(filters);
-  console.log(players, filters, resolvedParams);
+
   return (
     <>
       <PageHeader>

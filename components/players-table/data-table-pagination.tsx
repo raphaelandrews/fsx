@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Table } from "@tanstack/react-table";
 import {
@@ -41,7 +43,7 @@ export function DataTablePagination<TData>({
 
   const handlePageChange = (page: number) => {
     const queryString = createQueryString({ page: page.toString() });
-    router.push(`/ratings?${queryString}`);
+    window.location.href = `/ratings?${queryString}`;
   };
 
   const handlePageSizeChange = (size: number) => {
@@ -50,7 +52,7 @@ export function DataTablePagination<TData>({
       limit: size.toString(),
       page: "1",
     });
-    router.push(`/ratings?${queryString}`);
+    window.location.href = `/ratings?${queryString}`;
   };
 
   return (
@@ -66,7 +68,9 @@ export function DataTablePagination<TData>({
           >
             <SelectTrigger className="h-8 w-[70px]">
               <SelectValue
-                placeholder={currentPageSize || table.getState().pagination.pageSize}
+                placeholder={
+                  currentPageSize || table.getState().pagination.pageSize
+                }
               />
             </SelectTrigger>
             <SelectContent side="top">

@@ -1,3 +1,5 @@
+"use client";
+
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Table } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
@@ -42,9 +44,7 @@ export function DataTableToolbar<TData>({
     if (!newSearchParams.has("sortBy")) {
       newSearchParams.set("sortBy", "rapid");
     }
-
-    router.push(`${pathname}?${newSearchParams.toString()}`);
-    router.refresh();
+    window.location.href = `${pathname}?${newSearchParams.toString()}`;
   };
 
   return (
@@ -72,7 +72,7 @@ export function DataTableToolbar<TData>({
           <DataTableFacetedFilter
             title="Clubes"
             options={clubs}
-            value={searchParams.getAll("club")} 
+            value={searchParams.getAll("club")}
             onChange={(value) => {
               updateSearchParams({
                 club: value.length > 0 ? value : undefined,
@@ -82,7 +82,7 @@ export function DataTableToolbar<TData>({
           <DataTableFacetedFilter
             title="Títulos"
             options={titles}
-            value={searchParams.getAll("title")} 
+            value={searchParams.getAll("title")}
             onChange={(value) => {
               updateSearchParams({
                 title: value.length > 0 ? value : undefined,
@@ -104,7 +104,7 @@ export function DataTableToolbar<TData>({
           <DataTableFacetedFilter
             title="Grupo"
             options={birthdays}
-            value={searchParams.getAll("group")} 
+            value={searchParams.getAll("group")}
             onChange={(value) => {
               updateSearchParams({
                 group: value.length > 0 ? value : undefined,
@@ -121,12 +121,9 @@ export function DataTableToolbar<TData>({
             <Button
               variant="ghost"
               onClick={() => {
-                router.push(
-                  `/ratings?page=1&limit=${searchParams.get(
-                    "limit"
-                  )}&sortBy=${searchParams.get("sortBy")}`
-                );
-                router.refresh();
+                window.location.href = `/ratings?page=1&limit=${searchParams.get(
+                  "limit"
+                )}&sortBy=${searchParams.get("sortBy")}`;
               }}
               className="h-8 px-2 lg:px-3"
             >
