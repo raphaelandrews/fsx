@@ -1,7 +1,14 @@
 "use client";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+
+import { useSearchParams, usePathname } from "next/navigation";
 import { InfoIcon } from "lucide-react";
 
+import type { Players } from "@/db/queries";
+import {
+  columnsBlitz,
+  columnsClassic,
+  columnsRapid,
+} from "@/components/players-table/columns";
 import { DataTable } from "@/components/players-table/data-table";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,12 +17,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  columnsBlitz,
-  columnsClassic,
-  columnsRapid,
-} from "@/components/players-table/columns";
-import type { Players } from "@/db/queries";
 
 interface RatingsTablesProps {
   players: Players[];
@@ -26,26 +27,13 @@ interface RatingsTablesProps {
 
 export function RatingsTables({ players, pagination }: RatingsTablesProps) {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const pathname = usePathname();
   const defaultTab = searchParams.get("sortBy") || "rapid";
-
-  // Remove the useEffect that calls router.refresh()
-  // This was causing issues because it was trying to refresh after the URL change
-  // but before the server had a chance to process the new parameters
 
   const onTabChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("sortBy", value);
-
-    // Use router.replace with { scroll: false } to avoid unnecessary scrolling
-    // and add a refresh after a short delay to ensure the URL has been updated
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-
-    // Add a small delay before refreshing to ensure the URL change has been processed
-    setTimeout(() => {
-      router.refresh();
-    }, 10);
+    window.location.href = `${pathname}?${params.toString()}`;
   };
 
   return (
