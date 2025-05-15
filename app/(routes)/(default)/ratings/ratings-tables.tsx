@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import { InfoIcon } from "lucide-react";
 
@@ -19,16 +20,57 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface RatingsTablesProps {
-  players: Players[];
-  pagination: {
+  initialPlayers?: Players[];
+  initialPagination?: {
     totalPages: number;
   };
 }
 
-export function RatingsTables({ players, pagination }: RatingsTablesProps) {
+export function RatingsTables({
+  initialPlayers = [],
+  initialPagination = { totalPages: 0 },
+}: RatingsTablesProps) {
+  const [players, setPlayers] = useState(initialPlayers);
+  const [pagination, setPagination] = useState(initialPagination);
+  const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const defaultTab = searchParams.get("sortBy") || "rapid";
+  const currentLimit = Number(searchParams.get("limit")) || 20;
+
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      setIsLoading(true);
+      const params = new URLSearchParams();
+
+      params.set("page", searchParams.get("page") || "1");
+      params.set("limit", currentLimit.toString());
+      params.set("sortBy", searchParams.get("sortBy") || "rapid");
+      params.set("sex", searchParams.get("sex") || "");
+
+      const titles = searchParams.getAll("title");
+      for (const title of titles) params.append("title", title);
+
+      const clubs = searchParams.getAll("club");
+      for (const club of clubs) params.append("club", club);
+
+      const groups = searchParams.getAll("group");
+      for (const group of groups) params.append("group", group);
+
+      const locations = searchParams.getAll("location");
+      for (const location of locations) params.append("location", location);
+
+      const response = await fetch(`/api/players?${params.toString()}`);
+      const data = await response.json();
+      setPlayers(data.data.players || []);
+      setPagination(data.data.pagination || { totalPages: 0 });
+      setIsLoading(false);
+
+      console.log(data.data.players, params.toString());
+    };
+
+    fetchPlayers();
+  }, [searchParams, currentLimit]);
 
   const onTabChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -59,6 +101,8 @@ export function RatingsTables({ players, pagination }: RatingsTablesProps) {
             data={players}
             columns={columnsClassic}
             totalPages={pagination.totalPages}
+            isLoading={isLoading}
+            pageSize={currentLimit}
           />
         </div>
       </TabsContent>
@@ -69,6 +113,8 @@ export function RatingsTables({ players, pagination }: RatingsTablesProps) {
             data={players}
             columns={columnsRapid}
             totalPages={pagination.totalPages}
+            isLoading={isLoading}
+            pageSize={currentLimit}
           />
         </div>
       </TabsContent>
@@ -79,6 +125,8 @@ export function RatingsTables({ players, pagination }: RatingsTablesProps) {
             data={players}
             columns={columnsBlitz}
             totalPages={pagination.totalPages}
+            isLoading={isLoading}
+            pageSize={currentLimit}
           />
         </div>
       </TabsContent>

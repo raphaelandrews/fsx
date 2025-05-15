@@ -33,6 +33,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   totalPages?: number;
   isLoading?: boolean;
+  pageSize?: number;
 }
 
 export function DataTable<TData, TValue>({
@@ -40,6 +41,7 @@ export function DataTable<TData, TValue>({
   columns,
   totalPages = 1,
   isLoading = false,
+  pageSize = 20
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -60,7 +62,7 @@ export function DataTable<TData, TValue>({
     },
     initialState: {
       pagination: {
-        pageSize: 20,
+        pageSize: pageSize,
       },
     },
     enableRowSelection: true,
