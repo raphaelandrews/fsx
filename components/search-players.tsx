@@ -179,7 +179,7 @@ export function SearchPlayers({ ...props }: DialogProps) {
   };
 
   const handleSelect = (playerId: number) => {
-    router.push(`/jogador?id=${playerId}`);
+    router.push(`/jogadores/${playerId}`);
     setOpen(false);
   };
 

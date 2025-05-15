@@ -96,39 +96,33 @@ export function RatingsTables({
       </div>
 
       <TabsContent value="classic">
-        <div className="mt-4">
-          <DataTable
-            data={players}
-            columns={columnsClassic}
-            totalPages={pagination.totalPages}
-            isLoading={isLoading}
-            pageSize={currentLimit}
-          />
-        </div>
+        <DataTable
+          data={players}
+          columns={columnsClassic}
+          totalPages={pagination.totalPages}
+          isLoading={isLoading}
+          pageSize={currentLimit}
+        />
       </TabsContent>
 
       <TabsContent value="rapid">
-        <div className="mt-4">
-          <DataTable
-            data={players}
-            columns={columnsRapid}
-            totalPages={pagination.totalPages}
-            isLoading={isLoading}
-            pageSize={currentLimit}
-          />
-        </div>
+        <DataTable
+          data={players}
+          columns={columnsRapid}
+          totalPages={pagination.totalPages}
+          isLoading={isLoading}
+          pageSize={currentLimit}
+        />
       </TabsContent>
 
       <TabsContent value="blitz">
-        <div className="mt-4">
-          <DataTable
-            data={players}
-            columns={columnsBlitz}
-            totalPages={pagination.totalPages}
-            isLoading={isLoading}
-            pageSize={currentLimit}
-          />
-        </div>
+        <DataTable
+          data={players}
+          columns={columnsBlitz}
+          totalPages={pagination.totalPages}
+          isLoading={isLoading}
+          pageSize={currentLimit}
+        />
       </TabsContent>
     </Tabs>
   );

@@ -1,4 +1,4 @@
-import { BarChart2Icon } from "lucide-react";
+import { BarChart2Icon, InfoIcon } from "lucide-react";
 
 import { Announcement } from "@/components/announcement";
 import { DataTableSkeletonRow } from "@/components/players-table/data-table-skeleton";
@@ -7,6 +7,8 @@ import {
   PageHeaderDescription,
   PageHeaderHeading,
 } from "@/components/ui/page-header";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DataTableToolbarSkeleton } from "@/components/players-table/data-table-toolbar-skeleton";
 
 export default function Loading() {
   return (
@@ -19,26 +21,40 @@ export default function Loading() {
         </PageHeaderDescription>
       </PageHeader>
 
-      <div className="mt-4">
-        <div className="animate-pulse">
-          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4" />
+      <Tabs>
+        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 mb-4">
+          <TabsList>
+            <TabsTrigger value="classic" className="w-20 sm:w-24">
+              Clássico
+            </TabsTrigger>
+            <TabsTrigger value="rapid" className="w-20 sm:w-24">
+              Rápido
+            </TabsTrigger>
+            <TabsTrigger value="blitz" className="w-20 sm:w-24">
+              Blitz
+            </TabsTrigger>
+          </TabsList>
+          <InfoIcon className="h-4 w-4 text-primary" />
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th className="p-2">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
-              </th>
-              <th className="p-2">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-              </th>
-              <th className="p-2">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
-              </th>
-            </tr>
-            *
-          </thead>
+
+        <DataTableToolbarSkeleton />
+        <table className="w-full">
           <tbody>
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
+            <DataTableSkeletonRow />
             <DataTableSkeletonRow />
             <DataTableSkeletonRow />
             <DataTableSkeletonRow />
@@ -46,7 +62,7 @@ export default function Loading() {
             <DataTableSkeletonRow />
           </tbody>
         </table>
-      </div>
+      </Tabs>
     </>
   );
 }

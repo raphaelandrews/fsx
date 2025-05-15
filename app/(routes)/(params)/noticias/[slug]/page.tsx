@@ -40,7 +40,7 @@ export async function generateMetadata({
       locale: "pt_BR",
       title,
       description: content ?? undefined,
-      siteName: "FSX | Notícias",
+      siteName: `FSX | ${title}`,
       url: `${siteConfig.url}/noticias/${resolvedParams.slug}`,
       images: [
         {

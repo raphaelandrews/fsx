@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { players } from "@/db/schema";
 import { unstable_cache } from "@/lib/unstable_cache";
 
-export const getPlayer = unstable_cache(
+export const getPlayerById = unstable_cache(
   (id: number) =>
     db.query.players.findFirst({
       where: eq(players.id, id),

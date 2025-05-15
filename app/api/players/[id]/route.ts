@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { z } from 'zod';
 
-import { APIPlayerByIdResponseSchema, getPlayer } from '@/db/queries';
+import { APIPlayerByIdResponseSchema, getPlayerById } from '@/db/queries';
 
 const createResponse = (data: z.infer<typeof APIPlayerByIdResponseSchema>, status = 200) =>
   NextResponse.json(data, { status });
@@ -11,7 +11,7 @@ export async function GET(request: Request, {params}: {params: Promise<{ id: str
     const { id } = await params
     console.info(`Fetching player ${id} from ${request.url}`);
 
-    const player = await getPlayer(Number(id));
+    const player = await getPlayerById(Number(id));
 
     if (!player) {
       return createResponse({
