@@ -43,6 +43,8 @@ export const columnsClassic: ColumnDef<Players>[] = [
         />
       );
     },
+    enableSorting: false,
+    enableHiding: false,
   },
   {
     accessorKey: "classic",
@@ -52,6 +54,8 @@ export const columnsClassic: ColumnDef<Players>[] = [
     cell: ({ row }) => {
       return <div className="font-medium">{row.original.classic}</div>;
     },
+    enableSorting: false,
+    enableHiding: false,
   },
   {
     accessorKey: "locations",
@@ -157,6 +161,8 @@ export const columnsRapid: ColumnDef<Players>[] = [
         />
       );
     },
+    enableSorting: false,
+    enableHiding: false,
   },
   {
     accessorKey: "rapid",
@@ -166,6 +172,8 @@ export const columnsRapid: ColumnDef<Players>[] = [
     cell: ({ row }) => {
       return <div className="font-medium">{row.original.rapid}</div>;
     },
+    enableSorting: false,
+    enableHiding: false,
   },
   {
     accessorKey: "locations",
@@ -271,6 +279,8 @@ export const columnsBlitz: ColumnDef<Players>[] = [
         />
       );
     },
+    enableSorting: false,
+    enableHiding: false,
   },
   {
     accessorKey: "blitz",
@@ -280,6 +290,8 @@ export const columnsBlitz: ColumnDef<Players>[] = [
     cell: ({ row }) => {
       return <div className="font-medium">{row.original.blitz}</div>;
     },
+    enableSorting: false,
+    enableHiding: false,
   },
   {
     accessorKey: "locations",

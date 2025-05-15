@@ -1,6 +1,4 @@
 "use client";
-
-import React from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { InfoIcon } from "lucide-react";
 
@@ -32,16 +30,22 @@ export function RatingsTables({ players, pagination }: RatingsTablesProps) {
   const pathname = usePathname();
   const defaultTab = searchParams.get("sortBy") || "rapid";
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  React.useEffect(() => {
-    router.refresh();
-  }, [searchParams, router]);
+  // Remove the useEffect that calls router.refresh()
+  // This was causing issues because it was trying to refresh after the URL change
+  // but before the server had a chance to process the new parameters
 
   const onTabChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("sortBy", value);
-    router.push(`${pathname}?${params.toString()}`);
-    router.refresh();
+
+    // Use router.replace with { scroll: false } to avoid unnecessary scrolling
+    // and add a refresh after a short delay to ensure the URL has been updated
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+
+    // Add a small delay before refreshing to ensure the URL change has been processed
+    setTimeout(() => {
+      router.refresh();
+    }, 10);
   };
 
   return (
