@@ -32,16 +32,18 @@ export function RatingsTables({ players, pagination }: RatingsTablesProps) {
   const pathname = usePathname();
   const defaultTab = searchParams.get("sortBy") || "rapid";
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     router.refresh();
-  }, [router]);
+  }, [searchParams, router]);
 
   const onTabChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("sortBy", value);
     router.push(`${pathname}?${params.toString()}`);
+    router.refresh();
   };
-console.log(players)
+
   return (
     <Tabs defaultValue={defaultTab} onValueChange={onTabChange}>
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 mb-4">

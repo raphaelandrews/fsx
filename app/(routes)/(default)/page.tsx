@@ -40,7 +40,7 @@ export default async function Page() {
             <NewsCard
               key={news.id}
               id={news.id}
-              image={news.image ?? ""}
+              image={news.image ?? undefined}
               title={news.title}
               slug={news.slug ?? ""}
               main={true}
@@ -55,7 +55,7 @@ export default async function Page() {
             <NewsCard
               key={news.id}
               id={news.id}
-              image={news.image ?? ""}
+              image={news.image ?? undefined}
               title={news.title}
               slug={news.slug ?? ""}
             />

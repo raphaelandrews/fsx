@@ -16,6 +16,7 @@ import {
 import type { PlayerById } from "@/db/queries";
 import { FormatPodium, FormatPodiumTitle } from "@/lib/format-podium";
 import { getGradient } from "@/lib/generate-gradients";
+import { LOGO_FALLBACK } from "@/lib/utils";
 
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
@@ -235,19 +236,19 @@ const PlayerModal = ({ id, open, setOpen }: Props) => {
             {player.club && player.club.name !== null && (
               <Info label="Clube">
                 <div className="flex items-center gap-2">
-                  <img
-                    src={
-                      typeof player.club.logo === "string" &&
-                      player.club.logo.trim() !== ""
-                        ? player.club.logo
-                        : "https://raw.githubusercontent.com/raphaelandrews/fsx-db/main/logo-bg.png"
-                    }
-                    alt={player.club.name as string}
-                    title={player.club.name as string}
-                    className="w-4 h-4 rounded object-contain"
-                    width={16}
-                    height={16}
-                  />
+                  <Avatar className="size-4 rounded object-contain">
+                    <AvatarImage
+                      src={
+                        (player.club?.logo as string)
+                          ? (player.club?.logo as string)
+                          : LOGO_FALLBACK
+                      }
+                      alt={player.club?.name as string}
+                      title={player.club?.name as string}
+                      className="size-4 rounded object-contain"
+                    />
+                    <AvatarFallback className="size-4 rounded-none object-contain" />
+                  </Avatar>
                   <p>{player.club.name as string}</p>
                 </div>
               </Info>
@@ -256,19 +257,19 @@ const PlayerModal = ({ id, open, setOpen }: Props) => {
             {player.location && player.location.name !== null && (
               <Info label="Local">
                 <div className="flex items-center gap-2">
-                  <img
-                    src={
-                      typeof player.location.flag === "string" &&
-                      player.location.flag.trim() !== ""
-                        ? player.location.flag
-                        : undefined
-                    }
-                    alt={player.location.name as string}
-                    title={player.location.name as string}
-                    width={16}
-                    height={16}
-                    className="w-4 h-4 rounded object-contain"
-                  />
+                  <Avatar className="size-4 rounded object-contain">
+                    <AvatarImage
+                      src={
+                        (player.location?.flag as string)
+                          ? (player.location?.flag as string)
+                          : LOGO_FALLBACK
+                      }
+                      alt={player.location?.name as string}
+                      title={player.location?.name as string}
+                      className="size-4 rounded object-contain"
+                    />
+                    <AvatarFallback className="size-4 rounded-none object-contain" />
+                  </Avatar>
                   <p>{player.location?.name as string}</p>
                 </div>
               </Info>

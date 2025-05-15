@@ -53,7 +53,7 @@ export const Actions = ({
           aria-label={`View ${name}'s profile`}
         >
           <Avatar className="size-8 rounded-md">
-            <AvatarImage src={image ?? ""} alt={name} />
+            <AvatarImage src={image ?? undefined} alt={name} />
             <AvatarFallback style={gradient} />
           </Avatar>
           <div className="font-medium whitespace-nowrap">

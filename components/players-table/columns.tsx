@@ -2,9 +2,11 @@ import { useSearchParams } from "next/navigation";
 import type { ColumnDef, Row } from "@tanstack/react-table";
 
 import type { Players } from "@/db/queries";
+import { LOGO_FALLBACK } from "@/lib/utils";
+
+import { Actions } from "./actions";
 import { locations } from "./data/data";
 import { DataTableColumnHeader } from "./data-table-column-header";
-import { Actions } from "./actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 function getRowIndex(row: Row<Players>) {
@@ -69,10 +71,10 @@ export const columnsClassic: ColumnDef<Players>[] = [
               src={
                 (row.original.location?.flag as string)
                   ? (row.original.location?.flag as string)
-                  : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
+                  : LOGO_FALLBACK
               }
-              alt={row.original.location?.flag as string}
-              title={row.original.location?.flag as string}
+              alt={row.original.location?.name as string}
+              title={row.original.location?.name as string}
               className="size-4 rounded object-contain"
             />
             <AvatarFallback className="size-4 rounded-none object-contain" />
@@ -99,7 +101,7 @@ export const columnsClassic: ColumnDef<Players>[] = [
               src={
                 (row.original.club?.logo as string)
                   ? (row.original.club?.logo as string)
-                  : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
+                  : LOGO_FALLBACK
               }
               alt={row.original.club?.name as string}
               title={row.original.club?.name as string}
@@ -183,8 +185,10 @@ export const columnsRapid: ColumnDef<Players>[] = [
               src={
                 (row.original.location?.flag as string)
                   ? (row.original.location?.flag as string)
-                  : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
+                  : LOGO_FALLBACK
               }
+              alt={row.original.location?.name as string}
+              title={row.original.location?.name as string}
               className="size-4 rounded object-contain"
             />
             <AvatarFallback className="size-4 rounded-none object-contain" />
@@ -211,7 +215,7 @@ export const columnsRapid: ColumnDef<Players>[] = [
               src={
                 (row.original.club?.logo as string)
                   ? (row.original.club?.logo as string)
-                  : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
+                  : LOGO_FALLBACK
               }
               alt={row.original.club?.name as string}
               title={row.original.club?.name as string}
@@ -295,8 +299,10 @@ export const columnsBlitz: ColumnDef<Players>[] = [
               src={
                 (row.original.location?.flag as string)
                   ? (row.original.location?.flag as string)
-                  : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
+                  : LOGO_FALLBACK
               }
+              alt={row.original.location?.name as string}
+              title={row.original.location?.name as string}
               className="size-4 rounded object-contain"
             />
             <AvatarFallback className="size-4 rounded-none object-contain" />
@@ -323,7 +329,7 @@ export const columnsBlitz: ColumnDef<Players>[] = [
               src={
                 (row.original.club?.logo as string)
                   ? (row.original.club?.logo as string)
-                  : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
+                  : LOGO_FALLBACK
               }
               alt={row.original.club?.name as string}
               title={row.original.club?.name as string}
