@@ -1,12 +1,12 @@
 import React from "react";
 import type { Metadata } from "next";
-import { HomeIcon } from "lucide-react";
+import { MegaphoneIcon } from "lucide-react";
 
-import { getNewsByPage } from "@/db/queries";
+import { getAnnouncementsByPage } from "@/db/queries";
 import { siteConfig } from "@/lib/site";
 
 import { Announcement } from "@/components/announcement";
-import { NewsCard } from "@/components/news-card";
+import { AnnouncementLink } from "@/components/announcement-link";
 import {
   PageHeader,
   PageHeaderDescription,
@@ -28,18 +28,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const revalidate = 2592000;
 
 export const metadata: Metadata = {
-  title: "Notícias",
-  description: "Notícias da FSX",
+  title: "Comunicados",
+  description: "Comunicados da FSX",
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    url: `${siteConfig.url}/noticias`,
-    title: "FSX | Notícias",
-    description: "Notícias e eventos da Federação Sergipana de Xadrez",
-    siteName: "FSX | Notícias",
+    url: `${siteConfig.url}/comunicados`,
+    title: "FSX | Comunicados",
+    description: "Comunicados da Federação Sergipana de Xadrez",
+    siteName: "FSX | Comunicados",
     images: [
       {
-        url: `${siteConfig.url}/og/og-noticias.jpg`,
+        url: `${siteConfig.url}/og/og-comunicados.jpg`,
         width: 1920,
         height: 1080,
       },
@@ -63,7 +63,9 @@ export default async function Page({
   const resolvedSearchParams = await searchParams;
   const currentPage = Number(resolvedSearchParams.page) || 1;
 
-  const { news, pagination } = await getNewsByPage(currentPage);
+  const { announcements, pagination } = await getAnnouncementsByPage(
+    currentPage
+  );
   const { totalPages, hasNextPage, hasPreviousPage } = pagination;
 
   const getPageNumbers = (totalPages: number, currentPage: number) => {
@@ -93,35 +95,34 @@ export default async function Page({
   return (
     <>
       <PageHeader>
-        <Announcement icon={HomeIcon} />
-        <PageHeaderHeading>Notícias</PageHeaderHeading>
+        <Announcement icon={MegaphoneIcon} />
+        <PageHeaderHeading>Comunicados</PageHeaderHeading>
         <PageHeaderDescription>
-          Acesse as informações mais recentes da FSX.
+          Divulgação de titulações e outras informações.
         </PageHeaderDescription>
       </PageHeader>
 
       <section>
         <React.Suspense
           fallback={
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-2 gap-1.5">
               {Array.from({ length: 12 }).map((_, i) => (
-                <div key={`skeleton-${crypto.randomUUID()}`}>
-                  <Skeleton className="w-full aspect-[2/1]" />
-                  <Skeleton className="h-5 w-full mt-2 mb-1" />
-                  <Skeleton className="h-5 w-4/5" />
-                </div>
+                <Skeleton
+                  key={`skeleton-${crypto.randomUUID()}`}
+                  className="w-full h-9 rounded-md"
+                />
               ))}
             </div>
           }
         >
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {news.map((newsItem) => (
-              <NewsCard
-                key={newsItem.id}
-                id={newsItem.id}
-                title={newsItem.title}
-                image={newsItem.image ?? undefined}
-                slug={newsItem.slug ?? ""}
+          <div className="grid md:grid-cols-2 gap-1.5">
+            {announcements.map((announcement) => (
+              <AnnouncementLink
+                key={announcement.number}
+                id={announcement.id}
+                year={announcement.year}
+                number={announcement.number}
+                content={announcement.content}
               />
             ))}
           </div>
@@ -132,7 +133,7 @@ export default async function Page({
             <PaginationContent>
               <PaginationItem>
                 <PaginationFirst
-                  href="/noticias?page=1"
+                  href="/comunicados?page=1"
                   aria-disabled={!hasPreviousPage}
                   className={
                     !hasPreviousPage ? "pointer-events-none opacity-50" : ""
@@ -141,7 +142,7 @@ export default async function Page({
               </PaginationItem>
               <PaginationItem>
                 <PaginationPrevious
-                  href={`/noticias?page=${Math.max(1, currentPage - 1)}`}
+                  href={`/comunicados?page=${Math.max(1, currentPage - 1)}`}
                   aria-disabled={!hasPreviousPage}
                   className={
                     !hasPreviousPage ? "pointer-events-none opacity-50" : ""
@@ -149,7 +150,7 @@ export default async function Page({
                 />
               </PaginationItem>
 
-              {getPageNumbers(totalPages, currentPage).map((pageNum, index) =>
+              {getPageNumbers(totalPages, currentPage).map((pageNum) =>
                 pageNum === "ellipsis" ? (
                   <PaginationItem key={`ellipsis-${crypto.randomUUID()}`}>
                     <PaginationEllipsis />
@@ -157,7 +158,7 @@ export default async function Page({
                 ) : (
                   <PaginationItem key={pageNum}>
                     <PaginationLink
-                      href={`/noticias?page=${pageNum}`}
+                      href={`/comunicados?page=${pageNum}`}
                       isActive={pageNum === currentPage}
                     >
                       {pageNum}
@@ -168,7 +169,7 @@ export default async function Page({
 
               <PaginationItem>
                 <PaginationNext
-                  href={`/noticias?page=${Math.min(
+                  href={`/comunicados?page=${Math.min(
                     totalPages,
                     currentPage + 1
                   )}`}
@@ -180,7 +181,7 @@ export default async function Page({
               </PaginationItem>
               <PaginationItem>
                 <PaginationLast
-                  href={`/noticias?page=${totalPages}`}
+                  href={`/comunicados?page=${totalPages}`}
                   aria-disabled={!hasNextPage}
                   className={
                     !hasNextPage ? "pointer-events-none opacity-50" : ""

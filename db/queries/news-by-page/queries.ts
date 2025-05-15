@@ -10,7 +10,7 @@ export const getNewsByPage = unstable_cache(
   async (page: number) => {
     const validPage = Math.max(1, page)
 
-    const news = await db.query.posts.findMany({
+    const data = await db.query.posts.findMany({
       columns: {
         id: true,
         title: true,
@@ -30,7 +30,7 @@ export const getNewsByPage = unstable_cache(
     const totalPages = Math.max(1, Math.ceil(totalItems / perPage))
 
     return {
-      news: news.map((item) => ({
+      news: data.map((item) => ({
         ...item,
         createdAt: item.createdAt?.toISOString() ?? null,
       })),

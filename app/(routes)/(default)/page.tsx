@@ -12,11 +12,12 @@ import {
   getTopPlayers,
 } from "@/db/queries";
 
-import { FAQ } from "./_components/faq";
-import { HomeSection } from "./_components/home-section";
-import { UpdateRegister } from "./_components/update-register";
+import { FAQ } from "../../../components/faq";
+import { HomeSection } from "../../../components/home-section";
+import { UpdateRegister } from "../../../components/update-register";
 import { AnnouncementLink } from "@/components/announcement-link";
 import { NewsCard } from "@/components/news-card";
+import DataTableTabs from "@/components/ratings-main/data-table-tabs";
 
 export default async function Page() {
   const [newsQuery, announcementsQuery, topPlayers] = await Promise.all([
@@ -63,7 +64,7 @@ export default async function Page() {
       </HomeSection>
 
       <HomeSection label="Rating" href={"/ratings"} icon={BarChart2Icon}>
-        <div>Hello</div>
+        <DataTableTabs topPlayers={topPlayers} />
       </HomeSection>
 
       <HomeSection

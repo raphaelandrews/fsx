@@ -16,15 +16,11 @@ export async function generateStaticParams() {
   }));
 }
 
-type Props = {
+export async function generateMetadata({
+  params,
+}: {
   params: Promise<Record<string, string | string[] | undefined>>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
-
-export async function generateMetadata(
-  { params, searchParams }: Props,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
+}): Promise<Metadata> {
   const resolvedParams = await params;
   const posts = await getNewsBySlug(resolvedParams.slug as string);
 
@@ -57,7 +53,11 @@ export async function generateMetadata(
   };
 }
 
-export default async function Page({ params }: Props) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const resolvedParams = await params;
   const data = await getNewsBySlug(resolvedParams.slug as string);
 

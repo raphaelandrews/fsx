@@ -1,7 +1,7 @@
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 
-export default function ParamsLayout({
+export default function Layout({
   children,
 }: {
   children: React.ReactNode;
