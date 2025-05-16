@@ -51,7 +51,7 @@ import {
 const PlayerClient = ({ player }: { player: PlayerById }) => {
   const useGradients = () => {
     const [headerGradient, avatarGradient] = React.useMemo(
-      () => [getGradient(player.id), getGradient(player.id)],
+      () => [getGradient(player.id), getGradient(player.id + 1)],
       [player.id]
     );
     return { headerGradient, avatarGradient };
