@@ -4,6 +4,8 @@ export * from "./announcements-by-page/queries";
 export * from "./announcements-by-page/schema";
 export * from "./champions/queries";
 export * from "./champions/schema";
+export * from "./circuits/queries";
+export * from "./circuits/schema";
 export * from "./fresh-announcements/queries";
 export * from "./fresh-announcements/schema";
 export * from "./fresh-news/queries";

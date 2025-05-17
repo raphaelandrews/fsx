@@ -24,9 +24,3 @@ export const getNews = unstable_cache(
     tags: ["news"],
   },
 )
-
-export async function revalidateAllNews() {
-  "use server"
-  const { revalidateTag } = await import("next/cache")
-  revalidateTag("news")
-}

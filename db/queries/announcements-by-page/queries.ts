@@ -39,9 +39,3 @@ export const getAnnouncementsByPage = unstable_cache(
     tags: ["announcements", "announcements-list"],
   },
 )
-
-export async function revalidateAnnouncementsList() {
-  "use server"
-  const { revalidateTag } = await import("next/cache")
-  revalidateTag("announcements-list")
-}

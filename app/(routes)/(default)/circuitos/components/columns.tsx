@@ -1,0 +1,242 @@
+"use client";
+
+import { PanelLeftOpenIcon, PanelTopOpenIcon } from "lucide-react";
+import type { CellContext, Column, ColumnDef } from "@tanstack/react-table";
+
+import type { CircuitPhase, CircuitPlayer, CircuitClub } from "./types";
+
+import { DataTableColumnHeader } from "./data-table-column-header";
+import { Actions } from "./actions";
+import { ActionsClub } from "./actions-club";
+import { Button } from "@/components/ui/button";
+import { categories } from "../data/data";
+
+export const circuitTotalColumns = (
+  phases: CircuitPhase[]
+): ColumnDef<CircuitPlayer>[] => {
+  const sortedPhases = phases.sort((a, b) => b.order - a.order);
+
+  return [
+    {
+      id: "index",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="#" />
+      ),
+      cell: ({ row, table }) =>
+        (table
+          .getSortedRowModel()
+          ?.flatRows?.findIndex((flatRow) => flatRow.id === row.id) || 0) + 1,
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Nome" />
+      ),
+      cell: ({ row }) => {
+        const playerTitles = row.original.players_to_titles;
+        if (playerTitles && playerTitles.length > 0 && playerTitles[0].titles) {
+          const shortTitle = playerTitles[0].titles.short_title;
+          return (
+            <Actions
+              id={row.original.id}
+              name={row.original.name}
+              nickname={row.original.nickname}
+              image={row.original.image_url}
+              shortTitle={shortTitle}
+            />
+          );
+        }
+        return (
+          <Actions
+            id={row.original.id}
+            name={row.original.name}
+            nickname={row.original.nickname}
+            image={row.original.image_url}
+          />
+        );
+      },
+    },
+    {
+      accessorKey: "total",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Total" />
+      ),
+      cell: ({ row }: CellContext<CircuitPlayer, unknown>) => {
+        const totalPoints = row.original.total;
+        return totalPoints !== undefined && totalPoints > 0 ? totalPoints : "-";
+      },
+    },
+    ...sortedPhases.map((phase) => ({
+      accessorKey: phase.tournament.name,
+      header: ({ column }: { column: Column<CircuitPlayer> }) => (
+        <DataTableColumnHeader column={column} title={phase.tournament.name} />
+      ),
+      cell: ({ row }: CellContext<CircuitPlayer, unknown>) => {
+        const points =
+          row.original[phase.tournament.name as keyof CircuitPlayer];
+        return typeof points === "number" && points > 0 ? points : "-";
+      },
+    })),
+  ];
+};
+
+export const circuitClubsColumns = (
+  phases: CircuitPhase[]
+): ColumnDef<CircuitClub>[] => {
+  const sortedPhases = phases.sort((a, b) => b.order - a.order);
+
+  return [
+    {
+      id: "expander",
+      header: () => null,
+      cell: ({ row }) => {
+        return row.getCanExpand() ? (
+          <Button
+            {...{
+              onClick: row.getToggleExpandedHandler(),
+              style: { cursor: "pointer" },
+            }}
+            variant="ghost"
+            className="h-8 p-0 hover:text-tertiary hover:bg-transparent"
+          >
+            {row.getIsExpanded() ? (
+              <PanelTopOpenIcon width={16} height={16} />
+            ) : (
+              <PanelLeftOpenIcon width={16} height={16} />
+            )}
+          </Button>
+        ) : (
+          "🔵"
+        );
+      },
+    },
+    {
+      id: "index",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="#" />
+      ),
+      cell: ({ row, table }) =>
+        (table
+          .getSortedRowModel()
+          ?.flatRows?.findIndex((flatRow) => flatRow.id === row.id) || 0) + 1,
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "clubName",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Nome" />
+      ),
+      cell: ({ row }) => (
+        <ActionsClub
+          id={row.original.clubId || 0}
+          name={row.original.clubName}
+          image={row.original.clubLogo}
+        />
+      ),
+    },
+    {
+      accessorKey: "total",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Total" />
+      ),
+      cell: ({ row }: CellContext<CircuitClub, unknown>) => {
+        const totalPoints = row.original.total;
+        return totalPoints > 0 ? totalPoints : "-";
+      },
+    },
+    ...sortedPhases.map((phase) => ({
+      accessorKey: phase.tournament.name,
+      header: ({ column }: { column: Column<CircuitClub> }) => (
+        <DataTableColumnHeader column={column} title={phase.tournament.name} />
+      ),
+      cell: ({ row }: CellContext<CircuitClub, unknown>) => {
+        const points = row.original.pointsByPhase[phase.tournament.name];
+        return typeof points === "number" && points > 0 ? points : "-";
+      },
+    })),
+  ];
+};
+
+export const circuitSchoolSubcomponentColumns = (
+  phases: CircuitPhase[]
+): ColumnDef<CircuitPlayer>[] => {
+  const sortedPhases = phases.sort((a, b) => b.order - a.order);
+
+  return [
+    {
+      id: "index",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="#" />
+      ),
+      cell: ({ row, table }) =>
+        (table
+          .getSortedRowModel()
+          ?.flatRows?.findIndex((flatRow) => flatRow.id === row.id) || 0) + 1,
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Nome" />
+      ),
+      cell: ({ row }) => {
+        const playerTitles = row.original.players_to_titles;
+        if (playerTitles && playerTitles.length > 0 && playerTitles[0].titles) {
+          const shortTitle = playerTitles[0].titles.short_title;
+          return (
+            <Actions
+              id={row.original.id}
+              name={row.original.name}
+              nickname={row.original.nickname}
+              image={row.original.image_url}
+              shortTitle={shortTitle}
+            />
+          );
+        }
+        return (
+          <Actions
+            id={row.original.id}
+            name={row.original.name}
+            nickname={row.original.nickname}
+            image={row.original.image_url}
+          />
+        );
+      },
+    },
+    {
+      accessorKey: "category",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Categoria" />
+      ),
+      filterFn: (row, id, value) => {
+        const categoryName = row.original.category;
+        return value.includes(categoryName);
+      },
+    },
+    {
+      accessorKey: "total",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Total" />
+      ),
+      cell: ({ row }: CellContext<CircuitPlayer, unknown>) => {
+        const totalPoints = row.original.total;
+        return totalPoints !== undefined && totalPoints > 0 ? totalPoints : "-";
+      },
+    },
+    ...sortedPhases.map((phase) => ({
+      accessorKey: phase.tournament.name,
+      header: ({ column }: { column: Column<CircuitPlayer> }) => (
+        <DataTableColumnHeader column={column} title={phase.tournament.name} />
+      ),
+      cell: ({ row }: CellContext<CircuitPlayer, unknown>) => {
+        const points =
+          row.original[phase.tournament.name as keyof CircuitPlayer];
+        return typeof points === "number" && points > 0 ? points : "-";
+      },
+    })),
+  ];
+};
