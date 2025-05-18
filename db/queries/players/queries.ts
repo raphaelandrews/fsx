@@ -1,8 +1,16 @@
-import { and, count, desc, eq, gte, inArray, lte, or } from 'drizzle-orm';
+import { and, count, desc, eq, gte, inArray, lte, or, sql } from 'drizzle-orm';
 
 import { db } from "@/db";
 import { championships, clubs, defendingChampions, locations, players, playersToTitles, titles } from "@/db/schema";
 import { unstable_cache } from "@/lib/unstable_cache";
+
+function normalizeText(text: string): string {
+  return text
+    .normalize('NFD')
+    // biome-ignore lint/suspicious/noMisleadingCharacterClass: <explanation>
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
 
 function getBirthDateRange(group: string): [Date, Date] | undefined {
   const today = new Date();
@@ -61,14 +69,15 @@ function getBirthDateRange(group: string): [Date, Date] | undefined {
 
 export const getPlayersByPage = unstable_cache(
   async (params: {
-    page?: number
-    limit?: number
-    sex?: boolean
-    titles?: string[]
-    clubs?: string[]
-    groups?: string[]
-    locations?: string[]
-    sortBy?: 'rapid' | 'blitz' | 'classic'
+    page?: number;
+    limit?: number;
+    sex?: boolean;
+    titles?: string[];
+    clubs?: string[];
+    groups?: string[];
+    locations?: string[];
+    sortBy?: 'rapid' | 'blitz' | 'classic';
+    name?: string;
   }) => {
     const {
       page = 1,
@@ -78,19 +87,26 @@ export const getPlayersByPage = unstable_cache(
       clubs: clubFilters = [],
       groups: groupFilters = [],
       locations: locationFilters = [],
-      sortBy = 'rapid'
-    } = params
+      sortBy = 'rapid',
+      name,
+    } = params;
 
-    const whereConditions = [eq(players.active, true)]
+    const whereConditions = [eq(players.active, true)];
 
+    if (name) {
+      const normalizedQuery = normalizeText(name);
+      whereConditions.push(
+        sql`LOWER(translate(${players.name}, 'áàâãäéèêëíìîïóòôõöúùûüýÿ', 'aaaaaeeeeiiiiooooouuuuyy')) ILIKE ${`%${normalizedQuery}%`}`
+      );
+    }
     if (sex === true || sex === false) {
-      whereConditions.push(eq(players.sex, sex === true))
+      whereConditions.push(eq(players.sex, sex === true));
     }
     if (titleFilters.length) {
-      whereConditions.push(inArray(titles.shortTitle, titleFilters))
+      whereConditions.push(inArray(titles.shortTitle, titleFilters));
     }
     if (clubFilters.length) {
-      whereConditions.push(inArray(clubs.name, clubFilters))
+      whereConditions.push(inArray(clubs.name, clubFilters));
     }
     if (groupFilters.length) {
       const groupConditions = [];
@@ -116,7 +132,7 @@ export const getPlayersByPage = unstable_cache(
       }
     }
     if (locationFilters.length) {
-      whereConditions.push(inArray(locations.name, locationFilters))
+      whereConditions.push(inArray(locations.name, locationFilters));
     }
 
     const countResult = await db

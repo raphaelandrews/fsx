@@ -35,7 +35,6 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  // Fetch data on the server
   const circuits = await getCircuits();
 
   return (
@@ -48,7 +47,6 @@ export default async function Page() {
         </PageHeaderDescription>
       </PageHeader>
 
-      {/* Pass the fetched data to the Client component */}
       <Client circuits={circuits as Circuit[]} />
     </>
   );

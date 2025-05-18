@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import type { ColumnDef, Row } from "@tanstack/react-table";
 
-
 import type {
   Circuit,
   CircuitPlayer,
@@ -20,27 +19,16 @@ import {
 import { DataTable } from "./components/data-table";
 import { DataTableSchool } from "./components/data-table-school";
 
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { categories } from "./data/data";
 import CategoryFilter from "./components/category-filter";
-import { getCircuits } from "@/db/queries";
 
 interface ClientProps {
   circuits: Circuit[];
 }
 
-export const Client = ({ circuits }: ClientProps) => {
-  console.log(circuits)
+export function Client({ circuits }: ClientProps) {
   const [circuitPodiums, setCircuitPodiums] = useState<CircuitPodium[]>([]);
   const [selectedPhase, setSelectedPhase] = useState<string | undefined>(
     undefined
@@ -180,7 +168,7 @@ export const Client = ({ circuits }: ClientProps) => {
       ))}
     </Tabs>
   );
-};
+}
 
 const getColumns = (
   phases: CircuitPhase[],
@@ -231,8 +219,9 @@ const aggregatePlayerPoints = (
 
   for (const phase of circuit.circuitPhase) {
     for (const podium of phase.circuitPodiums) {
-      const categoryMatch = !category || 
-        (Array.isArray(category) 
+      const categoryMatch =
+        !category ||
+        (Array.isArray(category)
           ? category.includes(podium.category)
           : podium.category === category);
 
@@ -276,8 +265,9 @@ const aggregateClubPoints = (
 
   for (const phase of circuit.circuitPhase) {
     for (const podium of phase.circuitPodiums) {
-      const categoryMatch = !category || 
-        (Array.isArray(category) 
+      const categoryMatch =
+        !category ||
+        (Array.isArray(category)
           ? category.includes(podium.category)
           : podium.category === category);
 
@@ -325,16 +315,16 @@ const aggregateClubPoints = (
     }
   }
 
-for (const club of clubPointsMap.values()) {
-  for (const player of playerPointsMap.values()) {
-    if (player.clubName === club.clubName) {
-      club.players.push(player);
+  for (const club of clubPointsMap.values()) {
+    for (const player of playerPointsMap.values()) {
+      if (player.clubName === club.clubName) {
+        club.players.push(player);
+      }
     }
+    club.players.sort(
+      (a: CircuitPlayer, b: CircuitPlayer) => (b.total || 0) - (a.total || 0)
+    );
   }
-  club.players.sort(
-    (a: CircuitPlayer, b: CircuitPlayer) => (b.total || 0) - (a.total || 0)
-  );
-}
 
   return Array.from(clubPointsMap.values());
 };
@@ -358,12 +348,12 @@ const ClubsPointsTable = ({
 }) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-  const combinedCategories = category 
-    ? [...new Set([...selectedCategories, category])] 
+  const combinedCategories = category
+    ? [...new Set([...selectedCategories, category])]
     : selectedCategories;
 
   const data = aggregatePoints(
-    circuit, 
+    circuit,
     combinedCategories.length > 0 ? combinedCategories : undefined
   );
 
@@ -373,19 +363,21 @@ const ClubsPointsTable = ({
 
   const columns = circuitClubsColumns(circuit.circuitPhase);
 
-  const filteredData = data.filter(club => 
-    combinedCategories.length === 0 || 
-    club.players.some((player: { category: string; }) => 
-      combinedCategories.includes(player.category || '')
-    )
+  const filteredData = data.filter(
+    (club) =>
+      combinedCategories.length === 0 ||
+      club.players.some((player: { category: string }) =>
+        combinedCategories.includes(player.category || "")
+      )
   );
 
   filteredData.sort((a, b) => b.total - a.total);
 
   const renderSubComponent = ({ row }: { row: Row<CircuitClub> }) => {
-    const filteredPlayers = row.original.players.filter((player: { category: string; }) => 
-      selectedCategories.length === 0 || 
-      selectedCategories.includes(player.category || '')
+    const filteredPlayers = row.original.players.filter(
+      (player: { category: string }) =>
+        selectedCategories.length === 0 ||
+        selectedCategories.includes(player.category || "")
     );
 
     const filteredCircuit: Circuit = {

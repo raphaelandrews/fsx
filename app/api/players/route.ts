@@ -12,14 +12,15 @@ export async function GET(request: Request) {
     const filters = {
       page: Number(searchParams.get('page')) || 1,
       limit: Number(searchParams.get('limit')) || 20,
+      name: searchParams.get('name') || "",
       sortBy: searchParams.get('sortBy') as 'rapid' | 'blitz' | 'classic' || 'rapid',
       sex: searchParams.get('sex') === 'true' ? true : searchParams.get('sex') === 'false' ? false : undefined,
       titles: searchParams.getAll('title'),
-      clubs: searchParams.getAll('club'), 
+      clubs: searchParams.getAll('club'),
       groups: searchParams.getAll('group'),
       locations: searchParams.getAll('location'),
     };
-    console.log(filters, searchParams);
+
     const { players, pagination } = await getPlayersByPage(filters);
 
     const validation = APIPlayersResponseSchema.safeParse({

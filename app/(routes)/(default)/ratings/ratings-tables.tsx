@@ -41,7 +41,7 @@ export function RatingsTables({
   useEffect(() => {
     const fetchPlayers = async () => {
       setIsLoading(true);
-      const params = new URLSearchParams();
+      const params = new URLSearchParams(searchParams.toString());
 
       params.set("page", searchParams.get("page") || "1");
       params.set("limit", currentLimit.toString());
@@ -65,8 +65,6 @@ export function RatingsTables({
       setPlayers(data.data.players || []);
       setPagination(data.data.pagination || { totalPages: 0 });
       setIsLoading(false);
-
-      console.log(data.data.players, params.toString());
     };
 
     fetchPlayers();

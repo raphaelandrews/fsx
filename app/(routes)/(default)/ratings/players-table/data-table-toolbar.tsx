@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react"; 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Table } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
@@ -19,6 +20,22 @@ export function DataTableToolbar<TData>({
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const [inputValue, setInputValue] = React.useState(searchParams.get("name") || "");
+  const [debouncedValue, setDebouncedValue] = React.useState(inputValue); 
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(inputValue);
+    }, 300); 
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [inputValue]);
+
+  React.useEffect(() => {
+    updateSearchParams({ name: debouncedValue || undefined });
+  }, [debouncedValue]); 
 
   const updateSearchParams = (
     params: Record<string, string | string[] | undefined>
@@ -44,7 +61,7 @@ export function DataTableToolbar<TData>({
     if (!newSearchParams.has("sortBy")) {
       newSearchParams.set("sortBy", "rapid");
     }
-    window.location.href = `${pathname}?${newSearchParams.toString()}`;
+    router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
   return (
@@ -52,9 +69,9 @@ export function DataTableToolbar<TData>({
       <div className="flex flex-col md:flex-row flex-1 items-start md:items-center space-y-2 md:space-y-0 md:space-x-2">
         <Input
           placeholder="Procurar jogadores..."
-          value={searchParams.get("name") || ""}
+          value={inputValue}
           onChange={(event) => {
-            updateSearchParams({ name: event.target.value || undefined });
+            setInputValue(event.target.value);
           }}
           className="h-8 w-[150px] lg:w-[250px]"
         />
@@ -116,14 +133,16 @@ export function DataTableToolbar<TData>({
               searchParams.getAll("club").length ||
               searchParams.getAll("title").length ||
               searchParams.get("sex") ||
-              searchParams.getAll("group").length
+              searchParams.getAll("group").length ||
+              inputValue 
           ) && (
             <Button
               variant="ghost"
               onClick={() => {
-                window.location.href = `/ratings?page=1&limit=${searchParams.get(
+                setInputValue("");
+                router.push(`/ratings?page=1&limit=${searchParams.get(
                   "limit"
-                )}&sortBy=${searchParams.get("sortBy")}`;
+                )}&sortBy=${searchParams.get("sortBy")}`); 
               }}
               className="h-8 px-2 lg:px-3"
             >
