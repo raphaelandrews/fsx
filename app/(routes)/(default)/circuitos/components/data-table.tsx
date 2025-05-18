@@ -78,6 +78,11 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  React.useEffect(() => {
+    table.resetPageIndex(true);
+  }, [JSON.stringify(data), table.resetPageIndex]);
+
   return (
     <div className="space-y-4">
       {/*<DataTableToolbar table={table} />*/}
@@ -104,9 +109,7 @@ export function DataTable<TData, TValue>({
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <React.Fragment key={row.id}>
-                <TableRow
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(

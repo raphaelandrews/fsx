@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { categories } from "./data/data";
 import CategoryFilter from "./components/category-filter";
+import React from "react";
 
 interface ClientProps {
   circuits: Circuit[];
@@ -189,6 +190,15 @@ const PlayerPointsTable = ({
   category?: string;
   filter: boolean;
 }) => {
+  const resetTableState = React.useCallback(() => {
+    window.dispatchEvent(new Event("resize"));
+  }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  React.useEffect(() => {
+    resetTableState();
+  }, [circuit.name, category, resetTableState]);
+
   const data = aggregatePlayerPoints(circuit, category);
   const columns = getColumns(circuit.circuitPhase, circuit.type);
 
@@ -277,6 +287,7 @@ const aggregateClubPoints = (
 
         if (!clubPointsMap.has(clubName)) {
           clubPointsMap.set(clubName, {
+            clubId: podium.player.club?.id || 0,
             clubName: clubName,
             clubLogo: podium.player.club?.logo || "",
             total: 0,
@@ -424,6 +435,7 @@ const ClubsPointsTable = ({
 function isClubPoints(item: CircuitClub | CircuitPlayer): item is CircuitClub {
   return (
     item &&
+    typeof item.clubId === "number" &&
     typeof item.clubName === "string" &&
     typeof item.clubLogo === "string" &&
     typeof item.total === "number" &&
