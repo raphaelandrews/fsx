@@ -2,20 +2,15 @@ import React from "react";
 import type { Metadata } from "next";
 import { MedalIcon } from "lucide-react";
 
-import { getCircuits } from "@/db/queries/circuits/queries";
 import { siteConfig } from "@/lib/site";
 
 import { Client } from "./client";
-import { CircuitTableSkeleton } from "./components/circuit-table-skeleton";
 import { Announcement } from "@/components/announcement";
 import {
   PageHeader,
   PageHeaderDescription,
   PageHeaderHeading,
 } from "@/components/ui/page-header";
-import type { Circuit } from "./components/types";
-
-export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "Circuitos",
@@ -39,8 +34,6 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const circuits = await getCircuits();
-
   return (
     <>
       <PageHeader>
@@ -51,9 +44,7 @@ export default async function Page() {
         </PageHeaderDescription>
       </PageHeader>
 
-      <React.Suspense fallback={<CircuitTableSkeleton />}>
-        <Client circuits={circuits as Circuit[]} />
-      </React.Suspense>
+      <Client />
     </>
   );
 }

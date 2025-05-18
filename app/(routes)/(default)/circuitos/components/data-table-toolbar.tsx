@@ -3,13 +3,9 @@
 import { XIcon } from "lucide-react";
 import type { Table } from "@tanstack/react-table";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
 import { categories } from "../data/data";
-
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
-import { DataTableViewOptions } from "./data-table-view-options";
+import { Button } from "@/components/ui/button";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -41,7 +37,6 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      {/*<DataTableViewOptions table={table} />*/}
     </div>
   );
 }

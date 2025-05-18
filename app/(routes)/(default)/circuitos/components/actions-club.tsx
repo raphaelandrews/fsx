@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 
 import { getGradient } from "@/lib/generate-gradients";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Props {
@@ -15,7 +14,7 @@ export const ActionsClub = ({ id, name, imageUrl }: Props) => {
 
   return (
     <div className="flex items-center gap-3">
-      <Avatar className="w-8 h-8 rounded-md">
+      <Avatar className="w-5 h-5 rounded">
         <AvatarImage src={imageUrl || undefined} alt={name} className="object-contain"  />
         <AvatarFallback style={gradient} />
       </Avatar>

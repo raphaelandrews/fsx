@@ -9,7 +9,6 @@ import { DataTableColumnHeader } from "./data-table-column-header";
 import { Actions } from "./actions";
 import { ActionsClub } from "./actions-club";
 import { Button } from "@/components/ui/button";
-import { categories } from "../data/data";
 
 export const circuitTotalColumns = (
   phases: CircuitPhase[]
