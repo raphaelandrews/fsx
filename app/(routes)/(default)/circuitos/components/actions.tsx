@@ -9,11 +9,11 @@ interface Props {
   id: number;
   name: string;
   nickname?: string | null;
-  image?: string | null;
+  imageUrl?: string | null;
   shortTitle?: string | null;
 }
 
-export const Actions = ({ id, name, nickname, image, shortTitle }: Props) => {
+export const Actions = ({ id, name, nickname, imageUrl, shortTitle }: Props) => {
   const [open, setOpen] = useState(false);
   const gradient = useMemo(() => getGradient(id), [id]);
 
@@ -32,7 +32,7 @@ export const Actions = ({ id, name, nickname, image, shortTitle }: Props) => {
         className="flex items-center gap-3 cursor-pointer"
       >
         <Avatar className="w-8 h-8 rounded-md">
-          <AvatarImage src={image || ""} alt={name} />
+          <AvatarImage src={imageUrl || undefined}alt={name} />
           <AvatarFallback style={gradient} />
         </Avatar>
         <div className="font-medium whitespace-nowrap">

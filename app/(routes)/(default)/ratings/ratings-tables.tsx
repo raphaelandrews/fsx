@@ -9,8 +9,8 @@ import {
   columnsBlitz,
   columnsClassic,
   columnsRapid,
-} from "@/components/players-table/columns";
-import { DataTable } from "@/components/players-table/data-table";
+} from "@/app/(routes)/(default)/ratings/players-table/columns";
+import { DataTable } from "@/app/(routes)/(default)/ratings/players-table/data-table";
 import { Button } from "@/components/ui/button";
 import {
   Popover,

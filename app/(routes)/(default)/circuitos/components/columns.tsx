@@ -35,15 +35,15 @@ export const circuitTotalColumns = (
         <DataTableColumnHeader column={column} title="Nome" />
       ),
       cell: ({ row }) => {
-        const playerTitles = row.original.players_to_titles;
-        if (playerTitles && playerTitles.length > 0 && playerTitles[0].titles) {
-          const shortTitle = playerTitles[0].titles.short_title;
+        const playerTitles = row.original.playersToTitles;
+        if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
+          const shortTitle = playerTitles[0].title.shortTitle;
           return (
             <Actions
               id={row.original.id}
               name={row.original.name}
               nickname={row.original.nickname}
-              image={row.original.image_url}
+              imageUrl={row.original.imageUrl}
               shortTitle={shortTitle}
             />
           );
@@ -53,7 +53,7 @@ export const circuitTotalColumns = (
             id={row.original.id}
             name={row.original.name}
             nickname={row.original.nickname}
-            image={row.original.image_url}
+            imageUrl={row.original.imageUrl}
           />
         );
       },
@@ -133,7 +133,7 @@ export const circuitClubsColumns = (
         <ActionsClub
           id={row.original.clubId || 0}
           name={row.original.clubName}
-          image={row.original.clubLogo}
+          imageUrl={row.original.clubLogo}
         />
       ),
     },
@@ -184,15 +184,15 @@ export const circuitSchoolSubcomponentColumns = (
         <DataTableColumnHeader column={column} title="Nome" />
       ),
       cell: ({ row }) => {
-        const playerTitles = row.original.players_to_titles;
-        if (playerTitles && playerTitles.length > 0 && playerTitles[0].titles) {
-          const shortTitle = playerTitles[0].titles.short_title;
+        const playerTitles = row.original.playersToTitles;
+        if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
+          const shortTitle = playerTitles[0].title.shortTitle;
           return (
             <Actions
               id={row.original.id}
               name={row.original.name}
               nickname={row.original.nickname}
-              image={row.original.image_url}
+              imageUrl={row.original.imageUrl}
               shortTitle={shortTitle}
             />
           );
@@ -202,7 +202,7 @@ export const circuitSchoolSubcomponentColumns = (
             id={row.original.id}
             name={row.original.name}
             nickname={row.original.nickname}
-            image={row.original.image_url}
+            imageUrl={row.original.imageUrl}
           />
         );
       },
