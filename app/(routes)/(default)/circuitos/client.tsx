@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useEffect, useState } from "react";
 import type { ColumnDef, Row } from "@tanstack/react-table";
 
@@ -23,7 +24,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { categories } from "./data/data";
 import CategoryFilter from "./components/category-filter";
-import React from "react";
 
 interface ClientProps {
   circuits: Circuit[];
@@ -190,15 +190,6 @@ const PlayerPointsTable = ({
   category?: string;
   filter: boolean;
 }) => {
-  const resetTableState = React.useCallback(() => {
-    window.dispatchEvent(new Event("resize"));
-  }, []);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  React.useEffect(() => {
-    resetTableState();
-  }, [circuit.name, category, resetTableState]);
-
   const data = aggregatePlayerPoints(circuit, category);
   const columns = getColumns(circuit.circuitPhase, circuit.type);
 
