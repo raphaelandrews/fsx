@@ -11,8 +11,12 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as SignupImport } from './routes/signup'
+import { Route as LogoutImport } from './routes/logout'
+import { Route as LoginImport } from './routes/login'
 import { Route as ParamsRouteImport } from './routes/_params/route'
 import { Route as DefaultRouteImport } from './routes/_default/route'
+import { Route as DashboardRouteImport } from './routes/_dashboard/route'
 import { Route as DefaultIndexImport } from './routes/_default/index'
 import { Route as DefaultTituladosIndexImport } from './routes/_default/titulados/index'
 import { Route as DefaultTestIndexImport } from './routes/_default/test/index'
@@ -28,6 +32,24 @@ import { Route as ParamsJogadoresJogadorIdImport } from './routes/_params/jogado
 
 // Create/Update Routes
 
+const SignupRoute = SignupImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LogoutRoute = LogoutImport.update({
+  id: '/logout',
+  path: '/logout',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LoginRoute = LoginImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const ParamsRouteRoute = ParamsRouteImport.update({
   id: '/_params',
   getParentRoute: () => rootRoute,
@@ -35,6 +57,11 @@ const ParamsRouteRoute = ParamsRouteImport.update({
 
 const DefaultRouteRoute = DefaultRouteImport.update({
   id: '/_default',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DashboardRouteRoute = DashboardRouteImport.update({
+  id: '/_dashboard',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -114,6 +141,13 @@ const ParamsJogadoresJogadorIdRoute = ParamsJogadoresJogadorIdImport.update({
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_dashboard': {
+      id: '/_dashboard'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRoute
+    }
     '/_default': {
       id: '/_default'
       path: ''
@@ -126,6 +160,27 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof ParamsRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginImport
+      parentRoute: typeof rootRoute
+    }
+    '/logout': {
+      id: '/logout'
+      path: '/logout'
+      fullPath: '/logout'
+      preLoaderRoute: typeof LogoutImport
+      parentRoute: typeof rootRoute
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupImport
       parentRoute: typeof rootRoute
     }
     '/_default/': {
@@ -263,6 +318,9 @@ const ParamsRouteRouteWithChildren = ParamsRouteRoute._addFileChildren(
 
 export interface FileRoutesByFullPath {
   '': typeof ParamsRouteRouteWithChildren
+  '/login': typeof LoginRoute
+  '/logout': typeof LogoutRoute
+  '/signup': typeof SignupRoute
   '/': typeof DefaultIndexRoute
   '/jogadores/$jogadorId': typeof ParamsJogadoresJogadorIdRoute
   '/noticias/$noticiaSlug': typeof ParamsNoticiasNoticiaSlugRoute
@@ -279,6 +337,9 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '': typeof ParamsRouteRouteWithChildren
+  '/login': typeof LoginRoute
+  '/logout': typeof LogoutRoute
+  '/signup': typeof SignupRoute
   '/': typeof DefaultIndexRoute
   '/jogadores/$jogadorId': typeof ParamsJogadoresJogadorIdRoute
   '/noticias/$noticiaSlug': typeof ParamsNoticiasNoticiaSlugRoute
@@ -295,8 +356,12 @@ export interface FileRoutesByTo {
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
+  '/_dashboard': typeof DashboardRouteRoute
   '/_default': typeof DefaultRouteRouteWithChildren
   '/_params': typeof ParamsRouteRouteWithChildren
+  '/login': typeof LoginRoute
+  '/logout': typeof LogoutRoute
+  '/signup': typeof SignupRoute
   '/_default/': typeof DefaultIndexRoute
   '/_params/jogadores/$jogadorId': typeof ParamsJogadoresJogadorIdRoute
   '/_params/noticias/$noticiaSlug': typeof ParamsNoticiasNoticiaSlugRoute
@@ -315,6 +380,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | ''
+    | '/login'
+    | '/logout'
+    | '/signup'
     | '/'
     | '/jogadores/$jogadorId'
     | '/noticias/$noticiaSlug'
@@ -330,6 +398,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | ''
+    | '/login'
+    | '/logout'
+    | '/signup'
     | '/'
     | '/jogadores/$jogadorId'
     | '/noticias/$noticiaSlug'
@@ -344,8 +415,12 @@ export interface FileRouteTypes {
     | '/titulados'
   id:
     | '__root__'
+    | '/_dashboard'
     | '/_default'
     | '/_params'
+    | '/login'
+    | '/logout'
+    | '/signup'
     | '/_default/'
     | '/_params/jogadores/$jogadorId'
     | '/_params/noticias/$noticiaSlug'
@@ -362,13 +437,21 @@ export interface FileRouteTypes {
 }
 
 export interface RootRouteChildren {
+  DashboardRouteRoute: typeof DashboardRouteRoute
   DefaultRouteRoute: typeof DefaultRouteRouteWithChildren
   ParamsRouteRoute: typeof ParamsRouteRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  LogoutRoute: typeof LogoutRoute
+  SignupRoute: typeof SignupRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  DashboardRouteRoute: DashboardRouteRoute,
   DefaultRouteRoute: DefaultRouteRouteWithChildren,
   ParamsRouteRoute: ParamsRouteRouteWithChildren,
+  LoginRoute: LoginRoute,
+  LogoutRoute: LogoutRoute,
+  SignupRoute: SignupRoute,
 }
 
 export const routeTree = rootRoute
@@ -381,9 +464,16 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
+        "/_dashboard",
         "/_default",
-        "/_params"
+        "/_params",
+        "/login",
+        "/logout",
+        "/signup"
       ]
+    },
+    "/_dashboard": {
+      "filePath": "_dashboard/route.tsx"
     },
     "/_default": {
       "filePath": "_default/route.tsx",
@@ -406,6 +496,15 @@ export const routeTree = rootRoute
         "/_params/jogadores/$jogadorId",
         "/_params/noticias/$noticiaSlug"
       ]
+    },
+    "/login": {
+      "filePath": "login.tsx"
+    },
+    "/logout": {
+      "filePath": "logout.tsx"
+    },
+    "/signup": {
+      "filePath": "signup.tsx"
     },
     "/_default/": {
       "filePath": "_default/index.tsx",

@@ -2,13 +2,8 @@ import { queryOptions } from '@tanstack/react-query';
 import { createServerFn } from '@tanstack/react-start';
 import axios from 'redaxios';
 
-import { APIPlayersResponseSchema } from './schema';
+import { APIPlayersWithFiltersResponseSchema } from './schema';
 import { API_BASE_URL } from "~/lib/utils";
-
-interface PlayersQueriesConfig {
-  apiUrl: string;
-  defaultItemsPerPage?: number;
-}
 
 export interface PlayersFilters {
   page?: number;
@@ -21,9 +16,10 @@ export interface PlayersFilters {
   locations?: string[];
 }
 
-const fetchPlayersServerFn = createServerFn({ method: 'GET' })
+export const fetchPlayersWithFilters = createServerFn({ method: 'GET' })
   .validator((filters: PlayersFilters) => filters)
-  .handler(async ({ data: filters }: { data: PlayersFilters }) => {
+  .handler(async (ctx) => {
+    const filters = ctx.data;
     const {
       page = 1,
       limit = 20,
@@ -63,12 +59,12 @@ const fetchPlayersServerFn = createServerFn({ method: 'GET' })
         params.append('location', locationId.toString());
       }
 
-      const resp = await axios.get(`${API_BASE_URL}/players?${params.toString()}`);
-      const parsed = APIPlayersResponseSchema.safeParse(resp.data);
+      const response = await axios.get(`${API_BASE_URL}/players?${params.toString()}`);
+      const parsed = APIPlayersWithFiltersResponseSchema.safeParse(response.data);
 
       if (!parsed.success) {
-        console.error('Schema validation failed:', parsed.error);
-        throw new Error('Invalid API response format');
+        console.error("Validation error:", parsed.error);
+        throw new Error("Invalid API response format");
       }
 
       if (!parsed.data.success) {
@@ -77,28 +73,23 @@ const fetchPlayersServerFn = createServerFn({ method: 'GET' })
 
       return parsed.data.data;
     } catch (error: unknown) {
-      console.error('Error fetching players:', error);
-      const message = error instanceof Error ? error.message : 'Failed to fetch players';
+      console.error(`Error fetching players with filters ${filters}:`, error);
+      const message = error instanceof Error ? error.message : `Failed to fetch players with filters ${filters}`;
       throw new Error(message);
     }
   });
 
-const fetchPlayers = async ({ queryKey }: { queryKey: readonly [string, PlayersFilters] }) => {
-  const [, filters] = queryKey;
-  return fetchPlayersServerFn({ data: filters });
-};
-
-export function playersQueryOptions(filters: PlayersFilters = {}) {
-  return queryOptions({
+export const playersWithFiltersQueryOptions = (filters: PlayersFilters = {}) =>
+  queryOptions({
     queryKey: ['players', filters] as const,
-    queryFn: fetchPlayers,
+    queryFn: () => fetchPlayersWithFilters({ data: filters }),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    staleTime: 1 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    refetchOnReconnect: false,
+    staleTime: 1000 * 60 * 60 * 24 * 30,
+    gcTime: 1000 * 60 * 60 * 24 * 30,
     retry: (failureCount, error: Error) => {
       if (error.message.includes("Invalid API")) return false;
       return failureCount < 2;
     }
   });
-}

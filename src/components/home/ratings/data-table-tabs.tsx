@@ -1,11 +1,7 @@
+// Remove useSuspenseQuery import
 import React from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { BarChart2Icon } from "lucide-react";
-
-import {
-  topPlayersQueryOptions,
-  type SuccessTopPlayersResponse,
-} from "~/db/queries";
+import type { SuccessTopPlayersResponse } from "~/db/queries";
 
 import { DataTable } from "./data-table";
 import { columnsBlitz, columnsClassic, columnsRapid } from "./columns";
@@ -24,8 +20,11 @@ const tabMap: Record<TabValue, TabKey> = {
   classic: "topClassic",
 } as const;
 
-export function DataTableTabs() {
-  const { data: topPlayers } = useSuspenseQuery(topPlayersQueryOptions());
+interface DataTableTabsProps {
+  topPlayers: SuccessTopPlayersResponse;
+}
+
+export function DataTableTabs({ topPlayers }: DataTableTabsProps) {
   const [currentTab, setCurrentTab] = React.useState<TabValue>("rapid");
   const currentData = topPlayers[tabMap[currentTab]];
 

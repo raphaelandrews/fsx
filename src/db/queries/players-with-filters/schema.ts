@@ -1,6 +1,13 @@
 import { z } from "zod";
 import { locationTypeEnum, titleTypeEnum } from "~/db/schema";
 
+const PlayerQuerySchema = z.object({
+  group: z.enum(["U10", "U12", "U14", "U16", "U18"]).optional(),
+  sortBy: z.enum(["rapid", "blitz", "classic"]).optional(),
+  page: z.string().transform(Number).optional(),
+  perPage: z.string().transform(Number).optional(),
+});
+
 const TitleSchema = z.object({
   title: z.object({
     title: z.string().max(40),
@@ -15,13 +22,19 @@ const LocationSchema = z.object({
   flag: z.string().nullable(),
 });
 
+const ClubSchema = z.object({
+  id: z.number().int(),
+  name: z.string().max(80),
+  logo: z.string().nullable(),
+});
+
 const ChampionshipSchema = z.object({
   championship: z.object({
     name: z.string().max(80),
   }),
 });
 
-const TopPlayerSchema = z.object({
+const PlayerSchema = z.object({
   id: z.number().int().positive(),
   name: z.string().max(100),
   nickname: z.string().max(20).nullable(),
@@ -29,20 +42,29 @@ const TopPlayerSchema = z.object({
   rapid: z.number().int().min(0).default(1900),
   classic: z.number().int().min(0).default(1900),
   imageUrl: z.string().url().nullable(),
-  active: z.boolean().default(false),
-  verified: z.boolean().default(false),
+  birth: z.date().nullable(),
   sex: z.boolean().default(false),
+  club: ClubSchema.nullable(),
   location: LocationSchema.nullable(),
   defendingChampions: z.array(ChampionshipSchema).default([]),
   playersToTitles: z.array(TitleSchema).default([]),
 });
 
+const PaginationSchema = z.object({
+  currentPage: z.number().int().positive(),
+  totalPages: z.number().int().positive(),
+  totalItems: z.number().int().nonnegative(),
+  itemsPerPage: z.number().int().positive(),
+  hasNextPage: z.boolean(),
+  hasPreviousPage: z.boolean(),
+  sortBy: z.enum(["rapid", "blitz", "classic"]).default("rapid"),
+});
+
 const SuccessSchema = z.object({
   success: z.literal(true),
   data: z.object({
-    topClassic: z.array(TopPlayerSchema).nonempty(),
-    topRapid: z.array(TopPlayerSchema).nonempty(),
-    topBlitz: z.array(TopPlayerSchema).nonempty(),
+    players: z.array(PlayerSchema),
+    pagination: PaginationSchema,
   }),
 });
 
@@ -55,10 +77,11 @@ const ErrorSchema = z.object({
   }),
 });
 
-export const APITopPlayersResponseSchema = z.discriminatedUnion("success", [
+export const APIPlayersWithFiltersResponseSchema = z.discriminatedUnion("success", [
   SuccessSchema,
   ErrorSchema
 ]);
 
-export type TopPlayer = z.infer<typeof TopPlayerSchema>;
-export type APITopPlayersResponse = z.infer<typeof APITopPlayersResponseSchema>;
+export type Players = z.infer<typeof PlayerSchema>;
+export type PlayerQueryParams = z.infer<typeof PlayerQuerySchema>;
+export type APIPlayersWithFiltersResponse = z.infer<typeof APIPlayersWithFiltersResponseSchema>;

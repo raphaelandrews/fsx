@@ -5,12 +5,12 @@ import axios from "redaxios";
 import { APIPlayerByIdResponseSchema } from "./schema";
 import { API_BASE_URL } from "~/lib/utils";
 
-const fetchPlayerById = createServerFn({ method: 'GET' })
+export const fetchPlayerById = createServerFn({ method: 'GET' })
   .validator((id: number) => id)
   .handler(async ({ data: id }: { data: number }) => {
-    try {
-      console.info(`Fetching player ${id} from: ${API_BASE_URL}`);
+    console.info(`Fetching player ${id} from: ${API_BASE_URL}`);
 
+    try {
       const response = await axios.get(`${API_BASE_URL}/player/${id}`);
       const parsed = APIPlayerByIdResponseSchema.safeParse(response.data);
 
@@ -24,26 +24,24 @@ const fetchPlayerById = createServerFn({ method: 'GET' })
       }
 
       return parsed.data.data;
-    } catch (err: unknown) {
-      console.error(`Error fetching player ${id}:`, err);
-      const message = err instanceof Error ? err.message : `Failed to fetch player ${id}`;
-
+    } catch (error: unknown) {
+      console.error(`Error fetching player ${id}:`, error);
+      const message = error instanceof Error ? error.message : `Failed to fetch player ${id}`;
       throw new Error(message);
     }
   });
 
-export function playerByIdQueryOptions(id: number) {
-  return queryOptions({
+export const playerByIdQueryOptions = (id: number) =>
+  queryOptions({
     queryKey: ["player", { id }],
     queryFn: () => fetchPlayerById({ data: id }),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    staleTime: 1 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    refetchOnReconnect: false,
+    staleTime: 1000 * 60 * 60 * 24 * 30,
+    gcTime: 1000 * 60 * 60 * 24 * 30,
     retry: (failureCount, error: Error) => {
       if (error.message.includes("Invalid API")) return false;
       return failureCount < 2;
     }
   });
-}
-

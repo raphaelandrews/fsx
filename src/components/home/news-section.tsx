@@ -1,15 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
 import { FlameIcon, NewspaperIcon } from "lucide-react";
 
-import { freshNewsQueryOptions, type FreshNews } from "~/db/queries";
+import type { FreshNews } from "~/db/queries";
 import { HomeSection } from "~/components/home/home-section";
 import { NewsCard } from "~/components/news-card";
 
-export function NewsSection() {
-  const { data, isLoading } = useQuery(freshNewsQueryOptions());
+interface NewsSectionProps {
+  news: FreshNews[];
+}
 
-  const mainNews = data?.slice(0, 2);
-  const freshNews = data?.slice(2, 6);
+export function NewsSection({ news }: NewsSectionProps) {
+  const mainNews = news.slice(0, 2);
+  const freshNews = news.slice(2, 6);
 
   return (
     <>

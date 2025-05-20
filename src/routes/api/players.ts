@@ -23,9 +23,9 @@ import {
   locations,
   championships,
 } from '~/db/schema'
-import { APIPlayersResponseSchema } from '~/db/queries'
+import { APIPlayersWithFiltersResponseSchema } from '~/db/queries'
 
-const createResponse = (data: z.infer<typeof APIPlayersResponseSchema>, status = 200) =>
+const createResponse = (data: z.infer<typeof APIPlayersWithFiltersResponseSchema>, status = 200) =>
   json(data, { status });
 
 function getBirthDateRange(group: string): [Date, Date] | undefined {
@@ -284,7 +284,7 @@ export const APIRoute = createAPIFileRoute('/api/players')({
         hasPreviousPage: queryparams.page > 1,
       };
 
-      const parsed = APIPlayersResponseSchema.safeParse({
+      const parsed = APIPlayersWithFiltersResponseSchema.safeParse({
         success: true,
         data: { players: uniquePlayers, pagination },
       });

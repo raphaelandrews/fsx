@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   freshAnnouncementsQueryOptions,
   freshNewsQueryOptions,
+  topPlayersQueryOptions,
 } from "~/db/queries";
 
 import { AnnouncementsSection } from "~/components/home/announcements-section";
@@ -13,19 +14,24 @@ import { UpdateRegister } from "~/components/update-register";
 
 export const Route = createFileRoute("/_default/")({
   loader: async ({ context: { queryClient } }) => {
-    await queryClient.ensureQueryData(freshNewsQueryOptions());
-    await queryClient.ensureQueryData(freshAnnouncementsQueryOptions());
+    const [news, announcements, topPlayers] = await Promise.all([
+      queryClient.ensureQueryData(freshNewsQueryOptions()),
+      queryClient.ensureQueryData(freshAnnouncementsQueryOptions()),
+      queryClient.ensureQueryData(topPlayersQueryOptions()),
+    ]);
+    return { news, announcements, topPlayers };
   },
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const { news, announcements, topPlayers } = Route.useLoaderData();
   return (
     <>
       <UpdateRegister />
-      <NewsSection />
-      <DataTableTabs />
-      <AnnouncementsSection />
+      <NewsSection news={news} />
+      <DataTableTabs topPlayers={topPlayers} />
+      <AnnouncementsSection announcements={announcements} />
       <FAQ />
     </>
   );

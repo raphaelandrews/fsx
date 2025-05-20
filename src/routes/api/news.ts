@@ -5,9 +5,9 @@ import type { z } from "zod";
 
 import { db } from "~/db";
 import { posts } from "~/db/schema";
-import { APINewsResponseSchema } from "~/db/queries";
+import { APINewsByPageResponseSchema } from "~/db/queries";
 
-const createResponse = (data: z.infer<typeof APINewsResponseSchema>, status = 200) =>
+const createResponse = (data: z.infer<typeof APINewsByPageResponseSchema>, status = 200) =>
   json(data, { status });
 
 export const APIRoute = createAPIFileRoute("/api/news")({
@@ -54,7 +54,7 @@ export const APIRoute = createAPIFileRoute("/api/news")({
         createdAt: item.createdAt?.toISOString() ?? null,
       }));
 
-      const validation = APINewsResponseSchema.safeParse({ success: true, data: { news: formattedNews, pagination } });
+      const validation = APINewsByPageResponseSchema.safeParse({ success: true, data: { news: formattedNews, pagination } });
 
       if (!validation.success) {
         console.error("Validation failed:", validation.error);

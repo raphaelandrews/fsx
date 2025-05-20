@@ -2,16 +2,15 @@ import { queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import axios from "redaxios";
 
-import { APITopPlayersResponseSchema } from "./schema";
+import { APITopPlayersResponseSchema, type TopPlayer } from "./schema";
 import { API_BASE_URL } from "~/lib/utils";
 
-const fetchTopPlayersServerFn = createServerFn({ method: 'GET' })
-  .validator(() => undefined)
+export const fetchTopPlayers = createServerFn({ method: 'GET' })
   .handler(async () => {
     console.info("Fetching top players from:", API_BASE_URL);
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/top-players`);
+      const response = await axios.get<TopPlayer>(`${API_BASE_URL}/top-players`);
       const parsed = APITopPlayersResponseSchema.safeParse(response.data);
 
       if (!parsed.success) {
@@ -25,28 +24,25 @@ const fetchTopPlayersServerFn = createServerFn({ method: 'GET' })
 
       return parsed.data.data;
     } catch (error: unknown) {
-      console.error("Players fetch failed:", error);
-      const message = error instanceof Error ? error.message : "Failed to fetch players";
+      console.error('Error fetching players:', error);
+      const message = error instanceof Error ? error.message : 'Failed to fetch players';
       throw new Error(message);
     }
   });
 
-const fetchTopPlayers = async () => {
-  return fetchTopPlayersServerFn({});
-};
-
-export function topPlayersQueryOptions() {
-  return queryOptions({
+export const topPlayersQueryOptions = () =>
+  queryOptions({
     queryKey: ["top-players"],
-    queryFn: fetchTopPlayers,
+    queryFn: () => fetchTopPlayers(),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    staleTime: 1 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    refetchOnReconnect: false,
+    staleTime: 1000 * 60 * 60 * 24 * 30,
+    gcTime: 1000 * 60 * 60 * 24 * 30,
     retry: (failureCount, error: Error) => {
       if (error.message.includes("Invalid API")) return false;
       return failureCount < 2;
     }
   });
-}
+
 
