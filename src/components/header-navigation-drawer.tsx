@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React from "react";
 import { useLocation } from "@tanstack/react-router";
 import { CommandIcon } from "lucide-react";
 
@@ -11,11 +11,11 @@ import { Button } from "~/components/ui/button";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
 export const HeaderNavigationDrawer = () => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = React.useState(false);
   const location = useLocation();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  useEffect(() => {
+  React.useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
 

@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_default/titulados/")({
 });
 
 function RouteComponent() {
-  const { data, isLoading, error } = useQuery(titledPlayersQueryOptions());
+  const { data, error } = useQuery(titledPlayersQueryOptions());
 
   if (error) {
     return <ErrorComponent error={error} />;

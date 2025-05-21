@@ -138,36 +138,30 @@ function RouteComponent() {
         </div>
 
         <TabsContent value="classic">
-          <div className="mt-4">
-            <DataTable
-              data={players}
-              columns={columnsClassic}
-              totalPages={totalPages}
-              isLoading={isLoading}
-            />
-          </div>
+          <DataTable
+            data={players}
+            columns={columnsClassic}
+            totalPages={totalPages}
+            isLoading={isLoading}
+          />
         </TabsContent>
 
         <TabsContent value="rapid">
-          <div className="mt-4">
-            <DataTable
-              data={players}
-              columns={columnsRapid}
-              totalPages={totalPages}
-              isLoading={isLoading}
-            />
-          </div>
+          <DataTable
+            data={players}
+            columns={columnsRapid}
+            totalPages={totalPages}
+            isLoading={isLoading}
+          />
         </TabsContent>
 
         <TabsContent value="blitz">
-          <div className="mt-4">
-            <DataTable
-              data={players}
-              columns={columnsBlitz}
-              totalPages={totalPages}
-              isLoading={isLoading}
-            />
-          </div>
+          <DataTable
+            data={players}
+            columns={columnsBlitz}
+            totalPages={totalPages}
+            isLoading={isLoading}
+          />
         </TabsContent>
       </Tabs>
     </>

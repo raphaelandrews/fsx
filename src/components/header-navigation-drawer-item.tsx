@@ -12,6 +12,7 @@ export type Item = {
   label: string;
   href: string;
   icon: LucideIcon;
+  target: string;
   items?: Item[];
 };
 
@@ -23,6 +24,7 @@ export const HeaderNavigationDrawerItem = ({
   href,
   icon: Icon,
   label,
+  target,
   items,
 }: HeaderNavigationDrawerItemProps) => {
   const location = useLocation();
@@ -68,6 +70,7 @@ export const HeaderNavigationDrawerItem = ({
           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
       )}
       key={href}
+      target={target}
     >
       <Icon
         width={16}

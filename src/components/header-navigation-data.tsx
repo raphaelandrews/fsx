@@ -3,7 +3,6 @@ import {
   type LucideIcon,
   Sparkles,
   Book,
-  GraduationCap,
   Trophy,
   Users,
   Calendar,
@@ -13,7 +12,6 @@ import {
   Medal,
   Scroll,
   Bookmark,
-  Store,
 } from "lucide-react";
 
 type NavigationItem = {

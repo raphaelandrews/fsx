@@ -10,6 +10,8 @@ export * from "./posts-by-page/query-options";
 export * from "./posts-by-page/schema";
 export * from "./player-by-id/query-options";
 export * from "./player-by-id/schema";
+export * from "./players-roles/query-options";
+export * from "./players-roles/schema";
 export * from "./players-with-filters/query-options";
 export * from "./players-with-filters/schema";
 export * from "./search-players/query-options";
