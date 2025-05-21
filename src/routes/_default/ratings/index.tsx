@@ -5,13 +5,11 @@ import {
   useNavigate,
   useSearch,
 } from "@tanstack/react-router";
-import type { Row } from "@tanstack/react-table";
 import { BarChart2Icon, InfoIcon } from "lucide-react";
 import { z } from "zod";
 
 import {
   playersWithFiltersQueryOptions,
-  type Players,
   type PlayersFilters,
 } from "~/db/queries";
 import { siteConfig } from "~/utils/config";

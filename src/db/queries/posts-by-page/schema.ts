@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-const NewsItemSchema = z.object({
+const PostByPageSchema = z.object({
   id: z.string(),
   title: z.string().max(80),
-  image: z.string().nullable(),
-  slug: z.string().nullable(),
-  createdAt: z.string().nullable(),
+  image: z.string(),
+  slug: z.string(),
+  createdAt: z.string(),
 });
 
 const PaginationSchema = z.object({
@@ -20,7 +20,7 @@ const PaginationSchema = z.object({
 const SuccessSchema = z.object({
   success: z.literal(true),
   data: z.object({
-    news: z.array(NewsItemSchema),
+    posts: z.array(PostByPageSchema),
     pagination: PaginationSchema,
   }),
 });
@@ -34,10 +34,10 @@ const ErrorSchema = z.object({
   }),
 });
 
-export const APINewsByPageResponseSchema = z.discriminatedUnion("success", [
+export const APIPostsByPageResponseSchema = z.discriminatedUnion("success", [
   SuccessSchema,
   ErrorSchema
 ]);
 
-export type NewsItem = z.infer<typeof NewsItemSchema>;
-export type APINewsByPageResponse = z.infer<typeof APINewsByPageResponseSchema>;
+export type PostByPage = z.infer<typeof PostByPageSchema>;
+export type APIPostsByPageResponse = z.infer<typeof APIPostsByPageResponseSchema>;

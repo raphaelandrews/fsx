@@ -7,9 +7,9 @@ import { profiles } from "./index";
 export const posts = pgTable("posts", {
   id: text("id").primaryKey(),
   title: varchar("title", { length: 80 }).notNull(),
-  image: text("image"),
-  content: text("content"),
-  slug: text("slug").unique(),
+  image: text("image").notNull(),
+  content: text("content").notNull(),
+  slug: text("slug").unique().notNull(),
   authorId: text("author_id").notNull().references(() => profiles.id),
   published: boolean("published").default(false),
   createdAt: timestamp("created_at").defaultNow(),

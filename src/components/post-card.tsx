@@ -1,22 +1,21 @@
 import { Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import type { z } from "zod";
 
-import type { FreshNews } from "~/db/queries";
+import type { FreshPost } from "~/db/queries";
 import { Skeleton } from "~/components/ui/skeleton";
 
-type NewsCardProps = z.infer<typeof FreshNews> & {
+interface PostsCardProps extends FreshPost {
   main?: boolean;
   onMouseEnter?: () => void;
-};
+}
 
-export function NewsCard({
+export function PostCard({
   title,
   image,
   slug,
   main,
   onMouseEnter,
-}: NewsCardProps) {
+}: PostsCardProps) {
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -53,7 +52,7 @@ export function NewsCard({
       to="/noticias/$noticiaSlug"
       params={{ noticiaSlug: slug }}
       className="group"
-      aria-label={`Read news: ${title}`}
+      aria-label={`Read post: ${title}`}
       onMouseEnter={onMouseEnter}
     >
       <img

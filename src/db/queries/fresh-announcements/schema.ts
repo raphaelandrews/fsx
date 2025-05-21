@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const AnnouncementSchema = z.object({
+const FreshAnnouncementSchema = z.object({
   id: z.number().int().positive(),
   year: z.number().int(),
   number: z.string().max(3),
@@ -10,7 +10,7 @@ const AnnouncementSchema = z.object({
 export const APIFreshAnnouncementsResponseSchema = z.discriminatedUnion("success", [
   z.object({
     success: z.literal(true),
-    data: z.array(AnnouncementSchema),
+    data: z.array(FreshAnnouncementSchema),
   }),
   z.object({
     success: z.literal(false),
@@ -22,5 +22,5 @@ export const APIFreshAnnouncementsResponseSchema = z.discriminatedUnion("success
   }),
 ]);
 
-export type Announcement = z.infer<typeof AnnouncementSchema>;
+export type FreshAnnouncement = z.infer<typeof FreshAnnouncementSchema>;
 export type APIFreshAnnouncementsResponse = z.infer<typeof APIFreshAnnouncementsResponseSchema>;

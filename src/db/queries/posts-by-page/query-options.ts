@@ -2,18 +2,18 @@ import { queryOptions } from '@tanstack/react-query';
 import { createServerFn } from '@tanstack/react-start';
 import axios from 'redaxios';
 
-import { APINewsByPageResponseSchema } from './schema';
+import { APIPostsByPageResponseSchema } from './schema';
 import { API_BASE_URL } from "~/lib/utils";
 
-export const fetchNewsByPage = createServerFn({ method: 'GET' })
+export const fetchPostsByPage = createServerFn({ method: 'GET' })
   .validator((page: number) => page)
   .handler(async (ctx) => {
     const page = ctx.data;
-    console.info(`Fetching news page ${page} from ${API_BASE_URL}`);
+    console.info(`Fetching posts page ${page} from ${API_BASE_URL}`);
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/news?page=${page}`);
-      const parsed = APINewsByPageResponseSchema.safeParse(response.data);
+      const response = await axios.get(`${API_BASE_URL}/posts?page=${page}`);
+      const parsed = APIPostsByPageResponseSchema.safeParse(response.data);
 
       if (!parsed.success) {
         console.error("Validation error:", parsed.error);
@@ -26,16 +26,16 @@ export const fetchNewsByPage = createServerFn({ method: 'GET' })
 
       return parsed.data.data;
     } catch (error: unknown) {
-      console.error(`Error fetching news page ${page}:`, error);
-      const message = error instanceof Error ? error.message : `Failed to fetch news page ${page}`;
+      console.error(`Error fetching posts page ${page}:`, error);
+      const message = error instanceof Error ? error.message : `Failed to fetch posts page ${page}`;
       throw new Error(message);
     }
   });
 
-export const newsByPageQueryOptions = (page = 1) =>
+export const postsByPageQueryOptions = (page = 1) =>
   queryOptions({
-    queryKey: ['news', page] as const,
-    queryFn: () => fetchNewsByPage({ data: page }),
+    queryKey: ['posts', page] as const,
+    queryFn: () => fetchPostsByPage({ data: page }),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,

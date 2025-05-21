@@ -34,7 +34,7 @@ const ChampionshipSchema = z.object({
   }),
 });
 
-const PlayerSchema = z.object({
+const PlayerWithFiltersSchema = z.object({
   id: z.number().int().positive(),
   name: z.string().max(100),
   nickname: z.string().max(20).nullable(),
@@ -63,7 +63,7 @@ const PaginationSchema = z.object({
 const SuccessSchema = z.object({
   success: z.literal(true),
   data: z.object({
-    players: z.array(PlayerSchema),
+    players: z.array(PlayerWithFiltersSchema),
     pagination: PaginationSchema,
   }),
 });
@@ -82,6 +82,6 @@ export const APIPlayersWithFiltersResponseSchema = z.discriminatedUnion("success
   ErrorSchema
 ]);
 
-export type Players = z.infer<typeof PlayerSchema>;
+export type PlayerWithFilters = z.infer<typeof PlayerWithFiltersSchema>;
 export type PlayerQueryParams = z.infer<typeof PlayerQuerySchema>;
 export type APIPlayersWithFiltersResponse = z.infer<typeof APIPlayersWithFiltersResponseSchema>;

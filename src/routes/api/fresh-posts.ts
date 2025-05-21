@@ -5,14 +5,14 @@ import type { z } from 'zod';
 
 import { db } from '~/db';
 import { posts } from '~/db/schema';
-import { APIFreshNewsResponseSchema } from '~/db/queries';
+import { APIFreshPostsResponseSchema } from '~/db/queries';
 
-const createResponse = (data: z.infer<typeof APIFreshNewsResponseSchema>, status = 200) =>
+const createResponse = (data: z.infer<typeof APIFreshPostsResponseSchema>, status = 200) =>
   json(data, { status });
 
-export const APIRoute = createAPIFileRoute('/api/fresh-news')({
+export const APIRoute = createAPIFileRoute('/api/fresh-posts')({
   GET: async ({ request }) => {
-    console.info(`Fetching fresh news from ${request.url}`);
+    console.info(`Fetching fresh posts from ${request.url}`);
 
     try {
       const response = await db
@@ -31,11 +31,11 @@ export const APIRoute = createAPIFileRoute('/api/fresh-news')({
       if (!response) {
         return createResponse({
           success: false,
-          error: { code: 404, message: "Fresh news not found" },
+          error: { code: 404, message: "Fresh posts not found" },
         }, 404);
       }
 
-      const validation = APIFreshNewsResponseSchema.safeParse({
+      const validation = APIFreshPostsResponseSchema.safeParse({
         success: true,
         data: response
       });
@@ -57,7 +57,7 @@ export const APIRoute = createAPIFileRoute('/api/fresh-news')({
           success: false,
           error: {
             code: 404,
-            message: 'No fresh news found'
+            message: 'No fresh posts found'
           }
         }, 404);
       }

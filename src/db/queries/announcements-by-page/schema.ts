@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const AnnouncementItemSchema = z.object({
+const AnnouncementByPageSchema = z.object({
   id: z.number().int().positive(),
   year: z.number().int(),
   number: z.string().max(3),
@@ -19,7 +19,7 @@ const PaginationSchema = z.object({
 const SuccessSchema = z.object({
   success: z.literal(true),
   data: z.object({
-    announcements: z.array(AnnouncementItemSchema),
+    announcements: z.array(AnnouncementByPageSchema),
     pagination: PaginationSchema,
   }),
 });
@@ -38,5 +38,5 @@ export const APIAnnouncementsResponseSchema = z.discriminatedUnion("success", [
   ErrorSchema
 ]);
 
-export type AnnouncementItem = z.infer<typeof AnnouncementItemSchema>;
+export type AnnouncementByPage = z.infer<typeof AnnouncementByPageSchema>;
 export type APIAnnouncementsResponse = z.infer<typeof APIAnnouncementsResponseSchema>;

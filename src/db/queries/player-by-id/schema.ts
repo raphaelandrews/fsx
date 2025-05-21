@@ -51,7 +51,7 @@ const PlayerTournamentSchema = z.object({
     }),
 });
 
-const PlayerSchema = z.object({
+const PlayerByIdSchema = z.object({
     id: z.number().int().positive(),
     name: z.string().max(100),
     nickname: z.string().max(20).nullable(),
@@ -74,7 +74,7 @@ const PlayerSchema = z.object({
 
 const SuccessSchema = z.object({
     success: z.literal(true),
-    data: PlayerSchema,
+    data: PlayerByIdSchema,
 });
 
 const ErrorSchema = z.object({
@@ -91,5 +91,5 @@ export const APIPlayerByIdResponseSchema = z.discriminatedUnion("success", [
     ErrorSchema
 ]);
 
-export type Player = z.infer<typeof PlayerSchema>;
+export type PlayerById = z.infer<typeof PlayerByIdSchema>;
 export type APIPlayerByIdResponse = z.infer<typeof APIPlayerByIdResponseSchema>;

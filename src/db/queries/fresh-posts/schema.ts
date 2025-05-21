@@ -1,15 +1,15 @@
 import { z } from "zod";
 
-const FreshNewsItemSchema = z.object({
+const FreshPostSchema = z.object({
   id: z.string(),
   title: z.string().max(80),
-  image: z.string().nullable(),
-  slug: z.string().nullable(),
+  image: z.string(),
+  slug: z.string(),
 });
 
 const SuccessSchema = z.object({
   success: z.literal(true),
-  data: z.array(FreshNewsItemSchema),
+  data: z.array(FreshPostSchema),
 });
 
 const ErrorSchema = z.object({
@@ -21,10 +21,10 @@ const ErrorSchema = z.object({
   }),
 });
 
-export const APIFreshNewsResponseSchema = z.discriminatedUnion("success", [
+export const APIFreshPostsResponseSchema = z.discriminatedUnion("success", [
   SuccessSchema,
   ErrorSchema
 ]);
 
-export type FreshNews = z.infer<typeof FreshNewsItemSchema>;
-export type APIFreshNewsResponse = z.infer<typeof APIFreshNewsResponseSchema>;
+export type FreshPost = z.infer<typeof FreshPostSchema>;
+export type APIFreshPostsResponse = z.infer<typeof APIFreshPostsResponseSchema>;

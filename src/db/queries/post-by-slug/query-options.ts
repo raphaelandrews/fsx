@@ -2,16 +2,17 @@ import { queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import axios from "redaxios";
 
-import { APIFreshNewsResponseSchema } from "./schema";
+import { APIPostsBySlugResponseSchema } from "./schema";
 import { API_BASE_URL } from "~/lib/utils";
 
-export const fetchFreshNews = createServerFn({ method: 'GET' })
-  .handler(async () => {
-    console.info("Fetching fresh news from:", `${API_BASE_URL}/fresh-news`);
+export const fetchPostBySlug = createServerFn({ method: 'GET' })
+  .validator((slug: string) => slug)
+  .handler(async ({ data: slug }: { data: string }) => {
+    console.info(`Fetching post slug=${slug} from`, API_BASE_URL);
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/fresh-news`);
-      const parsed = APIFreshNewsResponseSchema.safeParse(response.data);
+      const response = await axios.get(`${API_BASE_URL}/posts/${slug}`);
+      const parsed = APIPostsBySlugResponseSchema.safeParse(response.data);
 
       if (!parsed.success) {
         console.error("Validation error:", parsed.error);
@@ -24,16 +25,16 @@ export const fetchFreshNews = createServerFn({ method: 'GET' })
 
       return parsed.data.data;
     } catch (error: unknown) {
-      console.error("Error fetching fresh news:", error);
-      const message = error instanceof Error ? error.message : "Failed to fetch fresh news";
+      console.error(`Error fetching post ${slug}:`, error);
+      const message = error instanceof Error ? error.message : `Failed to fetch post ${slug}`;
       throw new Error(message);
     }
   });
 
-export const freshNewsQueryOptions = () =>
+export const postBySlugQueryOptions = (slug: string) =>
   queryOptions({
-    queryKey: ["fresh-news"],
-    queryFn: () => fetchFreshNews(),
+    queryKey: ["post", slug],
+    queryFn: () => fetchPostBySlug({ data: slug }),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,

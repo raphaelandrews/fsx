@@ -2,7 +2,7 @@ import { ErrorComponent, createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarIcon, NewspaperIcon } from "lucide-react";
 
-import { newsBySlugQueryOptions } from "~/db/queries";
+import { postBySlugQueryOptions } from "~/db/queries";
 import { siteConfig } from "~/utils/config";
 
 import { MDX } from "~/components/mdx";
@@ -11,7 +11,7 @@ import { NotFound } from "~/components/not-found";
 export const Route = createFileRoute("/_params/noticias/$noticiaSlug")({
   loader: async ({ context: { queryClient }, params: { noticiaSlug } }) => {
     const data = await queryClient.ensureQueryData(
-      newsBySlugQueryOptions(noticiaSlug)
+      postBySlugQueryOptions(noticiaSlug)
     );
 
     return {
@@ -36,8 +36,8 @@ export const Route = createFileRoute("/_params/noticias/$noticiaSlug")({
 });
 
 function RouteComponent() {
-  const newsSlug = Route.useParams().noticiaSlug;
-  const { data, isLoading } = useQuery(newsBySlugQueryOptions(newsSlug));
+  const postsSlug = Route.useParams().noticiaSlug;
+  const { data, isLoading } = useQuery(postBySlugQueryOptions(postsSlug));
 
   if (isLoading) {
     return <div>Loading...</div>;

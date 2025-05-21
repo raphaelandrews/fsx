@@ -8,11 +8,11 @@ import {
 import { HomeIcon } from "lucide-react";
 import { z } from "zod";
 
-import { newsByPageQueryOptions } from "~/db/queries";
+import { postsByPageQueryOptions } from "~/db/queries";
 import { siteConfig } from "~/utils/config";
 
 import { Announcement } from "~/components/announcement";
-import { NewsCard } from "~/components/news-card";
+import { PostCard } from "~/components/post-card";
 import {
   PageHeader,
   PageHeaderDescription,
@@ -45,7 +45,7 @@ export const Route = createFileRoute("/_default/noticias/")({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: async ({ context: { queryClient }, deps: { page } }) => {
-    await queryClient.ensureQueryData(newsByPageQueryOptions(Number(page)));
+    await queryClient.ensureQueryData(postsByPageQueryOptions(Number(page)));
   },
   head: () => ({
     meta: [
@@ -67,9 +67,9 @@ function RouteComponent() {
   const currentPage = Number(page);
   const navigate = useNavigate();
 
-  const { data } = useQuery(newsByPageQueryOptions(currentPage));
+  const { data } = useQuery(postsByPageQueryOptions(currentPage));
 
-  const news = data?.news ?? [];
+  const posts = data?.posts ?? [];
   const totalPages = data?.pagination?.totalPages ?? 0;
 
   const paginate = (newPage: number) => {
@@ -130,13 +130,13 @@ function RouteComponent() {
 
       <section>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {news.map((newsItem) => (
-            <NewsCard
-              key={newsItem.id}
-              id={newsItem.id}
-              title={newsItem.title}
-              image={newsItem.image}
-              slug={newsItem.slug}
+          {posts.map((postsItem) => (
+            <PostCard
+              key={postsItem.id}
+              id={postsItem.id}
+              title={postsItem.title}
+              image={postsItem.image}
+              slug={postsItem.slug}
             />
           ))}
         </div>

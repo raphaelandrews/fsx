@@ -2,34 +2,34 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import {
   freshAnnouncementsQueryOptions,
-  freshNewsQueryOptions,
+  freshPostsQueryOptions,
   topPlayersQueryOptions,
 } from "~/db/queries";
 
 import { AnnouncementsSection } from "~/components/home/announcements-section";
 import { DataTableTabs } from "~/components/home/ratings/data-table-tabs";
 import { FAQ } from "~/components/home/faq";
-import { NewsSection } from "~/components/home/news-section";
+import { PostsSection } from "~/components/home/posts-section";
 import { UpdateRegister } from "~/components/update-register";
 
 export const Route = createFileRoute("/_default/")({
   loader: async ({ context: { queryClient } }) => {
-    const [news, announcements, topPlayers] = await Promise.all([
-      queryClient.ensureQueryData(freshNewsQueryOptions()),
+    const [posts, announcements, topPlayers] = await Promise.all([
+      queryClient.ensureQueryData(freshPostsQueryOptions()),
       queryClient.ensureQueryData(freshAnnouncementsQueryOptions()),
       queryClient.ensureQueryData(topPlayersQueryOptions()),
     ]);
-    return { news, announcements, topPlayers };
+    return { posts, announcements, topPlayers };
   },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { news, announcements, topPlayers } = Route.useLoaderData();
+  const { posts, announcements, topPlayers } = Route.useLoaderData();
   return (
     <>
       <UpdateRegister />
-      <NewsSection news={news} />
+      <PostsSection posts={posts} />
       <DataTableTabs topPlayers={topPlayers} />
       <AnnouncementsSection announcements={announcements} />
       <FAQ />

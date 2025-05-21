@@ -5,15 +5,15 @@ import type { z } from 'zod';
 
 import { db } from '~/db';
 import { posts } from '~/db/schema';
-import { APINewsBySlugResponseSchema } from '~/db/queries';
+import { APIPostsBySlugResponseSchema } from '~/db/queries';
 
-const createResponse = (data: z.infer<typeof APINewsBySlugResponseSchema>, status = 200) =>
+const createResponse = (data: z.infer<typeof APIPostsBySlugResponseSchema>, status = 200) =>
   json(data, { status });
 
-export const APIRoute = createAPIFileRoute('/api/news/$slug')({
+export const APIRoute = createAPIFileRoute('/api/posts/$slug')({
   GET: async ({ request, params }) => {
     const slug = params.slug;
-    console.info(`Fetching news ${slug} from ${request.url}`);
+    console.info(`Fetching post ${slug} from ${request.url}`);
 
     try {
       const response = await db.query.posts.findFirst({
@@ -31,13 +31,13 @@ export const APIRoute = createAPIFileRoute('/api/news/$slug')({
       if (!response) {
         return createResponse({
           success: false,
-          error: { code: 404, message: `News with slug \"${slug}\" not found` },
+          error: { code: 404, message: `Posts with slug \"${slug}\" not found` },
         }, 404);
       }
 
-      const formattedNews = { ...response, createdAt: response?.createdAt?.toISOString() };
+      const formattedPosts = { ...response, createdAt: response?.createdAt?.toISOString() };
 
-      const validation = APINewsBySlugResponseSchema.safeParse({ success: true, data: formattedNews });
+      const validation = APIPostsBySlugResponseSchema.safeParse({ success: true, data: formattedPosts });
 
       if (!validation.success) {
         console.error('Validation failed:', validation.error);

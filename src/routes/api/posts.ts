@@ -5,18 +5,18 @@ import type { z } from "zod";
 
 import { db } from "~/db";
 import { posts } from "~/db/schema";
-import { APINewsByPageResponseSchema } from "~/db/queries";
+import { APIPostsByPageResponseSchema } from "~/db/queries";
 
-const createResponse = (data: z.infer<typeof APINewsByPageResponseSchema>, status = 200) =>
+const createResponse = (data: z.infer<typeof APIPostsByPageResponseSchema>, status = 200) =>
   json(data, { status });
 
-export const APIRoute = createAPIFileRoute("/api/news")({
+export const APIRoute = createAPIFileRoute("/api/posts")({
   GET: async ({ request }) => {
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page")) || 1;
     const perPage = 12;
 
-    console.info(`Fetching news (${perPage} items, page ${page}) from ${url}`);
+    console.info(`Fetching posts (${perPage} items, page ${page}) from ${url}`);
 
     try {
       const response = await db.query.posts.findMany({
@@ -36,7 +36,7 @@ export const APIRoute = createAPIFileRoute("/api/news")({
       if (!response) {
         return createResponse({
           success: false,
-          error: { code: 404, message: `News page ${page} not found` },
+          error: { code: 404, message: `Posts page ${page} not found` },
         }, 404);
       }
 
@@ -49,12 +49,12 @@ export const APIRoute = createAPIFileRoute("/api/news")({
         hasNextPage: page < totalPages, hasPreviousPage: page > 1
       };
 
-      const formattedNews = response.map((item) => ({
+      const formattedPosts = response.map((item) => ({
         ...item,
         createdAt: item.createdAt?.toISOString() ?? null,
       }));
 
-      const validation = APINewsByPageResponseSchema.safeParse({ success: true, data: { news: formattedNews, pagination } });
+      const validation = APIPostsByPageResponseSchema.safeParse({ success: true, data: { posts: formattedPosts, pagination } });
 
       if (!validation.success) {
         console.error('Validation failed:', validation.error);
@@ -71,7 +71,7 @@ export const APIRoute = createAPIFileRoute("/api/news")({
       if (response.length === 0) {
         return createResponse({
           success: false,
-          error: { code: 404, message: 'No news found' }
+          error: { code: 404, message: 'No posts found' }
         }, 404);
       }
 
