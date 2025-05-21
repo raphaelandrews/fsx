@@ -55,15 +55,8 @@ const searchSchema = z
 export const Route = createFileRoute("/_default/ratings/")({
   validateSearch: (search) => searchSchema.parse(search),
   loaderDeps: ({ search }) => search,
-  loader: ({ context: { queryClient }, deps }) => {
-    const queryOptions = playersWithFiltersQueryOptions(deps);
-    const existingData = queryClient.getQueryData(queryOptions.queryKey);
-
-    if (!existingData) {
-      return queryClient.fetchQuery(queryOptions);
-    }
-
-    return existingData;
+  loader: async ({ context: { queryClient }, deps }) => {
+    await queryClient.ensureQueryData(playersWithFiltersQueryOptions(deps));
   },
   head: () => ({
     meta: [

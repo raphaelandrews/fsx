@@ -1,9 +1,24 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, ErrorComponent } from "@tanstack/react-router";
+import { BookmarkIcon } from "lucide-react";
 
+import { titledPlayersQueryOptions } from "~/db/queries";
 import { siteConfig } from "~/utils/config";
+
+import { columns } from "~/components/titulados/components/columns";
+import { DataTable } from "~/components/titulados/components/data-table";
+import { Announcement } from "~/components/announcement";
 import { NotFound } from "~/components/not-found";
+import {
+  PageHeader,
+  PageHeaderDescription,
+  PageHeaderHeading,
+} from "~/components/ui/page-header";
 
 export const Route = createFileRoute("/_default/titulados/")({
+  loader: async ({ context: { queryClient } }) => {
+    await queryClient.ensureQueryData(titledPlayersQueryOptions());
+  },
   head: () => ({
     meta: [
       {
@@ -20,5 +35,23 @@ export const Route = createFileRoute("/_default/titulados/")({
 });
 
 function RouteComponent() {
-  return <div>Hello "/titulados/"!</div>;
+  const { data, isLoading, error } = useQuery(titledPlayersQueryOptions());
+
+  if (error) {
+    return <ErrorComponent error={error} />;
+  }
+
+  return (
+    <>
+      <PageHeader>
+        <Announcement icon={BookmarkIcon} />
+        <PageHeaderHeading>Titulados</PageHeaderHeading>
+        <PageHeaderDescription>
+          Jogadores titulados da FSX.
+        </PageHeaderDescription>
+      </PageHeader>
+
+      <DataTable data={data ? data : []} columns={columns} />
+    </>
+  );
 }

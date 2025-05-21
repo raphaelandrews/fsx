@@ -370,7 +370,10 @@ const meshGradients = [
   },
 ];
 
-export const getGradient = () => {
-  const randomIndex = Math.floor(Math.random() * meshGradients.length);
-  return meshGradients[randomIndex];
+export const getGradient = (seed?: number) => {
+  const index = seed !== undefined 
+    ? Math.abs(seed) % meshGradients.length 
+    : Math.floor(Math.random() * meshGradients.length);
+    
+  return meshGradients[index];
 };

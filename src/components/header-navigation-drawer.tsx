@@ -20,7 +20,18 @@ export const HeaderNavigationDrawer = () => {
   }, [location.pathname]);
 
   return (
-    <ClientOnly>
+    <ClientOnly
+      fallback={
+        <Button
+          size="icon"
+          variant="ghost"
+          className="shrink-0 lg:hidden hover:bg-muted/50"
+          aria-label="Toggle navigation menu"
+        >
+          <CommandIcon className="size-4" />
+        </Button>
+      }
+    >
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>
           <Button

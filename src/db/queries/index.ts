@@ -14,5 +14,7 @@ export * from "./players-with-filters/query-options";
 export * from "./players-with-filters/schema";
 export * from "./search-players/query-options";
 export * from "./search-players/schema";
+export * from "./titled-players/query-options";
+export * from "./titled-players/schema";
 export * from "./top-players/query-options";
 export * from "./top-players/schema";

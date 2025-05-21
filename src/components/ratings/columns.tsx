@@ -1,14 +1,14 @@
 import { useSearch } from "@tanstack/react-router";
 import type { ColumnDef, Row } from "@tanstack/react-table";
 
-import type { Players } from "~/db/queries";
+import type { PlayerWithFilters } from "~/db/queries";
 
 import { locations } from "./data/data";
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { Actions } from "./actions";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
-function getRowIndex(row: Row<Players>) {
+function getRowIndex(row: Row<PlayerWithFilters>) {
   const search = useSearch({ from: "/_default/ratings/" });
   const currentPage = (search.page as number) || 1;
   const pageSize = (search.limit as number) || 20;
@@ -16,7 +16,7 @@ function getRowIndex(row: Row<Players>) {
   return pageSize * (currentPage - 1) + row.index + 1;
 }
 
-export const columnsClassic: ColumnDef<Players>[] = [
+export const columnsClassic: ColumnDef<PlayerWithFilters>[] = [
   {
     id: "index",
     header: ({ column }) => <DataTableColumnHeader column={column} title="#" />,
@@ -130,7 +130,7 @@ export const columnsClassic: ColumnDef<Players>[] = [
   },
 ];
 
-export const columnsRapid: ColumnDef<Players>[] = [
+export const columnsRapid: ColumnDef<PlayerWithFilters>[] = [
   {
     id: "index",
     header: ({ column }) => <DataTableColumnHeader column={column} title="#" />,
@@ -242,7 +242,7 @@ export const columnsRapid: ColumnDef<Players>[] = [
   },
 ];
 
-export const columnsBlitz: ColumnDef<Players>[] = [
+export const columnsBlitz: ColumnDef<PlayerWithFilters>[] = [
   {
     id: "index",
     header: ({ column }) => <DataTableColumnHeader column={column} title="#" />,
