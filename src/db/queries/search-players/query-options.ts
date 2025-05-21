@@ -9,8 +9,8 @@ export const fetchSearchPlayers = createServerFn({ method: 'GET' })
   .validator((searchQuery = "") => searchQuery)
   .handler(async (ctx) => {
     const searchQuery = ctx.data;
-    console.info("Fetching players from:", `${API_BASE_URL}/search-players`, "Query:", searchQuery);
-
+    console.info(`Searching players by query=${searchQuery}... @${API_BASE_URL}/search-players`);
+    
     try {
       const response = await axios.get<SearchPlayer>(`${API_BASE_URL}/search-players`, {
         params: { q: searchQuery }

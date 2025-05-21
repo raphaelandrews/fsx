@@ -13,7 +13,7 @@ const createResponse = (data: z.infer<typeof APIPlayerByIdResponseSchema>, statu
 export const APIRoute = createAPIFileRoute('/api/player/$id')({
   GET: async ({ request, params }) => {
     const id = Number(params.id);
-    console.info(`Fetching player ${id} from ${request.url}`);
+    console.info(`Fetching players by id=${id}... @`, request.url);
 
     try {
       const response = await db.query.players.findFirst({

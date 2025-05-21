@@ -26,7 +26,7 @@ import {
 
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
-import { DataTableSkeletonRow } from "./data-table-skeleton";
+import { DataTableRowSkeleton } from "./data-table-skeleton";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -100,7 +100,7 @@ export function DataTable<TData, TValue>({
         <TableBody>
           {isLoading ? (
             Array.from({ length: 10 }).map((_) => (
-              <DataTableSkeletonRow
+              <DataTableRowSkeleton
                 key={`skeleton-row-${Math.random().toString(36).slice(2, 11)}`}
               />
             ))

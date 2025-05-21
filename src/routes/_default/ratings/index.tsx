@@ -16,12 +16,12 @@ import { siteConfig } from "~/utils/config";
 
 import { Announcement } from "~/components/announcement";
 import { NotFound } from "~/components/not-found";
-import { DataTable } from "~/components/players-table/data-table";
+import { DataTable } from "~/components/ratings/data-table";
 import {
   columnsClassic,
   columnsRapid,
   columnsBlitz,
-} from "~/components/players-table/columns";
+} from "~/components/ratings/columns";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -35,7 +35,6 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { DataTableSkeletonRow } from "~/components/players-table/data-table-skeleton";
 
 const searchSchema = z
   .object({

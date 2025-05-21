@@ -8,7 +8,7 @@ import { API_BASE_URL } from "~/lib/utils";
 export const fetchPlayerById = createServerFn({ method: 'GET' })
   .validator((id: number) => id)
   .handler(async ({ data: id }: { data: number }) => {
-    console.info(`Fetching player ${id} from: ${API_BASE_URL}`);
+    console.info(`Fetching players by id=${id}... @${API_BASE_URL}/player/${id}`);
 
     try {
       const response = await axios.get(`${API_BASE_URL}/player/${id}`);

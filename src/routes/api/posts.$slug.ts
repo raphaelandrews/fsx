@@ -13,7 +13,7 @@ const createResponse = (data: z.infer<typeof APIPostsBySlugResponseSchema>, stat
 export const APIRoute = createAPIFileRoute('/api/posts/$slug')({
   GET: async ({ request, params }) => {
     const slug = params.slug;
-    console.info(`Fetching post ${slug} from ${request.url}`);
+    console.info(`Fetching posts by slug=${slug}... @`, request.url);
 
     try {
       const response = await db.query.posts.findFirst({

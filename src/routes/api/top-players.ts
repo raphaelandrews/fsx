@@ -12,7 +12,7 @@ const createResponse = (data: z.infer<typeof APITopPlayersResponseSchema>, statu
 
 export const APIRoute = createAPIFileRoute('/api/top-players')({
   GET: async ({ request }) => {
-    console.info(`Fetching top players from ${request.url}`);
+    console.info("Fetching top players ... @", request.url);
 
     try {
       const [classic, rapid, blitz] = await Promise.all([

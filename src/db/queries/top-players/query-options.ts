@@ -7,7 +7,7 @@ import { API_BASE_URL } from "~/lib/utils";
 
 export const fetchTopPlayers = createServerFn({ method: 'GET' })
   .handler(async () => {
-    console.info("Fetching top players from:", API_BASE_URL);
+    console.info(`Fetching top players ... @${API_BASE_URL}/top-players`);
 
     try {
       const response = await axios.get<TopPlayer>(`${API_BASE_URL}/top-players`);

@@ -16,7 +16,7 @@ export const APIRoute = createAPIFileRoute("/api/posts")({
     const page = Number(url.searchParams.get("page")) || 1;
     const perPage = 12;
 
-    console.info(`Fetching posts (${perPage} items, page ${page}) from ${url}`);
+    console.info(`Fetching posts by page=${page} with items=${perPage}... @`, request.url);
 
     try {
       const response = await db.query.posts.findMany({

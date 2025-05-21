@@ -9,7 +9,7 @@ export const fetchPostsByPage = createServerFn({ method: 'GET' })
   .validator((page: number) => page)
   .handler(async (ctx) => {
     const page = ctx.data;
-    console.info(`Fetching posts page ${page} from ${API_BASE_URL}`);
+    console.info(`Fetching posts by page=${page}... @${API_BASE_URL}/posts?page=${page}`);
 
     try {
       const response = await axios.get(`${API_BASE_URL}/posts?page=${page}`);

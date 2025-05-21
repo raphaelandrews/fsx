@@ -12,7 +12,7 @@ const createResponse = (data: z.infer<typeof APIFreshAnnouncementsResponseSchema
 
 export const APIRoute = createAPIFileRoute('/api/fresh-announcements')({
   GET: async ({ request }) => {
-    console.info(`Fetching fresh announcements from ${request.url}`);
+    console.info("Fetching fresh announcements... @", request.url);
 
     try {
       const response = await db

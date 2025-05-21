@@ -18,7 +18,6 @@ const TitleSchema = z.object({
 
 const LocationSchema = z.object({
   name: z.string().max(80),
-  type: z.enum(locationTypeEnum.enumValues),
   flag: z.string().nullable(),
 });
 
@@ -42,7 +41,7 @@ const PlayerWithFiltersSchema = z.object({
   rapid: z.number().int().min(0).default(1900),
   classic: z.number().int().min(0).default(1900),
   imageUrl: z.string().url().nullable(),
-  birth: z.date().nullable(),
+  birth: z.union([z.date(), z.string()]).nullable(),
   sex: z.boolean().default(false),
   club: ClubSchema.nullable(),
   location: LocationSchema.nullable(),

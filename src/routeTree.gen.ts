@@ -19,7 +19,6 @@ import { Route as DashboardSignupImport } from './routes/dashboard/signup'
 import { Route as DashboardLogoutImport } from './routes/dashboard/logout'
 import { Route as DashboardLoginImport } from './routes/dashboard/login'
 import { Route as DefaultTituladosIndexImport } from './routes/_default/titulados/index'
-import { Route as DefaultTestIndexImport } from './routes/_default/test/index'
 import { Route as DefaultSobreIndexImport } from './routes/_default/sobre/index'
 import { Route as DefaultRatingsIndexImport } from './routes/_default/ratings/index'
 import { Route as DefaultNoticiasIndexImport } from './routes/_default/noticias/index'
@@ -75,12 +74,6 @@ const DashboardLoginRoute = DashboardLoginImport.update({
 const DefaultTituladosIndexRoute = DefaultTituladosIndexImport.update({
   id: '/titulados/',
   path: '/titulados/',
-  getParentRoute: () => DefaultRouteRoute,
-} as any)
-
-const DefaultTestIndexRoute = DefaultTestIndexImport.update({
-  id: '/test/',
-  path: '/test/',
   getParentRoute: () => DefaultRouteRoute,
 } as any)
 
@@ -254,13 +247,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DefaultSobreIndexImport
       parentRoute: typeof DefaultRouteImport
     }
-    '/_default/test/': {
-      id: '/_default/test/'
-      path: '/test'
-      fullPath: '/test'
-      preLoaderRoute: typeof DefaultTestIndexImport
-      parentRoute: typeof DefaultRouteImport
-    }
     '/_default/titulados/': {
       id: '/_default/titulados/'
       path: '/titulados'
@@ -282,7 +268,6 @@ interface DefaultRouteRouteChildren {
   DefaultNoticiasIndexRoute: typeof DefaultNoticiasIndexRoute
   DefaultRatingsIndexRoute: typeof DefaultRatingsIndexRoute
   DefaultSobreIndexRoute: typeof DefaultSobreIndexRoute
-  DefaultTestIndexRoute: typeof DefaultTestIndexRoute
   DefaultTituladosIndexRoute: typeof DefaultTituladosIndexRoute
 }
 
@@ -295,7 +280,6 @@ const DefaultRouteRouteChildren: DefaultRouteRouteChildren = {
   DefaultNoticiasIndexRoute: DefaultNoticiasIndexRoute,
   DefaultRatingsIndexRoute: DefaultRatingsIndexRoute,
   DefaultSobreIndexRoute: DefaultSobreIndexRoute,
-  DefaultTestIndexRoute: DefaultTestIndexRoute,
   DefaultTituladosIndexRoute: DefaultTituladosIndexRoute,
 }
 
@@ -349,7 +333,6 @@ export interface FileRoutesByFullPath {
   '/noticias': typeof DefaultNoticiasIndexRoute
   '/ratings': typeof DefaultRatingsIndexRoute
   '/sobre': typeof DefaultSobreIndexRoute
-  '/test': typeof DefaultTestIndexRoute
   '/titulados': typeof DefaultTituladosIndexRoute
 }
 
@@ -369,7 +352,6 @@ export interface FileRoutesByTo {
   '/noticias': typeof DefaultNoticiasIndexRoute
   '/ratings': typeof DefaultRatingsIndexRoute
   '/sobre': typeof DefaultSobreIndexRoute
-  '/test': typeof DefaultTestIndexRoute
   '/titulados': typeof DefaultTituladosIndexRoute
 }
 
@@ -391,7 +373,6 @@ export interface FileRoutesById {
   '/_default/noticias/': typeof DefaultNoticiasIndexRoute
   '/_default/ratings/': typeof DefaultRatingsIndexRoute
   '/_default/sobre/': typeof DefaultSobreIndexRoute
-  '/_default/test/': typeof DefaultTestIndexRoute
   '/_default/titulados/': typeof DefaultTituladosIndexRoute
 }
 
@@ -413,7 +394,6 @@ export interface FileRouteTypes {
     | '/noticias'
     | '/ratings'
     | '/sobre'
-    | '/test'
     | '/titulados'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -432,7 +412,6 @@ export interface FileRouteTypes {
     | '/noticias'
     | '/ratings'
     | '/sobre'
-    | '/test'
     | '/titulados'
   id:
     | '__root__'
@@ -452,7 +431,6 @@ export interface FileRouteTypes {
     | '/_default/noticias/'
     | '/_default/ratings/'
     | '/_default/sobre/'
-    | '/_default/test/'
     | '/_default/titulados/'
   fileRoutesById: FileRoutesById
 }
@@ -495,7 +473,6 @@ export const routeTree = rootRoute
         "/_default/noticias/",
         "/_default/ratings/",
         "/_default/sobre/",
-        "/_default/test/",
         "/_default/titulados/"
       ]
     },
@@ -564,10 +541,6 @@ export const routeTree = rootRoute
     },
     "/_default/sobre/": {
       "filePath": "_default/sobre/index.tsx",
-      "parent": "/_default"
-    },
-    "/_default/test/": {
-      "filePath": "_default/test/index.tsx",
       "parent": "/_default"
     },
     "/_default/titulados/": {

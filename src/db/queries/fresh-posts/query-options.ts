@@ -7,8 +7,8 @@ import { API_BASE_URL } from "~/lib/utils";
 
 export const fetchFreshPosts = createServerFn({ method: 'GET' })
   .handler(async () => {
-    console.info("Fetching fresh posts from:", `${API_BASE_URL}/fresh-posts`);
-
+    console.info(`Fetching fresh posts... @${API_BASE_URL}/fresh-posts`);
+    
     try {
       const response = await axios.get(`${API_BASE_URL}/fresh-posts`);
       const parsed = APIFreshPostsResponseSchema.safeParse(response.data);

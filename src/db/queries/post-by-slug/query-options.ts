@@ -8,7 +8,7 @@ import { API_BASE_URL } from "~/lib/utils";
 export const fetchPostBySlug = createServerFn({ method: 'GET' })
   .validator((slug: string) => slug)
   .handler(async ({ data: slug }: { data: string }) => {
-    console.info(`Fetching post slug=${slug} from`, API_BASE_URL);
+    console.info(`Fetching posts by slug=${slug}... @${API_BASE_URL}/posts/${slug}`);
 
     try {
       const response = await axios.get(`${API_BASE_URL}/posts/${slug}`);

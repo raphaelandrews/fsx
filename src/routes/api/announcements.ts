@@ -16,7 +16,7 @@ export const APIRoute = createAPIFileRoute("/api/announcements")({
     const page = Number(url.searchParams.get("page")) || 1;
     const perPage = 12;
 
-    console.info(`Fetching announcements (${perPage} items, page ${page}) from ${url}`);
+    console.info(`Fetching announcements by page=${page} with items=${perPage}... @`, request.url);
 
     try {
       const response = await db.query.announcements.findMany({

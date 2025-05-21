@@ -30,7 +30,7 @@ const createResponse = (data: z.infer<typeof APIPlayersWithFiltersResponseSchema
 export const APIRoute = createAPIFileRoute('/api/players')({
   GET: async ({ request }) => {
     const url = new URL(request.url);
-    console.info(`Fetching players from ${url}`);
+    console.info("Fetching players with filters... @", request.url);
 
     const validSortFields = ['rapid', 'blitz', 'classic']
     const sortBy = validSortFields.includes(url.searchParams.get('sortBy') || '')

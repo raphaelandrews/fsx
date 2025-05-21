@@ -7,7 +7,7 @@ import { API_BASE_URL } from "~/lib/utils";
 
 export const fetchFreshAnnouncements = createServerFn({ method: 'GET' })
   .handler(async () => {
-    console.info("Fetching fresh announcements from:", API_BASE_URL);
+    console.info(`Fetching fresh announcements... @${API_BASE_URL}/fresh-announcements`);
 
     try {
       const response = await axios.get(`${API_BASE_URL}/fresh-announcements`);

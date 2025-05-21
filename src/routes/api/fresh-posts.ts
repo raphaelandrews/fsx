@@ -12,7 +12,7 @@ const createResponse = (data: z.infer<typeof APIFreshPostsResponseSchema>, statu
 
 export const APIRoute = createAPIFileRoute('/api/fresh-posts')({
   GET: async ({ request }) => {
-    console.info(`Fetching fresh posts from ${request.url}`);
+    console.info("Fetching fresh posts... @", request.url);
 
     try {
       const response = await db

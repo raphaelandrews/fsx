@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import React from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
   ErrorComponent,
@@ -12,6 +13,7 @@ import { postsByPageQueryOptions } from "~/db/queries";
 import { siteConfig } from "~/utils/config";
 
 import { Announcement } from "~/components/announcement";
+import { NotFound } from "~/components/not-found";
 import { PostCard } from "~/components/post-card";
 import {
   PageHeader,
@@ -29,7 +31,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "~/components/ui/pagination";
-import { NotFound } from "~/components/not-found";
+import { Skeleton } from "~/components/ui/skeleton";
 
 const searchSchema = z.object({
   page: z
@@ -63,14 +65,32 @@ export const Route = createFileRoute("/_default/noticias/")({
 });
 
 function RouteComponent() {
+  return (
+    <>
+      <PageHeader>
+        <Announcement icon={HomeIcon} />
+        <PageHeaderHeading>Notícias</PageHeaderHeading>
+        <PageHeaderDescription>
+          Acesse as informações mais recentes da FSX.
+        </PageHeaderDescription>
+      </PageHeader>
+
+      <React.Suspense fallback={<PostCardsSkeleton />}>
+        <PostCards />
+      </React.Suspense>
+    </>
+  );
+}
+
+function PostCards() {
   const { page } = useSearch({ from: "/_default/noticias/" });
   const currentPage = Number(page);
   const navigate = useNavigate();
 
-  const { data } = useQuery(postsByPageQueryOptions(currentPage));
+  const { data } = useSuspenseQuery(postsByPageQueryOptions(currentPage));
 
-  const posts = data?.posts ?? [];
-  const totalPages = data?.pagination?.totalPages ?? 0;
+  const posts = data.posts;
+  const totalPages = data.pagination.totalPages;
 
   const paginate = (newPage: number) => {
     navigate({
@@ -119,65 +139,70 @@ function RouteComponent() {
   };
 
   return (
-    <>
-      <PageHeader>
-        <Announcement icon={HomeIcon} />
-        <PageHeaderHeading>Notícias</PageHeaderHeading>
-        <PageHeaderDescription>
-          Acesse as informações mais recentes da FSX.
-        </PageHeaderDescription>
-      </PageHeader>
+    <section>
+      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {posts.map((postsItem) => (
+          <PostCard
+            key={postsItem.id}
+            id={postsItem.id}
+            title={postsItem.title}
+            image={postsItem.image}
+            slug={postsItem.slug}
+          />
+        ))}
+      </div>
 
-      <section>
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {posts.map((postsItem) => (
-            <PostCard
-              key={postsItem.id}
-              id={postsItem.id}
-              title={postsItem.title}
-              image={postsItem.image}
-              slug={postsItem.slug}
-            />
-          ))}
-        </div>
+      {data && totalPages > 1 && (
+        <Pagination className="mt-16">
+          <PaginationContent>
+            <PaginationItem disabled={currentPage === 1}>
+              <PaginationFirst onClick={() => paginate(1)} />
+            </PaginationItem>
+            <PaginationItem disabled={currentPage === 1}>
+              <PaginationPrevious onClick={() => paginate(currentPage - 1)} />
+            </PaginationItem>
 
-        {data && totalPages > 1 && (
-          <Pagination className="mt-16">
-            <PaginationContent>
-              <PaginationItem disabled={currentPage === 1}>
-                <PaginationFirst onClick={() => paginate(1)} />
-              </PaginationItem>
-              <PaginationItem disabled={currentPage === 1}>
-                <PaginationPrevious onClick={() => paginate(currentPage - 1)} />
-              </PaginationItem>
+            {getPageNumbers(totalPages).map((pageNum) =>
+              pageNum === "ellipsis-start" || pageNum === "ellipsis-end" ? (
+                <PaginationItem key={pageNum}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={`page-${pageNum}`}>
+                  <PaginationLink
+                    onClick={() => paginate(pageNum as number)}
+                    isActive={pageNum === currentPage}
+                  >
+                    {pageNum}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            )}
 
-              {getPageNumbers(totalPages).map((pageNum) =>
-                pageNum === "ellipsis-start" || pageNum === "ellipsis-end" ? (
-                  <PaginationItem key={pageNum}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={`page-${pageNum}`}>
-                    <PaginationLink
-                      onClick={() => paginate(pageNum as number)}
-                      isActive={pageNum === currentPage}
-                    >
-                      {pageNum}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              )}
-
-              <PaginationItem disabled={currentPage === totalPages}>
-                <PaginationNext onClick={() => paginate(currentPage + 1)} />
-              </PaginationItem>
-              <PaginationItem disabled={currentPage === totalPages}>
-                <PaginationLast onClick={() => paginate(totalPages)} />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
-      </section>
-    </>
+            <PaginationItem disabled={currentPage === totalPages}>
+              <PaginationNext onClick={() => paginate(currentPage + 1)} />
+            </PaginationItem>
+            <PaginationItem disabled={currentPage === totalPages}>
+              <PaginationLast onClick={() => paginate(totalPages)} />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
+    </section>
   );
+}
+
+function PostCardsSkeleton() {
+  const SKELETON_KEYS = React.useMemo(
+    () => Array.from({ length: 12 }, (_, i) => `skeleton-${i}`),
+    []
+  );
+
+  return SKELETON_KEYS.map((key) => (
+    <div key={key} className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <Skeleton className="w-full aspect-[2/1]" />
+      <Skeleton className="h-5 w-full mt-2 mb-1" />
+      <Skeleton className="h-5 w-4/5" />
+    </div>
+  ));
 }

@@ -16,7 +16,7 @@ export const APIRoute = createAPIFileRoute('/api/search-players')({
       const url = new URL(request.url);
       const query = url.searchParams.get('q') || '';
 
-      console.info(`Searching players from ${url} with query:`, query);
+      console.info(`Searching players by query=${query}... @`, request.url);
 
       const response = await db
         .select({

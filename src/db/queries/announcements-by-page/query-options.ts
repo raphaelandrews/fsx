@@ -9,7 +9,7 @@ export const fetchAnnouncementsByPage = createServerFn({ method: 'GET' })
   .validator((page: number) => page)
   .handler(async (ctx) => {
     const page = ctx.data;
-    console.info(`Fetching announcements page ${page} from ${API_BASE_URL}`);
+    console.info(`Fetching announcements by page=${page}... @${API_BASE_URL}/announcements?page=${page}`);
 
     try {
       const response = await axios.get(`${API_BASE_URL}/announcements?page=${page}`);

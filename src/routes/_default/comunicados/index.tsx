@@ -1,5 +1,5 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
   ErrorComponent,
@@ -67,21 +67,34 @@ export const Route = createFileRoute("/_default/comunicados/")({
 });
 
 function RouteComponent() {
+  return (
+    <>
+      <PageHeader>
+        <Announcement icon={MegaphoneIcon} />
+        <PageHeaderHeading>Comunicados</PageHeaderHeading>
+        <PageHeaderDescription>
+          Divulgação de titulações e outras informações.
+        </PageHeaderDescription>
+      </PageHeader>
+
+      <React.Suspense fallback={<AnnouncementLinkSkeleton />}>
+        <AnnouncementLinks />
+      </React.Suspense>
+    </>
+  );
+}
+
+function AnnouncementLinks() {
   const { page } = useSearch({ from: "/_default/comunicados/" });
   const currentPage = Number(page);
   const navigate = useNavigate();
 
-  const { data, isLoading, isFetching } = useQuery(
+  const { data } = useSuspenseQuery(
     announcementsByPageQueryOptions(currentPage)
   );
 
-  const announcements = data?.announcements ?? [];
-  const totalPages = data?.pagination?.totalPages ?? 0;
-
-  const SKELETON_KEYS = React.useMemo(
-    () => Array.from({ length: 12 }, (_, i) => `skeleton-${i}`),
-    []
-  );
+  const announcements = data.announcements;
+  const totalPages = data.pagination.totalPages;
 
   const paginate = (newPage: number) => {
     navigate({
@@ -133,69 +146,70 @@ function RouteComponent() {
   };
 
   return (
-    <>
-      <PageHeader>
-        <Announcement icon={MegaphoneIcon} />
-        <PageHeaderHeading>Comunicados</PageHeaderHeading>
-        <PageHeaderDescription>
-          Divulgação de titulações e outras informações.
-        </PageHeaderDescription>
-      </PageHeader>
+    <section>
+      <div className="grid md:grid-cols-2 gap-1.5">
+        {announcements.map((announcement) => (
+          <AnnouncementLink
+            key={announcement.number}
+            id={announcement.id}
+            year={announcement.year}
+            number={announcement.number}
+            content={announcement.content}
+          />
+        ))}
+      </div>
 
-      <section>
-        <div className="grid md:grid-cols-2 gap-1.5">
-          {isLoading || isFetching
-            ? SKELETON_KEYS.map((key) => (
-                <Skeleton key={key} className="w-full h-9 rounded-md" />
-              ))
-            : announcements.map((announcement) => (
-                <AnnouncementLink
-                  key={announcement.number}
-                  id={announcement.id}
-                  year={announcement.year}
-                  number={announcement.number}
-                  content={announcement.content}
-                />
-              ))}
-        </div>
+      {data && totalPages > 1 && (
+        <Pagination className="mt-16">
+          <PaginationContent>
+            <PaginationItem disabled={currentPage === 1}>
+              <PaginationFirst onClick={() => paginate(1)} />
+            </PaginationItem>
+            <PaginationItem disabled={currentPage === 1}>
+              <PaginationPrevious onClick={() => paginate(currentPage - 1)} />
+            </PaginationItem>
 
-        {data && totalPages > 1 && (
-          <Pagination className="mt-16">
-            <PaginationContent>
-              <PaginationItem disabled={currentPage === 1}>
-                <PaginationFirst onClick={() => paginate(1)} />
-              </PaginationItem>
-              <PaginationItem disabled={currentPage === 1}>
-                <PaginationPrevious onClick={() => paginate(currentPage - 1)} />
-              </PaginationItem>
+            {getPageNumbers(totalPages).map((pageNum) =>
+              pageNum === "ellipsis-start" || pageNum === "ellipsis-end" ? (
+                <PaginationItem key={pageNum}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={`page-${pageNum}`}>
+                  <PaginationLink
+                    onClick={() => paginate(pageNum as number)}
+                    isActive={pageNum === currentPage}
+                  >
+                    {pageNum}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            )}
 
-              {getPageNumbers(totalPages).map((pageNum) =>
-                pageNum === "ellipsis-start" || pageNum === "ellipsis-end" ? (
-                  <PaginationItem key={pageNum}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={`page-${pageNum}`}>
-                    <PaginationLink
-                      onClick={() => paginate(pageNum as number)}
-                      isActive={pageNum === currentPage}
-                    >
-                      {pageNum}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              )}
+            <PaginationItem disabled={currentPage === totalPages}>
+              <PaginationNext onClick={() => paginate(currentPage + 1)} />
+            </PaginationItem>
+            <PaginationItem disabled={currentPage === totalPages}>
+              <PaginationLast onClick={() => paginate(totalPages)} />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
+    </section>
+  );
+}
 
-              <PaginationItem disabled={currentPage === totalPages}>
-                <PaginationNext onClick={() => paginate(currentPage + 1)} />
-              </PaginationItem>
-              <PaginationItem disabled={currentPage === totalPages}>
-                <PaginationLast onClick={() => paginate(totalPages)} />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
-      </section>
-    </>
+function AnnouncementLinkSkeleton() {
+  const SKELETON_KEYS = React.useMemo(
+    () => Array.from({ length: 12 }, (_, i) => `skeleton-${i}`),
+    []
+  );
+
+  return (
+    <div className="grid md:grid-cols-2 gap-1.5">
+      {SKELETON_KEYS.map((key) => (
+        <Skeleton key={key} className="w-full h-9 rounded-md" />
+      ))}
+    </div>
   );
 }

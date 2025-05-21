@@ -31,14 +31,14 @@ export const fetchPlayersWithFilters = createServerFn({ method: 'GET' })
       locations = []
     } = filters;
 
-    console.info(`Fetching players page ${page} sorted by ${sortBy} with filters:`, filters);
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    params.append('sortBy', sortBy);
+
+    console.info(`Fetching players by page=${page}, sorted by sortBy=${sortBy} with filters=${filters}:... @${API_BASE_URL}/players?${params.toString()}`);
 
     try {
-      const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', limit.toString());
-      params.append('sortBy', sortBy);
-
       if (sex !== undefined && sex !== null) {
         params.append('sex', sex.toString());
       }
