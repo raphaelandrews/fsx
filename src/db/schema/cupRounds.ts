@@ -21,3 +21,6 @@ export const cupRoundsRelations = relations(cupRounds, ({ one, many }) => ({
 }));
 
 export const insertCupRoundSchema = createInsertSchema(cupRounds)
+
+export type CupRound = typeof cupRounds.$inferSelect
+export type NewCupRound = typeof cupRounds.$inferInsert

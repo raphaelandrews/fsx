@@ -22,7 +22,7 @@ import {
 } from "recharts";
 import { ExternalLink, VerifiedIcon } from "lucide-react";
 
-import { type PlayerById, playerByIdQueryOptions } from "~/db/queries";
+import { type Player, playerByIdQueryOptions } from "~/db/queries";
 import { formatDefendingChampions } from "~/lib/defending-champions";
 import { FormatPodium, FormatPodiumTitle } from "~/lib/format-podium";
 import { getGradient } from "~/lib/generate-gradients";
@@ -172,7 +172,7 @@ function PlayerComponent() {
   const { data: player } = useSuspenseQuery(
     playerByIdQueryOptions(Number(playerId))
   );
-  
+
   const useGradients = () => {
     const [headerGradient, avatarGradient] = React.useMemo(
       () => [getGradient(), getGradient()],
@@ -514,7 +514,7 @@ const RatingCard = ({ label, rating, link }: RatingCardProps) => {
   );
 };
 
-const extractChartData = (player: PlayerById, selectedRatingType: string) => {
+const extractChartData = (player: Player, selectedRatingType: string) => {
   return (
     player.playersToTournaments
       ?.filter(
@@ -531,10 +531,7 @@ const extractChartData = (player: PlayerById, selectedRatingType: string) => {
   );
 };
 
-const extractTotalRatingData = (
-  player: PlayerById,
-  selectedRatingType: string
-) => {
+const extractTotalRatingData = (player: Player, selectedRatingType: string) => {
   let previousTotalRating: number | null = null;
   return (
     player.playersToTournaments
@@ -598,7 +595,7 @@ export function VariationChart({
   player,
   selectedRatingType,
 }: {
-  player: PlayerById;
+  player: Player;
   selectedRatingType: string;
 }) {
   const chartData = extractChartData(player, selectedRatingType);
@@ -667,7 +664,7 @@ export function TotalRatingChart({
   player,
   selectedRatingType,
 }: {
-  player: PlayerById;
+  player: Player;
   selectedRatingType: string;
 }) {
   const chartData = extractTotalRatingData(player, selectedRatingType);

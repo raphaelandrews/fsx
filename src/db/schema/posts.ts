@@ -24,3 +24,6 @@ export const postsRelations = relations(posts, ({ one }) => ({
 }));
 
 export const insertPostSchema = createInsertSchema(posts)
+
+export type posts = typeof posts.$inferSelect
+export type Newposts = typeof posts.$inferInsert

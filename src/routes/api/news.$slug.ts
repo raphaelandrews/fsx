@@ -12,11 +12,11 @@ const createResponse = (data: z.infer<typeof APINewsBySlugResponseSchema>, statu
 
 export const APIRoute = createAPIFileRoute('/api/news/$slug')({
   GET: async ({ request, params }) => {
-    console.info(`Fetching news ${params.slug} from ${request.url}`);
     const slug = params.slug;
+    console.info(`Fetching news ${slug} from ${request.url}`);
 
     try {
-      const news = await db.query.posts.findFirst({
+      const response = await db.query.posts.findFirst({
         where: and(eq(posts.slug, slug), eq(posts.published, true)),
         columns: {
           id: true,
@@ -28,14 +28,14 @@ export const APIRoute = createAPIFileRoute('/api/news/$slug')({
         },
       });
 
-      if (!news) {
+      if (!response) {
         return createResponse({
           success: false,
           error: { code: 404, message: `News with slug \"${slug}\" not found` },
         }, 404);
       }
 
-      const formattedNews = { ...news, createdAt: news?.createdAt?.toISOString() };
+      const formattedNews = { ...response, createdAt: response?.createdAt?.toISOString() };
 
       const validation = APINewsBySlugResponseSchema.safeParse({ success: true, data: formattedNews });
 
@@ -43,7 +43,11 @@ export const APIRoute = createAPIFileRoute('/api/news/$slug')({
         console.error('Validation failed:', validation.error);
         return createResponse({
           success: false,
-          error: { code: 400, message: 'Invalid data format', details: validation.error.errors },
+          error: {
+            code: 400,
+            message: 'Invalid data format',
+            details: validation.error.errors,
+          }
         }, 400);
       }
 
@@ -57,13 +61,11 @@ export const APIRoute = createAPIFileRoute('/api/news/$slug')({
             : String(error)
           : undefined;
 
-      console.error('[ERROR]:', error);
+      if (process.env.NODE_ENV === 'development') console.error('[ERROR]:', error);
       return createResponse({
         success: false,
-        error: { code: 500, message: 'Internal server error', details },
+        error: { code: 500, message: 'Internal server error', details }
       }, 500);
     }
   },
-
-  OPTIONS: async () => new Response(null, { status: 204 }),
 });

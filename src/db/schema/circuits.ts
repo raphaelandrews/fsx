@@ -17,3 +17,6 @@ export const circuitsRelations = relations(circuits, ({ many }) => ({
 }));
 
 export const insertCircuitSchema = createInsertSchema(circuits)
+
+export type Circuit = typeof circuits.$inferSelect
+export type NewCircuit = typeof circuits.$inferInsert

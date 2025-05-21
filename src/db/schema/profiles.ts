@@ -17,3 +17,6 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
 }));
 
 export const insertProfileSchema = createInsertSchema(profiles)
+
+export type Profile = typeof profiles.$inferSelect
+export type NewProfile = typeof profiles.$inferInsert

@@ -5,11 +5,11 @@ import axios from "redaxios";
 import { APIFreshNewsResponseSchema } from "./schema";
 import { API_BASE_URL } from "~/lib/utils";
 
-const fetchFreshNews = createServerFn({ method: 'GET' })
+export const fetchFreshNews = createServerFn({ method: 'GET' })
   .handler(async () => {
-    try {
-      console.info("Fetching fresh news from:", `${API_BASE_URL}/fresh-news`);
+    console.info("Fetching fresh news from:", `${API_BASE_URL}/fresh-news`);
 
+    try {
       const response = await axios.get(`${API_BASE_URL}/fresh-news`);
       const parsed = APIFreshNewsResponseSchema.safeParse(response.data);
 
@@ -23,26 +23,24 @@ const fetchFreshNews = createServerFn({ method: 'GET' })
       }
 
       return parsed.data.data;
-
     } catch (error: unknown) {
-      console.error("Fresh news fetch failed:", error);
+      console.error("Error fetching fresh news:", error);
       const message = error instanceof Error ? error.message : "Failed to fetch fresh news";
-
       throw new Error(message);
     }
   });
 
-export function freshNewsQueryOptions() {
-  return queryOptions({
+export const freshNewsQueryOptions = () =>
+  queryOptions({
     queryKey: ["fresh-news"],
     queryFn: () => fetchFreshNews(),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    staleTime: 1 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    refetchOnReconnect: false,
+    staleTime: 1000 * 60 * 60 * 24 * 30,
+    gcTime: 1000 * 60 * 60 * 24 * 30,
     retry: (failureCount, error: Error) => {
       if (error.message.includes("Invalid API")) return false;
       return failureCount < 2;
     }
   });
-}

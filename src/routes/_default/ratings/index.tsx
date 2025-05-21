@@ -10,7 +10,7 @@ import { BarChart2Icon, InfoIcon } from "lucide-react";
 import { z } from "zod";
 
 import {
-  playersQueryOptions,
+  playersWithFiltersQueryOptions,
   type Players,
   type PlayersFilters,
 } from "~/db/queries";
@@ -59,7 +59,7 @@ export const Route = createFileRoute("/_default/ratings/")({
   validateSearch: (search) => searchSchema.parse(search),
   loaderDeps: ({ search }) => search,
   loader: ({ context: { queryClient }, deps }) => {
-    const queryOptions = playersQueryOptions(deps);
+    const queryOptions = playersWithFiltersQueryOptions(deps);
     const existingData = queryClient.getQueryData(queryOptions.queryKey);
 
     if (!existingData) {
@@ -116,7 +116,7 @@ function RouteComponent() {
     locations: search.locations,
   };
 
-  const { data, isLoading } = useQuery(playersQueryOptions(filters));
+  const { data, isLoading } = useQuery(playersWithFiltersQueryOptions(filters));
 
   const players = data?.players ?? [];
   const totalPages = data?.pagination?.totalPages ?? 0;

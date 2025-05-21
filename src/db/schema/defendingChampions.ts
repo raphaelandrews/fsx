@@ -30,3 +30,6 @@ export const defendingChampionsRelations = relations(defendingChampions, ({ one 
 }));
 
 export const insertDefendingChampionSchema = createInsertSchema(defendingChampions);
+
+export type DefendingChampion = typeof defendingChampions.$inferSelect
+export type NewDefendingChampion = typeof defendingChampions.$inferInsert

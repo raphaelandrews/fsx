@@ -18,3 +18,6 @@ export const locationsRelations = relations(locations, ({ many }) => ({
 }));
 
 export const insertLocationSchema = createInsertSchema(locations)
+
+export type Location = typeof locations.$inferSelect
+export type NewLocation = typeof locations.$inferInsert

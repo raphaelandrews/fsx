@@ -15,7 +15,7 @@ export const APIRoute = createAPIFileRoute('/api/fresh-news')({
     console.info(`Fetching fresh news from ${request.url}`);
 
     try {
-      const freshNews = await db
+      const response = await db
         .select({
           id: posts.id,
           title: posts.title,
@@ -28,7 +28,7 @@ export const APIRoute = createAPIFileRoute('/api/fresh-news')({
         .limit(6)
         .execute();
 
-      if (!freshNews) {
+      if (!response) {
         return createResponse({
           success: false,
           error: { code: 404, message: "Fresh news not found" },
@@ -37,7 +37,7 @@ export const APIRoute = createAPIFileRoute('/api/fresh-news')({
 
       const validation = APIFreshNewsResponseSchema.safeParse({
         success: true,
-        data: freshNews
+        data: response
       });
 
       if (!validation.success) {
@@ -47,7 +47,7 @@ export const APIRoute = createAPIFileRoute('/api/fresh-news')({
           error: {
             code: 400,
             message: 'Invalid data format',
-            details: validation.error.errors
+            details: validation.error.errors,
           }
         }, 400);
       }
@@ -72,21 +72,11 @@ export const APIRoute = createAPIFileRoute('/api/fresh-news')({
             : String(error)
           : undefined;
 
-      console.error("[ERROR]:", error);
+      if (process.env.NODE_ENV === 'development') console.error('[ERROR]:', error);
       return createResponse({
         success: false,
-        error: {
-          code: 500,
-          message: 'Internal server error',
-          details,
-        }
+        error: { code: 500, message: 'Internal server error', details }
       }, 500);
     }
   },
-
-  OPTIONS: async () => {
-    return new Response(null, {
-      status: 204
-    });
-  }
 });

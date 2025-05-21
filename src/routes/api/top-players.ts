@@ -7,36 +7,12 @@ import { db } from '~/db';
 import { players } from '~/db/schema';
 import { APITopPlayersResponseSchema } from '~/db/queries';
 
-const baseConfig = {
-  columns: {
-    id: true,
-    name: true,
-    nickname: true,
-    blitz: true,
-    rapid: true,
-    classic: true,
-    imageUrl: true,
-  },
-  with: {
-    location: { columns: { name: true, flag: true } },
-    defendingChampions: {
-      columns: {},
-      with: { championship: { columns: { name: true } } }
-    },
-    playersToTitles: {
-      columns: {},
-      with: { title: { columns: { title: true, shortTitle: true, type: true } } }
-    }
-  },
-  where: eq(players.active, true)
-};
-
 const createResponse = (data: z.infer<typeof APITopPlayersResponseSchema>, status = 200) =>
   json(data, { status });
 
 export const APIRoute = createAPIFileRoute('/api/top-players')({
   GET: async ({ request }) => {
-    console.info("Fetching top players", request.url);
+    console.info(`Fetching top players from ${request.url}`);
 
     try {
       const [classic, rapid, blitz] = await Promise.all([
@@ -80,7 +56,7 @@ export const APIRoute = createAPIFileRoute('/api/top-players')({
           error: {
             code: 400,
             message: 'Invalid data format',
-            details: validation.error.errors
+            details: validation.error.errors,
           }
         }, 400);
       }
@@ -88,10 +64,7 @@ export const APIRoute = createAPIFileRoute('/api/top-players')({
       if (validation.data.success && (validation.data.data.topClassic.length === 0 || validation.data.data.topRapid.length === 0 || validation.data.data.topBlitz.length === 0)) {
         return createResponse({
           success: false,
-          error: {
-            code: 404,
-            message: 'No top players players found'
-          }
+          error: { code: 404, message: 'No top players found' }
         }, 404);
       }
 
@@ -105,21 +78,35 @@ export const APIRoute = createAPIFileRoute('/api/top-players')({
             : String(error)
           : undefined;
 
-      console.error("[ERROR]:", error);
+      if (process.env.NODE_ENV === 'development') console.error('[ERROR]:', error);
       return createResponse({
         success: false,
-        error: {
-          code: 500,
-          message: 'Internal server error',
-          details,
-        }
+        error: { code: 500, message: 'Internal server error', details }
       }, 500);
     }
   },
-
-  OPTIONS: async () => {
-    return new Response(null, {
-      status: 204
-    });
-  }
 });
+
+const baseConfig = {
+  columns: {
+    id: true,
+    name: true,
+    nickname: true,
+    blitz: true,
+    rapid: true,
+    classic: true,
+    imageUrl: true,
+  },
+  with: {
+    location: { columns: { name: true, flag: true } },
+    defendingChampions: {
+      columns: {},
+      with: { championship: { columns: { name: true } } }
+    },
+    playersToTitles: {
+      columns: {},
+      with: { title: { columns: { title: true, shortTitle: true, type: true } } }
+    }
+  },
+  where: eq(players.active, true)
+};

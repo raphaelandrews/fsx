@@ -9,7 +9,6 @@ import {
   lte,
   or,
   count,
-  sql,
 } from 'drizzle-orm'
 import type z from "zod"
 
@@ -28,65 +27,10 @@ import { APIPlayersWithFiltersResponseSchema } from '~/db/queries'
 const createResponse = (data: z.infer<typeof APIPlayersWithFiltersResponseSchema>, status = 200) =>
   json(data, { status });
 
-function getBirthDateRange(group: string): [Date, Date] | undefined {
-  const today = new Date();
-  const year = today.getFullYear();
-
-  switch (group) {
-    case 'sub-8':
-      return [
-        new Date(year - 8, 0, 1),
-        new Date(year, 11, 31),
-      ];
-    case 'sub-10':
-      return [
-        new Date(year - 10, 0, 1),
-        new Date(year - 9, 11, 31),
-      ];
-    case 'sub-12':
-      return [
-        new Date(year - 12, 0, 1),
-        new Date(year - 11, 11, 31),
-      ];
-    case 'sub-14':
-      return [
-        new Date(year - 14, 0, 1),
-        new Date(year - 13, 11, 31),
-      ];
-    case 'sub-16':
-      return [
-        new Date(year - 16, 0, 1),
-        new Date(year - 15, 11, 31),
-      ];
-    case 'sub-18':
-      return [
-        new Date(year - 18, 0, 1),
-        new Date(year - 17, 11, 31),
-      ];
-    case 'master':
-      return [
-        new Date(year - 50, 0, 1),
-        new Date(year - 40, 11, 31),
-      ];
-    case 'veterano':
-      return [
-        new Date(year - 64, 0, 1),
-        new Date(year - 51, 11, 31),
-      ];
-    case 'senior':
-      return [
-        new Date(1900, 0, 1),
-        new Date(year - 65, 11, 31),
-      ];
-    default:
-      return undefined;
-  }
-}
-
 export const APIRoute = createAPIFileRoute('/api/players')({
   GET: async ({ request }) => {
-    console.info('Fetching players', request.url);
     const url = new URL(request.url);
+    console.info(`Fetching players from ${url}`);
 
     const validSortFields = ['rapid', 'blitz', 'classic']
     const sortBy = validSortFields.includes(url.searchParams.get('sortBy') || '')
@@ -284,19 +228,19 @@ export const APIRoute = createAPIFileRoute('/api/players')({
         hasPreviousPage: queryparams.page > 1,
       };
 
-      const parsed = APIPlayersWithFiltersResponseSchema.safeParse({
+      const validation = APIPlayersWithFiltersResponseSchema.safeParse({
         success: true,
         data: { players: uniquePlayers, pagination },
       });
 
-      if (!parsed.success) {
-        console.error('Validation failed', parsed.error);
+      if (!validation.success) {
+        console.error('Validation failed:', validation.error);
         return createResponse({
           success: false,
           error: {
             code: 400,
-            message: 'Invalid response format',
-            details: parsed.error.errors,
+            message: 'Invalid data format',
+            details: validation.error.errors,
           }
         }, 400);
       }
@@ -308,7 +252,7 @@ export const APIRoute = createAPIFileRoute('/api/players')({
         }, 404);
       }
 
-      return createResponse(parsed.data);
+      return createResponse(validation.data);
 
     } catch (error: unknown) {
       const details =
@@ -316,21 +260,68 @@ export const APIRoute = createAPIFileRoute('/api/players')({
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined
-      console.error(error)
-      return createResponse(
-        {
-          success: false,
-          error: {
-            code: 500,
-            message: 'Internal server error',
-            details,
-          },
-        },
-        500,
-      )
+          : undefined;
+
+      if (process.env.NODE_ENV === 'development') console.error('[ERROR]:', error);
+      return createResponse({
+        success: false,
+        error: { code: 500, message: 'Internal server error', details }
+      }, 500);
     }
   },
-
-  OPTIONS: async () => new Response(null, { status: 204 }),
 });
+
+function getBirthDateRange(group: string): [Date, Date] | undefined {
+  const today = new Date();
+  const year = today.getFullYear();
+
+  switch (group) {
+    case 'sub-8':
+      return [
+        new Date(year - 8, 0, 1),
+        new Date(year, 11, 31),
+      ];
+    case 'sub-10':
+      return [
+        new Date(year - 10, 0, 1),
+        new Date(year - 9, 11, 31),
+      ];
+    case 'sub-12':
+      return [
+        new Date(year - 12, 0, 1),
+        new Date(year - 11, 11, 31),
+      ];
+    case 'sub-14':
+      return [
+        new Date(year - 14, 0, 1),
+        new Date(year - 13, 11, 31),
+      ];
+    case 'sub-16':
+      return [
+        new Date(year - 16, 0, 1),
+        new Date(year - 15, 11, 31),
+      ];
+    case 'sub-18':
+      return [
+        new Date(year - 18, 0, 1),
+        new Date(year - 17, 11, 31),
+      ];
+    case 'master':
+      return [
+        new Date(year - 50, 0, 1),
+        new Date(year - 40, 11, 31),
+      ];
+    case 'veterano':
+      return [
+        new Date(year - 64, 0, 1),
+        new Date(year - 51, 11, 31),
+      ];
+    case 'senior':
+      return [
+        new Date(1900, 0, 1),
+        new Date(year - 65, 11, 31),
+      ];
+    default:
+      return undefined;
+  }
+}

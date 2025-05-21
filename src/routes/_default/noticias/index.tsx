@@ -8,7 +8,7 @@ import {
 import { HomeIcon } from "lucide-react";
 import { z } from "zod";
 
-import { newsQueryOptions } from "~/db/queries";
+import { newsByPageQueryOptions } from "~/db/queries";
 import { siteConfig } from "~/utils/config";
 
 import { Announcement } from "~/components/announcement";
@@ -45,7 +45,7 @@ export const Route = createFileRoute("/_default/noticias/")({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: async ({ context: { queryClient }, deps: { page } }) => {
-    await queryClient.ensureQueryData(newsQueryOptions(Number(page)));
+    await queryClient.ensureQueryData(newsByPageQueryOptions(Number(page)));
   },
   head: () => ({
     meta: [
@@ -67,7 +67,7 @@ function RouteComponent() {
   const currentPage = Number(page);
   const navigate = useNavigate();
 
-  const { data } = useQuery(newsQueryOptions(currentPage));
+  const { data } = useQuery(newsByPageQueryOptions(currentPage));
 
   const news = data?.news ?? [];
   const totalPages = data?.pagination?.totalPages ?? 0;

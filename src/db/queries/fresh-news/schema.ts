@@ -1,45 +1,30 @@
-import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
-import { posts } from "~/db/schema";
-
-const postsSchema = createSelectSchema(posts);
-
-export const FreshNews = postsSchema.pick({
-  id: true,
-  title: true,
-  image: true,
-  slug: true
-}).extend({
-  id: z.coerce.string(),
-  title: z.string()
-    .max(80, "Title cannot exceed 80 characters")
-    .transform(val => val.trim()),
-  slug: z.string()
-    .regex(/^[a-z0-9-]+$/, "Slug must be lowercase with hyphens"),
-  image: z.string()
-    .url("Invalid image URL format")
-    .optional()
+const FreshNewsItemSchema = z.object({
+  id: z.string(),
+  title: z.string().max(80),
+  image: z.string().nullable(),
+  slug: z.string().nullable(),
 });
 
-export const SuccessFreshNewsResponseSchema = z.object({
+const SuccessSchema = z.object({
   success: z.literal(true),
-  data: z.array(FreshNews)
+  data: z.array(FreshNewsItemSchema),
 });
 
-export const ErrorFreshNewsResponseSchema = z.object({
+const ErrorSchema = z.object({
   success: z.literal(false),
   error: z.object({
-    code: z.number(),
+    code: z.number().int(),
     message: z.string(),
-    details: z.any().optional(),
-  })
+    details: z.unknown().optional(),
+  }),
 });
 
 export const APIFreshNewsResponseSchema = z.discriminatedUnion("success", [
-  SuccessFreshNewsResponseSchema,
-  ErrorFreshNewsResponseSchema
+  SuccessSchema,
+  ErrorSchema
 ]);
 
-export type FreshNews = z.infer<typeof FreshNews>;
+export type FreshNews = z.infer<typeof FreshNewsItemSchema>;
 export type APIFreshNewsResponse = z.infer<typeof APIFreshNewsResponseSchema>;

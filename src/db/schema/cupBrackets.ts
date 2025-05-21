@@ -23,3 +23,6 @@ export const cupBracketsRelations = relations(cupBrackets, ({ one, many }) => ({
 }));
 
 export const insertCupBracketSchema = createInsertSchema(cupBrackets)
+
+export type CupBracket = typeof cupBrackets.$inferSelect
+export type NewCupBracket = typeof cupBrackets.$inferInsert

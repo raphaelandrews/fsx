@@ -18,3 +18,6 @@ export const rolesRelations = relations(roles, ({ many }) => ({
 }));
 
 export const insertRoleSchema = createInsertSchema(roles)
+
+export type Role = typeof roles.$inferSelect
+export type NewRole = typeof roles.$inferInsert

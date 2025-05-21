@@ -15,3 +15,6 @@ export const announcements = pgTable(
 );
 
 export const insertAnnouncementSchema = createInsertSchema(announcements);
+
+export type Announcement = typeof announcements.$inferSelect
+export type NewAnnouncement = typeof announcements.$inferInsert

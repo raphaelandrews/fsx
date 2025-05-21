@@ -12,14 +12,14 @@ const createResponse = (data: z.infer<typeof APINewsByPageResponseSchema>, statu
 
 export const APIRoute = createAPIFileRoute("/api/news")({
   GET: async ({ request }) => {
-    console.info(`Fetching news from ${request.url}`);
-
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page")) || 1;
     const perPage = 12;
 
+    console.info(`Fetching news (${perPage} items, page ${page}) from ${url}`);
+
     try {
-      const news = await db.query.posts.findMany({
+      const response = await db.query.posts.findMany({
         columns: {
           id: true,
           title: true,
@@ -33,7 +33,7 @@ export const APIRoute = createAPIFileRoute("/api/news")({
         offset: (page - 1) * perPage,
       });
 
-      if (!news) {
+      if (!response) {
         return createResponse({
           success: false,
           error: { code: 404, message: `News page ${page} not found` },
@@ -49,7 +49,7 @@ export const APIRoute = createAPIFileRoute("/api/news")({
         hasNextPage: page < totalPages, hasPreviousPage: page > 1
       };
 
-      const formattedNews = news.map((item) => ({
+      const formattedNews = response.map((item) => ({
         ...item,
         createdAt: item.createdAt?.toISOString() ?? null,
       }));
@@ -57,24 +57,39 @@ export const APIRoute = createAPIFileRoute("/api/news")({
       const validation = APINewsByPageResponseSchema.safeParse({ success: true, data: { news: formattedNews, pagination } });
 
       if (!validation.success) {
-        console.error("Validation failed:", validation.error);
-        return createResponse({ success: false, error: { code: 400, message: "Invalid data format", details: validation.error.errors } }, 400);
+        console.error('Validation failed:', validation.error);
+        return createResponse({
+          success: false,
+          error: {
+            code: 400,
+            message: 'Invalid data format',
+            details: validation.error.errors,
+          }
+        }, 400);
       }
 
-      if (news.length === 0) {
-        return createResponse({ success: false, error: { code: 404, message: "No news found" } }, 404);
+      if (response.length === 0) {
+        return createResponse({
+          success: false,
+          error: { code: 404, message: 'No news found' }
+        }, 404);
       }
 
       return createResponse(validation.data);
 
     } catch (error: unknown) {
-      const details = process.env.NODE_ENV === "development"
-        ? error instanceof Error ? error.message : String(error)
-        : undefined;
-      console.error(error);
-      return createResponse({ success: false, error: { code: 500, message: "Internal server error", details } }, 500);
+      const details =
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined;
+
+      if (process.env.NODE_ENV === 'development') console.error('[ERROR]:', error);
+      return createResponse({
+        success: false,
+        error: { code: 500, message: 'Internal server error', details }
+      }, 500);
     }
   },
-
-  OPTIONS: async () => new Response(null, { status: 204 }),
 });

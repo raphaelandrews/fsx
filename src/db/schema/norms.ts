@@ -14,3 +14,6 @@ export const playerNormsRelations = relations(norms, ({ many }) => ({
 }));
 
 export const insertNormSchema = createInsertSchema(norms)
+
+export type Norm = typeof norms.$inferSelect
+export type NewNorm = typeof norms.$inferInsert

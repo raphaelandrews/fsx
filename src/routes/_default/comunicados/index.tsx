@@ -9,7 +9,7 @@ import {
 import { MegaphoneIcon } from "lucide-react";
 import { z } from "zod";
 
-import { announcementsQueryOptions } from "~/db/queries";
+import { announcementsByPageQueryOptions } from "~/db/queries";
 import { siteConfig } from "~/utils/config";
 
 import { Announcement } from "~/components/announcement";
@@ -47,7 +47,9 @@ export const Route = createFileRoute("/_default/comunicados/")({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: async ({ context: { queryClient }, deps: { page } }) => {
-    await queryClient.ensureQueryData(announcementsQueryOptions(Number(page)));
+    await queryClient.ensureQueryData(
+      announcementsByPageQueryOptions(Number(page))
+    );
   },
   head: () => ({
     meta: [
@@ -70,7 +72,7 @@ function RouteComponent() {
   const navigate = useNavigate();
 
   const { data, isLoading, isFetching } = useQuery(
-    announcementsQueryOptions(currentPage)
+    announcementsByPageQueryOptions(currentPage)
   );
 
   const announcements = data?.announcements ?? [];
@@ -106,9 +108,24 @@ function RouteComponent() {
       if (currentPage <= 3) {
         pageNumbers = [1, 2, 3, 4, "ellipsis-end", totalPages];
       } else if (currentPage >= totalPages - 2) {
-        pageNumbers = [1, "ellipsis-start", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        pageNumbers = [
+          1,
+          "ellipsis-start",
+          totalPages - 3,
+          totalPages - 2,
+          totalPages - 1,
+          totalPages,
+        ];
       } else {
-        pageNumbers = [1, "ellipsis-start", currentPage - 1, currentPage, currentPage + 1, "ellipsis-end", totalPages];
+        pageNumbers = [
+          1,
+          "ellipsis-start",
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          "ellipsis-end",
+          totalPages,
+        ];
       }
     }
 

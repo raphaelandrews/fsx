@@ -12,11 +12,11 @@ const createResponse = (data: z.infer<typeof APIPlayerByIdResponseSchema>, statu
 
 export const APIRoute = createAPIFileRoute('/api/player/$id')({
   GET: async ({ request, params }) => {
-    console.info(`Fetching player ${params.id} from ${request.url}`);
     const id = Number(params.id);
+    console.info(`Fetching player ${id} from ${request.url}`);
 
     try {
-      const player = await db.query.players.findFirst({
+      const response = await db.query.players.findFirst({
         where: eq(players.id, id),
         columns: {
           id: true,
@@ -109,28 +109,32 @@ export const APIRoute = createAPIFileRoute('/api/player/$id')({
         },
       })
 
-      if (!player) {
+      if (!response) {
         return createResponse({
           success: false,
           error: { code: 404, message: `Player ${id} not found` },
         }, 404);
       }
 
-      if (player.tournamentPodiums) {
-        player.tournamentPodiums.sort((a, b) => {
+      if (response.tournamentPodiums) {
+        response.tournamentPodiums.sort((a, b) => {
           const dateA = a.tournament?.date ? new Date(a.tournament.date).getTime() : 0;
           const dateB = b.tournament?.date ? new Date(b.tournament.date).getTime() : 0;
           return dateA - dateB;
         });
       }
 
-      const validation = APIPlayerByIdResponseSchema.safeParse({ success: true, data: player });
+      const validation = APIPlayerByIdResponseSchema.safeParse({ success: true, data: response });
 
       if (!validation.success) {
         console.error('Validation failed:', validation.error);
         return createResponse({
           success: false,
-          error: { code: 400, message: 'Invalid data format', details: validation.error.errors },
+          error: {
+            code: 400,
+            message: 'Invalid data format',
+            details: validation.error.errors,
+          }
         }, 400);
       }
 
@@ -144,17 +148,11 @@ export const APIRoute = createAPIFileRoute('/api/player/$id')({
             : String(error)
           : undefined;
 
-      console.error('[ERROR]:', error);
+      if (process.env.NODE_ENV === 'development') console.error('[ERROR]:', error);
       return createResponse({
         success: false,
-        error: {
-          code: 500,
-          message: 'Internal server error',
-          details,
-        }
+        error: { code: 500, message: 'Internal server error', details }
       }, 500);
     }
   },
-
-  OPTIONS: async () => new Response(null, { status: 204 }),
 });

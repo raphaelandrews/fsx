@@ -15,7 +15,7 @@ export const APIRoute = createAPIFileRoute('/api/fresh-announcements')({
     console.info(`Fetching fresh announcements from ${request.url}`);
 
     try {
-      const freshAnnouncements = await db
+      const response = await db
         .select({
           id: announcements.id,
           year: announcements.year,
@@ -27,14 +27,14 @@ export const APIRoute = createAPIFileRoute('/api/fresh-announcements')({
         .limit(8)
         .execute();
 
-      if (!freshAnnouncements) {
+      if (!response) {
         return createResponse({
           success: false,
           error: { code: 404, message: "Fresh announcements not found" },
         }, 404);
       }
 
-      const validation = APIFreshAnnouncementsResponseSchema.safeParse({ success: true, data: freshAnnouncements });
+      const validation = APIFreshAnnouncementsResponseSchema.safeParse({ success: true, data: response });
 
       if (!validation.success) {
         console.error('Validation failed:', validation.error);
@@ -65,13 +65,11 @@ export const APIRoute = createAPIFileRoute('/api/fresh-announcements')({
             : String(error)
           : undefined;
 
-      console.error('[ERROR]:', error);
+      if (process.env.NODE_ENV === 'development') console.error('[ERROR]:', error);
       return createResponse({
         success: false,
         error: { code: 500, message: 'Internal server error', details }
       }, 500);
     }
   },
-
-  OPTIONS: async () => new Response(null, { status: 204 }),
 });

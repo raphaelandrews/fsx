@@ -3,7 +3,7 @@ import { createServerFn, useServerFn } from "@tanstack/react-start";
 
 import { useMutation } from "~/hooks/use-mutation";
 import { getSupabaseServerClient } from "~/utils/supabase";
-import { Auth } from "~/components/auth";
+import { Auth } from "~/components/dashboard/auth";
 
 export const signupFn = createServerFn({ method: "POST" })
   .validator(
@@ -27,7 +27,7 @@ export const signupFn = createServerFn({ method: "POST" })
     });
   });
 
-export const Route = createFileRoute("/signup")({
+export const Route = createFileRoute("/dashboard/signup")({
   component: SignupComp,
 });
 

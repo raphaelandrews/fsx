@@ -30,3 +30,6 @@ export const playersToRolesRelations = relations(playersToRoles, ({ one }) => ({
 }));
 
 export const insertPlayerToRoleSchema = createInsertSchema(playersToRoles);
+
+export type PlayerToRole = typeof playersToRoles.$inferSelect
+export type NewPlayerToRole = typeof playersToRoles.$inferInsert

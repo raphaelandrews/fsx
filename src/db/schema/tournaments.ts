@@ -23,3 +23,6 @@ export const tournamentsRelations = relations(tournaments, ({ one, many }) => ({
 }));
 
 export const insertTournamentSchema = createInsertSchema(tournaments)
+
+export type Tournament = typeof tournaments.$inferSelect
+export type NewTournament = typeof tournaments.$inferInsert

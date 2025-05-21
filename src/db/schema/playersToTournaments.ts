@@ -35,3 +35,6 @@ export const playersToTournamentsRelations = relations(playersToTournaments, ({ 
 }));
 
 export const insertPlayerToTournamentSchema = createInsertSchema(playersToTournaments)
+
+export type PlayerToTournament = typeof playersToTournaments.$inferSelect
+export type NewPlayerToTournament = typeof playersToTournaments.$inferInsert

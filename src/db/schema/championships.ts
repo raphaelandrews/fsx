@@ -16,3 +16,6 @@ export const championshipsRelations = relations(championships, ({ many }) => ({
 }));
 
 export const insertChampionshipsSchema = createInsertSchema(championships)
+
+export type Championship = typeof championships.$inferSelect
+export type NewChampionship = typeof championships.$inferInsert

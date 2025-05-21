@@ -16,17 +16,9 @@ export const APIRoute = createAPIFileRoute('/api/search-players')({
       const url = new URL(request.url);
       const query = url.searchParams.get('q') || '';
 
-      console.info("Searching players with query:", query);
+      console.info(`Searching players from ${url} with query:`, query);
 
-      function normalizeText(text: string): string {
-        return text
-          .normalize('NFD')
-          // biome-ignore lint/suspicious/noMisleadingCharacterClass: <explanation>
-          .replace(/[\u0300-\u036f]/g, '')
-          .toLowerCase();
-      }
-
-      const searchQuery = await db
+      const response = await db
         .select({
           id: players.id,
           name: players.name
@@ -41,7 +33,7 @@ export const APIRoute = createAPIFileRoute('/api/search-players')({
         .limit(10)
         .execute();
 
-      if (!searchQuery) {
+      if (!response) {
         return createResponse({
           success: false,
           error: { code: 404, message: "Players not found" },
@@ -50,7 +42,7 @@ export const APIRoute = createAPIFileRoute('/api/search-players')({
 
       const validation = APISearchPlayersResponseSchema.safeParse({
         success: true,
-        data: searchQuery
+        data: response
       });
 
       if (!validation.success) {
@@ -60,7 +52,7 @@ export const APIRoute = createAPIFileRoute('/api/search-players')({
           error: {
             code: 400,
             message: 'Invalid data format',
-            details: validation.error.errors
+            details: validation.error.errors,
           }
         }, 400);
       }
@@ -82,21 +74,19 @@ export const APIRoute = createAPIFileRoute('/api/search-players')({
             : String(error)
           : undefined;
 
-      console.error("[ERROR]:", error);
+      if (process.env.NODE_ENV === 'development') console.error('[ERROR]:', error);
       return createResponse({
         success: false,
-        error: {
-          code: 500,
-          message: 'Internal server error',
-          details,
-        }
+        error: { code: 500, message: 'Internal server error', details }
       }, 500);
     }
   },
-
-  OPTIONS: async () => {
-    return new Response(null, {
-      status: 204
-    });
-  }
 });
+
+function normalizeText(text: string): string {
+  return text
+    .normalize('NFD')
+    // biome-ignore lint/suspicious/noMisleadingCharacterClass: <explanation>
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}

@@ -27,3 +27,6 @@ export const cupGameRelations = relations(cupGames, ({ one }) => ({
 }));
 
 export const insertCupGameSchema = createInsertSchema(cupGames)
+
+export type CupGame = typeof cupGames.$inferSelect
+export type NewCupGame = typeof cupGames.$inferInsert
