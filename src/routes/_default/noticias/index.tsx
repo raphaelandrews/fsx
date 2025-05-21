@@ -1,5 +1,5 @@
 import React from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
   ErrorComponent,
@@ -75,9 +75,7 @@ function RouteComponent() {
         </PageHeaderDescription>
       </PageHeader>
 
-      <React.Suspense fallback={<PostCardsSkeleton />}>
-        <PostCards />
-      </React.Suspense>
+      <PostCards />
     </>
   );
 }
@@ -87,10 +85,10 @@ function PostCards() {
   const currentPage = Number(page);
   const navigate = useNavigate();
 
-  const { data } = useSuspenseQuery(postsByPageQueryOptions(currentPage));
+  const { data, isLoading } = useQuery(postsByPageQueryOptions(currentPage));
 
-  const posts = data.posts;
-  const totalPages = data.pagination.totalPages;
+  const posts = data?.posts ?? [];
+  const totalPages = data?.pagination?.totalPages ?? 0;
 
   const paginate = (newPage: number) => {
     navigate({
@@ -137,6 +135,10 @@ function PostCards() {
 
     return pageNumbers;
   };
+
+  if (isLoading) {
+    return <PostCardsSkeleton />;
+  }
 
   return (
     <section>
@@ -198,11 +200,15 @@ function PostCardsSkeleton() {
     []
   );
 
-  return SKELETON_KEYS.map((key) => (
-    <div key={key} className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-      <Skeleton className="w-full aspect-[2/1]" />
-      <Skeleton className="h-5 w-full mt-2 mb-1" />
-      <Skeleton className="h-5 w-4/5" />
+  return (
+    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {SKELETON_KEYS.map((key) => (
+        <div key={key}>
+          <Skeleton className="w-full aspect-[2/1]" />
+          <Skeleton className="h-5 w-full mt-2 mb-1" />
+          <Skeleton className="h-5 w-4/5" />
+        </div>
+      ))}
     </div>
-  ));
+  );
 }

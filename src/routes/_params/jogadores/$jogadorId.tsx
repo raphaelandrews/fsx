@@ -1,14 +1,6 @@
 import React from "react";
-import {
-  useQueryErrorResetBoundary,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
-import {
-  createFileRoute,
-  ErrorComponent,
-  type ErrorComponentProps,
-  useRouter,
-} from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, ErrorComponent } from "@tanstack/react-router";
 import {
   Bar,
   BarChart,
@@ -22,7 +14,7 @@ import {
 } from "recharts";
 import { ExternalLink, VerifiedIcon } from "lucide-react";
 
-import { type Player, playerByIdQueryOptions } from "~/db/queries";
+import { type PlayerById, playerByIdQueryOptions } from "~/db/queries";
 import { formatDefendingChampions } from "~/lib/defending-champions";
 import { FormatPodium, FormatPodiumTitle } from "~/lib/format-podium";
 import { getGradient } from "~/lib/generate-gradients";
@@ -31,6 +23,7 @@ import { columns } from "~/components/modals/columns";
 import { DataTable } from "~/components/modals/data-table";
 
 import { ClientOnly } from "~/components/client-only";
+import { NotFound } from "~/components/not-found";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { buttonVariants } from "~/components/ui/button";
@@ -62,36 +55,10 @@ export const Route = createFileRoute("/_params/jogadores/$jogadorId")({
       playerByIdQueryOptions(Number(jogadorId))
     );
   },
-  errorComponent: PlayerErrorComponent,
-  component: PlayerComponent,
+  errorComponent: ErrorComponent,
+  notFoundComponent: () => <NotFound />,
+  component: RouteComponent,
 });
-
-export function PlayerErrorComponent({ error }: ErrorComponentProps) {
-  const router = useRouter();
-  if (error) {
-    return <div>{error.message}</div>;
-  }
-
-  const queryErrorResetBoundary = useQueryErrorResetBoundary();
-
-  React.useEffect(() => {
-    queryErrorResetBoundary.reset();
-  }, [queryErrorResetBoundary]);
-
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={() => {
-          router.invalidate();
-        }}
-      >
-        retry
-      </button>
-      <ErrorComponent error={error} />
-    </div>
-  );
-}
 
 function PlayerSkeleton() {
   return (
@@ -167,11 +134,15 @@ function PlayerSkeleton() {
   );
 }
 
-function PlayerComponent() {
+function RouteComponent() {
   const playerId = Route.useParams().jogadorId;
-  const { data: player } = useSuspenseQuery(
+  const { data, isLoading } = useQuery(
     playerByIdQueryOptions(Number(playerId))
   );
+
+  if (isLoading || !data) {
+    return <PlayerSkeleton />;
+  }
 
   const useGradients = () => {
     const [headerGradient, avatarGradient] = React.useMemo(
@@ -183,38 +154,34 @@ function PlayerComponent() {
   const { headerGradient, avatarGradient } = useGradients();
 
   const orderPodiums = React.useMemo(() => {
-    return player?.tournamentPodiums
-      ? [...player.tournamentPodiums].reverse()
-      : [];
-  }, [player?.tournamentPodiums]);
+    return data.tournamentPodiums ? [...data.tournamentPodiums].reverse() : [];
+  }, [data.tournamentPodiums]);
 
   const tournaments = React.useMemo(() => {
-    return player?.playersToTournaments
-      ? [...player.playersToTournaments].reverse()
+    return data.playersToTournaments
+      ? [...data.playersToTournaments].reverse()
       : [];
-  }, [player?.playersToTournaments]);
+  }, [data.playersToTournaments]);
 
   const managementRole = React.useMemo(() => {
-    return player?.playersToRoles?.find(
-      (role) => role.role.type === "management"
-    );
-  }, [player?.playersToRoles]);
+    return data.playersToRoles?.find((role) => role.role.type === "management");
+  }, [data.playersToRoles]);
 
   const refereeRole = React.useMemo(() => {
-    return player?.playersToRoles?.find((role) => role.role.type === "referee");
-  }, [player?.playersToRoles]);
+    return data.playersToRoles?.find((role) => role.role.type === "referee");
+  }, [data.playersToRoles]);
 
   const internalTitle = React.useMemo(() => {
-    return player?.playersToTitles?.find(
+    return data.playersToTitles?.find(
       (title) => title.title.type === "internal"
     );
-  }, [player?.playersToTitles]);
+  }, [data.playersToTitles]);
 
   const externalTitle = React.useMemo(() => {
-    return player?.playersToTitles?.find(
+    return data.playersToTitles?.find(
       (title) => title.title.type === "external"
     );
-  }, [player?.playersToTitles]);
+  }, [data.playersToTitles]);
 
   const [selectedRatingType, setSelectedRatingType] = React.useState("rapid");
 
@@ -224,7 +191,7 @@ function PlayerComponent() {
         <div className="mb-12">
           <div className="w-full h-32 rounded-md" style={headerGradient} />
           <Avatar className="absolute w-20 h-20 rounded-[10px] border-4 border-background left-1/2 -translate-y-1/2 -translate-x-1/2">
-            <AvatarImage src={player.imageUrl ?? ""} alt={player.name} />
+            <AvatarImage src={data.imageUrl ?? undefined} alt={data.name} />
             <AvatarFallback style={avatarGradient} />
           </Avatar>
         </div>
@@ -236,10 +203,10 @@ function PlayerComponent() {
                 {internalTitle.title.shortTitle}{" "}
               </span>
             )}
-            {player.nickname ? player.nickname : player.name}
+            {data.nickname ? data.nickname : data.name}
           </h2>
 
-          {player.verified && (
+          {data.verified && (
             <Popover>
               <PopoverTrigger asChild className="hover:cursor-pointer">
                 <VerifiedIcon
@@ -276,9 +243,9 @@ function PlayerComponent() {
           </div>
         )}
 
-        {player.defendingChampions && player.defendingChampions?.length > 0 && (
+        {data.defendingChampions && data.defendingChampions?.length > 0 && (
           <div className="flex flex-wrap justify-center gap-1.5 mt-8">
-            {player.defendingChampions?.map((championship) => (
+            {data.defendingChampions?.map((championship) => (
               <div key={championship.championship.name}>
                 {formatDefendingChampions(championship.championship.name, 20)}
               </div>
@@ -307,11 +274,11 @@ function PlayerComponent() {
         {!managementRole &&
           !refereeRole &&
           orderPodiums.length <= 0 &&
-          player.defendingChampions &&
-          player.defendingChampions?.length <= 0 && <div className="pt-3" />}
+          data.defendingChampions &&
+          data.defendingChampions?.length <= 0 && <div className="pt-3" />}
 
         <div className="mt-5">
-          <Info label="Nome" content={player.name} />
+          <Info label="Nome" content={data.name} />
 
           {internalTitle && (
             <Info label="Titulação">
@@ -325,50 +292,50 @@ function PlayerComponent() {
             </Info>
           )}
 
-          {player.club && (
+          {data.club && (
             <Info label="Clube">
               <div className="flex items-center gap-2">
                 <Avatar className="size-4 rounded object-contain">
                   <AvatarImage
                     src={
-                      (player.club.logo as string)
-                        ? (player.club.logo as string)
+                      (data.club.logo as string)
+                        ? (data.club.logo as string)
                         : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
                     }
-                    alt={player.club.name as string}
-                    title={player.club.name as string}
+                    alt={data.club.name as string}
+                    title={data.club.name as string}
                     className="size-4 rounded object-contain"
                   />
                   <AvatarFallback className="size-4 rounded-none object-contain" />
                 </Avatar>
-                <p>{player.club.name}</p>
+                <p>{data.club.name}</p>
               </div>
             </Info>
           )}
 
-          {player.location && (
+          {data.location && (
             <Info label="Local">
               <div className="flex items-center gap-2">
                 <Avatar className="size-4 rounded object-contain">
                   <AvatarImage
                     src={
-                      (player.location.flag as string)
-                        ? (player.location.flag as string)
+                      (data.location.flag as string)
+                        ? (data.location.flag as string)
                         : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
                     }
-                    alt={player.location.name as string}
-                    title={player.location.name as string}
+                    alt={data.location.name as string}
+                    title={data.location.name as string}
                     className="size-4 rounded object-contain"
                   />
                   <AvatarFallback className="size-4 rounded-none object-contain" />
                 </Avatar>
-                <p>{player.location?.name}</p>
+                <p>{data.location?.name}</p>
               </div>
             </Info>
           )}
 
           <Info label="Status">
-            {player.active ? (
+            {data.active ? (
               <div className="flex items-center gap-2">
                 <span className="relative flex w-2 h-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
@@ -391,25 +358,25 @@ function PlayerComponent() {
         <div className="mt-3">
           <Info label="Ratings" />
           <div className="grid grid-cols-3 gap-2">
-            <RatingCard label="Clássico" rating={player.classic} />
-            <RatingCard label="Rápido" rating={player.rapid} />
-            <RatingCard label="Blitz" rating={player.blitz} />
+            <RatingCard label="Clássico" rating={data.classic} />
+            <RatingCard label="Rápido" rating={data.rapid} />
+            <RatingCard label="Blitz" rating={data.blitz} />
           </div>
 
           <Info label="IDs" />
           <div className="grid grid-cols-3 gap-2">
-            <RatingCard label="FSX" rating={player.id} />
+            <RatingCard label="FSX" rating={data.id} />
             <RatingCard
               label="CBX"
               link={
-                player.cbxId ? (
+                data.cbxId ? (
                   <a
-                    href={`https://www.cbx.org.br/jogador/${player.cbxId}`}
+                    href={`https://www.cbx.org.br/jogador/${data.cbxId}`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex justify-center text-primary hover:underline transition"
                   >
-                    {player.cbxId} <ExternalLink className="w-4 ml-2" />
+                    {data.cbxId} <ExternalLink className="w-4 ml-2" />
                   </a>
                 ) : (
                   <span>-</span>
@@ -419,14 +386,14 @@ function PlayerComponent() {
             <RatingCard
               label="FIDE"
               link={
-                player.fideId ? (
+                data.fideId ? (
                   <a
-                    href={`https://ratings.fide.com/profile/${player.fideId}`}
+                    href={`https://ratings.fide.com/profile/${data.fideId}`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex justify-center text-primary hover:underline transition"
                   >
-                    {player.fideId} <ExternalLink className="w-4 ml-2" />
+                    {data.fideId} <ExternalLink className="w-4 ml-2" />
                   </a>
                 ) : (
                   <span>-</span>
@@ -457,11 +424,11 @@ function PlayerComponent() {
             </div>
             <div className="mt-2">
               <VariationChart
-                player={player}
+                player={data}
                 selectedRatingType={selectedRatingType}
               />
               <TotalRatingChart
-                player={player}
+                player={data}
                 selectedRatingType={selectedRatingType}
               />
             </div>
@@ -514,7 +481,7 @@ const RatingCard = ({ label, rating, link }: RatingCardProps) => {
   );
 };
 
-const extractChartData = (player: Player, selectedRatingType: string) => {
+const extractChartData = (player: PlayerById, selectedRatingType: string) => {
   return (
     player.playersToTournaments
       ?.filter(
@@ -531,7 +498,10 @@ const extractChartData = (player: Player, selectedRatingType: string) => {
   );
 };
 
-const extractTotalRatingData = (player: Player, selectedRatingType: string) => {
+const extractTotalRatingData = (
+  player: PlayerById,
+  selectedRatingType: string
+) => {
   let previousTotalRating: number | null = null;
   return (
     player.playersToTournaments
@@ -595,7 +565,7 @@ export function VariationChart({
   player,
   selectedRatingType,
 }: {
-  player: Player;
+  player: PlayerById;
   selectedRatingType: string;
 }) {
   const chartData = extractChartData(player, selectedRatingType);
@@ -664,7 +634,7 @@ export function TotalRatingChart({
   player,
   selectedRatingType,
 }: {
-  player: Player;
+  player: PlayerById;
   selectedRatingType: string;
 }) {
   const chartData = extractTotalRatingData(player, selectedRatingType);

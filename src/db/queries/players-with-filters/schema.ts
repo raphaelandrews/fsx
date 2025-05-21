@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { locationTypeEnum, titleTypeEnum } from "~/db/schema";
+import { titleTypeEnum } from "~/db/schema";
 
 const PlayerQuerySchema = z.object({
   group: z.enum(["U10", "U12", "U14", "U16", "U18"]).optional(),

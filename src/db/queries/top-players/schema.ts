@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { locationTypeEnum, titleTypeEnum } from "~/db/schema";
+import { titleTypeEnum } from "~/db/schema";
 
 const TitleSchema = z.object({
   title: z.object({
@@ -11,7 +11,6 @@ const TitleSchema = z.object({
 
 const LocationSchema = z.object({
   name: z.string().max(80),
-  type: z.enum(locationTypeEnum.enumValues),
   flag: z.string().nullable(),
 });
 

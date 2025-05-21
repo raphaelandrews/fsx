@@ -6,7 +6,7 @@ const PostBySlugSchema = z.object({
   image: z.string(),
   content: z.string(),
   slug: z.string(),
-  createdAt: z.string(),
+  createdAt: z.union([z.date(), z.string()]),
 });
 
 const SuccessSchema = z.object({

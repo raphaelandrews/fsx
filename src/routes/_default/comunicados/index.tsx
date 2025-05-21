@@ -1,5 +1,5 @@
 import React from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
   ErrorComponent,
@@ -77,9 +77,7 @@ function RouteComponent() {
         </PageHeaderDescription>
       </PageHeader>
 
-      <React.Suspense fallback={<AnnouncementLinkSkeleton />}>
-        <AnnouncementLinks />
-      </React.Suspense>
+      <AnnouncementLinks />
     </>
   );
 }
@@ -89,12 +87,12 @@ function AnnouncementLinks() {
   const currentPage = Number(page);
   const navigate = useNavigate();
 
-  const { data } = useSuspenseQuery(
+  const { data, isLoading } = useQuery(
     announcementsByPageQueryOptions(currentPage)
   );
 
-  const announcements = data.announcements;
-  const totalPages = data.pagination.totalPages;
+  const announcements = data?.announcements ?? [];
+  const totalPages = data?.pagination?.totalPages ?? 0;
 
   const paginate = (newPage: number) => {
     navigate({
@@ -144,6 +142,10 @@ function AnnouncementLinks() {
 
     return pageNumbers;
   };
+
+  if (isLoading) {
+    return <AnnouncementLinkSkeleton />;
+  }
 
   return (
     <section>

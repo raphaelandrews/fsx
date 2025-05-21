@@ -26,6 +26,7 @@ export const Route = createFileRoute("/_default/")({
 
 function RouteComponent() {
   const { posts, announcements, topPlayers } = Route.useLoaderData();
+  
   return (
     <>
       <UpdateRegister />

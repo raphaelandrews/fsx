@@ -1,5 +1,6 @@
-import { ErrorComponent, createFileRoute } from "@tanstack/react-router";
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ErrorComponent, createFileRoute } from "@tanstack/react-router";
 import { CalendarIcon, NewspaperIcon } from "lucide-react";
 
 import { postBySlugQueryOptions } from "~/db/queries";
@@ -7,6 +8,7 @@ import { siteConfig } from "~/utils/config";
 
 import { MDX } from "~/components/mdx";
 import { NotFound } from "~/components/not-found";
+import { Skeleton } from "~/components/ui/skeleton";
 
 export const Route = createFileRoute("/_params/noticias/$noticiaSlug")({
   loader: async ({ context: { queryClient }, params: { noticiaSlug } }) => {
@@ -36,33 +38,41 @@ export const Route = createFileRoute("/_params/noticias/$noticiaSlug")({
 });
 
 function RouteComponent() {
-  const postsSlug = Route.useParams().noticiaSlug;
-  const { data, isLoading } = useQuery(postBySlugQueryOptions(postsSlug));
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <section className="w-11/12 max-w-2xl pt-6 sm:pt-12 pb-20 m-auto">
       <div className="inline-block p-2.5 text-muted-foreground rounded-md bg-primary-foreground">
         <NewspaperIcon width={16} height={16} />
       </div>
 
+      <Post />
+    </section>
+  );
+}
+
+function Post() {
+  const postsSlug = Route.useParams().noticiaSlug;
+  const { data, isLoading } = useQuery(postBySlugQueryOptions(postsSlug));
+
+  if (isLoading) {
+    return <PostSkeleton />;
+  }
+
+  return (
+    <>
       <h1 className="font-semibold text-primary text-2xl tracking-tighter mt-2">
         {data?.title}
       </h1>
 
       {data?.createdAt && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-          {formatDate(data.createdAt)}
+          {formatDate(data?.createdAt as Date)}
         </div>
       )}
 
       {data?.image && (
         <img
-          src={data.image}
-          alt={data.title}
+          src={data?.image}
+          alt={data?.title}
           className="w-full max-w-xl h-full mt-6 rounded-lg m-auto"
         />
       )}
@@ -70,30 +80,67 @@ function RouteComponent() {
       <div className="mt-6">
         {data?.content && <MDX content={data.content} />}
       </div>
-    </section>
+    </>
   );
 }
 
-function formatDate(date: string) {
+function PostSkeleton() {
+  return (
+    <>
+      <Skeleton className="h-8 w-3/4 mt-2" />
+
+      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-1 w-1 rounded-full" />
+        <Skeleton className="h-6 w-20" />
+      </div>
+
+      <div className="mt-6">
+        <Skeleton className="w-full max-w-xl h-[288px] rounded-lg m-auto" />
+      </div>
+
+      <div className="mt-6 space-y-4">
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-6 w-5/6" />
+        <Skeleton className="h-6 w-4/6" />
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-6 w-3/4" />
+      </div>
+    </>
+  );
+}
+
+function formatDate(date: Date) {
   const currentDate = new Date();
-
   const targetDate = new Date(date);
-
   targetDate.setUTCHours(targetDate.getUTCHours() + 3);
 
-  const yearsAgo = currentDate.getFullYear() - targetDate.getFullYear();
-  const monthsAgo = currentDate.getMonth() - targetDate.getMonth();
-  const monthsYearsAgo = currentDate.getMonth() - targetDate.getMonth() + 12;
-  const daysAgo = currentDate.getDate() - targetDate.getDate();
+  const diffTime = Math.abs(currentDate.getTime() - targetDate.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  let months = (currentDate.getFullYear() - targetDate.getFullYear()) * 12;
+  months += currentDate.getMonth() - targetDate.getMonth();
+
+  if (currentDate.getDate() < targetDate.getDate()) {
+    months--;
+  }
+
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
 
   let formattedDate = "";
 
-  if (yearsAgo > 0) {
-    formattedDate = `${yearsAgo} ano${yearsAgo > 1 ? "s" : ""} ${monthsAgo} ${monthsAgo > 1 ? "meses" : "mês"}`;
-  } else if (monthsAgo > 0) {
-    formattedDate = `${monthsAgo} ${monthsAgo > 1 ? "meses" : "mês"} ${daysAgo} dia${daysAgo > 1 ? "s" : ""}`;
-  } else if (daysAgo > 0) {
-    formattedDate = `${daysAgo} dia${daysAgo > 1 ? "s" : ""}`;
+  if (years > 0) {
+    formattedDate = `${years} ano${years > 1 ? "s" : ""}`;
+    if (remainingMonths > 0) {
+      formattedDate += ` e ${remainingMonths} ${
+        remainingMonths > 1 ? "meses" : "mês"
+      }`;
+    }
+  } else if (months > 0) {
+    formattedDate = `${months} ${months > 1 ? "meses" : "mês"}`;
+  } else if (diffDays > 0) {
+    formattedDate = `${diffDays} dia${diffDays > 1 ? "s" : ""}`;
   } else {
     formattedDate = "Hoje";
   }

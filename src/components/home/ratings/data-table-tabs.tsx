@@ -1,28 +1,30 @@
 // Remove useSuspenseQuery import
 import React from "react";
 import { BarChart2Icon } from "lucide-react";
-import type { SuccessTopPlayersResponse } from "~/db/queries";
+
+import type { APITopPlayersResponse } from "~/db/queries";
 
 import { DataTable } from "./data-table";
 import { columnsBlitz, columnsClassic, columnsRapid } from "./columns";
-
 import { ClientOnly } from "~/components/client-only";
 import { HomeSection } from "~/components/home/home-section";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Skeleton } from "~/components/ui/skeleton";
 
+type SuccessResponse = Extract<APITopPlayersResponse, { success: true }>;
+
+interface DataTableTabsProps {
+  topPlayers: SuccessResponse["data"];
+}
+
 type TabValue = "rapid" | "classic" | "blitz";
-type TabKey = keyof SuccessTopPlayersResponse;
+type TabKey = keyof SuccessResponse["data"];
 
 const tabMap: Record<TabValue, TabKey> = {
   blitz: "topBlitz",
   rapid: "topRapid",
   classic: "topClassic",
 } as const;
-
-interface DataTableTabsProps {
-  topPlayers: SuccessTopPlayersResponse;
-}
 
 export function DataTableTabs({ topPlayers }: DataTableTabsProps) {
   const [currentTab, setCurrentTab] = React.useState<TabValue>("rapid");
@@ -96,4 +98,4 @@ export function DataTableTabs({ topPlayers }: DataTableTabsProps) {
       </HomeSection>
     </ClientOnly>
   );
-};
+}

@@ -1,4 +1,4 @@
-import { type QueryClient, queryOptions } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import axios from "redaxios";
 
@@ -12,9 +12,10 @@ export const fetchSearchPlayers = createServerFn({ method: 'GET' })
     console.info(`Searching players by query=${searchQuery}... @${API_BASE_URL}/search-players`);
     
     try {
-      const response = await axios.get<SearchPlayer>(`${API_BASE_URL}/search-players`, {
+      const response = await axios.get(`${API_BASE_URL}/search-players`, {
         params: { q: searchQuery }
       });
+
       const parsed = APISearchPlayersResponseSchema.safeParse(response.data);
 
       if (!parsed.success) {
@@ -28,8 +29,8 @@ export const fetchSearchPlayers = createServerFn({ method: 'GET' })
 
       return parsed.data.data;
     } catch (error: unknown) {
-      console.error('Error fetching players:', error);
-      const message = error instanceof Error ? error.message : 'Failed to fetch players';
+      console.error("Error fetching players:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch players";
       throw new Error(message);
     }
   });
@@ -37,7 +38,7 @@ export const fetchSearchPlayers = createServerFn({ method: 'GET' })
 export const searchPlayersQueryOptions = (searchQuery = "") =>
   queryOptions({
     queryKey: ["search-players", searchQuery],
-    queryFn: () => fetchSearchPlayers(),
+    queryFn: () => fetchSearchPlayers({ data: searchQuery }),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
@@ -48,7 +49,3 @@ export const searchPlayersQueryOptions = (searchQuery = "") =>
       return failureCount < 2;
     }
   });
-
-export const prefetchSearchPlayers = async (queryClient: QueryClient, searchQuery = "") => {
-  await queryClient.prefetchQuery(searchPlayersQueryOptions(searchQuery));
-};

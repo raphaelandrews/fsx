@@ -35,9 +35,7 @@ export const APIRoute = createAPIFileRoute('/api/posts/$slug')({
         }, 404);
       }
 
-      const formattedPosts = { ...response, createdAt: response?.createdAt?.toISOString() };
-
-      const validation = APIPostsBySlugResponseSchema.safeParse({ success: true, data: formattedPosts });
+      const validation = APIPostsBySlugResponseSchema.safeParse({ success: true, data: response });
 
       if (!validation.success) {
         console.error('Validation failed:', validation.error);

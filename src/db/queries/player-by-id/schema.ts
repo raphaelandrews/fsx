@@ -37,7 +37,7 @@ const TournamentSchema = z.object({
     place: z.number().int(),
     tournament: z.object({
         name: z.string().max(80),
-        date: z.date().nullable(),
+        date: z.union([z.date(), z.string()]).nullable(),
         championshipId: z.number().int().nullable(),
     }),
 });

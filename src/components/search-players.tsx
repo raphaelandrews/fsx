@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import type { DialogProps } from "@radix-ui/react-dialog";
 import { ArrowUpIcon, ArrowDownIcon, SearchIcon } from "lucide-react";
@@ -37,10 +37,10 @@ const SearchResults = React.memo(
     searchTerm: string;
     onSelect: (playerId: number) => void;
   }) => {
-    const { data: fetchedPlayers = [], isLoading } = useSuspenseQuery(
+    const { data: fetchedPlayers = [], isLoading } = useQuery(
       searchPlayersQueryOptions(searchTerm)
     );
-
+console.log("searchTerm: ",searchTerm)
     const playersWithGradients = React.useMemo(() => {
       return fetchedPlayers.map((player) => ({
         ...player,
@@ -132,7 +132,7 @@ export function SearchPlayers({ ...props }: DialogProps) {
     document.addEventListener("keydown", handleGlobalKeyDown);
     return () => document.removeEventListener("keydown", handleGlobalKeyDown);
   }, [open]);
-
+console.log(searchValue)
   return (
     <ClientOnly
       fallback={
