@@ -14,7 +14,7 @@ const PlayerToRoleSchema = z.object({
 const RoleSchema = z.object({
   role: z.string().max(80),
   type: z.enum(roleTypeEnum.enumValues),
-  playersToRoles: z.array(PlayerToRoleSchema)
+  playersToRoles: z.array(PlayerToRoleSchema).default([])
 });
 
 const SuccessSchema = z.object({
