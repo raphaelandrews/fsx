@@ -2,21 +2,16 @@ import { queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import axios from "redaxios";
 
-import { APISearchPlayersResponseSchema, type SearchPlayer } from "./schema";
+import { APICircuitsResponseSchema } from "./schema";
 import { API_BASE_URL } from "~/lib/utils";
 
-export const fetchSearchPlayers = createServerFn({ method: 'GET' })
-  .validator((searchQuery = "") => searchQuery)
-  .handler(async (ctx) => {
-    const searchQuery = ctx.data;
-    console.info(`Searching players by query=${searchQuery}... @${API_BASE_URL}/search-players`);
+export const fetchCircuits = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    console.info(`Fetching circuits... @${API_BASE_URL}/circuits`);
     
     try {
-      const response = await axios.get(`${API_BASE_URL}/search-players`, {
-        params: { q: searchQuery }
-      });
-
-      const parsed = APISearchPlayersResponseSchema.safeParse(response.data);
+      const response = await axios.get(`${API_BASE_URL}/circuits`);
+      const parsed = APICircuitsResponseSchema.safeParse(response.data);
 
       if (!parsed.success) {
         console.error("Validation error:", parsed.error);
@@ -29,16 +24,16 @@ export const fetchSearchPlayers = createServerFn({ method: 'GET' })
 
       return parsed.data.data;
     } catch (error: unknown) {
-      console.error("Error fetching players:", error);
-      const message = error instanceof Error ? error.message : "Failed to fetch players";
+      console.error("Error fetching circuits:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch circuits";
       throw new Error(message);
     }
   });
 
-export const searchPlayersQueryOptions = (searchQuery = "") =>
+export const circuitsQueryOptions = () =>
   queryOptions({
-    queryKey: ["search-players", searchQuery],
-    queryFn: () => fetchSearchPlayers({ data: searchQuery }),
+    queryKey: ["circuits"],
+    queryFn: () => fetchCircuits(),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,

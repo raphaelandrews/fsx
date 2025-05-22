@@ -2,6 +2,7 @@ import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type Row,
   type SortingState,
   type VisibilityState,
   flexRender,
@@ -26,20 +27,19 @@ import {
 
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
-import { DataTableRowSkeleton } from "~/components/ui/data-table-row-skeleton";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  totalPages?: number;
-  isLoading?: boolean;
+  renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
+  getRowCanExpand?: (row: Row<TData>) => boolean;
 }
 
-export function DataTable<TData, TValue>({
-  data,
+export function DataTableSchool<TData, TValue>({
   columns,
-  totalPages = 1,
-  isLoading = false,
+  data,
+  getRowCanExpand,
+  renderSubComponent,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -52,6 +52,7 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    getRowCanExpand,
     state: {
       sorting,
       columnVisibility,
@@ -84,30 +85,28 @@ export function DataTable<TData, TValue>({
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} colSpan={header.colSpan}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                </TableHead>
-              ))}
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead key={header.id} colSpan={header.colSpan}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                );
+              })}
             </TableRow>
           ))}
         </TableHeader>
         <TableBody>
-          {isLoading ? (
-            Array.from({ length: 10 }).map((_) => (
-              <DataTableRowSkeleton
-                key={`skeleton-row-${Math.random().toString(36).slice(2, 11)}`}
-              />
-            ))
-          ) : table.getRowModel().rows?.length ? (
+          {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <React.Fragment key={row.id}>
-                <TableRow data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  data-state={row.getIsSelected() && "selected"}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -117,6 +116,13 @@ export function DataTable<TData, TValue>({
                     </TableCell>
                   ))}
                 </TableRow>
+                {row.getIsExpanded() && (
+                  <TableRow key={`${row.id}-expanded`}>
+                    <TableCell colSpan={row.getVisibleCells().length}>
+                      {renderSubComponent?.({ row })}
+                    </TableCell>
+                  </TableRow>
+                )}
               </React.Fragment>
             ))
           ) : (
@@ -128,7 +134,7 @@ export function DataTable<TData, TValue>({
           )}
         </TableBody>
       </Table>
-      <DataTablePagination table={table} totalPages={totalPages} />
+      <DataTablePagination table={table} />
     </div>
   );
 }

@@ -2,6 +2,8 @@ export * from "./announcements-by-page/query-options";
 export * from "./announcements-by-page/schema";
 export * from "./champions/query-options";
 export * from "./champions/schema";
+export * from "./circuits/query-options";
+export * from "./circuits/schema";
 export * from "./fresh-announcements/query-options";
 export * from "./fresh-announcements/schema";
 export * from "./fresh-posts/query-options";
