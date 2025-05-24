@@ -18,6 +18,8 @@ import { Route as DefaultIndexImport } from './routes/_default/index'
 import { Route as DashboardSignupImport } from './routes/dashboard/signup'
 import { Route as DashboardLogoutImport } from './routes/dashboard/logout'
 import { Route as DashboardLoginImport } from './routes/dashboard/login'
+import { Route as DefaultTestRouteImport } from './routes/_default/test.route'
+import { Route as DefaultDefaultTestRouteImport } from './routes/_default/default-test.route'
 import { Route as DefaultTituladosIndexImport } from './routes/_default/titulados/index'
 import { Route as DefaultSobreIndexImport } from './routes/_default/sobre/index'
 import { Route as DefaultRatingsIndexImport } from './routes/_default/ratings/index'
@@ -69,6 +71,18 @@ const DashboardLoginRoute = DashboardLoginImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => DashboardRouteRoute,
+} as any)
+
+const DefaultTestRouteRoute = DefaultTestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => DefaultRouteRoute,
+} as any)
+
+const DefaultDefaultTestRouteRoute = DefaultDefaultTestRouteImport.update({
+  id: '/default-test',
+  path: '/default-test',
+  getParentRoute: () => DefaultRouteRoute,
 } as any)
 
 const DefaultTituladosIndexRoute = DefaultTituladosIndexImport.update({
@@ -155,6 +169,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRoute
+    }
+    '/_default/default-test': {
+      id: '/_default/default-test'
+      path: '/default-test'
+      fullPath: '/default-test'
+      preLoaderRoute: typeof DefaultDefaultTestRouteImport
+      parentRoute: typeof DefaultRouteImport
+    }
+    '/_default/test': {
+      id: '/_default/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof DefaultTestRouteImport
+      parentRoute: typeof DefaultRouteImport
     }
     '/dashboard/login': {
       id: '/dashboard/login'
@@ -260,6 +288,8 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface DefaultRouteRouteChildren {
+  DefaultDefaultTestRouteRoute: typeof DefaultDefaultTestRouteRoute
+  DefaultTestRouteRoute: typeof DefaultTestRouteRoute
   DefaultIndexRoute: typeof DefaultIndexRoute
   DefaultCampeoesIndexRoute: typeof DefaultCampeoesIndexRoute
   DefaultCircuitosIndexRoute: typeof DefaultCircuitosIndexRoute
@@ -272,6 +302,8 @@ interface DefaultRouteRouteChildren {
 }
 
 const DefaultRouteRouteChildren: DefaultRouteRouteChildren = {
+  DefaultDefaultTestRouteRoute: DefaultDefaultTestRouteRoute,
+  DefaultTestRouteRoute: DefaultTestRouteRoute,
   DefaultIndexRoute: DefaultIndexRoute,
   DefaultCampeoesIndexRoute: DefaultCampeoesIndexRoute,
   DefaultCircuitosIndexRoute: DefaultCircuitosIndexRoute,
@@ -320,6 +352,8 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 export interface FileRoutesByFullPath {
   '': typeof ParamsRouteRouteWithChildren
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/default-test': typeof DefaultDefaultTestRouteRoute
+  '/test': typeof DefaultTestRouteRoute
   '/dashboard/login': typeof DashboardLoginRoute
   '/dashboard/logout': typeof DashboardLogoutRoute
   '/dashboard/signup': typeof DashboardSignupRoute
@@ -339,6 +373,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '': typeof ParamsRouteRouteWithChildren
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/default-test': typeof DefaultDefaultTestRouteRoute
+  '/test': typeof DefaultTestRouteRoute
   '/dashboard/login': typeof DashboardLoginRoute
   '/dashboard/logout': typeof DashboardLogoutRoute
   '/dashboard/signup': typeof DashboardSignupRoute
@@ -360,6 +396,8 @@ export interface FileRoutesById {
   '/_default': typeof DefaultRouteRouteWithChildren
   '/_params': typeof ParamsRouteRouteWithChildren
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/_default/default-test': typeof DefaultDefaultTestRouteRoute
+  '/_default/test': typeof DefaultTestRouteRoute
   '/dashboard/login': typeof DashboardLoginRoute
   '/dashboard/logout': typeof DashboardLogoutRoute
   '/dashboard/signup': typeof DashboardSignupRoute
@@ -381,6 +419,8 @@ export interface FileRouteTypes {
   fullPaths:
     | ''
     | '/dashboard'
+    | '/default-test'
+    | '/test'
     | '/dashboard/login'
     | '/dashboard/logout'
     | '/dashboard/signup'
@@ -399,6 +439,8 @@ export interface FileRouteTypes {
   to:
     | ''
     | '/dashboard'
+    | '/default-test'
+    | '/test'
     | '/dashboard/login'
     | '/dashboard/logout'
     | '/dashboard/signup'
@@ -418,6 +460,8 @@ export interface FileRouteTypes {
     | '/_default'
     | '/_params'
     | '/dashboard'
+    | '/_default/default-test'
+    | '/_default/test'
     | '/dashboard/login'
     | '/dashboard/logout'
     | '/dashboard/signup'
@@ -465,6 +509,8 @@ export const routeTree = rootRoute
     "/_default": {
       "filePath": "_default/route.tsx",
       "children": [
+        "/_default/default-test",
+        "/_default/test",
         "/_default/",
         "/_default/campeoes/",
         "/_default/circuitos/",
@@ -490,6 +536,14 @@ export const routeTree = rootRoute
         "/dashboard/logout",
         "/dashboard/signup"
       ]
+    },
+    "/_default/default-test": {
+      "filePath": "_default/default-test.route.tsx",
+      "parent": "/_default"
+    },
+    "/_default/test": {
+      "filePath": "_default/test.route.tsx",
+      "parent": "/_default"
     },
     "/dashboard/login": {
       "filePath": "dashboard/login.tsx",

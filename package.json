@@ -32,6 +32,8 @@
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.48.1",
     "@tailwindcss/postcss": "^4.1.5",
+    "@tanstack/db-collections": "^0.0.3",
+    "@tanstack/react-db": "^0.0.3",
     "@tanstack/react-query": "^5.66.0",
     "@tanstack/react-query-devtools": "^5.66.0",
     "@tanstack/react-router": "^1.120.5",
