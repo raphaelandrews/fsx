@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { MegaphoneIcon } from "lucide-react";
 import type { Announcement as AnnouncementType } from "~/db/queries";
 import { HomeSection } from "~/components/home/home-section";

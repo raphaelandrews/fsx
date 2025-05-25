@@ -12,6 +12,8 @@ export * from "./fresh-announcements/query-options";
 export * from "./fresh-announcements/schema";
 export * from "./fresh-posts/query-options";
 export * from "./fresh-posts/schema";
+export * from "./link-groups/query-options";
+export * from "./link-groups/schema";
 export * from "./post-by-slug/query-options";
 export * from "./post-by-slug/schema";
 export * from "./posts-by-page/query-options";

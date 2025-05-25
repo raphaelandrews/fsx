@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as DashboardRouteImport } from './routes/dashboard/route'
 import { Route as ParamsRouteImport } from './routes/_params/route'
+import { Route as LinksRouteImport } from './routes/_links/route'
 import { Route as DefaultRouteImport } from './routes/_default/route'
 import { Route as DefaultIndexImport } from './routes/_default/index'
 import { Route as DashboardSignupImport } from './routes/dashboard/signup'
@@ -20,6 +21,7 @@ import { Route as DashboardLogoutImport } from './routes/dashboard/logout'
 import { Route as DashboardLoginImport } from './routes/dashboard/login'
 import { Route as DefaultTestRouteImport } from './routes/_default/test.route'
 import { Route as DefaultDefaultTestRouteImport } from './routes/_default/default-test.route'
+import { Route as LinksLinksIndexImport } from './routes/_links/links/index'
 import { Route as DefaultTituladosIndexImport } from './routes/_default/titulados/index'
 import { Route as DefaultSobreIndexImport } from './routes/_default/sobre/index'
 import { Route as DefaultRatingsIndexImport } from './routes/_default/ratings/index'
@@ -41,6 +43,11 @@ const DashboardRouteRoute = DashboardRouteImport.update({
 
 const ParamsRouteRoute = ParamsRouteImport.update({
   id: '/_params',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LinksRouteRoute = LinksRouteImport.update({
+  id: '/_links',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -83,6 +90,12 @@ const DefaultDefaultTestRouteRoute = DefaultDefaultTestRouteImport.update({
   id: '/default-test',
   path: '/default-test',
   getParentRoute: () => DefaultRouteRoute,
+} as any)
+
+const LinksLinksIndexRoute = LinksLinksIndexImport.update({
+  id: '/links/',
+  path: '/links/',
+  getParentRoute: () => LinksRouteRoute,
 } as any)
 
 const DefaultTituladosIndexRoute = DefaultTituladosIndexImport.update({
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof DefaultRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/_links': {
+      id: '/_links'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof LinksRouteImport
       parentRoute: typeof rootRoute
     }
     '/_params': {
@@ -282,6 +302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DefaultTituladosIndexImport
       parentRoute: typeof DefaultRouteImport
     }
+    '/_links/links/': {
+      id: '/_links/links/'
+      path: '/links'
+      fullPath: '/links'
+      preLoaderRoute: typeof LinksLinksIndexImport
+      parentRoute: typeof LinksRouteImport
+    }
   }
 }
 
@@ -317,6 +344,18 @@ const DefaultRouteRouteChildren: DefaultRouteRouteChildren = {
 
 const DefaultRouteRouteWithChildren = DefaultRouteRoute._addFileChildren(
   DefaultRouteRouteChildren,
+)
+
+interface LinksRouteRouteChildren {
+  LinksLinksIndexRoute: typeof LinksLinksIndexRoute
+}
+
+const LinksRouteRouteChildren: LinksRouteRouteChildren = {
+  LinksLinksIndexRoute: LinksLinksIndexRoute,
+}
+
+const LinksRouteRouteWithChildren = LinksRouteRoute._addFileChildren(
+  LinksRouteRouteChildren,
 )
 
 interface ParamsRouteRouteChildren {
@@ -368,6 +407,7 @@ export interface FileRoutesByFullPath {
   '/ratings': typeof DefaultRatingsIndexRoute
   '/sobre': typeof DefaultSobreIndexRoute
   '/titulados': typeof DefaultTituladosIndexRoute
+  '/links': typeof LinksLinksIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -389,11 +429,13 @@ export interface FileRoutesByTo {
   '/ratings': typeof DefaultRatingsIndexRoute
   '/sobre': typeof DefaultSobreIndexRoute
   '/titulados': typeof DefaultTituladosIndexRoute
+  '/links': typeof LinksLinksIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_default': typeof DefaultRouteRouteWithChildren
+  '/_links': typeof LinksRouteRouteWithChildren
   '/_params': typeof ParamsRouteRouteWithChildren
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/_default/default-test': typeof DefaultDefaultTestRouteRoute
@@ -412,6 +454,7 @@ export interface FileRoutesById {
   '/_default/ratings/': typeof DefaultRatingsIndexRoute
   '/_default/sobre/': typeof DefaultSobreIndexRoute
   '/_default/titulados/': typeof DefaultTituladosIndexRoute
+  '/_links/links/': typeof LinksLinksIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -435,6 +478,7 @@ export interface FileRouteTypes {
     | '/ratings'
     | '/sobre'
     | '/titulados'
+    | '/links'
   fileRoutesByTo: FileRoutesByTo
   to:
     | ''
@@ -455,9 +499,11 @@ export interface FileRouteTypes {
     | '/ratings'
     | '/sobre'
     | '/titulados'
+    | '/links'
   id:
     | '__root__'
     | '/_default'
+    | '/_links'
     | '/_params'
     | '/dashboard'
     | '/_default/default-test'
@@ -476,17 +522,20 @@ export interface FileRouteTypes {
     | '/_default/ratings/'
     | '/_default/sobre/'
     | '/_default/titulados/'
+    | '/_links/links/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   DefaultRouteRoute: typeof DefaultRouteRouteWithChildren
+  LinksRouteRoute: typeof LinksRouteRouteWithChildren
   ParamsRouteRoute: typeof ParamsRouteRouteWithChildren
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   DefaultRouteRoute: DefaultRouteRouteWithChildren,
+  LinksRouteRoute: LinksRouteRouteWithChildren,
   ParamsRouteRoute: ParamsRouteRouteWithChildren,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
 }
@@ -502,6 +551,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/_default",
+        "/_links",
         "/_params",
         "/dashboard"
       ]
@@ -520,6 +570,12 @@ export const routeTree = rootRoute
         "/_default/ratings/",
         "/_default/sobre/",
         "/_default/titulados/"
+      ]
+    },
+    "/_links": {
+      "filePath": "_links/route.tsx",
+      "children": [
+        "/_links/links/"
       ]
     },
     "/_params": {
@@ -600,6 +656,10 @@ export const routeTree = rootRoute
     "/_default/titulados/": {
       "filePath": "_default/titulados/index.tsx",
       "parent": "/_default"
+    },
+    "/_links/links/": {
+      "filePath": "_links/links/index.tsx",
+      "parent": "/_links"
     }
   }
 }

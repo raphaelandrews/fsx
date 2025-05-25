@@ -1,4 +1,3 @@
-// Remove useSuspenseQuery import
 import React from "react";
 import { BarChart2Icon } from "lucide-react";
 
