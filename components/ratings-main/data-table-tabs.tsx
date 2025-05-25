@@ -1,18 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
+import { BarChart2Icon } from "lucide-react";
 
-import type {
-  SuccessTopPlayersResponse,
-} from "@/db/queries";
+import type { APITopPlayersResponse } from "@/db/queries";
 
 import { DataTable } from "./data-table";
 import { columnsBlitz, columnsClassic, columnsRapid } from "./columns";
 
+import { HomeSection } from "@/components/home-section";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+type SuccessResponse = Extract<APITopPlayersResponse, { success: true }>;
+
+interface DataTableTabsProps {
+  topPlayers: SuccessResponse["data"];
+}
+
 type TabValue = "rapid" | "classic" | "blitz";
-type TabKey = keyof SuccessTopPlayersResponse;
+type TabKey = keyof SuccessResponse["data"];
 
 const tabMap: Record<TabValue, TabKey> = {
   blitz: "topBlitz",
@@ -20,58 +26,58 @@ const tabMap: Record<TabValue, TabKey> = {
   classic: "topClassic",
 } as const;
 
-interface DataTableTabsProps {
-  topPlayers: SuccessTopPlayersResponse;
-}
-
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-const DataTableTabs = ({ topPlayers }: any) => {
-  const [currentTab, setCurrentTab] = useState<TabValue>("rapid");
-
-  const currentData = topPlayers ? topPlayers[tabMap[currentTab]] : [];
+export function DataTableTabs({ topPlayers }: any) {
+  const [currentTab, setCurrentTab] = React.useState<TabValue>("rapid");
+  const currentData = topPlayers[tabMap[currentTab]];
 
   return (
-    <Tabs
-      value={currentTab}
-      onValueChange={(value) => setCurrentTab(value as TabValue)}
-      className="w-full"
+    <HomeSection
+      label="Rating"
+      href={"/ratings"}
+      icon={BarChart2Icon}
+      main={false}
     >
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger
-            value="classic"
-            className="w-full sm:w-24 transition-colors hover:bg-accent/50"
-          >
-            Clássico
-          </TabsTrigger>
-          <TabsTrigger
-            value="rapid"
-            className="w-full sm:w-24 transition-colors hover:bg-accent/50"
-          >
-            Rápido
-          </TabsTrigger>
-          <TabsTrigger
-            value="blitz"
-            className="w-full sm:w-24 transition-colors hover:bg-accent/50"
-          >
-            Blitz
-          </TabsTrigger>
-        </TabsList>
-      </div>
+      <Tabs
+        value={currentTab}
+        onValueChange={(value) => setCurrentTab(value as TabValue)}
+        className="w-full"
+      >
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger
+              value="classic"
+              className="w-full sm:w-24 transition-colors hover:bg-accent/50"
+            >
+              Clássico
+            </TabsTrigger>
+            <TabsTrigger
+              value="rapid"
+              className="w-full sm:w-24 transition-colors hover:bg-accent/50"
+            >
+              Rápido
+            </TabsTrigger>
+            <TabsTrigger
+              value="blitz"
+              className="w-full sm:w-24 transition-colors hover:bg-accent/50"
+            >
+              Blitz
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-      <TabsContent value="classic" className="mt-0">
-        <DataTable data={topPlayers?.topClassic || []} columns={columnsClassic} />
-      </TabsContent>
+        <TabsContent value="classic" className="mt-0">
+          <DataTable data={currentData} columns={columnsClassic} />
+        </TabsContent>
 
-      <TabsContent value="rapid" className="mt-0">
-        <DataTable data={topPlayers?.topRapid || []} columns={columnsRapid} />
-      </TabsContent>
+        <TabsContent value="rapid" className="mt-0">
+          <DataTable data={currentData} columns={columnsRapid} />
+        </TabsContent>
 
-      <TabsContent value="blitz" className="mt-0">
-        <DataTable data={topPlayers?.topBlitz || []} columns={columnsBlitz} />
-      </TabsContent>
-    </Tabs>
+        <TabsContent value="blitz" className="mt-0">
+          <DataTable data={currentData} columns={columnsBlitz} />
+        </TabsContent>
+      </Tabs>
+    </HomeSection>
   );
-};
-
-export default DataTableTabs;
+}

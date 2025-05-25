@@ -48,3 +48,6 @@ export const cupMatchesRelations = relations(cupMatches, ({ one, many }) => ({
 }));
 
 export const insertCupMatchSchema = createInsertSchema(cupMatches)
+
+export type CupMatch = typeof cupMatches.$inferSelect
+export type NewCupMatch = typeof cupMatches.$inferInsert

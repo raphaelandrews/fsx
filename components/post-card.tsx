@@ -2,23 +2,22 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import type { z } from "zod";
 
-import type { FreshNews } from "@/db/queries";
+import type { FreshPost } from "@/db/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 
-type NewsCardProps = z.infer<typeof FreshNews> & {
+type PostCardProps = FreshPost & {
   main?: boolean;
   onMouseEnter?: () => void;
 };
 
-export function NewsCard({
+export function PostCard({
   title,
   image,
   slug,
   main,
   onMouseEnter,
-}: NewsCardProps) {
+}: PostCardProps) {
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -54,7 +53,7 @@ export function NewsCard({
     <Link
       href={`/noticias/${slug}`}
       className="group"
-      aria-label={`Read news: ${title}`}
+      aria-label={`Read posts: ${title}`}
       onMouseEnter={onMouseEnter}
     >
       <img

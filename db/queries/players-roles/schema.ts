@@ -1,45 +1,40 @@
-import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { roleTypeEnum } from "@/db/schema";
 
-import { players, roles, roleTypeEnum } from "@/db/schema";
-
-const roleSchema = createSelectSchema(roles);
-const playerSchema = createSelectSchema(players);
-
-const playerToRoleSchema = z.object({
-  player: playerSchema.pick({ id: true, name: true, imageUrl: true }),
+const PlayerSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().max(100),
+  imageUrl: z.string().url().nullable(),
 });
 
-export const PlayerToRoleSchema = roleSchema
-  .pick({
-    role: true,
-    type: true,
-  })
-  .extend({
-    role: z.string().max(80, "Role must be 80 characters or less"),
-    type: z.enum(roleTypeEnum.enumValues),
-    playersToRoles: z.array(playerToRoleSchema).optional(),
-  });
+const PlayerToRoleSchema = z.object({
+  player: PlayerSchema
+});
 
-export const SuccessPlayerToRolesSchema = z.object({
+const RoleSchema = z.object({
+  role: z.string().max(80),
+  type: z.enum(roleTypeEnum.enumValues),
+  playersToRoles: z.array(PlayerToRoleSchema).default([])
+});
+
+const SuccessSchema = z.object({
   success: z.literal(true),
-  data: z.array(PlayerToRoleSchema),
+  data: z.array(RoleSchema)
 });
 
-const ErrorPlayerToRolesSchema = z.object({
+const ErrorSchema = z.object({
   success: z.literal(false),
   error: z.object({
-    code: z.number(),
+    code: z.number().int(),
     message: z.string(),
-    details: z.any().optional(),
+    details: z.unknown().optional(),
   }),
 });
 
-export const APIPlayerToRolesResponseSchema = z.discriminatedUnion("success", [
-  SuccessPlayerToRolesSchema,
-  ErrorPlayerToRolesSchema,
+export const APIPlayersRolesResponseSchema = z.discriminatedUnion("success", [
+  SuccessSchema,
+  ErrorSchema
 ]);
 
-export type PlayerToRole = z.infer<typeof PlayerToRoleSchema>;
-export type SuccessPlayerToRolesResponse = z.infer<typeof SuccessPlayerToRolesSchema>["data"];
-export type APIPlayerToRolesResponse = z.infer<typeof APIPlayerToRolesResponseSchema>;
+export type PlayerRole = z.infer<typeof RoleSchema>;
+export type APIPlayersRolesResponse = z.infer<typeof APIPlayersRolesResponseSchema>;

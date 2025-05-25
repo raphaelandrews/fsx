@@ -78,6 +78,7 @@ export const getPlayerById = unstable_cache(
             tournament: {
               columns: {
                 name: true,
+                date: true, 
                 championshipId: true
               }
             }

@@ -14,7 +14,7 @@ import {
   tournamentPodiums,
   cupMatches,
   cupGames,
-  playersToInsignia,
+  playersToInsignias,
 } from "./index";
 import { playersToTitles } from "./playersToTitles";
 
@@ -53,7 +53,7 @@ export const playersRelations = relations(players, ({ one, many }) => ({
   cupMatches: many(cupMatches),
   cupPlayers: many(cupPlayers),
   defendingChampions: many(defendingChampions),
-  playersToInsignia: many(playersToInsignia),
+  playersToInsignia: many(playersToInsignias),
   playersToNorms: many(playersToNorms),
   playersToRoles: many(playersToRoles),
   playersToTitles: many(playersToTitles),
@@ -62,3 +62,6 @@ export const playersRelations = relations(players, ({ one, many }) => ({
 }));
 
 export const insertPlayerSchema = createInsertSchema(players)
+
+export type Player = typeof players.$inferSelect
+export type NewPlayer = typeof players.$inferInsert

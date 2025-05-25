@@ -4,7 +4,7 @@ import { db } from "@/db"
 import { posts } from "@/db/schema"
 import { unstable_cache } from "@/lib/unstable_cache";
 
-export const getNewsBySlug = unstable_cache(
+export const getPostBySlug = unstable_cache(
   (slug: string) => db.query.posts.findFirst({
     where: and(eq(posts.slug, slug), eq(posts.published, true)),
     columns: {
@@ -16,9 +16,9 @@ export const getNewsBySlug = unstable_cache(
       createdAt: true,
     },
   }),
-  ["news-item"],
+  ["post-item"],
   {
     revalidate: 60 * 60 * 24 * 30,
-    tags: ["news", "news-item"],
+    tags: ["post", "post-item"],
   },
 )

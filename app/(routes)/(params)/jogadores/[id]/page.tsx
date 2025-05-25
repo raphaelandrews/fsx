@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { getPlayerById, type PlayerById } from "@/db/queries";
 import { siteConfig } from "@/lib/site";
-import PlayerClient from "./player-client";
+import { Client } from "./client";
 
 export async function generateMetadata({
   params,
@@ -54,5 +54,5 @@ export default async function Page({
     notFound();
   }
 
-  return <PlayerClient player={data as PlayerById} />;
+  return <Client player={data as PlayerById} />;
 }

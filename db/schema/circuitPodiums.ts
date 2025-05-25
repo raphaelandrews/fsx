@@ -46,3 +46,6 @@ export const circuitPodiumsRelations = relations(circuitPodiums, ({ one }) => ({
 }));
 
 export const insertCircuitPodiumSchema = createInsertSchema(circuitPodiums)
+
+export type CircuitPodium = typeof circuitPodiums.$inferSelect
+export type NewCircuitPodium = typeof circuitPodiums.$inferInsert

@@ -2,12 +2,12 @@
 
 import { useMemo } from "react";
 
-import type { PlayerToRole } from "@/db/queries";
+import type { PlayerRole } from "@/db/queries";
 import { getGradient } from "@/lib/generate-gradients";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export function Client({ roles }: { roles: PlayerToRole[] }) {
+export function Client({ roles }: { roles: PlayerRole[] }) {
   const management = useMemo(() => {
     return roles.filter((role) => role.type === "management");
   }, [roles]);

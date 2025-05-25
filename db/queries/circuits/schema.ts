@@ -1,76 +1,66 @@
 import { z } from "zod";
+import { circuitCategoryEnum, circuitPlaceEnum, circuitTypeEnum, titleTypeEnum } from "@/db/schema";
 
-const titleSchema = z.object({
-  shortTitle: z.string(),
-  type: z.string()
+const TitleSchema = z.object({
+  title: z.object({
+    shortTitle: z.string().max(4),
+    type: z.enum(titleTypeEnum.enumValues),
+  }),
 });
 
-const clubSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  logo: z.string().nullable()
+const ClubSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().max(80),
+  logo: z.string().nullable(),
 });
 
-const playerSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  nickname: z.string().nullable().optional(),
-  imageUrl: z.string().nullable().optional(),
-  club: clubSchema.nullable().optional(),
-  playersToTitles: z.array(
-    z.object({
-      title: titleSchema
-    })
-  ).optional()
+const PlayerSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().max(100),
+  nickname: z.string().max(20).nullable(),
+  imageUrl: z.string().url().nullable(),
+  club: ClubSchema.nullable(),
+  playersToTitles: z.array(TitleSchema).default([]),
 });
 
-const podiumSchema = z.object({
-  category: z.string().nullable(),
-  place: z.string(),
+const CircuitPodiumSchema = z.object({
+  category: z.enum(circuitCategoryEnum.enumValues).nullable(),
+  place: z.enum(circuitPlaceEnum.enumValues),
   points: z.number(),
-  player: playerSchema
+  player: PlayerSchema,
 });
 
-const tournamentSchema = z.object({
-  name: z.string()
+const TournamentSchema = z.object({
+  name: z.string().max(80),
 });
 
-const phaseSchema = z.object({
-  id: z.number(),
+const CircuitPhaseSchema = z.object({
+  id: z.number().int().positive(),
   order: z.number(),
-  tournament: tournamentSchema,
-  circuitPodiums: z.array(podiumSchema)
+  tournament: TournamentSchema,
+  circuitPodiums: z.array(CircuitPodiumSchema),
 });
 
-const circuitSchema = z.object({
-  name: z.string(),
-  type: z.string(),
-  circuitPhase: z.array(phaseSchema)
+const CircuitSchema = z.object({
+  name: z.string().max(80),
+  type: z.enum(circuitTypeEnum.enumValues),
+  circuitPhase: z.array(CircuitPhaseSchema),
 });
 
-export const circuitsSchema = z.array(circuitSchema);
-export type Circuit = z.infer<typeof circuitSchema>;
-export type CircuitClub = z.infer<typeof clubSchema>;
-export type CircuitPhase = z.infer<typeof phaseSchema>;
-export type CircuitPlayer = z.infer<typeof playerSchema>;
-export type ExtendedCircuitPlayer = CircuitPlayer & {
-  total: number;
-  category?: string | undefined | null;
-  pointsByPhase?: Record<string, number> | null;
-  clubName?: string | null;
-};
-export type ExtendedCircuit = Circuit & {
-  players: ExtendedCircuitPlayer[];
-};
-export type ExtendedCircuitClub = {
-  clubName: string;
-  clubLogo: string | null;
-  total: number;
-  pointsByPhase: Record<string, number>;
-  players: CircuitPlayer[]
-};
-export type ExtendedCircuitPodium = CircuitPodium & {
-  clubId: number;
-};
-export type CircuitPodium = z.infer<typeof podiumSchema>;
+export const APICircuitsResponseSchema = z.discriminatedUnion("success", [
+  z.object({
+    success: z.literal(true),
+    data: z.array(CircuitSchema),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      code: z.number(),
+      message: z.string(),
+      details: z.any().optional(),
+    }),
+  }),
+]);
 
+export type Circuit = z.infer<typeof CircuitSchema>;
+export type APICircuitsResponse = z.infer<typeof APICircuitsResponseSchema>;

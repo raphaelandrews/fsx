@@ -2,11 +2,11 @@ import React from "react";
 import type { Metadata } from "next";
 import { HomeIcon } from "lucide-react";
 
-import { getNewsByPage } from "@/db/queries";
+import { getPostsByPage } from "@/db/queries";
 import { siteConfig } from "@/lib/site";
 
 import { Announcement } from "@/components/announcement";
-import { NewsCard } from "@/components/news-card";
+import { PostCard } from "@/components/post-card";
 import {
   PageHeader,
   PageHeaderDescription,
@@ -63,7 +63,7 @@ export default async function Page({
   const resolvedSearchParams = await searchParams;
   const currentPage = Number(resolvedSearchParams.page) || 1;
 
-  const { news, pagination } = await getNewsByPage(currentPage);
+  const { posts, pagination } = await getPostsByPage(currentPage);
   const { totalPages, hasNextPage, hasPreviousPage } = pagination;
 
   const getPageNumbers = (totalPages: number, currentPage: number) => {
@@ -115,13 +115,13 @@ export default async function Page({
           }
         >
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {news.map((newsItem) => (
-              <NewsCard
-                key={newsItem.id}
-                id={newsItem.id}
-                title={newsItem.title}
-                image={newsItem.image ?? undefined}
-                slug={newsItem.slug ?? ""}
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                id={post.id}
+                title={post.title}
+                image={post.image ?? undefined}
+                slug={post.slug ?? ""}
               />
             ))}
           </div>

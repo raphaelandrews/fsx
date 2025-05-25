@@ -30,3 +30,6 @@ export const playersToTitlesRelations = relations(playersToTitles, ({ one }) => 
 }));
 
 export const insertPlayerToTitleSchema = createInsertSchema(playersToTitles);
+
+export type PlayerToTitle = typeof playersToTitles.$inferSelect
+export type NewPlayerToTitle = typeof playersToTitles.$inferInsert

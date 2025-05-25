@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { z } from 'zod';
 
-import { APIPlayersResponseSchema, getPlayersByPage } from '@/db/queries';
+import { APIPlayersResponseSchema, getPlayersWithFilters } from '@/db/queries';
 
 const createResponse = (data: z.infer<typeof APIPlayersResponseSchema>, status = 200) =>
   NextResponse.json(data, { status });
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       locations: searchParams.getAll('location'),
     };
 
-    const { players, pagination } = await getPlayersByPage(filters);
+    const { players, pagination } = await getPlayersWithFilters(filters);
 
     const validation = APIPlayersResponseSchema.safeParse({
       success: true,

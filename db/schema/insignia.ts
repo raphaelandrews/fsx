@@ -2,16 +2,19 @@ import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { pgTable, serial, smallint, varchar } from "drizzle-orm/pg-core";
 
-import { playersToInsignia } from "./index";
+import { playersToInsignias } from "./index";
 
-export const insignia = pgTable("insignia", {
+export const insignias = pgTable("insignias", {
   id: serial("id").primaryKey(),
   insignia: varchar("insignia", { length: 80 }).notNull().unique(),
   level: smallint("level").notNull(),
 });
 
-export const playerInsigniaRelations = relations(insignia, ({ many }) => ({
-  playersToInsignia: many(playersToInsignia),
+export const playerInsigniaRelations = relations(insignias, ({ many }) => ({
+  playersToInsignia: many(playersToInsignias),
 }));
 
-export const insertInsigniaSchema = createInsertSchema(insignia)
+export const insertInsigniaSchema = createInsertSchema(insignias)
+
+export type Insignia = typeof insignias.$inferSelect
+export type NewInsignia = typeof insignias.$inferInsert

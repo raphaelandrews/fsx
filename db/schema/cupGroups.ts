@@ -23,3 +23,6 @@ export const cupGroupsRelations = relations(cupGroups, ({ one, many }) => ({
 }));
 
 export const insertCupGroupSchema = createInsertSchema(cupGroups)
+
+export type CupGroup = typeof cupGroups.$inferSelect
+export type NewCupGroup = typeof cupGroups.$inferInsert

@@ -29,3 +29,6 @@ export const circuitPhasesRelations = relations(circuitPhases, ({ one, many }) =
 }));
 
 export const insertCircuitPhaseSchema = createInsertSchema(circuitPhases)
+
+export type CircuitPhase = typeof circuitPhases.$inferSelect
+export type NewCircuitPhase = typeof circuitPhases.$inferInsert

@@ -24,10 +24,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { categories } from "./data/data";
 import CategoryFilter from "./components/category-filter";
-import { getCircuits } from "./components/get-circuits";
 
-export function Client() {
-  const [circuits, setCircuits] = useState<Circuit[]>([]);
+interface ClientProps {
+  circuits: Circuit[];
+}
+
+export function Client({ circuits }: ClientProps) {
   const [circuitPodiums, setCircuitPodiums] = useState<CircuitPodium[]>([]);
   const [selectedPhase, setSelectedPhase] = useState<string | undefined>(
     undefined
@@ -39,22 +41,16 @@ export function Client() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getData = async () => {
-      const res = await getCircuits();
-      setCircuits(res);
-      if (res.length > 0 && res[0].circuitPhase.length > 0) {
-        setSelectedPhase(res[0].circuitPhase[0].tournament.name);
-        setSelectedTab(res[0].name);
-        if (res[0].type === "categories") {
-          setSelectedCategory("Master");
-        }
-        setCircuitPodiums(res[0].circuitPhase[0].circuitPodiums);
+    if (circuits.length > 0 && circuits[0].circuitPhase.length > 0) {
+      setSelectedPhase(circuits[0].circuitPhase[0].tournament.name);
+      setSelectedTab(circuits[0].name);
+      if (circuits[0].type === "categories") {
+        setSelectedCategory("Master");
       }
+      setCircuitPodiums(circuits[0].circuitPhase[0].circuitPodiums);
       setLoading(false);
-    };
-
-    getData();
-  }, []);
+    }
+  }, [circuits]);
 
   useEffect(() => {
     if (selectedPhase && selectedTab) {

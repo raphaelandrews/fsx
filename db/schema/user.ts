@@ -9,3 +9,6 @@ export const user = pgTable("user", {
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
 });
+
+export type User = typeof user.$inferSelect
+export type NewUser = typeof user.$inferInsert

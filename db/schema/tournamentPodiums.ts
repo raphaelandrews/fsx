@@ -31,3 +31,6 @@ export const tournamentPodiumsRelations = relations(tournamentPodiums, ({ one })
 }));
 
 export const insertTournamentPodiumSchema = createInsertSchema(tournamentPodiums)
+
+export type TournamentPodium = typeof tournamentPodiums.$inferSelect
+export type NewTournamentPodium = typeof tournamentPodiums.$inferInsert

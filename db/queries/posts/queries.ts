@@ -4,7 +4,7 @@ import { db } from "@/db"
 import { posts } from "@/db/schema"
 import { unstable_cache } from "@/lib/unstable_cache";
 
-export const getNews = unstable_cache(
+export const getPosts = unstable_cache(
   () =>
     db
       .select({
@@ -18,9 +18,9 @@ export const getNews = unstable_cache(
       .orderBy(desc(posts.createdAt))
       .limit(24)
       .execute(),
-  ["news"],
+  ["posts"],
   {
     revalidate: 60 * 60 * 24 * 30,
-    tags: ["news"],
+    tags: ["posts"],
   },
 )

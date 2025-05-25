@@ -1,12 +1,16 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 
-import type { Announcement } from "@/db/queries";
+import type { AnnouncementByPage } from "@/db/queries";
 import { AnnouncementsModal } from "@/components/modals/announcements-modal";
 import { ScrollTextIcon } from "lucide-react";
 
-export function AnnouncementLink({ year, number, content }: Announcement) {
+export function AnnouncementLink({
+  year,
+  number,
+  content,
+}: AnnouncementByPage) {
   const [isOpen, setIsOpen] = useState(false);
   const toggleModal = () => setIsOpen((prev) => !prev);
 

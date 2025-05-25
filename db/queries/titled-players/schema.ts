@@ -1,47 +1,40 @@
-import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { titleTypeEnum } from "@/db/schema";
 
-import { players, titles } from "@/db/schema";
-
-const playersSchema = createSelectSchema(players);
-const titleSchema = createSelectSchema(titles);
-
-const playerToTitleSchema = z.object({
-  title: titleSchema.pick({ type: true, title: true, shortTitle: true }),
+const TitleSchema = z.object({
+  title: z.object({
+    title: z.string().max(40),
+    shortTitle: z.string().max(4),
+    type: z.enum(titleTypeEnum.enumValues),
+  }),
 });
 
-export const TitledPlayerSchema = playersSchema
-  .pick({
-    id: true,
-    name: true,
-    imageUrl: true,
-  })
-  .extend({
-    id: z.number().int().positive(),
-    nickname: z.string().max(20, "Nickname must be 20 characters or less").nullable().optional(),
-    imageUrl: z.string().url().nullable().optional(),
-    playersToTitles: z.array(playerToTitleSchema).optional(),
-  });
+const TitledPlayerSchema = z.object({
+  id: z.number(),
+  name: z.string().max(100),
+  imageUrl: z.string().url().nullable(),
+  rapid: z.number().int().min(0).default(1900),
+  playersToTitles: z.array(TitleSchema).default([]),
+});
 
-export const SuccessTitledPlayersSchema = z.object({
+const SuccessSchema = z.object({
   success: z.literal(true),
-  data: z.array(TitledPlayerSchema),
+  data: z.array(TitledPlayerSchema)
 });
 
-const ErrorTitledPlayersSchema = z.object({
+const ErrorSchema = z.object({
   success: z.literal(false),
   error: z.object({
-    code: z.number(),
+    code: z.number().int(),
     message: z.string(),
-    details: z.any().optional(),
+    details: z.unknown().optional(),
   }),
 });
 
 export const APITitledPlayersResponseSchema = z.discriminatedUnion("success", [
-  SuccessTitledPlayersSchema,
-  ErrorTitledPlayersSchema,
+  SuccessSchema,
+  ErrorSchema
 ]);
 
 export type TitledPlayer = z.infer<typeof TitledPlayerSchema>;
-export type SuccessTitledPlayersResponse = z.infer<typeof SuccessTitledPlayersSchema>["data"];
 export type APITitledPlayersResponse = z.infer<typeof APITitledPlayersResponseSchema>;

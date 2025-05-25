@@ -2,9 +2,11 @@ import React from "react";
 import type { Metadata } from "next";
 import { MedalIcon } from "lucide-react";
 
+import { getCircuits } from "@/db/queries/circuits/queries";
 import { siteConfig } from "@/lib/site";
 
 import { Client } from "./client";
+import type { Circuit } from "./components/types";
 import { Announcement } from "@/components/announcement";
 import {
   PageHeader,
@@ -34,6 +36,8 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
+  const circuits = await getCircuits();
+
   return (
     <>
       <PageHeader>
@@ -44,7 +48,7 @@ export default async function Page() {
         </PageHeaderDescription>
       </PageHeader>
 
-      <Client />
+      <Client circuits={circuits as Circuit[]} />
     </>
   );
 }

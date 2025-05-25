@@ -18,3 +18,6 @@ export const playerTitlesRelations = relations(titles, ({ many }) => ({
 }));
 
 export const insertTitleSchema = createInsertSchema(titles)
+
+export type Title = typeof titles.$inferSelect
+export type NewTitle = typeof titles.$inferInsert

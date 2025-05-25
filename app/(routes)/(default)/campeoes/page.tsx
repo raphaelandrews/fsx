@@ -37,29 +37,40 @@ export const metadata: Metadata = {
 const ChampionsPage = async () => {
   const data = await getChampions();
 
-  const transformedData = data.map((championship) => ({
-    ...championship,
-    tournaments: championship.tournaments.map((tournament) => ({
-      ...tournament,
-      date: tournament.date ? new Date(tournament.date) : null,
-      tournamentPodiums: tournament.tournamentPodiums.map((podium) => ({
-        place: podium.place,
-        player: {
-          id: Number(podium.player.id),
-          name: podium.player.name,
-          nickname: podium.player.nickname ?? null,
-          imageUrl: podium.player.imageUrl ?? null,
-          location: podium.player.location ?? null,
-          playersToTitles: podium.player.playersToTitles.map((t) => ({
-            title: {
-              type: t.title.type,
-              shortTitle: t.title.shortTitle,
-            },
-          })),
-        },
-      })),
-    })),
-  }));
+  const championshipMap = data.reduce((acc, championship) => {
+    acc[championship.name] = championship.tournaments
+      .map((tournament) => ({
+        ...tournament,
+        date: tournament.date ? new Date(tournament.date) : null,
+        tournamentPodiums: tournament.tournamentPodiums.map((podium) => ({
+          place: podium.place,
+          player: {
+            id: Number(podium.player.id),
+            name: podium.player.name,
+            nickname: podium.player.nickname ?? null,
+            imageUrl: podium.player.imageUrl ?? null,
+            location: podium.player.location ?? null,
+            playersToTitles: podium.player.playersToTitles.map((t) => ({
+              title: {
+                type: t.title.type,
+                shortTitle: t.title.shortTitle,
+              },
+            })),
+          },
+        })),
+      }))
+      .reverse();
+    return acc;
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  }, {} as Record<string, any>);
+
+  const tabContent = [
+    { value: "classic", name: "Absoluto" },
+    { value: "rapid", name: "Rápido" },
+    { value: "blitz", name: "Blitz" },
+    { value: "female", name: "Feminino" },
+    { value: "team", name: "Equipes" },
+  ];
 
   return (
     <>
@@ -73,43 +84,21 @@ const ChampionsPage = async () => {
 
       <Tabs defaultValue="classic">
         <TabsList className="grid h-20 sm:h-[inherit] sm:w-[500px] grid-cols-3 grid-rows-2 sm:grid-cols-5 sm:grid-rows-1">
-          <TabsTrigger value="classic">Absoluto</TabsTrigger>
-          <TabsTrigger value="rapid">Rápido</TabsTrigger>
-          <TabsTrigger value="blitz">Blitz</TabsTrigger>
-          <TabsTrigger value="female">Feminino</TabsTrigger>
-          <TabsTrigger value="team">Equipes</TabsTrigger>
+          {tabContent.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.name}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="classic">
-          <DataTable
-            columns={columns}
-            data={transformedData[0].tournaments.reverse()}
-          />
-        </TabsContent>
-        <TabsContent value="rapid">
-          <DataTable
-            columns={columns}
-            data={transformedData[1].tournaments.reverse()}
-          />
-        </TabsContent>
-        <TabsContent value="blitz">
-          <DataTable
-            columns={columns}
-            data={transformedData[2].tournaments.reverse()}
-          />
-        </TabsContent>
-        <TabsContent value="female">
-          <DataTable
-            columns={columns}
-            data={transformedData[3].tournaments.reverse()}
-          />
-        </TabsContent>
-        <TabsContent value="team">
-          <DataTable
-            columns={columns}
-            data={transformedData[4].tournaments.reverse()}
-          />
-        </TabsContent>
+        {tabContent.map((tab) => (
+          <TabsContent key={tab.value} value={tab.value}>
+            <DataTable
+              columns={columns}
+              data={championshipMap[tab.name] ?? []}
+            />
+          </TabsContent>
+        ))}
       </Tabs>
     </>
   );

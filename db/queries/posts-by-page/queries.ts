@@ -6,7 +6,7 @@ import { unstable_cache } from "@/lib/unstable_cache";
 
 const perPage = 12
 
-export const getNewsByPage = unstable_cache(
+export const getPostsByPage = unstable_cache(
   async (page: number) => {
     const validPage = Math.max(1, page)
 
@@ -30,7 +30,7 @@ export const getNewsByPage = unstable_cache(
     const totalPages = Math.max(1, Math.ceil(totalItems / perPage))
 
     return {
-      news: data.map((item) => ({
+      posts: data.map((item) => ({
         ...item,
         createdAt: item.createdAt?.toISOString() ?? null,
       })),
@@ -44,9 +44,9 @@ export const getNewsByPage = unstable_cache(
       },
     }
   },
-  ["news-list"],
+  ["posts-list"],
   {
     revalidate: 60 * 60 * 24 * 30, 
-    tags: ["news", "news-list"],
+    tags: ["posts", "posts-list"],
   },
 )

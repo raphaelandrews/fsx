@@ -1,15 +1,15 @@
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CalendarIcon, NewspaperIcon } from "lucide-react";
 
-import { getNews, getNewsBySlug } from "@/db/queries";
+import { getPosts, getPostBySlug } from "@/db/queries";
 import { siteConfig } from "@/lib/site";
 import { MDX } from "@/components/mdx";
 
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  const posts = await getNews();
+  const posts = await getPosts();
 
   return posts.map((post) => ({
     slug: post.slug,
@@ -22,7 +22,7 @@ export async function generateMetadata({
   params: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const resolvedParams = await params;
-  const posts = await getNewsBySlug(resolvedParams.slug as string);
+  const posts = await getPostBySlug(resolvedParams.slug as string);
 
   if (!posts) {
     return {
@@ -59,7 +59,7 @@ export default async function Page({
   params: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const resolvedParams = await params;
-  const data = await getNewsBySlug(resolvedParams.slug as string);
+  const data = await getPostBySlug(resolvedParams.slug as string);
 
   if (!data) {
     notFound();

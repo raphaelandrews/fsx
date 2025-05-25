@@ -67,7 +67,7 @@ function getBirthDateRange(group: string): [Date, Date] | undefined {
   }
 }
 
-export const getPlayersByPage = unstable_cache(
+export const getPlayersWithFilters = unstable_cache(
   async (params: {
     page?: number;
     limit?: number;
@@ -275,7 +275,7 @@ export const getPlayersByPage = unstable_cache(
       }
     }
   },
-  ['players-by-page'],
+  ['players'],
   {
     revalidate: 60 * 60 * 24 * 30,
     tags: ['players']

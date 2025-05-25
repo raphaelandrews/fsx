@@ -3,7 +3,6 @@ import {
   type LucideIcon,
   Sparkles,
   Book,
-  GraduationCap,
   Trophy,
   Users,
   Calendar,

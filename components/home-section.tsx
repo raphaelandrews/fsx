@@ -8,7 +8,7 @@ interface HomeSectionProps {
   className?: string;
   href?: string;
   icon: LucideIcon;
-  main?: boolean;
+  main: boolean;
   children: React.ReactNode;
 }
 

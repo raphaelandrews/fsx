@@ -1,8 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { ExternalLink, VerifiedIcon } from "lucide-react";
 import {
   Bar,
@@ -48,7 +46,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const PlayerClient = ({ player }: { player: PlayerById }) => {
+export function Client({ player }: { player: PlayerById }) {
   const useGradients = () => {
     const [headerGradient, avatarGradient] = React.useMemo(
       () => [getGradient(player.id), getGradient(player.id + 1)],
@@ -352,9 +350,7 @@ const PlayerClient = ({ player }: { player: PlayerById }) => {
       )}
     </section>
   );
-};
-
-export default PlayerClient;
+}
 
 const Info = ({
   label,

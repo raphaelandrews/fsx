@@ -2,15 +2,16 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 
-import type { Tournament } from "@/db/queries";
 import { Actions } from "./actions";
+import type { Tournament } from "@/db/queries";
 
 export const columns: ColumnDef<Tournament>[] = [
   {
     accessorKey: "date",
     header: "Ano",
     cell: ({ row }) => {
-      return <div>{row.original.date?.toISOString().slice(0, 4) ?? '-'}</div>;
+      const date = row.original.date ? new Date(row.original.date) : null;
+      return <div>{date?.toISOString().slice(0, 4) ?? "-"}</div>;
     },
   },
   {
@@ -36,9 +37,7 @@ export const columns: ColumnDef<Tournament>[] = [
               name={championTeam.name}
               nickname={championTeam.nickname}
               image={championTeam.imageUrl}
-              shortTitle={
-                championTeam.playersToTitles?.[0]?.title.shortTitle
-              }
+              shortTitle={championTeam.playersToTitles?.[0]?.title.shortTitle}
             />
           </div>
         );
@@ -75,9 +74,7 @@ export const columns: ColumnDef<Tournament>[] = [
               name={teamRunnerUp.name}
               nickname={teamRunnerUp.nickname}
               image={teamRunnerUp.imageUrl}
-              shortTitle={
-                teamRunnerUp.playersToTitles?.[0]?.title.shortTitle
-              }
+              shortTitle={teamRunnerUp.playersToTitles?.[0]?.title.shortTitle}
             />
             {runnerUpTeam && (
               <Actions
@@ -85,9 +82,7 @@ export const columns: ColumnDef<Tournament>[] = [
                 name={runnerUpTeam.name}
                 nickname={runnerUpTeam.nickname}
                 image={runnerUpTeam.imageUrl}
-                shortTitle={
-                  runnerUpTeam.playersToTitles?.[0]?.title.shortTitle
-                }
+                shortTitle={runnerUpTeam.playersToTitles?.[0]?.title.shortTitle}
               />
             )}
           </div>

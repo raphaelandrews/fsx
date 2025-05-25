@@ -1,43 +1,61 @@
 import { z } from "zod";
+import { titleTypeEnum } from "@/db/schema/titles";
 
-const titleSchema = z.object({
-  shortTitle: z.string(),
-  type: z.string(),
+const TitleSchema = z.object({
+  title: z.object({
+    shortTitle: z.string().max(4),
+    type: z.enum(titleTypeEnum.enumValues),
+  }),
 });
 
-const playerSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  nickname: z.string().nullable(),
+const LocationSchema = z.object({
+  name: z.string().max(80),
+});
+
+const PlayerSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().max(100),
+  nickname: z.string().max(20).nullable(),
   imageUrl: z.string().nullable(),
-  location: z.object({
-    name: z.string(),
-  }).nullable(),
-  playersToTitles: z.array(z.object({
-    title: titleSchema,
-  })),
+  location: LocationSchema.nullable(),
+  playersToTitles: z.array(TitleSchema).default([]),
 });
 
-const tournamentPodiumSchema = z.object({
-  place: z.number(),
-  player: playerSchema,
+const TournamentPodiumSchema = z.object({
+  place: z.number().int(),
+  player: PlayerSchema,
 });
 
-const tournamentSchema = z.object({
-  name: z.string(),
-  date: z.date().nullable(),
-  tournamentPodiums: z.array(tournamentPodiumSchema),
+const TournamentSchema = z.object({
+  name: z.string().max(80),
+  date: z.union([z.date(), z.string()]).nullable(),
+  tournamentPodiums: z.array(TournamentPodiumSchema).default([]),
 });
 
-const championshipSchema = z.object({
-  name: z.string(),
-  tournaments: z.array(tournamentSchema),
+const ChampionshipSchema = z.object({
+  name: z.string().max(80),
+  tournaments: z.array(TournamentSchema).default([]),
 });
 
-export const ChampionsSchema = z.array(championshipSchema);
+const SuccessSchema = z.object({
+  success: z.literal(true),
+  data: z.array(ChampionshipSchema),
+});
 
-export type Championship = z.infer<typeof championshipSchema>;
-export type Tournament = z.infer<typeof tournamentSchema>;
-export type TournamentPodium = z.infer<typeof tournamentPodiumSchema>;
-export type Player = z.infer<typeof playerSchema>;
-export type Title = z.infer<typeof titleSchema>;
+const ErrorSchema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    code: z.number().int(),
+    message: z.string(),
+    details: z.unknown().optional(),
+  }),
+});
+
+export const APIChampionsResponseSchema = z.discriminatedUnion("success", [
+  SuccessSchema,
+  ErrorSchema
+]);
+
+export type Championship = z.infer<typeof ChampionshipSchema>
+export type Tournament = z.infer<typeof TournamentSchema>;;
+export type APIChampionsResponse = z.infer<typeof APIChampionsResponseSchema>;
