@@ -21,9 +21,9 @@ import {
 
 const themes: Array<{ value: ThemeStyle; label: string; icon: LucideIcon }> = [
   { value: "default", label: "Default", icon: PaletteIcon },
-  { value: "mint", label: "Mint", icon: LeafIcon },
+  /* { value: "mint", label: "Mint", icon: LeafIcon },
   { value: "sky", label: "Sky", icon: CloudyIcon },
-  { value: "peach", label: "Peach", icon: SunIcon },
+  { value: "peach", label: "Peach", icon: SunIcon }, */
 ];
 
 const colorSchemes: Array<{
