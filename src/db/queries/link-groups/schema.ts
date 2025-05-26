@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const LinksSchema = z.object({
-  href: z.string().url(),
+  href: z.string(),
   label: z.string().max(50),
   icon: z.string(),
   order: z.number().int().positive(),
