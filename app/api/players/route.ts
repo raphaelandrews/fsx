@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { z } from 'zod';
 
-import { APIPlayersResponseSchema, getPlayersWithFilters } from '@/db/queries';
+import { APIPlayersWithFiltersResponseSchema, getPlayersWithFilters } from '@/db/queries';
 
-const createResponse = (data: z.infer<typeof APIPlayersResponseSchema>, status = 200) =>
+const createResponse = (data: z.infer<typeof APIPlayersWithFiltersResponseSchema>, status = 200) =>
   NextResponse.json(data, { status });
 
 export async function GET(request: Request) {
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
     const { players, pagination } = await getPlayersWithFilters(filters);
 
-    const validation = APIPlayersResponseSchema.safeParse({
+    const validation = APIPlayersWithFiltersResponseSchema.safeParse({
       success: true,
       data: { players, pagination }
     });

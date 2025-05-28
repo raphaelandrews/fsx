@@ -1,7 +1,4 @@
-import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-
-import { posts } from "@/db/schema";
 
 const PostsSchema = z.object({
   id: z.string(),
@@ -11,7 +8,7 @@ const PostsSchema = z.object({
   createdAt: z.union([z.date(), z.string()]),
 });
 
-export const SuccessSchema = z.object({
+const SuccessSchema = z.object({
   success: z.literal(true),
   data: z.array(PostsSchema),
 });

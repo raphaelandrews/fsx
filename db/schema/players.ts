@@ -34,7 +34,7 @@ export const players = pgTable("players", {
   fideId: integer("fide_id"),
   verified: boolean("verified").default(false),
   birth: date('birth', { mode: "date" }),
-  sex: boolean("sex").default(false),
+  sex: boolean("sex").notNull().default(false),
   clubId: integer("club_id").references(() => clubs.id),
   locationId: integer("location_id").references(() => locations.id),
 });
