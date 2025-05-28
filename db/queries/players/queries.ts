@@ -58,7 +58,7 @@ export const getPlayers = unstable_cache(
   }),
   ['players'],
   {
-    revalidate: 60 * 60 * 24 * 30,
+    revalidate: 60 * 60 * 24 * 15,
     tags: ['players']
   }
 )

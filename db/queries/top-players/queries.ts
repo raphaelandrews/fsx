@@ -52,6 +52,6 @@ export const getTopPlayers = unstable_cache(
   },
   ['top-players'],
   {
-    revalidate: 60 * 60 * 24 * 30,
+    revalidate: 60 * 60 * 24 * 15,
   }
 );

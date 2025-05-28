@@ -20,7 +20,7 @@ export const getFreshPosts = unstable_cache(
       .execute(),
   ["fresh-posts"],
   {
-    revalidate: 60 * 60 * 24 * 30,
+    revalidate: 60 * 60 * 24 * 15,
     tags: ["fresh-posts"],
   }
 );

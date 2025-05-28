@@ -22,7 +22,7 @@ export const getLinksGroups = unstable_cache(
     }),
   ["links-groups"],
   {
-    revalidate: 60 * 60 * 24 * 30,
+    revalidate: 60 * 60 * 24 * 15,
     tags: ["links-groups"],
   },
 )

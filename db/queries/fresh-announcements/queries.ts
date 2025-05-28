@@ -19,7 +19,7 @@ export const getFreshAnnouncements = unstable_cache(
       .execute(),
   ["fresh-announcements"],
   {
-    revalidate: 60 * 60 * 24 * 30,
+    revalidate: 60 * 60 * 24 * 15,
     tags: ["fresh-announcements"],
   }
 );

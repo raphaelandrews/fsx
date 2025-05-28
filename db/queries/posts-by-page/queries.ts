@@ -44,9 +44,9 @@ export const getPostsByPage = unstable_cache(
       },
     }
   },
-  ["posts-list"],
+  ["posts-by-page"],
   {
-    revalidate: 60 * 60 * 24 * 30, 
-    tags: ["posts", "posts-list"],
+    revalidate: 60 * 60 * 24 * 15, 
+    tags: ["posts", "posts-by-page"],
   },
 )

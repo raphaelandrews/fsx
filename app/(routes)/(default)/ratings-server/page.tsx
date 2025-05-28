@@ -3,14 +3,13 @@ import { BarChart2Icon } from "lucide-react";
 
 import { siteConfig } from "@/lib/site";
 
+import { RatingsTables } from "./ratings-tables";
 import { Announcement } from "@/components/announcement";
 import {
   PageHeader,
   PageHeaderDescription,
   PageHeaderHeading,
 } from "@/components/ui/page-header";
-import RatingClient from "./ratings-client";
-import { getPlayers } from "@/db/queries";
 
 export const metadata: Metadata = {
   title: "Ratings",
@@ -32,8 +31,7 @@ export const metadata: Metadata = {
   },
 };
 
-const RatingsPage = async () => {
-  const players = await getPlayers();
+export default async function Page() {
   return (
     <>
       <PageHeader>
@@ -44,9 +42,7 @@ const RatingsPage = async () => {
         </PageHeaderDescription>
       </PageHeader>
 
-      <RatingClient players={players} />
+      <RatingsTables />
     </>
   );
-};
-
-export default RatingsPage;
+}

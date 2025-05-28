@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Row } from "@tanstack/react-table";
 import { BarChart2Icon, InfoIcon } from "lucide-react";
 
 import { columns } from "./components/columns";
@@ -17,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Players } from "@/db/queries";
 
-const RatingClient = ({ players }: { players: Players[] }) => {
+export function Client({ players }: { players: Players[] }) {
   const [playersClassic, setClassicPlayers] = useState<Players[]>([]);
   const [playersRapid, setRapidPlayers] = useState<Players[]>([]);
   const [playersBlitz, setBlitzPlayers] = useState<Players[]>([]);
@@ -49,7 +48,7 @@ const RatingClient = ({ players }: { players: Players[] }) => {
     }
     setLoading(false);
   };
-  console.log(playersClassic);
+
   return (
     <Tabs defaultValue="rapid">
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 mb-4">
@@ -121,8 +120,6 @@ const RatingClient = ({ players }: { players: Players[] }) => {
     </Tabs>
   );
 };
-
-export default RatingClient;
 
 const Info = () => {
   return (

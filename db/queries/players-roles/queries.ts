@@ -25,6 +25,6 @@ export const getPlayersRoles = unstable_cache(
     }),
   ["players-roles"],
   {
-    revalidate: 60 * 60 * 24 * 30,
+    revalidate: 60 * 60 * 24 * 15,
   }
 );

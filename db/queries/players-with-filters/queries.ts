@@ -275,9 +275,9 @@ export const getPlayersWithFilters = unstable_cache(
       }
     }
   },
-  ['players'],
+  ['players-with-filters'],
   {
-    revalidate: 60 * 60 * 24 * 30,
-    tags: ['players']
+    revalidate: 60 * 60 * 24 * 15,
+    tags: ['players-with-filters']
   }
 )
