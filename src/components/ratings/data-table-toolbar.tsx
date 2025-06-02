@@ -1,3 +1,4 @@
+import React from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import type { Table } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
@@ -15,40 +16,36 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
-  const search = useSearch({ from: "/_default/ratings/" });
+  const search = useSearch({ from: "/_default/ratings/" }); // Updated path
   const navigate = useNavigate();
 
-  const sexOptions = [
-    { label: "Feminino", value: "true" },
-    { label: "Absoluto", value: "false" },
-  ];
+  const [inputValue, setInputValue] = React.useState(
+    search.name?.toString() || ""
+  );
 
-  const groupOptions = [
-    { label: "Sub-08", value: "sub08" },
-    { label: "Sub-10", value: "sub10" },
-    { label: "Sub-12", value: "sub12" },
-    { label: "Sub-14", value: "sub14" },
-    { label: "Sub-16", value: "sub16" },
-    { label: "Sub-18", value: "sub18" },
-    { label: "Sub-20", value: "sub20" },
-  ];
+  // Use debounce for search
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      navigate({
+        to: "/ratings",
+        search: (prev) => ({
+          ...prev,
+          name: inputValue || undefined,
+          page: 1,
+        }),
+      });
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [inputValue, navigate]);
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-col md:flex-row flex-1 items-start md:items-center space-y-2 md:space-y-0 md:space-x-2">
         <Input
           placeholder="Procurar jogadores..."
-          value={""}
-          onChange={(event) => {
-            navigate({
-              to: "/ratings",
-              search: (prev) => ({
-                ...prev,
-                name: event.target.value || undefined,
-                page: 1,
-              }),
-            });
-          }}
+          value={inputValue}
+          onChange={(event) => setInputValue(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
         <div className="flex flex-col sm:flex-row flex-1 items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
@@ -139,7 +136,8 @@ export function DataTableToolbar<TData>({
               search.clubs?.length ||
               search.titles?.length ||
               search.sex ||
-              search.groups?.length
+              search.groups?.length ||
+              inputValue
           ) && (
             <Button
               variant="ghost"

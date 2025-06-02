@@ -41,6 +41,7 @@ const searchSchema = z
     page: z.number().catch(1).default(1),
     limit: z.number().optional().catch(undefined),
     sortBy: z.enum(["rapid", "blitz", "classic"]).optional().catch(undefined),
+    name: z.string().optional().catch(undefined),
     sex: z.union([z.boolean(), z.null()]).optional().catch(undefined),
     titles: z.array(z.string()).optional().catch([]),
     clubs: z.array(z.string()).optional().catch([]),
@@ -99,6 +100,7 @@ function RouteComponent() {
     page: search.page,
     limit: search.limit,
     sortBy: search.sortBy || defaultTab,
+    name: search.name,
     sex: search.sex,
     titles: search.titles,
     clubs: search.clubs,
@@ -106,7 +108,7 @@ function RouteComponent() {
     locations: search.locations,
   };
 
-  const { data, isLoading } = useQuery(playersWithFiltersQueryOptions(filters));
+  const { data, isLoading, error } = useQuery(playersWithFiltersQueryOptions(filters));
 
   const players = data?.players ?? [];
   const totalPages = data?.pagination?.totalPages ?? 0;

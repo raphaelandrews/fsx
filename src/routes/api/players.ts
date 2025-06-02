@@ -9,6 +9,7 @@ import {
   lte,
   or,
   count,
+  sql,
 } from 'drizzle-orm'
 import type z from "zod"
 
@@ -40,6 +41,7 @@ export const APIRoute = createAPIFileRoute('/api/players')({
     const queryparams = {
       page: Number(url.searchParams.get('page')) || 1,
       limit: Number(url.searchParams.get('limit')) || 20,
+      name: url.searchParams.get('name'),
       sex: url.searchParams.get('sex'),
       titles: url.searchParams.getAll('title'),
       clubs: url.searchParams.getAll('club'),
@@ -49,6 +51,20 @@ export const APIRoute = createAPIFileRoute('/api/players')({
 
     const whereConditions = [eq(players.active, true)]
 
+    // Remove this condition
+    if (queryparams.name === 'true' || queryparams.name === 'false') {
+      const normalizedQuery = normalizeText(queryparams.name);
+      whereConditions.push(
+        sql`LOWER(translate(${players.name}, 'áàâãäéèêëíìîïóòôõöúùûüýÿ', 'aaaaaeeeeiiiiooooouuuuyy')) ILIKE ${`%${normalizedQuery}%`}`
+      );
+    }
+
+    // Replace with this
+    if (queryparams.name) {
+      whereConditions.push(
+        sql`LOWER(translate(${players.name}, 'áàâãäéèêëíìîïóòôõöúùûüýÿ', 'aaaaaeeeeiiiiooooouuuuyy')) ILIKE ${`%${queryparams.name.toLowerCase()}%`}`
+      );
+    }
     if (queryparams.sex === 'true' || queryparams.sex === 'false') {
       whereConditions.push(eq(players.sex, queryparams.sex === 'true'));
     }
@@ -324,4 +340,12 @@ function getBirthDateRange(group: string): [Date, Date] | undefined {
     default:
       return undefined;
   }
+}
+
+function normalizeText(text: string): string {
+  return text
+    .normalize('NFD')
+    // biome-ignore lint/suspicious/noMisleadingCharacterClass: <explanation>
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 }

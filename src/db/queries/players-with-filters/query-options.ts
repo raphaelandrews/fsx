@@ -9,6 +9,7 @@ export interface PlayersFilters {
   page?: number;
   limit?: number;
   sortBy?: 'rapid' | 'blitz' | 'classic';
+  name?: string | null;
   sex?: boolean | null;
   titles?: string[];
   clubs?: string[];
@@ -24,6 +25,7 @@ export const fetchPlayersWithFilters = createServerFn({ method: 'GET' })
       page = 1,
       limit = 20,
       sortBy = 'rapid',
+      name,
       sex,
       titles = [],
       clubs = [],
@@ -39,6 +41,9 @@ export const fetchPlayersWithFilters = createServerFn({ method: 'GET' })
     console.info(`Fetching players by page=${page}, sorted by sortBy=${sortBy} with filters=${filters}:... @${API_BASE_URL}/players?${params.toString()}`);
 
     try {
+      if (name !== undefined && name !== null) {
+        params.append('name', name.toString());
+      }
       if (sex !== undefined && sex !== null) {
         params.append('sex', sex.toString());
       }
