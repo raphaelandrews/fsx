@@ -4,7 +4,7 @@ import tsConfigPaths from 'vite-tsconfig-paths'
 export default defineConfig({
   server: {
     prerender: {
-      routes: ['/', '/links'],
+      routes: ['/', '/comunicados', '/membros', '/noticias', '/ratings', '/sobre', '/titulados', '/links'],
       crawlLinks: true,
     },
   },
