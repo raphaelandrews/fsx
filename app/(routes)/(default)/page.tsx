@@ -4,10 +4,10 @@ import {
   getTopPlayers,
 } from "@/db/queries";
 
-import { AnnouncementsSection } from "@/components/announcements-section";
-import { DataTableTabs } from "@/components/ratings-main/data-table-tabs";
-import { FAQ } from "@/components/faq";
-import { PostsSection } from "@/components/posts-section";
+import { AnnouncementsSection } from "@/components/home/announcements-section";
+import { DataTableTabs } from "@/components/home/ratings/data-table-tabs";
+import { FAQ } from "@/components/home/faq";
+import { PostsSection } from "@/components/home/posts-section";
 import { UpdateRegister } from "@/components/update-register";
 
 export default async function Page() {

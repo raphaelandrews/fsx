@@ -1,7 +1,7 @@
 import { db } from "@/db"
 import { unstable_cache } from "@/lib/unstable_cache";
 
-export const getLinksGroups = unstable_cache(
+export const getLinkGroups = unstable_cache(
   () =>
     db.query.linkGroups.findMany({
       columns: {
@@ -20,9 +20,9 @@ export const getLinksGroups = unstable_cache(
       },
       orderBy: (linksGroups, { asc }) => asc(linksGroups.id),
     }),
-  ["links-groups"],
+  ["link-groups"],
   {
     revalidate: 60 * 60 * 24 * 15,
-    tags: ["links-groups"],
+    tags: ["link-groups"],
   },
 )

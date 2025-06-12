@@ -1,6 +1,6 @@
 import { InfoIcon } from "lucide-react";
-import { DataTableToolbarSkeleton } from "@/app/(routes)/(default)/ratings-server/players-table/data-table-toolbar-skeleton";
-import { DataTableSkeletonRow } from "@/app/(routes)/(default)/ratings-server/players-table/data-table-skeleton";
+import { DataTableToolbarSkeleton } from "@/app/(routes)/(default)/ratings/components/data-table-toolbar-skeleton";
+import { DataTableSkeletonRow } from "@/app/(routes)/(default)/ratings/components/data-table-skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function CircuitTableSkeleton() {

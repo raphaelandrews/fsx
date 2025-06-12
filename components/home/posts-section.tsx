@@ -1,7 +1,7 @@
 import { FlameIcon, NewspaperIcon } from "lucide-react";
 
 import type { FreshPost } from "@/db/queries";
-import { HomeSection } from "@/components/home-section";
+import { HomeSection } from "@/components/home/home-section";
 import { PostCard } from "@/components/post-card";
 
 interface PostsSectionProps {

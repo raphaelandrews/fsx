@@ -21,7 +21,7 @@ export const getPostBySlug = (slug: string) => {
     [`post-${slug}`],
     {
       revalidate: 60 * 60 * 24 * 15,
-      tags: ['posts', `post-${slug}`],
+      tags: [`post-${slug}`],
     }
   );
 };

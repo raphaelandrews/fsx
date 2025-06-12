@@ -1,6 +1,6 @@
 import { MegaphoneIcon } from "lucide-react";
 import type { AnnouncementByPage as AnnouncementType } from "@/db/queries";
-import { HomeSection } from "@/components/home-section";
+import { HomeSection } from "@/components/home/home-section";
 import { AnnouncementLink } from "@/components/announcement-link";
 
 interface AnnouncementsSectionProps {

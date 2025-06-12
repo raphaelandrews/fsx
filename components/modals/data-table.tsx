@@ -118,7 +118,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
         </Table>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-end justify-between gap-4">
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-foreground">
             Torneios por página
@@ -142,7 +142,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
           </Select>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2">
           <div className="text-sm font-medium text-foreground">
             Página {table.getState().pagination.pageIndex + 1} de{" "}
             {table.getPageCount()}

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { BarChart2Icon } from "lucide-react";
 
-import { getPlayers } from "@/db/queries";
 import { siteConfig } from "@/lib/site";
 
 import { Client } from "./client";
@@ -32,11 +31,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const dynamic = "force-static"
-
 export default async function Page() {
-  const players = await getPlayers();
-
   return (
     <>
       <PageHeader>
@@ -47,7 +42,7 @@ export default async function Page() {
         </PageHeaderDescription>
       </PageHeader>
 
-      <Client players={players} />
+      <Client />
     </>
   );
-};
+}

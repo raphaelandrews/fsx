@@ -1,6 +1,6 @@
 import { FileQuestionIcon } from "lucide-react";
 
-import { HomeSection } from "@/components/home-section";
+import { HomeSection } from "@/components/home/home-section";
 import {
   Accordion,
   AccordionContent,

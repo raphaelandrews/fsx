@@ -387,7 +387,7 @@ const PlayerModal = ({ id, open, setOpen }: Props) => {
           {tournaments && (
             <div className="mt-3">
               <Info label="Torneios">
-                <div className="w-[450px] max-w-[calc(100vw-10%)]">
+                <div className="w-full">
                   <DataTable columns={columns} data={tournaments} />
                 </div>
               </Info>

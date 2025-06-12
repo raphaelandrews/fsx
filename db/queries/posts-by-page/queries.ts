@@ -47,6 +47,6 @@ export const getPostsByPage = unstable_cache(
   ["posts-by-page"],
   {
     revalidate: 60 * 60 * 24 * 15, 
-    tags: ["posts", "posts-by-page"],
+    tags: ["posts-by-page"],
   },
 )

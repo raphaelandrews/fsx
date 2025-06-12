@@ -33,4 +33,5 @@ export const APILinksGroupsResponseSchema = z.discriminatedUnion("success", [
 ]);
 
 export type LinkGroup = z.infer<typeof LinkGroupsSchema>;
+export type Link = z.infer<typeof LinksSchema>;
 export type APILinksGroupsResponse = z.infer<typeof APILinksGroupsResponseSchema>;

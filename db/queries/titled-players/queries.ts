@@ -38,5 +38,6 @@ export const getTitledPlayers = unstable_cache(
   ["titled-players"],
   {
     revalidate: 60 * 60 * 24 * 15,
+    tags: ["titled-players"],
   }
 );

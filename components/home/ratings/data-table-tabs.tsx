@@ -8,7 +8,7 @@ import type { APITopPlayersResponse } from "@/db/queries";
 import { DataTable } from "./data-table";
 import { columnsBlitz, columnsClassic, columnsRapid } from "./columns";
 
-import { HomeSection } from "@/components/home-section";
+import { HomeSection } from "@/components/home/home-section";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type SuccessResponse = Extract<APITopPlayersResponse, { success: true }>;

@@ -1,56 +1,83 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { BarChart2Icon, InfoIcon } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams, usePathname } from "next/navigation";
+import { InfoIcon } from "lucide-react";
 
-import { columns } from "./components/columns";
-import { DataTable } from "./components/data-table";
-
+import type { Players } from "@/db/queries";
+import {
+  columnsBlitz,
+  columnsClassic,
+  columnsRapid,
+} from "@/app/(routes)/(default)/ratings/components/columns";
+import { DataTable } from "@/app/(routes)/(default)/ratings/components/data-table";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Players } from "@/db/queries";
 
-export function Client({ players }: { players: Players[] }) {
-  const [playersClassic, setClassicPlayers] = useState<Players[]>([]);
-  const [playersRapid, setRapidPlayers] = useState<Players[]>([]);
-  const [playersBlitz, setBlitzPlayers] = useState<Players[]>([]);
-  const [loading, setLoading] = useState(true);
+interface RatingsTablesProps {
+  initialPlayers?: Players[];
+  initialPagination?: {
+    totalPages: number;
+  };
+}
+
+export function Client({
+  initialPlayers = [],
+  initialPagination = { totalPages: 0 },
+}: RatingsTablesProps) {
+  const [players, setPlayers] = useState(initialPlayers);
+  const [pagination, setPagination] = useState(initialPagination);
+  const [isLoading, setIsLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const defaultTab = searchParams.get("sortBy") || "rapid";
+  const currentLimit = Number(searchParams.get("limit")) || 20;
 
   useEffect(() => {
-    const getData = async () => {
-      sortData(players, "classic");
-      sortData(players, "rapid");
-      sortData(players, "blitz");
-      setLoading(false);
+    const fetchPlayers = async () => {
+      setIsLoading(true);
+      const params = new URLSearchParams(searchParams.toString());
+
+      params.set("page", searchParams.get("page") || "1");
+      params.set("limit", currentLimit.toString());
+      params.set("sortBy", searchParams.get("sortBy") || "rapid");
+      params.set("sex", searchParams.get("sex") || "");
+
+      const titles = searchParams.getAll("title");
+      for (const title of titles) params.append("title", title);
+
+      const clubs = searchParams.getAll("club");
+      for (const club of clubs) params.append("club", club);
+
+      const groups = searchParams.getAll("group");
+      for (const group of groups) params.append("group", group);
+
+      const locations = searchParams.getAll("location");
+      for (const location of locations) params.append("location", location);
+
+      const response = await fetch(`/api/players?${params.toString()}`);
+      const data = await response.json();
+      setPlayers(data.data.players || []);
+      setPagination(data.data.pagination || { totalPages: 0 });
+      setIsLoading(false);
     };
 
-    getData();
-  }, [players]);
+    fetchPlayers();
+  }, [searchParams, currentLimit]);
 
-  const sortData = (res: Players[], rating: keyof Players) => {
-    const sortedData = [...res].sort(
-      (a, b) => (b[rating] as number) - (a[rating] as number)
-    );
-    if (rating === "classic") {
-      setClassicPlayers(sortedData);
-    }
-    if (rating === "rapid") {
-      setRapidPlayers(sortedData);
-    }
-    if (rating === "blitz") {
-      setBlitzPlayers(sortedData);
-    }
-    setLoading(false);
+  const onTabChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("sortBy", value);
+    window.location.href = `${pathname}?${params.toString()}`;
   };
 
   return (
-    <Tabs defaultValue="rapid">
+    <Tabs defaultValue={defaultTab} onValueChange={onTabChange}>
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 mb-4">
         <TabsList>
           <TabsTrigger value="classic" className="w-20 sm:w-24">
@@ -67,61 +94,39 @@ export function Client({ players }: { players: Players[] }) {
       </div>
 
       <TabsContent value="classic">
-        {loading ? (
-          <div className="w-full h-full mt-6">
-            <Skeleton className="w-full h-[40px] aspect-square rounded-xl" />
-            <div className="flex flex-col gap-2 mt-3">
-              {[...Array(6)].map((_) => (
-                <Skeleton
-                  key={crypto.randomUUID()}
-                  className="h-[32px] aspect-square rounded-xl"
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <DataTable data={playersClassic} columns={columns} />
-        )}
+        <DataTable
+          data={players}
+          columns={columnsClassic}
+          totalPages={pagination.totalPages}
+          isLoading={isLoading}
+          pageSize={currentLimit}
+        />
       </TabsContent>
+
       <TabsContent value="rapid">
-        {loading ? (
-          <div className="w-full h-full mt-6">
-            <Skeleton className="w-full h-[40px] aspect-square rounded-xl" />
-            <div className="flex flex-col gap-2 mt-3">
-              {[...Array(6)].map((_) => (
-                <Skeleton
-                  key={crypto.randomUUID()}
-                  className="h-[32px] aspect-square rounded-xl"
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <DataTable data={playersRapid} columns={columns} />
-        )}
+        <DataTable
+          data={players}
+          columns={columnsRapid}
+          totalPages={pagination.totalPages}
+          isLoading={isLoading}
+          pageSize={currentLimit}
+        />
       </TabsContent>
+
       <TabsContent value="blitz">
-        {loading ? (
-          <div className="w-full h-full mt-6">
-            <Skeleton className="w-full h-[40px] aspect-square rounded-xl" />
-            <div className="flex flex-col gap-2 mt-3">
-              {[...Array(6)].map((_) => (
-                <Skeleton
-                  key={crypto.randomUUID()}
-                  className="h-[32px] aspect-square rounded-xl"
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <DataTable data={playersBlitz} columns={columns} />
-        )}
+        <DataTable
+          data={players}
+          columns={columnsBlitz}
+          totalPages={pagination.totalPages}
+          isLoading={isLoading}
+          pageSize={currentLimit}
+        />
       </TabsContent>
     </Tabs>
   );
-};
+}
 
-const Info = () => {
+function Info() {
   return (
     <div className="flex items-center gap-5">
       <Popover>
@@ -133,7 +138,7 @@ const Info = () => {
         </PopoverTrigger>
         <PopoverContent>
           <div className="flex justify-start items-start gap-2 text-sm">
-            <BarChart2Icon className="w-4 h-4 min-w-[1rem] rounded text-primary" />
+            <InfoIcon className="w-4 h-4 min-w-[1rem] rounded text-primary" />
             <div className="flex flex-col gap-2">
               <p>
                 Na tabela de rating constam apenas os jogadores ativos na FSX.
@@ -148,4 +153,4 @@ const Info = () => {
       </Popover>
     </div>
   );
-};
+}

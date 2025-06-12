@@ -22,7 +22,7 @@ export async function generateMetadata({
   params: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const resolvedParams = await params;
-  const posts = await getPostBySlug(resolvedParams.slug as string);
+  const posts = await getPostBySlug(resolvedParams.slug as string)();
 
   if (!posts) {
     return {
@@ -59,7 +59,7 @@ export default async function Page({
   params: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const resolvedParams = await params;
-  const data = await getPostBySlug(resolvedParams.slug as string);
+  const data = await getPostBySlug(resolvedParams.slug as string)();
 
   if (!data) {
     notFound();

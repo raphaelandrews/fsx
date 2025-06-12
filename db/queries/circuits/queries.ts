@@ -64,5 +64,6 @@ export const getCircuits = unstable_cache(
   ["circuits"],
   {
     revalidate: 60 * 60 * 24 * 15,
+    tags: ["circuits"],
   }
 );

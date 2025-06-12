@@ -30,5 +30,6 @@ export const getSearchPlayers = unstable_cache(
   ['search-players'],
   {
     revalidate: 60 * 60 * 24 * 15,
+    tags: ["search-players"],
   }
 );

@@ -25,11 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { categories } from "./data/data";
 import CategoryFilter from "./components/category-filter";
 
-interface ClientProps {
-  circuits: Circuit[];
-}
-
-export function Client({ circuits }: ClientProps) {
+export function Client({ circuits }: { circuits: Circuit[] }) {
   const [circuitPodiums, setCircuitPodiums] = useState<CircuitPodium[]>([]);
   const [selectedPhase, setSelectedPhase] = useState<string | undefined>(
     undefined

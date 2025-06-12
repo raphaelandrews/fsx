@@ -4,9 +4,9 @@ import { db } from "@/db";
 import { players } from "@/db/schema";
 import { unstable_cache } from "@/lib/unstable_cache";
 
-export const getPlayerById = (id: number) => {
-  return unstable_cache(
-    async () =>
+export const getPlayerById = async (id: number) => {
+  const cachedFn = unstable_cache(
+    async () => 
       db.query.players.findFirst({
         where: eq(players.id, id),
         columns: {
@@ -102,7 +102,9 @@ export const getPlayerById = (id: number) => {
     [`player-${id}`],
     {
       revalidate: 60 * 60 * 24 * 15,
-      tags: ['players', `player-${id}`],
+      tags: [`player-${id}`],
     }
   );
+  
+  return await cachedFn();
 };
