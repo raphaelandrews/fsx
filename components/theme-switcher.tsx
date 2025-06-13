@@ -43,8 +43,8 @@ export function ThemeSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="border-none shadow-none">
-          {mounted ? <Icon className="h-[1.2rem] w-[1.2rem]" /> : null}
+        <Button variant="ghost" size="sm" className="p-2">
+          {mounted ? <Icon className="h-4 w-4" /> : null}
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>

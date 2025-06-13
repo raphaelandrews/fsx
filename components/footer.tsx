@@ -1,3 +1,4 @@
+import { GithubIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Footer({ className }: { className?: string }) {
@@ -5,10 +6,10 @@ export function Footer({ className }: { className?: string }) {
     <footer
       className={cn(
         className,
-        "container flex flex-col justify-between items-center gap-4 py-6 md:py-8 md:flex-row"
+        "container !max-w-[1120px] flex flex-col justify-between items-center gap-4 py-6 md:flex-row"
       )}
     >
-      <p className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left">
+      <div className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left">
         Built by 🏝️{" "}
         <a
           href="https://ndrws.neocities.org/"
@@ -18,8 +19,17 @@ export function Footer({ className }: { className?: string }) {
         >
           Andrews
         </a>
+        . 🐈‍⬛{" "}
+        <a
+          href="https://github.com/raphaelandrews/fsx"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium hover:text-gold transition duration-200"
+        >
+          Source
+        </a>
         .
-      </p>
+      </div>
     </footer>
   );
 }

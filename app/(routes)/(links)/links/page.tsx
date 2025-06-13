@@ -72,7 +72,7 @@ const Links = async () => {
           rel="noreferrer"
           className="p-2.5 rounded-lg hover:bg-muted transition"
         >
-          <img src={Instagram} alt="Instagram" className="h-6 w-6" />
+          <img src="/instagram-logo.svg" alt="Instagram" className="h-6 w-6" />
         </a>
 
         <a
@@ -81,7 +81,7 @@ const Links = async () => {
           rel="noreferrer"
           className="p-2.5 rounded-lg hover:bg-muted transition"
         >
-          <img src={Facebook} alt="Facebook" className="h-6 w-6" />
+          <img src="/facebook-logo.svg" alt="Instagram" className="h-6 w-6" />
         </a>
 
         <a
@@ -90,7 +90,7 @@ const Links = async () => {
           rel="noreferrer"
           className="p-2.5 rounded-lg hover:bg-muted transition"
         >
-          <img src={Gmail} alt="Gmail" className="h-6 w-6" />
+          <img src="/gmail-logo.svg" alt="Instagram" className="h-6 w-6" />
         </a>
       </div>
 

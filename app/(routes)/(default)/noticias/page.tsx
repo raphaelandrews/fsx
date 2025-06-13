@@ -1,6 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
-import { HomeIcon } from "lucide-react";
+import { NewspaperIcon } from "lucide-react";
 
 import { getPostsByPage } from "@/db/queries";
 import { siteConfig } from "@/lib/site";
@@ -93,7 +93,7 @@ export default async function Page({
   return (
     <>
       <PageHeader>
-        <Announcement icon={HomeIcon} />
+        <Announcement icon={NewspaperIcon} />
         <PageHeaderHeading>Notícias</PageHeaderHeading>
         <PageHeaderDescription>
           Acesse as informações mais recentes da FSX.

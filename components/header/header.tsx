@@ -1,4 +1,4 @@
-import { SearchPlayers } from "./search-players";
+import { SearchPlayers } from "../search-players";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { MainNav } from "./main-nav";
 import { HeaderNavigationDrawer } from "./header-navigation-drawer";
