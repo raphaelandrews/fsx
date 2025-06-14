@@ -49,7 +49,7 @@ const starVariants: Variants = {
 };
 
 const SparklesIcon = forwardRef<SparklesIconHandle, SparklesIconProps>(
-  ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
+  ({ onMouseEnter, onMouseLeave, className, size, ...props }, ref) => {
     const starControls = useAnimation();
     const sparkleControls = useAnimation();
     const isControlledRef = useRef(false);

@@ -45,7 +45,7 @@ const variants: Variants = {
 const CalendarDaysIcon = forwardRef<
   CalendarDaysIconHandle,
   CalendarDaysIconProps
->(({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
+>(({ onMouseEnter, onMouseLeave, className, size, ...props }, ref) => {
   const controls = useAnimation();
   const isControlledRef = useRef(false);
 

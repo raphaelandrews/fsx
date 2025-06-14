@@ -16,6 +16,8 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 
 export function MainNav() {
   const pathname = usePathname();
@@ -31,12 +33,15 @@ export function MainNav() {
   const getIsActive = (href: string) => pathname === href;
 
   return (
-    <div className="flex mr-4">
-      <Link href="/" className="mr-4 flex items-center space-x-2 lg:mr-6">
+    <div className="flex items-center">
+      <Link href="/" className="flex px-2">
         <span className="font-bold mt-0.5">FSX</span>
       </Link>
-      <NavigationMenu className="hidden lg:block ml-1">
-        <NavigationMenuList className="gap-4 text-sm lg:gap-6 space-x-[inherit]">
+
+      <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
+
+      <NavigationMenu className="hidden lg:block">
+        <NavigationMenuList className="gap-2">
           {navigationItems.map(({ label, items, icon: Icon, href, target }) => {
             const hasItems = Boolean(items?.length);
 
@@ -45,7 +50,7 @@ export function MainNav() {
                 <NavigationMenuItem key={label}>
                   <NavigationMenuTrigger
                     className={cn(
-                      "p-0 transition-colors hover:cursor-pointer hover:text-foreground/80 text-foreground/60 bg-transparent hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                      "p-0 max-h-8 transition-colors hover:text-foreground/80 text-foreground/60 hover:!bg-accent",
                       getIsActive(href) && "text-foreground"
                     )}
                     onMouseEnter={() =>
@@ -55,11 +60,13 @@ export function MainNav() {
                       iconRefs.current[label]?.current?.stopAnimation()
                     }
                   >
-                    <Icon
-                      ref={iconRefs.current[label]}
-                      size={16}
-                      className="text-foreground/60 hover:text-foreground"
-                    />
+                    <Button asChild variant="ghost" size="sm" className="p-2">
+                      <Icon
+                        ref={iconRefs.current[label]}
+                        size={16}
+                        className="text-foreground/60 hover:text-foreground"
+                      />
+                    </Button>
                   </NavigationMenuTrigger>
 
                   <NavigationMenuContent className="flex gap-4 p-4 md:w-[500px] lg:w-[700px]">
@@ -101,27 +108,34 @@ export function MainNav() {
                 key={label}
                 className={cn(
                   navigationMenuTriggerStyle(),
-                  "p-0 transition-colors hover:text-foreground/80 text-foreground/60 bg-transparent hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                  "p-0",
                   getIsActive(href) && "text-foreground"
                 )}
                 asChild
               >
-                <Link
-                  href={href}
-                  target={target}
-                  onMouseEnter={() =>
-                    iconRefs.current[label]?.current?.startAnimation()
-                  }
-                  onMouseLeave={() =>
-                    iconRefs.current[label]?.current?.stopAnimation()
-                  }
+                <Button 
+                  asChild 
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-2 max-h-8 text-foreground/60 hover:text-foreground/80 hover:bg-accent"
                 >
-                  <Icon
-                    ref={iconRefs.current[label]}
-                    size={16}
-                    className="text-foreground/60 hover:text-foreground"
-                  />
-                </Link>
+                  <Link
+                    href={href}
+                    target={target}
+                    onMouseEnter={() =>
+                      iconRefs.current[label]?.current?.startAnimation()
+                    }
+                    onMouseLeave={() =>
+                      iconRefs.current[label]?.current?.stopAnimation()
+                    }
+                  >
+                    <Icon
+                      ref={iconRefs.current[label]}
+                      size={16}
+                      className="hover:text-foreground"
+                    />
+                  </Link>
+                </Button>
               </NavigationMenuItem>
             );
           })}

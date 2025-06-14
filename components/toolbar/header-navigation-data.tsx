@@ -2,6 +2,7 @@ import {
   HomeIcon,
   SparklesIcon,
   CalendarDaysIcon,
+  FileTextIcon,
 } from "@/components/animated-icons";
 
 type NavigationItem = {
@@ -41,7 +42,7 @@ export const navigationItems: NavigationItem[] = [
         label: "Rating",
         description: "Confira as tabelas de rating.",
         href: "/ratings",
-        icon: HomeIcon,
+        icon: FileTextIcon,
         target: "_self",
       },
       {
@@ -64,7 +65,7 @@ export const navigationItems: NavigationItem[] = [
   {
     label: "Institucional",
     href: "##",
-    icon: HomeIcon,
+    icon: FileTextIcon,
     target: "_self",
     items: [
       {

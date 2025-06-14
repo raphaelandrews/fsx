@@ -32,7 +32,7 @@ const pathVariants: Variants = {
 };
 
 const HomeIcon = forwardRef<HomeIconHandle, HomeIconProps>(
-  ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
+  ({ onMouseEnter, onMouseLeave, className, size, ...props }, ref) => {
     const controls = useAnimation();
     const isControlledRef = useRef(false);
 

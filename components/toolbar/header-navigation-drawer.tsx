@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 import { CommandIcon } from "lucide-react";
 
-import { navigationData } from "./header-navigation-data";
+import { navigationItems } from "./header-navigation-data";
 import { HeaderNavigationDrawerItem } from "./header-navigation-drawer-item";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Accordion } from "@/components/ui/accordion";
@@ -13,13 +12,10 @@ import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 
 export const HeaderNavigationDrawer = () => {
   const [open, setOpen] = useState(false);
-  const pathname = usePathname()
-  const navItems = navigationData();
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     setOpen(false);
-  }, [pathname]);
+  }, []);
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -30,7 +26,7 @@ export const HeaderNavigationDrawer = () => {
           className="shrink-0 lg:hidden hover:bg-muted/50"
           aria-label="Toggle navigation menu"
         >
-          <CommandIcon className="size-4" />
+          <CommandIcon className="h-4 w-4" />
         </Button>
       </DrawerTrigger>
 
@@ -38,7 +34,7 @@ export const HeaderNavigationDrawer = () => {
         <div className="flex flex-col gap-4 p-4">
           <Accordion type="multiple" className="space-y-2">
             <nav className="flex flex-col gap-1">
-              {navigationData().map((item) => (
+              {navigationItems.map((item) => (
                 <HeaderNavigationDrawerItem {...item} key={item.href} />
               ))}
             </nav>

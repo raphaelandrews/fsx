@@ -14,7 +14,11 @@ import {
 export type Item = {
   label: string;
   href: string;
-  icon: LucideIcon;
+  icon: React.ForwardRefExoticComponent<
+    React.PropsWithoutRef<{ size?: number; className?: string }> &
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+      React.RefAttributes<any>
+  >;
   items?: Item[];
 };
 
@@ -40,8 +44,7 @@ export const HeaderNavigationDrawerItem = ({
         <AccordionTrigger className="group rounded-lg px-3 py-2 transition-colors hover:bg-muted/50">
           <div className="flex items-center gap-2 text-sm">
             <Icon
-              width={16}
-              height={16}
+              size={16}
               className="text-muted-foreground group-hover:text-foreground"
             />
             <span className="text-muted-foreground group-hover:text-foreground">
@@ -73,8 +76,7 @@ export const HeaderNavigationDrawerItem = ({
       key={href}
     >
       <Icon
-        width={16}
-        height={16}
+        size={16}
         className={isActive ? "text-foreground" : "text-muted-foreground"}
       />
       {label}
