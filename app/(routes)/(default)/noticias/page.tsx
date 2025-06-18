@@ -9,7 +9,6 @@ import { Announcement } from "@/components/announcement";
 import { PostCard } from "@/components/post-card";
 import {
   PageHeader,
-  PageHeaderDescription,
   PageHeaderHeading,
 } from "@/components/ui/page-header";
 import {
@@ -95,9 +94,6 @@ export default async function Page({
       <PageHeader>
         <Announcement icon={NewspaperIcon} />
         <PageHeaderHeading>Notícias</PageHeaderHeading>
-        <PageHeaderDescription>
-          Acesse as informações mais recentes da FSX.
-        </PageHeaderDescription>
       </PageHeader>
 
       <section>

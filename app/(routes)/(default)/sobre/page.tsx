@@ -36,9 +36,6 @@ export default function Page() {
       <PageHeader>
         <Announcement icon={ScrollIcon} />
         <PageHeaderHeading>Sobre</PageHeaderHeading>
-        <PageHeaderDescription>
-          Normas técnicas, documentos e história da FSX.
-        </PageHeaderDescription>
       </PageHeader>
 
       <section className="text-base">

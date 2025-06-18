@@ -41,11 +41,83 @@ export function MainNav() {
       <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
 
       <NavigationMenu className="hidden lg:block">
-        <NavigationMenuList className="gap-2">
+        <NavigationMenuList className="gap-6 px-2">
           {navigationItems.map(({ label, items, icon: Icon, href, target }) => {
             const hasItems = Boolean(items?.length);
 
             if (hasItems)
+              return (
+                <NavigationMenuItem key={label}>
+                  <NavigationMenuTrigger
+                    className={cn(
+                      "p-0 transition-colors hover:cursor-pointer hover:text-foreground/80 text-foreground/60 bg-transparent hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                      getIsActive(href) && "text-foreground"
+                    )}
+                  >
+                    {label}
+                  </NavigationMenuTrigger>
+
+                  <NavigationMenuContent className="flex gap-4 p-4 md:w-[500px] lg:w-[700px]">
+                    {href === "#" && <NavigationMenuImage href={href} />}
+                    {href === "##" && <NavigationMenuImage href={href} />}
+
+                    <ul
+                      className="flex flex-wrap gap-3 w-full"
+                      style={{ maxHeight: "400px" }}
+                    >
+                      {items?.map(
+                        ({ href, icon: Icon, label, description }, index) => (
+                          <li key={label} className="flex-[1_1_45%]">
+                            <NavigationMenuLink asChild>
+                              <Link
+                                href={href}
+                                className={cn(
+                                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                                  getIsActive(href) && "bg-muted"
+                                )}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Icon size={12} />
+                                  <div className="text-sm font-medium leading-none">
+                                    {label}
+                                  </div>
+                                </div>
+
+                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                  {description}
+                                </p>
+                              </Link>
+                            </NavigationMenuLink>
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              );
+
+            return (
+              <NavigationMenuItem
+                key={label}
+                className={cn(
+                  navigationMenuTriggerStyle(),
+                  "p-0 transition-colors hover:text-foreground/80 text-foreground/60 bg-transparent hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                  getIsActive(href) && "text-foreground"
+                )}
+                asChild
+              >
+                <Link
+                  href={href}
+                  target={target}
+                  className="flex items-center gap-2"
+                >
+                  {label}
+                </Link>
+              </NavigationMenuItem>
+            );
+
+            {
+              /*if (hasItems)
               return (
                 <NavigationMenuItem key={label}>
                   <NavigationMenuTrigger
@@ -137,7 +209,9 @@ export function MainNav() {
                   </Link>
                 </Button>
               </NavigationMenuItem>
-            );
+            );*/
+              // biome-ignore lint/complexity/noUselessLoneBlockStatements: <explanation>
+            }
           })}
         </NavigationMenuList>
       </NavigationMenu>

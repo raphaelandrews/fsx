@@ -19,14 +19,14 @@ export function Footer({ className }: { className?: string }) {
         >
           Andrews
         </a>
-        . 🐈‍⬛{" "}
+        . {" "}
         <a
           href="https://github.com/raphaelandrews/fsx"
           target="_blank"
           rel="noreferrer"
           className="font-medium hover:text-gold transition duration-200"
         >
-          Source
+          Source code
         </a>
         .
       </div>

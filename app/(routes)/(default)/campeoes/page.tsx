@@ -77,9 +77,6 @@ const ChampionsPage = async () => {
       <PageHeader>
         <Announcement icon={TrophyIcon} />
         <PageHeaderHeading>Campeões</PageHeaderHeading>
-        <PageHeaderDescription>
-          Galeria dos campeões sergipanos.
-        </PageHeaderDescription>
       </PageHeader>
 
       <Tabs defaultValue="classic">

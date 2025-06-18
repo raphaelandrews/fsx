@@ -5,9 +5,8 @@ import { Separator } from "@/components/ui/separator";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export function Toolbar() {
-
   return (
-    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-background rounded-xl shadow-lg border p-3">
+    <div className="fixed top-6 left-1/2 transform -translate-x-1/2 bg-background dark:bg-[#0F0F0F] rounded-xl shadow-lg px-2.5 py-2 z-50">
       <div className="flex items-center">
         <MainNav />
 

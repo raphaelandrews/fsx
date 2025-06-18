@@ -97,9 +97,6 @@ export default async function Page({
       <PageHeader>
         <Announcement icon={MegaphoneIcon} />
         <PageHeaderHeading>Comunicados</PageHeaderHeading>
-        <PageHeaderDescription>
-          Divulgação de titulações e outras informações.
-        </PageHeaderDescription>
       </PageHeader>
 
       <section>

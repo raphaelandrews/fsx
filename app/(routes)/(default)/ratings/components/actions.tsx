@@ -3,7 +3,7 @@ import React from "react";
 import { getGradient } from "@/lib/generate-gradients";
 import { formatDefendingChampions } from "@/lib/defending-champions";
 
-import PlayerModal from "@/components/modals/player-modal";
+import { PlayerSheet } from "@/components/sheets/player/player-sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Props {
@@ -79,7 +79,7 @@ export const Actions = ({
         </div>
       </div>
 
-      {open && <PlayerModal id={id} open={open} setOpen={setOpen} />}
+      {open && <PlayerSheet id={id} open={open} setOpen={setOpen} />}
     </>
   );
 };

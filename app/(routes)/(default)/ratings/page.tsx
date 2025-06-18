@@ -37,9 +37,6 @@ export default async function Page() {
       <PageHeader>
         <Announcement icon={BarChart2Icon} />
         <PageHeaderHeading>Ratings</PageHeaderHeading>
-        <PageHeaderDescription>
-          Confira as tabelas de rating.
-        </PageHeaderDescription>
       </PageHeader>
 
       <Client />

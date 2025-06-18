@@ -18,8 +18,8 @@ import { FormatPodium, FormatPodiumTitle } from "@/lib/format-podium";
 import { getGradient } from "@/lib/generate-gradients";
 import { LOGO_FALLBACK } from "@/lib/utils";
 
-import { columns } from "./columns";
-import { DataTable } from "./data-table";
+import { columns } from "../sheets/player/columns";
+import { DataTable } from "../sheets/player/data-table";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

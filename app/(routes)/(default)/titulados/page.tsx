@@ -41,9 +41,6 @@ export default async function Page() {
       <PageHeader>
         <Announcement icon={BookmarkIcon} />
         <PageHeaderHeading>Titulados</PageHeaderHeading>
-        <PageHeaderDescription>
-          Jogadores titulados da FSX.
-        </PageHeaderDescription>
       </PageHeader>
 
       <DataTable data={data} columns={columns} />

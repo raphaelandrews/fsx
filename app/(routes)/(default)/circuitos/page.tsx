@@ -43,9 +43,6 @@ export default async function Page() {
       <PageHeader>
         <Announcement icon={MedalIcon} />
         <PageHeaderHeading>Circuitos</PageHeaderHeading>
-        <PageHeaderDescription>
-          Confira a classificação dos circuitos de Xadrez de Sergipe.
-        </PageHeaderDescription>
       </PageHeader>
 
       <Client circuits={circuits as Circuit[]} />

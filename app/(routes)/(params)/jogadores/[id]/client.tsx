@@ -20,7 +20,7 @@ import { FormatPodium, FormatPodiumTitle } from "@/lib/format-podium";
 import { getGradient } from "@/lib/generate-gradients";
 
 import { columns } from "@/components/modals/columns";
-import { DataTable } from "@/components/modals/data-table";
+import { DataTable } from "@/components/sheets/player/data-table";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

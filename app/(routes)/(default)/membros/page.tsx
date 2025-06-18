@@ -40,9 +40,6 @@ export default async function Page() {
       <PageHeader>
         <Announcement icon={ScrollIcon} />
         <PageHeaderHeading>Membros</PageHeaderHeading>
-        <PageHeaderDescription>
-          Diretoria e árbitros da FSX.
-        </PageHeaderDescription>
       </PageHeader>
 
       <Client roles={data}/>
