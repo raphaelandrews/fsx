@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { AnimatePresence, motion, useAnimation } from 'motion/react';
-import type { Variants } from 'motion/react';
-import { useCallback, useImperativeHandle, useRef } from 'react';
-import type { HTMLAttributes } from 'react';
-import { forwardRef } from 'react';
-import { cn } from '@/lib/utils';
+import { AnimatePresence, motion, useAnimation } from "motion/react";
+import type { Variants } from "motion/react";
+import { useCallback, useImperativeHandle, useRef } from "react";
+import type { HTMLAttributes } from "react";
+import { forwardRef } from "react";
+import { cn } from "@/lib/utils";
 
 export interface CalendarDaysIconHandle {
   startAnimation: () => void;
@@ -42,7 +42,7 @@ const variants: Variants = {
   }),
 };
 
-const CalendarDaysIcon = forwardRef<
+const CalendarDaysAnimated = forwardRef<
   CalendarDaysIconHandle,
   CalendarDaysIconProps
 >(({ onMouseEnter, onMouseLeave, className, size, ...props }, ref) => {
@@ -52,15 +52,15 @@ const CalendarDaysIcon = forwardRef<
   useImperativeHandle(ref, () => {
     isControlledRef.current = true;
     return {
-      startAnimation: () => controls.start('animate'),
-      stopAnimation: () => controls.start('normal'),
+      startAnimation: () => controls.start("animate"),
+      stopAnimation: () => controls.start("normal"),
     };
   });
 
   const handleMouseEnter = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (!isControlledRef.current) {
-        controls.start('animate');
+        controls.start("animate");
       } else {
         onMouseEnter?.(e);
       }
@@ -71,7 +71,7 @@ const CalendarDaysIcon = forwardRef<
   const handleMouseLeave = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (!isControlledRef.current) {
-        controls.start('normal');
+        controls.start("normal");
       } else {
         onMouseLeave?.(e);
       }
@@ -97,7 +97,7 @@ const CalendarDaysIcon = forwardRef<
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-         <title>Calendar days Icon</title>
+        <title>Calendar days Icon</title>
         <path d="M8 2v4" />
         <path d="M16 2v4" />
         <rect width="18" height="18" x="3" y="4" rx="2" />
@@ -123,6 +123,6 @@ const CalendarDaysIcon = forwardRef<
   );
 });
 
-CalendarDaysIcon.displayName = 'CalendarDaysIcon';
+CalendarDaysAnimated.displayName = "CalendarDaysIcon";
 
-export { CalendarDaysIcon };
+export { CalendarDaysAnimated };

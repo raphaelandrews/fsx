@@ -18,12 +18,11 @@ export default async function Page() {
   ]);
 
   return (
-    <>
-      <UpdateRegister />
+    <div className="pt-32">
       <PostsSection posts={posts} />
       <DataTableTabs topPlayers={topPlayers} />
       <AnnouncementsSection announcements={announcements} />
       <FAQ />
-    </>
+    </div>
   );
 }

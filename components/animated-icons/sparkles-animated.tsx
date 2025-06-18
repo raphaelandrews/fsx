@@ -48,7 +48,7 @@ const starVariants: Variants = {
   }),
 };
 
-const SparklesIcon = forwardRef<SparklesIconHandle, SparklesIconProps>(
+const SparklesAnimated = forwardRef<SparklesIconHandle, SparklesIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size, ...props }, ref) => {
     const starControls = useAnimation();
     const sparkleControls = useAnimation();
@@ -143,6 +143,6 @@ const SparklesIcon = forwardRef<SparklesIconHandle, SparklesIconProps>(
   }
 );
 
-SparklesIcon.displayName = "SparklesIcon";
+SparklesAnimated.displayName = "SparklesIcon";
 
-export { SparklesIcon };
+export { SparklesAnimated };

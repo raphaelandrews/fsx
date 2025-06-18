@@ -8,7 +8,7 @@ function PageHeader({
   return (
     <section
       className={cn(
-        "mx-auto flex flex-col items-start gap-2 px-4 py-8 md:py-12 md:pb-8 lg:py-12 lg:pb-10",
+        "container flex flex-col items-center gap-3 pt-32 px-4 pb-8 lg:pb-10",
         className
       )}
       {...props}
@@ -25,7 +25,7 @@ function PageHeaderHeading({
   return (
     <h1
       className={cn(
-        "text-3xl font-bold leading-tight tracking-tighter md:text-4xl lg:leading-[1.1]",
+        "text-2xl font-bold leading-tight lg:leading-[1.1]",
         className
       )}
       {...props}

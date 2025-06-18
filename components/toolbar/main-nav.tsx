@@ -17,7 +17,6 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
 
 export function MainNav() {
   const pathname = usePathname();
@@ -41,7 +40,7 @@ export function MainNav() {
       <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
 
       <NavigationMenu className="hidden lg:block">
-        <NavigationMenuList className="gap-6 px-2">
+        <NavigationMenuList className="gap-2">
           {navigationItems.map(({ label, items, icon: Icon, href, target }) => {
             const hasItems = Boolean(items?.length);
 
@@ -50,7 +49,7 @@ export function MainNav() {
                 <NavigationMenuItem key={label}>
                   <NavigationMenuTrigger
                     className={cn(
-                      "p-0 transition-colors hover:cursor-pointer hover:text-foreground/80 text-foreground/60 bg-transparent hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                      "px-3 transition-colors hover:cursor-pointer hover:text-foreground text-foreground/60 bg-transparent hover:bg-secondary focus:bg-secondary data-[active]:bg-secondary data-[state=open]:bg-secondary",
                       getIsActive(href) && "text-foreground"
                     )}
                   >
@@ -72,7 +71,7 @@ export function MainNav() {
                               <Link
                                 href={href}
                                 className={cn(
-                                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-foreground focus:bg-accent focus:text-foreground",
                                   getIsActive(href) && "bg-muted"
                                 )}
                               >
@@ -101,7 +100,7 @@ export function MainNav() {
                 key={label}
                 className={cn(
                   navigationMenuTriggerStyle(),
-                  "p-0 transition-colors hover:text-foreground/80 text-foreground/60 bg-transparent hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                  "px-3 transition-colors hover:text-foreground text-foreground/60 bg-transparent hover:bg-secondary focus:bg-secondary data-[active]:bg-secondary data-[state=open]:bg-secondary",
                   getIsActive(href) && "text-foreground"
                 )}
                 asChild
@@ -117,6 +116,7 @@ export function MainNav() {
             );
 
             {
+              // biome-ignore lint/complexity/noUselessLoneBlockStatements: animated icons
               /*if (hasItems)
               return (
                 <NavigationMenuItem key={label}>
@@ -210,7 +210,6 @@ export function MainNav() {
                 </Button>
               </NavigationMenuItem>
             );*/
-              // biome-ignore lint/complexity/noUselessLoneBlockStatements: <explanation>
             }
           })}
         </NavigationMenuList>

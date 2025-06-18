@@ -31,7 +31,7 @@ const pathVariants: Variants = {
   },
 };
 
-const HomeIcon = forwardRef<HomeIconHandle, HomeIconProps>(
+const HomeAnimated = forwardRef<HomeIconHandle, HomeIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size, ...props }, ref) => {
     const controls = useAnimation();
     const isControlledRef = useRef(false);
@@ -98,6 +98,6 @@ const HomeIcon = forwardRef<HomeIconHandle, HomeIconProps>(
   }
 );
 
-HomeIcon.displayName = "HomeIcon";
+HomeAnimated.displayName = "HomeIcon";
 
-export { HomeIcon };
+export { HomeAnimated };

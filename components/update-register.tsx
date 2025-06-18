@@ -10,23 +10,17 @@ import {
 export function UpdateRegister() {
   return (
     <Popover>
-      <PopoverTrigger asChild className="border-0 h-auto mt-2">
+      <PopoverTrigger asChild className="border-0 h-auto">
         <Button
-          variant="default"
-          className="rounded-md px-3 py-1 gap-2"
+          variant="ghost"
+          size="sm"
+          className="p-2"
           aria-label="Atualize seu cadastro"
         >
           <Verified
-            className="size-5 min-w-5 fill-[#1CA0F2] dark:stroke-[1.5] stroke-primary"
+            className="size-4 shrink-0 fill-[#1CA0F2] dark:stroke-[1.5] stroke-primary"
             aria-hidden="true"
           />
-          <div
-            aria-hidden="true"
-            className="shrink-0 bg-border w-px h-4 mx-2"
-            data-orientation="vertical"
-          />
-          <span>Atualize seu cadastro!</span>
-          <ChevronRight className="size-4 min-w-4 ml-1" />
         </Button>
       </PopoverTrigger>
       <PopoverContent

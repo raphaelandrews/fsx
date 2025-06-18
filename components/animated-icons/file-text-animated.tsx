@@ -15,7 +15,7 @@ interface FileTextIconProps extends HTMLAttributes<HTMLDivElement> {
   size?: number;
 }
 
-const FileText = forwardRef<FileTextIconHandle, FileTextIconProps>(
+const FileTextAnimated = forwardRef<FileTextIconHandle, FileTextIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size, ...props }, ref) => {
     const controls = useAnimation();
     const isControlledRef = useRef(false);
@@ -154,6 +154,6 @@ const FileText = forwardRef<FileTextIconHandle, FileTextIconProps>(
   }
 );
 
-FileText.displayName = "FileTextIcon";
+FileTextAnimated.displayName = "FileTextIcon";
 
-export { FileText as FileTextIcon };
+export { FileTextAnimated };
