@@ -8,7 +8,6 @@ import { Client } from "./client";
 import { Announcement } from "@/components/announcement";
 import {
   PageHeader,
-  PageHeaderDescription,
   PageHeaderHeading,
 } from "@/components/ui/page-header";
 

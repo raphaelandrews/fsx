@@ -33,14 +33,14 @@ export function MainNav() {
 
   return (
     <div className="flex items-center">
-      <Link href="/" className="flex px-2">
-        <span className="font-bold mt-0.5">FSX</span>
+      <Link href={pathname === "/" ? "#" : "/"} className="flex font-bold mt-0.5 px-2">
+        FSX
       </Link>
 
       <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
 
       <NavigationMenu className="hidden lg:block">
-        <NavigationMenuList className="gap-2">
+        <NavigationMenuList className="gap-1.5">
           {navigationItems.map(({ label, items, icon: Icon, href, target }) => {
             const hasItems = Boolean(items?.length);
 

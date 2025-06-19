@@ -5,7 +5,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Toolbar />
-      <div className="container !max-w-[1120px] relative min-h-[calc(100dvh-8.25rem)] sm:min-h-[calc(100dvh-7.5rem)]">
+      <div className="container relative !max-w-[1120px] min-h-[calc(100dvh-4.75rem)]">
         {children}
       </div>
       <Footer className="!max-w-[1120px]" />
