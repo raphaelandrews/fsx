@@ -33,9 +33,13 @@ export function MainNav() {
 
   return (
     <div className="flex items-center">
-      <Link href={pathname === "/" ? "#" : "/"} className="flex font-bold mt-0.5 px-2">
-        FSX
-      </Link>
+      {pathname !== "/" ? (
+        <Link href="/" className="flex font-bold mt-0.5 px-2">
+          FSX
+        </Link>
+      ) : (
+        <span className="flex font-bold mt-0.5 px-2">FSX</span>
+      )}
 
       <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
 
