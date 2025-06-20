@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -13,35 +12,48 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function ThemeSwitcher() {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
-  const themeColors = {
-    light: "bg-yellow-300",
-    dark: "bg-gray-800",
-    mint: "bg-green-400",
-  };
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const themes = [
+    {
+      name: "light",
+      color: "bg-linear-to-r from-gray-300 via-zinc-400 to-stone-500",
+    },
+    {
+      name: "dark",
+      color: "bg-linear-to-r from-stone-800 via-zinc-600 to-gray-400",
+    },
+    {
+      name: "mint",
+      color: "bg-linear-to-r from-teal-900 via-emerald-700 to-green-500",
+    },
+  ];
+
+  const currentTheme = themes.find((t) => t.name === theme) || themes[0];
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="p-2">
-          <div className={`w-4 h-4 rounded-full ${themeColors.light}`} />
+          {mounted ? (
+            <div className={`w-4 h-4 rounded-full ${currentTheme.color}`} />
+          ) : null}
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          <div className={`w-4 h-4 rounded-full mr-2 ${themeColors.light}`} />
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <div className={`w-4 h-4 rounded-full mr-2 ${themeColors.dark}`} />
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("mint")}>
-          <div className={`w-4 h-4 rounded-full mr-2 ${themeColors.mint}`} />
-          Mint
-        </DropdownMenuItem>
+      <DropdownMenuContent align="end" className="w-auto">
+        {themes.map(({ name, color }) => (
+          <DropdownMenuItem key={name} onClick={() => setTheme(name)}>
+            <div className={`w-4 h-4 rounded-full ${color}`} />
+            {name.charAt(0).toUpperCase() + name.slice(1)}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

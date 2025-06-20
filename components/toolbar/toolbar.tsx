@@ -8,7 +8,7 @@ import { SearchPlayers } from "./search-players";
 
 export function Toolbar() {
   return (
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-background dark:bg-[#0F0F0F] rounded-xl shadow-md px-2.5 py-2 z-50">
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-background dark:bg-alt rounded-xl shadow-md px-2.5 py-2 z-50">
       <div className="flex items-center">
         <MainNav />
 

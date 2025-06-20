@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
-    <section className="w-11/12 max-w-[500px] m-auto pt-12 pb-20 animate-pulse">
+    <section className="w-11/12 max-w-[500px] m-auto pt-30 pb-20 animate-pulse">
       <div className="mb-12">
         <Skeleton className="w-full h-32 rounded-md" />
         <Skeleton className="absolute w-20 h-20 rounded-[10px] border-4 border-background left-1/2 -translate-y-1/2 -translate-x-1/2" />

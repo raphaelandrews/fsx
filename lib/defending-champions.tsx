@@ -16,7 +16,7 @@ export const formatDefendingChampions = (championship: string, size: number) => 
   if (championship === "Absoluto") {
     return (
       <Popover>
-        <PopoverTrigger className="text-primary-foreground p-2 bg-primary rounded-md">
+        <PopoverTrigger className="text-accent-foreground p-2 bg-accent rounded-md">
           <TurtleIcon width={size} height={size} />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Absoluto</PopoverContent>
@@ -27,7 +27,7 @@ export const formatDefendingChampions = (championship: string, size: number) => 
   if (championship === "Rápido") {
     return (
       <Popover>
-        <PopoverTrigger className="text-primary-foreground p-2 bg-primary rounded-md">
+        <PopoverTrigger className="text-accent-foreground p-2 bg-accent rounded-md">
           <RabbitIcon width={size} height={size} />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Rápido</PopoverContent>
@@ -38,7 +38,7 @@ export const formatDefendingChampions = (championship: string, size: number) => 
   if (championship === "Blitz") {
     return (
       <Popover>
-        <PopoverTrigger className="text-primary-foreground p-2 bg-primary rounded-md">
+        <PopoverTrigger className="text-accent-foreground p-2 bg-accent rounded-md">
           <ZapIcon width={size} height={size} />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Blitz</PopoverContent>
@@ -49,7 +49,7 @@ export const formatDefendingChampions = (championship: string, size: number) => 
   if (championship === "Feminino") {
     return (
       <Popover>
-        <PopoverTrigger className="text-primary-foreground p-2 bg-primary rounded-md">
+        <PopoverTrigger className="text-accent-foreground p-2 bg-accent rounded-md">
           <CrownIcon width={size} height={size} />
         </PopoverTrigger>
         <PopoverContent>Atual campeã Sergipana Feminino</PopoverContent>
@@ -60,7 +60,7 @@ export const formatDefendingChampions = (championship: string, size: number) => 
   if (championship === "Equipes") {
     return (
       <Popover>
-        <PopoverTrigger className="text-primary-foreground p-2 bg-primary rounded-md">
+        <PopoverTrigger className="text-accent-foreground p-2 bg-accent rounded-md">
           <SwordsIcon width={size} height={size} />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Equipes</PopoverContent>
