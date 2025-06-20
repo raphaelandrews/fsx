@@ -8,7 +8,7 @@ function PageHeader({
   return (
     <section
       className={cn(
-        "container flex flex-col items-center gap-3 pt-32 px-4 pb-8 lg:pb-10",
+        "container flex flex-col items-center gap-3 pt-30 px-4 pb-8 lg:pb-10",
         className
       )}
       {...props}

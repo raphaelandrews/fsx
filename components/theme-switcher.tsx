@@ -1,18 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  Moon,
-  Sun,
-  Laptop,
-  Flower2,
-  Leaf,
-  Palette,
-  Cloud,
-  Heart,
-  Sparkles,
-  Waves,
-} from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -23,45 +12,36 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const themes = [
-  { name: "System", value: "system", icon: Laptop },
-  { name: "Dark", value: "dark", icon: Moon },
-  { name: "Light", value: "light", icon: Sun },
-];
-
 export function ThemeSwitcher() {
-  const { setTheme, theme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
+  const { setTheme } = useTheme();
 
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const currentTheme = themes.find((t) => t.value === theme) || themes[0];
-  const Icon = currentTheme?.icon || Laptop;
+  const themeColors = {
+    light: "bg-yellow-300",
+    dark: "bg-gray-800",
+    mint: "bg-green-400",
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="p-2">
-          {mounted ? <Icon className="h-4 w-4" /> : null}
+          <div className={`w-4 h-4 rounded-full ${themeColors.light}`} />
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {themes.map((t) => {
-          const ThemeIcon = t.icon;
-          return (
-            <DropdownMenuItem
-              key={t.value}
-              onClick={() => setTheme(t.value)}
-              className={theme === t.value ? "bg-accent" : ""}
-            >
-              <ThemeIcon size={16} className="mr-2" />
-              {t.name}
-            </DropdownMenuItem>
-          );
-        })}
+        <DropdownMenuItem onClick={() => setTheme("light")}>
+          <div className={`w-4 h-4 rounded-full mr-2 ${themeColors.light}`} />
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
+          <div className={`w-4 h-4 rounded-full mr-2 ${themeColors.dark}`} />
+          Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("mint")}>
+          <div className={`w-4 h-4 rounded-full mr-2 ${themeColors.mint}`} />
+          Mint
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

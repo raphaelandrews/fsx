@@ -48,7 +48,7 @@ export const Actions = ({
           onClick={() => setOpen(true)}
           onKeyUp={handleKeyboardEvent}
           onKeyDown={handleKeyboardEvent}
-          className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
+          className="flex items-center gap-3 cursor-pointer transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
           aria-label={`View ${name}'s profile`}
         >
           <Avatar className="size-8 rounded-md">

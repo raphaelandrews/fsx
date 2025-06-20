@@ -66,7 +66,7 @@ export default async function Page({
   }
 
   return (
-    <section className="w-11/12 max-w-2xl pt-32 pb-20 m-auto">
+    <section className="w-11/12 max-w-2xl pt-30 pb-20 m-auto">
       <div className="inline-block p-2.5 text-muted-foreground rounded-md bg-primary-foreground">
         <NewspaperIcon width={16} height={16} />
       </div>

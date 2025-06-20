@@ -18,7 +18,7 @@ export default async function Page() {
   ]);
 
   return (
-    <div className="pt-32">
+    <div className="pt-30">
       <PostsSection posts={posts} />
       <DataTableTabs topPlayers={topPlayers} />
       <AnnouncementsSection announcements={announcements} />

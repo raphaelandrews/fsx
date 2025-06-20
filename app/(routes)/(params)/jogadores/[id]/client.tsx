@@ -93,7 +93,7 @@ export function Client({ player }: { player: PlayerById }) {
   const [selectedRatingType, setSelectedRatingType] = React.useState("rapid");
 
   return (
-    <section className="w-11/12 max-w-[500px] m-auto pt-32 pb-20">
+    <section className="w-11/12 max-w-[500px] m-auto pt-30 pb-20">
       <div className="mb-12">
         <div className="w-full h-32 rounded-md" style={headerGradient} />
         <Avatar className="absolute w-20 h-20 rounded-[10px] border-4 border-background left-1/2 -translate-y-1/2 -translate-x-1/2">

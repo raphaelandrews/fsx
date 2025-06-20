@@ -18,7 +18,7 @@ export function UpdateRegister() {
           aria-label="Atualize seu cadastro"
         >
           <Verified
-            className="size-4 shrink-0 fill-[#1CA0F2] dark:stroke-[1.5] stroke-primary"
+            className="size-4 shrink-0 fill-[#1CA0F2] dark:stroke-[1.5] stroke-white"
             aria-hidden="true"
           />
         </Button>

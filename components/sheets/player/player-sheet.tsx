@@ -133,7 +133,7 @@ export const PlayerSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent className="[&>button#close-sheet]:top-2.5 [&>button#close-sheet]:right-2.5 !w-[400px] sm:!w-[540px] p-4 gap-0 overflow-y-auto overflow-x-hidden">
+      <SheetContent className="[&>button#close-sheet]:top-2.5 [&>button#close-sheet]:right-2.5 !w-[400px] sm:!w-[540px] !max-w-[90%] sm:!max-w-[480px] p-4 gap-0 overflow-y-auto overflow-x-hidden">
         <SheetHeader className="px-0 pt-0">
           <div className="relative mb-12">
             <div className="w-full h-32 rounded-md" style={headerGradient} />
