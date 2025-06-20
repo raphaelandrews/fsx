@@ -8,7 +8,6 @@ import { AnnouncementsSection } from "@/components/home/announcements-section";
 import { DataTableTabs } from "@/components/home/ratings/data-table-tabs";
 import { FAQ } from "@/components/home/faq";
 import { PostsSection } from "@/components/home/posts-section";
-import { UpdateRegister } from "@/components/update-register";
 
 export default async function Page() {
   const [posts, announcements, topPlayers] = await Promise.all([
@@ -18,11 +17,11 @@ export default async function Page() {
   ]);
 
   return (
-    <div className="pt-30">
+    <>
       <PostsSection posts={posts} />
       <DataTableTabs topPlayers={topPlayers} />
       <AnnouncementsSection announcements={announcements} />
       <FAQ />
-    </div>
+    </>
   );
 }

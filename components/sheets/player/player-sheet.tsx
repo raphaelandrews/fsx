@@ -156,7 +156,7 @@ export const PlayerSheet = ({
             </SheetTitle>
             {player.verified && (
               <Popover>
-                <PopoverTrigger asChild className="hover:cursor-pointer">
+                <PopoverTrigger>
                   <VerifiedIcon
                     className="!fill-[#1CA0F2] dark:stroke-[1.5] stroke-background mt-1"
                     aria-label="Verificado"
@@ -166,19 +166,6 @@ export const PlayerSheet = ({
                   <p className="text-primary font-semibold">
                     Perfil verificado
                   </p>
-                  <p className="text-alternative font-medium text-sm mt-2">
-                    Esse perfil atualizou os dados e foi verificado.
-                  </p>
-                  <a
-                    href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`${buttonVariants({
-                      variant: "default",
-                    })} w-full mt-3`}
-                  >
-                    Obter verificação
-                  </a>
                 </PopoverContent>
               </Popover>
             )}

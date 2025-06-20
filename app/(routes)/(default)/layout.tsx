@@ -1,11 +1,11 @@
 import { Footer } from "@/components/footer";
-import { Toolbar } from "@/components/toolbar/toolbar";
+import { Header } from "@/components/header/header";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <Toolbar />
-      <div className="container relative !max-w-[1120px] min-h-[calc(100dvh-4.75rem)]">
+      <Header />
+      <div className="container relative !max-w-[1120px] pt-2 min-h-[calc(100dvh-8.25rem)]">
         {children}
       </div>
       <Footer className="!max-w-[1120px]" />

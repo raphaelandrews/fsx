@@ -6,14 +6,14 @@ import { CommandIcon } from "lucide-react";
 
 import { navigationData } from "./header-navigation-data";
 import { HeaderNavigationDrawerItem } from "./header-navigation-drawer-item";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { ModeSwitcher } from "@/components/mode-switcher";
 import { Accordion } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 
 export const HeaderNavigationDrawer = () => {
   const [open, setOpen] = useState(false);
-  const pathname = usePathname()
+  const pathname = usePathname();
   const navItems = navigationData();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -45,11 +45,10 @@ export const HeaderNavigationDrawer = () => {
           </Accordion>
 
           <div className="flex gap-2 pt-2">
-            <ThemeSwitcher />
+            <ModeSwitcher />
           </div>
         </div>
       </DrawerContent>
     </Drawer>
   );
 };
-

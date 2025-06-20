@@ -1,6 +1,0 @@
-export * from "./calendar-days-animated"
-export * from "./file-text-animated"
-export * from "./home-animated"
-export * from "./link-animated"
-export * from "./sparkles-animated"
-export * from "./users-animated"

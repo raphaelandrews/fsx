@@ -10,19 +10,21 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        muted: "bg-muted text-muted-foreground shadow hover:bg-muted/80",
-        card: "bg-secondary dark:bg-primary-foreground/60 text-secondary-foreground dark:text-primary shadow hover:bg-secondary/80 dark:hover:bg-primary-foreground/90",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+        ghost:
+          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
-        freshTeal:"bg-teal-950 text-teal-400 gap-1.5 border border-teal-600 shadow hover:border-teal-950",
-        freshSky:"bg-sky-950 text-sky-400 gap-1.5 border border-sky-600 shadow hover:border-blue-950",
+        card: "bg-secondary dark:bg-primary-foreground/60 text-secondary-foreground dark:text-primary shadow hover:bg-secondary/80 dark:hover:bg-primary-foreground/90",
+        freshTeal:
+          "bg-teal-950 text-teal-400 gap-1.5 border border-teal-600 shadow hover:border-teal-950",
+        freshSky:
+          "bg-sky-950 text-sky-400 gap-1.5 border border-sky-600 shadow hover:border-blue-950",
       },
       size: {
         default: "h-9 px-4 py-2",
