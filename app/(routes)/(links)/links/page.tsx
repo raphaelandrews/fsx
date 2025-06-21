@@ -9,9 +9,6 @@ import {
 } from "@/db/queries";
 import { siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
-import Instagram from "@/public/instagram-logo.svg";
-import Gmail from "@/public/gmail-logo.svg";
-import Facebook from "@/public/facebook-logo.svg";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
@@ -126,6 +123,7 @@ const LinkItem = ({ href, label, icon }: Props) => {
     <Link
       href={href}
       target="_blank"
+      prefetch={false}
       className={cn(
         buttonVariants({ variant: "card" }),
         "flex items-center justify-between w-full h-[inherit] p-3 rounded-2xl shadow"

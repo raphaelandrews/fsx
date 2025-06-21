@@ -27,7 +27,7 @@ const tabMap: Record<TabValue, TabKey> = {
 } as const;
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-export function DataTableTabs({ topPlayers }: any) {
+export function TopPlayersSection({ topPlayers }: any) {
   const [currentTab, setCurrentTab] = React.useState<TabValue>("rapid");
   const currentData = topPlayers[tabMap[currentTab]];
 

@@ -4,6 +4,8 @@ export * from "./champions/queries";
 export * from "./champions/schema";
 export * from "./circuits/queries";
 export * from "./circuits/schema";
+export * from "./events/queries";
+export * from "./events/schema";
 export * from "./fresh-announcements/queries";
 export * from "./fresh-announcements/schema";
 export * from "./fresh-posts/queries";

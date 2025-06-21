@@ -24,7 +24,7 @@ export function MainNav() {
 
   return (
     <div className="flex mr-4">
-      <Link href="/" className="mr-4 flex items-center space-x-2 lg:mr-6">
+      <Link href="/" prefetch={false} className="mr-4 flex items-center space-x-2 lg:mr-6">
         <span className="font-bold mt-0.5">FSX</span>
       </Link>
       <NavigationMenu className="hidden lg:block ml-1">
@@ -58,6 +58,7 @@ export function MainNav() {
                             <NavigationMenuLink asChild>
                               <Link
                                 href={href}
+                                prefetch={false}
                                 className={cn(
                                   "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
                                   getIsActive(href) && "bg-muted"
@@ -96,6 +97,7 @@ export function MainNav() {
                 <Link
                   href={href}
                   target={target}
+                  prefetch={false}
                   className="flex items-center gap-2"
                 >
                   {label}

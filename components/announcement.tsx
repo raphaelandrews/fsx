@@ -16,7 +16,7 @@ export function Announcement({ label, href, icon: Icon }: Props) {
 
   if (href) {
     return (
-      <Link href={href} prefetch={true} className={`group ${baseStyles}`}>
+      <Link href={href} prefetch={false} className={`group ${baseStyles}`}>
         <Icon className={iconStyles} />
         <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
         <span className={hoverStyles}>{label}</span>

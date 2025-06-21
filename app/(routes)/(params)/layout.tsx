@@ -8,7 +8,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="container relative pt-2 min-h-[calc(100dvh-8.25rem)]">
         {children}
       </div>
-      <Footer className="justify-center w-11/12 max-w-2xl px-0" />
+      <Footer className="justify-center w-11/12 max-w-2xl py-6" />
     </>
   );
 }

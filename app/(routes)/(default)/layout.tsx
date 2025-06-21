@@ -8,7 +8,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="container relative !max-w-[1120px] pt-2 min-h-[calc(100dvh-8.25rem)]">
         {children}
       </div>
-      <Footer className="!max-w-[1120px]" />
+      <Footer className="justify-between max-w-[1120px] py-6" />
     </>
   );
 }

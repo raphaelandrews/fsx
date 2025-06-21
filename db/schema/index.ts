@@ -13,6 +13,7 @@ export * from './circuitPhases';
 export * from './circuitPodiums';
 export * from './clubs';
 export * from './defendingChampions';
+export * from './events';
 export * from './insignia';
 export * from './links';
 export * from './linkGroups';

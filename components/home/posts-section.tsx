@@ -15,8 +15,6 @@ export function PostsSection({ posts }: PostsSectionProps) {
   return (
     <>
       <HomeSection
-        label=""
-        href=""
         icon={FlameIcon}
         main={true}
         className="!mt-4"
