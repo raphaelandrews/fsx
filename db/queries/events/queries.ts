@@ -10,6 +10,7 @@ export const getEvents = unstable_cache(
       .select()
       .from(events)
       .orderBy(desc(events.startDate))
+      .limit(4)
       .execute(),
   ["events"],
   {

@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Announcement } from "@/components/announcement";
 
-interface HomeSectionProps {
+interface Props {
   label?: string;
   className?: string;
   href?: string;
@@ -12,14 +12,14 @@ interface HomeSectionProps {
   children: React.ReactNode;
 }
 
-export function HomeSection({
+export function Section({
   label,
   className,
   href,
   icon,
   main,
   children,
-}: HomeSectionProps) {
+}: Props) {
   return (
     <section className={cn(className, "my-10")}>
       {!main && <Announcement label={label} href={href} icon={icon} />}

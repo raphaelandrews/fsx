@@ -18,6 +18,7 @@ export function Header() {
           <UpdateRegister />
           <Separator className="!w-0.5 !h-4" orientation="vertical" />
           <ModeSwitcher />
+          <Separator className="!w-0.5 !h-4 lg:hidden" orientation="vertical" />
           <HeaderNavigationDrawer />
         </div>
       </div>

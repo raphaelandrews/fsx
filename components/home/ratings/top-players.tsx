@@ -8,7 +8,7 @@ import type { APITopPlayersResponse } from "@/db/queries";
 import { DataTable } from "./data-table";
 import { columnsBlitz, columnsClassic, columnsRapid } from "./columns";
 
-import { HomeSection } from "@/components/home/home-section";
+import { Section } from "@/components/home/section";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type SuccessResponse = Extract<APITopPlayersResponse, { success: true }>;
@@ -27,12 +27,12 @@ const tabMap: Record<TabValue, TabKey> = {
 } as const;
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-export function TopPlayersSection({ topPlayers }: any) {
+export function TopPlayers({ topPlayers }: any) {
   const [currentTab, setCurrentTab] = React.useState<TabValue>("rapid");
   const currentData = topPlayers[tabMap[currentTab]];
 
   return (
-    <HomeSection
+    <Section
       label="Rating"
       href={"/ratings"}
       icon={BarChart2Icon}
@@ -78,6 +78,6 @@ export function TopPlayersSection({ topPlayers }: any) {
           <DataTable data={currentData} columns={columnsBlitz} />
         </TabsContent>
       </Tabs>
-    </HomeSection>
+    </Section>
   );
 }

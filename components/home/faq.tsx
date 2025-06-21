@@ -1,6 +1,6 @@
 import { FileQuestionIcon } from "lucide-react";
 
-import { HomeSection } from "@/components/home/home-section";
+import { Section } from "./section";
 import {
   Accordion,
   AccordionContent,
@@ -10,7 +10,7 @@ import {
 
 export function FAQ() {
   return (
-    <HomeSection label="FAQ" icon={FileQuestionIcon} main={false}>
+    <Section label="FAQ" icon={FileQuestionIcon} main={false}>
       <Accordion type="single" collapsible>
         <AccordionItem value="item-1">
           <AccordionTrigger className="text-left">
@@ -89,6 +89,6 @@ export function FAQ() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-    </HomeSection>
+    </Section>
   );
 }

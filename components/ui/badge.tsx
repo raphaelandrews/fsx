@@ -17,6 +17,15 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        strawberry:
+          "border-transparent bg-[#FFEBEE] text-[#D32F2F] [a&]:hover:opacity-90 dark:bg-[#4D0217] dark:text-[#FF6982] dark:[a&]:hover:opacity-90",
+        bulbasaur:
+          "border-transparent bg-[#E8F5E9] text-[#388E3C] [a&]:hover:opacity-90 dark:bg-[#022C22] dark:text-[#1BC994] dark:[a&]:hover:opacity-90",
+        honey:
+          "border-transparent bg-[#FFF3E0] text-[#F57C00] [a&]:hover:opacity-90 dark:bg-[#3F1507] dark:text-[#F69012] dark:[a&]:hover:opacity-90",
+        sea: "border-transparent bg-[#E0F7FA] text-[#00796B] [a&]:hover:opacity-90 dark:bg-[#0C2E30] dark:text-[#67D4DA] dark:[a&]:hover:opacity-90",
+        dark: "border-transparent bg-[#F5F5F5] text-[#424242] [a&]:hover:opacity-90 dark:bg-[#222222] dark:text-[#E4E4E4] dark:[a&]:hover:opacity-90",
+        gold: "border-transparent bg-[#FFF8E1] text-[#FF8F00] [a&]:hover:opacity-90 dark:bg-[#634C17] dark:text-[#FFD268] dark:[a&]:hover:opacity-90",
       },
     },
     defaultVariants: {

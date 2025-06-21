@@ -1,17 +1,19 @@
 import { MegaphoneIcon } from "lucide-react";
+
 import type { AnnouncementByPage as AnnouncementType } from "@/db/queries";
-import { HomeSection } from "@/components/home/home-section";
+
+import { Section } from "./section";
 import { AnnouncementLink } from "@/components/announcement-link";
 
 interface AnnouncementsSectionProps {
   announcements: AnnouncementType[];
 }
 
-export function AnnouncementsSection({
+export function Announcements({
   announcements,
 }: AnnouncementsSectionProps) {
   return (
-    <HomeSection
+    <Section
       label="Comunicados"
       href={"/comunicados"}
       icon={MegaphoneIcon}
@@ -28,6 +30,6 @@ export function AnnouncementsSection({
           />
         ))}
       </div>
-    </HomeSection>
+    </Section>
   );
 }
