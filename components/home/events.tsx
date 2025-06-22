@@ -122,19 +122,21 @@ function EventCard({
         {formattedBadge({ timeControl })}
       </div>
       <div className="flex gap-1.5">
-        {form && (
-          <Button variant="outline" asChild>
-            <a href={form} target="_blank" rel="noreferrer">
-              Formulário
-            </a>
-          </Button>
-        )}
-        {regulation && (
-          <Button asChild>
-            <a href={regulation} target="_blank" rel="noreferrer">
-              Regulamento
-            </a>
-          </Button>
+        {form && regulation ? (
+          <>
+            <Button variant="outline" asChild>
+              <a href={form} target="_blank" rel="noreferrer">
+                Formulário
+              </a>
+            </Button>
+            <Button asChild>
+              <a href={regulation} target="_blank" rel="noreferrer">
+                Regulamento
+              </a>
+            </Button>
+          </>
+        ) : (
+          <Button asChild>Em Breve</Button>
         )}
       </div>
     </div>
