@@ -1,5 +1,5 @@
 import { createInsertSchema } from "drizzle-zod";
-import { timestamp, integer, pgEnum, pgTable, serial, text, varchar } from "drizzle-orm/pg-core";
+import { timestamp, pgEnum, pgTable, serial, text, varchar } from "drizzle-orm/pg-core";
 
 export const eventTypeEnum = pgEnum('event_type', ['open', 'closed', 'school']);
 export const eventTimeControlEnum = pgEnum('event_time_control', ['standard', 'rapid', 'blitz']);
