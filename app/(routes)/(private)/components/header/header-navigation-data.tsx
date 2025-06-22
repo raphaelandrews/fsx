@@ -4,6 +4,7 @@ import {
   DatabaseIcon,
   DatabaseZapIcon,
   TreePalmIcon,
+  StickyNoteIcon,
 } from "lucide-react";
 
 type NavigationItem = {
@@ -23,23 +24,23 @@ export const navigationData: Navigation = () => [
     icon: HomeIcon,
   },
   {
+    label: "Posts",
+    href: "/dashboard/posts",
+    icon: StickyNoteIcon,
+  },
+  {
     label: "Create Players Data",
-    href: "/create-players-data",
+    href: "/dashboard/players-data",
     icon: DatabaseIcon,
   },
   {
     label: "Create Players Tournament",
-    href: "/create-players-tournament",
-    icon: DatabaseIcon,
-  },
-  {
-    label: "Update Players",
-    href: "/update-players",
+    href: "/dashboard/players-tournament",
     icon: DatabaseZapIcon,
   },
   {
     label: "🏝️",
-    href: "/user",
+    href: "/dashboard/user",
     icon: TreePalmIcon,
   },
 ];
