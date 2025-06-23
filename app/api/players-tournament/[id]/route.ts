@@ -16,10 +16,7 @@ interface PlayerUpdateRequestBody {
     active: boolean;
 }
 
-export async function PUT(
-    req: Request,
-    { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const supabase = createClient();
 
     const {
@@ -30,7 +27,7 @@ export async function PUT(
         return new NextResponse('Unauthenticated', { status: 403 });
     }
 
-    const playerId = Number.parseInt(params.id, 10);
+    const playerId = Number.parseInt((await params).id, 10);
     if (Number.isNaN(playerId) || playerId <= 0) {
         return new NextResponse('Invalid player ID provided in URL.', { status: 400 });
     }
@@ -63,7 +60,7 @@ export async function PUT(
         }
     }
 
-    const body: PlayerUpdateRequestBody = await req.json();
+    const body: PlayerUpdateRequestBody = await request.json();
 
     const {
         birth,

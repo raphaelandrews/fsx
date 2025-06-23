@@ -5,8 +5,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import "@uppy/core/dist/style.min.css";
-import "@uppy/dashboard/dist/style.min.css";
 import { SparklesIcon, Loader2 as SpinnerIcon } from "lucide-react";
 import slugify from "react-slugify";
 import { nanoid } from "nanoid";
@@ -40,21 +38,30 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import MDXEditor from "./mdx-editor";
-import type { PostBySlug } from "@/db/queries";
+import { Post } from "../page";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
-const Editor = ({ post }: {post: PostBySlug}) => {
+const PostSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required"),
+  image: z.string().url(),
+  content: z.string().min(1, "Content is required"),
+});
+
+const Editor = ({ post }: {post: Post}) => {
   const router = useRouter();
   const [fileUrl] = useState<string | null>(post?.image);
 
   const [isSaving, setIsSaving] = useState(false);
   const [showLoadingAlert, setShowLoadingAlert] = useState<boolean>(false);
 
-
   const [content, setContent] = useState<string | null>(post?.content || null);
 
   const defaultValues = {
+    id: post.id,
     title: post.title ?? "Untitled",
     slug: post.slug ?? `post-${nanoid()}`,
     image: fileUrl ?? "",
@@ -62,12 +69,12 @@ const Editor = ({ post }: {post: PostBySlug}) => {
   };
 
   const form = useForm({
-    resolver: zodResolver(PostBySlug),
+    resolver: zodResolver(PostSchema),
     defaultValues,
     mode: "onChange",
   });
 
-  async function onSubmit(data: PostBySlug) {
+  async function onSubmit(data: Post) {
     setShowLoadingAlert(true);
     setIsSaving(true);
 

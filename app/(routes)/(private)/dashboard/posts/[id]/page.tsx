@@ -5,9 +5,16 @@ import Editor from "./components/editor";
 import { Separator } from "@/components/ui/separator";
 import { db } from "@/db";
 import { posts } from "@/db/schema";
-import type { PostBySlug } from "@/db/queries";
 
-async function getPost(postId: string): Promise<PostBySlug | null> {
+export interface Post {
+  id: string;
+  title: string;
+  image: string;
+  content: string;
+  slug: string;
+}
+
+async function getPost(postId: string) {
   const data = await db
     .select()
     .from(posts)
@@ -21,12 +28,10 @@ async function getPost(postId: string): Promise<PostBySlug | null> {
   return data[0];
 }
 
-export default async function PostEditorPage({
-  params,
-}: {
-  params: { postId: string };
+export default async function Page(props: {
+  params: Promise<{ id: string }>;
 }) {
-  const post = await getPost(params.postId);
+  const post = await getPost((await props.params).id);
 
   if (!post) {
     return notFound();

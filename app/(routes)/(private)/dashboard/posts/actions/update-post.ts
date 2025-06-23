@@ -5,9 +5,9 @@ import z from "zod";
 
 import { db } from "@/db";
 import { posts } from "@/db/schema";
-import { PostBySlug } from "@/db/queries";
+import { Post } from "../[id]/page";
 
-export async function UpdatePost(post: PostBySlug) {
+export async function UpdatePost(post: Post) {
   try {
     const updatedPosts = await db
       .update(posts)
