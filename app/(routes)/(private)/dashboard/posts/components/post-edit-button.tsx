@@ -1,5 +1,5 @@
-import { DeletePost } from "@/actions/delete-post";
-import { PublishPost } from "@/actions/publish-post";
+import { DeletePost } from "../actions/delete-post";
+import { PublishPost } from "../actions/publish-post";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,7 +43,6 @@ const PostEditButton: FC<PostEditButtonProps> = ({ id }) => {
   const [session, setSession] = React.useState<Session | null>(null);
   const [showLoadingAlert, setShowLoadingAlert] = useState<boolean>(false);
 
-  // Check authentitication and bookmark states
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
     React.useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -61,12 +60,8 @@ const PostEditButton: FC<PostEditButtonProps> = ({ id }) => {
 
   async function publishMyPost() {
     setShowLoadingAlert(true);
-    if (id && session?.user.id) {
-      const myPostData = {
-        id: id,
-        published: true,
-      };
-      const response = await PublishPost(myPostData);
+    if (id) {
+      const response = await PublishPost(id);
       if (response) {
         setShowLoadingAlert(false);
         toast.success("Post published");
@@ -81,15 +76,10 @@ const PostEditButton: FC<PostEditButtonProps> = ({ id }) => {
     }
   }
 
-  // Delete post
   async function deleteMyPost() {
     setIsDeleteLoading(true);
-    if (id && session?.user.id) {
-      const myPostData = {
-        id: id,
-        user_id: session?.user.id,
-      };
-      const response = await DeletePost(myPostData);
+    if (id) {
+      const response = await DeletePost(id);
       if (response) {
         setIsDeleteLoading(false);
         toast.success("Post deleted.");
@@ -141,7 +131,6 @@ const PostEditButton: FC<PostEditButtonProps> = ({ id }) => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      {/* Delete alert */}
       <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
         <AlertDialogContent className="text-md font-sans">
           <AlertDialogHeader>
@@ -165,7 +154,6 @@ const PostEditButton: FC<PostEditButtonProps> = ({ id }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {/* Loading alert */}
       <AlertDialog open={showLoadingAlert} onOpenChange={setShowLoadingAlert}>
         <AlertDialogContent className="font-sans">
           <AlertDialogHeader>

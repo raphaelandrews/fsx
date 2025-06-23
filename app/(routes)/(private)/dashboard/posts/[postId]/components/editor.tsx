@@ -1,25 +1,17 @@
 "use client";
 
-import { type FC, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Uppy from "@uppy/core";
-import Tus from "@uppy/tus";
 import "@uppy/core/dist/style.min.css";
 import "@uppy/dashboard/dist/style.min.css";
-import {
-  SparklesIcon,
-  Loader2 as SpinnerIcon,
-} from "lucide-react";
+import { SparklesIcon, Loader2 as SpinnerIcon } from "lucide-react";
 import slugify from "react-slugify";
 import { nanoid } from "nanoid";
-import type * as z from "zod";
 
-import { UpdatePost } from "@/actions/update-post";
-import { postEditFormSchema } from "@/lib/validation/post";
-import type { Posts } from "@/types/collection";
+import { UpdatePost } from "../../actions/update-post";
 
 import {
   AlertDialog,
@@ -48,163 +40,34 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import MDXEditor from "./mdx-editor";
-import { SingleImageDropzone } from "./single-image-dropzone";
-import { UpdatePostImage } from "@/actions/update-post-image";
-
-interface EditorProps {
-  post: Posts;
-  userId: string;
-  coverImageFileName: string;
-  coverImagePublicUrl: string;
-  galleryImageFileNames: string[];
-  galleryImagePublicUrls: string[];
-}
-
-type EditorFormValues = z.infer<typeof postEditFormSchema>;
+import type { PostBySlug } from "@/db/queries";
 
 export const dynamic = "force-dynamic";
 
-const Editor: FC<EditorProps> = ({
-  post,
-  userId,
-  coverImageFileName,
-  coverImagePublicUrl,
-  galleryImageFileNames,
-  galleryImagePublicUrls,
-}) => {
+const Editor = ({ post }: {post: PostBySlug}) => {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [fileUrl, setFileUrl] = useState<string | null>(post?.image);
+  const [fileUrl] = useState<string | null>(post?.image);
 
-  // These are the values that will be used to upload the image
-  const allowedNumberOfImages = 9 - galleryImagePublicUrls.length;
-  // States
   const [isSaving, setIsSaving] = useState(false);
   const [showLoadingAlert, setShowLoadingAlert] = useState<boolean>(false);
-  const [showCoverModal, setShowCoverModal] = useState<boolean>(false);
-  const [showGalleryModal, setShowGalleryModal] = useState<boolean>(false);
 
-  // Editor
-  const [saveStatus, setSaveStatus] = useState("Saved");
 
   const [content, setContent] = useState<string | null>(post?.content || null);
 
-  // Setup Uppy with Supabase
-  const bucketNamePosts =
-    process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET_POSTS || "posts";
-  const bucketNameCoverImage =
-    process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET_COVER_IMAGE ||
-    "cover-image";
-  const bucketNameGalleryImage =
-    process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET_GALLERY_IMAGE ||
-    "gallery-image";
-  const token = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const projectId = process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID;
-  const supabaseUploadURL = `https://${projectId}.supabase.co/storage/v1/upload/resumable`;
-
-  // Uppy instance for cover photo upload
-
-  const uppyCover = new Uppy({
-    id: "cover-image",
-    autoProceed: false,
-    debug: false,
-    allowMultipleUploadBatches: true,
-    restrictions: {
-      maxFileSize: 6000000,
-      maxNumberOfFiles: 1,
-    },
-  }).use(Tus, {
-    endpoint: supabaseUploadURL,
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-    chunkSize: 6 * 1024 * 1024,
-    allowedMetaFields: [
-      "bucketName",
-      "objectName",
-      "contentType",
-      "cacheControl",
-    ],
-  });
-
-  uppyCover.on("file-added", (file) => {
-    file.meta = {
-      ...file.meta,
-      bucketName: bucketNameCoverImage,
-      objectName: `${userId}/${post.id}/${file.name}`,
-      contentType: file.type,
-    };
-  });
-
-  uppyCover.on("complete", async (result) => {
-    if (result.successful && result.successful.length > 0) {
-      toast.success("Image uploaded");
-      router.refresh();
-    } else {
-      toast.error("Error uploading image");
-    }
-    setShowCoverModal(false);
-  });
-
-  // Uppy instance for gallery uploads
-  const uppyGallery = new Uppy({
-    id: "gallery-image",
-    autoProceed: false,
-    debug: false,
-    allowMultipleUploadBatches: true,
-    restrictions: {
-      maxFileSize: 6000000,
-      maxNumberOfFiles: allowedNumberOfImages,
-    },
-  }).use(Tus, {
-    endpoint: supabaseUploadURL,
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-    chunkSize: 6 * 1024 * 1024,
-    allowedMetaFields: [
-      "bucketName",
-      "objectName",
-      "contentType",
-      "cacheControl",
-    ],
-  });
-
-  uppyGallery.on("file-added", (file) => {
-    file.meta = {
-      ...file.meta,
-      bucketName: bucketNameGalleryImage,
-      objectName: `${userId}/${post.id}/${file.name}`,
-      contentType: file.type,
-    };
-  });
-
-  uppyGallery.on("complete", async (result) => {
-    if (result.successful && result.successful.length > 0) {
-      // Auto save post
-      toast.success("Image uploaded");
-      router.refresh();
-    } else {
-      toast.error("Error uploading image");
-    }
-    setShowGalleryModal(false);
-  });
-
-  // Default values for the form
-  const defaultValues: Partial<EditorFormValues> = {
+  const defaultValues = {
     title: post.title ?? "Untitled",
     slug: post.slug ?? `post-${nanoid()}`,
     image: fileUrl ?? "",
     content: content ?? "Type here your blog post content",
   };
 
-  const form = useForm<EditorFormValues>({
-    resolver: zodResolver(postEditFormSchema),
+  const form = useForm({
+    resolver: zodResolver(PostBySlug),
     defaultValues,
     mode: "onChange",
   });
 
-  async function onSubmit(data: EditorFormValues) {
+  async function onSubmit(data: PostBySlug) {
     setShowLoadingAlert(true);
     setIsSaving(true);
 
@@ -212,8 +75,8 @@ const Editor: FC<EditorProps> = ({
       id: post.id,
       title: data.title,
       slug: data.slug,
-      image: fileUrl || undefined,
-      content: content,
+      image: fileUrl || "",
+      content: content || "",
     });
 
     if (response) {
@@ -234,14 +97,12 @@ const Editor: FC<EditorProps> = ({
   return (
     <>
       <Form {...form}>
-        {/* Title */}
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {/* General information */}
           <Card className="max-w-2xl">
             <CardHeader>
               <CardTitle>General information</CardTitle>
               <CardDescription>
-              Update your post's general information
+                Update your post's general information
               </CardDescription>
             </CardHeader>
             <Separator className="mb-8" />
@@ -262,7 +123,6 @@ const Editor: FC<EditorProps> = ({
                   </FormItem>
                 )}
               />
-              {/* Slug */}
               <FormField
                 control={form.control}
                 name="slug"

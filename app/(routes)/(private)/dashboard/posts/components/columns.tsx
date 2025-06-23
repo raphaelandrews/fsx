@@ -1,11 +1,11 @@
 "use client";
 
-import type { Posts } from "@/types/collection";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { statuses } from "../data/data";
+import type { Posts } from "@/db/queries";
 
 export const columns: ColumnDef<Posts>[] = [
   {
@@ -52,12 +52,12 @@ export const columns: ColumnDef<Posts>[] = [
     },
   },
   {
-    accessorKey: "created_at",
+    accessorKey: "createdAt",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created" />
     ),
     cell: ({ row }) => {
-      const date = format(new Date(row.getValue("created_at")), "MM/dd/yyyy");
+      const date = format(new Date(row.getValue("createdAt")), "MM/dd/yyyy");
 
       if (!date) {
         return null;

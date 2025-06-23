@@ -1,6 +1,6 @@
 "use client";
 
-import { CreatePost } from "@/actions/create-post";
+import { CreatePost } from "../actions/create-post";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -42,10 +42,9 @@ const PostCreateButton = () => {
     if (session?.user.id) {
       const post = {
         title: "Untitled",
-        user_id: session?.user.id,
       };
 
-      const response = await CreatePost(post);
+      const response = await CreatePost(post.title);
 
       if (response) {
         toast.success("Post created.");

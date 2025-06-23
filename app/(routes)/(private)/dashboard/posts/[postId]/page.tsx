@@ -5,10 +5,9 @@ import Editor from "./components/editor";
 import { Separator } from "@/components/ui/separator";
 import { db } from "@/db";
 import { posts } from "@/db/schema";
+import type { PostBySlug } from "@/db/queries";
 
-type PostType = typeof posts.$inferSelect;
-
-async function getPost(postId: string): Promise<PostType | null> {
+async function getPost(postId: string): Promise<PostBySlug | null> {
   const data = await db
     .select()
     .from(posts)
