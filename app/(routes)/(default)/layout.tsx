@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header/header";
 
@@ -9,6 +10,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </div>
       <Footer className="justify-between max-w-[1120px] py-6" />
+      <Analytics />
     </>
   );
 }

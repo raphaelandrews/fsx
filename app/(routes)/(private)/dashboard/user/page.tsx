@@ -1,0 +1,22 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/utils/supabase/server";
+import { UserProfile } from "@/components/user-profile";
+
+export default async function Page() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    redirect("/auth-code-error");
+  }
+
+  return (
+    <>
+      <UserProfile user={user} />
+    </>
+  );
+}
