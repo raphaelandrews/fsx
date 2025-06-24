@@ -23,13 +23,13 @@ const MDXEditor = ({ content, onChange }: MDXEditorProps) => {
   };
 
   return (
-    <div className="container">
+    <>
       <MDEditor
         value={value}
         onChange={handleEditorChange} 
       />
       <MDEditor.Markdown source={value} style={{ whiteSpace: 'pre-wrap' }} />
-    </div>
+    </>
   );
 }
 

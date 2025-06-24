@@ -9,7 +9,6 @@ import { DataTable } from "./components/data-table";
 import { Announcement } from "@/components/announcement";
 import {
   PageHeader,
-  PageHeaderDescription,
   PageHeaderHeading,
 } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,8 +32,7 @@ export const metadata: Metadata = {
     ],
   },
 };
-
-const ChampionsPage = async () => {
+export default async function Page(){
   const data = await getChampions();
 
   const championshipMap = data.reduce((acc, championship) => {
@@ -100,5 +98,3 @@ const ChampionsPage = async () => {
     </>
   );
 };
-
-export default ChampionsPage;

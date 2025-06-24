@@ -115,7 +115,7 @@ const PostEditButton: FC<PostEditButtonProps> = ({ id }) => {
               // biome-ignore lint/a11y/useValidAnchor: <explanation>
               onClick={() => {
                 setShowLoadingAlert(true);
-                router.push(`/posts/${id}`);
+                router.push(`/dashboard/posts/${id}`);
                 setShowLoadingAlert(false);
               }}
             >

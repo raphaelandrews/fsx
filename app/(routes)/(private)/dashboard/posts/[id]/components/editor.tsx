@@ -38,7 +38,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import MDXEditor from "./mdx-editor";
-import { Post } from "../page";
+import type { Post } from "../page";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -88,7 +88,7 @@ const Editor = ({ post }: {post: Post}) => {
 
     if (response) {
       toast.success("Your post has been updated");
-      router.push("/posts?search=refresh");
+      router.push("/dashboard/posts?search=refresh");
     } else {
       toast.error("Error updating your post");
     }
@@ -168,15 +168,14 @@ const Editor = ({ post }: {post: Post}) => {
           <div className="infline-flex flex items-center justify-start space-x-3">
             <Button
               type="submit"
-              className="flex !bg-gray-900 px-10 !text-white hover:!bg-gray-800"
               disabled={isSaving}
             >
               Update
             </Button>
             <Button
               type="button"
+              variant="secondary"
               onClick={() => router.back()}
-              className="flex !bg-gray-100 px-10 !text-gray-900 hover:!bg-gray-200"
               disabled={isSaving}
             >
               Cancel
