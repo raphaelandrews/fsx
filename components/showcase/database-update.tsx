@@ -11,19 +11,26 @@ import {
   RotateCcwIcon,
   MoreHorizontalIcon,
   AlertTriangleIcon,
+  PopcornIcon,
+  DatabaseZapIcon,
+  LoaderIcon,
+  LoaderCircleIcon,
+  AlertCircleIcon,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MotionGridShowcase } from "./motion-grid-showcase";
-import { ManagementBar } from "@/components/animate-ui/ui-elements/management-bar";
 import {
   type DatabaseUpdateProps,
   getOperationIcon,
   mockResponses,
   mockUpdates,
 } from "./data";
+import { MotionGridShowcase } from "./motion-grid-showcase";
+
+import { ManagementBar } from "@/components/showcase/management-bar";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function DatabaseUpdate() {
   const [currentUpdate, setCurrentUpdate] =
@@ -124,22 +131,17 @@ export default function DatabaseUpdate() {
   return (
     <div className="min-h-screen bg-background p-6">
       <ManagementBar />
-      <MotionGridShowcase />
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <DatabaseIcon className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+                <DatabaseIcon className="text-accent-foreground size-4 " />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">
+                <h1 className="text-xl font-semibold text-foreground">
                   Database Update Process
                 </h1>
-                <p className="text-sm text-gray-500">
-                  Real-time operation monitoring
-                </p>
               </div>
             </div>
 
@@ -179,22 +181,44 @@ export default function DatabaseUpdate() {
           </div>
         </div>
 
-        {/* Central Processing Card */}
-        <div className="mb-8 relative">
-          {/* Polka dot background */}
-          <div
-            className="absolute inset-0 opacity-20 rounded-lg"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle, var(--muted) 2px, transparent 2px)",
-              backgroundSize: "20px 20px",
-              backgroundPosition: "0 0, 10px 10px",
-            }}
-          />
-
+        <div
+          className="relative pt-8 h-fit min-h-96"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, var(--muted) 2px, transparent 2px)",
+            backgroundSize: "20px 20px",
+            backgroundPosition: "0 0, 10px 10px",
+          }}
+        >
           <div className="relative z-10">
-            <AnimatePresence mode="wait">
-              {currentUpdate && (
+            {!currentUpdate && !isRunning && (
+              <div className="flex justify-center mt-4">
+                <Alert className="w-fit">
+                  <DatabaseZapIcon />
+                  <AlertTitle>Run to start database operations.</AlertTitle>
+                </Alert>
+              </div>
+            )}
+
+            {isRunning && (
+              <div className="flex justify-center mt-4">
+                <MotionGridShowcase />
+              </div>
+            )}
+
+            {!currentUpdate && isRunning && (
+              <div className="flex justify-center mt-4">
+                <Alert className="w-fit">
+                  <CheckCircleIcon />
+                  <AlertTitle>Completed</AlertTitle>
+                </Alert>
+              </div>
+            )}
+          </div>
+
+          <AnimatePresence mode="wait">
+            {currentUpdate && (
+              <div className="flex justify-center mt-4">
                 <motion.div
                   key={currentUpdate.id}
                   initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -202,171 +226,82 @@ export default function DatabaseUpdate() {
                   exit={{ opacity: 0, scale: 0.95, y: -20 }}
                   transition={{ duration: 0.4 }}
                 >
-                  <Card className="bg-white border-2 border-blue-200 shadow-lg">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-center mb-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-xl">
-                          {getOperationIcon(currentUpdate.operation)}
-                        </div>
-                      </div>
+                  <Alert>
+                    <LoaderCircleIcon />
+                    <AlertTitle>{currentUpdate.operation}</AlertTitle>
+                    <AlertDescription>
+                      {currentUpdate.description}
 
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                          <Loader2Icon className="w-5 h-5 text-blue-600 animate-spin" />
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {currentUpdate.operation}
-                          </h3>
-                        </div>
-                        <p className="text-gray-600 mb-4">
-                          {currentUpdate.description}
-                        </p>
-
-                        <div className="flex items-center justify-center gap-2">
-                          <Badge
-                            variant="secondary"
-                            className="bg-gray-100 text-gray-700"
-                          >
-                            {currentUpdate.table}
-                          </Badge>
-                          <Badge className="bg-blue-100 text-blue-700">
-                            Processing
-                          </Badge>
-                        </div>
+                      <div className="flex items-center justify-center gap-2">
+                        <Badge
+                          variant="secondary"
+                          className="bg-gray-100 text-gray-700"
+                        >
+                          {currentUpdate.table}
+                        </Badge>
+                        <Badge className="bg-blue-100 text-blue-700">
+                          Processing
+                        </Badge>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </AlertDescription>
+                  </Alert>
                 </motion.div>
-              )}
-            </AnimatePresence>
-
-            {!currentUpdate && !isRunning && (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <DatabaseIcon className="w-8 h-8 text-gray-400" />
-                </div>
-                <p className="text-gray-500">
-                  Click "Run Process" to start database operations
-                </p>
               </div>
             )}
+          </AnimatePresence>
 
-            {!currentUpdate && isRunning && (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircleIcon className="w-8 h-8 text-green-600" />
+          {errorStack.length > 0 && (
+            <div className=" relative flex justify-center mt-4">
+              <div className="relative z-10 space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertTriangleIcon className="w-5 h-5 text-red-600" />
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Failed Operations
+                  </h2>
+                  <Badge className="bg-red-100 text-red-800">
+                    {errorStack.length}
+                  </Badge>
                 </div>
-                <p className="text-green-600 font-medium">
-                  All operations completed!
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Error Stack */}
-        {errorStack.length > 0 && (
-          <div className="relative">
-            {/* Polka dot background */}
-            <div
-              className="absolute inset-0 opacity-5 rounded-lg"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle, #ef4444 2px, transparent 2px)",
-                backgroundSize: "20px 20px",
-                backgroundPosition: "0 0, 10px 10px",
-              }}
-            />
+                <AnimatePresence>
+                  {errorStack.map((update, index) => (
+                    <motion.div
+                      key={update.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                    >
+                      <Alert variant="destructive">
+                        <AlertCircleIcon />
+                        <AlertTitle>{update.operation}</AlertTitle>
+                        <AlertDescription>
+                          <p>{update.description}</p>
 
-            <div className="relative z-10 space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <AlertTriangleIcon className="w-5 h-5 text-red-600" />
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Failed Operations
-                </h2>
-                <Badge className="bg-red-100 text-red-800">
-                  {errorStack.length}
-                </Badge>
-              </div>
-
-              <AnimatePresence>
-                {errorStack.map((update, index) => (
-                  <motion.div
-                    key={update.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                  >
-                    <Card className="bg-red-50 border border-red-200 shadow-sm">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3 flex-1">
-                            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-lg">
-                              {getOperationIcon(update.operation)}
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <XCircleIcon className="w-4 h-4 text-red-600" />
-                                <h3 className="font-medium text-gray-900">
-                                  {update.operation}
-                                </h3>
-                                {update.duration && (
-                                  <span className="text-xs text-red-600">
-                                    ({update.duration}ms)
-                                  </span>
-                                )}
+                          {update.error && (
+                            <div className="bg-red-100 border border-red-200 rounded-lg p-3">
+                              <div className="text-sm font-medium text-red-800 mb-2">
+                                {update.error.message}
                               </div>
-                              <p className="text-sm text-gray-600 mb-3">
-                                {update.description}
-                              </p>
-
-                              <div className="flex items-center gap-2 mb-3">
-                                <Badge
-                                  variant="secondary"
-                                  className="bg-gray-100 text-gray-700"
-                                >
-                                  {update.table}
-                                </Badge>
-                                <Badge className="bg-red-100 text-red-800">
-                                  Failed
-                                </Badge>
-                              </div>
-
-                              {update.error && (
-                                <div className="bg-red-100 border border-red-200 rounded-lg p-3">
-                                  <div className="text-sm font-medium text-red-800 mb-2">
-                                    {update.error.message}
-                                  </div>
-                                  <details className="group">
-                                    <summary className="cursor-pointer text-xs text-red-600 hover:text-red-700">
-                                      View stack trace
-                                    </summary>
-                                    <pre className="text-xs text-red-600 bg-red-200 rounded p-2 mt-2 overflow-x-auto whitespace-pre-wrap">
-                                      {update.error.stack}
-                                    </pre>
-                                  </details>
-                                </div>
-                              )}
+                              <details className="group">
+                                <summary className="cursor-pointer text-xs text-red-600 hover:text-red-700">
+                                  View stack trace
+                                </summary>
+                                <pre className="text-xs text-red-600 bg-red-200 rounded p-2 mt-2 overflow-x-auto whitespace-pre-wrap">
+                                  {update.error.stack}
+                                </pre>
+                              </details>
                             </div>
-                          </div>
-
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-gray-400 hover:text-gray-600"
-                          >
-                            <MoreHorizontalIcon className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+                          )}
+                        </AlertDescription>
+                      </Alert>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

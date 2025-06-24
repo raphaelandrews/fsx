@@ -53,7 +53,7 @@ function ManagementBar() {
   }, [currentPage]);
 
   return (
-    <div className="flex w-fit flex-wrap items-center gap-y-2 rounded-2xl border border-border bg-background p-2 shadow-lg">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex w-fit flex-wrap items-center gap-y-2 rounded-2xl border border-border bg-background p-2 shadow-lg">
       <div className="mx-auto flex shrink-0 items-center">
         <button
           type="button"
