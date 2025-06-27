@@ -14,7 +14,7 @@ export const HeaderNavigationDrawer = () => {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: No
   useEffect(() => {
     setOpen(false);
   }, [pathname]);

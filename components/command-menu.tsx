@@ -151,9 +151,13 @@ export function CommandMenu({ ...props }: DialogProps) {
     { id: number; name: string; gradient: React.CSSProperties }[]
   >([]);
   const dialogOpenRef = React.useRef(open);
+  const hasFetchedInitialPlayersRef = React.useRef(false);
+  const [isLoadingInitialPlayers, setIsLoadingInitialPlayers] =
+    React.useState(false);
 
   React.useEffect(() => {
     const fetchInitialPlayers = async () => {
+      setIsLoadingInitialPlayers(true);
       try {
         const response = await fetch("/api/search-players?q=");
         if (!response.ok) throw new Error("Failed to fetch initial players");
@@ -165,16 +169,25 @@ export function CommandMenu({ ...props }: DialogProps) {
           })
         );
         setInitialPlayers(playersWithGradients);
+        hasFetchedInitialPlayersRef.current = true;
       } catch (error) {
         console.error("Could not fetch initial players:", error);
+      } finally {
+        setIsLoadingInitialPlayers(false);
       }
     };
 
-    fetchInitialPlayers();
-  }, []);
+    if (open && !hasFetchedInitialPlayersRef.current) {
+      fetchInitialPlayers();
+    }
+  }, [open]);
 
   React.useEffect(() => {
     dialogOpenRef.current = open;
+    if (!open) {
+      setSearchValue("");
+      setDebouncedSearch("");
+    }
   }, [open]);
 
   React.useEffect(() => {
@@ -259,7 +272,7 @@ export function CommandMenu({ ...props }: DialogProps) {
               heading="Jogadores"
               className="!p-0 [&_[cmdk-group-heading]]:scroll-mt-16 [&_[cmdk-group-heading]]:!p-3 [&_[cmdk-group-heading]]:!pb-1"
             >
-              {isTyping ? (
+              {isLoadingInitialPlayers || isTyping ? (
                 <LoadingSkeleton />
               ) : (
                 <React.Suspense fallback={<LoadingSkeleton />}>

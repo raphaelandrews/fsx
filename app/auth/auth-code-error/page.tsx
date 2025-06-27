@@ -18,7 +18,7 @@ export default function AuthCodeError() {
         </CardHeader>
         <CardContent>
           <Button asChild className="w-full">
-            <Link href="/login">Try Again</Link>
+            <Link href="/login" prefetch={false}>Try Again</Link>
           </Button>
         </CardContent>
       </Card>
