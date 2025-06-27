@@ -1,3 +1,4 @@
+import { unstable_ViewTransition as ViewTransition } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CalendarIcon, NewspaperIcon } from "lucide-react";
@@ -66,17 +67,19 @@ export default async function Page({
   }
 
   return (
-    <section className="w-11/12 max-w-2xl pt-12 pb-20 m-auto">
-      <div className="inline-block p-2.5 text-muted-foreground rounded-md bg-primary-foreground">
-        <NewspaperIcon width={16} height={16} />
+    <section className="m-auto w-11/12 max-w-2xl pt-12 pb-20">
+      <div className="inline-block rounded-md bg-primary-foreground p-2.5 text-muted-foreground">
+        <NewspaperIcon height={16} width={16} />
       </div>
 
-      <h1 className="font-semibold text-primary text-2xl tracking-tighter mt-2">
-        {data?.title}
-      </h1>
+      <ViewTransition name={`title-${data?.title}`}>
+        <h1 className="mt-2 font-semibold text-2xl text-primary tracking-tighter">
+          {data?.title}
+        </h1>
+      </ViewTransition>
 
       {data?.createdAt && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+        <div className="mt-2 flex items-center gap-2 text-muted-foreground text-sm">
           {formatDate(data.createdAt)}
         </div>
       )}
@@ -84,9 +87,9 @@ export default async function Page({
       {data?.image && (
         // biome-ignore lint/performance/noImgElement: No
         <img
-          src={data.image}
           alt={data.title}
-          className="w-full max-w-xl h-full mt-6 rounded-lg m-auto"
+          className="m-auto mt-6 h-full w-full max-w-xl rounded-lg"
+          src={data.image}
         />
       )}
 
@@ -142,10 +145,10 @@ function formatDate(date: Date) {
   return (
     <>
       <p className="flex items-center gap-2">
-        <CalendarIcon width={16} height={16} />
+        <CalendarIcon height={16} width={16} />
         <span className="mt-[1px]">{fullDate}</span>
       </p>
-      <div className="w-1 h-1 rounded-full bg-muted-foreground" />
+      <div className="h-1 w-1 rounded-full bg-muted-foreground" />
       <p>{formattedDate}</p>
     </>
   );

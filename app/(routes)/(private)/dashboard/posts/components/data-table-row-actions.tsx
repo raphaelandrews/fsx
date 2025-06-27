@@ -1,14 +1,14 @@
-"use client";
+"use client"
 
-import PostEditButton from "./post-edit-button";
-import type { Row } from "@tanstack/react-table";
+import PostEditButton from "./post-edit-button"
+import type { Row } from "@tanstack/react-table"
 
 interface DataTableRowActionsProps<TData> {
-  row: Row<TData>;
+	row: Row<TData>
 }
 
 export function DataTableRowActions<TData>({
-  row,
+	row,
 }: DataTableRowActionsProps<TData>) {
-  return <PostEditButton id={row.getValue("id")} />;
+	return <PostEditButton id={row.getValue("id")} />
 }

@@ -1,48 +1,48 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo } from "react"
 
-import { getGradient } from "@/lib/generate-gradients";
+import { getGradient } from "@/lib/generate-gradients"
 
-import { PlayerSheet } from "@/components/sheets/player/player-sheet";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { PlayerSheet } from "@/components/sheets/player/player-sheet"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 
 interface Props {
-  id: number;
-  name: string;
-  nickname?: string | null;
-  image?: string | null;
-  shortTitle?: string | null;
+	id: number
+	name: string
+	nickname?: string | null
+	image?: string | null
+	shortTitle?: string | null
 }
 
 export const Actions = ({ id, name, nickname, image, shortTitle }: Props) => {
-  const [open, setOpen] = useState(false);
-  const gradient = useMemo(() => getGradient(id), [id]);
+	const [open, setOpen] = useState(false)
+	const gradient = useMemo(() => getGradient(id), [id])
 
-  const handleKeyboardEvent = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter" || event.key === " ") {
-      setOpen(true);
-    }
-  };
+	const handleKeyboardEvent = (event: React.KeyboardEvent) => {
+		if (event.key === "Enter" || event.key === " ") {
+			setOpen(true)
+		}
+	}
 
-  return (
-    <>
-      <Button
-        variant="link"
-        onClick={() => setOpen(true)}
-        onKeyUp={handleKeyboardEvent}
-        onKeyDown={handleKeyboardEvent}
-        className="flex items-center gap-3 cursor-pointer"
-      >
-        <Avatar className="w-8 h-8 rounded-md">
-          <AvatarImage src={image || ""} alt={name} />
-          <AvatarFallback style={gradient} />
-        </Avatar>
-        <div className="font-medium whitespace-nowrap">
-          <span className="text-gold">{shortTitle}</span> {nickname || name}
-        </div>
-      </Button>
+	return (
+		<>
+			<Button
+				className="flex cursor-pointer items-center gap-3"
+				onClick={() => setOpen(true)}
+				onKeyDown={handleKeyboardEvent}
+				onKeyUp={handleKeyboardEvent}
+				variant="link"
+			>
+				<Avatar className="h-8 w-8 rounded-md">
+					<AvatarImage alt={name} src={image || ""} />
+					<AvatarFallback style={gradient} />
+				</Avatar>
+				<div className="whitespace-nowrap font-medium">
+					<span className="text-gold">{shortTitle}</span> {nickname || name}
+				</div>
+			</Button>
 
-      {open && <PlayerSheet id={id} open={open} setOpen={setOpen} />}
-    </>
-  );
-};
+			{open && <PlayerSheet id={id} open={open} setOpen={setOpen} />}
+		</>
+	)
+}

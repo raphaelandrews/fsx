@@ -1,13 +1,13 @@
-"use client";
+"use client"
 
-import MDEditor from "@uiw/react-md-editor";
+import MDEditor from "@uiw/react-md-editor"
 
 interface MDXProps {
-  content: string;
+	content: string
 }
 
 export function MDX({ content }: MDXProps) {
-  return (
-    <MDEditor.Markdown source={content} style={{ whiteSpace: "pre-wrap" }} />
-  );
+	return (
+		<MDEditor.Markdown source={content} style={{ whiteSpace: "pre-wrap" }} />
+	)
 }

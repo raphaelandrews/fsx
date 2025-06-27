@@ -7,10 +7,7 @@ import { siteConfig } from "@/lib/site";
 
 import { Announcement } from "@/components/announcement";
 import { PostCard } from "@/components/post-card";
-import {
-  PageHeader,
-  PageHeaderHeading,
-} from "@/components/ui/page-header";
+import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header";
 import {
   Pagination,
   PaginationContent,
@@ -24,7 +21,7 @@ import {
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const revalidate = 2592000;
+export const revalidate = 2_592_000;
 
 export const metadata: Metadata = {
   title: "Notícias",
@@ -99,25 +96,25 @@ export default async function Page({
       <section>
         <React.Suspense
           fallback={
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
               {Array.from({ length: 12 }).map((_) => (
                 <div key={`skeleton-${crypto.randomUUID()}`}>
-                  <Skeleton className="w-full aspect-[2/1]" />
-                  <Skeleton className="h-5 w-full mt-2 mb-1" />
+                  <Skeleton className="aspect-[2/1] w-full" />
+                  <Skeleton className="mt-2 mb-1 h-5 w-full" />
                   <Skeleton className="h-5 w-4/5" />
                 </div>
               ))}
             </div>
           }
         >
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             {posts.map((post) => (
               <PostCard
-                key={post.id}
                 id={post.id}
-                title={post.title}
                 image={post.image ?? undefined}
+                key={post.id}
                 slug={post.slug ?? ""}
+                title={post.title}
               />
             ))}
           </div>
@@ -128,20 +125,20 @@ export default async function Page({
             <PaginationContent>
               <PaginationItem>
                 <PaginationFirst
-                  href="/noticias?page=1"
                   aria-disabled={!hasPreviousPage}
                   className={
-                    !hasPreviousPage ? "pointer-events-none opacity-50" : ""
+                    hasPreviousPage ? "" : "pointer-events-none opacity-50"
                   }
+                  href="/noticias?page=1"
                 />
               </PaginationItem>
               <PaginationItem>
                 <PaginationPrevious
-                  href={`/noticias?page=${Math.max(1, currentPage - 1)}`}
                   aria-disabled={!hasPreviousPage}
                   className={
-                    !hasPreviousPage ? "pointer-events-none opacity-50" : ""
+                    hasPreviousPage ? "" : "pointer-events-none opacity-50"
                   }
+                  href={`/noticias?page=${Math.max(1, currentPage - 1)}`}
                 />
               </PaginationItem>
 
@@ -164,23 +161,23 @@ export default async function Page({
 
               <PaginationItem>
                 <PaginationNext
+                  aria-disabled={!hasNextPage}
+                  className={
+                    hasNextPage ? "" : "pointer-events-none opacity-50"
+                  }
                   href={`/noticias?page=${Math.min(
                     totalPages,
                     currentPage + 1
                   )}`}
-                  aria-disabled={!hasNextPage}
-                  className={
-                    !hasNextPage ? "pointer-events-none opacity-50" : ""
-                  }
                 />
               </PaginationItem>
               <PaginationItem>
                 <PaginationLast
-                  href={`/noticias?page=${totalPages}`}
                   aria-disabled={!hasNextPage}
                   className={
-                    !hasNextPage ? "pointer-events-none opacity-50" : ""
+                    hasNextPage ? "" : "pointer-events-none opacity-50"
                   }
+                  href={`/noticias?page=${totalPages}`}
                 />
               </PaginationItem>
             </PaginationContent>

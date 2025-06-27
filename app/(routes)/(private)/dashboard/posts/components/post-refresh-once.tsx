@@ -1,19 +1,19 @@
-"use client";
+"use client"
 
-import { useRouter, useSearchParams } from "next/navigation";
-import React from "react";
+import { useRouter, useSearchParams } from "next/navigation"
+import React from "react"
 
 const PostRefreshOnce = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const search = searchParams.get("search");
+	const router = useRouter()
+	const searchParams = useSearchParams()
+	const search = searchParams.get("search")
 
-  React.useEffect(() => {
-    if (search === "refresh") {
-      router.refresh();
-    }
-  }, [search, router]);
-  return null;
-};
+	React.useEffect(() => {
+		if (search === "refresh") {
+			router.refresh()
+		}
+	}, [search, router])
+	return null
+}
 
-export default PostRefreshOnce;
+export default PostRefreshOnce

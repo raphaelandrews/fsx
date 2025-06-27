@@ -62,9 +62,7 @@
         "announcements_content_unique": {
           "name": "announcements_content_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "content"
-          ]
+          "columns": ["content"]
         }
       },
       "policies": {},
@@ -95,9 +93,7 @@
         "championships_name_unique": {
           "name": "championships_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -145,12 +141,8 @@
           "name": "circuit_phases_circuit_id_circuits_id_fk",
           "tableFrom": "circuit_phases",
           "tableTo": "circuits",
-          "columnsFrom": [
-            "circuit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["circuit_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -158,12 +150,8 @@
           "name": "circuit_phases_club_id_clubs_id_fk",
           "tableFrom": "circuit_phases",
           "tableTo": "clubs",
-          "columnsFrom": [
-            "club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["club_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -171,12 +159,8 @@
           "name": "circuit_phases_tournament_id_tournaments_id_fk",
           "tableFrom": "circuit_phases",
           "tableTo": "tournaments",
-          "columnsFrom": [
-            "tournament_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tournament_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -242,12 +226,8 @@
           "name": "circuit_podiums_player_id_players_id_fk",
           "tableFrom": "circuit_podiums",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -255,12 +235,8 @@
           "name": "circuit_podiums_club_id_clubs_id_fk",
           "tableFrom": "circuit_podiums",
           "tableTo": "clubs",
-          "columnsFrom": [
-            "club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["club_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -268,12 +244,8 @@
           "name": "circuit_podiums_circuit_phase_id_circuit_phases_id_fk",
           "tableFrom": "circuit_podiums",
           "tableTo": "circuit_phases",
-          "columnsFrom": [
-            "circuit_phase_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["circuit_phase_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -315,9 +287,7 @@
         "circuits_name_unique": {
           "name": "circuits_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -354,9 +324,7 @@
         "clubs_name_unique": {
           "name": "clubs_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -393,12 +361,8 @@
           "name": "cup_brackets_cup_id_cups_id_fk",
           "tableFrom": "cup_brackets",
           "tableTo": "cups",
-          "columnsFrom": [
-            "cup_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cup_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -450,12 +414,8 @@
           "name": "cup_games_winner_id_players_id_fk",
           "tableFrom": "cup_games",
           "tableTo": "players",
-          "columnsFrom": [
-            "winner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["winner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -463,12 +423,8 @@
           "name": "cup_games_cup_match_id_cup_matches_id_fk",
           "tableFrom": "cup_games",
           "tableTo": "cup_matches",
-          "columnsFrom": [
-            "cup_match_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cup_match_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -514,12 +470,8 @@
           "name": "cup_groups_cup_id_cups_id_fk",
           "tableFrom": "cup_groups",
           "tableTo": "cups",
-          "columnsFrom": [
-            "cup_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cup_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -595,12 +547,8 @@
           "name": "cup_matches_player_one_id_players_id_fk",
           "tableFrom": "cup_matches",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_one_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_one_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -608,12 +556,8 @@
           "name": "cup_matches_player_two_id_players_id_fk",
           "tableFrom": "cup_matches",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_two_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_two_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -621,12 +565,8 @@
           "name": "cup_matches_winner_id_players_id_fk",
           "tableFrom": "cup_matches",
           "tableTo": "players",
-          "columnsFrom": [
-            "winner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["winner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -634,12 +574,8 @@
           "name": "cup_matches_cup_round_id_cup_rounds_id_fk",
           "tableFrom": "cup_matches",
           "tableTo": "cup_rounds",
-          "columnsFrom": [
-            "cup_round_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cup_round_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -647,12 +583,8 @@
           "name": "cup_matches_cup_playoff_id_cup_playoffs_id_fk",
           "tableFrom": "cup_matches",
           "tableTo": "cup_playoffs",
-          "columnsFrom": [
-            "cup_playoff_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cup_playoff_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -704,12 +636,8 @@
           "name": "cup_players_player_id_players_id_fk",
           "tableFrom": "cup_players",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -717,12 +645,8 @@
           "name": "cup_players_cup_group_id_cup_groups_id_fk",
           "tableFrom": "cup_players",
           "tableTo": "cup_groups",
-          "columnsFrom": [
-            "cup_group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cup_group_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -732,9 +656,7 @@
         "cup_players_nickname_unique": {
           "name": "cup_players_nickname_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "nickname"
-          ]
+          "columns": ["nickname"]
         }
       },
       "policies": {},
@@ -777,12 +699,8 @@
           "name": "cup_playoffs_cup_bracket_id_cup_brackets_id_fk",
           "tableFrom": "cup_playoffs",
           "tableTo": "cup_brackets",
-          "columnsFrom": [
-            "cup_bracket_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cup_bracket_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -822,12 +740,8 @@
           "name": "cup_rounds_cup_group_id_cup_groups_id_fk",
           "tableFrom": "cup_rounds",
           "tableTo": "cup_groups",
-          "columnsFrom": [
-            "cup_group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cup_group_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -897,12 +811,8 @@
           "name": "cups_championship_id_championships_id_fk",
           "tableFrom": "cups",
           "tableTo": "championships",
-          "columnsFrom": [
-            "championship_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["championship_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -912,9 +822,7 @@
         "cups_name_unique": {
           "name": "cups_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -972,12 +880,8 @@
           "name": "defending_champions_player_id_players_id_fk",
           "tableFrom": "defending_champions",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -985,12 +889,8 @@
           "name": "defending_champions_championship_id_championships_id_fk",
           "tableFrom": "defending_champions",
           "tableTo": "championships",
-          "columnsFrom": [
-            "championship_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["championship_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1069,9 +969,7 @@
         "events_name_unique": {
           "name": "events_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -1108,9 +1006,7 @@
         "insignias_insignia_unique": {
           "name": "insignias_insignia_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "insignia"
-          ]
+          "columns": ["insignia"]
         }
       },
       "policies": {},
@@ -1164,12 +1060,8 @@
           "name": "links_link_group_id_link_groups_id_fk",
           "tableFrom": "links",
           "tableTo": "link_groups",
-          "columnsFrom": [
-            "link_group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["link_group_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1242,9 +1134,7 @@
         "locations_name_unique": {
           "name": "locations_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -1275,9 +1165,7 @@
         "norms_norm_unique": {
           "name": "norms_norm_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "norm"
-          ]
+          "columns": ["norm"]
         }
       },
       "policies": {},
@@ -1411,12 +1299,8 @@
           "name": "players_club_id_clubs_id_fk",
           "tableFrom": "players",
           "tableTo": "clubs",
-          "columnsFrom": [
-            "club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["club_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1424,12 +1308,8 @@
           "name": "players_location_id_locations_id_fk",
           "tableFrom": "players",
           "tableTo": "locations",
-          "columnsFrom": [
-            "location_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["location_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1439,9 +1319,7 @@
         "players_nickname_unique": {
           "name": "players_nickname_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "nickname"
-          ]
+          "columns": ["nickname"]
         }
       },
       "policies": {},
@@ -1499,12 +1377,8 @@
           "name": "players_to_insignias_player_id_players_id_fk",
           "tableFrom": "players_to_insignias",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1512,12 +1386,8 @@
           "name": "players_to_insignias_insignia_id_insignias_id_fk",
           "tableFrom": "players_to_insignias",
           "tableTo": "insignias",
-          "columnsFrom": [
-            "insignia_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["insignia_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1579,12 +1449,8 @@
           "name": "players_to_norms_player_id_players_id_fk",
           "tableFrom": "players_to_norms",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1592,12 +1458,8 @@
           "name": "players_to_norms_norm_id_norms_id_fk",
           "tableFrom": "players_to_norms",
           "tableTo": "norms",
-          "columnsFrom": [
-            "norm_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["norm_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1659,12 +1521,8 @@
           "name": "players_to_roles_player_id_players_id_fk",
           "tableFrom": "players_to_roles",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1672,12 +1530,8 @@
           "name": "players_to_roles_role_id_roles_id_fk",
           "tableFrom": "players_to_roles",
           "tableTo": "roles",
-          "columnsFrom": [
-            "role_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["role_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1739,12 +1593,8 @@
           "name": "players_to_titles_player_id_players_id_fk",
           "tableFrom": "players_to_titles",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1752,12 +1602,8 @@
           "name": "players_to_titles_title_id_titles_id_fk",
           "tableFrom": "players_to_titles",
           "tableTo": "titles",
-          "columnsFrom": [
-            "title_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["title_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1838,12 +1684,8 @@
           "name": "players_to_tournaments_player_id_players_id_fk",
           "tableFrom": "players_to_tournaments",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1851,12 +1693,8 @@
           "name": "players_to_tournaments_tournament_id_tournaments_id_fk",
           "tableFrom": "players_to_tournaments",
           "tableTo": "tournaments",
-          "columnsFrom": [
-            "tournament_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tournament_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1930,9 +1768,7 @@
         "posts_slug_unique": {
           "name": "posts_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -1976,16 +1812,12 @@
         "roles_role_unique": {
           "name": "roles_role_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "role"
-          ]
+          "columns": ["role"]
         },
         "roles_short_role_unique": {
           "name": "roles_short_role_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "short_role"
-          ]
+          "columns": ["short_role"]
         }
       },
       "policies": {},
@@ -2029,9 +1861,7 @@
         "titles_title_unique": {
           "name": "titles_title_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "title"
-          ]
+          "columns": ["title"]
         }
       },
       "policies": {},
@@ -2095,12 +1925,8 @@
           "name": "tournament_podiums_player_id_players_id_fk",
           "tableFrom": "tournament_podiums",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2108,12 +1934,8 @@
           "name": "tournament_podiums_tournament_id_tournaments_id_fk",
           "tableFrom": "tournament_podiums",
           "tableTo": "tournaments",
-          "columnsFrom": [
-            "tournament_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tournament_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2165,12 +1987,8 @@
           "name": "tournaments_championship_id_championships_id_fk",
           "tableFrom": "tournaments",
           "tableTo": "championships",
-          "columnsFrom": [
-            "championship_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["championship_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2180,9 +1998,7 @@
         "tournaments_name_unique": {
           "name": "tournaments_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -2246,20 +2062,12 @@
     "public.circuit_type": {
       "name": "circuit_type",
       "schema": "public",
-      "values": [
-        "default",
-        "categories",
-        "school"
-      ]
+      "values": ["default", "categories", "school"]
     },
     "public.bracket_type": {
       "name": "bracket_type",
       "schema": "public",
-      "values": [
-        "UB",
-        "LB",
-        "GF"
-      ]
+      "values": ["UB", "LB", "GF"]
     },
     "public.phase_type": {
       "name": "phase_type",
@@ -2282,55 +2090,32 @@
     "public.event_time_control": {
       "name": "event_time_control",
       "schema": "public",
-      "values": [
-        "standard",
-        "rapid",
-        "blitz"
-      ]
+      "values": ["standard", "rapid", "blitz"]
     },
     "public.event_type": {
       "name": "event_type",
       "schema": "public",
-      "values": [
-        "open",
-        "closed",
-        "school"
-      ]
+      "values": ["open", "closed", "school"]
     },
     "public.location_type": {
       "name": "location_type",
       "schema": "public",
-      "values": [
-        "city",
-        "state",
-        "country"
-      ]
+      "values": ["city", "state", "country"]
     },
     "public.rating_type": {
       "name": "rating_type",
       "schema": "public",
-      "values": [
-        "blitz",
-        "rapid",
-        "classic"
-      ]
+      "values": ["blitz", "rapid", "classic"]
     },
     "public.role_type": {
       "name": "role_type",
       "schema": "public",
-      "values": [
-        "management",
-        "referee",
-        "teacher"
-      ]
+      "values": ["management", "referee", "teacher"]
     },
     "public.title_type": {
       "name": "title_type",
       "schema": "public",
-      "values": [
-        "internal",
-        "external"
-      ]
+      "values": ["internal", "external"]
     }
   },
   "schemas": {},
