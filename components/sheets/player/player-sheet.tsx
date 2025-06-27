@@ -50,6 +50,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { playerByIdQueryOptions } from "@/lib/client-queries/player-by-id/query-options";
 
 export const PlayerSheet = ({
   id,
@@ -60,25 +62,17 @@ export const PlayerSheet = ({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) => {
-  const [player, setPlayer] = React.useState<PlayerById>();
   const [selectedRatingType, setSelectedRatingType] = React.useState("rapid");
 
   const headerGradient = getGradient(id);
   const avatarGradient = getGradient(id + 1);
 
-  React.useEffect(() => {
-    async function fetchPlayer() {
-      const response = await fetch(`/api/players/${id}`);
-      if (!response.ok) {
-        throw new Error(
-          `This is an HTTP error: The status is ${response.status}`
-        );
-      }
-      const data = await response.json();
-      setPlayer(data.data);
-    }
-    fetchPlayer();
-  }, [id]);
+  const {
+    data: player,
+    isLoading,
+    isError,
+    error,
+  } = useQuery(playerByIdQueryOptions(Number(id)));
 
   const orderPodiums = React.useMemo(() => {
     return player?.tournamentPodiums
@@ -116,7 +110,8 @@ export const PlayerSheet = ({
     );
   }, [player?.playersToTitles]);
 
-  if (!player) {
+  if (isLoading) {
+    // Use isLoading from useQuery
     return (
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="[&>button#close-sheet]:top-1 [&>button#close-sheet]:right-1 gap-0 overflow-y-auto overflow-x-hidden">
@@ -128,6 +123,26 @@ export const PlayerSheet = ({
         </SheetContent>
       </Sheet>
     );
+  }
+
+  if (isError) {
+    // Handle error state
+    return (
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent className="[&>button#close-sheet]:top-1 [&>button#close-sheet]:right-1 gap-0 overflow-y-auto overflow-x-hidden">
+          <div className="flex flex-col items-center justify-center h-full text-red-500">
+            <p>
+              Error loading player data: {error?.message || "Unknown error"}
+            </p>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  if (!player) {
+    // This case should ideally not be hit if isLoading and isError are handled, but good for type safety
+    return null;
   }
 
   return (

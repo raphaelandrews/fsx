@@ -7,10 +7,9 @@ import { siteConfig } from "@/lib/site";
 import { Client } from "./client";
 import type { Circuit } from "./components/types";
 import { Announcement } from "@/components/announcement";
-import {
-  PageHeader,
-  PageHeaderHeading,
-} from "@/components/ui/page-header";
+import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header";
+import { getQueryClient } from "@/hooks/get-query-client";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 export const metadata: Metadata = {
   title: "Circuitos",

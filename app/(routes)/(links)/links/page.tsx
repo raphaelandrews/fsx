@@ -123,8 +123,8 @@ const LinkItem = ({ href, label, icon }: Props) => {
   return (
     <Link
       href={href}
-      target="_blank"
       prefetch={false}
+      target="_blank"
       className={cn(
         buttonVariants({ variant: "card" }),
         "flex items-center justify-between w-full h-[inherit] p-3 rounded-2xl shadow"

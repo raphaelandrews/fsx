@@ -74,7 +74,7 @@ export const Actions = ({
         )}
       </div>
 
-      <PlayerSheet id={id} open={open} setOpen={setOpen} />
+      {open && <PlayerSheet id={id} open={open} setOpen={setOpen} />}
     </>
   );
 };

@@ -52,7 +52,6 @@ export function PostCard({
   return (
     <Link
       href={`/noticias/${slug}`}
-      prefetch={false}
       className="group"
       aria-label={`Read posts: ${title}`}
       onMouseEnter={onMouseEnter}
