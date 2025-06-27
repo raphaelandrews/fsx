@@ -2,7 +2,6 @@
 
 import React from "react"; 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { Table } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
 
 import { birthdays, clubs, locations, sexes, titles } from "./data/data";
@@ -10,13 +9,7 @@ import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-interface DataTableToolbarProps<TData> {
-  table: Table<TData>;
-}
-
-export function DataTableToolbar<TData>({
-  table,
-}: DataTableToolbarProps<TData>) {
+export function DataTableToolbar() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -33,6 +26,7 @@ export function DataTableToolbar<TData>({
     };
   }, [inputValue]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Not
   React.useEffect(() => {
     updateSearchParams({ name: debouncedValue || undefined });
   }, [debouncedValue]); 

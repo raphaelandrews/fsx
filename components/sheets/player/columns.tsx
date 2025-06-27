@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+// biome-ignore lint/suspicious/noExplicitAny: No
 export const columns: ColumnDef<any>[] = [
   {
     accessorKey: "tournament_id",

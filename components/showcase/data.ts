@@ -3,7 +3,7 @@ export interface DatabaseUpdateProps {
   operation: string;
   table: string;
   status: "pending" | "success" | "error";
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  // biome-ignore lint/suspicious/noExplicitAny: No
   response?: any;
   error?: {
     message: string;

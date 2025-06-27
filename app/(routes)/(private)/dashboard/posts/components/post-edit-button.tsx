@@ -1,3 +1,15 @@
+import React from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import type { Session } from "@supabase/supabase-js";
+import {
+  MoreVertical as ElipsisIcon,
+  Loader2 as SpinnerIcon,
+  Trash as TrashIcon,
+} from "lucide-react";
+
+import { createClient } from "@/utils/supabase/client";
+
 import { DeletePost } from "../actions/delete-post";
 import { PublishPost } from "../actions/publish-post";
 import {
@@ -10,6 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,34 +30,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { createClient } from "@/utils/supabase/client";
-import type { Session } from "@supabase/supabase-js";
-import {
-  MoreVertical as ElipsisIcon,
-  Loader2 as SpinnerIcon,
-  Trash as TrashIcon,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { type FC, useState } from "react";
-import { toast } from "sonner";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-interface PostEditButtonProps {
-  id?: string;
-}
-
-const PostEditButton: FC<PostEditButtonProps> = ({ id }) => {
+const PostEditButton = ({ id }: { id: string }) => {
   const supabase = createClient();
   const router = useRouter();
-  const [showDeleteAlert, setShowDeleteAlert] = useState<boolean>(false);
-  const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
+  const [showDeleteAlert, setShowDeleteAlert] = React.useState<boolean>(false);
+  const [isDeleteLoading, setIsDeleteLoading] = React.useState<boolean>(false);
   const [session, setSession] = React.useState<Session | null>(null);
-  const [showLoadingAlert, setShowLoadingAlert] = useState<boolean>(false);
+  const [showLoadingAlert, setShowLoadingAlert] =
+    React.useState<boolean>(false);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-    React.useEffect(() => {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: No
+  React.useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
@@ -110,9 +110,8 @@ const PostEditButton: FC<PostEditButtonProps> = ({ id }) => {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
-            <a
+            <Button
               className="flex w-full"
-              // biome-ignore lint/a11y/useValidAnchor: <explanation>
               onClick={() => {
                 setShowLoadingAlert(true);
                 router.push(`/dashboard/posts/${id}`);
@@ -120,7 +119,7 @@ const PostEditButton: FC<PostEditButtonProps> = ({ id }) => {
               }}
             >
               Edit
-            </a>
+            </Button>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

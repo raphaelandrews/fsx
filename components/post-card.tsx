@@ -57,6 +57,7 @@ export function PostCard({
       aria-label={`Read posts: ${title}`}
       onMouseEnter={onMouseEnter}
     >
+      {/** biome-ignore lint/performance/noImgElement: No */}
       <img
         src={image}
         alt={title}

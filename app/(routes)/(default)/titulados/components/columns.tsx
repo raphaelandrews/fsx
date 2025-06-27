@@ -26,7 +26,8 @@ export const columns: ColumnDef<TitledPlayer>[] = [
     ),
     cell: ({ row }) => {
       const playerTitles = row.original.playersToTitles;
-      const shortTitle = playerTitles?.find(title => title.title)?.title.shortTitle;
+      const shortTitle = playerTitles?.find((title) => title.title)?.title
+        .shortTitle;
       return (
         <Actions
           id={row.original.id}
@@ -51,7 +52,7 @@ export const columns: ColumnDef<TitledPlayer>[] = [
 
       return <p className="whitespace-nowrap">{internalTitle?.title.title}</p>;
     },
-    filterFn: (row, id, value) => {
+    filterFn: (row, _id, value) => {
       const internalTitle = row.original.playersToTitles?.find(
         (title) => title.title.type === "internal"
       );
@@ -73,12 +74,10 @@ export const columns: ColumnDef<TitledPlayer>[] = [
       }, [row.original.playersToTitles]);
 
       return (
-        <p className="whitespace-nowrap">
-          {externalTitle?.title.title || "-"}
-        </p>
+        <p className="whitespace-nowrap">{externalTitle?.title.title || "-"}</p>
       );
     },
-    filterFn: (row, id, value) => {
+    filterFn: (row, _id, value) => {
       const externalTitle = row.original.playersToTitles?.find(
         (title) => title.title.type === "external"
       );

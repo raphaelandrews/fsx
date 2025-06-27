@@ -5,6 +5,7 @@ import { formatDefendingChampions } from "@/lib/defending-champions";
 
 import { PlayerSheet } from "@/components/sheets/player/player-sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   id: number;
@@ -51,7 +52,8 @@ export const Actions = ({
   return (
     <>
       <div className="flex items-center gap-3">
-        <div
+        <Button
+          variant="link"
           onClick={() => setOpen(true)}
           onKeyUp={handleKeyboardEvent}
           onKeyDown={handleKeyboardEvent}
@@ -69,7 +71,7 @@ export const Actions = ({
             )}{" "}
             {nickname || name}
           </div>
-        </div>
+        </Button>
         <div className="flex items-center gap-2">
           {defendingChampions?.map((championship) => (
             <div key={championship.championship.name}>

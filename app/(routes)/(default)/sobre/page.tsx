@@ -6,7 +6,6 @@ import { siteConfig } from "@/lib/site";
 import { Announcement } from "@/components/announcement";
 import {
   PageHeader,
-  PageHeaderDescription,
   PageHeaderHeading,
 } from "@/components/ui/page-header";
 

@@ -24,12 +24,16 @@ export function MainNav() {
 
   return (
     <div className="flex mr-4">
-      <Link href="/" prefetch={false} className="mr-4 flex items-center space-x-2 lg:mr-6">
+      <Link
+        href="/"
+        prefetch={false}
+        className="mr-4 flex items-center space-x-2 lg:mr-6"
+      >
         <span className="font-bold mt-0.5">FSX</span>
       </Link>
       <NavigationMenu className="hidden lg:block ml-1">
         <NavigationMenuList className="gap-4 text-sm lg:gap-6 space-x-[inherit]">
-          {items.map(({ label, items, icon: Icon, href, target }) => {
+          {items.map(({ label, items, href, target }) => {
             const hasItems = Boolean(items?.length);
 
             if (hasItems)
@@ -53,7 +57,7 @@ export function MainNav() {
                       style={{ maxHeight: "400px" }}
                     >
                       {items?.map(
-                        ({ href, icon: Icon, label, description }, index) => (
+                        ({ href, icon: Icon, label, description }) => (
                           <li key={label} className="flex-[1_1_45%]">
                             <NavigationMenuLink asChild>
                               <Link

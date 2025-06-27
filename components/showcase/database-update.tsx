@@ -5,32 +5,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   DatabaseIcon,
   CheckCircleIcon,
-  XCircleIcon,
-  Loader2Icon,
   PlayIcon,
   RotateCcwIcon,
-  MoreHorizontalIcon,
   AlertTriangleIcon,
-  PopcornIcon,
   DatabaseZapIcon,
-  LoaderIcon,
   LoaderCircleIcon,
   AlertCircleIcon,
 } from "lucide-react";
 
-import {
-  type DatabaseUpdateProps,
-  getOperationIcon,
-  mockResponses,
-  mockUpdates,
-} from "./data";
+import { type DatabaseUpdateProps, mockResponses, mockUpdates } from "./data";
 import { MotionGridShowcase } from "./motion-grid-showcase";
 
 import { ManagementBar } from "@/components/showcase/management-bar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default function DatabaseUpdate() {
   const [currentUpdate, setCurrentUpdate] =

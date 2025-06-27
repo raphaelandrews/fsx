@@ -630,7 +630,7 @@ export function MotionGridShowcase() {
     }
   };
  
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: No
    useEffect(() => {
     runStates();
   }, []);

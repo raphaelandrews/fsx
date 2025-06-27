@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/noUnusedVariables: No */
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 

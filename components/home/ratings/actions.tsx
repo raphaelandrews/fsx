@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React from "react";
 
@@ -7,6 +7,7 @@ import { getGradient } from "@/lib/generate-gradients";
 
 import { PlayerSheet } from "@/components/sheets/player/player-sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   id: number;
@@ -32,7 +33,7 @@ export const Actions = ({
   defendingChampions,
 }: Props) => {
   const [open, setOpen] = React.useState(false);
-  const gradient = getGradient(id); 
+  const gradient = getGradient(id);
 
   const handleKeyboardEvent = (event: React.KeyboardEvent) => {
     if (event.key === "Enter" || event.key === " ") {
@@ -44,7 +45,8 @@ export const Actions = ({
   return (
     <>
       <div className="flex items-center gap-3 group">
-        <div
+        <Button
+          variant="link"
           onClick={() => setOpen(true)}
           onKeyUp={handleKeyboardEvent}
           onKeyDown={handleKeyboardEvent}
@@ -59,7 +61,7 @@ export const Actions = ({
             {shortTitle && <span className="text-gold">{shortTitle}</span>}{" "}
             {nickname ?? name}
           </div>
-        </div>
+        </Button>
 
         {defendingChampions && (
           <div className="flex items-center gap-2">

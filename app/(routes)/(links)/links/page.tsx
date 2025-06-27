@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/performance/noImgElement: No */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ExternalLinkIcon, Verified } from "lucide-react";
@@ -130,7 +131,7 @@ const LinkItem = ({ href, label, icon }: Props) => {
       )}
     >
       <div className="grid place-items-center w-10 h-10 rounded-[10px] bg-sea shadow-lg [&>div>svg]:text-background dark:[&>div>svg]:text-primary [&>svg]:w-5 [&>svg]:h-5">
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: No */}
         <div dangerouslySetInnerHTML={{ __html: icon }} />
       </div>
       <p>{label}</p>

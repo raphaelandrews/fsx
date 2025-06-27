@@ -1,4 +1,4 @@
-import { ChevronRight, Verified } from "lucide-react";
+import { Verified } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {

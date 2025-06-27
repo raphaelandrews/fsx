@@ -22,7 +22,7 @@ const PostCreateButton = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [session, setSession] = useState<Session | null>(null);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: No
   React.useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);

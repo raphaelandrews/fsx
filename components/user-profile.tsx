@@ -71,10 +71,7 @@ export function UserProfile({ user }: UserProfileProps) {
               >
                 User ID
               </label>
-              <p
-                id="user-id"
-                className="text-sm text-gray-900 font-mono bg-gray-100 p-2 rounded"
-              >
+              <p className="text-sm text-gray-900 font-mono bg-gray-100 p-2 rounded">
                 {user.id}
               </p>
               <p className="text-sm text-gray-900 font-mono bg-gray-100 p-2 rounded">

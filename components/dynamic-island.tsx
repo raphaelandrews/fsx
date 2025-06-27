@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState, useEffect } from "react";
-import { Music, Phone, Timer, Wifi, Battery } from "lucide-react";
+import { Music } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface IslandContent {

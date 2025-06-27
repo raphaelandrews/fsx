@@ -211,7 +211,7 @@ export const circuitSchoolSubcomponentColumns = (
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Categoria" />
       ),
-      filterFn: (row, id, value) => {
+      filterFn: (row, _id, value) => {
         const categoryName = row.original.category;
         return value.includes(categoryName);
       },

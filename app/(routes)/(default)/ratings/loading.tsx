@@ -2,11 +2,7 @@ import { BarChart2Icon, InfoIcon } from "lucide-react";
 
 import { Announcement } from "@/components/announcement";
 import { DataTableSkeletonRow } from "@/app/(routes)/(default)/ratings/components/data-table-skeleton";
-import {
-  PageHeader,
-  PageHeaderDescription,
-  PageHeaderHeading,
-} from "@/components/ui/page-header";
+import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTableToolbarSkeleton } from "@/app/(routes)/(default)/ratings/components/data-table-toolbar-skeleton";
 
@@ -16,9 +12,6 @@ export default function Loading() {
       <PageHeader>
         <Announcement icon={BarChart2Icon} />
         <PageHeaderHeading>Ratings</PageHeaderHeading>
-        <PageHeaderDescription>
-          Confira as tabelas de rating.
-        </PageHeaderDescription>
       </PageHeader>
 
       <Tabs>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import { InfoIcon } from "lucide-react";
 
@@ -30,15 +30,15 @@ export function Client({
   initialPlayers = [],
   initialPagination = { totalPages: 0 },
 }: RatingsTablesProps) {
-  const [players, setPlayers] = useState(initialPlayers);
-  const [pagination, setPagination] = useState(initialPagination);
-  const [isLoading, setIsLoading] = useState(true);
+  const [players, setPlayers] = React.useState(initialPlayers);
+  const [pagination, setPagination] = React.useState(initialPagination);
+  const [isLoading, setIsLoading] = React.useState(true);
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const defaultTab = searchParams.get("sortBy") || "rapid";
   const currentLimit = Number(searchParams.get("limit")) || 20;
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchPlayers = async () => {
       setIsLoading(true);
       const params = new URLSearchParams(searchParams.toString());
