@@ -13,10 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type SuccessResponse = Extract<APITopPlayersResponse, { success: true }>;
 
-interface DataTableTabsProps {
-  topPlayers: SuccessResponse["data"];
-}
-
 type TabValue = "rapid" | "classic" | "blitz";
 type TabKey = keyof SuccessResponse["data"];
 
@@ -26,7 +22,7 @@ const tabMap: Record<TabValue, TabKey> = {
   classic: "topClassic",
 } as const;
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+// biome-ignore lint/suspicious/noExplicitAny: No
 export function TopPlayers({ topPlayers }: any) {
   const [currentTab, setCurrentTab] = React.useState<TabValue>("rapid");
   const currentData = topPlayers[tabMap[currentTab]];

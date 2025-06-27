@@ -13,17 +13,17 @@
 	}
 
 	::selection {
-    @apply bg-selection text-selection-foreground;
-  }
+		@apply bg-selection text-selection-foreground;
+	}
 
 	html {
-    @apply scroll-smooth;
-  }
+		@apply scroll-smooth;
+	}
 
 	body {
 		@apply bg-background text-foreground min-h-screen;
 		font-synthesis-weight: none;
-    text-rendering: optimizeLegibility;
+		text-rendering: optimizeLegibility;
 	}
 
 	body::-webkit-scrollbar {
@@ -56,6 +56,14 @@
 
 .wmde-markdown p {
 	@apply font-sans !text-primary !mb-0;
+}
+
+.w-md-editor {
+	@apply !h-auto !bg-background !border-border;
+}
+
+.w-md-editor-toolbar {
+	@apply !bg-background;
 }
 
 /*===== Utils =====*/
@@ -121,10 +129,10 @@
 	--ground: oklch(0.97 0 0);
 
 	--surface: oklch(0.98 0 0);
-  --surface-foreground: var(--foreground);
-  
-  --selection: oklch(0.956 0.045 203.388);
-  --selection-foreground: oklch(0.76 0.1362 218.47);
+	--surface-foreground: var(--foreground);
+
+	--selection: oklch(0.956 0.045 203.388);
+	--selection-foreground: oklch(0.76 0.1362 218.47);
 }
 
 .dark {
@@ -174,10 +182,10 @@
 	--ground: oklch(0.1591 0 0);
 
 	--surface: oklch(0.2 0 0);
-  --surface-foreground: oklch(0.708 0 0);
+	--surface-foreground: oklch(0.708 0 0);
 
-  --selection: oklch(0.293 0.066 243.157);
-  --selection-foreground: oklch(0.76 0.1362 218.47);
+	--selection: oklch(0.293 0.066 243.157);
+	--selection-foreground: oklch(0.76 0.1362 218.47);
 }
 
 @theme inline {
@@ -221,7 +229,7 @@
 	--color-sidebar-ring: var(--sidebar-ring);
 	--color-ground: var(--ground);
 	--color-surface: var(--surface);
-  --color-surface-foreground: var(--surface-foreground);
-  --color-selection: var(--selection);
-  --color-selection-foreground: var(--selection-foreground);
+	--color-surface-foreground: var(--surface-foreground);
+	--color-selection: var(--selection);
+	--color-selection-foreground: var(--selection-foreground);
 }

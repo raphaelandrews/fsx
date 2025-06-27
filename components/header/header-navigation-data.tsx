@@ -12,7 +12,6 @@ import {
   MedalIcon,
   ScrollIcon,
   BookmarkIcon,
-  Store,
   LinkIcon,
 } from "lucide-react";
 

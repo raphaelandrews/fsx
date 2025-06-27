@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
@@ -80,7 +80,7 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 
   return (
     <style
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: No
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
           .map(

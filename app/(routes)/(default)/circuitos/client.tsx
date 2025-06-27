@@ -1,13 +1,11 @@
 "use client";
 
-import React from "react";
 import { useEffect, useState } from "react";
 import type { ColumnDef, Row } from "@tanstack/react-table";
 
 import type {
   Circuit,
   CircuitPlayer,
-  CircuitPodium,
   CircuitClub,
   CircuitPhase,
 } from "./components/types";
@@ -26,10 +24,6 @@ import { categories } from "./data/data";
 import CategoryFilter from "./components/category-filter";
 
 export function Client({ circuits }: { circuits: Circuit[] }) {
-  const [circuitPodiums, setCircuitPodiums] = useState<CircuitPodium[]>([]);
-  const [selectedPhase, setSelectedPhase] = useState<string | undefined>(
-    undefined
-  );
   const [selectedTab, setSelectedTab] = useState<string | undefined>(undefined);
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
     "Master"
@@ -38,42 +32,13 @@ export function Client({ circuits }: { circuits: Circuit[] }) {
 
   useEffect(() => {
     if (circuits.length > 0 && circuits[0].circuitPhase.length > 0) {
-      setSelectedPhase(circuits[0].circuitPhase[0].tournament.name);
       setSelectedTab(circuits[0].name);
       if (circuits[0].type === "categories") {
         setSelectedCategory("Master");
       }
-      setCircuitPodiums(circuits[0].circuitPhase[0].circuitPodiums);
       setLoading(false);
     }
   }, [circuits]);
-
-  useEffect(() => {
-    if (selectedPhase && selectedTab) {
-      const selectedCircuit = circuits.find(
-        (circuit) => circuit.name === selectedTab
-      );
-      if (selectedCircuit) {
-        const phase = selectedCircuit.circuitPhase.find(
-          (phase) => phase.tournament.name === selectedPhase
-        );
-        if (phase) {
-          setCircuitPodiums(phase.circuitPodiums);
-        }
-      }
-    }
-  }, [selectedPhase, selectedTab, circuits]);
-
-  useEffect(() => {
-    if (selectedTab && circuits.length > 0) {
-      const selectedCircuit = circuits.find(
-        (circuit) => circuit.name === selectedTab
-      );
-      if (selectedCircuit && selectedCircuit.circuitPhase.length > 0) {
-        setSelectedPhase(selectedCircuit.circuitPhase[0].tournament.name);
-      }
-    }
-  }, [selectedTab, circuits]);
 
   if (loading) {
     return (

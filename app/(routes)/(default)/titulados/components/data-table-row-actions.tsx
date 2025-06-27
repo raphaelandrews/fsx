@@ -1,7 +1,6 @@
 "use client"
 
 import { EllipsisIcon } from "lucide-react"
-import type { Row } from "@tanstack/react-table"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -13,13 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-interface DataTableRowActionsProps<TData> {
-  row: Row<TData>
-}
-
-export function DataTableRowActions<TData>({
-  row,
-}: DataTableRowActionsProps<TData>) {
+export function DataTableRowActions() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

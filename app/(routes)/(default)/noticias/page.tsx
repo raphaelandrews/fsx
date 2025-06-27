@@ -100,7 +100,7 @@ export default async function Page({
         <React.Suspense
           fallback={
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {Array.from({ length: 12 }).map((_, i) => (
+              {Array.from({ length: 12 }).map((_) => (
                 <div key={`skeleton-${crypto.randomUUID()}`}>
                   <Skeleton className="w-full aspect-[2/1]" />
                   <Skeleton className="h-5 w-full mt-2 mb-1" />
@@ -145,7 +145,7 @@ export default async function Page({
                 />
               </PaginationItem>
 
-              {getPageNumbers(totalPages, currentPage).map((pageNum, index) =>
+              {getPageNumbers(totalPages, currentPage).map((pageNum) =>
                 pageNum === "ellipsis" ? (
                   <PaginationItem key={`ellipsis-${crypto.randomUUID()}`}>
                     <PaginationEllipsis />

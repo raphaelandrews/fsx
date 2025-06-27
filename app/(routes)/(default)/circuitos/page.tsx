@@ -1,4 +1,3 @@
-import React from "react";
 import type { Metadata } from "next";
 import { MedalIcon } from "lucide-react";
 
@@ -10,7 +9,6 @@ import type { Circuit } from "./components/types";
 import { Announcement } from "@/components/announcement";
 import {
   PageHeader,
-  PageHeaderDescription,
   PageHeaderHeading,
 } from "@/components/ui/page-header";
 

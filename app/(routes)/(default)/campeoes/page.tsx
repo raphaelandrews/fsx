@@ -7,11 +7,7 @@ import { siteConfig } from "@/lib/site";
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
 import { Announcement } from "@/components/announcement";
-import {
-  PageHeader,
-  PageHeaderDescription,
-  PageHeaderHeading,
-} from "@/components/ui/page-header";
+import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const metadata: Metadata = {
@@ -33,8 +29,7 @@ export const metadata: Metadata = {
     ],
   },
 };
-
-const ChampionsPage = async () => {
+export default async function Page() {
   const data = await getChampions();
 
   const championshipMap = data.reduce((acc, championship) => {
@@ -61,7 +56,8 @@ const ChampionsPage = async () => {
       }))
       .reverse();
     return acc;
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+
+    // biome-ignore lint/suspicious/noExplicitAny: Any
   }, {} as Record<string, any>);
 
   const tabContent = [
@@ -99,6 +95,4 @@ const ChampionsPage = async () => {
       </Tabs>
     </>
   );
-};
-
-export default ChampionsPage;
+}

@@ -58,13 +58,11 @@ export function AnnouncementsModal({
       <div
         ref={modalRef}
         className="relative w-[calc(100vw-2rem)] max-w-[500px]"
-        aria-modal="true"
-        aria-labelledby="announcement-title"
         aria-describedby="announcement-content"
       >
         <div className="flex flex-col gap-4 p-6 border rounded-lg border-border bg-background shadow-lg">
           <header className="flex justify-between items-center gap-4">
-            <h2 id="announcement-title" className="text-lg font-semibold">
+            <h2 className="text-lg font-semibold">
               Comunicado FSX nº {number}
             </h2>
             <Button
@@ -76,12 +74,7 @@ export function AnnouncementsModal({
               <X className="size-4" />
             </Button>
           </header>
-          <div
-            id="announcement-content"
-            className="prose prose-sm text-muted-foreground"
-          >
-            {content}
-          </div>
+          <div className="prose prose-sm text-muted-foreground">{content}</div>
         </div>
       </div>
     </div>

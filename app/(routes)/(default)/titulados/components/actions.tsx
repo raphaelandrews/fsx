@@ -4,6 +4,7 @@ import { getGradient } from "@/lib/generate-gradients";
 
 import { PlayerSheet } from "@/components/sheets/player/player-sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   id: number;
@@ -25,7 +26,8 @@ export const Actions = ({ id, name, nickname, image, shortTitle }: Props) => {
 
   return (
     <>
-      <div
+      <Button
+        variant="link"
         onClick={() => setOpen(true)}
         onKeyUp={handleKeyboardEvent}
         onKeyDown={handleKeyboardEvent}
@@ -38,7 +40,7 @@ export const Actions = ({ id, name, nickname, image, shortTitle }: Props) => {
         <div className="font-medium whitespace-nowrap">
           <span className="text-gold">{shortTitle}</span> {nickname || name}
         </div>
-      </div>
+      </Button>
 
       {open && <PlayerSheet id={id} open={open} setOpen={setOpen} />}
     </>

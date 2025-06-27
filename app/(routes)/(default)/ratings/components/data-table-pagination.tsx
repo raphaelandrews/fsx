@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type { Table } from "@tanstack/react-table";
 import {
   ChevronLeftIcon,
@@ -27,7 +27,6 @@ export function DataTablePagination<TData>({
   table,
   totalPages,
 }: DataTablePaginationProps<TData>) {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const currentPage = Number(searchParams.get("page")) || 1;

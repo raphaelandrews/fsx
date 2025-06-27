@@ -9,7 +9,6 @@ import { DataTable } from "./components/data-table";
 import { Announcement } from "@/components/announcement";
 import {
   PageHeader,
-  PageHeaderDescription,
   PageHeaderHeading,
 } from "@/components/ui/page-header";
 

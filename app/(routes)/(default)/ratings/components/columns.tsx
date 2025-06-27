@@ -5,7 +5,6 @@ import type { Players } from "@/db/queries";
 import { LOGO_FALLBACK } from "@/lib/utils";
 
 import { Actions } from "./actions";
-import { locations } from "./data/data";
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -63,11 +62,6 @@ export const columnsClassic: ColumnDef<Players>[] = [
       <DataTableColumnHeader column={column} title="Local" />
     ),
     cell: ({ row }) => {
-      const locationName = row.original.location?.name;
-      const location = locations.find(
-        (location) => location.value === locationName
-      );
-
       return (
         <div className="flex items-center gap-2">
           <Avatar className="size-4 rounded object-contain">
@@ -181,11 +175,6 @@ export const columnsRapid: ColumnDef<Players>[] = [
       <DataTableColumnHeader column={column} title="Local" />
     ),
     cell: ({ row }) => {
-      const locationName = row.original.location?.name;
-      const location = locations.find(
-        (location) => location.value === locationName
-      );
-
       return (
         <div className="flex items-center gap-2">
           <Avatar className="size-4 rounded object-contain">
@@ -299,11 +288,6 @@ export const columnsBlitz: ColumnDef<Players>[] = [
       <DataTableColumnHeader column={column} title="Local" />
     ),
     cell: ({ row }) => {
-      const locationName = row.original.location?.name;
-      const location = locations.find(
-        (location) => location.value === locationName
-      );
-
       return (
         <div className="flex items-center gap-2">
           <Avatar className="size-4 rounded object-contain">

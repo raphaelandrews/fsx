@@ -1,10 +1,8 @@
 "use client";
 
 import PostCreateButton from "./post-create-button";
-import { useRouter } from "next/navigation";
 
 const PostTableEmpty = () => {
-  const router = useRouter();
   return (
     <>
       <main className="grid min-h-full place-items-center rounded-lg border-2 border-dashed border-gray-300 bg-white px-6 py-24 sm:py-32 lg:px-8">

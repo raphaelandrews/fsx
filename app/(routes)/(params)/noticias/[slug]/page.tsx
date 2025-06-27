@@ -82,6 +82,7 @@ export default async function Page({
       )}
 
       {data?.image && (
+        // biome-ignore lint/performance/noImgElement: No
         <img
           src={data.image}
           alt={data.title}

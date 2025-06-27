@@ -34,7 +34,7 @@ export type CircuitPlayer = {
   }[] | null;
   total?: number;
   category?: string;
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  // biome-ignore lint/suspicious/noExplicitAny: Any
   [key: string]: any;
 }
 
@@ -44,6 +44,6 @@ export type CircuitClub = {
   clubLogo: string;
   total: number;
   pointsByPhase: Record<string, number>;
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  // biome-ignore lint/suspicious/noExplicitAny: Any
   [key: string]: any;
 };

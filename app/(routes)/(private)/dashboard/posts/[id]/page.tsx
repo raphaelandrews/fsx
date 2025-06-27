@@ -38,13 +38,13 @@ export default async function Page(props: {
   }
 
   return (
-    <div className="max-w-5xl px-10">
+    <>
       <div>
         <h3 className="text-lg font-medium">Editor</h3>
         <p className="py-2 text-sm text-muted-foreground">Update your post</p>
       </div>
       <Separator className="mb-5 max-w-2xl" />
       <Editor post={post} />
-    </div>
+    </>
   );
 }

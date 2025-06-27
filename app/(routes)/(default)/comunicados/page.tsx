@@ -9,7 +9,6 @@ import { Announcement } from "@/components/announcement";
 import { AnnouncementLink } from "@/components/announcement-link";
 import {
   PageHeader,
-  PageHeaderDescription,
   PageHeaderHeading,
 } from "@/components/ui/page-header";
 import {
@@ -103,7 +102,7 @@ export default async function Page({
         <React.Suspense
           fallback={
             <div className="grid md:grid-cols-2 gap-1.5">
-              {Array.from({ length: 12 }).map((_, i) => (
+              {Array.from({ length: 12 }).map((_) => (
                 <Skeleton
                   key={`skeleton-${crypto.randomUUID()}`}
                   className="w-full h-9 rounded-md"
