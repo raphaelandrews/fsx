@@ -29,12 +29,12 @@ export const navigationData: Navigation = () => [
 		icon: StickyNoteIcon,
 	},
 	{
-		label: "Create Players Data",
+		label: "Players Data",
 		href: "/dashboard/players-data",
 		icon: DatabaseIcon,
 	},
 	{
-		label: "Create Players Tournament",
+		label: "Players Tournament",
 		href: "/dashboard/players-tournament",
 		icon: DatabaseZapIcon,
 	},

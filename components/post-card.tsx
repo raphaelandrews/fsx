@@ -57,16 +57,18 @@ export function PostCard({
       href={`/noticias/${slug}`}
       onMouseEnter={onMouseEnter}
     >
-      {/** biome-ignore lint/performance/noImgElement: No */}
-      <img
-        alt={title}
-        className="aspect-[2/1] w-full rounded-md object-cover transition-opacity duration-300"
-        decoding="async"
-        loading="lazy"
-        src={image}
-        style={{ opacity: imageLoaded ? 1 : 0 }}
-      />
-      <ViewTransition name={`title-${title}`}>
+      <ViewTransition name={`image-${slug}`}>
+        {/** biome-ignore lint/performance/noImgElement: No */}
+        <img
+          alt={title}
+          className="aspect-[2/1] w-full rounded-md object-cover transition-opacity duration-300"
+          decoding="async"
+          loading="lazy"
+          src={image}
+          style={{ opacity: imageLoaded ? 1 : 0 }}
+        />
+      </ViewTransition>
+      <ViewTransition name={`title-${slug}`}>
         <h2
           className={`${
             main

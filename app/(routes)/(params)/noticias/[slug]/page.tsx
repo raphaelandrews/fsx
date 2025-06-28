@@ -72,7 +72,7 @@ export default async function Page({
         <NewspaperIcon height={16} width={16} />
       </div>
 
-      <ViewTransition name={`title-${data?.title}`}>
+      <ViewTransition name={`title-${data?.slug}`}>
         <h1 className="mt-2 font-semibold text-2xl text-primary tracking-tighter">
           {data?.title}
         </h1>
@@ -84,14 +84,16 @@ export default async function Page({
         </div>
       )}
 
-      {data?.image && (
-        // biome-ignore lint/performance/noImgElement: No
-        <img
-          alt={data.title}
-          className="m-auto mt-6 h-full w-full max-w-xl rounded-lg"
-          src={data.image}
-        />
-      )}
+      <ViewTransition name={`image-${data?.slug}`}>
+        {data?.image && (
+          // biome-ignore lint/performance/noImgElement: No
+          <img
+            alt={data.title}
+            className="m-auto mt-6 h-full w-full max-w-xl rounded-lg"
+            src={data.image}
+          />
+        )}
+      </ViewTransition>
 
       <div className="mt-6">
         {data?.content && <MDX content={data.content} />}
