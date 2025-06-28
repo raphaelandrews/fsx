@@ -1,5 +1,5 @@
 export interface DatabaseUpdateProps {
-	id: string
+	id: number
 	operation: string
 	table: string
 	status: "pending" | "success" | "error"
@@ -24,43 +24,43 @@ export const mockUpdates: Omit<
 	"status" | "response" | "error" | "duration"
 >[] = [
 		{
-			id: "1",
+			id: 1,
 			operation: "Create Record",
 			table: "users",
 			description: "New user registration from signup form",
 		},
 		{
-			id: "2",
+			id: 2,
 			operation: "Update Record",
 			table: "profiles",
 			description: "User profile information updated",
 		},
 		{
-			id: "3",
+			id: 3,
 			operation: "Insert Data",
 			table: "orders",
 			description: "New order placed by customer",
 		},
 		{
-			id: "4",
+			id: 4,
 			operation: "Delete Record",
 			table: "sessions",
 			description: "Expired session cleanup",
 		},
 		{
-			id: "5",
+			id: 5,
 			operation: "Update Status",
 			table: "products",
 			description: "Product inventory status change",
 		},
 		{
-			id: "6",
+			id: 6,
 			operation: "Bulk Insert",
 			table: "analytics",
 			description: "Batch analytics data processing",
 		},
 		{
-			id: "7",
+			id: 7,
 			operation: "Update Index",
 			table: "search",
 			description: "Search index optimization",

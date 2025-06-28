@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { useForm, type FieldValues, type SubmitHandler } from "react-hook-form";
-import axios from "redaxios";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import * as XLSX from "xlsx";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -18,7 +17,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 
-import { type DatabaseUpdateProps, mockResponses, mockUpdates } from "./data";
+import { type DatabaseUpdateProps, mockResponses } from "./data";
 import { MotionGridShowcase } from "./motion-grid-showcase";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -43,28 +42,36 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const createFormSchema = () =>
-  z.object({
-    file: z
-      .instanceof(FileList)
-      .refine((files) => files.length === 1, {
-        message: "Please select exactly one file.",
-      })
-      .refine(
-        (files) => {
-          const file = files[0];
-          if (!file) return false;
-          const allowedExtensions = [".xlsx", ".xls"];
-          const fileExtension = file.name
-            .substring(file.name.lastIndexOf("."))
-            .toLowerCase();
-          return allowedExtensions.includes(fileExtension);
-        },
-        {
-          message: "Only Excel files (.xlsx, .xls) are allowed.",
-        }
-      ),
+const createFormSchema = () => {
+  const baseFileSchema = z.any();
+
+  const clientFileSchema = z
+    .instanceof(FileList)
+    .refine((files) => files.length === 1, {
+      message: "Please select exactly one file.",
+    })
+    .refine(
+      (files) => {
+        const file = files[0];
+        if (!file) return false;
+        const allowedExtensions = [".xlsx", ".xls"];
+        const fileExtension = file.name
+          .substring(file.name.lastIndexOf("."))
+          .toLowerCase();
+        return allowedExtensions.includes(fileExtension);
+      },
+      {
+        message: "Only Excel files (.xlsx, .xls) are allowed.",
+      }
+    );
+
+  const fileSchema =
+    typeof FileList !== "undefined" ? clientFileSchema : baseFileSchema;
+
+  return z.object({
+    file: fileSchema,
   });
+};
 
 const formSchema = createFormSchema();
 
@@ -93,13 +100,13 @@ export default function DatabaseUpdate() {
   const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (
     values
   ) => {
+    setIsRunning(true);
     setCurrentUpdate(null);
     setSuccessStack([]);
     setErrorStack([]);
     setSuccessCount(0);
     setErrorCount(0);
     setCurrentIndex(0);
-    setIsRunning(true);
 
     const file = values.file[0];
 
@@ -111,7 +118,7 @@ export default function DatabaseUpdate() {
             const data = new Uint8Array(e.target.result as ArrayBuffer);
             const workbook = XLSX.read(data, { type: "array" });
             const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, {
+            const jsonData: unknown[][] = XLSX.utils.sheet_to_json(worksheet, {
               header: 1,
               raw: false,
               dateNF: "yyyy-mm-dd",
@@ -120,14 +127,14 @@ export default function DatabaseUpdate() {
             // Set total updates based on number of rows (excluding header)
             setTotalUpdates(jsonData.length > 1 ? jsonData.length - 1 : 0);
 
-            const headerRow = jsonData[0];
+            const headerRow = jsonData[0] as string[];
             const headerMap = headerRow.reduce(
               (
                 acc: { [key: string]: number },
                 header: string,
                 index: number
               ) => {
-                acc[header.toLowerCase().trim()] = index; // Normalize header names
+                acc[header.toLowerCase().trim()] = index;
                 return acc;
               },
               {}
@@ -143,30 +150,38 @@ export default function DatabaseUpdate() {
             }
 
             for (let i = 1; i < jsonData.length; i++) {
-              const row: any[] = jsonData[i];
+              const row = jsonData[i] as (string | number | null)[];
               // currentIterationIndex not directly used for state, replaced by currentIndex
               // for progress tracking within the loop.
 
               const id =
                 headerMap.id !== undefined
-                  ? Number.parseInt(row[headerMap.id])
+                  ? Number.parseInt(String(row[headerMap.id]))
                   : null;
 
               const name =
-                headerMap.name !== undefined ? row[headerMap.name] : undefined;
+                headerMap.name !== undefined
+                  ? String(row[headerMap.name])
+                  : undefined;
+
               const birth =
                 headerMap.birth !== undefined
-                  ? row[headerMap.birth]
+                  ? String(row[headerMap.birth])
                   : undefined;
+
               const sex =
-                headerMap.sex !== undefined ? row[headerMap.sex] : undefined;
-              const clubId =
-                headerMap.clubid !== undefined // Use normalized header key
-                  ? Number.parseInt(row[headerMap.clubid])
+                headerMap.sex !== undefined
+                  ? String(row[headerMap.sex])
                   : undefined;
+
+              const clubId =
+                headerMap.clubid !== undefined
+                  ? Number.parseInt(String(row[headerMap.clubid]))
+                  : undefined;
+
               const locationId =
-                headerMap.locationid !== undefined // Use normalized header key
-                  ? Number.parseInt(row[headerMap.locationid])
+                headerMap.locationid !== undefined
+                  ? Number.parseInt(String(row[headerMap.locationid]))
                   : undefined;
 
               if (id === null || Number.isNaN(id)) {
@@ -216,7 +231,7 @@ export default function DatabaseUpdate() {
                   setTimeout(resolve, Math.random() * 500 + 100)
                 );
 
-                let res;
+                let res: Response;
                 // Using standard fetch API instead of axios/redaxios
                 if (id === 0) {
                   res = await fetch("/api/players-data", {
@@ -255,7 +270,11 @@ export default function DatabaseUpdate() {
                   ...prev,
                 ]);
                 setSuccessCount((prev) => prev + 1);
-              } catch (error: any) {
+              } catch (error: unknown) {
+                const errorMessage =
+                  error instanceof Error ? error.message : "Unknown error";
+                const errorStack =
+                  error instanceof Error ? error.stack : "Unknown error";
                 console.error("Error processing player:", error, id);
                 toast.error(`Failed to process player ID: ${id}.`);
                 setErrorStack((prev) => [
@@ -269,8 +288,8 @@ export default function DatabaseUpdate() {
                     table: "Players",
                     status: "error",
                     error: {
-                      message: error.message || "Unknown error",
-                      stack: error.stack || "No stack trace available.",
+                      message: errorMessage || "Unknown error",
+                      stack: errorStack || "No stack trace available.",
                     },
                   },
                   ...prev,
@@ -287,11 +306,11 @@ export default function DatabaseUpdate() {
           setIsRunning(false);
         };
         fileReader.readAsArrayBuffer(file);
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
         toast.error(
-          `Oops, there was an error processing the file: ${
-            error.message || "Unknown error"
-          }`
+          `Oops, there was an error processing the file: ${errorMessage}`
         );
         setIsRunning(false);
       }
@@ -303,7 +322,6 @@ export default function DatabaseUpdate() {
 
   const reset = () => {
     form.reset();
-    // Also clear the file input's value directly
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -491,108 +509,110 @@ export default function DatabaseUpdate() {
         )}
       </AnimatePresence>
 
-      {/*<div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 flex gap-12 mt-4">
-        <div className="flex flex-col items-center gap-4">
-          <Alert variant="success" className="flex items-center gap-2 w-fit">
-            <AlertTitle>Success stack trace</AlertTitle>
-            <Badge className="bg-[#E8F5E9] text-[#388E3C] dark:bg-[#022C22] dark:text-[#1BC994] rounded-sm">
-              {successStack.length}
-            </Badge>
-          </Alert>
+      {isRunning && (
+        <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 flex gap-12 mt-4">
+          <div className="flex flex-col items-center gap-4">
+            <Alert variant="success" className="flex items-center gap-2 w-fit">
+              <AlertTitle>Success stack trace</AlertTitle>
+              <Badge className="bg-[#E8F5E9] text-[#388E3C] dark:bg-[#022C22] dark:text-[#1BC994] rounded-sm">
+                {successStack.length}
+              </Badge>
+            </Alert>
 
-          <ScrollArea className="h-[50vh] w-[350px] p-2" hideScrollbar>
-            <AnimatePresence>
-              <div className="grid gap-4">
-                {successStack.map((update, index) => (
-                  <motion.div
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    initial={{ opacity: 0, x: -20 }}
-                    key={update.id + "-success"} // Unique key for stack items
-                    transition={{ duration: 0.3, delay: index * 0.05 }} // Smaller delay for stack items
-                  >
-                    <Alert>
-                      <CircleCheckIcon className="text-green-500" />
-                      <AlertTitle>{update.operation}</AlertTitle>
-                      <AlertDescription>
-                        <p>{update.description}</p>
+            <ScrollArea className="h-[50vh] w-[350px] p-2" hideScrollbar>
+              <AnimatePresence>
+                <div className="grid gap-4">
+                  {successStack.map((update, index) => (
+                    <motion.div
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 0, x: -20 }}
+                      key={`${update.id}-success`} // Unique key for stack items
+                      transition={{ duration: 0.3, delay: index * 0.05 }} // Smaller delay for stack items
+                    >
+                      <Alert>
+                        <CircleCheckIcon className="text-green-500" />
+                        <AlertTitle>{update.operation}</AlertTitle>
+                        <AlertDescription>
+                          <p>{update.description}</p>
 
-                        {update.success && (
-                          <div className="rounded-lg border border-green-200 bg-green-100 p-3 mt-2">
-                            <div className="mb-2 font-medium text-green-800 text-sm">
-                              Player ID: {update.success.playerId}
+                          {update.success && (
+                            <div className="rounded-lg border border-green-200 bg-green-100 p-3 mt-2">
+                              <div className="mb-2 font-medium text-green-800 text-sm">
+                                Player ID: {update.success.playerId}
+                              </div>
+                              <details className="group">
+                                <summary className="cursor-pointer text-green-600 text-xs hover:text-green-700">
+                                  View details
+                                </summary>
+                                <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded bg-green-200 p-2 text-green-600 text-xs">
+                                  {update.success.oldRating}
+                                </pre>
+                              </details>
                             </div>
-                            <details className="group">
-                              <summary className="cursor-pointer text-green-600 text-xs hover:text-green-700">
-                                View details
-                              </summary>
-                              <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded bg-green-200 p-2 text-green-600 text-xs">
-                                {update.success.oldRating}
-                              </pre>
-                            </details>
-                          </div>
-                        )}
-                      </AlertDescription>
-                    </Alert>
-                  </motion.div>
-                ))}
-              </div>
-            </AnimatePresence>
-          </ScrollArea>
-        </div>
+                          )}
+                        </AlertDescription>
+                      </Alert>
+                    </motion.div>
+                  ))}
+                </div>
+              </AnimatePresence>
+            </ScrollArea>
+          </div>
 
-        <div className="flex flex-col items-center gap-4">
-          <Alert
-            variant="destructive"
-            className="flex items-center gap-2 w-fit"
-          >
-            <AlertTitle>Error stack trace</AlertTitle>
-            <Badge className="bg-[#FFEBEE] text-[#D32F2F] dark:bg-[#4D0217] dark:text-[#FF6982] rounded-sm">
-              {errorStack.length}
-            </Badge>
-          </Alert>
+          <div className="flex flex-col items-center gap-4">
+            <Alert
+              variant="destructive"
+              className="flex items-center gap-2 w-fit"
+            >
+              <AlertTitle>Error stack trace</AlertTitle>
+              <Badge className="bg-[#FFEBEE] text-[#D32F2F] dark:bg-[#4D0217] dark:text-[#FF6982] rounded-sm">
+                {errorStack.length}
+              </Badge>
+            </Alert>
 
-          <ScrollArea className="h-[50vh] w-[350px] p-2" hideScrollbar>
-            <AnimatePresence>
-              <div className="grid gap-4">
-                {errorStack.map((update, index) => (
-                  <motion.div
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    initial={{ opacity: 0, x: -20 }}
-                    key={update.id + "-error"} // Unique key for stack items
-                    transition={{ duration: 0.3, delay: index * 0.05 }} // Smaller delay for stack items
-                  >
-                    <Alert variant="destructive">
-                      <AlertCircleIcon />
-                      <AlertTitle>{update.operation}</AlertTitle>
-                      <AlertDescription>
-                        <p>{update.description}</p>
+            <ScrollArea className="h-[50vh] w-[350px] p-2" hideScrollbar>
+              <AnimatePresence>
+                <div className="grid gap-4">
+                  {errorStack.map((update, index) => (
+                    <motion.div
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 0, x: -20 }}
+                      key={`${update.id}-error`} // Unique key for stack items
+                      transition={{ duration: 0.3, delay: index * 0.05 }} // Smaller delay for stack items
+                    >
+                      <Alert variant="destructive">
+                        <AlertCircleIcon />
+                        <AlertTitle>{update.operation}</AlertTitle>
+                        <AlertDescription>
+                          <p>{update.description}</p>
 
-                        {update.error && (
-                          <div className="rounded-lg border border-red-200 bg-red-100 p-3 mt-2">
-                            <div className="mb-2 font-medium text-red-800 text-sm">
-                              Error: {update.error.message}
+                          {update.error && (
+                            <div className="rounded-lg border border-red-200 bg-red-100 p-3 mt-2">
+                              <div className="mb-2 font-medium text-red-800 text-sm">
+                                Error: {update.error.message}
+                              </div>
+                              <details className="group">
+                                <summary className="cursor-pointer text-red-600 text-xs hover:text-red-700">
+                                  View stack trace
+                                </summary>
+                                <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded bg-red-200 p-2 text-red-600 text-xs">
+                                  {update.error.stack}
+                                </pre>
+                              </details>
                             </div>
-                            <details className="group">
-                              <summary className="cursor-pointer text-red-600 text-xs hover:text-red-700">
-                                View stack trace
-                              </summary>
-                              <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded bg-red-200 p-2 text-red-600 text-xs">
-                                {update.error.stack}
-                              </pre>
-                            </details>
-                          </div>
-                        )}
-                      </AlertDescription>
-                    </Alert>
-                  </motion.div>
-                ))}
-              </div>
-            </AnimatePresence>
-          </ScrollArea>
+                          )}
+                        </AlertDescription>
+                      </Alert>
+                    </motion.div>
+                  ))}
+                </div>
+              </AnimatePresence>
+            </ScrollArea>
+          </div>
         </div>
-      </div>*/}
+      )}
     </>
   );
 }
