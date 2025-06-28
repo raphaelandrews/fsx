@@ -40,7 +40,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const createFormSchema = () => {
   const fileSchema = z
@@ -79,6 +83,12 @@ export default function DatabaseUpdate() {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [totalUpdates, setTotalUpdates] = React.useState(0); // To store total rows from Excel
 
+  // New state for pagination
+  const [successCurrentPage, setSuccessCurrentPage] = React.useState(1);
+  const [errorCurrentPage, setErrorCurrentPage] = React.useState(1);
+
+  const ITEMS_PER_PAGE = 3; // Define how many items to show per page
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -98,6 +108,9 @@ export default function DatabaseUpdate() {
     setSuccessCount(0);
     setErrorCount(0);
     setCurrentIndex(0);
+    // Reset pagination when a new submission starts
+    setSuccessCurrentPage(1);
+    setErrorCurrentPage(1);
 
     const file = values.file;
 
@@ -223,7 +236,7 @@ export default function DatabaseUpdate() {
 
                 let res: Response;
                 // Initialize jsonRes as an object with an optional message property
-                let jsonRes: { message?: string } = {}; 
+                let jsonRes: { message?: string } = {};
                 let rawBodyText: string | null = null; // To store raw text if JSON parsing fails
 
                 // Using standard fetch API instead of axios/redaxios
@@ -243,20 +256,28 @@ export default function DatabaseUpdate() {
 
                 // Attempt to parse response as JSON first
                 try {
-                    jsonRes = await res.json();
+                  jsonRes = await res.json();
                 } catch (jsonError) {
-                    // If JSON parsing fails, read the response body as plain text
-                    rawBodyText = await res.text();
-                    console.warn("Failed to parse response as JSON, reading as text:", rawBodyText);
+                  // If JSON parsing fails, read the response body as plain text
+                  rawBodyText = await res.text();
+                  console.warn(
+                    "Failed to parse response as JSON, reading as text:",
+                    rawBodyText
+                  );
                 }
 
-                console.log(id === 0 ? "Jogador criado: " : `Jogador ${id} atualizado: `, jsonRes || rawBodyText);
-
+                console.log(
+                  id === 0 ? "Jogador criado: " : `Jogador ${id} atualizado: `,
+                  jsonRes || rawBodyText
+                );
 
                 if (!res.ok) {
                   // If the response is not OK, throw an error including the backend's message and status
                   // Prioritize jsonRes.message, then rawBodyText, then a generic message
-                  const errorDetail = jsonRes.message || rawBodyText || `Server responded with status ${res.status} but no specific error message.`;
+                  const errorDetail =
+                    jsonRes.message ||
+                    rawBodyText ||
+                    `Server responded with status ${res.status} but no specific error message.`;
                   const customError = new Error(`API Error: ${errorDetail}`);
                   (customError as any).statusCode = res.status; // Attach status code
                   (customError as any).backendMessage = errorDetail; // Attach backend message
@@ -283,7 +304,9 @@ export default function DatabaseUpdate() {
                 const errorMessage =
                   error instanceof Error ? error.message : "Unknown error";
                 const errorStack =
-                  error instanceof Error ? error.stack : "No stack trace available.";
+                  error instanceof Error
+                    ? error.stack
+                    : "No stack trace available.";
                 console.error("Error processing player:", error, id);
                 toast.error(`Failed to process player ID: ${id}.`);
 
@@ -292,23 +315,25 @@ export default function DatabaseUpdate() {
 
                 // Check if the error is our custom error with attached properties
                 if (error instanceof Error) {
-                    const customError = error as any; // Cast to any to access custom properties
-                    if (typeof customError.statusCode === 'number') {
-                        statusCode = customError.statusCode;
+                  const customError = error as any; // Cast to any to access custom properties
+                  if (typeof customError.statusCode === "number") {
+                    statusCode = customError.statusCode;
+                  }
+                  if (typeof customError.backendMessage === "string") {
+                    displayMessage = customError.backendMessage;
+                  } else {
+                    // Fallback if backendMessage is not present, but statusCode might be
+                    // This handles cases where the backend might not send a 'message' field
+                    // but we still want to show a more specific error than "Unknown error"
+                    const httpErrorMatch = errorMessage.match(
+                      /HTTP error! status: (\d+)/
+                    );
+                    if (httpErrorMatch && httpErrorMatch[1]) {
+                      statusCode = Number.parseInt(httpErrorMatch[1], 10);
+                      // If backendMessage wasn't set, use the generic HTTP error message
+                      displayMessage = `HTTP Error ${statusCode}: ${errorMessage}`;
                     }
-                    if (typeof customError.backendMessage === 'string') {
-                        displayMessage = customError.backendMessage;
-                    } else {
-                        // Fallback if backendMessage is not present, but statusCode might be
-                        // This handles cases where the backend might not send a 'message' field
-                        // but we still want to show a more specific error than "Unknown error"
-                        const httpErrorMatch = errorMessage.match(/HTTP error! status: (\d+)/);
-                        if (httpErrorMatch && httpErrorMatch[1]) {
-                            statusCode = Number.parseInt(httpErrorMatch[1], 10);
-                            // If backendMessage wasn't set, use the generic HTTP error message
-                            displayMessage = `HTTP Error ${statusCode}: ${errorMessage}`;
-                        }
-                    }
+                  }
                 }
 
                 setErrorStack((prev) => [
@@ -367,7 +392,49 @@ export default function DatabaseUpdate() {
     setCurrentIndex(0);
     setTotalUpdates(0);
     setIsRunning(false);
+    // Reset pagination on full reset
+    setSuccessCurrentPage(1);
+    setErrorCurrentPage(1);
   };
+
+  // Pagination handlers for success stack
+  const handleSuccessPageChange = (direction: "next" | "prev") => {
+    setSuccessCurrentPage((prev) => {
+      const totalPages = Math.ceil(successStack.length / ITEMS_PER_PAGE);
+      if (direction === "next") {
+        return Math.min(prev + 1, totalPages);
+      } else {
+        return Math.max(prev - 1, 1);
+      }
+    });
+  };
+
+  // Pagination handlers for error stack
+  const handleErrorPageChange = (direction: "next" | "prev") => {
+    setErrorCurrentPage((prev) => {
+      const totalPages = Math.ceil(errorStack.length / ITEMS_PER_PAGE);
+      if (direction === "next") {
+        return Math.min(prev + 1, totalPages);
+      } else {
+        return Math.max(prev - 1, 1);
+      }
+    });
+  };
+
+  // Calculate items for current page for success stack
+  const successStartIndex = (successCurrentPage - 1) * ITEMS_PER_PAGE;
+  const successEndIndex = successStartIndex + ITEMS_PER_PAGE;
+  const paginatedSuccessStack = successStack.slice(
+    successStartIndex,
+    successEndIndex
+  );
+  const successTotalPages = Math.ceil(successStack.length / ITEMS_PER_PAGE);
+
+  // Calculate items for current page for error stack
+  const errorStartIndex = (errorCurrentPage - 1) * ITEMS_PER_PAGE;
+  const errorEndIndex = errorStartIndex + ITEMS_PER_PAGE;
+  const paginatedErrorStack = errorStack.slice(errorStartIndex, errorEndIndex);
+  const errorTotalPages = Math.ceil(errorStack.length / ITEMS_PER_PAGE);
 
   return (
     <>
@@ -545,7 +612,7 @@ export default function DatabaseUpdate() {
       </AnimatePresence>
 
       {(successStack.length || errorStack.length) > 0 && (
-        <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 flex gap-12 mt-4">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 flex gap-12 mt-4">
           <div className="flex flex-col items-center gap-4">
             <Alert variant="success" className="flex items-center gap-2 w-fit">
               <AlertTitle>Success stack trace</AlertTitle>
@@ -554,15 +621,20 @@ export default function DatabaseUpdate() {
               </Badge>
             </Alert>
 
-            <ScrollArea className="h-[50vh] w-[450px] p-2" hideScrollbar>
-              <AnimatePresence>
+            {/* Replaced ScrollArea with a div for paginated content */}
+            <div className="h-auto w-[450px] p-2 overflow-hidden">
+              {" "}
+              {/* Added overflow-hidden to contain motion.div */}
+              <AnimatePresence mode="popLayout">
+                {" "}
+                {/* Use popLayout for smooth transitions on page change */}
                 <div className="grid gap-4">
-                  {successStack.map((update, index) => (
+                  {paginatedSuccessStack.map((update, index) => (
                     <motion.div
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      initial={{ opacity: 0, x: -20 }}
-                      key={`${update.id}-success`} // Unique key for stack items
+                      exit={{ opacity: 0, x: -20 }} // Animate out to the left
+                      initial={{ opacity: 0, x: 20 }} // Animate in from the right
+                      key={`${update.id}-success-${successCurrentPage}-${index}`} // Unique key for stack items, including page and index
                       transition={{ duration: 0.3, delay: index * 0.05 }} // Smaller delay for stack items
                     >
                       <Alert>
@@ -576,14 +648,14 @@ export default function DatabaseUpdate() {
                               <div className="mb-2 font-medium text-green-800 text-sm">
                                 Player ID: {update.success.playerId}
                               </div>
-                              <details className="group">
-                                <summary className="cursor-pointer text-green-600 text-xs hover:text-green-700">
-                                  View details
-                                </summary>
-                                <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded bg-green-200 p-2 text-green-600 text-xs">
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button>View details</Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto max-w-96 overflow-auto bg-green-200 p-2 text-green-600 text-xs">
                                   {update.success.oldRating}
-                                </pre>
-                              </details>
+                                </PopoverContent>
+                              </Popover>
                             </div>
                           )}
                         </AlertDescription>
@@ -592,7 +664,31 @@ export default function DatabaseUpdate() {
                   ))}
                 </div>
               </AnimatePresence>
-            </ScrollArea>
+            </div>
+            {/* Pagination controls for success stack */}
+            {successStack.length > ITEMS_PER_PAGE && (
+              <div className="flex items-center gap-2 mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleSuccessPageChange("prev")}
+                  disabled={successCurrentPage === 1}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {successCurrentPage} of {successTotalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleSuccessPageChange("next")}
+                  disabled={successCurrentPage === successTotalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col items-center gap-4">
@@ -606,15 +702,20 @@ export default function DatabaseUpdate() {
               </Badge>
             </Alert>
 
-            <ScrollArea className="h-[50vh] w-[950px] p-2" hideScrollbar>
-              <AnimatePresence>
+            {/* Replaced ScrollArea with a div for paginated content */}
+            <div className="h-auto w-[450px] p-2 overflow-hidden">
+              {" "}
+              {/* Added overflow-hidden to contain motion.div */}
+              <AnimatePresence mode="popLayout">
+                {" "}
+                {/* Use popLayout for smooth transitions on page change */}
                 <div className="grid gap-4">
-                  {errorStack.map((update, index) => (
+                  {paginatedErrorStack.map((update, index) => (
                     <motion.div
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      initial={{ opacity: 0, x: -20 }}
-                      key={`${update.id}-error`} // Unique key for stack items
+                      exit={{ opacity: 0, x: -20 }} // Animate out to the left
+                      initial={{ opacity: 0, x: 20 }} // Animate in from the right
+                      key={`${update.id}-error-${errorCurrentPage}-${index}`} // Unique key for stack items, including page and index
                       transition={{ duration: 0.3, delay: index * 0.05 }} // Smaller delay for stack items
                     >
                       <Alert variant="destructive">
@@ -628,15 +729,16 @@ export default function DatabaseUpdate() {
                               <div className="mb-2 font-medium text-red-800 text-sm">
                                 Status: {update.status}
                               </div>
-                              <details className="group">
-                                <summary className="cursor-pointer text-red-600 text-xs hover:text-red-700">
-                                  View stack trace
-                                </summary>
-                                <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded bg-red-200 p-2 text-red-600 text-xs">
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="destructive">
+                                    View stack trace
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto max-w-96 overflow-auto bg-red-200 p-2 text-red-600 text-xs">
                                   {update.error.message}
-                                  {update.error.stack}
-                                </pre>
-                              </details>
+                                </PopoverContent>
+                              </Popover>
                             </div>
                           )}
                         </AlertDescription>
@@ -645,7 +747,31 @@ export default function DatabaseUpdate() {
                   ))}
                 </div>
               </AnimatePresence>
-            </ScrollArea>
+            </div>
+            {/* Pagination controls for error stack */}
+            {errorStack.length > ITEMS_PER_PAGE && (
+              <div className="flex items-center gap-2 mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleErrorPageChange("prev")}
+                  disabled={errorCurrentPage === 1}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {errorCurrentPage} of {errorTotalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleErrorPageChange("next")}
+                  disabled={errorCurrentPage === errorTotalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
