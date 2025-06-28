@@ -16,6 +16,8 @@ import {
   CircleCheckIcon,
   Trash2Icon,
 } from "lucide-react";
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { type DatabaseUpdateProps, mockResponses } from "./data";
 import { MotionGridShowcase } from "./motion-grid-showcase";
@@ -39,20 +41,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 const createFormSchema = () => {
-  const baseFileSchema = z.any();
-
-  const clientFileSchema = z
-    .instanceof(FileList)
-    .refine((files) => files.length === 1, {
-      message: "Please select exactly one file.",
-    })
+  const fileSchema = z
+    .instanceof(File, { message: "Please select a file." })
     .refine(
-      (files) => {
-        const file = files[0];
+      (file) => {
         if (!file) return false;
         const allowedExtensions = [".xlsx", ".xls"];
         const fileExtension = file.name
@@ -64,9 +58,6 @@ const createFormSchema = () => {
         message: "Only Excel files (.xlsx, .xls) are allowed.",
       }
     );
-
-  const fileSchema =
-    typeof FileList !== "undefined" ? clientFileSchema : baseFileSchema;
 
   return z.object({
     file: fileSchema,
@@ -108,7 +99,7 @@ export default function DatabaseUpdate() {
     setErrorCount(0);
     setCurrentIndex(0);
 
-    const file = values.file[0];
+    const file = values.file;
 
     if (file) {
       try {
@@ -192,7 +183,7 @@ export default function DatabaseUpdate() {
                     operation: "Data processing error",
                     description: `Row ${i + 1}: Invalid or missing 'id'.`,
                     table: "N/A",
-                    status: "error",
+                    status: 400,
                     error: {
                       message: `Invalid 'id' at row ${i + 1}.`,
                       stack: "Missing ID for update/creation.",
@@ -208,8 +199,7 @@ export default function DatabaseUpdate() {
               const playerData = {
                 ...(name !== undefined && { name }),
                 ...(birth !== undefined && {
-                  birth:
-                    typeof birth === "string" ? birth.split("T")[0] : birth, // Ensure birth is string
+                  birth: birth.split("T")[0],
                 }),
                 ...(sex !== undefined && { sex }),
                 ...(clubId !== undefined && { clubId }),
@@ -222,7 +212,7 @@ export default function DatabaseUpdate() {
                 operation: id === 0 ? "Creating Player" : "Updating Player",
                 description: `Processing player ID: ${id}`,
                 table: "Players",
-                status: "pending",
+                updateStatus: "pending",
               });
 
               try {
@@ -232,6 +222,10 @@ export default function DatabaseUpdate() {
                 );
 
                 let res: Response;
+                // Initialize jsonRes as an object with an optional message property
+                let jsonRes: { message?: string } = {}; 
+                let rawBodyText: string | null = null; // To store raw text if JSON parsing fails
+
                 // Using standard fetch API instead of axios/redaxios
                 if (id === 0) {
                   res = await fetch("/api/players-data", {
@@ -239,20 +233,34 @@ export default function DatabaseUpdate() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(playerData),
                   });
-                  const jsonRes = await res.json();
-                  console.log("Jogador criado: ", jsonRes);
                 } else {
                   res = await fetch(`/api/players-data/${id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(playerData),
                   });
-                  const jsonRes = await res.json();
-                  console.log(`Jogador ${id} atualizado: `, jsonRes);
                 }
 
+                // Attempt to parse response as JSON first
+                try {
+                    jsonRes = await res.json();
+                } catch (jsonError) {
+                    // If JSON parsing fails, read the response body as plain text
+                    rawBodyText = await res.text();
+                    console.warn("Failed to parse response as JSON, reading as text:", rawBodyText);
+                }
+
+                console.log(id === 0 ? "Jogador criado: " : `Jogador ${id} atualizado: `, jsonRes || rawBodyText);
+
+
                 if (!res.ok) {
-                  throw new Error(`HTTP error! status: ${res.status}`);
+                  // If the response is not OK, throw an error including the backend's message and status
+                  // Prioritize jsonRes.message, then rawBodyText, then a generic message
+                  const errorDetail = jsonRes.message || rawBodyText || `Server responded with status ${res.status} but no specific error message.`;
+                  const customError = new Error(`API Error: ${errorDetail}`);
+                  (customError as any).statusCode = res.status; // Attach status code
+                  (customError as any).backendMessage = errorDetail; // Attach backend message
+                  throw customError;
                 }
 
                 setSuccessStack((prev) => [
@@ -260,8 +268,9 @@ export default function DatabaseUpdate() {
                     id: id,
                     operation: id === 0 ? "Player Created" : "Player Updated",
                     description: `Player ID ${id} processed successfully.`,
+                    message: jsonRes.message,
                     table: "Players",
-                    status: "success",
+                    status: res.status,
                     success:
                       mockResponses.success[
                         Math.floor(Math.random() * mockResponses.success.length)
@@ -274,9 +283,34 @@ export default function DatabaseUpdate() {
                 const errorMessage =
                   error instanceof Error ? error.message : "Unknown error";
                 const errorStack =
-                  error instanceof Error ? error.stack : "Unknown error";
+                  error instanceof Error ? error.stack : "No stack trace available.";
                 console.error("Error processing player:", error, id);
                 toast.error(`Failed to process player ID: ${id}.`);
+
+                let statusCode = 500;
+                let displayMessage = errorMessage;
+
+                // Check if the error is our custom error with attached properties
+                if (error instanceof Error) {
+                    const customError = error as any; // Cast to any to access custom properties
+                    if (typeof customError.statusCode === 'number') {
+                        statusCode = customError.statusCode;
+                    }
+                    if (typeof customError.backendMessage === 'string') {
+                        displayMessage = customError.backendMessage;
+                    } else {
+                        // Fallback if backendMessage is not present, but statusCode might be
+                        // This handles cases where the backend might not send a 'message' field
+                        // but we still want to show a more specific error than "Unknown error"
+                        const httpErrorMatch = errorMessage.match(/HTTP error! status: (\d+)/);
+                        if (httpErrorMatch && httpErrorMatch[1]) {
+                            statusCode = Number.parseInt(httpErrorMatch[1], 10);
+                            // If backendMessage wasn't set, use the generic HTTP error message
+                            displayMessage = `HTTP Error ${statusCode}: ${errorMessage}`;
+                        }
+                    }
+                }
+
                 setErrorStack((prev) => [
                   {
                     id: id,
@@ -286,10 +320,10 @@ export default function DatabaseUpdate() {
                         : "Player Update Failed",
                     description: `Error processing player ID: ${id}.`,
                     table: "Players",
-                    status: "error",
+                    status: statusCode, // Use the extracted or default status code
                     error: {
-                      message: errorMessage || "Unknown error",
-                      stack: errorStack || "No stack trace available.",
+                      message: displayMessage, // Use the extracted message
+                      stack: errorStack, // Use the original stack
                     },
                   },
                   ...prev,
@@ -412,7 +446,8 @@ export default function DatabaseUpdate() {
                     <Input
                       type="file"
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      onChange={(e) => field.onChange(e.target.files)}
+                      // Extract the first File object from the FileList
+                      onChange={(e) => field.onChange(e.target.files?.[0])}
                       accept=".xls,.xlsx"
                       ref={fileInputRef} // Attach the ref here
                     />
@@ -509,7 +544,7 @@ export default function DatabaseUpdate() {
         )}
       </AnimatePresence>
 
-      {isRunning && (
+      {(successStack.length || errorStack.length) > 0 && (
         <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 flex gap-12 mt-4">
           <div className="flex flex-col items-center gap-4">
             <Alert variant="success" className="flex items-center gap-2 w-fit">
@@ -519,7 +554,7 @@ export default function DatabaseUpdate() {
               </Badge>
             </Alert>
 
-            <ScrollArea className="h-[50vh] w-[350px] p-2" hideScrollbar>
+            <ScrollArea className="h-[50vh] w-[450px] p-2" hideScrollbar>
               <AnimatePresence>
                 <div className="grid gap-4">
                   {successStack.map((update, index) => (
@@ -571,7 +606,7 @@ export default function DatabaseUpdate() {
               </Badge>
             </Alert>
 
-            <ScrollArea className="h-[50vh] w-[350px] p-2" hideScrollbar>
+            <ScrollArea className="h-[50vh] w-[950px] p-2" hideScrollbar>
               <AnimatePresence>
                 <div className="grid gap-4">
                   {errorStack.map((update, index) => (
@@ -591,13 +626,14 @@ export default function DatabaseUpdate() {
                           {update.error && (
                             <div className="rounded-lg border border-red-200 bg-red-100 p-3 mt-2">
                               <div className="mb-2 font-medium text-red-800 text-sm">
-                                Error: {update.error.message}
+                                Status: {update.status}
                               </div>
                               <details className="group">
                                 <summary className="cursor-pointer text-red-600 text-xs hover:text-red-700">
                                   View stack trace
                                 </summary>
                                 <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded bg-red-200 p-2 text-red-600 text-xs">
+                                  {update.error.message}
                                   {update.error.stack}
                                 </pre>
                               </details>
