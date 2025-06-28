@@ -10,7 +10,6 @@ import {
   DatabaseZapIcon,
   LoaderCircleIcon,
   AlertCircleIcon,
-  CircleCheckIcon,
 } from "lucide-react";
 
 import { type DatabaseUpdateProps, mockResponses, mockUpdates } from "./data";
@@ -258,8 +257,8 @@ export default function DatabaseUpdate() {
                     key={update.id}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                   >
-                    <Alert>
-                      <CircleCheckIcon />
+                    <Alert variant="success">
+                      <AlertCircleIcon />
                       <AlertTitle>{update.operation}</AlertTitle>
                       <AlertDescription>
                         <p>{update.description}</p>
@@ -299,7 +298,7 @@ export default function DatabaseUpdate() {
             </Badge>
           </Alert>
 
-          <ScrollArea className="h-[50vh] w-[350]" hideScrollbar>
+          <ScrollArea className="h-[50vh] w-[450px]" hideScrollbar>
             <AnimatePresence>
               <div className="grid gap-4">
                 {errorStack.map((update, index) => (

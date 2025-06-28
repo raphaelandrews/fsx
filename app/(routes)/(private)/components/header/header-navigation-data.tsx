@@ -30,12 +30,12 @@ export const navigationData: Navigation = () => [
 	},
 	{
 		label: "Players Data",
-		href: "/dashboard/players-data",
+		href: "/canvas/players-data",
 		icon: DatabaseIcon,
 	},
 	{
 		label: "Players Tournament",
-		href: "/dashboard/players-tournament",
+		href: "/canvas/players-tournament",
 		icon: DatabaseZapIcon,
 	},
 	{

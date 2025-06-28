@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
 import axios from "redaxios";
 import * as XLSX from "xlsx";
@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export function Client() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
