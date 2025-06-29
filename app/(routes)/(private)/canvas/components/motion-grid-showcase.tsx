@@ -639,7 +639,7 @@ export function MotionGridShowcase() {
 	}, [])
 
 	return (
-		<Button asChild className="absolute top-4 left-1/2 -translate-x-1/2 h-11 gap-x-3 px-3" size="lg">
+		<Button asChild className="relative h-11 gap-x-3 px-3" size="lg">
 			<motion.button
 				layout
 				whileHover={{ scale: 1.05 }}
