@@ -14,7 +14,6 @@ interface PlayerUpdateRequestBody {
 	tournamentId: number;
 	variation: number;
 	ratingType: "blitz" | "rapid" | "classic";
-	active?: boolean;
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -26,7 +25,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 		} = await (await supabase).auth.getUser();
 
 		if (!user) {
-			return new NextResponse("Unauthenticated", { status: 403 });
+			return new NextResponse(JSON.stringify({ message: "Unauthenticated" }), {
+				status: 403,
+				headers: { "Content-Type": "application/json" },
+			});
 		}
 
 		const playerId = Number.parseInt((await params).id, 10);
@@ -79,7 +81,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			tournamentId,
 			variation,
 			ratingType,
-			active,
 		} = body;
 
 		const missingFields = [];
@@ -137,10 +138,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 				[ratingType]: players[ratingType],
 			};
 
-			if (active !== undefined) {
-				playerUpdateData.active = active;
-				if (players.active) playerFieldsToReturn.active = players.active;
-			}
 			if (sex !== undefined) {
 				playerUpdateData.sex = sex;
 				if (players.sex) playerFieldsToReturn.sex = players.sex;

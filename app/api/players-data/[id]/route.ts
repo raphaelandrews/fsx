@@ -5,15 +5,13 @@ import { db } from "@/db";
 import { players } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import type { PgColumn } from 'drizzle-orm/pg-core';
-
+import { parseBirthDate } from "@/lib/parse-birth-date";
 
 interface PlayerUpdateRequestBody {
 	sex?: boolean;
 	clubId?: number | null;
 	birth?: string | number | null;
 	locationId?: number;
-	active?: boolean;
-	name?: string;
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -39,6 +37,24 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			});
 		}
 
+		const player = await db.select({
+			birth: players.birth,
+			locationId: players.locationId,
+			name: players.name,
+			id: players.id,
+		}).from(players).where(eq(players.id, playerId)).limit(1);
+
+		if (player.length === 0) {
+			return new NextResponse(JSON.stringify({ message: "Player not found." }), {
+				status: 404,
+				headers: { "Content-Type": "application/json" },
+			});
+		}
+
+		const currentBirth = player[0].birth;
+		const currentLocationId = player[0].locationId;
+		const currentName = player[0].name;
+
 		const body: PlayerUpdateRequestBody = await request.json();
 
 		const updateData: Partial<typeof players.$inferInsert> = {};
@@ -46,25 +62,22 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 		const fieldsToReturn: Record<string, PgColumn> = {};
 
 		if (body.birth !== undefined) {
-			let dateValue: Date | null = null;
-
-			if (typeof body.birth === 'string' && body.birth) {
-				const parsed = new Date(body.birth);
-				if (!Number.isNaN(parsed.getTime())) {
-					dateValue = parsed;
+			if (currentBirth === null) {
+				let parsedBirth: Date | null | undefined;
+				try {
+					parsedBirth = parseBirthDate(body.birth);
+				} catch (error) {
+					if (error instanceof Error) {
+						return new NextResponse(JSON.stringify({ message: error.message }), {
+							status: 400,
+							headers: { "Content-Type": "application/json" },
+						});
+					}
+					throw error;
 				}
-			} else if (typeof body.birth === 'number') {
-				const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-				const msPerDay = 24 * 60 * 60 * 1000;
-				const parsed = new Date(excelEpoch.getTime() + (body.birth * msPerDay));
-				if (!Number.isNaN(parsed.getTime())) {
-					dateValue = parsed;
-				}
-			} else if (body.birth === null) {
-				dateValue = null;
+				updateData.birth = parsedBirth;
+				if (players.birth) fieldsToReturn.birth = players.birth;
 			}
-			updateData.birth = dateValue;
-			if (players.birth) fieldsToReturn.birth = players.birth;
 		}
 		if (body.sex !== undefined) {
 			updateData.sex = body.sex;
@@ -75,20 +88,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			if (players.clubId) fieldsToReturn.clubId = players.clubId;
 		}
 		if (body.locationId !== undefined) {
-			updateData.locationId = body.locationId;
-			if (players.locationId) fieldsToReturn.locationId = players.locationId;
-		}
-		if (body.active !== undefined) {
-			updateData.active = body.active;
-			if (players.active) fieldsToReturn.active = players.active;
-		}
-		if (body.name !== undefined) {
-			updateData.name = body.name;
-			if (players.name) fieldsToReturn.name = players.name;
+			if (currentLocationId === null) {
+				updateData.locationId = body.locationId;
+				if (players.locationId) fieldsToReturn.locationId = players.locationId;
+			}
 		}
 
 		if (Object.keys(updateData).length === 0) {
-			return new NextResponse(JSON.stringify({ message: "No valid fields provided for update. At least one field (birth, sex, clubId, locationId, active, name) must be present." }), {
+			return new NextResponse(JSON.stringify({ message: "No valid fields provided for update or fields are already set. At least one field (birth, sex, clubId, locationId) must be present and eligible for update." }), {
 				status: 400,
 				headers: { "Content-Type": "application/json" },
 			});
@@ -106,10 +113,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 				headers: { "Content-Type": "application/json" },
 			});
 		}
+
+		console.log({
+			id: playerId,
+			name: currentName,
+			...result[0],
+		})
+
 		return new NextResponse(
 			JSON.stringify({
-				playerId,
-				updatedFields: result[0],
+				dataFields: {
+					id: playerId,
+					name: currentName,
+					...result[0],
+				},
 				message: `Player ${playerId} updated. Fields: ${Object.keys(updateData).join(", ")}`,
 			}),
 			{

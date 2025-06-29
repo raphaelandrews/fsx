@@ -20,7 +20,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as XLSX from "xlsx";
 import z from "zod";
 
-import type { DatabaseUpdateProps } from "./database-update-data";
+import type {
+  DatabaseUpdateProps,
+  PlayerAPIResponse,
+  PlayerDataFields,
+} from "./database-update-types";
 import { DatabaseUpdateDeveloperTool } from "./database-update-developer-tool";
 import { DatabaseUpdateMotionGrid } from "./database-update-motion-grid";
 
@@ -225,9 +229,13 @@ export default function DatabaseUpdate() {
                     ? Number.parseInt(String(row[headerMap.id]))
                     : null;
 
-                const name =
+                const nameRaw =
                   headerMap.name !== undefined
-                    ? String(row[headerMap.name])
+                    ? row[headerMap.name]
+                    : undefined;
+                const name =
+                  nameRaw !== undefined && nameRaw !== null
+                    ? String(nameRaw).trim()
                     : undefined;
 
                 const birth =
@@ -269,8 +277,35 @@ export default function DatabaseUpdate() {
                   continue;
                 }
 
+                if (id === 0) {
+                  if (name === undefined || name === "") {
+                    toast.error(
+                      `Row ${i + 1}: Missing or empty 'name' for new player.`
+                    );
+                    setErrorStack((prev) => [
+                      {
+                        _uuid: crypto.randomUUID(),
+                        table: "N/A",
+                        status: 400,
+                        error: {
+                          message: `Missing or empty 'name' for new player at row ${
+                            i + 1
+                          }.`,
+                        },
+                      },
+                      ...prev,
+                    ]);
+                    setErrorCount((prev) => prev + 1);
+                    setCurrentIndex((prev) => prev + 1);
+                    setCurrentStatusText(
+                      `Skipping row ${i + 1}: Missing name for new player.`
+                    );
+                    continue;
+                  }
+                }
+
                 const playerData = {
-                  ...(name !== undefined && { name }),
+                  ...(name !== undefined && name !== "" && { name }),
                   ...(birth !== undefined && {
                     birth: birth.split("T")[0],
                   }),
@@ -298,20 +333,7 @@ export default function DatabaseUpdate() {
                   );
 
                   let res: Response;
-                  let jsonRes: {
-                    playerId?: number;
-                    birth?: string;
-                    sex?: boolean;
-                    clubId?: number;
-                    locationId?: number;
-                    updatedFields?: {
-                      birth: string;
-                      sex: boolean;
-                      clubId: number;
-                      locationId: number;
-                    };
-                    message?: string;
-                  } = {};
+                  let jsonRes: PlayerAPIResponse;
                   let rawBodyText: string | null = null;
 
                   if (id === 0) {
@@ -336,6 +358,7 @@ export default function DatabaseUpdate() {
                       "Failed to parse response as JSON, reading as text:",
                       rawBodyText
                     );
+                    throw new Error("Failed to parse API response as JSON.");
                   }
 
                   console.log(
@@ -347,7 +370,7 @@ export default function DatabaseUpdate() {
 
                   if (!res.ok) {
                     const errorDetail =
-                      jsonRes.message ||
+                      (jsonRes as { message?: string }).message ||
                       rawBodyText ||
                       `Server responded with status ${res.status} but no specific error message.`;
                     const customError = new Error(
@@ -361,23 +384,27 @@ export default function DatabaseUpdate() {
                     throw customError;
                   }
 
+                  let successPayloadDataFields: PlayerDataFields;
+
+                  if (id === 0) {
+                    const createResponse = jsonRes as PlayerAPIResponse;
+                    successPayloadDataFields = createResponse.dataFields;
+                  } else {
+                    const updateResponse = jsonRes as PlayerAPIResponse;
+                    successPayloadDataFields = updateResponse.dataFields;
+                  }
+
                   setSuccessStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
                       operation:
                         id === 0
-                          ? `Player Created with ID ${id}`
-                          : `Player with ID ${id} updated`,
+                          ? `Player Created with ID ${successPayloadDataFields.id}`
+                          : `${successPayloadDataFields.name} - ID ${successPayloadDataFields.id} - updated`,
                       table: "Players",
                       status: res.status,
                       success: {
-                        playerId: jsonRes.playerId,
-                        updatedFields: {
-                          birth: jsonRes.updatedFields?.birth,
-                          sex: jsonRes.updatedFields?.sex,
-                          clubId: jsonRes.updatedFields?.clubId,
-                          locationId: jsonRes.updatedFields?.locationId,
-                        },
+                        dataFields: successPayloadDataFields,
                         message: jsonRes.message,
                       },
                     },
@@ -419,10 +446,11 @@ export default function DatabaseUpdate() {
                     }
                   }
 
+                  displayMessage = `Row ${i + 1}: ${displayMessage}`;
+
                   setErrorStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
-                      id: id,
                       operation:
                         id === 0
                           ? "Player Creation Failed"
@@ -757,10 +785,10 @@ export default function DatabaseUpdate() {
                                     <UserIcon size={14} />
                                   </div>
                                   <p className="text-foreground/60">
-                                    Player ID: {update.success.playerId}
+                                    Player ID: {update.success.dataFields?.id}
                                   </p>
                                 </div>
-                                {update.success.updatedFields?.birth && (
+                                {update.success.dataFields?.birth && (
                                   <div className="flex items-center gap-2">
                                     <div className="p-1 bg-accent rounded-sm">
                                       <CakeIcon size={14} />
@@ -769,42 +797,42 @@ export default function DatabaseUpdate() {
                                       Birth:{" "}
                                       {format(
                                         new Date(
-                                          update.success.updatedFields?.birth
+                                          update.success.dataFields?.birth
                                         ),
                                         "MM/dd/yyyy"
                                       )}
                                     </p>
                                   </div>
                                 )}
-                                {update.success.updatedFields?.sex && (
+                                {update.success.dataFields?.sex && (
                                   <div className="flex items-center gap-2">
                                     <div className="p-1 bg-accent rounded-sm">
                                       <VenusAndMarsIcon size={14} />
                                     </div>
                                     <p className="text-foreground/60">
-                                      Sex: {update.success.updatedFields?.sex}
+                                      Sex: {update.success.dataFields?.sex}
                                     </p>
                                   </div>
                                 )}
-                                {update.success.updatedFields?.clubId && (
+                                {update.success.dataFields?.clubId && (
                                   <div className="flex items-center gap-2">
                                     <div className="p-1 bg-accent rounded-sm">
                                       <StoreIcon size={14} />
                                     </div>
                                     <p className="text-foreground/60">
                                       Club ID:{" "}
-                                      {update.success.updatedFields?.clubId}
+                                      {update.success.dataFields?.clubId}
                                     </p>
                                   </div>
                                 )}
-                                {update.success.updatedFields?.locationId && (
+                                {update.success.dataFields?.locationId && (
                                   <div className="flex items-center gap-2">
                                     <div className="p-1 bg-accent rounded-sm">
                                       <MapPinnedIcon size={14} />
                                     </div>
                                     <p className="text-foreground/60">
                                       Location ID:{" "}
-                                      {update.success.updatedFields?.locationId}
+                                      {update.success.dataFields?.locationId}
                                     </p>
                                   </div>
                                 )}
