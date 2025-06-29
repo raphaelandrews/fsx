@@ -58,8 +58,8 @@ export default async function Page() {
 				.reverse()
 			return acc
 
-			// biome-ignore lint/suspicious/noExplicitAny: Any
 		},
+		// biome-ignore lint/suspicious/noExplicitAny: No
 		{} as Record<string, any>
 	)
 

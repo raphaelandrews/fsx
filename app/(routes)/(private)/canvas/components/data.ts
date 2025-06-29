@@ -1,80 +1,21 @@
 export interface DatabaseUpdateProps {
-	id: number
-	operation: string
-	table: string
-	message?: string
+	operation?: string
 	status?: number
-	updateStatus?: "pending" | "success" | "error"
-	// biome-ignore lint/suspicious/noExplicitAny: No
-	response?: any
+	table: string
 	success?: {
-		playerId: number,
-		oldRating: number,
-		variation: number,
-		message: string
+		playerId?: number
+		updatedFields?: {
+			birth?: string;
+			sex?: boolean;
+			clubId?: number;
+			locationId?: number;
+		};
+		message?: string
 	}
 	error?: {
 		message: string,
-		stack: string | undefined
 	}
-	duration?: number
-	description: string
 }
-
-export const mockUpdates: Omit<
-	DatabaseUpdateProps,
-	"status" | "response" | "error" | "duration"
->[] = [
-		{
-			id: 1,
-			operation: "Create Record",
-			table: "users",
-			description: "New user registration from signup form",
-			message: ""
-		},
-		{
-			id: 2,
-			operation: "Update Record",
-			table: "profiles",
-			description: "User profile information updated",
-			message: ""
-		},
-		{
-			id: 3,
-			operation: "Insert Data",
-			table: "orders",
-			description: "New order placed by customer",
-			message: ""
-		},
-		{
-			id: 4,
-			operation: "Delete Record",
-			table: "sessions",
-			description: "Expired session cleanup",
-			message: ""
-		},
-		{
-			id: 5,
-			operation: "Update Status",
-			table: "products",
-			description: "Product inventory status change",
-			message: ""
-		},
-		{
-			id: 6,
-			operation: "Bulk Insert",
-			table: "analytics",
-			description: "Batch analytics data processing",
-			message: ""
-		},
-		{
-			id: 7,
-			operation: "Update Index",
-			table: "search",
-			description: "Search index optimization",
-			message: ""
-		},
-	]
 
 export const mockResponses = {
 	success: [

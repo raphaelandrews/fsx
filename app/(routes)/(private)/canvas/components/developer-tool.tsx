@@ -91,8 +91,6 @@ export const DeveloperTool: React.FC = () => {
           activePanel ? "rounded-b-xl border-t-0" : "rounded-xl"
         }`}
       >
-        <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
-
         <ToolbarButton
           icon={Archive}
           isActive={activePanel === "notification"}

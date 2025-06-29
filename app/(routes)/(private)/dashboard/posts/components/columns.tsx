@@ -58,7 +58,7 @@ export const columns: ColumnDef<Posts>[] = [
 		),
 		cell: ({ row }) => {
 			const date = format(new Date(row.getValue("createdAt")), "MM/dd/yyyy")
-
+			
 			if (!date) {
 				return null
 			}

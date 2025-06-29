@@ -48,7 +48,6 @@ export async function PUT(
 
 		const fieldsToReturn: Record<string, PgColumn> = {};
 
-
 		if (body.birth !== undefined) {
 			let dateValue: Date | null = null;
 
@@ -110,12 +109,11 @@ export async function PUT(
 				headers: { "Content-Type": "application/json" },
 			});
 		}
-
 		return new NextResponse(
 			JSON.stringify({
-				playerId: playerId,
+				playerId,
 				updatedFields: result[0],
-				message: `Player ${playerId} Updated. Fields: ${Object.keys(updateData).join(", ")}`,
+				message: `Player ${playerId} updated. Fields: ${Object.keys(updateData).join(", ")}`,
 			}),
 			{
 				status: 200,

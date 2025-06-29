@@ -11,11 +11,16 @@ import {
   LoaderCircleIcon,
   AlertCircleIcon,
   CircleCheckIcon,
+  UserIcon,
+  CakeIcon,
+  VenusAndMarsIcon,
+  StoreIcon,
+  MapPinnedIcon,
 } from "lucide-react";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { type DatabaseUpdateProps, mockResponses } from "./data";
+import type { DatabaseUpdateProps } from "./data";
 import { MotionGridShowcase } from "./motion-grid-showcase";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -43,6 +48,17 @@ import {
 } from "@/components/ui/popover";
 import { DeveloperTool } from "./developer-tool";
 import { useDatabaseUpdateStore } from "@/lib/stores/database-update-store";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { format } from "date-fns";
 
 const createFormSchema = () => {
   const fileSchema = z
@@ -88,7 +104,9 @@ export default function DatabaseUpdate() {
   const [hasLoadedInitialData, setHasLoadedInitialData] = React.useState(false);
   const [selectedFileName, setSelectedFileName] = React.useState<string | null>(
     null
-  ); 
+  );
+  const [showClearHistoryConfirm, setShowClearHistoryConfirm] =
+    React.useState(false);
 
   const ITEMS_PER_PAGE = 3;
 
@@ -226,14 +244,10 @@ export default function DatabaseUpdate() {
                   toast.error(`Row ${i + 1}: Invalid or missing 'id' value.`);
                   setErrorStack((prev) => [
                     {
-                      id: i,
-                      operation: "Data processing error",
-                      description: `Row ${i + 1}: Invalid or missing 'id'.`,
                       table: "N/A",
                       status: 400,
                       error: {
-                        message: `Invalid 'id' at row ${i + 1}.`,
-                        stack: "Missing ID for update/creation.",
+                        message: `Invalid or missing 'id' at row ${i + 1}.`,
                       },
                     },
                     ...prev,
@@ -254,11 +268,11 @@ export default function DatabaseUpdate() {
                 };
 
                 setCurrentUpdate({
-                  id: id,
-                  operation: id === 0 ? "Creating Player" : "Updating Player",
-                  description: `Processing player ID: ${id}`,
+                  operation:
+                    id === 0
+                      ? "Creating Player"
+                      : `Updating Player with ID ${id}`,
                   table: "Players",
-                  updateStatus: "pending",
                 });
 
                 try {
@@ -267,7 +281,20 @@ export default function DatabaseUpdate() {
                   );
 
                   let res: Response;
-                  let jsonRes: { message?: string } = {};
+                  let jsonRes: {
+                    playerId?: number;
+                    birth?: string;
+                    sex?: boolean;
+                    clubId?: number;
+                    locationId?: number;
+                    updatedFields?: {
+                      birth: string;
+                      sex: boolean;
+                      clubId: number;
+                      locationId: number;
+                    };
+                    message?: string;
+                  } = {};
                   let rawBodyText: string | null = null;
 
                   if (id === 0) {
@@ -319,18 +346,22 @@ export default function DatabaseUpdate() {
 
                   setSuccessStack((prev) => [
                     {
-                      id: id,
-                      operation: id === 0 ? "Player Created" : "Player Updated",
-                      description: `Player ID ${id} processed successfully.`,
-                      message: jsonRes.message,
+                      operation:
+                        id === 0
+                          ? `Player Created with ID ${id}`
+                          : `Player with ID ${id} Updated`,
                       table: "Players",
                       status: res.status,
-                      success:
-                        mockResponses.success[
-                          Math.floor(
-                            Math.random() * mockResponses.success.length
-                          )
-                        ],
+                      success: {
+                        playerId: jsonRes.playerId,
+                        updatedFields: {
+                          birth: jsonRes.updatedFields?.birth,
+                          sex: jsonRes.updatedFields?.sex,
+                          clubId: jsonRes.updatedFields?.clubId,
+                          locationId: jsonRes.updatedFields?.locationId,
+                        },
+                        message: jsonRes.message,
+                      },
                     },
                     ...prev,
                   ]);
@@ -375,8 +406,7 @@ export default function DatabaseUpdate() {
                       operation:
                         id === 0
                           ? "Player Creation Failed"
-                          : "Player Update Failed",
-                      description: `Error processing player ID: ${id}.`,
+                          : `Player with ID ${id} Update Failed`,
                       table: "Players",
                       status: statusCode,
                       error: {
@@ -428,10 +458,11 @@ export default function DatabaseUpdate() {
     setIsRunning(false);
     setSuccessCurrentPage(1);
     setErrorCurrentPage(1);
-    setSelectedFileName(null); 
+    setSelectedFileName(null);
   }, [form, setIsRunning]);
 
-  const clearHistory = useCallback(() => {
+  const performClearHistory = useCallback(() => {
+    // <--- New function
     localStorage.removeItem("successStack");
     localStorage.removeItem("errorStack");
     setSuccessStack([]);
@@ -441,6 +472,11 @@ export default function DatabaseUpdate() {
     setSuccessCurrentPage(1);
     setErrorCurrentPage(1);
     toast.info("Database update history cleared from local storage.");
+    setShowClearHistoryConfirm(false);
+  }, []);
+
+  const clearHistory = useCallback(() => {
+    setShowClearHistoryConfirm(true);
   }, []);
 
   const handleRunClick = useCallback(() => {
@@ -452,7 +488,7 @@ export default function DatabaseUpdate() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    setSelectedFileName(null); 
+    setSelectedFileName(null);
     toast.info("File input cleared.");
   }, [form]);
 
@@ -568,9 +604,9 @@ export default function DatabaseUpdate() {
                 <FormItem className="w-full">
                   <FormLabel>Select Excel File</FormLabel>
                   <FormControl>
-                    <div className="flex items-center gap-2 my-1">
+                    <div className="flex items-center gap-2">
                       <Button
-                        type="button" 
+                        type="button"
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
                       >
@@ -581,10 +617,10 @@ export default function DatabaseUpdate() {
                       </span>
                       <Input
                         type="file"
-                        className="sr-only" 
+                        className="sr-only"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          field.onChange(file); 
+                          field.onChange(file);
                           setSelectedFileName(file ? file.name : null);
                         }}
                         accept=".xls,.xlsx"
@@ -602,6 +638,27 @@ export default function DatabaseUpdate() {
           </form>
         </Form>
       </div>
+
+      <AlertDialog
+        open={showClearHistoryConfirm}
+        onOpenChange={setShowClearHistoryConfirm}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your
+              success and error history from local storage.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={performClearHistory}>
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {isRunning && <MotionGridShowcase />}
 
@@ -624,15 +681,13 @@ export default function DatabaseUpdate() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              key={currentUpdate.id}
+              key={crypto.randomUUID()}
               transition={{ duration: 0.4 }}
             >
               <Alert>
                 <LoaderCircleIcon className="animate-spin" />
                 <AlertTitle>{currentUpdate.operation}</AlertTitle>
                 <AlertDescription>
-                  {currentUpdate.description}
-
                   <div className="flex items-center justify-center gap-2 mt-2">
                     <Badge
                       className="bg-gray-100 text-gray-700"
@@ -669,29 +724,82 @@ export default function DatabaseUpdate() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
                       initial={{ opacity: 0, x: 20 }}
-                      key={`${update.id}-success-${successCurrentPage}-${index}`}
+                      key={crypto.randomUUID()}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
-                      <Alert>
-                        <CircleCheckIcon className="text-green-500" />
-                        <AlertTitle>{update.operation}</AlertTitle>
-                        <AlertDescription>
-                          <p>{update.description}</p>
-
+                      <Alert variant="success">
+                        <CircleCheckIcon />
+                        <AlertTitle className="flex justify-between">
+                          <span>{update.operation}</span>
+                          <Badge className="bg-[#E8F5E9] text-[#388E3C] dark:bg-[#022C22] dark:text-[#1BC994] rounded-sm">
+                            {update.status}
+                          </Badge>
+                        </AlertTitle>
+                        <AlertDescription className="mt-2">
                           {update.success && (
-                            <div className="rounded-lg border border-green-200 bg-green-100 p-3 mt-2">
-                              <div className="mb-2 font-medium text-green-800 text-sm">
-                                Player ID: {update.success.playerId}
-                              </div>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button>View details</Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto max-w-96 overflow-auto bg-green-200 p-2 text-green-600 text-xs">
-                                  {update.success.oldRating}
-                                </PopoverContent>
-                              </Popover>
-                            </div>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button>View details</Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="flex flex-col gap-2 text-sm w-auto max-w-96 overflow-auto">
+                                <div className="flex items-center gap-2">
+                                  <div className="p-1 bg-accent rounded-sm">
+                                    <UserIcon size={14} />
+                                  </div>
+                                  <p className="text-foreground/60">
+                                    Player ID: {update.success.playerId}
+                                  </p>
+                                </div>
+                                {update.success.updatedFields?.birth && (
+                                  <div className="flex items-center gap-2">
+                                    <div className="p-1 bg-accent rounded-sm">
+                                      <CakeIcon size={14} />
+                                    </div>
+                                    <p className="text-foreground/60">
+                                      Birth:{" "}
+                                      {format(
+                                        new Date(
+                                          update.success.updatedFields?.birth
+                                        ),
+                                        "MM/dd/yyyy"
+                                      )}
+                                    </p>
+                                  </div>
+                                )}
+                                {update.success.updatedFields?.sex && (
+                                  <div className="flex items-center gap-2">
+                                    <div className="p-1 bg-accent rounded-sm">
+                                      <VenusAndMarsIcon size={14} />
+                                    </div>
+                                    <p className="text-foreground/60">
+                                      Sex: {update.success.updatedFields?.sex}
+                                    </p>
+                                  </div>
+                                )}
+                                {update.success.updatedFields?.clubId && (
+                                  <div className="flex items-center gap-2">
+                                    <div className="p-1 bg-accent rounded-sm">
+                                      <StoreIcon size={14} />
+                                    </div>
+                                    <p className="text-foreground/60">
+                                      Club ID:{" "}
+                                      {update.success.updatedFields?.clubId}
+                                    </p>
+                                  </div>
+                                )}
+                                {update.success.updatedFields?.locationId && (
+                                  <div className="flex items-center gap-2">
+                                    <div className="p-1 bg-accent rounded-sm">
+                                      <MapPinnedIcon size={14} />
+                                    </div>
+                                    <p className="text-foreground/60">
+                                      Location ID:{" "}
+                                      {update.success.updatedFields?.locationId}
+                                    </p>
+                                  </div>
+                                )}
+                              </PopoverContent>
+                            </Popover>
                           )}
                         </AlertDescription>
                       </Alert>
@@ -745,32 +853,24 @@ export default function DatabaseUpdate() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
                       initial={{ opacity: 0, x: 20 }}
-                      key={`${update.id}-error-${errorCurrentPage}-${index}`}
+                      key={crypto.randomUUID()}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
                       <Alert variant="destructive">
                         <AlertCircleIcon />
                         <AlertTitle>{update.operation}</AlertTitle>
-                        <AlertDescription>
-                          <p>{update.description}</p>
+                        <AlertDescription className="mt-2">
                           {update.error && (
-                            <div className="rounded-lg border border-red-200 bg-red-100 p-3 mt-2">
-                              <div className="mb-2 font-medium text-red-800 text-sm">
-                                Error Message: {update.error.message}
-                              </div>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button variant="destructive">
-                                    View Details
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto max-w-96 overflow-auto bg-red-200 p-2 text-red-600 text-xs">
-                                  <pre className="whitespace-pre-wrap break-words">
-                                    {update.error.stack}
-                                  </pre>
-                                </PopoverContent>
-                              </Popover>
-                            </div>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="destructive">
+                                  View Details
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="text-sm text-red-500 w-auto max-w-96 overflow-auto">
+                                {update.error.message}
+                              </PopoverContent>
+                            </Popover>
                           )}
                         </AlertDescription>
                       </Alert>
