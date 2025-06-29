@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Archive,
-  Eye,
-  Moon,
   Maximize2,
   Upload,
   Bug,
@@ -16,8 +14,7 @@ import {
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { useDatabaseUpdateStore } from "@/lib/stores/database-update-store"; // Import the Zustand store
+import { useDatabaseUpdateStore } from "@/lib/stores/database-update-store";
 
 interface ToolbarButtonProps {
   icon: React.ElementType;
@@ -26,39 +23,27 @@ interface ToolbarButtonProps {
   className?: string;
 }
 
-// Remove DeveloperToolProps interface as props are no longer passed directly
-// interface DeveloperToolProps {
-//   onRun: () => void;
-//   onReset: () => void;
-//   onClearHistory: () => void;
-//   onClearFile: () => void;
-//   isRunning: boolean;
-// }
-
-// Update the component signature to remove props
 export const DeveloperTool: React.FC = () => {
-  // Access state and actions directly from the Zustand store
-  const { isRunning, runProcess, resetProcess, clearHistory, clearFile } = useDatabaseUpdateStore();
+  const { isRunning, runProcess, resetProcess, clearHistory, clearFile } =
+    useDatabaseUpdateStore();
 
-  const [activePanel, setActivePanel] = useState<string | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [activePanel, setActivePanel] = React.useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = React.useState(false);
 
   const handlePanelToggle = (panelName: string) => {
     if (activePanel === panelName) {
-      setActivePanel(null); // Close if already open
+      setActivePanel(null);
     } else if (activePanel && activePanel !== panelName) {
-      // Smooth transition between panels
       setIsTransitioning(true);
       setTimeout(() => {
         setActivePanel(panelName);
         setIsTransitioning(false);
-      }, 200); // Half of the transition duration
+      }, 200);
     } else {
-      setActivePanel(panelName); // Open new panel
+      setActivePanel(panelName);
     }
   };
 
-  // Calculate panel height dynamically
   const getPanelHeight = () => {
     switch (activePanel) {
       case "notification":
@@ -76,11 +61,10 @@ export const DeveloperTool: React.FC = () => {
 
   return (
     <div
-      className={`fixed bottom-40 left-1/2 transform -translate-x-1/2 bg-background dark:bg-[#0F0F0F] ${
+      className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-background dark:bg-[#0F0F0F] ${
         activePanel ? "rounded-b-xl border-t-0" : "rounded-xl"
       } shadow-md z-50`}
     >
-      {/* Panel Container - appears above toolbar */}
       <div
         className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-0 backdrop-blur-sm border max-w-md w-full overflow-hidden shadow-2xl transition-all duration-500 ease-out ${
           activePanel
@@ -88,7 +72,6 @@ export const DeveloperTool: React.FC = () => {
             : "translate-y-4 opacity-0 scale-95 pointer-events-none h-0 rounded-xl"
         }`}
       >
-        {/* Panel Content Container with relative positioning for absolute panels */}
         <div className="relative w-full h-full">
           <NotificationPanel
             isVisible={activePanel === "notification" && !isTransitioning}
@@ -103,7 +86,6 @@ export const DeveloperTool: React.FC = () => {
         </div>
       </div>
 
-      {/* Toolbar - always visible */}
       <div
         className={`flex items-center justify-center px-4 py-2 transition-all duration-500 ease-out ${
           activePanel ? "rounded-b-xl border-t-0" : "rounded-xl"
@@ -120,7 +102,6 @@ export const DeveloperTool: React.FC = () => {
         <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
 
         <div className="flex gap-2">
-          {/* Call actions from the Zustand store */}
           <Button size="sm" onClick={runProcess} disabled={isRunning}>
             <PlayIcon className="mr-2 size-4" />
             Run
@@ -133,8 +114,12 @@ export const DeveloperTool: React.FC = () => {
             <Trash2Icon className="mr-2 size-4" />
             Clear History
           </Button>
-          {/* New button to clear the file */}
-          <Button size="sm" variant="outline" onClick={clearFile} disabled={isRunning}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={clearFile}
+            disabled={isRunning}
+          >
             <Trash2Icon className="mr-2 size-4" />
             Clear File
           </Button>
@@ -206,9 +191,9 @@ const ColorPicker: React.FC<{ isActive?: boolean; onClick?: () => void }> = ({
       `}
     >
       <div className="flex items-center space-x-1">
-        <div className="w-4 h-4 bg-blue-500 rounded-full transition-transform duration-300 hover:scale-110" />
-        <div className="w-4 h-4 bg-orange-500 rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
-        <div className="w-4 h-4 bg-purple-500 rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
+        <div className="w-4 h-4 bg-teal-500 rounded-full transition-transform duration-300 hover:scale-110" />
+        <div className="w-4 h-4 bg-amber-500 rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
+        <div className="w-4 h-4 bg-rose-500 rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
       </div>
       {isActive && (
         <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full" />

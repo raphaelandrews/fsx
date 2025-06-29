@@ -6,14 +6,11 @@ import * as XLSX from "xlsx";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
-  DatabaseIcon,
   CheckCircleIcon,
-  PlayIcon,
   DatabaseZapIcon,
   LoaderCircleIcon,
   AlertCircleIcon,
   CircleCheckIcon,
-  Trash2Icon,
 } from "lucide-react";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,7 +41,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { DatabaseUpdateToolbar } from "./database-update-toolbar";
 import { DeveloperTool } from "./developer-tool";
 import { useDatabaseUpdateStore } from "@/lib/stores/database-update-store";
 
@@ -90,6 +86,9 @@ export default function DatabaseUpdate() {
   const [errorCurrentPage, setErrorCurrentPage] = React.useState(1);
 
   const [hasLoadedInitialData, setHasLoadedInitialData] = React.useState(false);
+  const [selectedFileName, setSelectedFileName] = React.useState<string | null>(
+    null
+  ); 
 
   const ITEMS_PER_PAGE = 3;
 
@@ -287,7 +286,7 @@ export default function DatabaseUpdate() {
 
                   try {
                     jsonRes = await res.json();
-                  } catch (jsonError) {
+                  } catch {
                     rawBodyText = await res.text();
                     console.warn(
                       "Failed to parse response as JSON, reading as text:",
@@ -307,9 +306,14 @@ export default function DatabaseUpdate() {
                       jsonRes.message ||
                       rawBodyText ||
                       `Server responded with status ${res.status} but no specific error message.`;
-                    const customError = new Error(`API Error: ${errorDetail}`);
-                    (customError as any).statusCode = res.status;
-                    (customError as any).backendMessage = errorDetail;
+                    const customError = new Error(
+                      `API Error: ${errorDetail}`
+                    ) as Error & {
+                      statusCode?: number;
+                      backendMessage?: string;
+                    };
+                    customError.statusCode = res.status;
+                    customError.backendMessage = errorDetail;
                     throw customError;
                   }
 
@@ -345,7 +349,10 @@ export default function DatabaseUpdate() {
                   let displayMessage = errorMessage;
 
                   if (error instanceof Error) {
-                    const customError = error as any;
+                    const customError = error as {
+                      statusCode?: number;
+                      backendMessage?: string;
+                    };
                     if (typeof customError.statusCode === "number") {
                       statusCode = customError.statusCode;
                     }
@@ -421,6 +428,7 @@ export default function DatabaseUpdate() {
     setIsRunning(false);
     setSuccessCurrentPage(1);
     setErrorCurrentPage(1);
+    setSelectedFileName(null); 
   }, [form, setIsRunning]);
 
   const clearHistory = useCallback(() => {
@@ -444,6 +452,7 @@ export default function DatabaseUpdate() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+    setSelectedFileName(null); 
     toast.info("File input cleared.");
   }, [form]);
 
@@ -494,12 +503,20 @@ export default function DatabaseUpdate() {
 
   return (
     <>
-      <DatabaseUpdateToolbar />
       <DeveloperTool />
-      <Alert className="absolute top-4 left-4 flex justify-center gap-3 w-fit">
-        <DatabaseIcon />
-        <AlertTitle>Database Update Process</AlertTitle>
-      </Alert>
+
+      {totalUpdates === 0 &&
+        !isRunning &&
+        successStack.length === 0 &&
+        errorStack.length === 0 && (
+          <Alert className="absolute top-4 left-4 flex flex-col items-center justify-center gap-3 w-fit text-center">
+            <DatabaseZapIcon className="h-8 w-8 text-blue-500" />
+            <AlertTitle>Ready to begin database operations</AlertTitle>
+            <AlertDescription>
+              Select an Excel file and click "Start Database Update" to begin.
+            </AlertDescription>
+          </Alert>
+        )}
 
       <div className="absolute top-4 right-4 flex flex-col items-end gap-4">
         <div className="flex flex-col items-end gap-4">
@@ -542,7 +559,7 @@ export default function DatabaseUpdate() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col items-center gap-4 p-6 rounded-lg shadow-md bg-secondary w-full max-w-lg"
+            className="flex flex-col items-center gap-4 p-6 w-full max-w-lg bg-background dark:bg-[#0F0F0F] rounded-xl shadow-md"
           >
             <FormField
               control={form.control}
@@ -551,13 +568,29 @@ export default function DatabaseUpdate() {
                 <FormItem className="w-full">
                   <FormLabel>Select Excel File</FormLabel>
                   <FormControl>
-                    <Input
-                      type="file"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      onChange={(e) => field.onChange(e.target.files?.[0])}
-                      accept=".xls,.xlsx"
-                      ref={fileInputRef}
-                    />
+                    <div className="flex items-center gap-2 my-1">
+                      <Button
+                        type="button" 
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        Choose File
+                      </Button>
+                      <span className="text-sm text-muted-foreground">
+                        {selectedFileName || "No file chosen"}
+                      </span>
+                      <Input
+                        type="file"
+                        className="sr-only" 
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          field.onChange(file); 
+                          setSelectedFileName(file ? file.name : null);
+                        }}
+                        accept=".xls,.xlsx"
+                        ref={fileInputRef}
+                      />
+                    </div>
                   </FormControl>
                   <FormDescription>
                     Upload an Excel file (.xlsx, .xls) containing player data.
@@ -566,41 +599,9 @@ export default function DatabaseUpdate() {
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isRunning} className="w-full">
-              <PlayIcon className="mr-2 size-4" />
-              Start Database Update
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                form.resetField("file");
-                if (fileInputRef.current) {
-                  fileInputRef.current.value = "";
-                }
-              }}
-              disabled={isRunning}
-              variant="outline"
-              className="w-full"
-            >
-              <Trash2Icon className="mr-2 size-4" />
-              Clear File
-            </Button>
           </form>
         </Form>
       </div>
-
-      {totalUpdates === 0 &&
-        !isRunning &&
-        successStack.length === 0 &&
-        errorStack.length === 0 && (
-          <Alert className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-3 w-fit text-center">
-            <DatabaseZapIcon className="h-8 w-8 text-blue-500" />
-            <AlertTitle>Ready to begin database operations</AlertTitle>
-            <AlertDescription>
-              Select an Excel file and click "Start Database Update" to begin.
-            </AlertDescription>
-          </Alert>
-        )}
 
       {isRunning && <MotionGridShowcase />}
 
