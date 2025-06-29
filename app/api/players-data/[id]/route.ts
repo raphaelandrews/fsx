@@ -16,10 +16,7 @@ interface PlayerUpdateRequestBody {
 	name?: string;
 }
 
-export async function PUT(
-	request: Request,
-	{ params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	const supabase = createClient();
 
 	try {

@@ -17,10 +17,7 @@ interface PlayerUpdateRequestBody {
 	active?: boolean;
 }
 
-export async function PUT(
-	request: Request,
-	{ params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	const supabase = createClient();
 
 	try {
@@ -32,10 +29,11 @@ export async function PUT(
 			return new NextResponse("Unauthenticated", { status: 403 });
 		}
 
-		const playerId = Number.parseInt(params.id, 10);
+		const playerId = Number.parseInt((await params).id, 10);
 		if (Number.isNaN(playerId) || playerId <= 0) {
-			return new NextResponse("Invalid player ID provided in URL. ID must be a positive number.", {
+			return new NextResponse(JSON.stringify({ message: "Invalid player ID provided in URL. ID must be a positive number." }), {
 				status: 400,
+				headers: { "Content-Type": "application/json" },
 			});
 		}
 

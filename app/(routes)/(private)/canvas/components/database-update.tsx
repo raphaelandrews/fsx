@@ -2,12 +2,11 @@
 
 import React, { useCallback } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import * as XLSX from "xlsx";
+import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
   CheckCircleIcon,
-  DatabaseZapIcon,
   LoaderCircleIcon,
   AlertCircleIcon,
   CircleCheckIcon,
@@ -17,13 +16,27 @@ import {
   StoreIcon,
   MapPinnedIcon,
 } from "lucide-react";
-import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as XLSX from "xlsx";
+import z from "zod";
 
-import type { DatabaseUpdateProps } from "./data";
-import { MotionGridShowcase } from "./motion-grid-showcase";
+import type { DatabaseUpdateProps } from "./database-update-data";
+import { DatabaseUpdateDeveloperTool } from "./database-update-developer-tool";
+import { DatabaseUpdateMotionGrid } from "./database-update-motion-grid";
+
+import { useDatabaseUpdateStore } from "@/lib/stores/database-update-store";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Announcement,
   AnnouncementTag,
@@ -46,19 +59,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { DeveloperTool } from "./developer-tool";
-import { useDatabaseUpdateStore } from "@/lib/stores/database-update-store";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { format } from "date-fns";
 
 const createFormSchema = () => {
   const fileSchema = z
@@ -107,6 +107,8 @@ export default function DatabaseUpdate() {
   );
   const [showClearHistoryConfirm, setShowClearHistoryConfirm] =
     React.useState(false);
+  const [currentStatusText, setCurrentStatusText] =
+    React.useState("Ready to start...");
 
   const ITEMS_PER_PAGE = 3;
 
@@ -164,15 +166,18 @@ export default function DatabaseUpdate() {
       setCurrentIndex(0);
       setSuccessCurrentPage(1);
       setErrorCurrentPage(1);
+      setCurrentStatusText("Initializing update process...");
 
       const file = values.file;
 
       if (file) {
         try {
+          setCurrentStatusText("Reading Excel file...");
           const fileReader = new FileReader();
           fileReader.onload = async (e) => {
             if (e.target?.result) {
               const data = new Uint8Array(e.target.result as ArrayBuffer);
+              setCurrentStatusText("Parsing Excel data...");
               const workbook = XLSX.read(data, { type: "array" });
               const worksheet = workbook.Sheets[workbook.SheetNames[0]];
               const jsonData: unknown[][] = XLSX.utils.sheet_to_json(
@@ -204,8 +209,13 @@ export default function DatabaseUpdate() {
                   "Mandatory column 'id' is missing in the Excel file."
                 );
                 setIsRunning(false);
+                setCurrentStatusText("Error: 'id' column missing.");
                 return;
               }
+
+              setCurrentStatusText(
+                `Processing ${jsonData.length - 1} records...`
+              );
 
               for (let i = 1; i < jsonData.length; i++) {
                 const row = jsonData[i] as (string | number | null)[];
@@ -244,6 +254,7 @@ export default function DatabaseUpdate() {
                   toast.error(`Row ${i + 1}: Invalid or missing 'id' value.`);
                   setErrorStack((prev) => [
                     {
+                      _uuid: crypto.randomUUID(),
                       table: "N/A",
                       status: 400,
                       error: {
@@ -254,6 +265,7 @@ export default function DatabaseUpdate() {
                   ]);
                   setErrorCount((prev) => prev + 1);
                   setCurrentIndex((prev) => prev + 1);
+                  setCurrentStatusText(`Skipping row ${i + 1}: Invalid ID.`);
                   continue;
                 }
 
@@ -267,13 +279,18 @@ export default function DatabaseUpdate() {
                   ...(locationId !== undefined && { locationId }),
                 };
 
+                const operationText =
+                  id === 0
+                    ? "Creating Player"
+                    : `Updating Player with ID ${id}`;
+
                 setCurrentUpdate({
-                  operation:
-                    id === 0
-                      ? "Creating Player"
-                      : `Updating Player with ID ${id}`,
+                  operation: operationText,
                   table: "Players",
                 });
+                setCurrentStatusText(
+                  `${operationText} (Row ${i} of ${jsonData.length - 1})`
+                );
 
                 try {
                   await new Promise((resolve) =>
@@ -346,10 +363,11 @@ export default function DatabaseUpdate() {
 
                   setSuccessStack((prev) => [
                     {
+                      _uuid: crypto.randomUUID(),
                       operation:
                         id === 0
                           ? `Player Created with ID ${id}`
-                          : `Player with ID ${id} Updated`,
+                          : `Player with ID ${id} updated`,
                       table: "Players",
                       status: res.status,
                       success: {
@@ -366,6 +384,7 @@ export default function DatabaseUpdate() {
                     ...prev,
                   ]);
                   setSuccessCount((prev) => prev + 1);
+                  setCurrentStatusText(`Successfully processed ID ${id}.`);
                 } catch (error: unknown) {
                   const errorMessage =
                     error instanceof Error ? error.message : "Unknown error";
@@ -402,11 +421,12 @@ export default function DatabaseUpdate() {
 
                   setErrorStack((prev) => [
                     {
+                      _uuid: crypto.randomUUID(),
                       id: id,
                       operation:
                         id === 0
                           ? "Player Creation Failed"
-                          : `Player with ID ${id} Update Failed`,
+                          : `Player with ID ${id} update failed`,
                       table: "Players",
                       status: statusCode,
                       error: {
@@ -417,6 +437,7 @@ export default function DatabaseUpdate() {
                     ...prev,
                   ]);
                   setErrorCount((prev) => prev + 1);
+                  setCurrentStatusText(`Failed to process ID ${id}.`);
                 } finally {
                   setCurrentIndex((prev) => prev + 1);
                   setCurrentUpdate(null);
@@ -425,6 +446,7 @@ export default function DatabaseUpdate() {
             }
             toast.success("Database update process completed!");
             setIsRunning(false);
+            setCurrentStatusText("Update process finished.");
           };
           fileReader.readAsArrayBuffer(file);
         } catch (error: unknown) {
@@ -434,10 +456,12 @@ export default function DatabaseUpdate() {
             `Oops, there was an error processing the file: ${errorMessage}`
           );
           setIsRunning(false);
+          setCurrentStatusText(`File processing error: ${errorMessage}`);
         }
       } else {
         toast.error("Please select a file to upload.");
         setIsRunning(false);
+        setCurrentStatusText("No file selected.");
       }
     },
     [setIsRunning]
@@ -459,10 +483,10 @@ export default function DatabaseUpdate() {
     setSuccessCurrentPage(1);
     setErrorCurrentPage(1);
     setSelectedFileName(null);
+    setCurrentStatusText("Ready to start...");
   }, [form, setIsRunning]);
 
   const performClearHistory = useCallback(() => {
-    // <--- New function
     localStorage.removeItem("successStack");
     localStorage.removeItem("errorStack");
     setSuccessStack([]);
@@ -473,6 +497,7 @@ export default function DatabaseUpdate() {
     setErrorCurrentPage(1);
     toast.info("Database update history cleared from local storage.");
     setShowClearHistoryConfirm(false);
+    setCurrentStatusText("History cleared. Ready to start...");
   }, []);
 
   const clearHistory = useCallback(() => {
@@ -539,63 +564,52 @@ export default function DatabaseUpdate() {
 
   return (
     <>
-      <DeveloperTool />
+      <DatabaseUpdateDeveloperTool />
 
-      {totalUpdates === 0 &&
-        !isRunning &&
-        successStack.length === 0 &&
-        errorStack.length === 0 && (
-          <Alert className="absolute top-4 left-4 flex flex-col items-center justify-center gap-3 w-fit text-center">
-            <DatabaseZapIcon className="h-8 w-8 text-blue-500" />
-            <AlertTitle>Ready to begin database operations</AlertTitle>
-            <AlertDescription>
-              Select an Excel file and click "Start Database Update" to begin.
-            </AlertDescription>
-          </Alert>
-        )}
+      {isRunning && (
+        <DatabaseUpdateMotionGrid currentStatusText={currentStatusText} />
+      )}
 
       <div className="absolute top-4 right-4 flex flex-col items-end gap-4">
-        <div className="flex flex-col items-end gap-4">
-          <Announcement>
-            <AnnouncementTag className="flex items-center gap-2">
-              <span>Success</span>
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-600" />
-              </span>
-            </AnnouncementTag>
-            <AnnouncementTitle>{successCount}</AnnouncementTitle>
-          </Announcement>
-          <Announcement>
-            <AnnouncementTag className="flex items-center gap-2">
-              <span>Errors</span>
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
-              </span>
-            </AnnouncementTag>
-            <AnnouncementTitle>{errorCount}</AnnouncementTitle>
-          </Announcement>
-          <Announcement>
-            <AnnouncementTag className="flex items-center gap-2">
-              <span>Progress</span>
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-600" />
-              </span>
-            </AnnouncementTag>
-            <AnnouncementTitle>
-              {currentIndex}/{totalUpdates}
-            </AnnouncementTitle>
-          </Announcement>
-        </div>
+        <Announcement>
+          <AnnouncementTag className="flex items-center gap-2">
+            <span>Success</span>
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-green-600" />
+            </span>
+          </AnnouncementTag>
+          <AnnouncementTitle>{successCount}</AnnouncementTitle>
+        </Announcement>
+        <Announcement>
+          <AnnouncementTag className="flex items-center gap-2">
+            <span>Errors</span>
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
+            </span>
+          </AnnouncementTag>
+          <AnnouncementTitle>{errorCount}</AnnouncementTitle>
+        </Announcement>
+        <Announcement>
+          <AnnouncementTag className="flex items-center gap-2">
+            <span>Progress</span>
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-600" />
+            </span>
+          </AnnouncementTag>
+          <AnnouncementTitle>
+            {currentIndex}/{totalUpdates}
+          </AnnouncementTitle>
+        </Announcement>
       </div>
 
-      <div className="flex justify-center items-center h-[calc(100vh-10rem)]">
+      {!isRunning && successStack.length === 0 && errorStack.length === 0 && (
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col items-center gap-4 p-6 w-full max-w-lg bg-background dark:bg-[#0F0F0F] rounded-xl shadow-md"
+            className="absolute top-1/3 left-1/2 -translate-1/2 flex flex-col items-center gap-4 p-6 w-full max-w-lg bg-background dark:bg-[#0F0F0F] rounded-xl shadow-md"
           >
             <FormField
               control={form.control}
@@ -637,7 +651,7 @@ export default function DatabaseUpdate() {
             />
           </form>
         </Form>
-      </div>
+      )}
 
       <AlertDialog
         open={showClearHistoryConfirm}
@@ -660,23 +674,19 @@ export default function DatabaseUpdate() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {isRunning && <MotionGridShowcase />}
-
       {!currentUpdate && !isRunning && totalUpdates > 0 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex justify-center mt-4">
-          <Alert className="w-fit flex items-center gap-2">
-            <CheckCircleIcon className="text-green-500" />
-            <AlertTitle>Completed</AlertTitle>
-            <AlertDescription>
-              All file operations have finished.
-            </AlertDescription>
-          </Alert>
-        </div>
+        <Alert className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 w-fit">
+          <CheckCircleIcon className="text-green-500" />
+          <AlertTitle>Completed</AlertTitle>
+          <AlertDescription>
+            All file operations have finished.
+          </AlertDescription>
+        </Alert>
       )}
 
       <AnimatePresence mode="wait">
         {currentUpdate && (
-          <div className="absolute top-20 left-1/2 -translate-x-1/2 flex justify-center">
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 hidden justify-center">
             <motion.div
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -724,7 +734,7 @@ export default function DatabaseUpdate() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
                       initial={{ opacity: 0, x: 20 }}
-                      key={crypto.randomUUID()}
+                      key={(update as unknown as { _uuid: string })._uuid}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
                       <Alert variant="success">
@@ -853,7 +863,7 @@ export default function DatabaseUpdate() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
                       initial={{ opacity: 0, x: 20 }}
-                      key={crypto.randomUUID()}
+                      key={(update as unknown as { _uuid: string })._uuid}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
                       <Alert variant="destructive">

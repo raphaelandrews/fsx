@@ -23,7 +23,7 @@ interface ToolbarButtonProps {
   className?: string;
 }
 
-export const DeveloperTool: React.FC = () => {
+export function DatabaseUpdateDeveloperTool() {
   const { isRunning, runProcess, resetProcess, clearHistory, clearFile } =
     useDatabaseUpdateStore();
 
@@ -147,7 +147,7 @@ export const DeveloperTool: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   icon: Icon,
