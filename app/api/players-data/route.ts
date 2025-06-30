@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { players } from "@/db/schema";
 import { parseBirthDate } from "@/lib/parse-birth-date";
 import { createClient } from "@/utils/supabase/server";
+import { getNewId } from "@/lib/db-id-helpers";
 
 interface PlayerCreateRequestBody {
 	name: string;
@@ -28,29 +29,7 @@ export async function POST(req: Request) {
 				headers: { "Content-Type": "application/json" },
 			});
 		}
-
-		async function maxPlayerId(): Promise<number> {
-			try {
-				const result = await db
-					.select({ id: players.id })
-					.from(players)
-					.orderBy(sql`${players.id} DESC`)
-					.limit(1);
-
-				return result.length > 0 ? result[0].id : 0;
-			} catch (error) {
-				throw new Error(`Failed to fetch max player ID: ${error}`);
-			}
-		}
-
-		async function newPlayerId(): Promise<number> {
-			const maxId = await maxPlayerId();
-			if (Number.isNaN(maxId)) {
-				throw new Error("Failed to retrieve max player ID (NaN).");
-			}
-			return maxId + 1;
-		}
-
+		
 		const body: PlayerCreateRequestBody = await req.json();
 
 		const { name, birth, sex, clubId, locationId } = body;
@@ -78,7 +57,7 @@ export async function POST(req: Request) {
 			}
 		}
 
-		const playerId = await newPlayerId();
+		const playerId = await getNewId(players);
 
 		const createData = {
 			id: playerId,

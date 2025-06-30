@@ -255,6 +255,7 @@ export default function DatabaseUpdate() {
                   headerMap.name !== undefined
                     ? row[headerMap.name]
                     : undefined;
+
                 const name =
                   nameRaw !== undefined && nameRaw !== null
                     ? String(nameRaw).trim()
@@ -294,6 +295,26 @@ export default function DatabaseUpdate() {
                 const locationId =
                   headerMap.locationid !== undefined
                     ? Number.parseInt(String(row[headerMap.locationid]))
+                    : undefined;
+
+                const tournamentId =
+                  headerMap.tournamentId !== undefined
+                    ? Number.parseInt(String(row[headerMap.tournamentId]))
+                    : null;
+
+                const variation =
+                  headerMap.variation !== undefined
+                    ? Number.parseInt(String(row[headerMap.variation]))
+                    : null;
+
+                const ratingTypeRaw =
+                  headerMap.ratingType !== undefined
+                    ? row[headerMap.ratingType]
+                    : undefined;
+
+                const ratingType =
+                  ratingTypeRaw !== undefined && ratingTypeRaw !== null
+                    ? String(ratingTypeRaw).trim()
                     : undefined;
 
                 if (id === null || Number.isNaN(id)) {
