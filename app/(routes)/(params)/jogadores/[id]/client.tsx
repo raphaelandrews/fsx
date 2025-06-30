@@ -389,15 +389,15 @@ const extractChartData = (player: PlayerById, selectedRatingType: string) => {
 	return (
 		player.playersToTournaments
 			?.filter(
-				(tournament: { ratingType: string }) =>
-					tournament.ratingType === selectedRatingType
+				(ptt) => 
+					ptt.tournament.ratingType === selectedRatingType
 			)
 			.reverse()
 			.slice(0, 12)
 			.reverse()
-			.map((tournament) => ({
-				name: tournament.tournament.name,
-				variation: tournament.variation,
+			.map((ptt) => ({ 
+				name: ptt.tournament.name,
+				variation: ptt.variation,
 			})) || []
 	)
 }
@@ -410,18 +410,18 @@ const extractTotalRatingData = (
 	return (
 		player.playersToTournaments
 			?.filter(
-				(tournament: { ratingType: string }) =>
-					tournament.ratingType === selectedRatingType
+				(ptt) => 
+					ptt.tournament.ratingType === selectedRatingType 
 			)
 			.reverse()
 			.slice(0, 12)
 			.reverse()
-			.map((tournament) => {
-				const totalRating = tournament.oldRating + tournament.variation
+			.map((ptt) => { 
+				const totalRating = ptt.oldRating + ptt.variation
 				const previousTotalRatingCopy = previousTotalRating
 				previousTotalRating = totalRating
 				return {
-					name: tournament.tournament.name,
+					name: ptt.tournament.name,
 					totalRating,
 					previousTotalRating: previousTotalRatingCopy,
 				}

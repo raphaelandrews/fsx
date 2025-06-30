@@ -111,22 +111,20 @@ export const PlayerSheet = ({
 	}, [player?.playersToTitles])
 
 	if (isLoading) {
-		// Use isLoading from useQuery
 		return (
-			<Sheet onOpenChange={setOpen} open={open}>
-				<SheetContent className="gap-0 overflow-y-auto overflow-x-hidden [&>button#close-sheet]:top-1 [&>button#close-sheet]:right-1">
-					<div className="flex h-full flex-col items-center justify-center">
-						<Skeleton className="mb-4 h-20 w-20 rounded-full" />
-						<Skeleton className="mb-2 h-6 w-48" />
-						<Skeleton className="h-4 w-32" />
-					</div>
-				</SheetContent>
-			</Sheet>
-		)
+      <Sheet onOpenChange={setOpen} open={open}>
+        <SheetContent className="!w-[400px] sm:!w-[540px] !max-w-[90%] sm:!max-w-[480px] gap-0 overflow-y-auto overflow-x-hidden p-4 [&>button#close-sheet]:top-2.5 [&>button#close-sheet]:right-2.5">
+          <div className="flex h-full flex-col items-center justify-center">
+            <Skeleton className="mb-4 h-20 w-20 rounded-full" />
+            <Skeleton className="mb-2 h-6 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
 	}
 
 	if (isError) {
-		// Handle error state
 		return (
 			<Sheet onOpenChange={setOpen} open={open}>
 				<SheetContent className="gap-0 overflow-y-auto overflow-x-hidden [&>button#close-sheet]:top-1 [&>button#close-sheet]:right-1">
@@ -141,7 +139,6 @@ export const PlayerSheet = ({
 	}
 
 	if (!player) {
-		// This case should ideally not be hit if isLoading and isError are handled, but good for type safety
 		return null
 	}
 
@@ -438,15 +435,15 @@ const extractChartData = (player: PlayerById, selectedRatingType: string) => {
 	return (
 		player.playersToTournaments
 			?.filter(
-				(tournament: { ratingType: string }) =>
-					tournament.ratingType === selectedRatingType
+				(ptt) => 
+					ptt.tournament.ratingType === selectedRatingType 
 			)
 			.reverse()
 			.slice(0, 12)
 			.reverse()
-			.map((tournament) => ({
-				name: tournament.tournament.name,
-				variation: tournament.variation,
+			.map((ptt) => ({ 
+				name: ptt.tournament.name,
+				variation: ptt.variation,
 			})) || []
 	)
 }
@@ -459,18 +456,18 @@ const extractTotalRatingData = (
 	return (
 		player.playersToTournaments
 			?.filter(
-				(tournament: { ratingType: string }) =>
-					tournament.ratingType === selectedRatingType
+				(ptt) =>  
+					ptt.tournament.ratingType === selectedRatingType 
 			)
 			.reverse()
 			.slice(0, 12)
 			.reverse()
-			.map((tournament) => {
-				const totalRating = tournament.oldRating + tournament.variation
+			.map((ptt) => { 
+				const totalRating = ptt.oldRating + ptt.variation
 				const previousTotalRatingCopy = previousTotalRating
 				previousTotalRating = totalRating
 				return {
-					name: tournament.tournament.name,
+					name: ptt.tournament.name,
 					totalRating,
 					previousTotalRating: previousTotalRatingCopy,
 				}

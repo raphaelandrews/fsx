@@ -3,7 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 // biome-ignore lint/suspicious/noExplicitAny: No
 export const columns: ColumnDef<any>[] = [
 	{
-		accessorKey: "tournament_id",
+		accessorKey: "tournament.name", 
 		header: "Evento",
 		cell: ({ row }) => (
 			<p className="whitespace-nowrap font-medium text-foreground">
@@ -27,11 +27,11 @@ export const columns: ColumnDef<any>[] = [
 		),
 	},
 	{
-		accessorKey: "ratingType",
+		accessorKey: "tournament.ratingType", 
 		header: "Tipo",
 		cell: ({ row }) => (
 			<p className="font-medium text-foreground">
-				{formatRatingType(row.original.ratingType)}
+				{formatRatingType(row.original.tournament.ratingType)}
 			</p>
 		),
 	},

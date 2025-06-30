@@ -43,11 +43,11 @@ const TournamentSchema = z.object({
 })
 
 const PlayerTournamentSchema = z.object({
-	ratingType: z.enum(ratingTypeEnum.enumValues),
 	oldRating: z.number().int(),
 	variation: z.number().int(),
 	tournament: z.object({
 		name: z.string().max(80),
+		ratingType: z.enum(ratingTypeEnum.enumValues),
 	}),
 })
 

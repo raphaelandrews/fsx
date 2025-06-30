@@ -47,7 +47,6 @@ export const getPlayerById = async (id: number) => {
 					},
 					playersToTournaments: {
 						columns: {
-							ratingType: true,
 							oldRating: true,
 							variation: true,
 						},
@@ -55,6 +54,7 @@ export const getPlayerById = async (id: number) => {
 							tournament: {
 								columns: {
 									name: true,
+									ratingType: true,
 								},
 							},
 						},

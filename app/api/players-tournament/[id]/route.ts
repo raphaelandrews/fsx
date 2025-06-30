@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import type { PgColumn } from 'drizzle-orm/pg-core';
-import { eq } from "drizzle-orm";
+import { eq } from "drizzle-orm"; 
 
 import { db } from "@/db";
 import { players, playersToTournaments, ratingTypeEnum } from "@/db/schema";
-import { getNewId } from "@/lib/db-id-helpers";
+import { getNewId } from "@/lib/db-id-helpers"; 
 import { createClient } from "@/utils/supabase/server";
 
 interface PlayerUpdateRequestBody {
@@ -129,7 +129,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 				playerId: playerId,
 				tournamentId: tournamentId,
 				variation: variation,
-				ratingType: ratingType,
 				oldRating: oldRatingValue,
 			};
 
