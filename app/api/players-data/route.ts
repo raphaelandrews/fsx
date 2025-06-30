@@ -62,17 +62,20 @@ export async function POST(req: Request) {
 			});
 		}
 
-		let parsedBirth: Date | null | undefined;
-		try {
-			parsedBirth = parseBirthDate(birth);
-		} catch (error) {
-			if (error instanceof Error) {
-				return new NextResponse(JSON.stringify({ message: error.message }), {
-					status: 400,
-					headers: { "Content-Type": "application/json" },
-				});
+		let parsedBirth: Date | null = null; 
+
+		if (birth !== null && birth !== undefined && birth !== "" && String(birth).toLowerCase() !== "undefined") {
+			try {
+				parsedBirth = parseBirthDate(birth);
+			} catch (error) {
+				if (error instanceof Error) {
+					return new NextResponse(JSON.stringify({ message: error.message }), {
+						status: 400,
+						headers: { "Content-Type": "application/json" },
+					});
+				}
+				throw error; 
 			}
-			throw error;
 		}
 
 		const playerId = await newPlayerId();
@@ -80,7 +83,7 @@ export async function POST(req: Request) {
 		const createData = {
 			id: playerId,
 			name,
-			...(parsedBirth !== undefined && { birth: parsedBirth }),
+			...(parsedBirth !== null && { birth: parsedBirth }),
 			...(sex !== undefined && { sex }),
 			...(clubId !== undefined && { clubId: clubId === 0 ? null : clubId }),
 			...(locationId !== undefined && { locationId }),

@@ -15,6 +15,9 @@ import {
   VenusAndMarsIcon,
   StoreIcon,
   MapPinnedIcon,
+  InfoIcon,
+  MessageSquareIcon,
+  CodeIcon,
 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as XLSX from "xlsx";
@@ -89,7 +92,15 @@ const createFormSchema = () => {
 const formSchema = createFormSchema();
 
 export default function DatabaseUpdate() {
-  const { isRunning, setIsRunning } = useDatabaseUpdateStore();
+  const {
+    isRunning,
+    stopProcess,
+    setIsRunning,
+    selectedFileName,
+    setSelectedFileName,
+    setSuccessStackLength,
+    setErrorStackLength,
+  } = useDatabaseUpdateStore();
 
   const [currentUpdate, setCurrentUpdate] =
     React.useState<DatabaseUpdateProps | null>(null);
@@ -106,9 +117,6 @@ export default function DatabaseUpdate() {
   const [errorCurrentPage, setErrorCurrentPage] = React.useState(1);
 
   const [hasLoadedInitialData, setHasLoadedInitialData] = React.useState(false);
-  const [selectedFileName, setSelectedFileName] = React.useState<string | null>(
-    null
-  );
   const [showClearHistoryConfirm, setShowClearHistoryConfirm] =
     React.useState(false);
   const [currentStatusText, setCurrentStatusText] =
@@ -135,29 +143,35 @@ export default function DatabaseUpdate() {
           const parsedSuccess = JSON.parse(storedSuccess);
           setSuccessStack(parsedSuccess);
           setSuccessCount(parsedSuccess.length);
+          setSuccessStackLength(parsedSuccess.length);
         }
         if (storedError) {
           const parsedError = JSON.parse(storedError);
           setErrorStack(parsedError);
           setErrorCount(parsedError.length);
+          setErrorStackLength(parsedError.length);
         }
       } catch (e) {
         console.error("Failed to load data from localStorage", e);
         localStorage.removeItem("successStack");
         localStorage.removeItem("errorStack");
+        setSuccessStackLength(0);
+        setErrorStackLength(0);
       } finally {
         setHasLoadedInitialData(true);
       }
     }
-  }, [hasLoadedInitialData]);
+  }, [hasLoadedInitialData, setSuccessStackLength, setErrorStackLength]);
 
   React.useEffect(() => {
     localStorage.setItem("successStack", JSON.stringify(successStack));
-  }, [successStack]);
+    setSuccessStackLength(successStack.length);
+  }, [successStack, setSuccessStackLength]);
 
   React.useEffect(() => {
     localStorage.setItem("errorStack", JSON.stringify(errorStack));
-  }, [errorStack]);
+    setErrorStackLength(errorStack.length);
+  }, [errorStack, setErrorStackLength]);
 
   const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = useCallback(
     async (values) => {
@@ -170,9 +184,12 @@ export default function DatabaseUpdate() {
       setCurrentIndex(0);
       setSuccessCurrentPage(1);
       setErrorCurrentPage(1);
+      setSuccessStackLength(0);
+      setErrorStackLength(0);
       setCurrentStatusText("Initializing update process...");
 
       const file = values.file;
+      setSelectedFileName(file.name);
 
       if (file) {
         try {
@@ -222,6 +239,11 @@ export default function DatabaseUpdate() {
               );
 
               for (let i = 1; i < jsonData.length; i++) {
+                if (!useDatabaseUpdateStore.getState().isRunning) {
+                  setCurrentStatusText("Process stopped by user.");
+                  break;
+                }
+
                 const row = jsonData[i] as (string | number | null)[];
 
                 const id =
@@ -243,10 +265,26 @@ export default function DatabaseUpdate() {
                     ? String(row[headerMap.birth])
                     : undefined;
 
-                const sex =
-                  headerMap.sex !== undefined
-                    ? String(row[headerMap.sex])
-                    : undefined;
+                const sexRaw =
+                  headerMap.sex !== undefined ? row[headerMap.sex] : undefined;
+
+                let sex: boolean | undefined;
+                if (sexRaw !== undefined && sexRaw !== null) {
+                  const sexString = String(sexRaw).trim().toLowerCase();
+                  if (
+                    sexString === "true" ||
+                    sexString === "1" ||
+                    sexString === "t"
+                  ) {
+                    sex = true;
+                  } else if (
+                    sexString === "false" ||
+                    sexString === "0" ||
+                    sexString === "f"
+                  ) {
+                    sex = false;
+                  }
+                }
 
                 const clubId =
                   headerMap.clubid !== undefined
@@ -263,17 +301,20 @@ export default function DatabaseUpdate() {
                   setErrorStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
+                      operation: "Player Creation Failed",
                       table: "N/A",
                       status: 400,
                       error: {
-                        message: `Invalid or missing 'id' at row ${i + 1}.`,
+                        message: `Row ${i + 1}: Invalid or missing 'id'.`,
                       },
                     },
                     ...prev,
                   ]);
                   setErrorCount((prev) => prev + 1);
                   setCurrentIndex((prev) => prev + 1);
-                  setCurrentStatusText(`Skipping row ${i + 1}: Invalid ID.`);
+                  setCurrentStatusText(
+                    `Row ${i + 1}: Skipping due to invalid ID.`
+                  );
                   continue;
                 }
 
@@ -285,12 +326,13 @@ export default function DatabaseUpdate() {
                     setErrorStack((prev) => [
                       {
                         _uuid: crypto.randomUUID(),
+                        operation: "Player Creation Failed",
                         table: "N/A",
                         status: 400,
                         error: {
-                          message: `Missing or empty 'name' for new player at row ${
+                          message: `Row ${
                             i + 1
-                          }.`,
+                          }: Missing or empty 'name' for new player.`,
                         },
                       },
                       ...prev,
@@ -298,7 +340,9 @@ export default function DatabaseUpdate() {
                     setErrorCount((prev) => prev + 1);
                     setCurrentIndex((prev) => prev + 1);
                     setCurrentStatusText(
-                      `Skipping row ${i + 1}: Missing name for new player.`
+                      `Row ${
+                        i + 1
+                      }: Skipping due to missing name for new player.`
                     );
                     continue;
                   }
@@ -384,23 +428,16 @@ export default function DatabaseUpdate() {
                     throw customError;
                   }
 
-                  let successPayloadDataFields: PlayerDataFields;
-
-                  if (id === 0) {
-                    const createResponse = jsonRes as PlayerAPIResponse;
-                    successPayloadDataFields = createResponse.dataFields;
-                  } else {
-                    const updateResponse = jsonRes as PlayerAPIResponse;
-                    successPayloadDataFields = updateResponse.dataFields;
-                  }
+                  const successPayloadDataFields: PlayerDataFields =
+                    jsonRes.dataFields;
 
                   setSuccessStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
                       operation:
                         id === 0
-                          ? `Player Created with ID ${successPayloadDataFields.id}`
-                          : `${successPayloadDataFields.name} - ID ${successPayloadDataFields.id} - updated`,
+                          ? `${successPayloadDataFields.name} Created`
+                          : `${successPayloadDataFields.name} Updated`,
                       table: "Players",
                       status: res.status,
                       success: {
@@ -472,9 +509,12 @@ export default function DatabaseUpdate() {
                 }
               }
             }
-            toast.success("Database update process completed!");
+
+            if (useDatabaseUpdateStore.getState().isRunning) {
+              toast.success("Database update process completed!");
+              setCurrentStatusText("Update process finished.");
+            }
             setIsRunning(false);
-            setCurrentStatusText("Update process finished.");
           };
           fileReader.readAsArrayBuffer(file);
         } catch (error: unknown) {
@@ -489,13 +529,21 @@ export default function DatabaseUpdate() {
       } else {
         toast.error("Please select a file to upload.");
         setIsRunning(false);
+        setSelectedFileName(null);
         setCurrentStatusText("No file selected.");
       }
     },
-    [setIsRunning]
+    [
+      setIsRunning,
+      setSelectedFileName,
+      setSuccessStackLength,
+      setErrorStackLength,
+    ]
   );
 
-  const reset = useCallback(() => {
+  const performClearHistory = useCallback(() => {
+    localStorage.removeItem("successStack");
+    localStorage.removeItem("errorStack");
     form.reset();
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -511,22 +559,18 @@ export default function DatabaseUpdate() {
     setSuccessCurrentPage(1);
     setErrorCurrentPage(1);
     setSelectedFileName(null);
-    setCurrentStatusText("Ready to start...");
-  }, [form, setIsRunning]);
-
-  const performClearHistory = useCallback(() => {
-    localStorage.removeItem("successStack");
-    localStorage.removeItem("errorStack");
-    setSuccessStack([]);
-    setErrorStack([]);
-    setSuccessCount(0);
-    setErrorCount(0);
-    setSuccessCurrentPage(1);
-    setErrorCurrentPage(1);
+    setSuccessStackLength(0);
+    setErrorStackLength(0);
     toast.info("Database update history cleared from local storage.");
     setShowClearHistoryConfirm(false);
     setCurrentStatusText("History cleared. Ready to start...");
-  }, []);
+  }, [
+    setSuccessStackLength,
+    setErrorStackLength,
+    form.reset,
+    setIsRunning,
+    setSelectedFileName,
+  ]);
 
   const clearHistory = useCallback(() => {
     setShowClearHistoryConfirm(true);
@@ -543,52 +587,60 @@ export default function DatabaseUpdate() {
     }
     setSelectedFileName(null);
     toast.info("File input cleared.");
-  }, [form]);
+  }, [form, setSelectedFileName]);
 
   React.useEffect(() => {
     const {
       setRunAction,
-      setResetAction,
+      setStopAction,
       setClearHistoryAction,
       setClearFileAction,
     } = useDatabaseUpdateStore.getState();
     setRunAction(handleRunClick);
-    setResetAction(reset);
+    setStopAction(stopProcess);
     setClearHistoryAction(clearHistory);
     setClearFileAction(handleClearFileClick);
-  }, [handleRunClick, reset, clearHistory, handleClearFileClick]);
+  }, [handleRunClick, clearHistory, handleClearFileClick, stopProcess]);
 
-  const handleSuccessPageChange = (direction: "next" | "prev") => {
-    setSuccessCurrentPage((prev) => {
-      const totalPages = Math.ceil(successStack.length / ITEMS_PER_PAGE);
-      if (direction === "next") {
-        return Math.min(prev + 1, totalPages);
-      }
-      return Math.max(prev - 1, 1);
-    });
-  };
-
-  const handleErrorPageChange = (direction: "next" | "prev") => {
-    setErrorCurrentPage((prev) => {
-      const totalPages = Math.ceil(errorStack.length / ITEMS_PER_PAGE);
-      if (direction === "next") {
-        return Math.min(prev + 1, totalPages);
-      }
-      return Math.max(prev - 1, 1);
-    });
-  };
-
-  const successStartIndex = (successCurrentPage - 1) * ITEMS_PER_PAGE;
-  const successEndIndex = successStartIndex + ITEMS_PER_PAGE;
-  const paginatedSuccessStack = successStack.slice(
-    successStartIndex,
-    successEndIndex
-  );
   const successTotalPages = Math.ceil(successStack.length / ITEMS_PER_PAGE);
-  const errorStartIndex = (errorCurrentPage - 1) * ITEMS_PER_PAGE;
-  const errorEndIndex = errorStartIndex + ITEMS_PER_PAGE;
-  const paginatedErrorStack = errorStack.slice(errorStartIndex, errorEndIndex);
   const errorTotalPages = Math.ceil(errorStack.length / ITEMS_PER_PAGE);
+
+  const paginatedSuccessStack = React.useMemo(() => {
+    const startIndex = (successCurrentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return successStack.slice(startIndex, endIndex);
+  }, [successStack, successCurrentPage]);
+
+  const paginatedErrorStack = React.useMemo(() => {
+    const startIndex = (errorCurrentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return errorStack.slice(startIndex, endIndex);
+  }, [errorStack, errorCurrentPage]);
+
+  const handleSuccessPageChange = useCallback(
+    (direction: "prev" | "next") => {
+      if (direction === "prev" && successCurrentPage > 1) {
+        setSuccessCurrentPage((prev) => prev - 1);
+      } else if (
+        direction === "next" &&
+        successCurrentPage < successTotalPages
+      ) {
+        setSuccessCurrentPage((prev) => prev + 1);
+      }
+    },
+    [successCurrentPage, successTotalPages]
+  );
+
+  const handleErrorPageChange = useCallback(
+    (direction: "prev" | "next") => {
+      if (direction === "prev" && errorCurrentPage > 1) {
+        setErrorCurrentPage((prev) => prev - 1);
+      } else if (direction === "next" && errorCurrentPage < errorTotalPages) {
+        setErrorCurrentPage((prev) => prev + 1);
+      }
+    },
+    [errorCurrentPage, errorTotalPages]
+  );
 
   return (
     <>
@@ -785,7 +837,7 @@ export default function DatabaseUpdate() {
                                     <UserIcon size={14} />
                                   </div>
                                   <p className="text-foreground/60">
-                                    Player ID: {update.success.dataFields?.id}
+                                    ID: {update.success.dataFields?.id}
                                   </p>
                                 </div>
                                 {update.success.dataFields?.birth && (
@@ -804,13 +856,16 @@ export default function DatabaseUpdate() {
                                     </p>
                                   </div>
                                 )}
-                                {update.success.dataFields?.sex && (
+                                {update.success.dataFields?.sex != null && (
                                   <div className="flex items-center gap-2">
                                     <div className="p-1 bg-accent rounded-sm">
                                       <VenusAndMarsIcon size={14} />
                                     </div>
                                     <p className="text-foreground/60">
-                                      Sex: {update.success.dataFields?.sex}
+                                      Sex:{" "}
+                                      {update.success.dataFields?.sex
+                                        .toString()
+                                        .toUpperCase()}
                                     </p>
                                   </div>
                                 )}
@@ -901,12 +956,35 @@ export default function DatabaseUpdate() {
                           {update.error && (
                             <Popover>
                               <PopoverTrigger asChild>
-                                <Button variant="destructive">
-                                  View Details
-                                </Button>
+                                <Button>View details</Button>
                               </PopoverTrigger>
-                              <PopoverContent className="text-sm text-red-500 w-auto max-w-96 overflow-auto">
-                                {update.error.message}
+                              <PopoverContent className="flex flex-col gap-2 text-sm w-auto max-w-96 overflow-auto">
+                                <div className="flex items-center gap-2">
+                                  <div className="p-1 bg-accent rounded-sm">
+                                    <InfoIcon size={14} />
+                                  </div>
+                                  <p className="text-foreground/60">
+                                    Status: {update.status}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="p-1 bg-accent rounded-sm">
+                                    <MessageSquareIcon size={14} />
+                                  </div>
+                                  <p className="text-foreground/60">
+                                    Message: {update.error.message}
+                                  </p>
+                                </div>
+                                {update.error.stack && (
+                                  <div className="flex items-center gap-2">
+                                    <div className="p-1 bg-accent rounded-sm">
+                                      <CodeIcon size={14} />
+                                    </div>
+                                    <p className="text-foreground/60">
+                                      Stack: {update.error.stack}
+                                    </p>
+                                  </div>
+                                )}
                               </PopoverContent>
                             </Popover>
                           )}

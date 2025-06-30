@@ -4,28 +4,38 @@ import {
   Maximize2,
   Upload,
   Bug,
-  User,
-  Copy,
-  AtSign,
-  Shield,
-  RotateCcwIcon,
   PlayIcon,
+  SquareIcon,
   Trash2Icon,
+  User,
+  AtSign,
+  Copy,
+  Shield,
 } from "lucide-react";
+import { toast } from "sonner";
+
+import { useDatabaseUpdateStore } from "@/lib/stores/database-update-store";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { useDatabaseUpdateStore } from "@/lib/stores/database-update-store";
 
 interface ToolbarButtonProps {
   icon: React.ElementType;
   isActive?: boolean;
-  onClick?: () => void;
+  onClick: () => void;
   className?: string;
 }
 
 export function DatabaseUpdateDeveloperTool() {
-  const { isRunning, runProcess, resetProcess, clearHistory, clearFile } =
-    useDatabaseUpdateStore();
+  const {
+    isRunning,
+    runProcess,
+    stopProcess,
+    clearHistory,
+    clearFile,
+    selectedFileName,
+    successStackLength,
+    errorStackLength,
+  } = useDatabaseUpdateStore();
 
   const [activePanel, setActivePanel] = React.useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = React.useState(false);
@@ -33,16 +43,20 @@ export function DatabaseUpdateDeveloperTool() {
   const handlePanelToggle = (panelName: string) => {
     if (activePanel === panelName) {
       setActivePanel(null);
-    } else if (activePanel && activePanel !== panelName) {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setActivePanel(panelName);
-        setIsTransitioning(false);
-      }, 200);
     } else {
+      setIsTransitioning(true);
       setActivePanel(panelName);
     }
   };
+
+  React.useEffect(() => {
+    if (isTransitioning) {
+      const timer = setTimeout(() => {
+        setIsTransitioning(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isTransitioning]);
 
   const getPanelHeight = () => {
     switch (activePanel) {
@@ -100,27 +114,160 @@ export function DatabaseUpdateDeveloperTool() {
         <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
 
         <div className="flex gap-2">
-          <Button size="sm" onClick={runProcess} disabled={isRunning}>
-            <PlayIcon className="mr-2 size-4" />
-            Run
-          </Button>
-          <Button size="sm" variant="outline" onClick={resetProcess}>
-            <RotateCcwIcon className="mr-2 size-4" />
-            Reset
-          </Button>
-          <Button size="sm" variant="destructive" onClick={clearHistory}>
-            <Trash2Icon className="mr-2 size-4" />
-            Clear History
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={clearFile}
-            disabled={isRunning}
+          <span
+            className="inline-block"
+            onPointerDown={(e) => {
+              const isDisabled =
+                isRunning ||
+                !selectedFileName ||
+                successStackLength > 0 ||
+                errorStackLength > 0;
+              if (isDisabled) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (isRunning) {
+                  toast.info("Cannot run: A process is already running.");
+                } else if (!selectedFileName) {
+                  toast.info("Cannot run: Please select a file first.");
+                } else if (successStackLength > 0 || errorStackLength > 0) {
+                  toast.info(
+                    "Cannot run: Please clear the success and error history."
+                  );
+                }
+              }
+            }}
           >
-            <Trash2Icon className="mr-2 size-4" />
-            Clear File
-          </Button>
+            <Button
+              size="sm"
+              onClick={runProcess}
+              disabled={
+                isRunning ||
+                !selectedFileName ||
+                successStackLength > 0 ||
+                errorStackLength > 0
+              }
+              className={
+                isRunning ||
+                !selectedFileName ||
+                successStackLength > 0 ||
+                errorStackLength > 0
+                  ? "pointer-events-none"
+                  : ""
+              }
+            >
+              <PlayIcon className="mr-2 size-4" />
+              Run
+            </Button>
+          </span>
+
+          <span
+            className="inline-block"
+            onPointerDown={(e) => {
+              const isDisabled = !isRunning;
+              if (isDisabled) {
+                e.preventDefault();
+                e.stopPropagation();
+                toast.info("Cannot stop: No process is currently running.");
+              }
+            }}
+          >
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={stopProcess}
+              disabled={!isRunning}
+              className={!isRunning ? "pointer-events-none" : ""}
+            >
+              <SquareIcon className="mr-2 size-4" />
+              Stop
+            </Button>
+          </span>
+
+          <span
+            className="inline-block"
+            onPointerDown={(e) => {
+              const isDisabled =
+                isRunning ||
+                (successStackLength === 0 && errorStackLength === 0);
+              if (isDisabled) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (isRunning) {
+                  toast.info("Cannot clear history: A process is running.");
+                } else if (successStackLength > 0 || errorStackLength > 0) {
+                  toast.info(
+                    "Cannot clear history: No successful or error updates to clear."
+                  );
+                }
+              }
+            }}
+          >
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={clearHistory}
+              disabled={
+                isRunning ||
+                (successStackLength === 0 && errorStackLength === 0)
+              }
+              className={
+                isRunning ||
+                (successStackLength === 0 && errorStackLength === 0)
+                  ? "pointer-events-none"
+                  : ""
+              }
+            >
+              <Trash2Icon className="mr-2 size-4" />
+              Clear History
+            </Button>
+          </span>
+
+          <span
+            className="inline-block"
+            onPointerDown={(e) => {
+              const isDisabled =
+                isRunning ||
+                !selectedFileName ||
+                successStackLength > 0 ||
+                errorStackLength > 0;
+              if (isDisabled) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (isRunning) {
+                  toast.info("Clear File: A process is running.");
+                } else if (!selectedFileName) {
+                  toast.info("Clear File: Please select a file first.");
+                } else if (successStackLength > 0 || errorStackLength > 0) {
+                  toast.info(
+                    "Clear File: Please clear the success and error history."
+                  );
+                }
+              }
+            }}
+          >
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={clearFile}
+              disabled={
+                isRunning ||
+                !selectedFileName ||
+                successStackLength > 0 ||
+                errorStackLength > 0
+              }
+              className={
+                isRunning ||
+                !selectedFileName ||
+                successStackLength > 0 ||
+                errorStackLength > 0
+                  ? "pointer-events-none"
+                  : ""
+              }
+            >
+              <Trash2Icon className="mr-2 size-4" />
+              Clear File
+            </Button>
+          </span>
         </div>
 
         <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />

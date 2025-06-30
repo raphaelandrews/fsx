@@ -1,25 +1,24 @@
-export function parseBirthDate(birth: string | number | null | undefined): Date | null | undefined {
-  if (birth === undefined) {
-    return undefined;
-  }
-  if (birth === null) {
+import { parseISO, isValid } from 'date-fns';
+
+export function parseBirthDate(dateInput: string | number | null | undefined): Date | null {
+  if (dateInput === null || dateInput === undefined || dateInput === "") {
     return null;
   }
 
-  if (typeof birth === 'string' && birth) {
-    const parsed = new Date(birth);
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed;
-    }
-    throw new Error("Invalid 'birth' date string format.");
-  } if (typeof birth === 'number') {
+  if (typeof dateInput === 'number') {
     const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-    const msPerDay = 24 * 60 * 60 * 1000;
-    const parsed = new Date(excelEpoch.getTime() + (birth * msPerDay));
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed;
+    const date = new Date(excelEpoch.getTime() + dateInput * 24 * 60 * 60 * 1000);
+    if (isValid(date)) {
+      return date;
     }
-    throw new Error("Invalid 'birth' Excel number format.");
+
+    throw new Error(`Invalid 'birth' date number format: ${dateInput}`);
   }
-  throw new Error("Invalid 'birth' field type. Must be string, number, or null.");
+
+  const parsed = parseISO(String(dateInput));
+  if (isValid(parsed)) {
+    return parsed;
+  }
+
+  throw new Error(`Invalid 'birth' date string format: ${dateInput}`);
 }
