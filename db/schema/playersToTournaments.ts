@@ -11,12 +11,6 @@ import {
 
 import { players, tournaments } from "./index"
 
-export const ratingTypeEnum = pgEnum("rating_type", [
-	"blitz",
-	"rapid",
-	"classic",
-])
-
 export const playersToTournaments = pgTable(
 	"players_to_tournaments",
 	{
@@ -27,7 +21,6 @@ export const playersToTournaments = pgTable(
 		tournamentId: integer("tournament_id")
 			.notNull()
 			.references(() => tournaments.id),
-		ratingType: ratingTypeEnum("rating_type").notNull(),
 		oldRating: smallint("old_rating").notNull(),
 		variation: smallint("variation").notNull(),
 	},

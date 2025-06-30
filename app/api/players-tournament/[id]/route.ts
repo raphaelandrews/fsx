@@ -100,10 +100,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 				[ratingType]: newRating,
 				active: true,
 			};
+
 			const fieldsToReturn: Record<string, PgColumn> = {
 				id: players.id,
 				name: players.name,
 			};
+			
 			fieldsToReturn[ratingType] = players[ratingType];
 
 			const playerUpdateResult = await tx.update(players)

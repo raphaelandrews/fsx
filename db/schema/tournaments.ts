@@ -3,6 +3,7 @@ import { relations } from "drizzle-orm"
 import {
 	date,
 	integer,
+	pgEnum,
 	pgTable,
 	serial,
 	text,
@@ -16,11 +17,18 @@ import {
 	tournamentPodiums,
 } from "./index"
 
+export const ratingTypeEnum = pgEnum("rating_type", [
+	"blitz",
+	"rapid",
+	"classic",
+])
+
 export const tournaments = pgTable("tournaments", {
 	id: serial("id").primaryKey(),
 	name: varchar("name", { length: 80 }).notNull().unique(),
 	chessResults: text("chess_results"),
 	date: date("date", { mode: "date" }),
+	ratingType: ratingTypeEnum("rating_type").notNull(),
 	championshipId: integer("championship_id").references(() => championships.id),
 })
 
