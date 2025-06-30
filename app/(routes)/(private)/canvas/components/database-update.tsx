@@ -405,13 +405,6 @@ export default function DatabaseUpdate() {
                     throw new Error("Failed to parse API response as JSON.");
                   }
 
-                  console.log(
-                    id === 0
-                      ? "Jogador criado: "
-                      : `Jogador ${id} atualizado: `,
-                    jsonRes || rawBodyText
-                  );
-
                   if (!res.ok) {
                     const errorDetail =
                       (jsonRes as { message?: string }).message ||
@@ -437,7 +430,7 @@ export default function DatabaseUpdate() {
                       operation:
                         id === 0
                           ? `${successPayloadDataFields.name} Created`
-                          : `${successPayloadDataFields.name} Updated`,
+                          : `${successPayloadDataFields.name} - ID ${successPayloadDataFields.id} - Updated`,
                       table: "Players",
                       status: res.status,
                       success: {
@@ -457,7 +450,9 @@ export default function DatabaseUpdate() {
                       ? error.stack
                       : "No stack trace available.";
                   console.error("Error processing player:", error, id);
-                  toast.error(`Failed to process player ID: ${id}.`);
+                  id === 0
+                    ? toast.error(`Row ${i + 1} failed to process row.`)
+                    : toast.error(`Failed to process player ID: ${id}.`);
 
                   let statusCode = 500;
                   let displayMessage = errorMessage;

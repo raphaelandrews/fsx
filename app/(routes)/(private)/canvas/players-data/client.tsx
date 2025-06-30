@@ -96,10 +96,8 @@ export function Client() {
               try {
                 if (id === 0) {
                   const res = await axios.post("/api/players-data", data);
-                  console.log("Jogador criado: ", res.data);
                 } else {
                   const res = await axios.put(`/api/players-data/${id}`, data);
-                  console.log(`Jogador ${id} atualizado: `, res.data);
                 }
               } catch (error) {
                 console.error("Error updating player:", error, id);

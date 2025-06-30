@@ -1,20 +1,33 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import type { PgColumn } from 'drizzle-orm/pg-core';
+import { eq, desc, and } from "drizzle-orm";
 
 import { db } from "@/db";
-import { players, playersToTournaments, ratingTypeEnum } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
-import type { PgColumn } from 'drizzle-orm/pg-core';
+import { players, playersToTournaments } from "@/db/schema";
+import { parseBirthDate } from "@/lib/parse-birth-date";
+import { createClient } from "@/utils/supabase/server";
 
 interface PlayerUpdateRequestBody {
-	birth?: Date;
 	sex?: boolean;
 	clubId?: number | null;
+	birth?: string | number | null;
 	locationId?: number;
 	tournamentId: number;
 	variation: number;
 	ratingType: "blitz" | "rapid" | "classic";
 }
+
+type SelectedPlayerFields = {
+	id: typeof players.$inferSelect.id;
+	name: typeof players.$inferSelect.name;
+	blitz: typeof players.$inferSelect.blitz;
+	rapid: typeof players.$inferSelect.rapid;
+	classic: typeof players.$inferSelect.classic;
+	birth: typeof players.$inferSelect.birth;
+	sex: typeof players.$inferSelect.sex;
+	clubId: typeof players.$inferSelect.clubId;
+	locationId: typeof players.$inferSelect.locationId;
+};
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	const supabase = createClient();
@@ -71,164 +84,217 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			}
 		}
 
+		const existingPlayer = await db.select({
+			id: players.id,
+			name: players.name,
+			blitz: players.blitz,
+			rapid: players.rapid,
+			classic: players.classic,
+			birth: players.birth,
+			sex: players.sex,
+			clubId: players.clubId,
+			locationId: players.locationId,
+		}).from(players).where(eq(players.id, playerId)).limit(1);
+
+		if (existingPlayer.length === 0) {
+			return new NextResponse(JSON.stringify({ message: "Player not found." }), {
+				status: 404,
+				headers: { "Content-Type": "application/json" },
+			});
+		}
+
+		const currentPlayer: SelectedPlayerFields = existingPlayer[0];
+
 		const body: PlayerUpdateRequestBody = await request.json();
 
-		const {
-			birth,
-			sex,
-			clubId,
-			locationId,
-			tournamentId,
-			variation,
-			ratingType,
-		} = body;
+		const { tournamentId, variation, ratingType, birth, sex, clubId, locationId } = body;
 
-		const missingFields = [];
-		if (!tournamentId) missingFields.push("tournamentId");
-		if (typeof variation !== "number") missingFields.push("variation");
-		if (!ratingType) missingFields.push("ratingType");
-
-		if (missingFields.length > 0) {
-			return new NextResponse(
-				`Missing mandatory fields in request body: ${missingFields.join(", ")}.`,
-				{ status: 400 }
-			);
+		if (tournamentId === undefined || variation === undefined || ratingType === undefined) {
+			return new NextResponse(JSON.stringify({ message: "Missing mandatory fields for player-tournament update: tournamentId, variation, ratingType." }), {
+				status: 400,
+				headers: { "Content-Type": "application/json" },
+			});
 		}
 
-		const validRatingTypes = ratingTypeEnum.enumValues;
-		if (!validRatingTypes.includes(ratingType)) {
-			return new NextResponse(
-				`Invalid rating type '${ratingType}'. Must be one of: ${validRatingTypes.join(", ")}.`,
-				{ status: 400 }
-			);
+		type PlayerResponseFields = Omit<SelectedPlayerFields, 'blitz' | 'rapid' | 'classic'>;
+		let updatedPlayer: PlayerResponseFields | undefined;
+
+		const playerUpdateData: Partial<typeof players.$inferInsert> = {};
+		const fieldsToReturn: Record<string, PgColumn> = {
+			id: players.id,
+			name: players.name,
+		};
+
+		if (birth !== undefined) {
+			if (currentPlayer.birth === null) {
+				let parsedBirth: Date | null | undefined;
+				if (birth !== null && birth !== "" && String(birth).toLowerCase() !== "undefined") {
+					try {
+						parsedBirth = parseBirthDate(birth);
+					} catch (error) {
+						if (error instanceof Error) {
+							return new NextResponse(JSON.stringify({ message: error.message }), {
+								status: 400,
+								headers: { "Content-Type": "application/json" },
+							});
+						}
+						throw error;
+					}
+				}
+				playerUpdateData.birth = parsedBirth;
+				if (players.birth) fieldsToReturn.birth = players.birth;
+			}
 		}
 
-		const transactionResult = await db.transaction(async (tx) => {
-			const playerDetails = await tx
-				.select({
-					blitz: players.blitz,
-					rapid: players.rapid,
-					classic: players.classic,
-					locationId: players.locationId,
-					birth: players.birth,
-				})
-				.from(players)
-				.where(eq(players.id, playerId))
-				.limit(1);
+		if (sex !== undefined) {
+			playerUpdateData.sex = sex;
+			if (players.sex) fieldsToReturn.sex = players.sex;
+		}
 
-			if (playerDetails.length === 0) {
-				throw new Error("Player not found.");
-			}
+		if (clubId !== undefined) {
+			playerUpdateData.clubId = clubId === 0 ? null : clubId;
+			if (players.clubId) fieldsToReturn.clubId = players.clubId;
+		}
 
-			const currentPlayer = playerDetails[0];
-			const oldRating = currentPlayer[ratingType];
-
-			if (oldRating === undefined || oldRating === null) {
-				throw new Error(`Rating type '${ratingType}' not found for player.`);
-			}
-
-			const playerToTournamentId = await getNewId(playersToTournaments);
-
-			const playerUpdateData: Partial<typeof players.$inferInsert> = {
-				[ratingType]: oldRating + variation,
-			};
-
-			const playerFieldsToReturn: Record<string, PgColumn> = {
-				id: players.id,
-				[ratingType]: players[ratingType],
-			};
-
-			if (sex !== undefined) {
-				playerUpdateData.sex = sex;
-				if (players.sex) playerFieldsToReturn.sex = players.sex;
-			}
-			if (clubId !== undefined) {
-				playerUpdateData.clubId = clubId === 0 ? null : clubId;
-				if (players.clubId) playerFieldsToReturn.clubId = players.clubId;
-			}
-			if (locationId !== undefined && currentPlayer.locationId === null) {
+		if (locationId !== undefined) {
+			if (currentPlayer.locationId === null) {
 				playerUpdateData.locationId = locationId;
-				if (players.locationId) playerFieldsToReturn.locationId = players.locationId;
+				if (players.locationId) fieldsToReturn.locationId = players.locationId;
 			}
-			if (birth !== undefined && currentPlayer.birth === null) {
-				playerUpdateData.birth = birth;
-				if (players.birth) playerFieldsToReturn.birth = players.birth;
-			}
+		}
 
-			const updatedPlayerResult = await tx
-				.update(players)
+		if (Object.keys(playerUpdateData).length > 0) {
+			const result = await db.update(players)
 				.set(playerUpdateData)
 				.where(eq(players.id, playerId))
-				.returning(playerFieldsToReturn);
+				.returning(fieldsToReturn); 
 
-			if (updatedPlayerResult.length === 0) {
-				throw new Error(`No rows updated for player ${playerId}. This might be due to conditional updates or player not found (though player was checked).`);
+			if (result.length > 0) {
+				updatedPlayer = result[0] as unknown as PlayerResponseFields;
+			} else {
+				throw new Error("Failed to update player record.");
+			}
+		} else {
+			updatedPlayer = {
+				id: currentPlayer.id,
+				name: currentPlayer.name,
+				birth: currentPlayer.birth,
+				sex: currentPlayer.sex,
+				clubId: currentPlayer.clubId,
+				locationId: currentPlayer.locationId,
+			};
+		}
+
+		let updatedPlayerTournament: typeof playersToTournaments.$inferSelect;
+		let playerTournamentOperation: "created" | "updated";
+
+		const existingPlayerTournament = await db
+			.select()
+			.from(playersToTournaments)
+			.where(
+				and(
+					eq(playersToTournaments.playerId, playerId),
+					eq(playersToTournaments.tournamentId, tournamentId),
+					eq(playersToTournaments.ratingType, ratingType)
+				)
+			)
+			.limit(1);
+
+		if (existingPlayerTournament.length > 0) {
+			const currentPtt = existingPlayerTournament[0];
+			if (variation !== currentPtt.variation) {
+				const result = await db.update(playersToTournaments)
+					.set({ variation: variation })
+					.where(eq(playersToTournaments.id, currentPtt.id))
+					.returning();
+
+				if (result.length > 0) {
+					updatedPlayerTournament = result[0];
+					playerTournamentOperation = "updated";
+				} else {
+					throw new Error("Failed to update player-tournament record.");
+				}
+			} else {
+				updatedPlayerTournament = currentPtt;
+				playerTournamentOperation = "updated";
+			}
+		} else {
+			const newPttId = await getNewId(playersToTournaments);
+
+			let currentRating: number | null = null;
+			if (ratingType === "blitz") {
+				currentRating = currentPlayer.blitz;
+			} else if (ratingType === "rapid") {
+				currentRating = currentPlayer.rapid;
+			} else if (ratingType === "classic") {
+				currentRating = currentPlayer.classic;
 			}
 
-			const playerTournamentInsertData = {
-				id: playerToTournamentId,
-				playerId,
-				tournamentId,
-				ratingType,
-				oldRating,
-				variation,
+			const oldRatingValue = currentRating !== null && currentRating !== undefined ? currentRating : 0;
+
+			const insertData = {
+				id: newPttId,
+				playerId: playerId,
+				tournamentId: tournamentId,
+				variation: variation,
+				ratingType: ratingType,
+				oldRating: oldRatingValue,
 			};
 
-			await tx.insert(playersToTournaments).values(playerTournamentInsertData);
+			const result = await db.insert(playersToTournaments)
+				.values(insertData)
+				.returning();
 
-			console.log(`Jogador ${playerId} atualizado e relação com torneio ${tournamentId} criada/atualizada.`);
-
-			return {
-				playerId,
-				playerToTournamentId,
-				updatedPlayerData: updatedPlayerResult.length > 0 ? updatedPlayerResult[0] : null,
-				insertedRelationData: playerTournamentInsertData,
-			};
-		});
+			if (result.length > 0) {
+				updatedPlayerTournament = result[0];
+				playerTournamentOperation = "created";
+			} else {
+				throw new Error("Failed to create new player-tournament record.");
+			}
+		}
 
 		return new NextResponse(
 			JSON.stringify({
-				player_id: transactionResult.playerId,
-				tournament_relation_id: transactionResult.playerToTournamentId,
-				message: `Jogador ${playerId} atualizado e relação com torneio ${tournamentId} criada/atualizada.`,
-				updated_player_data: transactionResult.updatedPlayerData,
-				created_relation_data: transactionResult.insertedRelationData,
+				dataFields: {
+					player: updatedPlayer, 
+					playerTournament: updatedPlayerTournament,
+				},
+				message: `Player ID ${playerId} updated. Player-tournament record ${playerTournamentOperation}.`,
 			}),
 			{
 				status: 200,
 				headers: {
 					"Content-Type": "application/json",
 				},
-			}
-		);
+			});
+
 	} catch (error) {
-		console.error("Error in PUT /api/player-tournament-update:", error);
+		console.error("Error in PUT /api/players-tournament:", error);
 
 		if (error instanceof SyntaxError && error.message.includes("JSON")) {
-			return new NextResponse(`Invalid JSON body. Please ensure your request body is valid JSON: ${error.message}`, { status: 400 });
-		}
-
-		if (error instanceof Error) {
-			if (error.message.includes("Player not found")) {
-				return new NextResponse(error.message, { status: 404 });
-			}
-			if (error.message.includes("Rating type") && error.message.includes("not found for player")) {
-				return new NextResponse(error.message, { status: 404 });
-			}
-			if (error.message.includes("No rows updated for player")) {
-				return new NextResponse(error.message, { status: 404 });
-			}
-			if (error.message.includes("Failed to fetch max ID") || error.message.includes("Failed to generate new ID")) {
-				return new NextResponse(`ID generation error: ${error.message}`, { status: 500 });
-			}
-
-			return new NextResponse(`An internal server error occurred: ${error.message}`, {
-				status: 500,
+			return new NextResponse(JSON.stringify({ message: `Invalid JSON body. Please ensure your request body is valid JSON: ${error.message}` }), {
+				status: 400,
+				headers: { "Content-Type": "application/json" },
 			});
 		}
 
-		return new NextResponse(`An unknown internal error occurred: ${error}`, {
+		if (error instanceof Error) {
+			if (error.message.includes("Failed to fetch max ID") || error.message.includes("Invalid max ID retrieved (NaN).") || error.message.includes("Failed to generate new ID")) {
+				return new NextResponse(JSON.stringify({ message: `Failed to generate ID: ${error.message}` }), {
+					status: 500,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+
+			return new NextResponse(JSON.stringify({ message: `An internal server error occurred: ${error.message}` }), {
+				status: 500,
+				headers: { "Content-Type": "application/json" },
+			});
+		}
+
+		return new NextResponse(JSON.stringify({ message: `An unknown internal error occurred: ${error}` }), {
 			status: 500,
+			headers: { "Content-Type": "application/json" },
 		});
 	}
 }

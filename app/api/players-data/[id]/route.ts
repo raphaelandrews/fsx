@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import type { PgColumn } from 'drizzle-orm/pg-core';
+import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { players } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import type { PgColumn } from 'drizzle-orm/pg-core';
 import { parseBirthDate } from "@/lib/parse-birth-date";
+import { createClient } from "@/utils/supabase/server";
 
 interface PlayerUpdateRequestBody {
+	birth?: string | number | null;
 	sex?: boolean;
 	clubId?: number | null;
-	birth?: string | number | null;
 	locationId?: number;
 }
 
@@ -114,12 +114,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			});
 		}
 
-		console.log({
-			id: playerId,
-			name: currentName,
-			...result[0],
-		})
-
 		return new NextResponse(
 			JSON.stringify({
 				dataFields: {
@@ -127,7 +121,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 					name: currentName,
 					...result[0],
 				},
-				message: `Player ${playerId} updated. Fields: ${Object.keys(updateData).join(", ")}`,
+				message: `Player ${currentName} - ID ${playerId} Updated. Fields: ${Object.keys(updateData).join(", ")}`,
 			}),
 			{
 				status: 200,

@@ -194,7 +194,7 @@ export function DatabaseUpdateDeveloperTool() {
                 e.stopPropagation();
                 if (isRunning) {
                   toast.info("Cannot clear history: A process is running.");
-                } else if (successStackLength > 0 || errorStackLength > 0) {
+                } else if (successStackLength === 0 && errorStackLength === 0) {
                   toast.info(
                     "Cannot clear history: No successful or error updates to clear."
                   );

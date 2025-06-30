@@ -3,8 +3,8 @@ import { sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { players } from "@/db/schema";
-import { createClient } from "@/utils/supabase/server";
 import { parseBirthDate } from "@/lib/parse-birth-date";
+import { createClient } from "@/utils/supabase/server";
 
 interface PlayerCreateRequestBody {
 	name: string;
@@ -90,8 +90,6 @@ export async function POST(req: Request) {
 		};
 
 		await db.insert(players).values(createData);
-
-		console.log(createData)
 
 		return new NextResponse(
 			JSON.stringify({
