@@ -20,7 +20,7 @@ export interface PlayerAPIResponse {
 	dataFields: PlayerDataFields | { player: PlayerDataFields; playerTournament: PlayerTournamentDataFields };
 }
 
-export interface DatabaseUpdateProps {
+export interface RatingUpdateProps {
 	_uuid?: string;
 	operation: string;
 	table: string;

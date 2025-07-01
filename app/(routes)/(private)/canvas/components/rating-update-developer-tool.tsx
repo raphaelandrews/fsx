@@ -1,6 +1,7 @@
 import React from "react";
+import Link from "next/link";
+import { toast } from "sonner";
 import {
-  Archive,
   Maximize2,
   Upload,
   Bug,
@@ -11,12 +12,19 @@ import {
   AtSign,
   Copy,
   Shield,
+  StoreIcon,
+  InfoIcon,
 } from "lucide-react";
-import { toast } from "sonner";
 
-import { useDatabaseUpdateStore } from "@/lib/stores/database-update-store";
-import { Separator } from "@/components/ui/separator";
+import { useRatingUpdateStore } from "@/lib/stores/rating-update-store";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ModeSwitcher } from "@/components/mode-switcher";
 
 interface ToolbarButtonProps {
   icon: React.ElementType;
@@ -25,7 +33,7 @@ interface ToolbarButtonProps {
   className?: string;
 }
 
-export function DatabaseUpdateDeveloperTool() {
+export function RatingUpdateDeveloperTool() {
   const {
     isRunning,
     runProcess,
@@ -35,7 +43,7 @@ export function DatabaseUpdateDeveloperTool() {
     selectedFileName,
     successStackLength,
     errorStackLength,
-  } = useDatabaseUpdateStore();
+  } = useRatingUpdateStore();
 
   const [activePanel, setActivePanel] = React.useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = React.useState(false);
@@ -58,58 +66,38 @@ export function DatabaseUpdateDeveloperTool() {
     }
   }, [isTransitioning]);
 
-  const getPanelHeight = () => {
-    switch (activePanel) {
-      case "notification":
-        return "h-48";
-      case "accessibility":
-        return "h-64";
-      case "issues":
-        return "h-72";
-      case "share":
-        return "h-80";
-      default:
-        return "h-0";
-    }
-  };
-
   return (
-    <div
-      className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-background dark:bg-[#0F0F0F] ${
-        activePanel ? "rounded-b-xl border-t-0" : "rounded-xl"
-      } shadow-md z-50`}
-    >
+    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-background dark:bg-[#0F0F0F] rounded-2xl shadow-md z-50">
       <div
-        className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-0 backdrop-blur-sm border max-w-md w-full overflow-hidden shadow-2xl transition-all duration-500 ease-out ${
+        className={`fixed bottom-16 left-1/2 transform -translate-x-1/2 mb-0 rounded-2xl backdrop-blur-sm border overflow-hidden shadow-2xl transition-all duration-500 ease-out ${
           activePanel
-            ? `translate-y-0 opacity-100 scale-100 rounded-t-xl rounded-bl-none rounded-br-none ${getPanelHeight()}`
-            : "translate-y-4 opacity-0 scale-95 pointer-events-none h-0 rounded-xl"
+            ? "translate-y-0 opacity-100 scale-100"
+            : "translate-y-4 opacity-0 scale-95 pointer-events-none h-0 "
         }`}
       >
         <div className="relative w-full h-full">
-          <NotificationPanel
-            isVisible={activePanel === "notification" && !isTransitioning}
-          />
-          <AccessibilityPanel
-            isVisible={activePanel === "accessibility" && !isTransitioning}
-          />
-          <IssuesPanel
-            isVisible={activePanel === "issues" && !isTransitioning}
-          />
-          <SharePanel isVisible={activePanel === "share" && !isTransitioning} />
+          {activePanel === "info" && (
+            <InfoPanel isVisible={activePanel === "info" && !isTransitioning} />
+          )}
         </div>
       </div>
 
       <div
-        className={`flex items-center justify-center px-4 py-2 transition-all duration-500 ease-out ${
-          activePanel ? "rounded-b-xl border-t-0" : "rounded-xl"
-        }`}
+        className="flex items-center justify-center px-3 py-2 rounded-2xl transition-all duration-500 ease-out"
       >
-        <ToolbarButton
-          icon={Archive}
-          isActive={activePanel === "notification"}
-          onClick={() => handlePanelToggle("notification")}
-        />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="sm" variant="ghost" className="p-2">
+              <Link href="/" prefetch={false}>
+                <StoreIcon size={16} />
+                <span className="sr-only">FSX</span>
+              </Link>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Home</p>
+          </TooltipContent>
+        </Tooltip>
 
         <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
 
@@ -291,6 +279,15 @@ export function DatabaseUpdateDeveloperTool() {
           isActive={activePanel === "share"}
           onClick={() => handlePanelToggle("share")}
         />
+        <ToolbarButton
+          icon={InfoIcon}
+          isActive={activePanel === "info"}
+          onClick={() => handlePanelToggle("info")}
+        />
+
+        <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
+
+        <ModeSwitcher />
       </div>
     </div>
   );
@@ -347,199 +344,11 @@ const ColorPicker: React.FC<{ isActive?: boolean; onClick?: () => void }> = ({
   );
 };
 
-const NotificationPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
+const InfoPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
   return (
     <div
       className={`
-      absolute inset-0 p-6 transition-all duration-400 ease-out
-      ${
-        isVisible
-          ? "opacity-100 translate-y-0 scale-100"
-          : "opacity-0 translate-y-2 scale-98 pointer-events-none"
-      }
-    `}
-    >
-      <div className="flex items-center space-x-3 mb-4">
-        <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center transition-transform duration-300 hover:scale-110">
-          <User size={16} className="text-white" />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center space-x-2">
-            <span className="text-white font-medium">Jonas</span>
-            <Copy
-              size={14}
-              className="text-gray-400 hover:text-gray-300 transition-colors cursor-pointer"
-            />
-            <AtSign
-              size={14}
-              className="text-gray-400 hover:text-gray-300 transition-colors cursor-pointer"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="text-gray-300 text-sm mb-6 leading-relaxed">
-        The contrast ratio on this isn't passing AA contrast.
-      </div>
-
-      <div className="text-center">
-        <Button className="text-white font-medium hover:text-gray-300 transition-all duration-300 hover:scale-105">
-          View All
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-const AccessibilityPanel: React.FC<{ isVisible: boolean }> = ({
-  isVisible,
-}) => {
-  const issues = [
-    {
-      type: "advisory" as const,
-      selector: 'div[data-color="var(--ds-blue-600)"]',
-      description: ".cursor_cursorName__GrFIA",
-      className: "text-blue-400",
-    },
-    {
-      type: "warning" as const,
-      selector: 'div[data-color="var(--ds-red-700)"]',
-      description: ".cursor_cursorName__GrFIA",
-      className: "text-red-400",
-    },
-  ];
-
-  return (
-    <div
-      className={`
-      absolute inset-0 p-6 transition-all duration-400 ease-out
-      ${
-        isVisible
-          ? "opacity-100 translate-y-0 scale-100"
-          : "opacity-0 translate-y-2 scale-98 pointer-events-none"
-      }
-    `}
-    >
-      <div className="flex items-center space-x-6 mb-6">
-        <div className="flex items-center space-x-2 transition-all duration-300 hover:scale-105">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-gray-300 text-sm">Advisory</span>
-        </div>
-        <div className="flex items-center space-x-2 transition-all duration-300 hover:scale-105">
-          <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse" />
-          <span className="text-gray-300 text-sm">Warning</span>
-        </div>
-        <div className="flex items-center space-x-2 transition-all duration-300 hover:scale-105">
-          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-          <span className="text-gray-300 text-sm">Serious</span>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        {issues.map((issue, index) => (
-          <div
-            key={crypto.randomUUID()}
-            className="space-y-1 transition-all duration-300 hover:bg-gray-700/30 p-2 rounded-lg"
-            style={{
-              animationDelay: isVisible ? `${index * 100}ms` : "0ms",
-              transitionDelay: isVisible ? `${index * 50}ms` : "0ms",
-            }}
-          >
-            <div
-              className={`font-mono text-sm ${issue.className} transition-colors duration-300`}
-            >
-              {issue.selector}
-            </div>
-            <div className="text-orange-400 text-sm font-mono ml-4 transition-colors duration-300">
-              {issue.description}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const IssuesPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
-  const issues = [
-    {
-      severity: 0.03,
-      selector: "div.Home_cause_kdmgGl",
-      description: "became taller and shifting another element",
-      color: "border-green-500 text-green-400",
-    },
-    {
-      severity: 0.12,
-      selector: "div.phase-2",
-      description: "was added and shifted 2 other elements",
-      color: "border-orange-500 text-orange-400",
-    },
-  ];
-
-  return (
-    <div
-      className={`
-      absolute inset-0 p-6 transition-all duration-400 ease-out
-      ${
-        isVisible
-          ? "opacity-100 translate-y-0 scale-100"
-          : "opacity-0 translate-y-2 scale-98 pointer-events-none"
-      }
-    `}
-    >
-      <div className="flex items-center space-x-6 mb-6">
-        <span className="text-white font-medium transition-all duration-300 hover:scale-105">
-          All
-        </span>
-        <div className="flex items-center space-x-2 transition-all duration-300 hover:scale-105">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-gray-300 text-sm">0.01</span>
-        </div>
-        <div className="flex items-center space-x-2 transition-all duration-300 hover:scale-105">
-          <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse" />
-          <span className="text-gray-300 text-sm">0.10</span>
-        </div>
-        <div className="flex items-center space-x-2 transition-all duration-300 hover:scale-105">
-          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-          <span className="text-gray-300 text-sm">0.25</span>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        {issues.map((issue, index) => (
-          <div
-            key={crypto.randomUUID()}
-            className="flex items-start space-x-3 transition-all duration-300 hover:bg-gray-700/30 p-2 rounded-lg"
-            style={{
-              animationDelay: isVisible ? `${index * 150}ms` : "0ms",
-              transitionDelay: isVisible ? `${index * 75}ms` : "0ms",
-            }}
-          >
-            <div
-              className={`w-8 h-8 rounded-full border-2 ${issue.color} flex items-center justify-center text-xs font-mono transition-all duration-300 hover:scale-110`}
-            >
-              .{String(issue.severity).slice(1)}
-            </div>
-            <div className="flex-1">
-              <div className="text-blue-400 font-mono text-sm mb-1 transition-colors duration-300 hover:text-blue-300">
-                {issue.selector}
-              </div>
-              <div className="text-gray-400 text-sm transition-colors duration-300">
-                {issue.description}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const SharePanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
-  return (
-    <div
-      className={`
-      absolute inset-0 p-8 text-center transition-all duration-400 ease-out
+      inset-0 p-8 text-center transition-all duration-400 ease-out
       ${
         isVisible
           ? "opacity-100 translate-y-0 scale-100"

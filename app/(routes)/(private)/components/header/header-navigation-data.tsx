@@ -2,7 +2,6 @@ import {
 	HomeIcon,
 	type LucideIcon,
 	DatabaseIcon,
-	DatabaseZapIcon,
 	TreePalmIcon,
 	StickyNoteIcon,
 } from "lucide-react"
@@ -29,14 +28,9 @@ export const navigationData: Navigation = () => [
 		icon: StickyNoteIcon,
 	},
 	{
-		label: "Players Data",
-		href: "/canvas/players-data",
+		label: "Rating Update",
+		href: "/canvas/rating-update",
 		icon: DatabaseIcon,
-	},
-	{
-		label: "Players Tournament",
-		href: "/canvas/players-tournament",
-		icon: DatabaseZapIcon,
 	},
 	{
 		label: "🏝️",

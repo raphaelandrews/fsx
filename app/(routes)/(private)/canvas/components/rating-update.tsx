@@ -18,21 +18,24 @@ import {
   InfoIcon,
   MessageSquareIcon,
   CodeIcon,
+  TrophyIcon,
+  TrendingUpDownIcon,
+  RewindIcon,
 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as XLSX from "xlsx";
 import type z from "zod";
 
 import type {
-  DatabaseUpdateProps,
+  RatingUpdateProps,
   PlayerAPIResponse,
   PlayerDataFields,
   PlayerTournamentDataFields,
-} from "./database-update-types";
-import { DatabaseUpdateDeveloperTool } from "./database-update-developer-tool";
-import { DatabaseUpdateMotionGrid } from "./database-update-motion-grid";
+} from "./rating-update-types";
+import { RatingUpdateDeveloperTool } from "./rating-update-developer-tool";
+import { RatingUpdateMotionGrid } from "./rating-update-motion-grid";
 
-import { useDatabaseUpdateStore } from "@/lib/stores/database-update-store";
+import { useRatingUpdateStore } from "@/lib/stores/rating-update-store";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -69,7 +72,7 @@ import {
 } from "@/components/ui/popover";
 import { formSchema } from "../utils/form-schema";
 
-export function DatabaseUpdate() {
+export function RatingUpdate() {
   const {
     isRunning,
     stopProcess,
@@ -78,14 +81,14 @@ export function DatabaseUpdate() {
     setSelectedFileName,
     setSuccessStackLength,
     setErrorStackLength,
-  } = useDatabaseUpdateStore();
+  } = useRatingUpdateStore();
 
   const [currentUpdate, setCurrentUpdate] =
-    React.useState<DatabaseUpdateProps | null>(null);
-  const [successStack, setSuccessStack] = React.useState<DatabaseUpdateProps[]>(
+    React.useState<RatingUpdateProps | null>(null);
+  const [successStack, setSuccessStack] = React.useState<RatingUpdateProps[]>(
     []
   );
-  const [errorStack, setErrorStack] = React.useState<DatabaseUpdateProps[]>([]);
+  const [errorStack, setErrorStack] = React.useState<RatingUpdateProps[]>([]);
   const [successCount, setSuccessCount] = React.useState(0);
   const [errorCount, setErrorCount] = React.useState(0);
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -110,6 +113,7 @@ export function DatabaseUpdate() {
   });
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileReaderRef = React.useRef<FileReader | null>(null);
 
   React.useEffect(() => {
     if (!hasLoadedInitialData) {
@@ -182,7 +186,13 @@ export function DatabaseUpdate() {
         try {
           setCurrentStatusText("Reading Excel file...");
           const fileReader = new FileReader();
+          fileReaderRef.current = fileReader;
           fileReader.onload = async (e) => {
+            if (!useRatingUpdateStore.getState().isRunning) {
+              setCurrentStatusText("Process stopped by user.");
+              return;
+            }
+
             if (e.target?.result) {
               const data = new Uint8Array(e.target.result as ArrayBuffer);
               setCurrentStatusText("Parsing Excel data...");
@@ -318,7 +328,7 @@ export function DatabaseUpdate() {
               );
 
               for (let i = 1; i < jsonData.length; i++) {
-                if (!useDatabaseUpdateStore.getState().isRunning) {
+                if (!useRatingUpdateStore.getState().isRunning) {
                   setCurrentStatusText("Process stopped by user.");
                   break;
                 }
@@ -905,12 +915,19 @@ export function DatabaseUpdate() {
               }
             }
 
-            if (useDatabaseUpdateStore.getState().isRunning) {
+            if (useRatingUpdateStore.getState().isRunning) {
               toast.success("Database update process completed!");
               setCurrentStatusText("Update process finished.");
             }
             setIsRunning(false);
           };
+
+          fileReader.onerror = () => {
+            setIsRunning(false);
+            setCurrentStatusText("Error reading file.");
+            toast.error("Failed to read the Excel file.");
+          };
+
           fileReader.readAsArrayBuffer(file);
         } catch (error: unknown) {
           const errorMessage =
@@ -982,7 +999,7 @@ export function DatabaseUpdate() {
       setStopAction,
       setClearHistoryAction,
       setClearFileAction,
-    } = useDatabaseUpdateStore.getState();
+    } = useRatingUpdateStore.getState();
     setRunAction(handleRunClick);
     setStopAction(stopProcess);
     setClearHistoryAction(clearHistory);
@@ -1029,12 +1046,20 @@ export function DatabaseUpdate() {
     [errorCurrentPage, errorTotalPages]
   );
 
+  React.useEffect(() => {
+    if (!isRunning && fileReaderRef.current) {
+      fileReaderRef.current.abort();
+      fileReaderRef.current = null;
+      setCurrentStatusText("Process stopped by user.");
+    }
+  }, [isRunning]);
+
   return (
     <>
-      <DatabaseUpdateDeveloperTool />
+      <RatingUpdateDeveloperTool />
 
       {isRunning && (
-        <DatabaseUpdateMotionGrid currentStatusText={currentStatusText} />
+        <RatingUpdateMotionGrid currentStatusText={currentStatusText} />
       )}
 
       <div className="absolute top-4 right-4 flex flex-col items-end gap-4">
@@ -1234,6 +1259,14 @@ export function DatabaseUpdate() {
                                           .dataFields as PlayerDataFields
                                       )?.id
                                     }
+                                    {
+                                      (
+                                        update.success.dataFields as {
+                                          player?: PlayerDataFields;
+                                          playerTournament?: PlayerTournamentDataFields;
+                                        }
+                                      )?.player?.id
+                                    }
                                   </p>
                                 </div>
                                 {(update.success.dataFields as PlayerDataFields)
@@ -1424,7 +1457,7 @@ export function DatabaseUpdate() {
                                   <>
                                     <div className="flex items-center gap-2">
                                       <div className="p-1 bg-accent rounded-sm">
-                                        <UserIcon size={14} />
+                                        <TrophyIcon size={14} />
                                       </div>
                                       <p className="text-foreground/60">
                                         Tournament ID:{" "}
@@ -1440,7 +1473,7 @@ export function DatabaseUpdate() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <div className="p-1 bg-accent rounded-sm">
-                                        <UserIcon size={14} />
+                                        <TrendingUpDownIcon size={14} />
                                       </div>
                                       <p className="text-foreground/60">
                                         Variation:{" "}
@@ -1456,7 +1489,7 @@ export function DatabaseUpdate() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <div className="p-1 bg-accent rounded-sm">
-                                        <UserIcon size={14} />
+                                        <RewindIcon size={14} />
                                       </div>
                                       <p className="text-foreground/60">
                                         Old Rating:{" "}

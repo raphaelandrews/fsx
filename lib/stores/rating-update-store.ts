@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-interface DatabaseUpdateState {
+interface RatingUpdateState {
   isRunning: boolean;
   selectedFileName: string | null;
   successStackLength: number;
@@ -12,7 +12,7 @@ interface DatabaseUpdateState {
   clearFile: () => void;
 }
 
-interface DatabaseUpdateActions {
+interface RatingUpdateActions {
   setSelectedFileName: (fileName: string | null) => void;
   setSuccessStackLength: (length: number) => void;
   setErrorStackLength: (length: number) => void;
@@ -22,7 +22,7 @@ interface DatabaseUpdateActions {
   setClearFileAction: (action: () => void) => void;
 }
 
-export const useDatabaseUpdateStore = create<DatabaseUpdateState & DatabaseUpdateActions>((set) => ({
+export const useRatingUpdateStore = create<RatingUpdateState & RatingUpdateActions>((set) => ({
   isRunning: false,
   selectedFileName: null,
   successStackLength: 0,
@@ -32,7 +32,7 @@ export const useDatabaseUpdateStore = create<DatabaseUpdateState & DatabaseUpdat
   setSuccessStackLength: (length) => set({ successStackLength: length }),
   setErrorStackLength: (length) => set({ errorStackLength: length }),
   runProcess: () => console.warn("runProcess action not set"),
-  stopProcess: () => console.warn("stopProcess action not set"),
+  stopProcess: () => set({ isRunning: false }),
   clearHistory: () => console.warn("clearHistory action not set"),
   clearFile: () => console.warn("clearFile action not set"),
   setRunAction: (action) => set({ runProcess: action }),

@@ -646,13 +646,13 @@ const states = {
   },
 };
 
-interface DatabaseUpdateMotionGridProps {
+interface RatingUpdateMotionGridProps {
   currentStatusText: string;
 }
 
-export function DatabaseUpdateMotionGrid({
+export function RatingUpdateMotionGrid({
   currentStatusText,
-}: DatabaseUpdateMotionGridProps) {
+}: RatingUpdateMotionGridProps) {
   const getAnimationState = (text: string): keyof typeof states => {
     const lowercasedText = text.toLowerCase();
     if (lowercasedText.includes("initializing")) return "initializing";

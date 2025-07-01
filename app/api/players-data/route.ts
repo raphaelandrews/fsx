@@ -68,7 +68,7 @@ export async function POST(req: Request) {
 		};
 
 		await db.insert(players).values(createData);
-		console.log(createData)
+
 		return new NextResponse(
 			JSON.stringify({
 				dataFields: createData,

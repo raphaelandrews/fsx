@@ -220,7 +220,7 @@ export async function POST(req: Request) {
 		if (!playerDataForResponse || !playerTournamentDataForResponse) {
 			throw new Error("Transaction completed but response data is missing.");
 		}
-		console.log(`player: ${playerDataForResponse}`, `playerTournament: ${playerTournamentDataForResponse}`)
+	
 		return new NextResponse(
 			JSON.stringify({
 				dataFields: {
