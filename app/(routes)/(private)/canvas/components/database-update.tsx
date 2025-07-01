@@ -416,6 +416,42 @@ export function DatabaseUpdate() {
                     ? String(ratingTypeRaw).trim()
                     : undefined;
 
+                if (hasTournamentColumns) {
+                  if (
+                    tournamentId === undefined ||
+                    tournamentId === null ||
+                    variation === undefined ||
+                    variation === null ||
+                    !ratingType
+                  ) {
+                    toast.error(
+                      `Row ${
+                        i + 1
+                      }: Tournament columns present but some values are empty or invalid.`
+                    );
+                    setErrorStack((prev) => [
+                      {
+                        _uuid: crypto.randomUUID(),
+                        operation: "Player Tournament Update Failed",
+                        table: "Players & Tournaments",
+                        status: 400,
+                        error: {
+                          message: `Row ${
+                            i + 1
+                          }: Empty or invalid tournament data. All fields required when columns tournamentId, variation and ratingType present.`,
+                        },
+                      },
+                      ...prev,
+                    ]);
+                    setErrorCount((prev) => prev + 1);
+                    setCurrentIndex((prev) => prev + 1);
+                    setCurrentStatusText(
+                      `Row ${i + 1}: Skipping due to empty tournament data.`
+                    );
+                    continue;
+                  }
+                }
+
                 if (
                   ratingType !== undefined &&
                   !["blitz", "rapid", "classic"].includes(ratingType)
@@ -653,10 +689,8 @@ export function DatabaseUpdate() {
                   };
 
                   if (hasPlayerData) {
-                    // Both player and tournament data present
                     if (id === 0) {
                       if (!name) {
-                        // Handle error for missing name
                         toast.error(
                           `Row ${
                             i + 1
@@ -682,13 +716,11 @@ export function DatabaseUpdate() {
                       apiUrl = "/api/players-tournament";
                       httpMethod = "POST";
                     } else {
-                      // Update both player and tournament data
                       operationText = `Updating Player ID ${id} and Tournament Relation`;
                       apiUrl = `/api/players-tournament/${id}`;
                       httpMethod = "PUT";
                     }
                   } else {
-                    // Only tournament data
                     if (id === 0) {
                       if (!name) {
                         toast.error(
@@ -706,7 +738,6 @@ export function DatabaseUpdate() {
                     }
                   }
                 } else {
-                  // Only player data
                   if (id === 0) {
                     if (!name) {
                       toast.error(`Row ${i + 1}: Missing name for new player.`);
@@ -1278,7 +1309,112 @@ export function DatabaseUpdate() {
                                     </p>
                                   </div>
                                 )}
-                                {/* Display Tournament Data if available */}
+                                {(
+                                  update.success.dataFields as {
+                                    player?: PlayerDataFields;
+                                    playerTournament?: PlayerTournamentDataFields;
+                                  }
+                                )?.player && (
+                                  <>
+                                    {(
+                                      update.success.dataFields as {
+                                        player?: PlayerDataFields;
+                                        playerTournament?: PlayerTournamentDataFields;
+                                      }
+                                    )?.player?.birth && (
+                                      <div className="flex items-center gap-2">
+                                        <div className="p-1 bg-accent rounded-sm">
+                                          <CakeIcon size={14} />
+                                        </div>
+                                        <p className="text-foreground/60">
+                                          Birth:{" "}
+                                          {format(
+                                            new Date(
+                                              (
+                                                update.success.dataFields as {
+                                                  player?: PlayerDataFields;
+                                                  playerTournament?: PlayerTournamentDataFields;
+                                                }
+                                              )?.player?.birth as string
+                                            ),
+                                            "MM/dd/yyyy"
+                                          )}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {(
+                                      update.success.dataFields as {
+                                        player?: PlayerDataFields;
+                                        playerTournament?: PlayerTournamentDataFields;
+                                      }
+                                    )?.player?.sex != null && (
+                                      <div className="flex items-center gap-2">
+                                        <div className="p-1 bg-accent rounded-sm">
+                                          <VenusAndMarsIcon size={14} />
+                                        </div>
+                                        <p className="text-foreground/60">
+                                          Sex:{" "}
+                                          {(
+                                            (
+                                              update.success.dataFields as {
+                                                player?: PlayerDataFields;
+                                                playerTournament?: PlayerTournamentDataFields;
+                                              }
+                                            )?.player?.sex as boolean
+                                          )
+                                            .toString()
+                                            .toUpperCase()}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {(
+                                      update.success.dataFields as {
+                                        player?: PlayerDataFields;
+                                        playerTournament?: PlayerTournamentDataFields;
+                                      }
+                                    )?.player?.clubId && (
+                                      <div className="flex items-center gap-2">
+                                        <div className="p-1 bg-accent rounded-sm">
+                                          <StoreIcon size={14} />
+                                        </div>
+                                        <p className="text-foreground/60">
+                                          Club ID:{" "}
+                                          {
+                                            (
+                                              update.success.dataFields as {
+                                                player?: PlayerDataFields;
+                                                playerTournament?: PlayerTournamentDataFields;
+                                              }
+                                            )?.player?.clubId
+                                          }
+                                        </p>
+                                      </div>
+                                    )}
+                                    {(
+                                      update.success.dataFields as {
+                                        player?: PlayerDataFields;
+                                        playerTournament?: PlayerTournamentDataFields;
+                                      }
+                                    )?.player?.locationId && (
+                                      <div className="flex items-center gap-2">
+                                        <div className="p-1 bg-accent rounded-sm">
+                                          <MapPinnedIcon size={14} />
+                                        </div>
+                                        <p className="text-foreground/60">
+                                          Location ID:{" "}
+                                          {
+                                            (
+                                              update.success.dataFields as {
+                                                player?: PlayerDataFields;
+                                                playerTournament?: PlayerTournamentDataFields;
+                                              }
+                                            )?.player?.locationId
+                                          }
+                                        </p>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
                                 {(
                                   update.success.dataFields as {
                                     player?: PlayerDataFields;

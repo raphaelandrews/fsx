@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 				headers: { "Content-Type": "application/json" },
 			});
 		}
-		
+
 		const body: PlayerCreateRequestBody = await req.json();
 
 		const { name, birth, sex, clubId, locationId } = body;
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 			});
 		}
 
-		let parsedBirth: Date | null = null; 
+		let parsedBirth: Date | null = null;
 
 		if (birth !== null && birth !== undefined && birth !== "" && String(birth).toLowerCase() !== "undefined") {
 			try {
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 						headers: { "Content-Type": "application/json" },
 					});
 				}
-				throw error; 
+				throw error;
 			}
 		}
 
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
 		};
 
 		await db.insert(players).values(createData);
-
+		console.log(createData)
 		return new NextResponse(
 			JSON.stringify({
 				dataFields: createData,

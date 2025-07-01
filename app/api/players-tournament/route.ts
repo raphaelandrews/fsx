@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { players, playersToTournaments, ratingTypeEnum } from "@/db/schema";
+import { players, playersToTournaments, tournaments, ratingTypeEnum } from "@/db/schema";
 import { getNewId } from "@/lib/db-id-helpers";
 import { parseBirthDate } from "@/lib/parse-birth-date";
 import { createClient } from "@/utils/supabase/server";
@@ -117,6 +118,34 @@ export async function POST(req: Request) {
 			);
 		}
 
+		const tournament = await db
+			.select({ ratingType: tournaments.ratingType })
+			.from(tournaments)
+			.where(eq(tournaments.id, tournamentId))
+			.limit(1);
+
+		if (!tournament || tournament.length === 0) {
+			return new NextResponse(
+				JSON.stringify({ message: "Tournament not found." }),
+				{
+					status: 404,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
+		}
+
+		if (tournament[0].ratingType !== ratingType) {
+			return new NextResponse(
+				JSON.stringify({
+					message: `Rating type mismatch. Tournament uses '${tournament[0].ratingType}' rating, but creation attempted with '${ratingType}'.`
+				}),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
+		}
+
 		const playerId = await getNewId(players);
 		const playerToTournamentId = await getNewId(playersToTournaments);
 		const oldRating = 1900;
@@ -191,7 +220,7 @@ export async function POST(req: Request) {
 		if (!playerDataForResponse || !playerTournamentDataForResponse) {
 			throw new Error("Transaction completed but response data is missing.");
 		}
-
+		console.log(`player: ${playerDataForResponse}`, `playerTournament: ${playerTournamentDataForResponse}`)
 		return new NextResponse(
 			JSON.stringify({
 				dataFields: {

@@ -1,15 +1,21 @@
 import { NextResponse } from "next/server";
+import type { PgColumn } from "drizzle-orm/pg-core";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { players, playersToTournaments, ratingTypeEnum } from "@/db/schema";
+import { players, playersToTournaments, tournaments, ratingTypeEnum } from "@/db/schema";
 import { getNewId } from "@/lib/db-id-helpers";
 import { createClient } from "@/utils/supabase/server";
+import { parseBirthDate } from "@/lib/parse-birth-date";
 
 interface PlayerTournamentUpdateRequestBody {
 	tournamentId: number;
 	variation: number;
 	ratingType: typeof ratingTypeEnum.enumValues[number];
+	birth?: string | number | null;
+	sex?: boolean;
+	clubId?: number | null;
+	locationId?: number;
 }
 
 type SelectedPlayerFields = {
@@ -43,9 +49,27 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			});
 		}
 
+		const player = await db.select({
+			birth: players.birth,
+			locationId: players.locationId,
+			name: players.name,
+			id: players.id,
+		}).from(players).where(eq(players.id, playerId)).limit(1);
+
+		if (player.length === 0) {
+			return new NextResponse(JSON.stringify({ message: "Player not found." }), {
+				status: 404,
+				headers: { "Content-Type": "application/json" },
+			});
+		}
+
+		const currentBirth = player[0].birth;
+		const currentLocationId = player[0].locationId;
+		const currentName = player[0].name;
+
 		const body: PlayerTournamentUpdateRequestBody = await request.json();
 
-		const { tournamentId, variation, ratingType } = body;
+		const { tournamentId, variation, ratingType, birth, sex, clubId, locationId } = body;
 
 		const missingFields = [];
 		if (!tournamentId) missingFields.push("tournamentId");
@@ -53,10 +77,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 		if (!ratingType) missingFields.push("ratingType");
 
 		if (missingFields.length > 0) {
-			return new NextResponse(JSON.stringify({ message: `Missing mandatory fields: ${missingFields.join(", ")}.` }), {
-				status: 400,
-				headers: { "Content-Type": "application/json" },
-			});
+			return new NextResponse(
+				JSON.stringify({ message: `Missing mandatory fields: ${missingFields.join(", ")}.` }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
 		}
 
 		if (!Number.isInteger(variation)) {
@@ -102,6 +129,34 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			);
 		}
 
+		const tournament = await db
+			.select({ ratingType: tournaments.ratingType })
+			.from(tournaments)
+			.where(eq(tournaments.id, tournamentId))
+			.limit(1);
+
+		if (!tournament || tournament.length === 0) {
+			return new NextResponse(
+				JSON.stringify({ message: "Tournament not found." }),
+				{
+					status: 404,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
+		}
+
+		if (tournament[0].ratingType !== ratingType) {
+			return new NextResponse(
+				JSON.stringify({
+					message: `Rating type mismatch. Tournament uses '${tournament[0].ratingType}' rating, but update attempted with '${ratingType}'.`
+				}),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
+		}
+
 		const playerToTournamentId = await getNewId(playersToTournaments);
 
 		const existingPlayer = await db
@@ -121,6 +176,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 		let playerDataForResponse: SelectedPlayerFields | undefined;
 		let playerTournamentDataForResponse: typeof playersToTournaments.$inferSelect | undefined;
+		let updateData: Partial<typeof players.$inferInsert> = {};
+
+		const fieldsToReturn: Record<string, PgColumn> = {
+			id: players.id,
+			name: players.name,
+			[ratingType]: players[ratingType],
+		};
 
 		await db.transaction(async (tx) => {
 			const currentRating = currentPlayer[ratingType];
@@ -129,29 +191,56 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			}
 			const newRating = currentRating + variation;
 
-			const playerUpdateData: Partial<typeof players.$inferInsert> = {
+			updateData = {
 				[ratingType]: newRating,
 				active: true,
 			};
 
-			const fieldsToReturn = {
-				id: players.id,
-				name: players.name,
-				[ratingType]: players[ratingType],
-			};
+			if (birth !== undefined) {
+				if (currentBirth === null) {
+					let parsedBirth: Date | null | undefined;
+					try {
+						parsedBirth = parseBirthDate(birth);
+					} catch (error) {
+						if (error instanceof Error) {
+							throw error;
+						}
+						throw error;
+					}
+					updateData.birth = parsedBirth;
+					if (players.birth) fieldsToReturn.birth = players.birth;
+				}
+			}
+			if (sex !== undefined) {
+				updateData.sex = sex;
+				if (players.sex) fieldsToReturn.sex = players.sex;
+			}
+			if (clubId !== undefined) {
+				updateData.clubId = clubId === 0 ? null : clubId;
+				if (players.clubId) fieldsToReturn.clubId = players.clubId;
+			}
+			if (locationId !== undefined) {
+				if (currentLocationId === null) {
+					updateData.locationId = locationId;
+					if (players.locationId) fieldsToReturn.locationId = players.locationId;
+				}
+			}
 
 			const playerUpdateResult = await tx.update(players)
-				.set(playerUpdateData)
+				.set(updateData)
 				.where(eq(players.id, playerId))
 				.returning(fieldsToReturn);
 
 			if (playerUpdateResult.length > 0) {
-				playerDataForResponse = playerUpdateResult[0] as SelectedPlayerFields;
+				playerDataForResponse = playerUpdateResult[0] as unknown as SelectedPlayerFields;
 			} else {
 				throw new Error("Failed to update player record.");
 			}
 
-			const oldRatingValue = currentRating;
+			const oldRatingValue = currentPlayer[ratingType];
+			if (typeof oldRatingValue !== 'number') {
+				throw new Error(`Invalid old rating value for type ${ratingType}`);
+			}
 
 			const insertData = {
 				id: playerToTournamentId,
@@ -159,7 +248,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 				tournamentId: tournamentId,
 				variation: variation,
 				oldRating: oldRatingValue,
-			};
+			} as const;
 
 			const result = await tx.insert(playersToTournaments)
 				.values(insertData)
@@ -176,20 +265,24 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			throw new Error("Transaction completed but response data is missing.");
 		}
 
+		const updatedFields = Object.keys(updateData).filter(key => key !== ratingType && key !== 'active');
+		const fieldsList = [...updatedFields, 'rating', 'tournament'].filter(Boolean);
+
 		return new NextResponse(
 			JSON.stringify({
 				dataFields: {
 					player: playerDataForResponse,
 					playerTournament: playerTournamentDataForResponse,
 				},
-				message: `Player ID ${playerId} updated. Player-tournament record created.`,
+				message: `Player ${currentName} - ID ${playerId} Updated. Fields: ${fieldsList.join(", ")}`,
 			}),
 			{
 				status: 200,
 				headers: {
 					"Content-Type": "application/json",
 				},
-			});
+			}
+		);
 
 	} catch (error) {
 		console.error("Error in PUT /api/players-tournament:", error);

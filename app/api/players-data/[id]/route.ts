@@ -113,7 +113,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 				headers: { "Content-Type": "application/json" },
 			});
 		}
-
+		console.log(playerId,
+			currentName,
+			result[0])
 		return new NextResponse(
 			JSON.stringify({
 				dataFields: {
