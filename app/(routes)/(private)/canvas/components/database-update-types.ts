@@ -7,22 +7,30 @@ export interface PlayerDataFields {
 	locationId: number | null;
 }
 
+export interface PlayerTournamentDataFields {
+	id: number;
+	playerId: number;
+	tournamentId: number;
+	variation: number;
+	oldRating: number;
+}
+
 export interface PlayerAPIResponse {
-	dataFields: PlayerDataFields;
 	message: string;
+	dataFields: PlayerDataFields | { player: PlayerDataFields; playerTournament: PlayerTournamentDataFields };
 }
 
 export interface DatabaseUpdateProps {
 	_uuid?: string;
-	operation?: string
-	status?: number
-	table: string
+	operation: string;
+	table: string;
+	status?: number;
 	success?: {
-		dataFields?: PlayerDataFields; 
-		message?: string
-	}
+		dataFields: PlayerDataFields | { player: PlayerDataFields; playerTournament: PlayerTournamentDataFields };
+		message: string;
+	};
 	error?: {
-		message: string,
-		stack?: string,
-	}
+		message: string;
+		stack?: string;
+	};
 }

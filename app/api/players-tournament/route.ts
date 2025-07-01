@@ -23,11 +23,11 @@ type SelectedPlayerFields = {
 	blitz?: typeof players.$inferSelect.blitz;
 	rapid?: typeof players.$inferSelect.rapid;
 	classic?: typeof players.$inferSelect.classic;
-	active: typeof players.$inferSelect.active; 
-	birth: typeof players.$inferSelect.birth;   
-	sex: typeof players.$inferSelect.sex;     
-	clubId: typeof players.$inferSelect.clubId; 
-	locationId: typeof players.$inferSelect.locationId; 
+	active: typeof players.$inferSelect.active;
+	birth: typeof players.$inferSelect.birth;
+	sex: typeof players.$inferSelect.sex;
+	clubId: typeof players.$inferSelect.clubId;
+	locationId: typeof players.$inferSelect.locationId;
 };
 
 export async function POST(req: Request) {
@@ -74,6 +74,28 @@ export async function POST(req: Request) {
 			);
 		}
 
+		if (!Number.isInteger(variation)) {
+			return new NextResponse(
+				JSON.stringify({ message: "Variation must be an integer." }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
+		}
+
+		if (variation < -100 || variation > 100) {
+			return new NextResponse(
+				JSON.stringify({
+					message: "Variation must be between -100 and 100 points."
+				}),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
+		}
+
 		const validRatingTypes = ratingTypeEnum.enumValues;
 		if (!validRatingTypes.includes(ratingType)) {
 			return new NextResponse(
@@ -85,9 +107,19 @@ export async function POST(req: Request) {
 			);
 		}
 
+		if (tournamentId <= 0 || !Number.isInteger(tournamentId)) {
+			return new NextResponse(
+				JSON.stringify({ message: "Tournament ID must be a positive integer." }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
+		}
+
 		const playerId = await getNewId(players);
 		const playerToTournamentId = await getNewId(playersToTournaments);
-		const oldRating = 1900; 
+		const oldRating = 1900;
 
 		let parsedBirth: Date | null = null;
 
@@ -127,19 +159,19 @@ export async function POST(req: Request) {
 		let playerDataForResponse: SelectedPlayerFields | undefined;
 		let playerTournamentDataForResponse: typeof playersToTournaments.$inferSelect | undefined;
 
+		const fieldsToReturn = {
+			id: players.id,
+			name: players.name,
+			[ratingType]: players[ratingType],
+			active: players.active,
+			birth: players.birth,
+			sex: players.sex,
+			clubId: players.clubId,
+			locationId: players.locationId,
+		};
+
 		await db.transaction(async (tx) => {
-			const playerResult = await tx.insert(players).values(playerInsertData).returning({
-				id: players.id,
-				name: players.name,
-				blitz: players.blitz,
-				rapid: players.rapid,
-				classic: players.classic,
-				active: players.active,
-				birth: players.birth,
-				sex: players.sex,
-				clubId: players.clubId,
-				locationId: players.locationId,
-			});
+			const playerResult = await tx.insert(players).values(playerInsertData).returning(fieldsToReturn);
 
 			if (playerResult.length > 0) {
 				playerDataForResponse = playerResult[0] as SelectedPlayerFields;
@@ -176,7 +208,7 @@ export async function POST(req: Request) {
 			}
 		);
 	} catch (error) {
-		console.error("Error in POST /api/players-tournament:", error); 
+		console.error("Error in POST /api/players-tournament:", error);
 
 		if (error instanceof SyntaxError && error.message.includes("JSON")) {
 			return new NextResponse(JSON.stringify({ message: `Invalid JSON body. Please ensure your request body is valid JSON: ${error.message}` }), {

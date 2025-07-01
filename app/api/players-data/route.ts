@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { players } from "@/db/schema";

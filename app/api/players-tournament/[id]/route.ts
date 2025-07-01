@@ -44,6 +44,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 		}
 
 		const body: PlayerTournamentUpdateRequestBody = await request.json();
+
 		const { tournamentId, variation, ratingType } = body;
 
 		const missingFields = [];
@@ -58,11 +59,46 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			});
 		}
 
+		if (!Number.isInteger(variation)) {
+			return new NextResponse(
+				JSON.stringify({ message: "Variation must be an integer." }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
+		}
+
+		if (variation < -100 || variation > 100) {
+			return new NextResponse(
+				JSON.stringify({
+					message: "Variation must be between -100 and 100 points."
+				}),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
+		}
+
 		const validRatingTypes = ratingTypeEnum.enumValues;
 		if (!validRatingTypes.includes(ratingType)) {
 			return new NextResponse(
-				`Invalid rating type '${ratingType}'. Must be one of: ${validRatingTypes.join(", ")}.`,
-				{ status: 400 }
+				JSON.stringify({ message: `Invalid rating type '${ratingType}'. Must be one of: ${validRatingTypes.join(", ")}.` }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
+		}
+
+		if (tournamentId <= 0 || !Number.isInteger(tournamentId)) {
+			return new NextResponse(
+				JSON.stringify({ message: "Tournament ID must be a positive integer." }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				}
 			);
 		}
 
@@ -74,7 +110,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			.where(eq(players.id, playerId))
 			.limit(1);
 
-		if (!existingPlayer || existingPlayer.length === 0) { 
+		if (!existingPlayer || existingPlayer.length === 0) {
 			return new NextResponse(JSON.stringify({ message: "Player not found." }), {
 				status: 404,
 				headers: { "Content-Type": "application/json" },
@@ -101,9 +137,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			const fieldsToReturn = {
 				id: players.id,
 				name: players.name,
-				blitz: players.blitz,
-				rapid: players.rapid,
-				classic: players.classic,
+				[ratingType]: players[ratingType],
 			};
 
 			const playerUpdateResult = await tx.update(players)
@@ -158,7 +192,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			});
 
 	} catch (error) {
-		console.error("Error in PUT /api/players-tournament:", error); 
+		console.error("Error in PUT /api/players-tournament:", error);
 
 		if (error instanceof SyntaxError && error.message.includes("JSON")) {
 			return new NextResponse(JSON.stringify({ message: `Invalid JSON body. Please ensure your request body is valid JSON: ${error.message}` }), {

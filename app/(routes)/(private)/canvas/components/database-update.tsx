@@ -21,12 +21,13 @@ import {
 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as XLSX from "xlsx";
-import z from "zod";
+import type z from "zod";
 
 import type {
   DatabaseUpdateProps,
   PlayerAPIResponse,
   PlayerDataFields,
+  PlayerTournamentDataFields,
 } from "./database-update-types";
 import { DatabaseUpdateDeveloperTool } from "./database-update-developer-tool";
 import { DatabaseUpdateMotionGrid } from "./database-update-motion-grid";
@@ -66,32 +67,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { formSchema } from "../utils/form-schema";
 
-const createFormSchema = () => {
-  const fileSchema = z
-    .instanceof(File, { message: "Please select a file." })
-    .refine(
-      (file) => {
-        if (!file) return false;
-        const allowedExtensions = [".xlsx", ".xls"];
-        const fileExtension = file.name
-          .substring(file.name.lastIndexOf("."))
-          .toLowerCase();
-        return allowedExtensions.includes(fileExtension);
-      },
-      {
-        message: "Only Excel files (.xlsx, .xls) are allowed.",
-      }
-    );
-
-  return z.object({
-    file: fileSchema,
-  });
-};
-
-const formSchema = createFormSchema();
-
-export default function DatabaseUpdate() {
+export function DatabaseUpdate() {
   const {
     isRunning,
     stopProcess,
@@ -173,6 +151,15 @@ export default function DatabaseUpdate() {
     setErrorStackLength(errorStack.length);
   }, [errorStack, setErrorStackLength]);
 
+  const handleClearFileClick = useCallback(() => {
+    form.resetField("file");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    setSelectedFileName(null);
+    toast.info("File input cleared.");
+  }, [form, setSelectedFileName]);
+
   const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = useCallback(
     async (values) => {
       setIsRunning(true);
@@ -210,7 +197,25 @@ export default function DatabaseUpdate() {
                 }
               );
 
-              setTotalUpdates(jsonData.length > 1 ? jsonData.length - 1 : 0);
+              const nonEmptyRows = jsonData
+                .slice(1)
+                .filter((row) =>
+                  row.some(
+                    (cell) => cell !== null && cell !== undefined && cell !== ""
+                  )
+                );
+
+              if (nonEmptyRows.length === 0) {
+                handleClearFileClick();
+                toast.error(
+                  "File contains no data rows or all rows are empty."
+                );
+                setIsRunning(false);
+                setCurrentStatusText("Error: No valid data rows found.");
+                return;
+              }
+
+              setTotalUpdates(nonEmptyRows.length);
 
               const headerRow = jsonData[0] as string[];
               const headerMap = headerRow.reduce(
@@ -225,10 +230,84 @@ export default function DatabaseUpdate() {
                 {}
               );
 
+              const availableColumns = Object.keys(headerMap);
+              const hasPlayerDataColumns = [
+                "name",
+                "sex",
+                "birth",
+                "locationid",
+                "clubid",
+              ].some((col) => col in headerMap);
+              const hasTournamentColumns = [
+                "tournamentid",
+                "variation",
+                "ratingtype",
+              ].every((col) => col in headerMap);
+              const hasPartialTournamentColumns = [
+                "tournamentid",
+                "variation",
+                "ratingtype",
+              ].some((col) => col in headerMap);
+
+              if (
+                availableColumns.length === 1 &&
+                availableColumns[0] === "id"
+              ) {
+                handleClearFileClick();
+                toast.error(
+                  "File contains only the 'id' column. Additional data columns are required."
+                );
+                setIsRunning(false);
+                setCurrentStatusText("Error: Only 'id' column present.");
+                return;
+              }
+
+              if (hasPartialTournamentColumns && !hasTournamentColumns) {
+                handleClearFileClick();
+                toast.error(
+                  "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be included."
+                );
+                setTotalUpdates(0);
+                setIsRunning(false);
+                setCurrentStatusText("Error: Incomplete tournament columns.");
+                return;
+              }
+
+              if (!hasPlayerDataColumns && !hasTournamentColumns) {
+                handleClearFileClick();
+                toast.error(
+                  "File must contain either player data columns or complete tournament columns."
+                );
+                setIsRunning(false);
+                setCurrentStatusText("Error: No valid data columns found.");
+                return;
+              }
+
+              const hasTournamentId = "tournamentid" in headerMap;
+              const hasVariation = "variation" in headerMap;
+              const hasRatingType = "ratingtype" in headerMap;
+              const tournamentColumnsCount = [
+                hasTournamentId,
+                hasVariation,
+                hasRatingType,
+              ].filter(Boolean).length;
+
+              if (tournamentColumnsCount > 0 && tournamentColumnsCount < 3) {
+                handleClearFileClick();
+                toast.error(
+                  "If any tournament-related column (tournamentId, variation, ratingType) is present, all three must be included."
+                );
+                setIsRunning(false);
+                setCurrentStatusText("Error: Incomplete tournament columns.");
+                return;
+              }
+
               if (headerMap.id === undefined) {
+                handleClearFileClick();
                 toast.error(
                   "Mandatory column 'id' is missing in the Excel file."
                 );
+                setTotalUpdates(0);
                 setIsRunning(false);
                 setCurrentStatusText("Error: 'id' column missing.");
                 return;
@@ -245,6 +324,16 @@ export default function DatabaseUpdate() {
                 }
 
                 const row = jsonData[i] as (string | number | null)[];
+
+                if (
+                  row.every(
+                    (cell) => cell === null || cell === undefined || cell === ""
+                  )
+                ) {
+                  setCurrentStatusText(`Row ${i + 1}: Skipping empty row.`);
+                  setCurrentIndex((prev) => prev + 1);
+                  continue;
+                }
 
                 const id =
                   headerMap.id !== undefined
@@ -297,19 +386,29 @@ export default function DatabaseUpdate() {
                     ? Number.parseInt(String(row[headerMap.locationid]))
                     : undefined;
 
+                const tournamentIdRaw =
+                  headerMap.tournamentid !== undefined
+                    ? row[headerMap.tournamentid]
+                    : undefined;
+
                 const tournamentId =
-                  headerMap.tournamentId !== undefined
-                    ? Number.parseInt(String(row[headerMap.tournamentId]))
-                    : null;
+                  tournamentIdRaw !== undefined && tournamentIdRaw !== null
+                    ? Number.parseInt(String(tournamentIdRaw))
+                    : undefined;
+
+                const variationRaw =
+                  headerMap.variation !== undefined
+                    ? row[headerMap.variation]
+                    : undefined;
 
                 const variation =
-                  headerMap.variation !== undefined
-                    ? Number.parseInt(String(row[headerMap.variation]))
-                    : null;
+                  variationRaw !== undefined && variationRaw !== null
+                    ? Number.parseInt(String(variationRaw))
+                    : undefined;
 
                 const ratingTypeRaw =
-                  headerMap.ratingType !== undefined
-                    ? row[headerMap.ratingType]
+                  headerMap.ratingtype !== undefined
+                    ? row[headerMap.ratingtype]
                     : undefined;
 
                 const ratingType =
@@ -317,8 +416,105 @@ export default function DatabaseUpdate() {
                     ? String(ratingTypeRaw).trim()
                     : undefined;
 
-                if (id === null || Number.isNaN(id)) {
-                  toast.error(`Row ${i + 1}: Invalid or missing 'id' value.`);
+                if (
+                  ratingType !== undefined &&
+                  !["blitz", "rapid", "classic"].includes(ratingType)
+                ) {
+                  toast.error(
+                    `Row ${
+                      i + 1
+                    }: Invalid rating type. Must be one of: blitz, rapid, classic.`
+                  );
+                  setErrorStack((prev) => [
+                    {
+                      _uuid: crypto.randomUUID(),
+                      operation: "Player Tournament Update Failed",
+                      table: "Players & Tournaments",
+                      status: 400,
+                      error: {
+                        message: `Row ${
+                          i + 1
+                        }: Invalid rating type '${ratingType}'.`,
+                      },
+                    },
+                    ...prev,
+                  ]);
+                  setErrorCount((prev) => prev + 1);
+                  setCurrentIndex((prev) => prev + 1);
+                  setCurrentStatusText(
+                    `Row ${i + 1}: Skipping due to invalid rating type.`
+                  );
+                  continue;
+                }
+
+                if (
+                  tournamentId !== undefined &&
+                  (tournamentId <= 0 || !Number.isInteger(tournamentId))
+                ) {
+                  toast.error(
+                    `Row ${i + 1}: Tournament ID must be a positive integer.`
+                  );
+                  setErrorStack((prev) => [
+                    {
+                      _uuid: crypto.randomUUID(),
+                      operation: "Player Tournament Update Failed",
+                      table: "Players & Tournaments",
+                      status: 400,
+                      error: {
+                        message: `Row ${
+                          i + 1
+                        }: Invalid tournament ID '${tournamentId}'.`,
+                      },
+                    },
+                    ...prev,
+                  ]);
+                  setErrorCount((prev) => prev + 1);
+                  setCurrentIndex((prev) => prev + 1);
+                  setCurrentStatusText(
+                    `Row ${i + 1}: Skipping due to invalid tournament ID.`
+                  );
+                  continue;
+                }
+
+                if (
+                  variation !== undefined &&
+                  (variation < -100 ||
+                    variation > 100 ||
+                    !Number.isInteger(variation))
+                ) {
+                  toast.error(
+                    `Row ${
+                      i + 1
+                    }: Variation must be an integer between -100 and 100.`
+                  );
+                  setErrorStack((prev) => [
+                    {
+                      _uuid: crypto.randomUUID(),
+                      operation: "Player Tournament Update Failed",
+                      table: "Players & Tournaments",
+                      status: 400,
+                      error: {
+                        message: `Row ${
+                          i + 1
+                        }: Invalid variation value '${variation}'.`,
+                      },
+                    },
+                    ...prev,
+                  ]);
+                  setErrorCount((prev) => prev + 1);
+                  setCurrentIndex((prev) => prev + 1);
+                  setCurrentStatusText(
+                    `Row ${i + 1}: Skipping due to invalid variation value.`
+                  );
+                  continue;
+                }
+
+                if (id === null || Number.isNaN(id) || id < 0) {
+                  toast.error(
+                    `Row ${
+                      i + 1
+                    }: Invalid or missing 'id' value. ID must be 0 or positive.`
+                  );
                   setErrorStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
@@ -326,7 +522,9 @@ export default function DatabaseUpdate() {
                       table: "N/A",
                       status: 400,
                       error: {
-                        message: `Row ${i + 1}: Invalid or missing 'id'.`,
+                        message: `Row ${
+                          i + 1
+                        }: Invalid or missing 'id'. ID must be 0 or positive.`,
                       },
                     },
                     ...prev,
@@ -339,7 +537,54 @@ export default function DatabaseUpdate() {
                   continue;
                 }
 
-                if (id === 0) {
+                const hasAnyTournamentField =
+                  tournamentId !== undefined ||
+                  variation !== undefined ||
+                  ratingType !== undefined;
+
+                let isTournamentUpdate = false;
+
+                if (hasAnyTournamentField) {
+                  if (
+                    tournamentId === undefined ||
+                    Number.isNaN(tournamentId) ||
+                    variation === undefined ||
+                    Number.isNaN(variation) ||
+                    ratingType === undefined ||
+                    ratingType === ""
+                  ) {
+                    toast.error(
+                      `Row ${
+                        i + 1
+                      }: If any of 'tournamentId', 'variation', 'ratingType' are present, all three must be valid.`
+                    );
+                    setErrorStack((prev) => [
+                      {
+                        _uuid: crypto.randomUUID(),
+                        operation: "Player Tournament Update Failed",
+                        table: "N/A",
+                        status: 400,
+                        error: {
+                          message: `Row ${
+                            i + 1
+                          }: Missing or invalid tournament fields.`,
+                        },
+                      },
+                      ...prev,
+                    ]);
+                    setErrorCount((prev) => prev + 1);
+                    setCurrentIndex((prev) => prev + 1);
+                    setCurrentStatusText(
+                      `Row ${
+                        i + 1
+                      }: Skipping due to incomplete tournament data.`
+                    );
+                    continue;
+                  }
+                  isTournamentUpdate = true;
+                }
+
+                if (id === 0 && !isTournamentUpdate) {
                   if (name === undefined || name === "") {
                     toast.error(
                       `Row ${i + 1}: Missing or empty 'name' for new player.`
@@ -369,7 +614,16 @@ export default function DatabaseUpdate() {
                   }
                 }
 
-                const playerData = {
+                let requestBody: {
+                  name?: string;
+                  birth?: string;
+                  sex?: boolean;
+                  clubId?: number;
+                  locationId?: number;
+                  tournamentId?: number;
+                  variation?: number;
+                  ratingType?: string;
+                } = {
                   ...(name !== undefined && name !== "" && { name }),
                   ...(birth !== undefined && {
                     birth: birth.split("T")[0],
@@ -379,14 +633,100 @@ export default function DatabaseUpdate() {
                   ...(locationId !== undefined && { locationId }),
                 };
 
-                const operationText =
-                  id === 0
-                    ? "Creating Player"
-                    : `Updating Player with ID ${id}`;
+                let operationText: string;
+                let apiUrl: string;
+                let httpMethod: "POST" | "PUT";
+
+                const hasPlayerData =
+                  name !== undefined ||
+                  birth !== undefined ||
+                  sex !== undefined ||
+                  clubId !== undefined ||
+                  locationId !== undefined;
+
+                if (isTournamentUpdate) {
+                  requestBody = {
+                    ...requestBody,
+                    tournamentId: tournamentId as number,
+                    variation: variation as number,
+                    ratingType: ratingType as string,
+                  };
+
+                  if (hasPlayerData) {
+                    // Both player and tournament data present
+                    if (id === 0) {
+                      if (!name) {
+                        // Handle error for missing name
+                        toast.error(
+                          `Row ${
+                            i + 1
+                          }: Missing name for new player with tournament data.`
+                        );
+                        setErrorStack((prev) => [
+                          {
+                            _uuid: crypto.randomUUID(),
+                            operation: "Player Creation Failed",
+                            table: "Players & Tournaments",
+                            status: 400,
+                            error: {
+                              message: `Row ${
+                                i + 1
+                              }: Missing name for new player.`,
+                            },
+                          },
+                          ...prev,
+                        ]);
+                        continue;
+                      }
+                      operationText = "Creating Player and Tournament Relation";
+                      apiUrl = "/api/players-tournament";
+                      httpMethod = "POST";
+                    } else {
+                      // Update both player and tournament data
+                      operationText = `Updating Player ID ${id} and Tournament Relation`;
+                      apiUrl = `/api/players-tournament/${id}`;
+                      httpMethod = "PUT";
+                    }
+                  } else {
+                    // Only tournament data
+                    if (id === 0) {
+                      if (!name) {
+                        toast.error(
+                          `Row ${i + 1}: Missing name for new player.`
+                        );
+                        continue;
+                      }
+                      operationText = "Creating Player and Tournament Relation";
+                      apiUrl = "/api/players-tournament";
+                      httpMethod = "POST";
+                    } else {
+                      operationText = `Updating Tournament Relation for Player ID ${id}`;
+                      apiUrl = `/api/players-tournament/${id}`;
+                      httpMethod = "PUT";
+                    }
+                  }
+                } else {
+                  // Only player data
+                  if (id === 0) {
+                    if (!name) {
+                      toast.error(`Row ${i + 1}: Missing name for new player.`);
+                      continue;
+                    }
+                    operationText = "Creating Player";
+                    apiUrl = "/api/players-data";
+                    httpMethod = "POST";
+                  } else {
+                    operationText = `Updating Player with ID ${id}`;
+                    apiUrl = `/api/players-data/${id}`;
+                    httpMethod = "PUT";
+                  }
+                }
 
                 setCurrentUpdate({
                   operation: operationText,
-                  table: "Players",
+                  table: isTournamentUpdate
+                    ? "Players & Tournaments"
+                    : "Players",
                 });
                 setCurrentStatusText(
                   `${operationText} (Row ${i} of ${jsonData.length - 1})`
@@ -401,19 +741,11 @@ export default function DatabaseUpdate() {
                   let jsonRes: PlayerAPIResponse;
                   let rawBodyText: string | null = null;
 
-                  if (id === 0) {
-                    res = await fetch("/api/players-data", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(playerData),
-                    });
-                  } else {
-                    res = await fetch(`/api/players-data/${id}`, {
-                      method: "PUT",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(playerData),
-                    });
-                  }
+                  res = await fetch(apiUrl, {
+                    method: httpMethod,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(requestBody),
+                  });
 
                   try {
                     jsonRes = await res.json();
@@ -442,8 +774,20 @@ export default function DatabaseUpdate() {
                     throw customError;
                   }
 
-                  const successPayloadDataFields: PlayerDataFields =
-                    jsonRes.dataFields;
+                  let successPayloadDataFields: PlayerDataFields;
+                  let successMessage: string;
+                  if (isTournamentUpdate) {
+                    const data = jsonRes.dataFields as {
+                      player: PlayerDataFields;
+                      playerTournament: PlayerTournamentDataFields;
+                    };
+                    successPayloadDataFields = data.player;
+                    successMessage = `Player ${data.player.name} (ID: ${data.player.id}) updated. Tournament relation ID: ${data.playerTournament.id}.`;
+                  } else {
+                    successPayloadDataFields =
+                      jsonRes.dataFields as PlayerDataFields;
+                    successMessage = jsonRes.message;
+                  }
 
                   setSuccessStack((prev) => [
                     {
@@ -452,11 +796,13 @@ export default function DatabaseUpdate() {
                         id === 0
                           ? `${successPayloadDataFields.name} Created`
                           : `${successPayloadDataFields.name} - ID ${successPayloadDataFields.id} - Updated`,
-                      table: "Players",
+                      table: isTournamentUpdate
+                        ? "Players & Tournaments"
+                        : "Players",
                       status: res.status,
                       success: {
-                        dataFields: successPayloadDataFields,
-                        message: jsonRes.message,
+                        dataFields: jsonRes.dataFields,
+                        message: successMessage,
                       },
                     },
                     ...prev,
@@ -508,7 +854,9 @@ export default function DatabaseUpdate() {
                         id === 0
                           ? "Player Creation Failed"
                           : `Player with ID ${id} update failed`,
-                      table: "Players",
+                      table: isTournamentUpdate
+                        ? "Players & Tournaments"
+                        : "Players",
                       status: statusCode,
                       error: {
                         message: displayMessage,
@@ -554,6 +902,7 @@ export default function DatabaseUpdate() {
       setSelectedFileName,
       setSuccessStackLength,
       setErrorStackLength,
+      handleClearFileClick,
     ]
   );
 
@@ -595,15 +944,6 @@ export default function DatabaseUpdate() {
   const handleRunClick = useCallback(() => {
     form.handleSubmit(onSubmit)();
   }, [form, onSubmit]);
-
-  const handleClearFileClick = useCallback(() => {
-    form.resetField("file");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-    setSelectedFileName(null);
-    toast.info("File input cleared.");
-  }, [form, setSelectedFileName]);
 
   React.useEffect(() => {
     const {
@@ -770,15 +1110,18 @@ export default function DatabaseUpdate() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {!currentUpdate && !isRunning && totalUpdates > 0 && (
-        <Alert className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 w-fit">
-          <CheckCircleIcon className="text-green-500" />
-          <AlertTitle>Completed</AlertTitle>
-          <AlertDescription>
-            All file operations have finished.
-          </AlertDescription>
-        </Alert>
-      )}
+      {!currentUpdate &&
+        !isRunning &&
+        totalUpdates > 0 &&
+        (successStack.length || errorStack.length) > 0 && (
+          <Alert className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 w-fit">
+            <CheckCircleIcon className="text-green-500" />
+            <AlertTitle>Completed</AlertTitle>
+            <AlertDescription>
+              All file operations have finished.
+            </AlertDescription>
+          </Alert>
+        )}
 
       <AnimatePresence mode="wait">
         {currentUpdate && (
@@ -853,10 +1196,17 @@ export default function DatabaseUpdate() {
                                     <UserIcon size={14} />
                                   </div>
                                   <p className="text-foreground/60">
-                                    ID: {update.success.dataFields?.id}
+                                    ID:{" "}
+                                    {
+                                      (
+                                        update.success
+                                          .dataFields as PlayerDataFields
+                                      )?.id
+                                    }
                                   </p>
                                 </div>
-                                {update.success.dataFields?.birth && (
+                                {(update.success.dataFields as PlayerDataFields)
+                                  ?.birth && (
                                   <div className="flex items-center gap-2">
                                     <div className="p-1 bg-accent rounded-sm">
                                       <CakeIcon size={14} />
@@ -865,47 +1215,126 @@ export default function DatabaseUpdate() {
                                       Birth:{" "}
                                       {format(
                                         new Date(
-                                          update.success.dataFields?.birth
+                                          (
+                                            update.success
+                                              .dataFields as PlayerDataFields
+                                          )?.birth as string
                                         ),
                                         "MM/dd/yyyy"
                                       )}
                                     </p>
                                   </div>
                                 )}
-                                {update.success.dataFields?.sex != null && (
+                                {(update.success.dataFields as PlayerDataFields)
+                                  ?.sex != null && (
                                   <div className="flex items-center gap-2">
                                     <div className="p-1 bg-accent rounded-sm">
                                       <VenusAndMarsIcon size={14} />
                                     </div>
                                     <p className="text-foreground/60">
                                       Sex:{" "}
-                                      {update.success.dataFields?.sex
+                                      {(
+                                        (
+                                          update.success
+                                            .dataFields as PlayerDataFields
+                                        )?.sex as boolean
+                                      )
                                         .toString()
                                         .toUpperCase()}
                                     </p>
                                   </div>
                                 )}
-                                {update.success.dataFields?.clubId && (
+                                {(update.success.dataFields as PlayerDataFields)
+                                  ?.clubId && (
                                   <div className="flex items-center gap-2">
                                     <div className="p-1 bg-accent rounded-sm">
                                       <StoreIcon size={14} />
                                     </div>
                                     <p className="text-foreground/60">
                                       Club ID:{" "}
-                                      {update.success.dataFields?.clubId}
+                                      {
+                                        (
+                                          update.success
+                                            .dataFields as PlayerDataFields
+                                        )?.clubId
+                                      }
                                     </p>
                                   </div>
                                 )}
-                                {update.success.dataFields?.locationId && (
+                                {(update.success.dataFields as PlayerDataFields)
+                                  ?.locationId && (
                                   <div className="flex items-center gap-2">
                                     <div className="p-1 bg-accent rounded-sm">
                                       <MapPinnedIcon size={14} />
                                     </div>
                                     <p className="text-foreground/60">
                                       Location ID:{" "}
-                                      {update.success.dataFields?.locationId}
+                                      {
+                                        (
+                                          update.success
+                                            .dataFields as PlayerDataFields
+                                        )?.locationId
+                                      }
                                     </p>
                                   </div>
+                                )}
+                                {/* Display Tournament Data if available */}
+                                {(
+                                  update.success.dataFields as {
+                                    player?: PlayerDataFields;
+                                    playerTournament?: PlayerTournamentDataFields;
+                                  }
+                                )?.playerTournament && (
+                                  <>
+                                    <div className="flex items-center gap-2">
+                                      <div className="p-1 bg-accent rounded-sm">
+                                        <UserIcon size={14} />
+                                      </div>
+                                      <p className="text-foreground/60">
+                                        Tournament ID:{" "}
+                                        {
+                                          (
+                                            update.success.dataFields as {
+                                              player?: PlayerDataFields;
+                                              playerTournament?: PlayerTournamentDataFields;
+                                            }
+                                          )?.playerTournament?.tournamentId
+                                        }
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div className="p-1 bg-accent rounded-sm">
+                                        <UserIcon size={14} />
+                                      </div>
+                                      <p className="text-foreground/60">
+                                        Variation:{" "}
+                                        {
+                                          (
+                                            update.success.dataFields as {
+                                              player?: PlayerDataFields;
+                                              playerTournament?: PlayerTournamentDataFields;
+                                            }
+                                          )?.playerTournament?.variation
+                                        }
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div className="p-1 bg-accent rounded-sm">
+                                        <UserIcon size={14} />
+                                      </div>
+                                      <p className="text-foreground/60">
+                                        Old Rating:{" "}
+                                        {
+                                          (
+                                            update.success.dataFields as {
+                                              player?: PlayerDataFields;
+                                              playerTournament?: PlayerTournamentDataFields;
+                                            }
+                                          )?.playerTournament?.oldRating
+                                        }
+                                      </p>
+                                    </div>
+                                  </>
                                 )}
                               </PopoverContent>
                             </Popover>
