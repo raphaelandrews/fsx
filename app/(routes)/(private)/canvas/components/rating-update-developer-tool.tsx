@@ -8,10 +8,6 @@ import {
   PlayIcon,
   SquareIcon,
   Trash2Icon,
-  User,
-  AtSign,
-  Copy,
-  Shield,
   StoreIcon,
   InfoIcon,
 } from "lucide-react";
@@ -61,28 +57,41 @@ export function RatingUpdateDeveloperTool() {
     if (isTransitioning) {
       const timer = setTimeout(() => {
         setIsTransitioning(false);
-      }, 500);
+      });
       return () => clearTimeout(timer);
     }
   }, [isTransitioning]);
 
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  const toolbarRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        activePanel &&
+        panelRef.current &&
+        toolbarRef.current &&
+        !panelRef.current.contains(event.target as Node) &&
+        !toolbarRef.current.contains(event.target as Node)
+      ) {
+        setActivePanel(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [activePanel]);
+
   return (
     <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-background dark:bg-[#0F0F0F] rounded-2xl shadow-md z-50">
-      <div
-        className={`fixed bottom-16 left-1/2 transform -translate-x-1/2 mb-0 rounded-2xl backdrop-blur-sm border overflow-hidden shadow-2xl transition-all duration-500 ease-out ${
-          activePanel
-            ? "translate-y-0 opacity-100 scale-100"
-            : "translate-y-4 opacity-0 scale-95 pointer-events-none h-0 "
-        }`}
-      >
-        <div className="relative w-full h-full">
-          {activePanel === "info" && (
-            <InfoPanel isVisible={activePanel === "info" && !isTransitioning} />
-          )}
-        </div>
+      <div ref={panelRef}>
+        <InfoPanel isVisible={activePanel === "info" && !isTransitioning} />
       </div>
 
       <div
+        ref={toolbarRef}
         className="flex items-center justify-center px-3 py-2 rounded-2xl transition-all duration-500 ease-out"
       >
         <Tooltip>
@@ -312,7 +321,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
     >
       <Icon size={16} className="text-gray-300" />
       {isActive && (
-        <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full" />
+        <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full" />
       )}
     </Button>
   );
@@ -348,7 +357,7 @@ const InfoPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
   return (
     <div
       className={`
-      inset-0 p-8 text-center transition-all duration-400 ease-out
+      fixed bottom-16 transform -translate-x-1/2 w-fit h-fit left-1/2 mb-0 p-8 border rounded-2xl backdrop-blur-sm shadow-xl transition-all duration-300 ease-out
       ${
         isVisible
           ? "opacity-100 translate-y-0 scale-100"
@@ -356,26 +365,36 @@ const InfoPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
       }
     `}
     >
-      <div className="mb-6">
-        <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 hover:scale-110 hover:bg-gray-600">
-          <Shield size={24} className="text-gray-300" />
+      <article className="[&>p]:text-sm [&>p]:text-foreground/70 [&>p]:mt-1">
+        <div className="flex flex-col items-center gap-2 mb-2">
+          <InfoIcon className=" p-1 rounded-sm bg-secondary" />
+          <h3 className="font-medium text-balance">
+            Processo de atualização de rating
+          </h3>
         </div>
-        <h2 className="text-white text-xl font-semibold mb-2 transition-all duration-300 hover:scale-105">
-          Share Preview
-        </h2>
-        <p className="text-gray-400 text-sm leading-relaxed transition-colors duration-300">
-          Choose who can comment on deployments for
-          feature/additional-design-changes.
+        <p>
+          Esse workflow simula o processo de atualização de rating da Federação
+          Sergipana de Xadrez.
         </p>
-      </div>
-
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Add team members or emails..."
-          className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
-        />
-      </div>
+        <p>
+          A variação de rating utilizada no processo é calculada pelo Swiss
+          Manager, programa utilizado pela FSX em seus torneios.
+        </p>
+        <p>
+          O Swiss Manager utiliza uma variável "K" no cálculo da variação de
+          rating.
+        </p>
+        <p>
+          Nas{" "}
+          <a
+            href="/normas-tecnicas"
+            className="text-blue-500 underline underline-offset-2"
+          >
+            normas técnicas
+          </a>{" "}
+          da FSX, estão disponíveis os valores do "K" para cada situação.
+        </p>
+      </article>
     </div>
   );
 };

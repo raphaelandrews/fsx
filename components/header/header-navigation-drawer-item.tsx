@@ -15,6 +15,7 @@ export type Item = {
 	label: string
 	href: string
 	icon: LucideIcon
+	target: string
 	items?: Item[]
 }
 
@@ -27,6 +28,7 @@ export const HeaderNavigationDrawerItem = ({
 	icon: Icon,
 	label,
 	items,
+	target,
 }: HeaderNavigationDrawerItemProps) => {
 	const pathname = usePathname()
 
@@ -71,6 +73,7 @@ export const HeaderNavigationDrawerItem = ({
 			)}
 			href={href}
 			key={href}
+			target={target}
 		>
 			<Icon
 				className={isActive ? "text-foreground" : "text-muted-foreground"}

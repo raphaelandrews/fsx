@@ -45,12 +45,12 @@ export function MainNav() {
                     {label}
                   </NavigationMenuTrigger>
 
-                  <NavigationMenuContent className="flex gap-4 p-4 md:w-[500px] lg:w-[700px]">
+                  <NavigationMenuContent className="flex gap-4 p-4 md:w-[500px] lg:w-[850px]">
                     {href === "#" && <NavigationMenuImage href={href} />}
                     {href === "##" && <NavigationMenuImage href={href} />}
 
                     <ul
-                      className="flex w-full flex-wrap gap-3"
+                      className="grid grid-cols-3 w-full flex-wrap gap-3"
                       style={{ maxHeight: "400px" }}
                     >
                       {items?.map(
@@ -115,10 +115,10 @@ const NavigationMenuImage = ({ href }: { href: string }) => {
 	return (
 		<>
 			{href === "#" && (
-				<div className="relative h-[185px] w-[128px] min-w-[128px] overflow-hidden rounded-md border bg-gradient-to-br from-cyan-500 to-blue-500 shadow" />
+				<div className="relative h-[147px] w-[128px] min-w-[128px] overflow-hidden rounded-md border bg-gradient-to-br from-cyan-500 to-blue-500 shadow" />
 			)}
 			{href === "##" && (
-				<div className="relative h-[185px] w-[128px] min-w-[128px] overflow-hidden rounded-md border bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow" />
+				<div className="relative h-[147px] w-[128px] min-w-[128px] overflow-hidden rounded-md border bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow" />
 			)}
 		</>
 	)

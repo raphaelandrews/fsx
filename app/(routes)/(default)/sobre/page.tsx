@@ -104,7 +104,7 @@ export default function Page() {
 				<div className="mt-3 flex flex-col gap-1">
 					<a
 						className="text-blue-500 hover:underline"
-						href="https://docs.google.com/document/d/1hTfftEHO2dUrDzUxYu9AFuW5kKXqIxqQ"
+						href="/normas-tecnicas"
 						rel="noreferrer"
 						target="_blank"
 					>

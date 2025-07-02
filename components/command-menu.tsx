@@ -245,7 +245,7 @@ export function CommandMenu({ ...props }: DialogProps) {
 				>
 					<span className="hidden lg:inline-flex">Procurar jogadores...</span>
 					<span className="inline-flex lg:hidden">Procurar...</span>
-					<div className="absolute top-1.5 right-1.5 hidden gap-1 sm:flex">
+					<div className="absolute top-1.5 right-1.5 hidden gap-1 md:flex">
 						<CommandMenuKbd>{isMac ? "⌘" : "Ctrl"}</CommandMenuKbd>
 						<CommandMenuKbd className="aspect-square">K</CommandMenuKbd>
 					</div>

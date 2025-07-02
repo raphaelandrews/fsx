@@ -72,23 +72,13 @@ const Links = async () => {
 				>
 					<img alt="Instagram" className="h-6 w-6" src="/instagram-logo.svg" />
 				</a>
-
-				<a
-					className="rounded-lg p-2.5 transition hover:bg-muted"
-					href="https://www.facebook.com/sergipexadrez"
-					rel="noreferrer"
-					target="_blank"
-				>
-					<img alt="Instagram" className="h-6 w-6" src="/facebook-logo.svg" />
-				</a>
-
 				<a
 					className="rounded-lg p-2.5 transition hover:bg-muted"
 					href="mailto:fsx.presidente@gmail.com"
 					rel="noreferrer"
 					target="_blank"
 				>
-					<img alt="Instagram" className="h-6 w-6" src="/gmail-logo.svg" />
+					<img alt="email" className="h-6 w-6" src="/gmail-logo.svg" />
 				</a>
 			</div>
 
