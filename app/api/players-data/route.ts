@@ -75,7 +75,7 @@ export async function POST(req: Request) {
 				message: `Player with ID ${playerId} created. Fields: ${Object.keys(createData).join(", ")}`,
 			}),
 			{
-				status: 200,
+				status: 201,
 				headers: {
 					"Content-Type": "application/json",
 				},

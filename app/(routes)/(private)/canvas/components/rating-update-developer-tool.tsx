@@ -2,9 +2,6 @@ import React from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
-  Maximize2,
-  Upload,
-  Bug,
   PlayIcon,
   SquareIcon,
   Trash2Icon,
@@ -274,21 +271,6 @@ export function RatingUpdateDeveloperTool() {
           onClick={() => handlePanelToggle("accessibility")}
         />
         <ToolbarButton
-          icon={Bug}
-          isActive={activePanel === "issues"}
-          onClick={() => handlePanelToggle("issues")}
-        />
-        <ToolbarButton
-          icon={Maximize2}
-          isActive={activePanel === "fullscreen"}
-          onClick={() => handlePanelToggle("fullscreen")}
-        />
-        <ToolbarButton
-          icon={Upload}
-          isActive={activePanel === "share"}
-          onClick={() => handlePanelToggle("share")}
-        />
-        <ToolbarButton
           icon={InfoIcon}
           isActive={activePanel === "info"}
           onClick={() => handlePanelToggle("info")}
@@ -365,10 +347,10 @@ const InfoPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
       }
     `}
     >
-      <article className="[&>p]:text-sm [&>p]:text-foreground/70 [&>p]:mt-1">
+      <article className="[&>p]:text-sm [&>p]:text-foreground/70 [&>p]:mt-1.5 [&>p]:leading-6">
         <div className="flex flex-col items-center gap-2 mb-2">
           <InfoIcon className=" p-1 rounded-sm bg-secondary" />
-          <h3 className="font-medium text-balance">
+          <h3 className="font-medium text-balance text-center">
             Processo de atualização de rating
           </h3>
         </div>
@@ -378,7 +360,7 @@ const InfoPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
         </p>
         <p>
           A variação de rating utilizada no processo é calculada pelo Swiss
-          Manager, programa utilizado pela FSX em seus torneios.
+          Manager, programa utilizado pela FSX nos torneios.
         </p>
         <p>
           O Swiss Manager utiliza uma variável "K" no cálculo da variação de

@@ -74,7 +74,7 @@ export function PostCard({
             main
               ? "font-medium tracking-tight md:text-xl"
               : "font-normal text-sm leading-5"
-          } mt-2 line-clamp-2`}
+          } text-balance mt-2 line-clamp-2`}
         >
           {title}
         </h2>

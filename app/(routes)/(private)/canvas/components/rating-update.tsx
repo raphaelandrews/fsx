@@ -2,26 +2,7 @@
 
 import React, { useCallback } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { format } from "date-fns";
-import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import {
-  CheckCircleIcon,
-  LoaderCircleIcon,
-  AlertCircleIcon,
-  CircleCheckIcon,
-  UserIcon,
-  CakeIcon,
-  VenusAndMarsIcon,
-  StoreIcon,
-  MapPinnedIcon,
-  InfoIcon,
-  MessageSquareIcon,
-  CodeIcon,
-  TrophyIcon,
-  TrendingUpDownIcon,
-  RewindIcon,
-} from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as XLSX from "xlsx";
 import type z from "zod";
@@ -37,22 +18,7 @@ import { RatingUpdateMotionGrid } from "./rating-update-motion-grid";
 
 import { useRatingUpdateStore } from "@/lib/stores/rating-update-store";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Announcement,
-  AnnouncementTag,
-  AnnouncementTitle,
-} from "@/components/ui/announcement";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,12 +31,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { formSchema } from "../utils/form-schema";
+import { RatingUpdateStackTrace } from "./rating-update-stack-trace";
+import { RatingUpdateAlertDialog } from "./rating-update-alert-dialog";
+import { RatingUpdateStatus } from "./rating-update-status";
+import { RatingUpdateCompletedAlert } from "./rating-update-completed-alert";
+import { RatingUpdateProcessingAlert } from "./rating-update-processing-alert";
 
 export function RatingUpdate() {
   const {
@@ -103,7 +69,7 @@ export function RatingUpdate() {
   const [currentStatusText, setCurrentStatusText] =
     React.useState("Ready to start...");
 
-  const ITEMS_PER_PAGE = 3;
+  const ITEMS_PER_PAGE = 6;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -770,7 +736,7 @@ export function RatingUpdate() {
                     : "Players",
                 });
                 setCurrentStatusText(
-                  `${operationText} (Row ${i} of ${jsonData.length - 1})`
+                  `${operationText} | Row ${i} of ${jsonData.length - 1}`
                 );
 
                 try {
@@ -1062,40 +1028,12 @@ export function RatingUpdate() {
         <RatingUpdateMotionGrid currentStatusText={currentStatusText} />
       )}
 
-      <div className="absolute top-4 right-4 flex flex-col items-end gap-4">
-        <Announcement>
-          <AnnouncementTag className="flex items-center gap-2">
-            <span>Success</span>
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-green-600" />
-            </span>
-          </AnnouncementTag>
-          <AnnouncementTitle>{successCount}</AnnouncementTitle>
-        </Announcement>
-        <Announcement>
-          <AnnouncementTag className="flex items-center gap-2">
-            <span>Errors</span>
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
-            </span>
-          </AnnouncementTag>
-          <AnnouncementTitle>{errorCount}</AnnouncementTitle>
-        </Announcement>
-        <Announcement>
-          <AnnouncementTag className="flex items-center gap-2">
-            <span>Progress</span>
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-600" />
-            </span>
-          </AnnouncementTag>
-          <AnnouncementTitle>
-            {currentIndex}/{totalUpdates}
-          </AnnouncementTitle>
-        </Announcement>
-      </div>
+      <RatingUpdateStatus
+        successCount={successCount}
+        errorCount={errorCount}
+        currentIndex={currentIndex}
+        totalUpdates={totalUpdates}
+      />
 
       {!isRunning && successStack.length === 0 && errorStack.length === 0 && (
         <Form {...form}>
@@ -1145,71 +1083,25 @@ export function RatingUpdate() {
         </Form>
       )}
 
-      <AlertDialog
+      <RatingUpdateAlertDialog
         open={showClearHistoryConfirm}
         onOpenChange={setShowClearHistoryConfirm}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              success and error history from local storage.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={performClearHistory}>
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onClick={performClearHistory}
+      />
 
       {!currentUpdate &&
         !isRunning &&
         totalUpdates > 0 &&
         (successStack.length || errorStack.length) > 0 && (
-          <Alert className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 w-fit">
-            <CheckCircleIcon className="text-green-500" />
-            <AlertTitle>Completed</AlertTitle>
-            <AlertDescription>
-              All file operations have finished.
-            </AlertDescription>
-          </Alert>
+          <RatingUpdateCompletedAlert />
         )}
 
-      <AnimatePresence mode="wait">
-        {currentUpdate && (
-          <div className="absolute top-20 left-1/2 -translate-x-1/2 hidden justify-center">
-            <motion.div
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              key={crypto.randomUUID()}
-              transition={{ duration: 0.4 }}
-            >
-              <Alert>
-                <LoaderCircleIcon className="animate-spin" />
-                <AlertTitle>{currentUpdate.operation}</AlertTitle>
-                <AlertDescription>
-                  <div className="flex items-center justify-center gap-2 mt-2">
-                    <Badge
-                      className="bg-gray-100 text-gray-700"
-                      variant="secondary"
-                    >
-                      {currentUpdate.table}
-                    </Badge>
-                    <Badge className="bg-blue-100 text-blue-700">
-                      Processing
-                    </Badge>
-                  </div>
-                </AlertDescription>
-              </Alert>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {currentUpdate && (
+        <RatingUpdateProcessingAlert
+          operation={currentUpdate.operation}
+          table={currentUpdate.table}
+        />
+      )}
 
       {(successStack.length || errorStack.length) > 0 && (
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 flex gap-12 mt-4">
@@ -1221,300 +1113,7 @@ export function RatingUpdate() {
               </Badge>
             </Alert>
 
-            <div className="h-auto w-[450px] p-2 overflow-hidden">
-              <AnimatePresence mode="popLayout">
-                <div className="grid gap-4">
-                  {paginatedSuccessStack.map((update, index) => (
-                    <motion.div
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      initial={{ opacity: 0, x: 20 }}
-                      key={(update as unknown as { _uuid: string })._uuid}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                    >
-                      <Alert variant="success">
-                        <CircleCheckIcon />
-                        <AlertTitle className="flex justify-between">
-                          <span>{update.operation}</span>
-                          <Badge className="bg-[#E8F5E9] text-[#388E3C] dark:bg-[#022C22] dark:text-[#1BC994] rounded-sm">
-                            {update.status}
-                          </Badge>
-                        </AlertTitle>
-                        <AlertDescription className="mt-2">
-                          {update.success && (
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button>View details</Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="flex flex-col gap-2 text-sm w-auto max-w-96 overflow-auto">
-                                <div className="flex items-center gap-2">
-                                  <div className="p-1 bg-accent rounded-sm">
-                                    <UserIcon size={14} />
-                                  </div>
-                                  <p className="text-foreground/60">
-                                    ID:{" "}
-                                    {
-                                      (
-                                        update.success
-                                          .dataFields as PlayerDataFields
-                                      )?.id
-                                    }
-                                    {
-                                      (
-                                        update.success.dataFields as {
-                                          player?: PlayerDataFields;
-                                          playerTournament?: PlayerTournamentDataFields;
-                                        }
-                                      )?.player?.id
-                                    }
-                                  </p>
-                                </div>
-                                {(update.success.dataFields as PlayerDataFields)
-                                  ?.birth && (
-                                  <div className="flex items-center gap-2">
-                                    <div className="p-1 bg-accent rounded-sm">
-                                      <CakeIcon size={14} />
-                                    </div>
-                                    <p className="text-foreground/60">
-                                      Birth:{" "}
-                                      {format(
-                                        new Date(
-                                          (
-                                            update.success
-                                              .dataFields as PlayerDataFields
-                                          )?.birth as string
-                                        ),
-                                        "MM/dd/yyyy"
-                                      )}
-                                    </p>
-                                  </div>
-                                )}
-                                {(update.success.dataFields as PlayerDataFields)
-                                  ?.sex != null && (
-                                  <div className="flex items-center gap-2">
-                                    <div className="p-1 bg-accent rounded-sm">
-                                      <VenusAndMarsIcon size={14} />
-                                    </div>
-                                    <p className="text-foreground/60">
-                                      Sex:{" "}
-                                      {(
-                                        (
-                                          update.success
-                                            .dataFields as PlayerDataFields
-                                        )?.sex as boolean
-                                      )
-                                        .toString()
-                                        .toUpperCase()}
-                                    </p>
-                                  </div>
-                                )}
-                                {(update.success.dataFields as PlayerDataFields)
-                                  ?.clubId && (
-                                  <div className="flex items-center gap-2">
-                                    <div className="p-1 bg-accent rounded-sm">
-                                      <StoreIcon size={14} />
-                                    </div>
-                                    <p className="text-foreground/60">
-                                      Club ID:{" "}
-                                      {
-                                        (
-                                          update.success
-                                            .dataFields as PlayerDataFields
-                                        )?.clubId
-                                      }
-                                    </p>
-                                  </div>
-                                )}
-                                {(update.success.dataFields as PlayerDataFields)
-                                  ?.locationId && (
-                                  <div className="flex items-center gap-2">
-                                    <div className="p-1 bg-accent rounded-sm">
-                                      <MapPinnedIcon size={14} />
-                                    </div>
-                                    <p className="text-foreground/60">
-                                      Location ID:{" "}
-                                      {
-                                        (
-                                          update.success
-                                            .dataFields as PlayerDataFields
-                                        )?.locationId
-                                      }
-                                    </p>
-                                  </div>
-                                )}
-                                {(
-                                  update.success.dataFields as {
-                                    player?: PlayerDataFields;
-                                    playerTournament?: PlayerTournamentDataFields;
-                                  }
-                                )?.player && (
-                                  <>
-                                    {(
-                                      update.success.dataFields as {
-                                        player?: PlayerDataFields;
-                                        playerTournament?: PlayerTournamentDataFields;
-                                      }
-                                    )?.player?.birth && (
-                                      <div className="flex items-center gap-2">
-                                        <div className="p-1 bg-accent rounded-sm">
-                                          <CakeIcon size={14} />
-                                        </div>
-                                        <p className="text-foreground/60">
-                                          Birth:{" "}
-                                          {format(
-                                            new Date(
-                                              (
-                                                update.success.dataFields as {
-                                                  player?: PlayerDataFields;
-                                                  playerTournament?: PlayerTournamentDataFields;
-                                                }
-                                              )?.player?.birth as string
-                                            ),
-                                            "MM/dd/yyyy"
-                                          )}
-                                        </p>
-                                      </div>
-                                    )}
-                                    {(
-                                      update.success.dataFields as {
-                                        player?: PlayerDataFields;
-                                        playerTournament?: PlayerTournamentDataFields;
-                                      }
-                                    )?.player?.sex != null && (
-                                      <div className="flex items-center gap-2">
-                                        <div className="p-1 bg-accent rounded-sm">
-                                          <VenusAndMarsIcon size={14} />
-                                        </div>
-                                        <p className="text-foreground/60">
-                                          Sex:{" "}
-                                          {(
-                                            (
-                                              update.success.dataFields as {
-                                                player?: PlayerDataFields;
-                                                playerTournament?: PlayerTournamentDataFields;
-                                              }
-                                            )?.player?.sex as boolean
-                                          )
-                                            .toString()
-                                            .toUpperCase()}
-                                        </p>
-                                      </div>
-                                    )}
-                                    {(
-                                      update.success.dataFields as {
-                                        player?: PlayerDataFields;
-                                        playerTournament?: PlayerTournamentDataFields;
-                                      }
-                                    )?.player?.clubId && (
-                                      <div className="flex items-center gap-2">
-                                        <div className="p-1 bg-accent rounded-sm">
-                                          <StoreIcon size={14} />
-                                        </div>
-                                        <p className="text-foreground/60">
-                                          Club ID:{" "}
-                                          {
-                                            (
-                                              update.success.dataFields as {
-                                                player?: PlayerDataFields;
-                                                playerTournament?: PlayerTournamentDataFields;
-                                              }
-                                            )?.player?.clubId
-                                          }
-                                        </p>
-                                      </div>
-                                    )}
-                                    {(
-                                      update.success.dataFields as {
-                                        player?: PlayerDataFields;
-                                        playerTournament?: PlayerTournamentDataFields;
-                                      }
-                                    )?.player?.locationId && (
-                                      <div className="flex items-center gap-2">
-                                        <div className="p-1 bg-accent rounded-sm">
-                                          <MapPinnedIcon size={14} />
-                                        </div>
-                                        <p className="text-foreground/60">
-                                          Location ID:{" "}
-                                          {
-                                            (
-                                              update.success.dataFields as {
-                                                player?: PlayerDataFields;
-                                                playerTournament?: PlayerTournamentDataFields;
-                                              }
-                                            )?.player?.locationId
-                                          }
-                                        </p>
-                                      </div>
-                                    )}
-                                  </>
-                                )}
-                                {(
-                                  update.success.dataFields as {
-                                    player?: PlayerDataFields;
-                                    playerTournament?: PlayerTournamentDataFields;
-                                  }
-                                )?.playerTournament && (
-                                  <>
-                                    <div className="flex items-center gap-2">
-                                      <div className="p-1 bg-accent rounded-sm">
-                                        <TrophyIcon size={14} />
-                                      </div>
-                                      <p className="text-foreground/60">
-                                        Tournament ID:{" "}
-                                        {
-                                          (
-                                            update.success.dataFields as {
-                                              player?: PlayerDataFields;
-                                              playerTournament?: PlayerTournamentDataFields;
-                                            }
-                                          )?.playerTournament?.tournamentId
-                                        }
-                                      </p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <div className="p-1 bg-accent rounded-sm">
-                                        <TrendingUpDownIcon size={14} />
-                                      </div>
-                                      <p className="text-foreground/60">
-                                        Variation:{" "}
-                                        {
-                                          (
-                                            update.success.dataFields as {
-                                              player?: PlayerDataFields;
-                                              playerTournament?: PlayerTournamentDataFields;
-                                            }
-                                          )?.playerTournament?.variation
-                                        }
-                                      </p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <div className="p-1 bg-accent rounded-sm">
-                                        <RewindIcon size={14} />
-                                      </div>
-                                      <p className="text-foreground/60">
-                                        Old Rating:{" "}
-                                        {
-                                          (
-                                            update.success.dataFields as {
-                                              player?: PlayerDataFields;
-                                              playerTournament?: PlayerTournamentDataFields;
-                                            }
-                                          )?.playerTournament?.oldRating
-                                        }
-                                      </p>
-                                    </div>
-                                  </>
-                                )}
-                              </PopoverContent>
-                            </Popover>
-                          )}
-                        </AlertDescription>
-                      </Alert>
-                    </motion.div>
-                  ))}
-                </div>
-              </AnimatePresence>
-            </div>
+            <RatingUpdateStackTrace updates={paginatedSuccessStack} />
 
             {successStack.length > ITEMS_PER_PAGE && (
               <div className="flex items-center gap-2 mt-2">
@@ -1552,63 +1151,7 @@ export function RatingUpdate() {
               </Badge>
             </Alert>
 
-            <div className="h-auto w-[450px] p-2 overflow-hidden">
-              <AnimatePresence mode="popLayout">
-                <div className="grid gap-4">
-                  {paginatedErrorStack.map((update, index) => (
-                    <motion.div
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      initial={{ opacity: 0, x: 20 }}
-                      key={(update as unknown as { _uuid: string })._uuid}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                    >
-                      <Alert variant="destructive">
-                        <AlertCircleIcon />
-                        <AlertTitle>{update.operation}</AlertTitle>
-                        <AlertDescription className="mt-2">
-                          {update.error && (
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button>View details</Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="flex flex-col gap-2 text-sm w-auto max-w-96 overflow-auto">
-                                <div className="flex items-center gap-2">
-                                  <div className="p-1 bg-accent rounded-sm">
-                                    <InfoIcon size={14} />
-                                  </div>
-                                  <p className="text-foreground/60">
-                                    Status: {update.status}
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="p-1 bg-accent rounded-sm">
-                                    <MessageSquareIcon size={14} />
-                                  </div>
-                                  <p className="text-foreground/60">
-                                    Message: {update.error.message}
-                                  </p>
-                                </div>
-                                {update.error.stack && (
-                                  <div className="flex items-center gap-2">
-                                    <div className="p-1 bg-accent rounded-sm">
-                                      <CodeIcon size={14} />
-                                    </div>
-                                    <p className="text-foreground/60">
-                                      Stack: {update.error.stack}
-                                    </p>
-                                  </div>
-                                )}
-                              </PopoverContent>
-                            </Popover>
-                          )}
-                        </AlertDescription>
-                      </Alert>
-                    </motion.div>
-                  ))}
-                </div>
-              </AnimatePresence>
-            </div>
+            <RatingUpdateStackTrace updates={paginatedErrorStack} />
 
             {errorStack.length > ITEMS_PER_PAGE && (
               <div className="flex items-center gap-2 mt-2">

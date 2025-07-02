@@ -73,7 +73,7 @@ export default async function Page({
       </div>
 
       <ViewTransition name={`title-${data?.slug}`}>
-        <h1 className="mt-2 font-semibold text-2xl text-primary tracking-tighter">
+        <h1 className="text-balance font-semibold text-2xl text-primary mt-2 tracking-tighter">
           {data?.title}
         </h1>
       </ViewTransition>
