@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { CommandIcon } from "lucide-react";
+import { CommandIcon, InstagramIcon, MailIcon } from "lucide-react";
 
 import { navigationData } from "./header-navigation-data";
 import { HeaderNavigationDrawerItem } from "./header-navigation-drawer-item";
@@ -20,13 +20,13 @@ export const HeaderNavigationDrawer = () => {
   }, [pathname]);
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer onOpenChange={setOpen} open={open}>
       <DrawerTrigger asChild>
         <Button
+          aria-label="Toggle navigation menu"
+          className="shrink-0 p-2 hover:bg-muted/50 lg:hidden"
           size="sm"
           variant="ghost"
-          className="p-2 shrink-0 lg:hidden hover:bg-muted/50"
-          aria-label="Toggle navigation menu"
         >
           <CommandIcon className="size-4" />
         </Button>
@@ -34,12 +34,24 @@ export const HeaderNavigationDrawer = () => {
 
       <DrawerContent className="rounded-t-lg border-t p-4">
         <div>
-          <Accordion type="multiple" className="space-y-2 p-4">
+          <Accordion className="space-y-2 p-4" type="multiple">
             <nav className="flex flex-col gap-1">
               {navigationData().map((item) => (
                 <HeaderNavigationDrawerItem {...item} key={item.href} />
               ))}
             </nav>
+            <HeaderNavigationDrawerItem
+              label="Instagram"
+              href="https://www.instagram.com/xadrezsergipe/"
+              icon={InstagramIcon}
+							target="_blank"
+            />
+            <HeaderNavigationDrawerItem
+              label="Email"
+              href="mailto:fsx.presidente@gmail.com"
+              icon={MailIcon}
+							target="_blank"
+            />
           </Accordion>
         </div>
       </DrawerContent>

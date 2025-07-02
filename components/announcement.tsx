@@ -16,9 +16,9 @@ export function Announcement({ label, href, icon: Icon }: Props) {
 
   if (href) {
     return (
-      <Link href={href} className={`group ${baseStyles}`}>
+      <Link className={`group ${baseStyles}`} href={href}>
         <Icon className={iconStyles} />
-        <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
+        <Separator className="!w-0.5 !h-4 mx-2" orientation="vertical" />
         <span className={hoverStyles}>{label}</span>
         <ArrowRightIcon className="ml-1 size-4" />
       </Link>
@@ -29,14 +29,14 @@ export function Announcement({ label, href, icon: Icon }: Props) {
     return (
       <div className={baseStyles}>
         <Icon className={iconStyles} />
-        <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
+        <Separator className="!w-0.5 !h-4 mx-2" orientation="vertical" />
         {label}
       </div>
     );
   }
 
   return (
-    <div className="inline-block p-2.5 text-muted-foreground rounded-md bg-primary-foreground">
+    <div className="inline-block rounded-md bg-primary-foreground p-2.5 text-muted-foreground">
       <Icon className="size-4" />
     </div>
   );

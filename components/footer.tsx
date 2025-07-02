@@ -1,34 +1,34 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 export function Footer({ className }: { className?: string }) {
-  return (
-    <footer
-      className={cn(
-        className,
-        "container flex flex-col items-center gap-4 md:flex-row"
-      )}
-    >
-      <div className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left">
-        Built by 🏝️{" "}
-        <a
-          href="https://ndrws.neocities.org/"
-          target="_blank"
-          rel="noreferrer"
-          className="font-medium text-sea hover:text-gold transition duration-200"
-        >
-          Andrews
-        </a>
-        . {" "}
-        <a
-          href="https://github.com/raphaelandrews/fsx"
-          target="_blank"
-          rel="noreferrer"
-          className="font-medium hover:text-gold transition duration-200"
-        >
-          Source code
-        </a>
-        .
-      </div>
-    </footer>
-  );
+	return (
+		<footer
+			className={cn(
+				className,
+				"container flex flex-col items-center gap-4 md:flex-row"
+			)}
+		>
+			<div className="text-balance text-center text-muted-foreground text-sm leading-loose md:text-left">
+				Built by 🏝️{" "}
+				<a
+					className="font-medium text-sea transition duration-200 hover:text-gold"
+					href="https://ndrws.neocities.org/"
+					rel="noreferrer"
+					target="_blank"
+				>
+					Andrews
+				</a>
+				.{" "}
+				<a
+					className="font-medium transition duration-200 hover:text-gold"
+					href="https://github.com/raphaelandrews/fsx"
+					rel="noreferrer"
+					target="_blank"
+				>
+					Source code
+				</a>
+				.
+			</div>
+		</footer>
+	)
 }

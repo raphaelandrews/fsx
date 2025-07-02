@@ -1,48 +1,45 @@
-import type { Metadata } from "next";
-import { BookmarkIcon } from "lucide-react";
+import type { Metadata } from "next"
+import { BookmarkIcon } from "lucide-react"
 
-import { getTitledPlayers } from "@/db/queries";
-import { siteConfig } from "@/lib/site";
+import { getTitledPlayers } from "@/db/queries"
+import { siteConfig } from "@/lib/site"
 
-import { columns } from "./components/columns";
-import { DataTable } from "./components/data-table";
-import { Announcement } from "@/components/announcement";
-import {
-  PageHeader,
-  PageHeaderHeading,
-} from "@/components/ui/page-header";
+import { columns } from "./components/columns"
+import { DataTable } from "./components/data-table"
+import { Announcement } from "@/components/announcement"
+import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
 
 export const metadata: Metadata = {
-  title: "Titulados",
-  description: "Titulados FSX",
-  openGraph: {
-    type: "website",
-    locale: "pt_BR",
-    url: `${siteConfig.url}/titulados`,
-    title: "FSX | Titulados",
-    description: "Titulados da Federação Sergipana de Xadrez",
-    siteName: "FSX | Titulados",
-    images: [
-      {
-        url: `${siteConfig.url}/og/og.jpg`,
-        width: 1920,
-        height: 1080,
-      },
-    ],
-  },
-};
+	title: "Titulados",
+	description: "Titulados FSX",
+	openGraph: {
+		type: "website",
+		locale: "pt_BR",
+		url: `${siteConfig.url}/titulados`,
+		title: "FSX | Titulados",
+		description: "Titulados da Federação Sergipana de Xadrez",
+		siteName: "FSX | Titulados",
+		images: [
+			{
+				url: `${siteConfig.url}/og/og.jpg`,
+				width: 1920,
+				height: 1080,
+			},
+		],
+	},
+}
 
 export default async function Page() {
-  const data = await getTitledPlayers();
+	const data = await getTitledPlayers()
 
-  return (
-    <>
-      <PageHeader>
-        <Announcement icon={BookmarkIcon} />
-        <PageHeaderHeading>Titulados</PageHeaderHeading>
-      </PageHeader>
+	return (
+		<>
+			<PageHeader>
+				<Announcement icon={BookmarkIcon} />
+				<PageHeaderHeading>Titulados</PageHeaderHeading>
+			</PageHeader>
 
-      <DataTable data={data} columns={columns} />
-    </>
-  );
+			<DataTable columns={columns} data={data} />
+		</>
+	)
 }

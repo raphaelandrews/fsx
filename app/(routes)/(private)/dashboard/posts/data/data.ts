@@ -1,17 +1,14 @@
-import {
-  SquarePenIcon,
-  CircleCheckIcon,
-} from "lucide-react";
+import { SquarePenIcon, CircleCheckIcon } from "lucide-react"
 
 export const statuses = [
-  {
-    value: "published",
-    label: "Published",
-    icon: SquarePenIcon,
-  },
-  {
-    value: "post",
-    label: "Post",
-    icon: CircleCheckIcon,
-  },
-];
+	{
+		value: "published",
+		label: "Published",
+		icon: SquarePenIcon,
+	},
+	{
+		value: "post",
+		label: "Post",
+		icon: CircleCheckIcon,
+	},
+]

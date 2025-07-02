@@ -1,76 +1,77 @@
-"use client";
+/** biome-ignore-all lint/nursery/noShadow: No */
+"use client"
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
-import { navigationData } from "./header-navigation-data";
+import { navigationData } from "./header-navigation-data"
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
+	NavigationMenu,
+	NavigationMenuContent,
+	NavigationMenuItem,
+	NavigationMenuLink,
+	NavigationMenuList,
+	NavigationMenuTrigger,
+	navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
 
 export function MainNav() {
-  const pathname = usePathname();
-  const items = navigationData();
+	const pathname = usePathname()
+	const items = navigationData()
 
-  const getIsActive = (href: string) => pathname === href;
+	const getIsActive = (href: string) => pathname === href
 
-  return (
-    <div className="flex mr-4">
+	return (
+    <div className="mr-4 flex">
       <Link href="/" className="mr-4 flex items-center space-x-2 lg:mr-6">
-        <span className="font-bold mt-0.5">FSX</span>
+        <span className="mt-0.5 font-bold">FSX</span>
       </Link>
-      <NavigationMenu className="hidden lg:block ml-1">
-        <NavigationMenuList className="gap-4 text-sm lg:gap-6 space-x-[inherit]">
+      <NavigationMenu className="ml-1 hidden lg:block">
+        <NavigationMenuList className="gap-4 space-x-[inherit] text-sm lg:gap-6">
           {items.map(({ label, items, href, target }) => {
             const hasItems = Boolean(items?.length);
 
-            if (hasItems)
+            if (hasItems) {
               return (
                 <NavigationMenuItem key={label}>
                   <NavigationMenuTrigger
                     className={cn(
-                      "p-0 transition-colors hover:cursor-pointer hover:text-foreground/80 text-foreground/60 bg-transparent hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                      "bg-transparent p-0 text-foreground/60 transition-colors hover:cursor-pointer hover:bg-transparent hover:text-foreground/80 focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
                       getIsActive(href) && "text-foreground"
                     )}
                   >
                     {label}
                   </NavigationMenuTrigger>
 
-                  <NavigationMenuContent className="flex gap-4 p-4 md:w-[500px] lg:w-[700px]">
+                  <NavigationMenuContent className="flex gap-4 p-4 md:w-[500px] lg:w-[850px]">
                     {href === "#" && <NavigationMenuImage href={href} />}
                     {href === "##" && <NavigationMenuImage href={href} />}
 
                     <ul
-                      className="flex flex-wrap gap-3 w-full"
+                      className="grid grid-cols-3 w-full flex-wrap gap-3"
                       style={{ maxHeight: "400px" }}
                     >
                       {items?.map(
                         ({ href, icon: Icon, label, description }) => (
-                          <li key={label} className="flex-[1_1_45%]">
+                          <li className="flex-[1_1_45%]" key={label}>
                             <NavigationMenuLink asChild>
                               <Link
-                                href={href}
                                 className={cn(
                                   "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
                                   getIsActive(href) && "bg-muted"
                                 )}
+                                href={href}
                               >
                                 <div className="flex items-center gap-2">
-                                  <Icon width={12} height={12} />
-                                  <div className="text-sm font-medium leading-none">
+                                  <Icon height={12} width={12} />
+                                  <div className="font-medium text-sm leading-none">
                                     {label}
                                   </div>
                                 </div>
 
-                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                <p className="line-clamp-2 text-muted-foreground text-sm leading-snug">
                                   {description}
                                 </p>
                               </Link>
@@ -82,21 +83,22 @@ export function MainNav() {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               );
+            }
 
             return (
               <NavigationMenuItem
-                key={label}
+                asChild
                 className={cn(
                   navigationMenuTriggerStyle(),
-                  "p-0 transition-colors hover:text-foreground/80 text-foreground/60 bg-transparent hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                  "bg-transparent p-0 text-foreground/60 transition-colors hover:bg-transparent hover:text-foreground/80 focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
                   getIsActive(href) && "text-foreground"
                 )}
-                asChild
+                key={label}
               >
                 <Link
+                  className="flex items-center gap-2"
                   href={href}
                   target={target}
-                  className="flex items-center gap-2"
                 >
                   {label}
                 </Link>
@@ -110,14 +112,14 @@ export function MainNav() {
 }
 
 const NavigationMenuImage = ({ href }: { href: string }) => {
-  return (
-    <>
-      {href === "#" && (
-        <div className="relative h-[185px] w-[128px] min-w-[128px] bg-gradient-to-br from-cyan-500 to-blue-500 overflow-hidden rounded-md border shadow" />
-      )}
-      {href === "##" && (
-        <div className="relative h-[185px] w-[128px] min-w-[128px] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 overflow-hidden rounded-md border shadow" />
-      )}
-    </>
-  );
-};
+	return (
+		<>
+			{href === "#" && (
+				<div className="relative h-[147px] w-[128px] min-w-[128px] overflow-hidden rounded-md border bg-gradient-to-br from-cyan-500 to-blue-500 shadow" />
+			)}
+			{href === "##" && (
+				<div className="relative h-[147px] w-[128px] min-w-[128px] overflow-hidden rounded-md border bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow" />
+			)}
+		</>
+	)
+}
