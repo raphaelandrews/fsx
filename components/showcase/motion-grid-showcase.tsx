@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import {
 	type Frames,
 	MotionGrid,
-} from "@/components/animate-ui/components/motion-grid"
+} from "@/components/animate-ui/motion-grid"
 import { RotatingText } from "@/components/animate-ui/text/rotating"
 
 const importingFrames = [

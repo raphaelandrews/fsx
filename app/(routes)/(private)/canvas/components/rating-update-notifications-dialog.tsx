@@ -1,0 +1,83 @@
+import { Info, Trash2Icon } from "lucide-react";
+
+import { useNotificationDialogStore } from "@/lib/stores/notification-dialog-store";
+import { useNotificationStore } from "@/lib/stores/notification-store";
+
+import { getNotificationIcon } from "./rating-update-notification-list";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "./ui/drawer";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+export function RatingUpdateNotificationsDialog() {
+  const { notifications, clearNotifications } = useNotificationStore();
+  const { isOpen, close } = useNotificationDialogStore();
+
+  return (
+    <Drawer open={isOpen} onOpenChange={(open) => !open && close()}>
+      <DrawerContent className="sm:max-w-[425px] border [&>[drawer-overlay]]:!bg-transparent dark:[&>[drawer-overlay]]:!bg-transparent">
+        <DrawerHeader>
+          <DrawerTitle>Notifications</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4">
+          {notifications.length === 0 ? (
+            <div className="bg-neutral-100 dark:bg-neutral-800 mb-4 rounded-xl px-4 py-2 shadow-sm">
+              <div className="flex items-center gap-2">
+                <Info className="size-3 text-blue-500" />
+                <h2 className="text-sm font-medium">No notifications</h2>
+              </div>
+              <div className="text-xs text-neutral-500 font-medium mt-1">
+                Notifications will appear here
+              </div>
+            </div>
+          ) : (
+            <ScrollArea className="h-[258px]" hideScrollbar>
+              <div className="space-y-2">
+                {notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className="bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-2 shadow-sm"
+                  >
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-sm font-medium flex items-center gap-2">
+                        {getNotificationIcon(notification.type)}
+                        {notification.title}
+                      </h2>
+                    </div>
+                    <p className="text-xs text-neutral-500 font-medium">
+                      {notification.subtitle}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </div>
+        {notifications.length > 0 && (
+          <DrawerFooter>
+            <div className="flex justify-start">
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex items-center gap-1"
+                onClick={() => {
+                  clearNotifications();
+                  close();
+                }}
+              >
+                <Trash2Icon size={14} />
+                Clear all
+              </Button>
+            </div>
+          </DrawerFooter>
+        )}
+      </DrawerContent>
+    </Drawer>
+  );
+}

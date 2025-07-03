@@ -2,11 +2,8 @@ import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
-import {
-  type Frames,
-  MotionGrid,
-} from "@/components/animate-ui/components/motion-grid";
-import { RotatingText } from "@/components/animate-ui/text/rotating";
+import { type Frames, MotionGrid } from "@/components/animate-ui/motion-grid";
+import { RotatingText } from "@/components/animate-ui/rotating";
 
 const importingFrames = [
   [[2, 2]],

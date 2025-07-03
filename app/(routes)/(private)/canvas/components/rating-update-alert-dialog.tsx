@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,7 +9,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { Dispatch, SetStateAction } from "react";
 
 export function RatingUpdateAlertDialog({
   open,

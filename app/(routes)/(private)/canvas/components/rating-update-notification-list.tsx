@@ -1,0 +1,114 @@
+"use client";
+
+import { ArrowUpRight, XCircle, CheckCircle2, Info } from "lucide-react";
+import { motion, type Transition } from "motion/react";
+
+import { useNotificationStore } from "@/lib/stores/notification-store";
+import { Button } from "@/components/ui/button";
+import { useNotificationDialogStore } from "@/lib/stores/notification-dialog-store";
+
+const transition: Transition = {
+  type: "spring",
+  stiffness: 300,
+  damping: 26,
+};
+
+const textSwitchTransition: Transition = {
+  duration: 0.22,
+  ease: "easeInOut",
+};
+
+const notificationTextVariants = {
+  collapsed: { opacity: 1, y: 0, pointerEvents: "auto" },
+  expanded: { opacity: 0, y: -16, pointerEvents: "none" },
+};
+
+const viewAllTextVariants = {
+  collapsed: { opacity: 0, y: 16, pointerEvents: "none" },
+  expanded: { opacity: 1, y: 0, pointerEvents: "auto" },
+};
+
+export const getNotificationIcon = (type?: "success" | "error" | "info") => {
+  switch (type) {
+    case "success":
+      return <CheckCircle2 className="size-3 text-green-500" />;
+    case "error":
+      return <XCircle className="size-3 text-red-500" />;
+    default:
+      return <Info className="size-3 text-blue-500" />;
+  }
+};
+
+export function RatingUpdateNotificationList() {
+  const { notifications } = useNotificationStore();
+  const { open } = useNotificationDialogStore();
+  const lastNotification = notifications[0];
+
+  return (
+    <motion.div
+      className="absolute bottom-4 left-4 bg-neutral-200 dark:bg-neutral-900 p-3 rounded-3xl w-xs space-y-3 shadow-md"
+      initial="collapsed"
+      whileHover="expanded"
+    >
+      {!lastNotification ? (
+        <div className="bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-2 shadow-sm">
+          <div className="flex items-center gap-2">
+            <Info className="size-3 text-blue-500" />
+            <h2 className="text-sm font-medium">No notifications</h2>
+          </div>
+          <div className="text-xs text-neutral-500 font-medium mt-1">
+            Notifications will appear here
+          </div>
+        </div>
+      ) : (
+        <div>
+          <motion.div
+            className="bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-2 shadow-sm hover:shadow-lg transition-shadow duration-200"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={transition}
+          >
+            <div className="flex justify-between items-center">
+              <h2 className="text-sm font-medium flex items-center gap-2">
+                {getNotificationIcon(lastNotification.type)}
+                {lastNotification.title}
+              </h2>
+            </div>
+            <p className="text-xs text-neutral-500 font-medium">
+              {lastNotification.subtitle}
+            </p>
+          </motion.div>
+        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        <div className="size-5 rounded-full bg-neutral-400 text-white text-xs flex items-center justify-center font-medium">
+          {notifications.length}
+        </div>
+        <span className="grid">
+          <motion.span
+            className="text-sm font-medium text-neutral-600 dark:text-neutral-300 row-start-1 col-start-1"
+            variants={notificationTextVariants}
+            transition={textSwitchTransition}
+          >
+            Notifications
+          </motion.span>
+          <motion.span
+            className="text-sm font-medium text-neutral-600 dark:text-neutral-300 flex items-center gap-1 cursor-pointer select-none row-start-1 col-start-1"
+            variants={viewAllTextVariants}
+            transition={textSwitchTransition}
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1 text-sm font-medium h-5 p-0 hover:bg-transparent dark:hover:bg-transparent"
+              onClick={open}
+            >
+              View all <ArrowUpRight className="size-4" />
+            </Button>
+          </motion.span>
+        </span>
+      </div>
+    </motion.div>
+  );
+}

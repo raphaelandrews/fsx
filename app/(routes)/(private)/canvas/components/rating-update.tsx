@@ -2,7 +2,6 @@
 
 import React, { useCallback } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as XLSX from "xlsx";
 import type z from "zod";
@@ -16,10 +15,9 @@ import type {
 import { RatingUpdateDeveloperTool } from "./rating-update-developer-tool";
 import { RatingUpdateMotionGrid } from "./rating-update-motion-grid";
 
+import { useNotificationStore } from "@/lib/stores/notification-store";
 import { useRatingUpdateStore } from "@/lib/stores/rating-update-store";
 
-import { Alert, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -32,11 +30,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { formSchema } from "../utils/form-schema";
-import { RatingUpdateStackTrace } from "./rating-update-stack-trace";
+
 import { RatingUpdateAlertDialog } from "./rating-update-alert-dialog";
-import { RatingUpdateStatus } from "./rating-update-status";
 import { RatingUpdateCompletedAlert } from "./rating-update-completed-alert";
+import { RatingUpdateNotificationList } from "./rating-update-notification-list";
+import { RatingUpdatePagination } from "./rating-update-pagination";
 import { RatingUpdateProcessingAlert } from "./rating-update-processing-alert";
+import { RatingUpdateStackTitle } from "./rating-update-stack-title";
+import { RatingUpdateStackTrace } from "./rating-update-stack-trace";
+import { RatingUpdateStatus } from "./rating-update-status";
+import { RatingUpdateNotificationsDialog } from "./rating-update-notifications-dialog";
 
 export function RatingUpdate() {
   const {
@@ -48,6 +51,9 @@ export function RatingUpdate() {
     setSuccessStackLength,
     setErrorStackLength,
   } = useRatingUpdateStore();
+  const addNotification = useNotificationStore(
+    (state) => state.addNotification
+  );
 
   const [currentUpdate, setCurrentUpdate] =
     React.useState<RatingUpdateProps | null>(null);
@@ -127,8 +133,12 @@ export function RatingUpdate() {
       fileInputRef.current.value = "";
     }
     setSelectedFileName(null);
-    toast.info("File input cleared.");
-  }, [form, setSelectedFileName]);
+    addNotification({
+      title: "Info",
+      subtitle: "File input cleared.",
+      type: "info",
+    });
+  }, [form, setSelectedFileName, addNotification]);
 
   const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = useCallback(
     async (values) => {
@@ -183,9 +193,11 @@ export function RatingUpdate() {
 
               if (nonEmptyRows.length === 0) {
                 handleClearFileClick();
-                toast.error(
-                  "File contains no data rows or all rows are empty."
-                );
+                addNotification({
+                  title: "Error",
+                  subtitle: "File contains no data rows or all rows are empty.",
+                  type: "error",
+                });
                 setIsRunning(false);
                 setCurrentStatusText("Error: No valid data rows found.");
                 return;
@@ -230,9 +242,12 @@ export function RatingUpdate() {
                 availableColumns[0] === "id"
               ) {
                 handleClearFileClick();
-                toast.error(
-                  "File contains only the 'id' column. Additional data columns are required."
-                );
+                addNotification({
+                  title: "Error",
+                  subtitle:
+                    "File contains only the 'id' column. Additional data columns are required.",
+                  type: "error",
+                });
                 setIsRunning(false);
                 setCurrentStatusText("Error: Only 'id' column present.");
                 return;
@@ -240,9 +255,12 @@ export function RatingUpdate() {
 
               if (hasPartialTournamentColumns && !hasTournamentColumns) {
                 handleClearFileClick();
-                toast.error(
-                  "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be included."
-                );
+                addNotification({
+                  title: "Error",
+                  subtitle:
+                    "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be included.",
+                  type: "error",
+                });
                 setTotalUpdates(0);
                 setIsRunning(false);
                 setCurrentStatusText("Error: Incomplete tournament columns.");
@@ -251,9 +269,12 @@ export function RatingUpdate() {
 
               if (!hasPlayerDataColumns && !hasTournamentColumns) {
                 handleClearFileClick();
-                toast.error(
-                  "File must contain either player data columns or complete tournament columns."
-                );
+                addNotification({
+                  title: "Error",
+                  subtitle:
+                    "File must contain either player data columns or complete tournament columns.",
+                  type: "error",
+                });
                 setIsRunning(false);
                 setCurrentStatusText("Error: No valid data columns found.");
                 return;
@@ -270,9 +291,12 @@ export function RatingUpdate() {
 
               if (tournamentColumnsCount > 0 && tournamentColumnsCount < 3) {
                 handleClearFileClick();
-                toast.error(
-                  "If any tournament-related column (tournamentId, variation, ratingType) is present, all three must be included."
-                );
+                addNotification({
+                  title: "Error",
+                  subtitle:
+                    "If any tournament-related column (tournamentId, variation, ratingType) is present, all three must be included.",
+                  type: "error",
+                });
                 setIsRunning(false);
                 setCurrentStatusText("Error: Incomplete tournament columns.");
                 return;
@@ -280,9 +304,12 @@ export function RatingUpdate() {
 
               if (headerMap.id === undefined) {
                 handleClearFileClick();
-                toast.error(
-                  "Mandatory column 'id' is missing in the Excel file."
-                );
+                addNotification({
+                  title: "Error",
+                  subtitle:
+                    "Mandatory column 'id' is missing in the Excel file.",
+                  type: "error",
+                });
                 setTotalUpdates(0);
                 setIsRunning(false);
                 setCurrentStatusText("Error: 'id' column missing.");
@@ -400,11 +427,13 @@ export function RatingUpdate() {
                     variation === null ||
                     !ratingType
                   ) {
-                    toast.error(
-                      `Row ${
+                    addNotification({
+                      title: "Error",
+                      subtitle: `Row ${
                         i + 1
-                      }: Tournament columns present but some values are empty or invalid.`
-                    );
+                      }: Tournament columns present but some values are empty or invalid.`,
+                      type: "error",
+                    });
                     setErrorStack((prev) => [
                       {
                         _uuid: crypto.randomUUID(),
@@ -432,11 +461,13 @@ export function RatingUpdate() {
                   ratingType !== undefined &&
                   !["blitz", "rapid", "classic"].includes(ratingType)
                 ) {
-                  toast.error(
-                    `Row ${
+                  addNotification({
+                    title: "Error",
+                    subtitle: `Row ${
                       i + 1
-                    }: Invalid rating type. Must be one of: blitz, rapid, classic.`
-                  );
+                    }: Invalid rating type. Must be one of: blitz, rapid, classic.`,
+                    type: "error",
+                  });
                   setErrorStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
@@ -463,9 +494,13 @@ export function RatingUpdate() {
                   tournamentId !== undefined &&
                   (tournamentId <= 0 || !Number.isInteger(tournamentId))
                 ) {
-                  toast.error(
-                    `Row ${i + 1}: Tournament ID must be a positive integer.`
-                  );
+                  addNotification({
+                    title: "Error",
+                    subtitle: `Row ${
+                      i + 1
+                    }: Tournament ID must be a positive integer.`,
+                    type: "error",
+                  });
                   setErrorStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
@@ -494,11 +529,13 @@ export function RatingUpdate() {
                     variation > 100 ||
                     !Number.isInteger(variation))
                 ) {
-                  toast.error(
-                    `Row ${
+                  addNotification({
+                    title: "Error",
+                    subtitle: `Row ${
                       i + 1
-                    }: Variation must be an integer between -100 and 100.`
-                  );
+                    }: Variation must be an integer between -100 and 100.`,
+                    type: "error",
+                  });
                   setErrorStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
@@ -522,11 +559,13 @@ export function RatingUpdate() {
                 }
 
                 if (id === null || Number.isNaN(id) || id < 0) {
-                  toast.error(
-                    `Row ${
+                  addNotification({
+                    title: "Error",
+                    subtitle: `Row ${
                       i + 1
-                    }: Invalid or missing 'id' value. ID must be 0 or positive.`
-                  );
+                    }: Invalid or missing 'id' value. ID must be 0 or positive.`,
+                    type: "error",
+                  });
                   setErrorStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
@@ -565,11 +604,13 @@ export function RatingUpdate() {
                     ratingType === undefined ||
                     ratingType === ""
                   ) {
-                    toast.error(
-                      `Row ${
+                    addNotification({
+                      title: "Error",
+                      subtitle: `Row ${
                         i + 1
-                      }: If any of 'tournamentId', 'variation', 'ratingType' are present, all three must be valid.`
-                    );
+                      }: If any of 'tournamentId', 'variation', 'ratingType' are present, all three must be valid.`,
+                      type: "error",
+                    });
                     setErrorStack((prev) => [
                       {
                         _uuid: crypto.randomUUID(),
@@ -598,9 +639,13 @@ export function RatingUpdate() {
 
                 if (id === 0 && !isTournamentUpdate) {
                   if (name === undefined || name === "") {
-                    toast.error(
-                      `Row ${i + 1}: Missing or empty 'name' for new player.`
-                    );
+                    addNotification({
+                      title: "Error",
+                      subtitle: `Row ${
+                        i + 1
+                      }: Missing or empty 'name' for new player.`,
+                      type: "error",
+                    });
                     setErrorStack((prev) => [
                       {
                         _uuid: crypto.randomUUID(),
@@ -667,11 +712,13 @@ export function RatingUpdate() {
                   if (hasPlayerData) {
                     if (id === 0) {
                       if (!name) {
-                        toast.error(
-                          `Row ${
+                        addNotification({
+                          title: "Error",
+                          subtitle: `Row ${
                             i + 1
-                          }: Missing name for new player with tournament data.`
-                        );
+                          }: Missing name for new player with tournament data.`,
+                          type: "error",
+                        });
                         setErrorStack((prev) => [
                           {
                             _uuid: crypto.randomUUID(),
@@ -699,9 +746,13 @@ export function RatingUpdate() {
                   } else {
                     if (id === 0) {
                       if (!name) {
-                        toast.error(
-                          `Row ${i + 1}: Missing name for new player.`
-                        );
+                        addNotification({
+                          title: "Error",
+                          subtitle: `Row ${
+                            i + 1
+                          }: Missing name for new player.`,
+                          type: "error",
+                        });
                         continue;
                       }
                       operationText = "Creating Player and Tournament Relation";
@@ -716,7 +767,11 @@ export function RatingUpdate() {
                 } else {
                   if (id === 0) {
                     if (!name) {
-                      toast.error(`Row ${i + 1}: Missing name for new player.`);
+                      addNotification({
+                        title: "Error",
+                        subtitle: `Row ${i + 1}: Missing name for new player.`,
+                        type: "error",
+                      });
                       continue;
                     }
                     operationText = "Creating Player";
@@ -825,8 +880,16 @@ export function RatingUpdate() {
                       : "No stack trace available.";
                   console.error("Error processing player:", error, id);
                   id === 0
-                    ? toast.error(`Row ${i + 1} failed to process row.`)
-                    : toast.error(`Failed to process player ID: ${id}.`);
+                    ? addNotification({
+                        title: "Error",
+                        subtitle: `Row ${i + 1} failed to process row.`,
+                        type: "error",
+                      })
+                    : addNotification({
+                        title: "Error",
+                        subtitle: `Failed to process player ID: ${id}.`,
+                        type: "error",
+                      });
 
                   let statusCode = 500;
                   let displayMessage = errorMessage;
@@ -882,7 +945,11 @@ export function RatingUpdate() {
             }
 
             if (useRatingUpdateStore.getState().isRunning) {
-              toast.success("Database update process completed!");
+              addNotification({
+                title: "Success",
+                subtitle: "Database update process completed!",
+                type: "success",
+              });
               setCurrentStatusText("Update process finished.");
             }
             setIsRunning(false);
@@ -891,21 +958,31 @@ export function RatingUpdate() {
           fileReader.onerror = () => {
             setIsRunning(false);
             setCurrentStatusText("Error reading file.");
-            toast.error("Failed to read the Excel file.");
+            addNotification({
+              title: "Error",
+              subtitle: "Failed to read the Excel file.",
+              type: "error",
+            });
           };
 
           fileReader.readAsArrayBuffer(file);
         } catch (error: unknown) {
           const errorMessage =
             error instanceof Error ? error.message : "Unknown error";
-          toast.error(
-            `Oops, there was an error processing the file: ${errorMessage}`
-          );
+          addNotification({
+            title: "Error",
+            subtitle: `Oops, there was an error processing the file: ${errorMessage}`,
+            type: "error",
+          });
           setIsRunning(false);
           setCurrentStatusText(`File processing error: ${errorMessage}`);
         }
       } else {
-        toast.error("Please select a file to upload.");
+        addNotification({
+          title: "Error",
+          subtitle: "Please select a file to upload.",
+          type: "error",
+        });
         setIsRunning(false);
         setSelectedFileName(null);
         setCurrentStatusText("No file selected.");
@@ -917,6 +994,7 @@ export function RatingUpdate() {
       setSuccessStackLength,
       setErrorStackLength,
       handleClearFileClick,
+      addNotification,
     ]
   );
 
@@ -940,7 +1018,11 @@ export function RatingUpdate() {
     setSelectedFileName(null);
     setSuccessStackLength(0);
     setErrorStackLength(0);
-    toast.info("Database update history cleared from local storage.");
+    addNotification({
+      title: "Info",
+      subtitle: "Database update history cleared from local storage.",
+      type: "info",
+    });
     setShowClearHistoryConfirm(false);
     setCurrentStatusText("History cleared. Ready to start...");
   }, [
@@ -949,6 +1031,7 @@ export function RatingUpdate() {
     form.reset,
     setIsRunning,
     setSelectedFileName,
+    addNotification,
   ]);
 
   const clearHistory = useCallback(() => {
@@ -1023,6 +1106,8 @@ export function RatingUpdate() {
   return (
     <>
       <RatingUpdateDeveloperTool />
+      <RatingUpdateNotificationList />
+      <RatingUpdateNotificationsDialog />
 
       {isRunning && (
         <RatingUpdateMotionGrid currentStatusText={currentStatusText} />
@@ -1106,75 +1191,40 @@ export function RatingUpdate() {
       {(successStack.length || errorStack.length) > 0 && (
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 flex gap-12 mt-4">
           <div className="flex flex-col items-center gap-4">
-            <Alert variant="success" className="flex items-center gap-2 w-fit">
-              <AlertTitle>Success stack trace</AlertTitle>
-              <Badge className="bg-[#E8F5E9] text-[#388E3C] dark:bg-[#022C22] dark:text-[#1BC994] rounded-sm">
-                {successStack.length}
-              </Badge>
-            </Alert>
+            <RatingUpdateStackTitle
+              title="Success stack trace"
+              length={successStack.length}
+              stack={true}
+            />
 
             <RatingUpdateStackTrace updates={paginatedSuccessStack} />
 
             {successStack.length > ITEMS_PER_PAGE && (
-              <div className="flex items-center gap-2 mt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleSuccessPageChange("prev")}
-                  disabled={successCurrentPage === 1}
-                >
-                  Previous
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Page {successCurrentPage} of {successTotalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleSuccessPageChange("next")}
-                  disabled={successCurrentPage === successTotalPages}
-                >
-                  Next
-                </Button>
-              </div>
+              <RatingUpdatePagination
+                currentPage={successCurrentPage}
+                totalPages={successTotalPages}
+                nextPage={() => handleSuccessPageChange("next")}
+                previousPage={() => handleSuccessPageChange("prev")}
+              />
             )}
           </div>
 
           <div className="flex flex-col items-center gap-4">
-            <Alert
-              variant="destructive"
-              className="flex items-center gap-2 w-fit"
-            >
-              <AlertTitle>Error stack trace</AlertTitle>
-              <Badge className="bg-[#FFEBEE] text-[#D32F2F] dark:bg-[#4D0217] dark:text-[#FF6982] rounded-sm">
-                {errorStack.length}
-              </Badge>
-            </Alert>
+            <RatingUpdateStackTitle
+              title="Error stack trace"
+              length={errorStack.length}
+              stack={false}
+            />
 
             <RatingUpdateStackTrace updates={paginatedErrorStack} />
 
             {errorStack.length > ITEMS_PER_PAGE && (
-              <div className="flex items-center gap-2 mt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleErrorPageChange("prev")}
-                  disabled={errorCurrentPage === 1}
-                >
-                  Previous
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Page {errorCurrentPage} of {errorTotalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleErrorPageChange("next")}
-                  disabled={errorCurrentPage === errorTotalPages}
-                >
-                  Next
-                </Button>
-              </div>
+              <RatingUpdatePagination
+                currentPage={errorCurrentPage}
+                totalPages={errorTotalPages}
+                nextPage={() => handleErrorPageChange("next")}
+                previousPage={() => handleErrorPageChange("prev")}
+              />
             )}
           </div>
         </div>

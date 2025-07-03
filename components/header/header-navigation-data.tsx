@@ -13,6 +13,7 @@ import {
   ScrollIcon,
   BookmarkIcon,
   LinkIcon,
+  BookCopyIcon,
 } from "lucide-react";
 
 type NavigationItem = {
@@ -55,8 +56,7 @@ export const navigationData: Navigation = () => [
       },
       {
         label: "Circuitos",
-        description:
-          "Circuitos de Sergipe.",
+        description: "Circuitos de Sergipe.",
         href: "/circuitos",
         icon: MedalIcon,
         target: "_self",
@@ -80,7 +80,7 @@ export const navigationData: Navigation = () => [
   {
     label: "Institucional",
     href: "##",
-    icon: BookIcon,
+    icon: BookCopyIcon,
     target: "_self",
     items: [
       {
