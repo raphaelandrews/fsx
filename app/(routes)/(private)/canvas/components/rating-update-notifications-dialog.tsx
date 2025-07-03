@@ -6,7 +6,6 @@ import { useNotificationStore } from "@/lib/stores/notification-store";
 import { getNotificationIcon } from "./rating-update-notification-list";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
@@ -21,18 +20,20 @@ export function RatingUpdateNotificationsDialog() {
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && close()}>
-      <DrawerContent className="sm:max-w-[425px] border [&>[drawer-overlay]]:!bg-transparent dark:[&>[drawer-overlay]]:!bg-transparent">
+      <DrawerContent className="sm:max-w-[425px] bg-background dark:bg-[#0F0F0F]">
         <DrawerHeader>
           <DrawerTitle>Notifications</DrawerTitle>
         </DrawerHeader>
         <div className="px-4">
           {notifications.length === 0 ? (
-            <div className="bg-neutral-100 dark:bg-neutral-800 mb-4 rounded-xl px-4 py-2 shadow-sm">
+            <div className="bg-card mb-4 rounded-xl px-4 py-2 shadow-sm">
               <div className="flex items-center gap-2">
                 <Info className="size-3 text-blue-500" />
-                <h2 className="text-sm font-medium">No notifications</h2>
+                <h2 className="font-medium text-sm text-card-foreground">
+                  No notifications
+                </h2>
               </div>
-              <div className="text-xs text-neutral-500 font-medium mt-1">
+              <div className="text-xs text-muted-foreground font-medium mt-1">
                 Notifications will appear here
               </div>
             </div>
@@ -42,7 +43,7 @@ export function RatingUpdateNotificationsDialog() {
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className="bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-2 shadow-sm"
+                    className="bg-secondary rounded-xl px-4 py-2 shadow-sm"
                   >
                     <div className="flex justify-between items-center">
                       <h2 className="text-sm font-medium flex items-center gap-2">

@@ -288,7 +288,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   icon: Icon,
   isActive = false,
   onClick,
-  className = "",
+  className,
 }) => {
   return (
     <Button

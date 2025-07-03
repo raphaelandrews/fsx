@@ -46,24 +46,26 @@ export function RatingUpdateNotificationList() {
 
   return (
     <motion.div
-      className="absolute bottom-4 left-4 bg-neutral-200 dark:bg-neutral-900 p-3 rounded-3xl w-xs space-y-3 shadow-md"
+      className="absolute bottom-4 left-4 bg-background dark:bg-[#0F0F0F] p-3 rounded-3xl w-xs space-y-3 shadow-md"
       initial="collapsed"
       whileHover="expanded"
     >
       {!lastNotification ? (
-        <div className="bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-2 shadow-sm">
+        <div className="bg-card rounded-xl px-4 py-2 shadow-sm">
           <div className="flex items-center gap-2">
             <Info className="size-3 text-blue-500" />
-            <h2 className="text-sm font-medium">No notifications</h2>
+            <h2 className="font-medium text-sm text-card-foreground">
+              No notifications
+            </h2>
           </div>
-          <div className="text-xs text-neutral-500 font-medium mt-1">
+          <div className="text-xs text-muted-foreground font-medium mt-1">
             Notifications will appear here
           </div>
         </div>
       ) : (
         <div>
           <motion.div
-            className="bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-2 shadow-sm hover:shadow-lg transition-shadow duration-200"
+            className="bg-secondary rounded-xl px-4 py-2 shadow-sm hover:shadow-lg transition-shadow duration-200"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={transition}
@@ -82,19 +84,19 @@ export function RatingUpdateNotificationList() {
       )}
 
       <div className="flex items-center gap-2">
-        <div className="size-5 rounded-full bg-neutral-400 text-white text-xs flex items-center justify-center font-medium">
+        <div className="size-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium">
           {notifications.length}
         </div>
         <span className="grid">
           <motion.span
-            className="text-sm font-medium text-neutral-600 dark:text-neutral-300 row-start-1 col-start-1"
+            className="text-sm font-medium row-start-1 col-start-1"
             variants={notificationTextVariants}
             transition={textSwitchTransition}
           >
             Notifications
           </motion.span>
           <motion.span
-            className="text-sm font-medium text-neutral-600 dark:text-neutral-300 flex items-center gap-1 cursor-pointer select-none row-start-1 col-start-1"
+            className="text-sm font-medium flex items-center gap-1 cursor-pointer select-none row-start-1 col-start-1"
             variants={viewAllTextVariants}
             transition={textSwitchTransition}
           >

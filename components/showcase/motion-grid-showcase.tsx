@@ -6,7 +6,7 @@ import {
 	type Frames,
 	MotionGrid,
 } from "@/components/animate-ui/motion-grid"
-import { RotatingText } from "@/components/animate-ui/text/rotating"
+import { RotatingText } from "@/components/animate-ui/rotating"
 
 const importingFrames = [
 	[[2, 2]],

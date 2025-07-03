@@ -49,7 +49,7 @@ function RatingUpdateStackTrace({ updates }: RatingUpdateStackTraceProps) {
             >
               <div
                 key={update._uuid}
-                className="flex items-center justify-between gap-5 rounded-2xl bg-neutral-200 dark:bg-neutral-800 p-2"
+                className="flex items-center justify-between gap-5 p-2 rounded-2xl bg-card shadow-md"
               >
                 <div className="flex items-center gap-2">
                   <div
@@ -66,7 +66,7 @@ function RatingUpdateStackTrace({ updates }: RatingUpdateStackTraceProps) {
                 {update.success && (
                   <Popover>
                     <PopoverTrigger
-                      className="size-8 p-2 rounded-full bg-neutral-400 dark:bg-neutral-600"
+                      className="size-8 text-secondary-foreground p-2 rounded-full bg-secondary"
                       asChild
                     >
                       <CirclePlusIcon className="size-4" />
@@ -323,7 +323,7 @@ function RatingUpdateStackTrace({ updates }: RatingUpdateStackTraceProps) {
                 {update.error && (
                   <Popover>
                     <PopoverTrigger
-                      className="size-8 p-2 rounded-full bg-neutral-400 dark:bg-neutral-600"
+                      className="size-8 text-secondary-foreground p-2 rounded-full bg-secondary"
                       asChild
                     >
                       <CirclePlusIcon className="size-4" />
