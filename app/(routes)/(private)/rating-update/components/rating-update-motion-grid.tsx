@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { type Frames, MotionGrid } from "@/components/animate-ui/motion-grid";
 import { RotatingText } from "@/components/animate-ui/rotating";
-import { useRatingUpdateStatusStore } from "@/lib/stores/rating-update-status-store";
+import { useRatingUpdateStatusStore } from "@/app/(routes)/(private)/rating-update/hooks/rating-update-status-store";
 
 const readyFrames = [
   [[2, 2]],
@@ -699,8 +699,8 @@ const states = {
     frames: stopFrames,
     label: "Stop",
     duration: 400,
-  }, 
-   add: {
+  },
+  add: {
     frames: addFrames,
     label: "Add",
     duration: 400,
@@ -726,11 +726,7 @@ export function RatingUpdateMotionGrid() {
   const { statusText, animationState } = useRatingUpdateStatusStore();
 
   return (
-    <Button
-      asChild
-      className="absolute top-20 left-1/2 -translate-x-1/2 h-11 gap-x-3 px-3"
-      size="lg"
-    >
+    <Button asChild className="h-11 gap-x-3 px-3" size="lg">
       <motion.button
         layout
         whileHover={{ scale: 1.05 }}

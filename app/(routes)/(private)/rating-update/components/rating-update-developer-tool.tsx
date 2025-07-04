@@ -10,7 +10,7 @@ import {
   FileTextIcon,
 } from "lucide-react";
 
-import { useRatingUpdateStore } from "@/lib/stores/rating-update-store";
+import { useRatingUpdateStore } from "@/app/(routes)/(private)/rating-update/hooks/rating-update-store";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -269,10 +269,6 @@ export function RatingUpdateDeveloperTool() {
         <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
 
         <div className="flex gap-1">
-          <ColorPicker
-            isActive={activePanel === "accessibility"}
-            onClick={() => handlePanelToggle("accessibility")}
-          />
           <ToolbarButton
             icon={FileTextIcon}
             isActive={activePanel === "rules"}
@@ -338,7 +334,7 @@ const ColorPicker: React.FC<{ isActive?: boolean; onClick?: () => void }> = ({
         <div className="w-4 h-4 bg-rose-500 rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
       </div>
       {isActive && (
-        <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full" />
+        <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full" />
       )}
     </Button>
   );
@@ -348,7 +344,7 @@ const RulesPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
   return (
     <div
       className={`
-      fixed bottom-16 transform -translate-x-1/2 w-fit h-fit left-1/2 mb-0 p-8 border rounded-2xl backdrop-blur-sm shadow-xl transition-all duration-300 ease-out
+      fixed bottom-16 transform -translate-x-1/2 w-[400px] h-fit left-1/2 mb-0 p-8 border rounded-2xl backdrop-blur-sm shadow-xl transition-all duration-300 ease-out
       ${
         isVisible
           ? "opacity-100 translate-y-0 scale-100"

@@ -12,11 +12,20 @@ import type {
   PlayerDataFields,
   PlayerTournamentDataFields,
 } from "./rating-update-types";
-import { RatingUpdateDeveloperTool } from "./rating-update-developer-tool";
-import { RatingUpdateMotionGrid } from "./rating-update-motion-grid";
 
-import { useNotificationStore } from "@/lib/stores/notification-store";
-import { useRatingUpdateStore } from "@/lib/stores/rating-update-store";
+import { formSchema } from "../utils/form-schema";
+import { useRatingUpdateStatusStore } from "@/app/(routes)/(private)/rating-update/hooks/rating-update-status-store";
+import { useNotificationStore } from "@/app/(routes)/(private)/rating-update/hooks/notification-store";
+import { useRatingUpdateStore } from "@/app/(routes)/(private)/rating-update/hooks/rating-update-store";
+
+import { RatingUpdateAlertDialog } from "./rating-update-alert-dialog";
+import { RatingUpdateDeveloperTool } from "./rating-update-developer-tool";
+import { RatingUpdateMonitor } from "./rating-update-monitor";
+import { RatingUpdateNotificationList } from "./rating-update-notification-list";
+import { RatingUpdateNotificationsDialog } from "./rating-update-notifications-dialog";
+import { RatingUpdatePagination } from "./rating-update-pagination";
+import { RatingUpdateStackTitle } from "./rating-update-stack-title";
+import { RatingUpdateStackTrace } from "./rating-update-stack-trace";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,27 +38,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { formSchema } from "../utils/form-schema";
-
-import { RatingUpdateAlertDialog } from "./rating-update-alert-dialog";
-import { RatingUpdateNotificationList } from "./rating-update-notification-list";
-import { RatingUpdatePagination } from "./rating-update-pagination";
-import { RatingUpdateStackTitle } from "./rating-update-stack-title";
-import { RatingUpdateStackTrace } from "./rating-update-stack-trace";
-import { RatingUpdateStatus } from "./rating-update-status";
-import { RatingUpdateNotificationsDialog } from "./rating-update-notifications-dialog";
-import { useRatingUpdateStatusStore } from "@/lib/stores/rating-update-status-store";
 
 export function RatingUpdate() {
   const {
     isRunning,
-    stopProcess,
-    setIsRunning,
     selectedFileName,
+    stopProcess,
+    setCurrentIndex,
+    setCurrentUpdate,
+    setErrorStackLength,
+    setIsRunning,
     setSelectedFileName,
     setSuccessStackLength,
-    setErrorStackLength,
-    setCurrentUpdate,
+    setTotalUpdates,
   } = useRatingUpdateStore();
   const { setMotionGridStatus } = useRatingUpdateStatusStore();
 
@@ -61,14 +62,8 @@ export function RatingUpdate() {
     []
   );
   const [errorStack, setErrorStack] = React.useState<RatingUpdateProps[]>([]);
-  const [successCount, setSuccessCount] = React.useState(0);
-  const [errorCount, setErrorCount] = React.useState(0);
-  const [currentIndex, setCurrentIndex] = React.useState(0);
-  const [totalUpdates, setTotalUpdates] = React.useState(0);
-
   const [successCurrentPage, setSuccessCurrentPage] = React.useState(1);
   const [errorCurrentPage, setErrorCurrentPage] = React.useState(1);
-
   const [hasLoadedInitialData, setHasLoadedInitialData] = React.useState(false);
   const [showClearHistoryConfirm, setShowClearHistoryConfirm] =
     React.useState(false);
@@ -94,13 +89,11 @@ export function RatingUpdate() {
         if (storedSuccess) {
           const parsedSuccess = JSON.parse(storedSuccess);
           setSuccessStack(parsedSuccess);
-          setSuccessCount(parsedSuccess.length);
           setSuccessStackLength(parsedSuccess.length);
         }
         if (storedError) {
           const parsedError = JSON.parse(storedError);
           setErrorStack(parsedError);
-          setErrorCount(parsedError.length);
           setErrorStackLength(parsedError.length);
         }
       } catch (e) {
@@ -145,8 +138,6 @@ export function RatingUpdate() {
       setCurrentUpdate(null);
       setSuccessStack([]);
       setErrorStack([]);
-      setSuccessCount(0);
-      setErrorCount(0);
       setCurrentIndex(0);
       setSuccessCurrentPage(1);
       setErrorCurrentPage(1);
@@ -164,7 +155,7 @@ export function RatingUpdate() {
           fileReaderRef.current = fileReader;
           fileReader.onload = async (e) => {
             if (!useRatingUpdateStore.getState().isRunning) {
-              setMotionGridStatus("Process stopped by user.", "busy");
+              setMotionGridStatus("Process stopped by user", "busy");
               return;
             }
 
@@ -198,7 +189,7 @@ export function RatingUpdate() {
                   type: "error",
                 });
                 setIsRunning(false);
-                setMotionGridStatus("Error: No valid data rows found.", "busy");
+                setMotionGridStatus("Error: No valid data rows found", "busy");
                 return;
               }
 
@@ -248,7 +239,7 @@ export function RatingUpdate() {
                   type: "error",
                 });
                 setIsRunning(false);
-                setMotionGridStatus("Error: Only 'id' column present.", "busy");
+                setMotionGridStatus("Error: Only 'id' column present", "busy");
                 return;
               }
 
@@ -263,7 +254,7 @@ export function RatingUpdate() {
                 setTotalUpdates(0);
                 setIsRunning(false);
                 setMotionGridStatus(
-                  "Error: Incomplete tournament columns.",
+                  "Error: Incomplete tournament columns",
                   "busy"
                 );
                 return;
@@ -279,7 +270,7 @@ export function RatingUpdate() {
                 });
                 setIsRunning(false);
                 setMotionGridStatus(
-                  "Error: No valid data columns found.",
+                  "Error: No valid data columns found",
                   "busy"
                 );
                 return;
@@ -304,7 +295,7 @@ export function RatingUpdate() {
                 });
                 setIsRunning(false);
                 setMotionGridStatus(
-                  "Error: Incomplete tournament columns.",
+                  "Error: Incomplete tournament columns",
                   "busy"
                 );
                 return;
@@ -320,7 +311,7 @@ export function RatingUpdate() {
                 });
                 setTotalUpdates(0);
                 setIsRunning(false);
-                setMotionGridStatus("Error: 'id' column missing.", "busy");
+                setMotionGridStatus("Error: 'id' column missing", "busy");
                 return;
               }
 
@@ -331,7 +322,7 @@ export function RatingUpdate() {
 
               for (let i = 1; i < jsonData.length; i++) {
                 if (!useRatingUpdateStore.getState().isRunning) {
-                  setMotionGridStatus("Process stopped by user.", "busy");
+                  setMotionGridStatus("Process stopped by user", "busy");
                   break;
                 }
 
@@ -343,7 +334,7 @@ export function RatingUpdate() {
                   )
                 ) {
                   setMotionGridStatus(
-                    `Row ${i + 1}: Skipping empty row.`,
+                    `Row ${i + 1}: Skipping empty row`,
                     "busy"
                   );
                   setCurrentIndex((prev) => prev + 1);
@@ -459,10 +450,9 @@ export function RatingUpdate() {
                       },
                       ...prev,
                     ]);
-                    setErrorCount((prev) => prev + 1);
                     setCurrentIndex((prev) => prev + 1);
                     setMotionGridStatus(
-                      `Row ${i + 1}: Skipping due to empty tournament data.`,
+                      `Row ${i + 1}: Skipping due to empty tournament data`,
                       "busy"
                     );
                     continue;
@@ -493,10 +483,9 @@ export function RatingUpdate() {
                     },
                     ...prev,
                   ]);
-                  setErrorCount((prev) => prev + 1);
                   setCurrentIndex((prev) => prev + 1);
                   setMotionGridStatus(
-                    `Row ${i + 1}: Skipping due to invalid rating type.`,
+                    `Row ${i + 1}: Skipping due to invalid rating type`,
                     "busy"
                   );
                   continue;
@@ -526,10 +515,9 @@ export function RatingUpdate() {
                     },
                     ...prev,
                   ]);
-                  setErrorCount((prev) => prev + 1);
                   setCurrentIndex((prev) => prev + 1);
                   setMotionGridStatus(
-                    `Row ${i + 1}: Skipping due to invalid tournament ID.`,
+                    `Row ${i + 1}: Skipping due to invalid tournament ID`,
                     "busy"
                   );
                   continue;
@@ -561,10 +549,9 @@ export function RatingUpdate() {
                     },
                     ...prev,
                   ]);
-                  setErrorCount((prev) => prev + 1);
                   setCurrentIndex((prev) => prev + 1);
                   setMotionGridStatus(
-                    `Row ${i + 1}: Skipping due to invalid variation value.`,
+                    `Row ${i + 1}: Skipping due to invalid variation value`,
                     "busy"
                   );
                   continue;
@@ -591,10 +578,9 @@ export function RatingUpdate() {
                     },
                     ...prev,
                   ]);
-                  setErrorCount((prev) => prev + 1);
                   setCurrentIndex((prev) => prev + 1);
                   setMotionGridStatus(
-                    `Row ${i + 1}: Skipping due to invalid ID.`,
+                    `Row ${i + 1}: Skipping due to invalid ID`,
                     "busy"
                   );
                   continue;
@@ -636,12 +622,11 @@ export function RatingUpdate() {
                       },
                       ...prev,
                     ]);
-                    setErrorCount((prev) => prev + 1);
                     setCurrentIndex((prev) => prev + 1);
                     setMotionGridStatus(
                       `Row ${
                         i + 1
-                      }: Skipping due to incomplete tournament data.`,
+                      }: Skipping due to incomplete tournament data`,
                       "busy"
                     );
                     continue;
@@ -671,12 +656,11 @@ export function RatingUpdate() {
                       },
                       ...prev,
                     ]);
-                    setErrorCount((prev) => prev + 1);
                     setCurrentIndex((prev) => prev + 1);
                     setMotionGridStatus(
                       `Row ${
                         i + 1
-                      }: Skipping due to missing name for new player.`,
+                      }: Skipping due to missing name for new player`,
                       "busy"
                     );
                     continue;
@@ -799,7 +783,7 @@ export function RatingUpdate() {
                   operation: operationText,
                 });
                 setMotionGridStatus(
-                  `${operationText} | Row ${i} of ${jsonData.length - 1}`,
+                  `${operationText}`,
                   "busy"
                 );
 
@@ -875,9 +859,8 @@ export function RatingUpdate() {
                     },
                     ...prev,
                   ]);
-                  setSuccessCount((prev) => prev + 1);
                   setMotionGridStatus(
-                    `Successfully processed ID ${id}.`,
+                    `Successfully processed ID ${id}`,
                     "busy"
                   );
                 } catch (error: unknown) {
@@ -941,8 +924,7 @@ export function RatingUpdate() {
                     },
                     ...prev,
                   ]);
-                  setErrorCount((prev) => prev + 1);
-                  setMotionGridStatus(`Failed to process ID ${id}.`, "busy");
+                  setMotionGridStatus(`Failed to process ID ${id}`, "busy");
                 } finally {
                   setCurrentIndex((prev) => prev + 1);
                   setCurrentUpdate(null);
@@ -957,7 +939,7 @@ export function RatingUpdate() {
                 type: "success",
               });
               setMotionGridStatus(
-                "Update process completed successfully.",
+                "Update process completed successfully",
                 "saving"
               );
             } else {
@@ -966,7 +948,7 @@ export function RatingUpdate() {
                 subtitle: "Database update process stopped by user.",
                 type: "info",
               });
-              setMotionGridStatus("Process stopped by user.", "stop");
+              setMotionGridStatus("Process stopped by user", "stop");
             }
 
             setIsRunning(false);
@@ -974,7 +956,7 @@ export function RatingUpdate() {
 
           fileReader.onerror = () => {
             setIsRunning(false);
-            setMotionGridStatus("Error reading file.", "busy");
+            setMotionGridStatus("Error reading file", "busy");
             addNotification({
               title: "Error",
               subtitle: "Failed to read the Excel file.",
@@ -1002,7 +984,7 @@ export function RatingUpdate() {
         });
         setIsRunning(false);
         setSelectedFileName(null);
-        setMotionGridStatus("No file selected.", "busy");
+        setMotionGridStatus("No file selected", "busy");
       }
     },
     [
@@ -1014,6 +996,8 @@ export function RatingUpdate() {
       addNotification,
       setMotionGridStatus,
       setCurrentUpdate,
+      setCurrentIndex,
+      setTotalUpdates,
     ]
   );
 
@@ -1027,8 +1011,6 @@ export function RatingUpdate() {
     setCurrentUpdate(null);
     setSuccessStack([]);
     setErrorStack([]);
-    setSuccessCount(0);
-    setErrorCount(0);
     setCurrentIndex(0);
     setTotalUpdates(0);
     setIsRunning(false);
@@ -1053,6 +1035,8 @@ export function RatingUpdate() {
     addNotification,
     setMotionGridStatus,
     setCurrentUpdate,
+    setCurrentIndex,
+    setTotalUpdates,
   ]);
 
   const clearHistory = useCallback(() => {
@@ -1122,7 +1106,7 @@ export function RatingUpdate() {
       fileReaderRef.current = null;
 
       if (fileReaderRef.current) {
-        setMotionGridStatus("Process stopped by user.", "stop");
+        setMotionGridStatus("Process stopped by user", "stop");
       }
     }
   }, [isRunning, setMotionGridStatus]);
@@ -1139,20 +1123,13 @@ export function RatingUpdate() {
         onClick={performClearHistory}
       />
 
-      <RatingUpdateMotionGrid />
-
-      <RatingUpdateStatus
-        successCount={successCount}
-        errorCount={errorCount}
-        currentIndex={currentIndex}
-        totalUpdates={totalUpdates}
-      />
+      <RatingUpdateMonitor />
 
       {!isRunning && successStack.length === 0 && errorStack.length === 0 && (
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="absolute top-1/2 left-1/2 -translate-1/2 flex flex-col items-center gap-4 p-6 w-full max-w-lg bg-background dark:bg-[#0F0F0F] rounded-xl shadow-md"
+            className="absolute top-1/3 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 p-6 w-full max-w-lg bg-background dark:bg-[#0F0F0F] rounded-xl shadow-md"
           >
             <FormField
               control={form.control}

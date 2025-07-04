@@ -3,9 +3,9 @@
 import { ArrowUpRight, XCircle, CheckCircle2, Info } from "lucide-react";
 import { motion, type Transition } from "motion/react";
 
-import { useNotificationStore } from "@/lib/stores/notification-store";
+import { useNotificationStore } from "@/app/(routes)/(private)/rating-update/hooks/notification-store";
 import { Button } from "@/components/ui/button";
-import { useNotificationDialogStore } from "@/lib/stores/notification-dialog-store";
+import { useNotificationDialogStore } from "@/app/(routes)/(private)/rating-update/hooks/notification-dialog-store";
 
 const transition: Transition = {
   type: "spring",

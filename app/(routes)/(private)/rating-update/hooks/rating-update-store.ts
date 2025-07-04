@@ -6,6 +6,8 @@ interface RatingUpdateState {
   selectedFileName: string | null;
   successStackLength: number;
   errorStackLength: number;
+  currentIndex: number;
+  totalUpdates: number;
   currentUpdate: RatingUpdateProps | null;
 }
 
@@ -16,6 +18,8 @@ interface RatingUpdateActions {
   setCurrentUpdate: (update: RatingUpdateProps | null) => void;
   setRunAction: (action: () => void) => void;
   setIsRunning: (running: boolean) => void;
+  setCurrentIndex: (index: number | ((prev: number) => number)) => void;
+  setTotalUpdates: (totalUpdates: number) => void;
   setStopAction: (action: () => void) => void;
   setClearHistoryAction: (action: () => void) => void;
   setClearFileAction: (action: () => void) => void;
@@ -30,8 +34,15 @@ export const useRatingUpdateStore = create<RatingUpdateState & RatingUpdateActio
   selectedFileName: null,
   successStackLength: 0,
   errorStackLength: 0,
+  currentIndex: 0,
+  totalUpdates: 0,
   currentUpdate: null,
   setIsRunning: (running) => set({ isRunning: running }),
+  setCurrentIndex: (index) =>
+    set((state) => ({
+      currentIndex: typeof index === 'function' ? index(state.currentIndex) : index,
+    })),
+  setTotalUpdates: (totalUpdates) => set({ totalUpdates: totalUpdates }),
   setSelectedFileName: (fileName) => set({ selectedFileName: fileName }),
   setSuccessStackLength: (length) => set({ successStackLength: length }),
   setErrorStackLength: (length) => set({ errorStackLength: length }),

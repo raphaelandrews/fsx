@@ -1,7 +1,7 @@
 import { Info, Trash2Icon } from "lucide-react";
 
-import { useNotificationDialogStore } from "@/lib/stores/notification-dialog-store";
-import { useNotificationStore } from "@/lib/stores/notification-store";
+import { useNotificationDialogStore } from "@/app/(routes)/(private)/rating-update/hooks/notification-dialog-store";
+import { useNotificationStore } from "@/app/(routes)/(private)/rating-update/hooks/notification-store";
 
 import { getNotificationIcon } from "./rating-update-notification-list";
 import {
