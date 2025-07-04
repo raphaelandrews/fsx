@@ -10,7 +10,7 @@ import {
   FileTextIcon,
 } from "lucide-react";
 
-import { useRatingUpdateStore } from "@/app/(routes)/(private)/rating-update/hooks/rating-update-store";
+import { useRatingUpdateStore } from "../hooks/rating-update-store";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -37,6 +37,7 @@ export function RatingUpdateDeveloperTool() {
     selectedFileName,
     successStackLength,
     errorStackLength,
+    generatedFilesCount,
   } = useRatingUpdateStore();
 
   const [activePanel, setActivePanel] = React.useState<string | null>(null);
@@ -115,7 +116,7 @@ export function RatingUpdateDeveloperTool() {
             onPointerDown={(e) => {
               const isDisabled =
                 isRunning ||
-                !selectedFileName ||
+                !selectedFileName || 
                 successStackLength > 0 ||
                 errorStackLength > 0;
               if (isDisabled) {
@@ -124,7 +125,7 @@ export function RatingUpdateDeveloperTool() {
                 if (isRunning) {
                   toast.info("Cannot run: A process is already running.");
                 } else if (!selectedFileName) {
-                  toast.info("Cannot run: Please select a file first.");
+                  toast.error("Cannot run: Please select a file first.");
                 } else if (successStackLength > 0 || errorStackLength > 0) {
                   toast.info(
                     "Cannot run: Please clear the success and error history."
@@ -138,13 +139,13 @@ export function RatingUpdateDeveloperTool() {
               onClick={runProcess}
               disabled={
                 isRunning ||
-                !selectedFileName ||
+                !selectedFileName || 
                 successStackLength > 0 ||
                 errorStackLength > 0
               }
               className={
                 isRunning ||
-                !selectedFileName ||
+                !selectedFileName || 
                 successStackLength > 0 ||
                 errorStackLength > 0
                   ? "pointer-events-none"
@@ -222,20 +223,15 @@ export function RatingUpdateDeveloperTool() {
             className="inline-block"
             onPointerDown={(e) => {
               const isDisabled =
-                isRunning ||
-                !selectedFileName ||
-                successStackLength > 0 ||
-                errorStackLength > 0;
+                isRunning || generatedFilesCount === 0 || !selectedFileName; 
               if (isDisabled) {
                 e.preventDefault();
                 e.stopPropagation();
                 if (isRunning) {
-                  toast.info("Cannot clear file: A process is running.");
-                } else if (!selectedFileName) {
-                  toast.info("Cannot clear file: Please select a file first.");
-                } else if (successStackLength > 0 || errorStackLength > 0) {
+                  toast.info("Cannot clear files: A process is running.");
+                } else if (generatedFilesCount === 0) {
                   toast.info(
-                    "Cannot clear file: Please clear the success and error history."
+                    "Cannot clear files: No generated files to clear."
                   );
                 }
               }
@@ -246,28 +242,21 @@ export function RatingUpdateDeveloperTool() {
               variant="outline"
               onClick={clearFile}
               disabled={
-                isRunning ||
-                !selectedFileName ||
-                successStackLength > 0 ||
-                errorStackLength > 0
-              }
+                isRunning || generatedFilesCount === 0 || !selectedFileName
+              } 
               className={
-                isRunning ||
-                !selectedFileName ||
-                successStackLength > 0 ||
-                errorStackLength > 0
+                isRunning || generatedFilesCount === 0
                   ? "pointer-events-none"
                   : ""
               }
             >
               <Trash2Icon className="mr-2 size-4" />
-              Clear File
+              Clear Files
             </Button>
           </span>
         </div>
 
         <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
-
         <div className="flex gap-1">
           <ToolbarButton
             icon={FileTextIcon}

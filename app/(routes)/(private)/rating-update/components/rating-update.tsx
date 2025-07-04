@@ -3,6 +3,7 @@
 import React, { useCallback } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import type z from "zod";
 
@@ -15,14 +16,11 @@ import type {
 
 import { formSchema } from "../utils/form-schema";
 import { useRatingUpdateStatusStore } from "@/app/(routes)/(private)/rating-update/hooks/rating-update-status-store";
-import { useNotificationStore } from "@/app/(routes)/(private)/rating-update/hooks/notification-store";
 import { useRatingUpdateStore } from "@/app/(routes)/(private)/rating-update/hooks/rating-update-store";
 
 import { RatingUpdateAlertDialog } from "./rating-update-alert-dialog";
 import { RatingUpdateDeveloperTool } from "./rating-update-developer-tool";
 import { RatingUpdateMonitor } from "./rating-update-monitor";
-import { RatingUpdateNotificationList } from "./rating-update-notification-list";
-import { RatingUpdateNotificationsDialog } from "./rating-update-notifications-dialog";
 import { RatingUpdatePagination } from "./rating-update-pagination";
 import { RatingUpdateStackTitle } from "./rating-update-stack-title";
 import { RatingUpdateStackTrace } from "./rating-update-stack-trace";
@@ -53,10 +51,6 @@ export function RatingUpdate() {
     setTotalUpdates,
   } = useRatingUpdateStore();
   const { setMotionGridStatus } = useRatingUpdateStatusStore();
-
-  const addNotification = useNotificationStore(
-    (state) => state.addNotification
-  );
 
   const [successStack, setSuccessStack] = React.useState<RatingUpdateProps[]>(
     []
@@ -125,12 +119,8 @@ export function RatingUpdate() {
     }
     setMotionGridStatus("File removed", "x");
     setSelectedFileName(null);
-    addNotification({
-      title: "Info",
-      subtitle: "File input cleared.",
-      type: "info",
-    });
-  }, [form, setSelectedFileName, addNotification, setMotionGridStatus]);
+    toast.info("File input cleared.");
+  }, [form, setSelectedFileName, setMotionGridStatus]);
 
   const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = useCallback(
     async (values) => {
@@ -183,11 +173,9 @@ export function RatingUpdate() {
 
               if (nonEmptyRows.length === 0) {
                 handleClearFileClick();
-                addNotification({
-                  title: "Error",
-                  subtitle: "File contains no data rows or all rows are empty.",
-                  type: "error",
-                });
+                toast.error(
+                  "File contains no data rows or all rows are empty."
+                );
                 setIsRunning(false);
                 setMotionGridStatus("Error: No valid data rows found", "busy");
                 return;
@@ -232,12 +220,9 @@ export function RatingUpdate() {
                 availableColumns[0] === "id"
               ) {
                 handleClearFileClick();
-                addNotification({
-                  title: "Error",
-                  subtitle:
-                    "File contains only the 'id' column. Additional data columns are required.",
-                  type: "error",
-                });
+                toast.error(
+                  "File contains only the 'id' column. Additional data columns are required."
+                );
                 setIsRunning(false);
                 setMotionGridStatus("Error: Only 'id' column present", "busy");
                 return;
@@ -245,12 +230,9 @@ export function RatingUpdate() {
 
               if (hasPartialTournamentColumns && !hasTournamentColumns) {
                 handleClearFileClick();
-                addNotification({
-                  title: "Error",
-                  subtitle:
-                    "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be included.",
-                  type: "error",
-                });
+                toast.error(
+                  "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be included."
+                );
                 setTotalUpdates(0);
                 setIsRunning(false);
                 setMotionGridStatus(
@@ -262,12 +244,9 @@ export function RatingUpdate() {
 
               if (!hasPlayerDataColumns && !hasTournamentColumns) {
                 handleClearFileClick();
-                addNotification({
-                  title: "Error",
-                  subtitle:
-                    "File must contain either player data columns or complete tournament columns.",
-                  type: "error",
-                });
+                toast.error(
+                  "File must contain either player data columns or complete tournament columns."
+                );
                 setIsRunning(false);
                 setMotionGridStatus(
                   "Error: No valid data columns found",
@@ -287,12 +266,9 @@ export function RatingUpdate() {
 
               if (tournamentColumnsCount > 0 && tournamentColumnsCount < 3) {
                 handleClearFileClick();
-                addNotification({
-                  title: "Error",
-                  subtitle:
-                    "If any tournament-related column (tournamentId, variation, ratingType) is present, all three must be included.",
-                  type: "error",
-                });
+                toast.error(
+                  "If any tournament-related column (tournamentId, variation, ratingType) is present, all three must be included."
+                );
                 setIsRunning(false);
                 setMotionGridStatus(
                   "Error: Incomplete tournament columns",
@@ -303,12 +279,9 @@ export function RatingUpdate() {
 
               if (headerMap.id === undefined) {
                 handleClearFileClick();
-                addNotification({
-                  title: "Error",
-                  subtitle:
-                    "Mandatory column 'id' is missing in the Excel file.",
-                  type: "error",
-                });
+                toast.error(
+                  "Mandatory column 'id' is missing in the Excel file."
+                );
                 setTotalUpdates(0);
                 setIsRunning(false);
                 setMotionGridStatus("Error: 'id' column missing", "busy");
@@ -430,13 +403,11 @@ export function RatingUpdate() {
                     variation === null ||
                     !ratingType
                   ) {
-                    addNotification({
-                      title: "Error",
-                      subtitle: `Row ${
+                    toast.error(
+                      `Row ${
                         i + 1
-                      }: Tournament columns present but some values are empty or invalid.`,
-                      type: "error",
-                    });
+                      }: Tournament columns present but some values are empty or invalid.`
+                    );
                     setErrorStack((prev) => [
                       {
                         _uuid: crypto.randomUUID(),
@@ -463,13 +434,11 @@ export function RatingUpdate() {
                   ratingType !== undefined &&
                   !["blitz", "rapid", "classic"].includes(ratingType)
                 ) {
-                  addNotification({
-                    title: "Error",
-                    subtitle: `Row ${
+                  toast.error(
+                    `Row ${
                       i + 1
-                    }: Invalid rating type. Must be one of: blitz, rapid, classic.`,
-                    type: "error",
-                  });
+                    }: Invalid rating type. Must be one of: blitz, rapid, classic.`
+                  );
                   setErrorStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
@@ -495,13 +464,9 @@ export function RatingUpdate() {
                   tournamentId !== undefined &&
                   (tournamentId <= 0 || !Number.isInteger(tournamentId))
                 ) {
-                  addNotification({
-                    title: "Error",
-                    subtitle: `Row ${
-                      i + 1
-                    }: Tournament ID must be a positive integer.`,
-                    type: "error",
-                  });
+                  toast.error(
+                    `Row ${i + 1}: Tournament ID must be a positive integer.`
+                  );
                   setErrorStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
@@ -529,13 +494,11 @@ export function RatingUpdate() {
                     variation > 100 ||
                     !Number.isInteger(variation))
                 ) {
-                  addNotification({
-                    title: "Error",
-                    subtitle: `Row ${
+                  toast.error(
+                    `Row ${
                       i + 1
-                    }: Variation must be an integer between -100 and 100.`,
-                    type: "error",
-                  });
+                    }: Variation must be an integer between -100 and 100.`
+                  );
                   setErrorStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
@@ -558,13 +521,11 @@ export function RatingUpdate() {
                 }
 
                 if (id === null || Number.isNaN(id) || id < 0) {
-                  addNotification({
-                    title: "Error",
-                    subtitle: `Row ${
+                  toast.error(
+                    `Row ${
                       i + 1
-                    }: Invalid or missing 'id' value. ID must be 0 or positive.`,
-                    type: "error",
-                  });
+                    }: Invalid or missing 'id' value. ID must be 0 or positive.`
+                  );
                   setErrorStack((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
@@ -602,13 +563,11 @@ export function RatingUpdate() {
                     ratingType === undefined ||
                     ratingType === ""
                   ) {
-                    addNotification({
-                      title: "Error",
-                      subtitle: `Row ${
+                    toast.error(
+                      `Row ${
                         i + 1
-                      }: If any of 'tournamentId', 'variation', 'ratingType' are present, all three must be valid.`,
-                      type: "error",
-                    });
+                      }: If any of 'tournamentId', 'variation', 'ratingType' are present, all three must be valid.`
+                    );
                     setErrorStack((prev) => [
                       {
                         _uuid: crypto.randomUUID(),
@@ -636,13 +595,9 @@ export function RatingUpdate() {
 
                 if (id === 0 && !isTournamentUpdate) {
                   if (name === undefined || name === "") {
-                    addNotification({
-                      title: "Error",
-                      subtitle: `Row ${
-                        i + 1
-                      }: Missing or empty 'name' for new player.`,
-                      type: "error",
-                    });
+                    toast.error(
+                      `Row ${i + 1}: Missing or empty 'name' for new player.`
+                    );
                     setErrorStack((prev) => [
                       {
                         _uuid: crypto.randomUUID(),
@@ -708,13 +663,11 @@ export function RatingUpdate() {
                   if (hasPlayerData) {
                     if (id === 0) {
                       if (!name) {
-                        addNotification({
-                          title: "Error",
-                          subtitle: `Row ${
+                        toast.error(
+                          `Row ${
                             i + 1
-                          }: Missing name for new player with tournament data.`,
-                          type: "error",
-                        });
+                          }: Missing name for new player with tournament data.`
+                        );
                         setErrorStack((prev) => [
                           {
                             _uuid: crypto.randomUUID(),
@@ -741,13 +694,9 @@ export function RatingUpdate() {
                   } else {
                     if (id === 0) {
                       if (!name) {
-                        addNotification({
-                          title: "Error",
-                          subtitle: `Row ${
-                            i + 1
-                          }: Missing name for new player.`,
-                          type: "error",
-                        });
+                        toast.error(
+                          `Row ${i + 1}: Missing name for new player.`
+                        );
                         continue;
                       }
                       operationText = "Creating Player and Tournament Relation";
@@ -762,11 +711,7 @@ export function RatingUpdate() {
                 } else {
                   if (id === 0) {
                     if (!name) {
-                      addNotification({
-                        title: "Error",
-                        subtitle: `Row ${i + 1}: Missing name for new player.`,
-                        type: "error",
-                      });
+                      toast.error(`Row ${i + 1}: Missing name for new player.`);
                       continue;
                     }
                     operationText = "Creating Player";
@@ -782,10 +727,7 @@ export function RatingUpdate() {
                 setCurrentUpdate({
                   operation: operationText,
                 });
-                setMotionGridStatus(
-                  `${operationText}`,
-                  "busy"
-                );
+                setMotionGridStatus(`${operationText}`, "busy");
 
                 try {
                   await new Promise((resolve) =>
@@ -872,16 +814,8 @@ export function RatingUpdate() {
                       : "No stack trace available.";
                   console.error("Error processing player:", error, id);
                   id === 0
-                    ? addNotification({
-                        title: "Error",
-                        subtitle: `Row ${i + 1} failed to process row.`,
-                        type: "error",
-                      })
-                    : addNotification({
-                        title: "Error",
-                        subtitle: `Failed to process player ID: ${id}.`,
-                        type: "error",
-                      });
+                    ? toast.error(`Row ${i + 1} failed to process row.`)
+                    : toast.error(`Failed to process player ID: ${id}.`);
 
                   let statusCode = 500;
                   let displayMessage = errorMessage;
@@ -933,21 +867,13 @@ export function RatingUpdate() {
             }
 
             if (useRatingUpdateStore.getState().isRunning) {
-              addNotification({
-                title: "Success",
-                subtitle: "Database update process completed!",
-                type: "success",
-              });
+              toast.success("Database update process completed!");
               setMotionGridStatus(
                 "Update process completed successfully",
                 "saving"
               );
             } else {
-              addNotification({
-                title: "Info",
-                subtitle: "Database update process stopped by user.",
-                type: "info",
-              });
+              toast.info("Database update process stopped by user.");
               setMotionGridStatus("Process stopped by user", "stop");
             }
 
@@ -956,32 +882,22 @@ export function RatingUpdate() {
 
           fileReader.onerror = () => {
             setIsRunning(false);
+            toast.error("Failed to read the Excel file.");
             setMotionGridStatus("Error reading file", "busy");
-            addNotification({
-              title: "Error",
-              subtitle: "Failed to read the Excel file.",
-              type: "error",
-            });
           };
 
           fileReader.readAsArrayBuffer(file);
         } catch (error: unknown) {
           const errorMessage =
             error instanceof Error ? error.message : "Unknown error";
-          addNotification({
-            title: "Error",
-            subtitle: `Oops, there was an error processing the file: ${errorMessage}`,
-            type: "error",
-          });
+          toast.error(
+            `Oops, there was an error processing the file: ${errorMessage}`
+          );
           setIsRunning(false);
           setMotionGridStatus(`File processing error: ${errorMessage}`, "busy");
         }
       } else {
-        addNotification({
-          title: "Error",
-          subtitle: "Please select a file to upload.",
-          type: "error",
-        });
+        toast.error("Please select a file to upload.");
         setIsRunning(false);
         setSelectedFileName(null);
         setMotionGridStatus("No file selected", "busy");
@@ -993,7 +909,6 @@ export function RatingUpdate() {
       setSuccessStackLength,
       setErrorStackLength,
       handleClearFileClick,
-      addNotification,
       setMotionGridStatus,
       setCurrentUpdate,
       setCurrentIndex,
@@ -1019,12 +934,8 @@ export function RatingUpdate() {
     setSelectedFileName(null);
     setSuccessStackLength(0);
     setErrorStackLength(0);
-    addNotification({
-      title: "Info",
-      subtitle: "Database update history cleared from local storage.",
-      type: "info",
-    });
     setShowClearHistoryConfirm(false);
+    toast.info("Database update history cleared from local storage.");
     setMotionGridStatus("History cleared. Ready to start", "ready");
   }, [
     setSuccessStackLength,
@@ -1032,7 +943,6 @@ export function RatingUpdate() {
     form.reset,
     setIsRunning,
     setSelectedFileName,
-    addNotification,
     setMotionGridStatus,
     setCurrentUpdate,
     setCurrentIndex,
@@ -1114,8 +1024,6 @@ export function RatingUpdate() {
   return (
     <>
       <RatingUpdateDeveloperTool />
-      <RatingUpdateNotificationList />
-      <RatingUpdateNotificationsDialog />
 
       <RatingUpdateAlertDialog
         open={showClearHistoryConfirm}

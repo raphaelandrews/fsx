@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 
-import { useRatingUpdateStatusStore } from "@/app/(routes)/(private)/rating-update/hooks/rating-update-status-store";
+import { useRatingUpdateStatusStore } from "../hooks/rating-update-status-store";
 import { Button } from "@/components/ui/button";
 import { type Frames, MotionGrid } from "@/components/animate-ui/motion-grid";
 import { RotatingText } from "@/components/animate-ui/rotating";

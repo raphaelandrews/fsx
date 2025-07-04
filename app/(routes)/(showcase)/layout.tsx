@@ -1,4 +1,4 @@
-import { ViewportWarning } from "./components/viewport-waring"; 
+import { ViewportWarning } from "./showcase/components/viewport-waring"; 
 
 export default async function Layout({
   children,
