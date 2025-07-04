@@ -17,7 +17,7 @@ export function RatingUpdateStatus({
 }) {
   return (
     <div className="absolute top-4 right-4 flex flex-col items-end gap-4">
-      <Announcement>
+      <Announcement  className="border-none">
         <AnnouncementTag className="flex items-center gap-2">
           <span>Success</span>
           <span className="relative flex h-2 w-2">
@@ -27,7 +27,7 @@ export function RatingUpdateStatus({
         </AnnouncementTag>
         <AnnouncementTitle>{successCount}</AnnouncementTitle>
       </Announcement>
-      <Announcement>
+      <Announcement  className="border-none">
         <AnnouncementTag className="flex items-center gap-2">
           <span>Errors</span>
           <span className="relative flex h-2 w-2">
@@ -37,7 +37,7 @@ export function RatingUpdateStatus({
         </AnnouncementTag>
         <AnnouncementTitle>{errorCount}</AnnouncementTitle>
       </Announcement>
-      <Announcement>
+      <Announcement  className="dark:border-none">
         <AnnouncementTag className="flex items-center gap-2">
           <span>Progress</span>
           <span className="relative flex h-2 w-2">

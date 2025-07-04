@@ -14,7 +14,7 @@ export function RatingUpdatePagination({
   return (
     <div className="flex items-center gap-2 mt-2">
       <Button
-        variant="outline"
+        variant="card"
         size="sm"
         onClick={previousPage}
         disabled={currentPage === 1}
@@ -25,7 +25,7 @@ export function RatingUpdatePagination({
         Page {currentPage} of {totalPages}
       </span>
       <Button
-        variant="outline"
+        variant="card"
         size="sm"
         onClick={nextPage}
         disabled={currentPage === totalPages}

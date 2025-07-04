@@ -23,7 +23,6 @@ export interface PlayerAPIResponse {
 export interface RatingUpdateProps {
 	_uuid?: string;
 	operation: string;
-	table: string;
 	status?: number;
 	success?: {
 		dataFields: PlayerDataFields | { player: PlayerDataFields; playerTournament: PlayerTournamentDataFields };

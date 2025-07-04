@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { type Frames, MotionGrid } from "@/components/animate-ui/motion-grid";
 import { RotatingText } from "@/components/animate-ui/rotating";
+import { useRatingUpdateStatusStore } from "@/lib/stores/rating-update-status-store";
 
-const importingFrames = [
+const readyFrames = [
   [[2, 2]],
   [
     [1, 2],
@@ -325,6 +325,64 @@ const busyFrames = [
   ],
 ] as Frames;
 
+const stopFrames = [
+  [
+    [1, 1],
+    [1, 2],
+    [1, 3],
+    [2, 3],
+    [3, 3],
+    [3, 2],
+    [3, 1],
+    [2, 1],
+    [2, 2],
+  ],
+  [],
+] as Frames;
+
+const addFrames = [
+  [
+    [0, 0],
+    [0, 4],
+    [2, 4],
+    [4, 4],
+    [4, 0],
+    [4, 2],
+    [0, 2],
+    [1, 3],
+    [3, 3],
+    [2, 0],
+    [3, 1],
+    [1, 1],
+    [2, 2],
+  ],
+  [
+    [2, 3],
+    [2, 2],
+    [2, 1],
+    [1, 2],
+    [3, 2],
+  ],
+  [
+    [2, 2],
+    [1, 3],
+    [3, 1],
+    [1, 1],
+    [3, 3],
+  ],
+] as Frames;
+
+const xFrames = [
+  [
+    [1, 3],
+    [2, 2],
+    [3, 1],
+    [1, 1],
+    [3, 3],
+  ],
+  [],
+] as Frames;
+
 const savingFrames = [
   [
     [0, 0],
@@ -617,76 +675,55 @@ const initializingFrames = [
 ] as Frames;
 
 const states = {
-  importing: {
-    frames: importingFrames,
-    label: "Importing",
+  ready: {
+    frames: readyFrames,
+    label: "Ready",
+    duration: 200,
   },
   syncing: {
     frames: syncingFrames,
     label: "Syncing",
+    duration: 200,
   },
   searching: {
     frames: searchingFrames,
     label: "Searching",
+    duration: 200,
   },
   busy: {
     frames: busyFrames,
     label: "Busy",
+    duration: 200,
+  },
+  stop: {
+    frames: stopFrames,
+    label: "Stop",
+    duration: 400,
+  }, 
+   add: {
+    frames: addFrames,
+    label: "Add",
+    duration: 400,
+  },
+  x: {
+    frames: xFrames,
+    label: "X",
+    duration: 400,
   },
   saving: {
     frames: savingFrames,
     label: "Saving",
+    duration: 200,
   },
   initializing: {
     frames: initializingFrames,
     label: "Initializing",
+    duration: 200,
   },
 };
 
-interface RatingUpdateMotionGridProps {
-  currentStatusText: string;
-}
-
-export function RatingUpdateMotionGrid({
-  currentStatusText,
-}: RatingUpdateMotionGridProps) {
-  const getAnimationState = (text: string): keyof typeof states => {
-    const lowercasedText = text.toLowerCase();
-    if (lowercasedText.includes("initializing")) return "initializing";
-    if (
-      lowercasedText.includes("reading") ||
-      lowercasedText.includes("parsing") ||
-      lowercasedText.includes("file")
-    )
-      return "importing";
-    if (
-      lowercasedText.includes("processing") ||
-      lowercasedText.includes("updating") ||
-      lowercasedText.includes("creating")
-    )
-      return "busy";
-    if (
-      lowercasedText.includes("successfully") ||
-      lowercasedText.includes("finished")
-    )
-      return "saving";
-    if (
-      lowercasedText.includes("failed") ||
-      lowercasedText.includes("error") ||
-      lowercasedText.includes("skipping")
-    )
-      return "searching";
-    return "busy";
-  };
-
-  const [currentAnimationState, setCurrentAnimationState] = useState<
-    keyof typeof states
-  >(() => getAnimationState(currentStatusText));
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: No
-  useEffect(() => {
-    setCurrentAnimationState(getAnimationState(currentStatusText));
-  }, [currentStatusText]);
+export function RatingUpdateMotionGrid() {
+  const { statusText, animationState } = useRatingUpdateStatusStore();
 
   return (
     <Button
@@ -698,25 +735,27 @@ export function RatingUpdateMotionGrid({
         layout
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
+        className="relative"
       >
         <motion.div layout="preserve-aspect">
           <MotionGrid
             cellActiveClassName="bg-white/70 dark:bg-black/70"
             cellClassName="size-[3px]"
             cellInactiveClassName="bg-white/20 dark:bg-black/20"
-            frames={states[currentAnimationState].frames}
+            frames={states[animationState].frames}
             gridSize={[5, 5]}
+            duration={states[animationState].duration}
           />
         </motion.div>
 
         <RotatingText
           containerClassName="absolute left-[46px] top-1/2 -translate-y-1/2"
           layout="preserve-aspect"
-          text={currentStatusText}
+          text={statusText}
         />
 
         <span aria-hidden className="invisible opacity-0">
-          {currentStatusText}
+          {statusText}
         </span>
       </motion.button>
     </Button>

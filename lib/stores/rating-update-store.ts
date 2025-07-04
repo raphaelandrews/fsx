@@ -1,25 +1,28 @@
 import { create } from 'zustand';
+import type { RatingUpdateProps } from '@/app/(routes)/(private)/rating-update/components/rating-update-types';
 
 interface RatingUpdateState {
   isRunning: boolean;
   selectedFileName: string | null;
   successStackLength: number;
   errorStackLength: number;
-  setIsRunning: (running: boolean) => void;
-  runProcess: () => void;
-  stopProcess: () => void;
-  clearHistory: () => void;
-  clearFile: () => void;
+  currentUpdate: RatingUpdateProps | null;
 }
 
 interface RatingUpdateActions {
   setSelectedFileName: (fileName: string | null) => void;
   setSuccessStackLength: (length: number) => void;
   setErrorStackLength: (length: number) => void;
+  setCurrentUpdate: (update: RatingUpdateProps | null) => void;
   setRunAction: (action: () => void) => void;
+  setIsRunning: (running: boolean) => void;
   setStopAction: (action: () => void) => void;
   setClearHistoryAction: (action: () => void) => void;
   setClearFileAction: (action: () => void) => void;
+  runProcess: () => void;
+  stopProcess: () => void;
+  clearHistory: () => void;
+  clearFile: () => void;
 }
 
 export const useRatingUpdateStore = create<RatingUpdateState & RatingUpdateActions>((set) => ({
@@ -27,10 +30,12 @@ export const useRatingUpdateStore = create<RatingUpdateState & RatingUpdateActio
   selectedFileName: null,
   successStackLength: 0,
   errorStackLength: 0,
+  currentUpdate: null,
   setIsRunning: (running) => set({ isRunning: running }),
-  setSelectedFileName: (fileName: string | null) => set({ selectedFileName: fileName }),
+  setSelectedFileName: (fileName) => set({ selectedFileName: fileName }),
   setSuccessStackLength: (length) => set({ successStackLength: length }),
   setErrorStackLength: (length) => set({ errorStackLength: length }),
+  setCurrentUpdate: (update) => set({ currentUpdate: update }),
   runProcess: () => console.warn("runProcess action not set"),
   stopProcess: () => set({ isRunning: false }),
   clearHistory: () => console.warn("clearHistory action not set"),

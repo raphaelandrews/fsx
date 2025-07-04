@@ -46,12 +46,12 @@ export function RatingUpdateNotificationList() {
 
   return (
     <motion.div
-      className="absolute bottom-4 left-4 bg-background dark:bg-[#0F0F0F] p-3 rounded-3xl w-xs space-y-3 shadow-md"
+      className="absolute bottom-4 left-4 bg-background dark:bg-[#0F0F0F] p-2 rounded-2xl w-xs space-y-3 shadow-md"
       initial="collapsed"
       whileHover="expanded"
     >
       {!lastNotification ? (
-        <div className="bg-card rounded-xl px-4 py-2 shadow-sm">
+        <div className="bg-card rounded-md px-4 py-2 shadow-sm">
           <div className="flex items-center gap-2">
             <Info className="size-3 text-blue-500" />
             <h2 className="font-medium text-sm text-card-foreground">
@@ -65,7 +65,7 @@ export function RatingUpdateNotificationList() {
       ) : (
         <div>
           <motion.div
-            className="bg-secondary rounded-xl px-4 py-2 shadow-sm hover:shadow-lg transition-shadow duration-200"
+            className="bg-secondary rounded-md px-4 py-2 shadow-sm hover:shadow-lg transition-shadow duration-200"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={transition}
@@ -84,7 +84,7 @@ export function RatingUpdateNotificationList() {
       )}
 
       <div className="flex items-center gap-2">
-        <div className="size-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium">
+        <div className="size-5 rounded-sm bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium">
           {notifications.length}
         </div>
         <span className="grid">

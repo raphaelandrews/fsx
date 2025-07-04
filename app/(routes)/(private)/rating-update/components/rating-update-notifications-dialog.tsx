@@ -26,7 +26,7 @@ export function RatingUpdateNotificationsDialog() {
         </DrawerHeader>
         <div className="px-4">
           {notifications.length === 0 ? (
-            <div className="bg-card mb-4 rounded-xl px-4 py-2 shadow-sm">
+            <div className="bg-card mb-4 rounded-md px-4 py-2 shadow-sm">
               <div className="flex items-center gap-2">
                 <Info className="size-3 text-blue-500" />
                 <h2 className="font-medium text-sm text-card-foreground">
@@ -43,7 +43,7 @@ export function RatingUpdateNotificationsDialog() {
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className="bg-secondary rounded-xl px-4 py-2 shadow-sm"
+                    className="bg-secondary rounded-md px-4 py-2 shadow-sm"
                   >
                     <div className="flex justify-between items-center">
                       <h2 className="text-sm font-medium flex items-center gap-2">

@@ -7,6 +7,7 @@ import {
   Trash2Icon,
   StoreIcon,
   InfoIcon,
+  FileTextIcon,
 } from "lucide-react";
 
 import { useRatingUpdateStore } from "@/lib/stores/rating-update-store";
@@ -84,6 +85,7 @@ export function RatingUpdateDeveloperTool() {
   return (
     <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-background dark:bg-[#0F0F0F] rounded-2xl shadow-md z-50">
       <div ref={panelRef}>
+        <RulesPanel isVisible={activePanel === "rules" && !isTransitioning} />
         <InfoPanel isVisible={activePanel === "info" && !isTransitioning} />
       </div>
 
@@ -266,15 +268,22 @@ export function RatingUpdateDeveloperTool() {
 
         <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
 
-        <ColorPicker
-          isActive={activePanel === "accessibility"}
-          onClick={() => handlePanelToggle("accessibility")}
-        />
-        <ToolbarButton
-          icon={InfoIcon}
-          isActive={activePanel === "info"}
-          onClick={() => handlePanelToggle("info")}
-        />
+        <div className="flex gap-1">
+          <ColorPicker
+            isActive={activePanel === "accessibility"}
+            onClick={() => handlePanelToggle("accessibility")}
+          />
+          <ToolbarButton
+            icon={FileTextIcon}
+            isActive={activePanel === "rules"}
+            onClick={() => handlePanelToggle("rules")}
+          />
+          <ToolbarButton
+            icon={InfoIcon}
+            isActive={activePanel === "info"}
+            onClick={() => handlePanelToggle("info")}
+          />
+        </div>
 
         <Separator className="mx-2 !w-0.5 !h-4" orientation="vertical" />
 
@@ -332,6 +341,59 @@ const ColorPicker: React.FC<{ isActive?: boolean; onClick?: () => void }> = ({
         <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full" />
       )}
     </Button>
+  );
+};
+
+const RulesPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
+  return (
+    <div
+      className={`
+      fixed bottom-16 transform -translate-x-1/2 w-fit h-fit left-1/2 mb-0 p-8 border rounded-2xl backdrop-blur-sm shadow-xl transition-all duration-300 ease-out
+      ${
+        isVisible
+          ? "opacity-100 translate-y-0 scale-100"
+          : "opacity-0 translate-y-2 scale-98 pointer-events-none"
+      }
+    `}
+    >
+      <article className="[&>p]:text-sm [&>p]:text-foreground/70 [&>p]:mt-1.5 [&>p]:leading-6">
+        <div className="flex flex-col items-center gap-2 mb-2">
+          <InfoIcon className=" p-1 rounded-sm bg-secondary" />
+          <h3 className="font-medium text-balance text-center">
+            Regras de Atualização
+          </h3>
+        </div>
+        <p>
+          Esse sistema atualiza o rating dos torneios da FSX com base em
+          planilhas excel (.xls ou .xlsx).
+        </p>
+        <p>
+          O sistema reconhece automaticamente as colunas com dados de jogador
+          (id, name, birth, sex, clubId e locationId) e dados de torneio
+          (tournamentId, variation e ratingType).
+        </p>
+        <p>Colunas com outros nomes são ignoradas.</p>
+        <p>
+          A coluna ID é a única obrigatória, entretanto, é necessário que mais
+          alguma coluna esteja presente no arquivo. Caso uma das três colunas de
+          dados de torneio esteja presente, as outras duas também precisam
+          estar.
+        </p>
+        <p>
+          O Swiss Manager gera arquivos excel com os dados, basta copiar e colar
+          no arquivo que será utilizado para upload.
+        </p>
+        <p>
+          Para iniciar a atualização, basta fazer o upload do arquivo e clicar
+          em "Run".
+        </p>
+        <p>
+          É possível verificar quais atualizações deram certo ou errado. Caso a
+          atualização seja bem-sucedida, serão retornados os dados que foram
+          atualizados. Em caso de erro, será retornado o erro.
+        </p>
+      </article>
+    </div>
   );
 };
 

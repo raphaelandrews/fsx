@@ -32,14 +32,13 @@ import { Input } from "@/components/ui/input";
 import { formSchema } from "../utils/form-schema";
 
 import { RatingUpdateAlertDialog } from "./rating-update-alert-dialog";
-import { RatingUpdateCompletedAlert } from "./rating-update-completed-alert";
 import { RatingUpdateNotificationList } from "./rating-update-notification-list";
 import { RatingUpdatePagination } from "./rating-update-pagination";
-import { RatingUpdateProcessingAlert } from "./rating-update-processing-alert";
 import { RatingUpdateStackTitle } from "./rating-update-stack-title";
 import { RatingUpdateStackTrace } from "./rating-update-stack-trace";
 import { RatingUpdateStatus } from "./rating-update-status";
 import { RatingUpdateNotificationsDialog } from "./rating-update-notifications-dialog";
+import { useRatingUpdateStatusStore } from "@/lib/stores/rating-update-status-store";
 
 export function RatingUpdate() {
   const {
@@ -50,13 +49,14 @@ export function RatingUpdate() {
     setSelectedFileName,
     setSuccessStackLength,
     setErrorStackLength,
+    setCurrentUpdate,
   } = useRatingUpdateStore();
+  const { setMotionGridStatus } = useRatingUpdateStatusStore();
+
   const addNotification = useNotificationStore(
     (state) => state.addNotification
   );
 
-  const [currentUpdate, setCurrentUpdate] =
-    React.useState<RatingUpdateProps | null>(null);
   const [successStack, setSuccessStack] = React.useState<RatingUpdateProps[]>(
     []
   );
@@ -72,8 +72,6 @@ export function RatingUpdate() {
   const [hasLoadedInitialData, setHasLoadedInitialData] = React.useState(false);
   const [showClearHistoryConfirm, setShowClearHistoryConfirm] =
     React.useState(false);
-  const [currentStatusText, setCurrentStatusText] =
-    React.useState("Ready to start...");
 
   const ITEMS_PER_PAGE = 6;
 
@@ -132,13 +130,14 @@ export function RatingUpdate() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+    setMotionGridStatus("File removed", "x");
     setSelectedFileName(null);
     addNotification({
       title: "Info",
       subtitle: "File input cleared.",
       type: "info",
     });
-  }, [form, setSelectedFileName, addNotification]);
+  }, [form, setSelectedFileName, addNotification, setMotionGridStatus]);
 
   const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = useCallback(
     async (values) => {
@@ -153,25 +152,25 @@ export function RatingUpdate() {
       setErrorCurrentPage(1);
       setSuccessStackLength(0);
       setErrorStackLength(0);
-      setCurrentStatusText("Initializing update process...");
+      setMotionGridStatus("Initializing update process", "busy");
 
       const file = values.file;
       setSelectedFileName(file.name);
 
       if (file) {
         try {
-          setCurrentStatusText("Reading Excel file...");
+          setMotionGridStatus("Reading Excel file", "busy");
           const fileReader = new FileReader();
           fileReaderRef.current = fileReader;
           fileReader.onload = async (e) => {
             if (!useRatingUpdateStore.getState().isRunning) {
-              setCurrentStatusText("Process stopped by user.");
+              setMotionGridStatus("Process stopped by user.", "busy");
               return;
             }
 
             if (e.target?.result) {
               const data = new Uint8Array(e.target.result as ArrayBuffer);
-              setCurrentStatusText("Parsing Excel data...");
+              setMotionGridStatus("Parsing Excel data", "busy");
               const workbook = XLSX.read(data, { type: "array" });
               const worksheet = workbook.Sheets[workbook.SheetNames[0]];
               const jsonData: unknown[][] = XLSX.utils.sheet_to_json(
@@ -199,7 +198,7 @@ export function RatingUpdate() {
                   type: "error",
                 });
                 setIsRunning(false);
-                setCurrentStatusText("Error: No valid data rows found.");
+                setMotionGridStatus("Error: No valid data rows found.", "busy");
                 return;
               }
 
@@ -249,7 +248,7 @@ export function RatingUpdate() {
                   type: "error",
                 });
                 setIsRunning(false);
-                setCurrentStatusText("Error: Only 'id' column present.");
+                setMotionGridStatus("Error: Only 'id' column present.", "busy");
                 return;
               }
 
@@ -263,7 +262,10 @@ export function RatingUpdate() {
                 });
                 setTotalUpdates(0);
                 setIsRunning(false);
-                setCurrentStatusText("Error: Incomplete tournament columns.");
+                setMotionGridStatus(
+                  "Error: Incomplete tournament columns.",
+                  "busy"
+                );
                 return;
               }
 
@@ -276,7 +278,10 @@ export function RatingUpdate() {
                   type: "error",
                 });
                 setIsRunning(false);
-                setCurrentStatusText("Error: No valid data columns found.");
+                setMotionGridStatus(
+                  "Error: No valid data columns found.",
+                  "busy"
+                );
                 return;
               }
 
@@ -298,7 +303,10 @@ export function RatingUpdate() {
                   type: "error",
                 });
                 setIsRunning(false);
-                setCurrentStatusText("Error: Incomplete tournament columns.");
+                setMotionGridStatus(
+                  "Error: Incomplete tournament columns.",
+                  "busy"
+                );
                 return;
               }
 
@@ -312,17 +320,18 @@ export function RatingUpdate() {
                 });
                 setTotalUpdates(0);
                 setIsRunning(false);
-                setCurrentStatusText("Error: 'id' column missing.");
+                setMotionGridStatus("Error: 'id' column missing.", "busy");
                 return;
               }
 
-              setCurrentStatusText(
-                `Processing ${jsonData.length - 1} records...`
+              setMotionGridStatus(
+                `Processing ${jsonData.length - 1} records`,
+                "busy"
               );
 
               for (let i = 1; i < jsonData.length; i++) {
                 if (!useRatingUpdateStore.getState().isRunning) {
-                  setCurrentStatusText("Process stopped by user.");
+                  setMotionGridStatus("Process stopped by user.", "busy");
                   break;
                 }
 
@@ -333,7 +342,10 @@ export function RatingUpdate() {
                     (cell) => cell === null || cell === undefined || cell === ""
                   )
                 ) {
-                  setCurrentStatusText(`Row ${i + 1}: Skipping empty row.`);
+                  setMotionGridStatus(
+                    `Row ${i + 1}: Skipping empty row.`,
+                    "busy"
+                  );
                   setCurrentIndex((prev) => prev + 1);
                   continue;
                 }
@@ -438,7 +450,6 @@ export function RatingUpdate() {
                       {
                         _uuid: crypto.randomUUID(),
                         operation: "Player Tournament Update Failed",
-                        table: "Players & Tournaments",
                         status: 400,
                         error: {
                           message: `Row ${
@@ -450,8 +461,9 @@ export function RatingUpdate() {
                     ]);
                     setErrorCount((prev) => prev + 1);
                     setCurrentIndex((prev) => prev + 1);
-                    setCurrentStatusText(
-                      `Row ${i + 1}: Skipping due to empty tournament data.`
+                    setMotionGridStatus(
+                      `Row ${i + 1}: Skipping due to empty tournament data.`,
+                      "busy"
                     );
                     continue;
                   }
@@ -472,7 +484,6 @@ export function RatingUpdate() {
                     {
                       _uuid: crypto.randomUUID(),
                       operation: "Player Tournament Update Failed",
-                      table: "Players & Tournaments",
                       status: 400,
                       error: {
                         message: `Row ${
@@ -484,8 +495,9 @@ export function RatingUpdate() {
                   ]);
                   setErrorCount((prev) => prev + 1);
                   setCurrentIndex((prev) => prev + 1);
-                  setCurrentStatusText(
-                    `Row ${i + 1}: Skipping due to invalid rating type.`
+                  setMotionGridStatus(
+                    `Row ${i + 1}: Skipping due to invalid rating type.`,
+                    "busy"
                   );
                   continue;
                 }
@@ -505,7 +517,6 @@ export function RatingUpdate() {
                     {
                       _uuid: crypto.randomUUID(),
                       operation: "Player Tournament Update Failed",
-                      table: "Players & Tournaments",
                       status: 400,
                       error: {
                         message: `Row ${
@@ -517,8 +528,9 @@ export function RatingUpdate() {
                   ]);
                   setErrorCount((prev) => prev + 1);
                   setCurrentIndex((prev) => prev + 1);
-                  setCurrentStatusText(
-                    `Row ${i + 1}: Skipping due to invalid tournament ID.`
+                  setMotionGridStatus(
+                    `Row ${i + 1}: Skipping due to invalid tournament ID.`,
+                    "busy"
                   );
                   continue;
                 }
@@ -540,7 +552,6 @@ export function RatingUpdate() {
                     {
                       _uuid: crypto.randomUUID(),
                       operation: "Player Tournament Update Failed",
-                      table: "Players & Tournaments",
                       status: 400,
                       error: {
                         message: `Row ${
@@ -552,8 +563,9 @@ export function RatingUpdate() {
                   ]);
                   setErrorCount((prev) => prev + 1);
                   setCurrentIndex((prev) => prev + 1);
-                  setCurrentStatusText(
-                    `Row ${i + 1}: Skipping due to invalid variation value.`
+                  setMotionGridStatus(
+                    `Row ${i + 1}: Skipping due to invalid variation value.`,
+                    "busy"
                   );
                   continue;
                 }
@@ -570,7 +582,6 @@ export function RatingUpdate() {
                     {
                       _uuid: crypto.randomUUID(),
                       operation: "Player Creation Failed",
-                      table: "N/A",
                       status: 400,
                       error: {
                         message: `Row ${
@@ -582,8 +593,9 @@ export function RatingUpdate() {
                   ]);
                   setErrorCount((prev) => prev + 1);
                   setCurrentIndex((prev) => prev + 1);
-                  setCurrentStatusText(
-                    `Row ${i + 1}: Skipping due to invalid ID.`
+                  setMotionGridStatus(
+                    `Row ${i + 1}: Skipping due to invalid ID.`,
+                    "busy"
                   );
                   continue;
                 }
@@ -615,7 +627,6 @@ export function RatingUpdate() {
                       {
                         _uuid: crypto.randomUUID(),
                         operation: "Player Tournament Update Failed",
-                        table: "N/A",
                         status: 400,
                         error: {
                           message: `Row ${
@@ -627,10 +638,11 @@ export function RatingUpdate() {
                     ]);
                     setErrorCount((prev) => prev + 1);
                     setCurrentIndex((prev) => prev + 1);
-                    setCurrentStatusText(
+                    setMotionGridStatus(
                       `Row ${
                         i + 1
-                      }: Skipping due to incomplete tournament data.`
+                      }: Skipping due to incomplete tournament data.`,
+                      "busy"
                     );
                     continue;
                   }
@@ -650,7 +662,6 @@ export function RatingUpdate() {
                       {
                         _uuid: crypto.randomUUID(),
                         operation: "Player Creation Failed",
-                        table: "N/A",
                         status: 400,
                         error: {
                           message: `Row ${
@@ -662,10 +673,11 @@ export function RatingUpdate() {
                     ]);
                     setErrorCount((prev) => prev + 1);
                     setCurrentIndex((prev) => prev + 1);
-                    setCurrentStatusText(
+                    setMotionGridStatus(
                       `Row ${
                         i + 1
-                      }: Skipping due to missing name for new player.`
+                      }: Skipping due to missing name for new player.`,
+                      "busy"
                     );
                     continue;
                   }
@@ -723,7 +735,6 @@ export function RatingUpdate() {
                           {
                             _uuid: crypto.randomUUID(),
                             operation: "Player Creation Failed",
-                            table: "Players & Tournaments",
                             status: 400,
                             error: {
                               message: `Row ${
@@ -786,12 +797,10 @@ export function RatingUpdate() {
 
                 setCurrentUpdate({
                   operation: operationText,
-                  table: isTournamentUpdate
-                    ? "Players & Tournaments"
-                    : "Players",
                 });
-                setCurrentStatusText(
-                  `${operationText} | Row ${i} of ${jsonData.length - 1}`
+                setMotionGridStatus(
+                  `${operationText} | Row ${i} of ${jsonData.length - 1}`,
+                  "busy"
                 );
 
                 try {
@@ -858,9 +867,6 @@ export function RatingUpdate() {
                         id === 0
                           ? `${successPayloadDataFields.name} Created`
                           : `${successPayloadDataFields.name} - ID ${successPayloadDataFields.id} - Updated`,
-                      table: isTournamentUpdate
-                        ? "Players & Tournaments"
-                        : "Players",
                       status: res.status,
                       success: {
                         dataFields: jsonRes.dataFields,
@@ -870,7 +876,10 @@ export function RatingUpdate() {
                     ...prev,
                   ]);
                   setSuccessCount((prev) => prev + 1);
-                  setCurrentStatusText(`Successfully processed ID ${id}.`);
+                  setMotionGridStatus(
+                    `Successfully processed ID ${id}.`,
+                    "busy"
+                  );
                 } catch (error: unknown) {
                   const errorMessage =
                     error instanceof Error ? error.message : "Unknown error";
@@ -924,9 +933,6 @@ export function RatingUpdate() {
                         id === 0
                           ? "Player Creation Failed"
                           : `Player with ID ${id} update failed`,
-                      table: isTournamentUpdate
-                        ? "Players & Tournaments"
-                        : "Players",
                       status: statusCode,
                       error: {
                         message: displayMessage,
@@ -936,7 +942,7 @@ export function RatingUpdate() {
                     ...prev,
                   ]);
                   setErrorCount((prev) => prev + 1);
-                  setCurrentStatusText(`Failed to process ID ${id}.`);
+                  setMotionGridStatus(`Failed to process ID ${id}.`, "busy");
                 } finally {
                   setCurrentIndex((prev) => prev + 1);
                   setCurrentUpdate(null);
@@ -950,14 +956,25 @@ export function RatingUpdate() {
                 subtitle: "Database update process completed!",
                 type: "success",
               });
-              setCurrentStatusText("Update process finished.");
+              setMotionGridStatus(
+                "Update process completed successfully.",
+                "saving"
+              );
+            } else {
+              addNotification({
+                title: "Info",
+                subtitle: "Database update process stopped by user.",
+                type: "info",
+              });
+              setMotionGridStatus("Process stopped by user.", "stop");
             }
+
             setIsRunning(false);
           };
 
           fileReader.onerror = () => {
             setIsRunning(false);
-            setCurrentStatusText("Error reading file.");
+            setMotionGridStatus("Error reading file.", "busy");
             addNotification({
               title: "Error",
               subtitle: "Failed to read the Excel file.",
@@ -975,7 +992,7 @@ export function RatingUpdate() {
             type: "error",
           });
           setIsRunning(false);
-          setCurrentStatusText(`File processing error: ${errorMessage}`);
+          setMotionGridStatus(`File processing error: ${errorMessage}`, "busy");
         }
       } else {
         addNotification({
@@ -985,7 +1002,7 @@ export function RatingUpdate() {
         });
         setIsRunning(false);
         setSelectedFileName(null);
-        setCurrentStatusText("No file selected.");
+        setMotionGridStatus("No file selected.", "busy");
       }
     },
     [
@@ -995,6 +1012,8 @@ export function RatingUpdate() {
       setErrorStackLength,
       handleClearFileClick,
       addNotification,
+      setMotionGridStatus,
+      setCurrentUpdate,
     ]
   );
 
@@ -1024,7 +1043,7 @@ export function RatingUpdate() {
       type: "info",
     });
     setShowClearHistoryConfirm(false);
-    setCurrentStatusText("History cleared. Ready to start...");
+    setMotionGridStatus("History cleared. Ready to start", "ready");
   }, [
     setSuccessStackLength,
     setErrorStackLength,
@@ -1032,6 +1051,8 @@ export function RatingUpdate() {
     setIsRunning,
     setSelectedFileName,
     addNotification,
+    setMotionGridStatus,
+    setCurrentUpdate,
   ]);
 
   const clearHistory = useCallback(() => {
@@ -1099,9 +1120,12 @@ export function RatingUpdate() {
     if (!isRunning && fileReaderRef.current) {
       fileReaderRef.current.abort();
       fileReaderRef.current = null;
-      setCurrentStatusText("Process stopped by user.");
+
+      if (fileReaderRef.current) {
+        setMotionGridStatus("Process stopped by user.", "stop");
+      }
     }
-  }, [isRunning]);
+  }, [isRunning, setMotionGridStatus]);
 
   return (
     <>
@@ -1109,9 +1133,13 @@ export function RatingUpdate() {
       <RatingUpdateNotificationList />
       <RatingUpdateNotificationsDialog />
 
-      {isRunning && (
-        <RatingUpdateMotionGrid currentStatusText={currentStatusText} />
-      )}
+      <RatingUpdateAlertDialog
+        open={showClearHistoryConfirm}
+        onOpenChange={setShowClearHistoryConfirm}
+        onClick={performClearHistory}
+      />
+
+      <RatingUpdateMotionGrid />
 
       <RatingUpdateStatus
         successCount={successCount}
@@ -1124,7 +1152,7 @@ export function RatingUpdate() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="absolute top-1/3 left-1/2 -translate-1/2 flex flex-col items-center gap-4 p-6 w-full max-w-lg bg-background dark:bg-[#0F0F0F] rounded-xl shadow-md"
+            className="absolute top-1/2 left-1/2 -translate-1/2 flex flex-col items-center gap-4 p-6 w-full max-w-lg bg-background dark:bg-[#0F0F0F] rounded-xl shadow-md"
           >
             <FormField
               control={form.control}
@@ -1151,6 +1179,7 @@ export function RatingUpdate() {
                           const file = e.target.files?.[0];
                           field.onChange(file);
                           setSelectedFileName(file ? file.name : null);
+                          setMotionGridStatus("File updated", "add");
                         }}
                         accept=".xls,.xlsx"
                         ref={fileInputRef}
@@ -1166,26 +1195,6 @@ export function RatingUpdate() {
             />
           </form>
         </Form>
-      )}
-
-      <RatingUpdateAlertDialog
-        open={showClearHistoryConfirm}
-        onOpenChange={setShowClearHistoryConfirm}
-        onClick={performClearHistory}
-      />
-
-      {!currentUpdate &&
-        !isRunning &&
-        totalUpdates > 0 &&
-        (successStack.length || errorStack.length) > 0 && (
-          <RatingUpdateCompletedAlert />
-        )}
-
-      {currentUpdate && (
-        <RatingUpdateProcessingAlert
-          operation={currentUpdate.operation}
-          table={currentUpdate.table}
-        />
       )}
 
       {(successStack.length || errorStack.length) > 0 && (

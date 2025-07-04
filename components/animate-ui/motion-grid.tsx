@@ -23,7 +23,7 @@ type MotionGridProps = {
 const MotionGrid = ({
 	gridSize,
 	frames,
-	duration = 200,
+	duration,
 	animate = true,
 	cellClassName,
 	cellProps,

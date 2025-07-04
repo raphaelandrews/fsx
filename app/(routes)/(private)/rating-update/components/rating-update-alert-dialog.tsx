@@ -36,6 +36,4 @@ export function RatingUpdateAlertDialog({
       </AlertDialogContent>
     </AlertDialog>
   );
-}
- 
-;
+};

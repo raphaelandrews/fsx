@@ -1,4 +1,5 @@
-import { create } from "zustand";
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export interface Notification {
   id: string;
@@ -13,17 +14,29 @@ interface NotificationStore {
   clearNotifications: () => void;
 }
 
-export const useNotificationStore = create<NotificationStore>((set) => ({
-  notifications: [],
-  addNotification: (notification) =>
-    set((state) => ({
-      notifications: [
-        {
-          ...notification,
-          id: crypto.randomUUID(),
-        },
-        ...state.notifications,
-      ].slice(0, 20),
-    })),
-  clearNotifications: () => set({ notifications: [] }),
-}));
+export const useNotificationStore = create(
+  persist<NotificationStore>(
+    (set) => ({
+      notifications: [],
+      addNotification: (notification) =>
+        set((state) => {
+          const newNotifications = [
+            { ...notification, id: crypto.randomUUID() },
+            ...state.notifications,
+          ];
+          if (newNotifications.length > 20) {
+            return { notifications: newNotifications.slice(0, 20) };
+          }
+          return { notifications: newNotifications };
+        }),
+      clearNotifications: () =>
+        set({
+          notifications: [],
+        }),
+    }),
+    {
+      name: 'notification-storage',
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);

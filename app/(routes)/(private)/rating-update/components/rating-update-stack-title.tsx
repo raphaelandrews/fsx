@@ -13,7 +13,7 @@ export function RatingUpdateStackTitle({
   return (
     <Alert
       variant={`${stack ? "success" : "destructive"}`}
-      className="flex items-center gap-2 w-fit"
+      className="flex items-center gap-2 w-fit dark:border-none"
     >
       <AlertTitle>{title}</AlertTitle>
       <Badge
