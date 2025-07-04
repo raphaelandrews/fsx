@@ -31,3 +31,18 @@ export const mockData = [
   [114],
   [115, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
 ];
+
+export const mockFileNames = [
+  "Player_Data_Mock.xlsx",
+  "Tournament_Updates_Mock.xlsx",
+  "Mixed_Data_Mock.xlsx",
+  "Error_Scenario_Mock.xlsx",
+  "Orange.xlsx",
+  "Blue.xlsx",
+  "Pink.xlsx",
+  "Yellow.xlsx",
+  "Green.xlsx",
+  "Rose.xlsx",
+  "Red.xlsx",
+  "Black.xlsx",
+];

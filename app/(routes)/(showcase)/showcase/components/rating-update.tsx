@@ -19,7 +19,8 @@ import { RatingUpdateStackTitle } from "./rating-update-stack-title";
 import { RatingUpdateStackTrace } from "./rating-update-stack-trace";
 
 import { Button } from "@/components/ui/button";
-import { mockData } from "./mock-data";
+import { mockData, mockFileNames } from "./mock-data";
+import { MockDataViewerDialog } from "./mock-data-viewer-dialog";
 
 type ExcelContent = [string[], ...(string | number | boolean)[][]];
 
@@ -59,13 +60,20 @@ export function RatingUpdate() {
     React.useState(false);
 
   const [generatedMockFiles, setGeneratedMockFiles] = React.useState<
-    Array<{ name: string; data: ExcelContent }>
+    Array<{ name: string; displayName: string; data: ExcelContent }>
   >([]);
   const [selectedMockFileContent, setSelectedMockFileContent] =
     React.useState<ExcelContent | null>(null);
   const [selectedMockFileName, setSelectedMockFileName] = React.useState<
     string | null
   >(null);
+
+  const [showMockDataViewer, setShowMockDataViewer] = React.useState(false);
+  const [mockDataToView, setMockDataToView] =
+    React.useState<ExcelContent | null>(null);
+  const [mockDataFileName, setMockDataFileName] = React.useState<string | null>(
+    null
+  );
 
   const ITEMS_PER_PAGE = 6;
 
@@ -441,40 +449,61 @@ export function RatingUpdate() {
     setMotionGridStatus("Ready to generate new files", "ready");
   }, [setMotionGridStatus]);
 
-  const getRandomSubset = useCallback(
-    (arr: (string | number | boolean | undefined)[][], count: number) => {
-      const shuffled = [...arr].sort(() => 0.5 - Math.random());
-      return shuffled.slice(0, count);
-    },
-    []
-  );
+  const getRandomSubset = useCallback((arr: any, count: number) => {
+    const shuffled = [...arr].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  }, []);
 
   const generateRandomMockFiles = useCallback(() => {
     setSelectedMockFileContent(null);
     setSelectedMockFileName(null);
     const newGeneratedFiles = [];
-    for (let i = 0; i < 3; i++) {
+    const timestamp = Date.now();
+
+    const numberOfFilesToGenerate = 4;
+    const selectedDisplayNames = getRandomSubset(
+      mockFileNames,
+      numberOfFilesToGenerate
+    );
+
+    for (let i = 0; i < numberOfFilesToGenerate; i++) {
       const numRows = Math.floor(Math.random() * (mockData.length / 2)) + 5;
       const randomData = getRandomSubset(mockData, numRows);
+      const displayName = selectedDisplayNames[i];
+
+      const uniqueInternalName = `${displayName.replace(
+        ".xlsx",
+        ""
+      )}_${timestamp}_${i + 1}.xlsx`;
+
       newGeneratedFiles.push({
-        name: `Generated_File_${i + 1}.xlsx`,
+        name: uniqueInternalName,
+        displayName: displayName,
         data: [excelHeader, ...randomData] as ExcelContent,
       });
     }
     setGeneratedMockFiles(newGeneratedFiles);
-    toast.success("3 random Excel files generated!");
+    toast.success("New random Excel files generated!");
     setMotionGridStatus("Select a generated file to process", "ready");
   }, [getRandomSubset, setMotionGridStatus]);
 
   const handleSelectMockFile = useCallback(
-    (file: { name: string; data: ExcelContent }) => {
-      setSelectedMockFileContent(file.data);
-      setSelectedMockFileName(file.name);
-      useRatingUpdateStore.getState().setSelectedFileName(file.name);
-      toast.info(`Selected mock file: ${file.name}`);
-      setMotionGridStatus(`Ready to process ${file.name}`, "ready");
+    (file: { name: string; displayName: string; data: ExcelContent }) => {
+      if (selectedMockFileName === file.name) {
+        setSelectedMockFileContent(null);
+        setSelectedMockFileName(null);
+        useRatingUpdateStore.getState().setSelectedFileName(null);
+        toast.info(`Deselected mock file: ${file.displayName}`);
+        setMotionGridStatus("Ready to select a file", "ready");
+      } else {
+        setSelectedMockFileContent(file.data);
+        setSelectedMockFileName(file.name);
+        useRatingUpdateStore.getState().setSelectedFileName(file.name);
+        toast.info(`Selected mock file: ${file.displayName}`);
+        setMotionGridStatus(`Ready to process ${file.displayName}`, "ready");
+      }
     },
-    [setMotionGridStatus]
+    [selectedMockFileName, setMotionGridStatus]
   );
 
   const handleRunClick = useCallback(() => {
@@ -544,6 +573,15 @@ export function RatingUpdate() {
     [errorCurrentPage, errorTotalPages]
   );
 
+  const handleViewMockData = useCallback(
+    (file: { name: string; displayName: string; data: ExcelContent }) => {
+      setMockDataToView(file.data);
+      setMockDataFileName(file.name);
+      setShowMockDataViewer(true);
+    },
+    []
+  );
+
   return (
     <>
       <RatingUpdateDeveloperTool />
@@ -557,7 +595,7 @@ export function RatingUpdate() {
       <RatingUpdateMonitor />
 
       {!isRunning && successStack.length === 0 && errorStack.length === 0 && (
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 p-6 w-full max-w-lg bg-background dark:bg-[#0F0F0F] rounded-xl shadow-md">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 p-6 w-full max-w-xl bg-background dark:bg-[#0F0F0F] rounded-xl shadow-md">
           <h2 className="text-xl font-bold">Simulate Rating Update</h2>
           <p className="text-muted-foreground text-center">
             {generatedMockFiles.length === 0
@@ -571,29 +609,44 @@ export function RatingUpdate() {
               onClick={generateRandomMockFiles}
               className="w-full"
             >
-              Generate 3 Random Excel Files
+              Generate Random Excel Files
             </Button>
           ) : (
             <>
-              <div className="flex flex-wrap justify-center gap-2 w-full">
+              <div className="grid grid-cols-2 gap-2 w-full">
                 {generatedMockFiles.map((file) => (
-                  <Button
+                  <div
                     key={file.name}
-                    variant={
-                      selectedMockFileName === file.name ? "default" : "outline"
-                    }
-                    onClick={() => handleSelectMockFile(file)}
-                    className="flex-grow"
+                    className="flex flex-col gap-2 w-full sm:w-auto flex-grow"
                   >
-                    {file.name}
-                  </Button>
+                    <Button
+                      variant={
+                        selectedMockFileName === file.name
+                          ? "default"
+                          : "outline"
+                      }
+                      onClick={() => handleSelectMockFile(file)}
+                      className="flex-grow"
+                    >
+                      {file.displayName}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => handleViewMockData(file)}
+                      className="flex-grow"
+                    >
+                      View Data
+                    </Button>
+                  </div>
                 ))}
               </div>
               {selectedMockFileName && (
                 <p className="text-sm text-muted-foreground mt-2">
                   Selected:{" "}
                   <span className="font-medium text-foreground">
-                    {selectedMockFileName}
+                    {generatedMockFiles.find(
+                      (f) => f.name === selectedMockFileName
+                    )?.displayName || selectedMockFileName}
                   </span>
                 </p>
               )}
@@ -651,6 +704,16 @@ export function RatingUpdate() {
           </div>
         </div>
       )}
+
+      <MockDataViewerDialog
+        open={showMockDataViewer}
+        onOpenChange={setShowMockDataViewer}
+        data={mockDataToView}
+        fileName={
+          generatedMockFiles.find((f) => f.name === mockDataFileName)
+            ?.displayName || mockDataFileName
+        }
+      />
     </>
   );
 }
