@@ -36,32 +36,31 @@ async function loadAssets(): Promise<
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const title = searchParams.get("title")
+  const { searchParams } = new URL(request.url);
+  const title = searchParams.get("title");
 
-  const [fonts] = await Promise.all([loadAssets()])
+  const [fonts] = await Promise.all([loadAssets()]);
 
   return new ImageResponse(
     (
       <div
         style={{
+          fontFamily: "Geist Sans",
+          color: "white",
+          width: "100%",
+          height: "100%",
           backgroundImage: `url('https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AET4p23TlHHl0J2X9r8cZeA3iMNaxuywIBLDCt7')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          width: "100%",
-          height: "100%",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          color: "white",
-          textAlign: "center",
         }}
       >
-        <span className="absolute top-1/2 left-1/2 -translate-x-1/2 font-black text-[200px] italic">FSX</span>
-        <p className="mt-[5.25rem]">
-          {title}
-          </p>
+        <span tw="font-black text-[200px] italic">FSX</span>
+        <p tw="font-bold text-[4rem] text-center mt-[5.25rem] px-10">{title}</p>
       </div>
     ),
     {
