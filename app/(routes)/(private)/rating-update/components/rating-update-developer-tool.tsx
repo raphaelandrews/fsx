@@ -35,8 +35,8 @@ export function RatingUpdateDeveloperTool() {
     clearHistory,
     clearFile,
     selectedFileName,
-    successStackLength,
-    errorStackLength,
+    successLogLength,
+    errorLogLength,
   } = useRatingUpdateStore();
 
   const [activePanel, setActivePanel] = React.useState<string | null>(null);
@@ -116,8 +116,8 @@ export function RatingUpdateDeveloperTool() {
               const isDisabled =
                 isRunning ||
                 !selectedFileName ||
-                successStackLength > 0 ||
-                errorStackLength > 0;
+                successLogLength > 0 ||
+                errorLogLength > 0;
               if (isDisabled) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -125,7 +125,7 @@ export function RatingUpdateDeveloperTool() {
                   toast.info("Cannot run: A process is already running.");
                 } else if (!selectedFileName) {
                   toast.info("Cannot run: Please select a file first.");
-                } else if (successStackLength > 0 || errorStackLength > 0) {
+                } else if (successLogLength > 0 || errorLogLength > 0) {
                   toast.info(
                     "Cannot run: Please clear the success and error history."
                   );
@@ -139,14 +139,14 @@ export function RatingUpdateDeveloperTool() {
               disabled={
                 isRunning ||
                 !selectedFileName ||
-                successStackLength > 0 ||
-                errorStackLength > 0
+                successLogLength > 0 ||
+                errorLogLength > 0
               }
               className={
                 isRunning ||
                 !selectedFileName ||
-                successStackLength > 0 ||
-                errorStackLength > 0
+                successLogLength > 0 ||
+                errorLogLength > 0
                   ? "pointer-events-none"
                   : ""
               }
@@ -184,13 +184,13 @@ export function RatingUpdateDeveloperTool() {
             onPointerDown={(e) => {
               const isDisabled =
                 isRunning ||
-                (successStackLength === 0 && errorStackLength === 0);
+                (successLogLength === 0 && errorLogLength === 0);
               if (isDisabled) {
                 e.preventDefault();
                 e.stopPropagation();
                 if (isRunning) {
                   toast.info("Cannot clear history: A process is running.");
-                } else if (successStackLength === 0 && errorStackLength === 0) {
+                } else if (successLogLength === 0 && errorLogLength === 0) {
                   toast.info(
                     "Cannot clear history: No successful or error updates to clear."
                   );
@@ -204,11 +204,11 @@ export function RatingUpdateDeveloperTool() {
               onClick={clearHistory}
               disabled={
                 isRunning ||
-                (successStackLength === 0 && errorStackLength === 0)
+                (successLogLength === 0 && errorLogLength === 0)
               }
               className={
                 isRunning ||
-                (successStackLength === 0 && errorStackLength === 0)
+                (successLogLength === 0 && errorLogLength === 0)
                   ? "pointer-events-none"
                   : ""
               }
@@ -224,8 +224,8 @@ export function RatingUpdateDeveloperTool() {
               const isDisabled =
                 isRunning ||
                 !selectedFileName ||
-                successStackLength > 0 ||
-                errorStackLength > 0;
+                successLogLength > 0 ||
+                errorLogLength > 0;
               if (isDisabled) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -233,7 +233,7 @@ export function RatingUpdateDeveloperTool() {
                   toast.info("Cannot clear file: A process is running.");
                 } else if (!selectedFileName) {
                   toast.info("Cannot clear file: Please select a file first.");
-                } else if (successStackLength > 0 || errorStackLength > 0) {
+                } else if (successLogLength > 0 || errorLogLength > 0) {
                   toast.info(
                     "Cannot clear file: Please clear the success and error history."
                   );
@@ -248,14 +248,14 @@ export function RatingUpdateDeveloperTool() {
               disabled={
                 isRunning ||
                 !selectedFileName ||
-                successStackLength > 0 ||
-                errorStackLength > 0
+                successLogLength > 0 ||
+                errorLogLength > 0
               }
               className={
                 isRunning ||
                 !selectedFileName ||
-                successStackLength > 0 ||
-                errorStackLength > 0
+                successLogLength > 0 ||
+                errorLogLength > 0
                   ? "pointer-events-none"
                   : ""
               }

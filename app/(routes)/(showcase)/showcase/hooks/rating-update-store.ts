@@ -7,8 +7,8 @@ interface RatingUpdateStore {
   totalUpdates: number;
   currentUpdate: RatingUpdateProps | null;
   selectedFileName: string | null;
-  successStackLength: number;
-  errorStackLength: number;
+  successLogLength: number;
+  errorLogLength: number;
   generatedFilesCount: number;
 
   runAction?: () => void;
@@ -26,8 +26,8 @@ interface RatingUpdateStore {
   setTotalUpdates: (total: number) => void;
   setCurrentUpdate: (update: RatingUpdateProps | null) => void;
   setSelectedFileName: (name: string | null) => void;
-  setSuccessStackLength: (length: number) => void;
-  setErrorStackLength: (length: number) => void;
+  setSuccessLogLength: (length: number) => void;
+  setErrorLogLength: (length: number) => void;
   setGeneratedFilesCount: (count: number) => void;
 
   setRunAction: (action: () => void) => void;
@@ -42,8 +42,8 @@ export const useRatingUpdateStore = create<RatingUpdateStore>((set, get) => ({
   totalUpdates: 0,
   currentUpdate: null,
   selectedFileName: null,
-  successStackLength: 0,
-  errorStackLength: 0,
+  successLogLength: 0,
+  errorLogLength: 0,
   generatedFilesCount: 0,
 
   runAction: undefined,
@@ -73,8 +73,8 @@ export const useRatingUpdateStore = create<RatingUpdateStore>((set, get) => ({
   setTotalUpdates: (total) => set({ totalUpdates: total }),
   setCurrentUpdate: (update) => set({ currentUpdate: update }),
   setSelectedFileName: (name) => set({ selectedFileName: name }),
-  setSuccessStackLength: (length) => set({ successStackLength: length }),
-  setErrorStackLength: (length) => set({ errorStackLength: length }),
+  setSuccessLogLength: (length) => set({ successLogLength: length }),
+  setErrorLogLength: (length) => set({ errorLogLength: length }),
   setGeneratedFilesCount: (count) => set({ generatedFilesCount: count }),
 
   setRunAction: (action) => set({ runAction: action }),

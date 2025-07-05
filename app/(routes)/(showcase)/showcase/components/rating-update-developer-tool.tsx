@@ -35,8 +35,8 @@ export function RatingUpdateDeveloperTool() {
     clearHistory,
     clearFile,
     selectedFileName,
-    successStackLength,
-    errorStackLength,
+    successLogLength,
+    errorLogLength,
     generatedFilesCount,
   } = useRatingUpdateStore();
 
@@ -116,9 +116,9 @@ export function RatingUpdateDeveloperTool() {
             onPointerDown={(e) => {
               const isDisabled =
                 isRunning ||
-                !selectedFileName || 
-                successStackLength > 0 ||
-                errorStackLength > 0;
+                !selectedFileName ||
+                successLogLength > 0 ||
+                errorLogLength > 0;
               if (isDisabled) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -126,7 +126,7 @@ export function RatingUpdateDeveloperTool() {
                   toast.info("Cannot run: A process is already running.");
                 } else if (!selectedFileName) {
                   toast.error("Cannot run: Please select a file first.");
-                } else if (successStackLength > 0 || errorStackLength > 0) {
+                } else if (successLogLength > 0 || errorLogLength > 0) {
                   toast.info(
                     "Cannot run: Please clear the success and error history."
                   );
@@ -139,15 +139,15 @@ export function RatingUpdateDeveloperTool() {
               onClick={runProcess}
               disabled={
                 isRunning ||
-                !selectedFileName || 
-                successStackLength > 0 ||
-                errorStackLength > 0
+                !selectedFileName ||
+                successLogLength > 0 ||
+                errorLogLength > 0
               }
               className={
                 isRunning ||
-                !selectedFileName || 
-                successStackLength > 0 ||
-                errorStackLength > 0
+                !selectedFileName ||
+                successLogLength > 0 ||
+                errorLogLength > 0
                   ? "pointer-events-none"
                   : ""
               }
@@ -185,13 +185,13 @@ export function RatingUpdateDeveloperTool() {
             onPointerDown={(e) => {
               const isDisabled =
                 isRunning ||
-                (successStackLength === 0 && errorStackLength === 0);
+                (successLogLength === 0 && errorLogLength === 0);
               if (isDisabled) {
                 e.preventDefault();
                 e.stopPropagation();
                 if (isRunning) {
                   toast.info("Cannot clear history: A process is running.");
-                } else if (successStackLength === 0 && errorStackLength === 0) {
+                } else if (successLogLength === 0 && errorLogLength === 0) {
                   toast.info(
                     "Cannot clear history: No successful or error updates to clear."
                   );
@@ -205,11 +205,11 @@ export function RatingUpdateDeveloperTool() {
               onClick={clearHistory}
               disabled={
                 isRunning ||
-                (successStackLength === 0 && errorStackLength === 0)
+                (successLogLength === 0 && errorLogLength === 0)
               }
               className={
                 isRunning ||
-                (successStackLength === 0 && errorStackLength === 0)
+                (successLogLength === 0 && errorLogLength === 0)
                   ? "pointer-events-none"
                   : ""
               }
@@ -223,7 +223,7 @@ export function RatingUpdateDeveloperTool() {
             className="inline-block"
             onPointerDown={(e) => {
               const isDisabled =
-                isRunning || generatedFilesCount === 0 || !selectedFileName; 
+                isRunning || generatedFilesCount === 0;
               if (isDisabled) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -242,10 +242,10 @@ export function RatingUpdateDeveloperTool() {
               variant="outline"
               onClick={clearFile}
               disabled={
-                isRunning || generatedFilesCount === 0 || !selectedFileName
-              } 
+                isRunning || generatedFilesCount === 0 
+              }
               className={
-                isRunning || generatedFilesCount === 0
+                isRunning || generatedFilesCount === 0 
                   ? "pointer-events-none"
                   : ""
               }
@@ -302,32 +302,6 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
     </Button>
   );
 };
-
-/*const ColorPicker: React.FC<{ isActive?: boolean; onClick?: () => void }> = ({
-  isActive = false,
-  onClick,
-}) => {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={onClick}
-      className={`
-        relative p-2
-        ${isActive ? "bg-accent" : "bg-transparent"}
-      `}
-    >
-      <div className="flex items-center space-x-1">
-        <div className="w-4 h-4 bg-teal-500 rounded-full transition-transform duration-300 hover:scale-110" />
-        <div className="w-4 h-4 bg-amber-500 rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
-        <div className="w-4 h-4 bg-rose-500 rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
-      </div>
-      {isActive && (
-        <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full" />
-      )}
-    </Button>
-  );
-};*/
 
 const RulesPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
   return (

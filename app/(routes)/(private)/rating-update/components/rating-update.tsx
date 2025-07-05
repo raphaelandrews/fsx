@@ -22,8 +22,8 @@ import { RatingUpdateAlertDialog } from "./rating-update-alert-dialog";
 import { RatingUpdateDeveloperTool } from "./rating-update-developer-tool";
 import { RatingUpdateMonitor } from "./rating-update-monitor";
 import { RatingUpdatePagination } from "./rating-update-pagination";
-import { RatingUpdateStackTitle } from "./rating-update-stack-title";
-import { RatingUpdateStackTrace } from "./rating-update-stack-trace";
+import { RatingUpdateLogTitle } from "./rating-update-log-title";
+import { RatingUpdateLogs } from "./rating-update-logs";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -44,18 +44,18 @@ export function RatingUpdate() {
     stopProcess,
     setCurrentIndex,
     setCurrentUpdate,
-    setErrorStackLength,
+    setErrorLogLength,
     setIsRunning,
     setSelectedFileName,
-    setSuccessStackLength,
+    setSuccessLogLength,
     setTotalUpdates,
   } = useRatingUpdateStore();
   const { setMotionGridStatus } = useRatingUpdateStatusStore();
 
-  const [successStack, setSuccessStack] = React.useState<RatingUpdateProps[]>(
+  const [successLog, setSuccessLog] = React.useState<RatingUpdateProps[]>(
     []
   );
-  const [errorStack, setErrorStack] = React.useState<RatingUpdateProps[]>([]);
+  const [errorLog, setErrorLog] = React.useState<RatingUpdateProps[]>([]);
   const [successCurrentPage, setSuccessCurrentPage] = React.useState(1);
   const [errorCurrentPage, setErrorCurrentPage] = React.useState(1);
   const [hasLoadedInitialData, setHasLoadedInitialData] = React.useState(false);
@@ -77,40 +77,40 @@ export function RatingUpdate() {
   React.useEffect(() => {
     if (!hasLoadedInitialData) {
       try {
-        const storedSuccess = localStorage.getItem("successStack");
-        const storedError = localStorage.getItem("errorStack");
+        const storedSuccess = localStorage.getItem("successLog");
+        const storedError = localStorage.getItem("errorLog");
 
         if (storedSuccess) {
           const parsedSuccess = JSON.parse(storedSuccess);
-          setSuccessStack(parsedSuccess);
-          setSuccessStackLength(parsedSuccess.length);
+          setSuccessLog(parsedSuccess);
+          setSuccessLogLength(parsedSuccess.length);
         }
         if (storedError) {
           const parsedError = JSON.parse(storedError);
-          setErrorStack(parsedError);
-          setErrorStackLength(parsedError.length);
+          setErrorLog(parsedError);
+          setErrorLogLength(parsedError.length);
         }
       } catch (e) {
         console.error("Failed to load data from localStorage", e);
-        localStorage.removeItem("successStack");
-        localStorage.removeItem("errorStack");
-        setSuccessStackLength(0);
-        setErrorStackLength(0);
+        localStorage.removeItem("successLog");
+        localStorage.removeItem("errorLog");
+        setSuccessLogLength(0);
+        setErrorLogLength(0);
       } finally {
         setHasLoadedInitialData(true);
       }
     }
-  }, [hasLoadedInitialData, setSuccessStackLength, setErrorStackLength]);
+  }, [hasLoadedInitialData, setSuccessLogLength, setErrorLogLength]);
 
   React.useEffect(() => {
-    localStorage.setItem("successStack", JSON.stringify(successStack));
-    setSuccessStackLength(successStack.length);
-  }, [successStack, setSuccessStackLength]);
+    localStorage.setItem("successLog", JSON.stringify(successLog));
+    setSuccessLogLength(successLog.length);
+  }, [successLog, setSuccessLogLength]);
 
   React.useEffect(() => {
-    localStorage.setItem("errorStack", JSON.stringify(errorStack));
-    setErrorStackLength(errorStack.length);
-  }, [errorStack, setErrorStackLength]);
+    localStorage.setItem("errorLog", JSON.stringify(errorLog));
+    setErrorLogLength(errorLog.length);
+  }, [errorLog, setErrorLogLength]);
 
   const handleClearFileClick = useCallback(() => {
     form.resetField("file");
@@ -126,13 +126,13 @@ export function RatingUpdate() {
     async (values) => {
       setIsRunning(true);
       setCurrentUpdate(null);
-      setSuccessStack([]);
-      setErrorStack([]);
+      setSuccessLog([]);
+      setErrorLog([]);
       setCurrentIndex(0);
       setSuccessCurrentPage(1);
       setErrorCurrentPage(1);
-      setSuccessStackLength(0);
-      setErrorStackLength(0);
+      setSuccessLogLength(0);
+      setErrorLogLength(0);
       setMotionGridStatus("Initializing update process", "busy");
 
       const file = values.file;
@@ -408,7 +408,7 @@ export function RatingUpdate() {
                         i + 1
                       }: Tournament columns present but some values are empty or invalid.`
                     );
-                    setErrorStack((prev) => [
+                    setErrorLog((prev) => [
                       {
                         _uuid: crypto.randomUUID(),
                         operation: "Player Tournament Update Failed",
@@ -439,7 +439,7 @@ export function RatingUpdate() {
                       i + 1
                     }: Invalid rating type. Must be one of: blitz, rapid, classic.`
                   );
-                  setErrorStack((prev) => [
+                  setErrorLog((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
                       operation: "Player Tournament Update Failed",
@@ -467,7 +467,7 @@ export function RatingUpdate() {
                   toast.error(
                     `Row ${i + 1}: Tournament ID must be a positive integer.`
                   );
-                  setErrorStack((prev) => [
+                  setErrorLog((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
                       operation: "Player Tournament Update Failed",
@@ -499,7 +499,7 @@ export function RatingUpdate() {
                       i + 1
                     }: Variation must be an integer between -100 and 100.`
                   );
-                  setErrorStack((prev) => [
+                  setErrorLog((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
                       operation: "Player Tournament Update Failed",
@@ -526,7 +526,7 @@ export function RatingUpdate() {
                       i + 1
                     }: Invalid or missing 'id' value. ID must be 0 or positive.`
                   );
-                  setErrorStack((prev) => [
+                  setErrorLog((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
                       operation: "Player Creation Failed",
@@ -568,7 +568,7 @@ export function RatingUpdate() {
                         i + 1
                       }: If any of 'tournamentId', 'variation', 'ratingType' are present, all three must be valid.`
                     );
-                    setErrorStack((prev) => [
+                    setErrorLog((prev) => [
                       {
                         _uuid: crypto.randomUUID(),
                         operation: "Player Tournament Update Failed",
@@ -598,7 +598,7 @@ export function RatingUpdate() {
                     toast.error(
                       `Row ${i + 1}: Missing or empty 'name' for new player.`
                     );
-                    setErrorStack((prev) => [
+                    setErrorLog((prev) => [
                       {
                         _uuid: crypto.randomUUID(),
                         operation: "Player Creation Failed",
@@ -668,7 +668,7 @@ export function RatingUpdate() {
                             i + 1
                           }: Missing name for new player with tournament data.`
                         );
-                        setErrorStack((prev) => [
+                        setErrorLog((prev) => [
                           {
                             _uuid: crypto.randomUUID(),
                             operation: "Player Creation Failed",
@@ -786,7 +786,7 @@ export function RatingUpdate() {
                     successMessage = jsonRes.message;
                   }
 
-                  setSuccessStack((prev) => [
+                  setSuccessLog((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
                       operation:
@@ -808,10 +808,10 @@ export function RatingUpdate() {
                 } catch (error: unknown) {
                   const errorMessage =
                     error instanceof Error ? error.message : "Unknown error";
-                  const errorStack =
+                  const errorLog =
                     error instanceof Error
                       ? error.stack
-                      : "No stack trace available.";
+                      : "No log available.";
                   console.error("Error processing player:", error, id);
                   id === 0
                     ? toast.error(`Row ${i + 1} failed to process row.`)
@@ -843,7 +843,7 @@ export function RatingUpdate() {
 
                   displayMessage = `Row ${i + 1}: ${displayMessage}`;
 
-                  setErrorStack((prev) => [
+                  setErrorLog((prev) => [
                     {
                       _uuid: crypto.randomUUID(),
                       operation:
@@ -853,7 +853,7 @@ export function RatingUpdate() {
                       status: statusCode,
                       error: {
                         message: displayMessage,
-                        stack: errorStack,
+                        stack: errorLog,
                       },
                     },
                     ...prev,
@@ -906,8 +906,8 @@ export function RatingUpdate() {
     [
       setIsRunning,
       setSelectedFileName,
-      setSuccessStackLength,
-      setErrorStackLength,
+      setSuccessLogLength,
+      setErrorLogLength,
       handleClearFileClick,
       setMotionGridStatus,
       setCurrentUpdate,
@@ -917,29 +917,29 @@ export function RatingUpdate() {
   );
 
   const performClearHistory = useCallback(() => {
-    localStorage.removeItem("successStack");
-    localStorage.removeItem("errorStack");
+    localStorage.removeItem("successLog");
+    localStorage.removeItem("errorLog");
     form.reset();
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
     setCurrentUpdate(null);
-    setSuccessStack([]);
-    setErrorStack([]);
+    setSuccessLog([]);
+    setErrorLog([]);
     setCurrentIndex(0);
     setTotalUpdates(0);
     setIsRunning(false);
     setSuccessCurrentPage(1);
     setErrorCurrentPage(1);
     setSelectedFileName(null);
-    setSuccessStackLength(0);
-    setErrorStackLength(0);
+    setSuccessLogLength(0);
+    setErrorLogLength(0);
     setShowClearHistoryConfirm(false);
     toast.info("Database update history cleared from local storage.");
     setMotionGridStatus("History cleared. Ready to start", "ready");
   }, [
-    setSuccessStackLength,
-    setErrorStackLength,
+    setSuccessLogLength,
+    setErrorLogLength,
     form.reset,
     setIsRunning,
     setSelectedFileName,
@@ -970,20 +970,20 @@ export function RatingUpdate() {
     setClearFileAction(handleClearFileClick);
   }, [handleRunClick, clearHistory, handleClearFileClick, stopProcess]);
 
-  const successTotalPages = Math.ceil(successStack.length / ITEMS_PER_PAGE);
-  const errorTotalPages = Math.ceil(errorStack.length / ITEMS_PER_PAGE);
+  const successTotalPages = Math.ceil(successLog.length / ITEMS_PER_PAGE);
+  const errorTotalPages = Math.ceil(errorLog.length / ITEMS_PER_PAGE);
 
-  const paginatedSuccessStack = React.useMemo(() => {
+  const paginatedSuccessLog = React.useMemo(() => {
     const startIndex = (successCurrentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
-    return successStack.slice(startIndex, endIndex);
-  }, [successStack, successCurrentPage]);
+    return successLog.slice(startIndex, endIndex);
+  }, [successLog, successCurrentPage]);
 
-  const paginatedErrorStack = React.useMemo(() => {
+  const paginatedErrorLog = React.useMemo(() => {
     const startIndex = (errorCurrentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
-    return errorStack.slice(startIndex, endIndex);
-  }, [errorStack, errorCurrentPage]);
+    return errorLog.slice(startIndex, endIndex);
+  }, [errorLog, errorCurrentPage]);
 
   const handleSuccessPageChange = useCallback(
     (direction: "prev" | "next") => {
@@ -1033,7 +1033,7 @@ export function RatingUpdate() {
 
       <RatingUpdateMonitor />
 
-      {!isRunning && successStack.length === 0 && errorStack.length === 0 && (
+      {!isRunning && successLog.length === 0 && errorLog.length === 0 && (
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -1082,18 +1082,18 @@ export function RatingUpdate() {
         </Form>
       )}
 
-      {(successStack.length || errorStack.length) > 0 && (
+      {(successLog.length || errorLog.length) > 0 && (
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 flex gap-12 mt-4">
           <div className="flex flex-col items-center gap-4">
-            <RatingUpdateStackTitle
-              title="Success stack trace"
-              length={successStack.length}
-              stack={true}
+            <RatingUpdateLogTitle
+              title="Success log"
+              length={successLog.length}
+              log={true}
             />
 
-            <RatingUpdateStackTrace updates={paginatedSuccessStack} />
+            <RatingUpdateLogs updates={paginatedSuccessLog} />
 
-            {successStack.length > ITEMS_PER_PAGE && (
+            {successLog.length > ITEMS_PER_PAGE && (
               <RatingUpdatePagination
                 currentPage={successCurrentPage}
                 totalPages={successTotalPages}
@@ -1104,15 +1104,15 @@ export function RatingUpdate() {
           </div>
 
           <div className="flex flex-col items-center gap-4">
-            <RatingUpdateStackTitle
-              title="Error stack trace"
-              length={errorStack.length}
-              stack={false}
+            <RatingUpdateLogTitle
+              title="Error log"
+              length={errorLog.length}
+              log={false}
             />
 
-            <RatingUpdateStackTrace updates={paginatedErrorStack} />
+            <RatingUpdateLogs updates={paginatedErrorLog} />
 
-            {errorStack.length > ITEMS_PER_PAGE && (
+            {errorLog.length > ITEMS_PER_PAGE && (
               <RatingUpdatePagination
                 currentPage={errorCurrentPage}
                 totalPages={errorTotalPages}

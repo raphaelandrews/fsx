@@ -4,8 +4,8 @@ import type { RatingUpdateProps } from '@/app/(routes)/(private)/rating-update/c
 interface RatingUpdateState {
   isRunning: boolean;
   selectedFileName: string | null;
-  successStackLength: number;
-  errorStackLength: number;
+  successLogLength: number;
+  errorLogLength: number;
   currentIndex: number;
   totalUpdates: number;
   currentUpdate: RatingUpdateProps | null;
@@ -13,8 +13,8 @@ interface RatingUpdateState {
 
 interface RatingUpdateActions {
   setSelectedFileName: (fileName: string | null) => void;
-  setSuccessStackLength: (length: number) => void;
-  setErrorStackLength: (length: number) => void;
+  setSuccessLogLength: (length: number) => void;
+  setErrorLogLength: (length: number) => void;
   setCurrentUpdate: (update: RatingUpdateProps | null) => void;
   setRunAction: (action: () => void) => void;
   setIsRunning: (running: boolean) => void;
@@ -32,8 +32,8 @@ interface RatingUpdateActions {
 export const useRatingUpdateStore = create<RatingUpdateState & RatingUpdateActions>((set) => ({
   isRunning: false,
   selectedFileName: null,
-  successStackLength: 0,
-  errorStackLength: 0,
+  successLogLength: 0,
+  errorLogLength: 0,
   currentIndex: 0,
   totalUpdates: 0,
   currentUpdate: null,
@@ -44,8 +44,8 @@ export const useRatingUpdateStore = create<RatingUpdateState & RatingUpdateActio
     })),
   setTotalUpdates: (totalUpdates) => set({ totalUpdates: totalUpdates }),
   setSelectedFileName: (fileName) => set({ selectedFileName: fileName }),
-  setSuccessStackLength: (length) => set({ successStackLength: length }),
-  setErrorStackLength: (length) => set({ errorStackLength: length }),
+  setSuccessLogLength: (length) => set({ successLogLength: length }),
+  setErrorLogLength: (length) => set({ errorLogLength: length }),
   setCurrentUpdate: (update) => set({ currentUpdate: update }),
   runProcess: () => console.warn("runProcess action not set"),
   stopProcess: () => set({ isRunning: false }),

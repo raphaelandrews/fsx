@@ -8,13 +8,13 @@ import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
 
 export const metadata: Metadata = {
 	title: "Sobre",
-	description: "Normas técnicas, documentos e história da FSX.",
+	description: "Documentos e história da FSX.",
 	openGraph: {
 		type: "website",
 		locale: "pt_BR",
 		url: `${siteConfig.url}/sobre`,
 		title: "FSX | Sobre",
-		description: "Normas técnicas, documentos e história da FSX.",
+		description: "Documentos e história da FSX.",
 		siteName: "FSX | Sobre",
 		images: [
 			{

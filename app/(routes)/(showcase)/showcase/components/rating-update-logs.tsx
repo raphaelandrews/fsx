@@ -30,11 +30,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-type RatingUpdateStackTraceProps = {
+type RatingUpdateLogsProps = {
   updates: RatingUpdateProps[];
 };
 
-function RatingUpdateStackTrace({ updates }: RatingUpdateStackTraceProps) {
+function RatingUpdateLogs({ updates }: RatingUpdateLogsProps) {
   return (
     <div className="h-auto w-[450px] p-2 overflow-hidden">
       <AnimatePresence mode="popLayout">
@@ -345,16 +345,6 @@ function RatingUpdateStackTrace({ updates }: RatingUpdateStackTraceProps) {
                           Message: {update.error.message}
                         </p>
                       </div>
-                      {update.error.stack && (
-                        <div className="flex items-center gap-2">
-                          <div className="p-1 bg-accent rounded-sm">
-                            <CodeIcon size={14} />
-                          </div>
-                          <p className="text-foreground/60">
-                            Stack: {update.error.stack}
-                          </p>
-                        </div>
-                      )}
                     </PopoverContent>
                   </Popover>
                 )}
@@ -367,4 +357,4 @@ function RatingUpdateStackTrace({ updates }: RatingUpdateStackTraceProps) {
   );
 }
 
-export { RatingUpdateStackTrace, type RatingUpdateStackTraceProps };
+export { RatingUpdateLogs, type RatingUpdateLogsProps };
