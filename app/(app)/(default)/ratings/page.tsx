@@ -8,24 +8,22 @@ import { Announcement } from "@/components/announcement"
 import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
 
 export const metadata: Metadata = {
-	title: "Ratings",
-	description: "Ratings da FSX",
-	openGraph: {
-		type: "website",
-		locale: "pt_BR",
-		url: `${siteConfig.url}/rating`,
-		title: "FSX | Ratings",
-		description: "Ratings da Federação Sergipana de Xadrez",
-		siteName: "FSX | Ratings",
-		images: [
-			{
-				url: `${siteConfig.url}/og/og-rating.jpg`,
-				width: 1920,
-				height: 1080,
-			},
-		],
-	},
-}
+  title: "Ratings",
+  description: "Ratings da FSX",
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: `${siteConfig.url}/rating`,
+    title: "FSX | Ratings",
+    description: "Ratings da Federação Sergipana de Xadrez",
+    siteName: "FSX | Ratings",
+    images: [
+      {
+        url: `/og?title=${encodeURIComponent("Ratings")}`,
+      },
+    ],
+  },
+};
 
 export default async function Page() {
 	return (

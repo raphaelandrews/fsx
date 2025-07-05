@@ -15,24 +15,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { buttonVariants } from "@/components/ui/button"
 
 export const metadata: Metadata = {
-	title: "Links",
-	description: "Links da FSX",
-	openGraph: {
-		type: "website",
-		locale: "pt_BR",
-		url: `${siteConfig.url}/links`,
-		title: "FSX | Links",
-		description: "Links da Federação Sergipana de Xadrez",
-		siteName: "FSX | Links",
-		images: [
-			{
-				url: `${siteConfig.url}/og/og-links.jpg`,
-				width: 1920,
-				height: 1080,
-			},
-		],
-	},
-}
+  title: "Links",
+  description: "Links da FSX",
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: `${siteConfig.url}/links`,
+    title: "FSX | Links",
+    description: "Links da Federação Sergipana de Xadrez",
+    siteName: "FSX | Links",
+    images: [
+      {
+        url: `/og?title=${encodeURIComponent("Links")}`,
+      },
+    ],
+  },
+};
 
 export const revalidate = 0
 

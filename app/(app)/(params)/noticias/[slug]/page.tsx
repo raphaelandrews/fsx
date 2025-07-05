@@ -45,9 +45,9 @@ export async function generateMetadata({
       url: `${siteConfig.url}/noticias/${resolvedParams.slug}`,
       images: [
         {
-          url: image ?? `${siteConfig.url}/og/og.jpg`,
-          width: 1800,
-          height: 900,
+          url: image,
+          width: 1200,
+          height: 600,
         },
       ],
     },

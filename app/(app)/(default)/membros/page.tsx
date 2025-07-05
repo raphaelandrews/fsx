@@ -9,24 +9,22 @@ import { Announcement } from "@/components/announcement"
 import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
 
 export const metadata: Metadata = {
-	title: "Membros",
-	description: "Diretoria e árbitros da FSX.",
-	openGraph: {
-		type: "website",
-		locale: "pt_BR",
-		url: `${siteConfig.url}/membros`,
-		title: "FSX | Membros",
-		description: "Diretoria e árbitros da FSX.",
-		siteName: "FSX | Membros",
-		images: [
-			{
-				url: `${siteConfig.url}/og/og.jpg`,
-				width: 1920,
-				height: 1080,
-			},
-		],
-	},
-}
+  title: "Membros",
+  description: "Diretoria e árbitros da FSX.",
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: `${siteConfig.url}/membros`,
+    title: "FSX | Membros",
+    description: "Diretoria e árbitros da FSX.",
+    siteName: "FSX | Membros",
+    images: [
+      {
+        url: `/og?title=${encodeURIComponent("Membros")}`,
+      },
+    ],
+  },
+};
 
 export default async function Page() {
 	const data = await getPlayersRoles()

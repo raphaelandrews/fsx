@@ -6,8 +6,8 @@ import {
 	getFreshPosts,
 	getTopPlayers,
 } from "@/db/queries"
-import { siteConfig } from "@/lib/site"
 
+import { OG_IMAGE } from "@/lib/utils"
 import { Announcements } from "@/components/home/announcements"
 import { Events } from "@/components/home/events"
 import { FAQ } from "@/components/home/faq"
@@ -16,16 +16,16 @@ import { TopPlayers } from "@/components/home/ratings/top-players"
 import { Hero } from "@/components/home/hero"
 
 export const metadata: Metadata = {
-	openGraph: {
-		images: [
-			{
-				url: `${siteConfig.url}/og/og.jpg`,
-				width: 1920,
-				height: 1080,
-			},
-		],
-	},
-}
+  openGraph: {
+    images: [
+      {
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
+};
 
 export default async function Page() {
 	const [events, posts, announcements, topPlayers] = await Promise.all([

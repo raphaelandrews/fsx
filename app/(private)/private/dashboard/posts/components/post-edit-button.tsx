@@ -113,7 +113,7 @@ const PostEditButton = ({ id }: { id: string }) => {
 							className="flex w-full"
 							onClick={() => {
 								setShowLoadingAlert(true)
-								router.push(`/dashboard/posts/${id}`)
+								router.push(`/private/dashboard/posts/${id}`)
 								setShowLoadingAlert(false)
 							}}
 						>

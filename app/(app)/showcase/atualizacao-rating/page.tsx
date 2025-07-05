@@ -15,9 +15,7 @@ export const metadata: Metadata = {
     siteName: "FSX | Atualização de rating",
     images: [
       {
-        url: `${siteConfig.url}/og/og.jpg`,
-        width: 1920,
-        height: 1080,
+        url: `/og?title=${encodeURIComponent("Atualização de rating")}`,
       },
     ],
   },

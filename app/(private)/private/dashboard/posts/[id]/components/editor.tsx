@@ -88,7 +88,7 @@ const Editor = ({ post }: { post: Post }) => {
 
 		if (response) {
 			toast.success("Your post has been updated")
-			router.push("/dashboard/posts?search=refresh")
+			router.push("/private/dashboard/posts?search=refresh")
 		} else {
 			toast.error("Error updating your post")
 		}

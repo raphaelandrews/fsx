@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 
 import { siteConfig } from "@/lib/site";
+import { OG_IMAGE } from "@/lib/utils";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     images: [
       {
-        url: "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETKtVGX6PE8HonBkyUQvYdMST07mubG5VcxAhz",
+        url: OG_IMAGE,
         width: 1200,
         height: 630,
         alt: siteConfig.name,
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
-    images: [`${siteConfig.url}/opengraph-image.png`],
+    images: OG_IMAGE,
     creator: "@_ndrws",
   },
   icons: {

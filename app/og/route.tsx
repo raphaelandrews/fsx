@@ -1,17 +1,28 @@
-import { ImageResponse } from "next/og"
+import { ImageResponse } from "next/og";
 
 async function loadAssets(): Promise<
-  { name: string; data: Buffer; weight: 400 | 600; style: "normal" }[]
+  {
+    name: string;
+    data: Buffer;
+    weight: 400 | 600 | 700 | 800 | 900;
+    style: "normal";
+  }[]
 > {
   const [
     { base64Font: normal },
     { base64Font: mono },
     { base64Font: semibold },
+    { base64Font: bold },
+    { base64Font: extrabold },
+    { base64Font: black },
   ] = await Promise.all([
     import("./geist-regular-otf.json").then((mod) => mod.default || mod),
     import("./geistmono-regular-otf.json").then((mod) => mod.default || mod),
     import("./geist-semibold-otf.json").then((mod) => mod.default || mod),
-  ])
+    import("./geist-bold-otf.json").then((mod) => mod.default || mod),
+    import("./geist-extrabold-otf.json").then((mod) => mod.default || mod),
+    import("./geist-black-otf.json").then((mod) => mod.default || mod),
+  ]);
 
   return [
     {
@@ -32,7 +43,25 @@ async function loadAssets(): Promise<
       weight: 600 as const,
       style: "normal" as const,
     },
-  ]
+    {
+      name: "Geist",
+      data: Buffer.from(bold, "base64"),
+      weight: 700 as const,
+      style: "normal" as const,
+    },
+    {
+      name: "Geist",
+      data: Buffer.from(extrabold, "base64"),
+      weight: 800 as const,
+      style: "normal" as const,
+    },
+    {
+      name: "Geist",
+      data: Buffer.from(black, "base64"),
+      weight: 900 as const,
+      style: "normal" as const,
+    },
+  ];
 }
 
 export async function GET(request: Request) {
@@ -49,7 +78,7 @@ export async function GET(request: Request) {
           color: "white",
           width: "100%",
           height: "100%",
-          backgroundImage: `url('https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AET4p23TlHHl0J2X9r8cZeA3iMNaxuywIBLDCt7')`,
+          backgroundImage: `url('https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETKtVGX6PE8HonBkyUQvYdMST07mubG5VcxAhz')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -59,8 +88,19 @@ export async function GET(request: Request) {
           justifyContent: "center",
         }}
       >
-        <span tw="font-black text-[200px] italic">FSX</span>
-        <p tw="font-bold text-[4rem] text-center mt-[5.25rem] px-10">{title}</p>
+        <p
+          style={{
+            fontWeight: 800,
+            fontSize: 56,
+            textAlign: "center",
+            marginTop: "380px",
+            paddingLeft: "2.5rem",
+            paddingRight: "2.5rem",
+            letterSpacing: "-0.04em",
+          }}
+        >
+          {title}
+        </p>
       </div>
     ),
     {

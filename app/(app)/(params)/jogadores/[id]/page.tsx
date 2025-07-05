@@ -1,27 +1,27 @@
-import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
-import { getPlayerById, type PlayerById } from "@/db/queries"
-import { siteConfig } from "@/lib/site"
-import { Client } from "./client"
+import { getPlayerById, type PlayerById } from "@/db/queries";
+import { siteConfig } from "@/lib/site";
+import { Client } from "./client";
 
 export async function generateMetadata({
-	params,
+  params,
 }: {
-	params: Promise<Record<string, string | string[] | undefined>>
+  params: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
-	const resolvedParams = await params
-	const data = await getPlayerById(Number(resolvedParams.id))
+  const resolvedParams = await params;
+  const data = await getPlayerById(Number(resolvedParams.id));
 
-	if (!data) {
-		return {
-			title: "Jogador não encontrado",
-		}
-	}
+  if (!data) {
+    return {
+      title: "Jogador não encontrado",
+    };
+  }
 
-	const { name } = data
+  const { name } = data;
 
-	return {
+  return {
     title: name,
     description: "Perfil do jogador na Federação Sergipana de Xadrez",
     openGraph: {
@@ -33,9 +33,7 @@ export async function generateMetadata({
       url: `${siteConfig.url}/jogadores/${resolvedParams.id}`,
       images: [
         {
-          url: `/og?title=${encodeURIComponent(
-            name
-          )}`,
+          url: `/og?title=${encodeURIComponent(name)}`,
         },
       ],
     },
@@ -43,16 +41,16 @@ export async function generateMetadata({
 }
 
 export default async function Page({
-	params,
+  params,
 }: {
-	params: Promise<Record<string, string | string[] | undefined>>
+  params: Promise<Record<string, string | string[] | undefined>>;
 }) {
-	const resolvedParams = await params
-	const data = await getPlayerById(Number(resolvedParams.id))
+  const resolvedParams = await params;
+  const data = await getPlayerById(Number(resolvedParams.id));
 
-	if (!data) {
-		notFound()
-	}
+  if (!data) {
+    notFound();
+  }
 
-	return <Client player={data as PlayerById} />
+  return <Client player={data as PlayerById} />;
 }
