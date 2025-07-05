@@ -2,13 +2,13 @@ import { queryOptions } from "@tanstack/react-query"
 import axios from "redaxios"
 
 import { APIPlayerByIdResponseSchema } from "./schema"
-import { API_BASE_URL } from "@/lib/utils"
+import { API_URL } from "@/lib/utils"
 
 export const fetchPlayerById = async ({ data: id }: { data: number }) => {
-	console.info(`Fetching player by id=${id}... @${API_BASE_URL}/player/${id}`)
+	console.info(`Fetching player by id=${id}... @${API_URL}/player/${id}`)
 
 	try {
-		const response = await axios.get(`${API_BASE_URL}/players/${id}`)
+		const response = await axios.get(`${API_URL}/players/${id}`)
 		const parsed = APIPlayerByIdResponseSchema.safeParse(response.data)
 
 		if (!parsed.success) {

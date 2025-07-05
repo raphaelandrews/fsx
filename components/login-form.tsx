@@ -20,11 +20,11 @@ export function LoginForm() {
 		setIsLoading(true)
 		try {
 			const { error } = await supabase.auth.signInWithOAuth({
-				provider: "github",
-				options: {
-					redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-				},
-			})
+        provider: "github",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=/private/dashboard`,
+        },
+      });
 
 			if (error) {
 				console.error("Error logging in:", error.message)

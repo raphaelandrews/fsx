@@ -9,7 +9,7 @@ import { Badge } from "../ui/badge"
 export function Events({ events }: { events: Event[] }) {
 	return (
 		<Section icon={TrophyIcon} label="Próximos Eventos" main={false}>
-			<div className="grid gap-2 sm:grid-cols-2 md:grid-cols-4">
+			<div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
 				{events?.map((event: Event) => (
 					<EventCard
 						form={event.form}
@@ -121,7 +121,7 @@ function EventCard({
 				{formattedBadge({ type })}
 				{formattedBadge({ timeControl })}
 			</div>
-			<div className="flex gap-1.5">
+			<div className="grid grid-cols-2 gap-1.5">
 				{form && regulation ? (
 					<>
 						<Button asChild variant="outline">
