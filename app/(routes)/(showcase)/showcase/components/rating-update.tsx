@@ -6,7 +6,9 @@ import { toast } from "sonner";
 import type {
   RatingUpdateProps,
   PlayerDataFields,
-} from "./rating-update-types";
+  ExcelContent,
+  SuccessDataFields, 
+} from "./rating-update-types"; 
 
 import { useRatingUpdateStatusStore } from "../hooks/rating-update-status-store";
 import { useRatingUpdateStore } from "../hooks/rating-update-store";
@@ -19,10 +21,8 @@ import { RatingUpdateStackTitle } from "./rating-update-stack-title";
 import { RatingUpdateStackTrace } from "./rating-update-stack-trace";
 
 import { Button } from "@/components/ui/button";
-import { mockData, mockFileNames } from "./mock-data";
+import { mockPlayers, mockFileNames, tournamentTypes } from "./mock-data";
 import { MockDataViewerDialog } from "./mock-data-viewer-dialog";
-
-type ExcelContent = [string[], ...(string | number | boolean)[][]];
 
 const excelHeader = [
   "id",
@@ -120,226 +120,84 @@ export function RatingUpdate() {
   }, [errorStack, setErrorStackLength]);
 
   const processMockData = useCallback(
-    async (fileContent: ExcelContent) => {
-      const DB_READ_DELAY_MS = 1000;
-
+    async (fileData: ExcelContent) => {
       setIsRunning(true);
-      setCurrentUpdate(null);
+      setMotionGridStatus("Processing mock data...", "busy");
       setSuccessStack([]);
       setErrorStack([]);
       setCurrentIndex(0);
-      setSuccessCurrentPage(1);
-      setErrorCurrentPage(1);
-      setSuccessStackLength(0);
-      setErrorStackLength(0);
-      setMotionGridStatus("Initializing mock data process", "busy");
-      setMotionGridStatus(`Processing ${selectedMockFileName}`, "busy");
 
-      const headerRow = fileContent[0];
-      const nonEmptyRows = fileContent.slice(1).filter((row) =>
-        row.some((cell) => {
-          if (cell === null || cell === undefined) {
-            return false;
-          }
-          if (typeof cell === "string") {
-            return cell.trim() !== "";
-          }
-          return true;
-        })
-      );
+      const dataRows = fileData.slice(1); 
+      setTotalUpdates(dataRows.length);
 
-      if (nonEmptyRows.length === 0) {
-        toast.error(
-          "Selected mock file contains no data rows or all rows are empty."
-        );
-        setIsRunning(false);
-        setMotionGridStatus(
-          "Error: No valid data rows found in mock file",
-          "busy"
-        );
-        return;
-      }
-
-      setTotalUpdates(nonEmptyRows.length);
-
-      const headerMap = headerRow.reduce(
-        (acc: { [key: string]: number }, header: string, index: number) => {
-          acc[header.toLowerCase().trim()] = index;
-          return acc;
-        },
-        {}
-      );
-
-      const availableColumns = Object.keys(headerMap);
-      const hasPlayerDataColumns = [
-        "name",
-        "sex",
-        "birth",
-        "locationid",
-        "clubid",
-      ].some((col) => col in headerMap);
-      const hasTournamentColumns = [
-        "tournamentid",
-        "variation",
-        "ratingtype",
-      ].every((col) => col in headerMap);
-      const hasPartialTournamentColumns = [
-        "tournamentid",
-        "variation",
-        "ratingtype",
-      ].some((col) => col in headerMap);
-
-      if (availableColumns.length === 1 && availableColumns[0] === "id") {
-        toast.error(
-          "Mock file contains only the 'id' column. Additional data columns are required."
-        );
-        setIsRunning(false);
-        setMotionGridStatus(
-          "Error: Only 'id' column present in mock file",
-          "busy"
-        );
-        return;
-      }
-
-      if (hasPartialTournamentColumns && !hasTournamentColumns) {
-        toast.error(
-          "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be included."
-        );
-        setTotalUpdates(0);
-        setIsRunning(false);
-        setMotionGridStatus(
-          "Error: Incomplete tournament columns in mock file",
-          "busy"
-        );
-        return;
-      }
-
-      if (!hasPlayerDataColumns && !hasTournamentColumns) {
-        toast.error(
-          "Mock file must contain either player data columns or complete tournament columns."
-        );
-        setIsRunning(false);
-        setMotionGridStatus(
-          "Error: Missing player or tournament data in mock file",
-          "busy"
-        );
-        return;
-      }
-
-      for (let i = 0; i < nonEmptyRows.length; i++) {
+      for (let i = 0; i < dataRows.length; i++) {
         if (!useRatingUpdateStore.getState().isRunning) {
-          break;
+          break; 
         }
 
-        setCurrentIndex(useRatingUpdateStore.getState().currentIndex + 1);
-        setMotionGridStatus(
-          `Processing row ${i + 1} from ${selectedMockFileName}`,
-          "busy"
-        );
+        await new Promise((resolve) => setTimeout(resolve, 700));
 
-        await new Promise((resolve) => setTimeout(resolve, DB_READ_DELAY_MS));
+        setCurrentIndex(i + 1);
+        const row = dataRows[i];
 
-        const row = nonEmptyRows[i];
-        const id =
-          headerMap.id !== undefined ? Number(row[headerMap.id]) : undefined;
-        const name =
-          headerMap.name !== undefined
-            ? String(row[headerMap.name])
-            : undefined;
+        const id = row[0];
+        const name = row[1];
+        const birth = row[2];
+        const sex = row[3];
+        const clubId = row[4];
+        const locationId = row[5];
+        const tournamentId = row[6];
+        const variation = row[7];
+        const ratingType = row[8];
 
-        const rawBirthValue =
-          headerMap.birth !== undefined ? row[headerMap.birth] : undefined;
-        let birth: string | null = null;
+        let errorMessage: string | null = null;
 
         if (
-          rawBirthValue !== undefined &&
-          rawBirthValue !== null &&
-          String(rawBirthValue).trim() !== ""
+          id === undefined ||
+          id === null ||
+          (typeof id !== "number" && typeof id !== "string") ||
+          (typeof id === "number" && id < 0)
         ) {
-          const birthString = String(rawBirthValue).trim();
-          birth = birthString;
+          errorMessage = "Invalid Player ID.";
         }
-
-        const sex =
-          headerMap.sex !== undefined
-            ? String(row[headerMap.sex]).toLowerCase() === "true"
-            : undefined;
-        const clubId =
-          headerMap.clubid !== undefined
-            ? Number(row[headerMap.clubid])
-            : undefined;
-        const locationId =
-          headerMap.locationid !== undefined
-            ? Number(row[headerMap.locationid])
-            : undefined;
-        const tournamentId =
-          headerMap.tournamentid !== undefined
-            ? Number(row[headerMap.tournamentid])
-            : undefined;
-        const variation =
-          headerMap.variation !== undefined
-            ? Number(row[headerMap.variation])
-            : undefined;
-        const ratingType =
-          headerMap.ratingtype !== undefined
-            ? String(row[headerMap.ratingtype]).toLowerCase()
-            : undefined;
-
-        let isError = false;
-        let errorMessage = "";
-        let operation = "";
-
-        if (
-          ratingType !== undefined &&
-          !["blitz", "rapid", "classic"].includes(ratingType)
+        else if (
+          sex !== undefined &&
+          sex !== null &&
+          typeof sex !== "boolean"
         ) {
-          isError = true;
-          errorMessage = `Row ${
-            i + 1
-          }: Invalid rating type. Must be one of: blitz, rapid, classic.`;
-          operation = "Player Tournament Update Failed";
-        } else if (
+          errorMessage =
+            "Invalid Sex value. Must be boolean or undefined/null.";
+        }
+        else if (
           tournamentId !== undefined &&
-          (tournamentId <= 0 || !Number.isInteger(tournamentId))
+          tournamentId !== null &&
+          typeof tournamentId !== "number"
         ) {
-          isError = true;
-          errorMessage = `Row ${
-            i + 1
-          }: Invalid tournament ID '${tournamentId}'.`;
-          operation = "Player Tournament Update Failed";
-        } else if (
+          errorMessage =
+            "Invalid Tournament ID. Must be a number or undefined/null.";
+        }
+        else if (
           variation !== undefined &&
-          (variation < -100 || variation > 100 || !Number.isInteger(variation))
+          variation !== null &&
+          typeof variation !== "number"
         ) {
-          isError = true;
-          errorMessage = `Row ${
-            i + 1
-          }: Invalid variation value '${variation}'.`;
-          operation = "Player Tournament Update Failed";
-        } else if (id === undefined || Number.isNaN(id) || id < 0) {
-          isError = true;
-          errorMessage = `Row ${
-            i + 1
-          }: Invalid or missing 'id'. ID must be 0 or positive.`;
-          operation = "Player Creation Failed";
-        } else if (id === 0 && name === "") {
-          isError = true;
-          errorMessage = `Row ${
-            i + 1
-          }: Missing or empty 'name' for new player.`;
-          operation = "Player Creation Failed";
-        } else if (
-          tournamentId !== undefined &&
-          (variation === undefined ||
-            ratingType === undefined ||
-            ratingType === "")
+          errorMessage =
+            "Invalid Variation value. Must be a number or undefined/null.";
+        }
+        else if (
+          ratingType !== undefined &&
+          ratingType !== null &&
+          (typeof ratingType !== "string" ||
+            !tournamentTypes.includes(ratingType)) 
         ) {
-          isError = true;
-          errorMessage = `Row ${i + 1}: Missing or invalid tournament fields.`;
-          operation = "Player Tournament Update Failed";
+          errorMessage = `Invalid Rating Type value. Must be one of ${tournamentTypes.join(
+            ", "
+          )} or undefined/null.`;
         }
 
-        if (isError) {
+        if (errorMessage) {
+          const operation =
+            id === 0 ? "Player Creation" : "Player Update/Tournament";
           setErrorStack((prev) => [
             {
               _uuid: crypto.randomUUID(),
@@ -353,25 +211,53 @@ export function RatingUpdate() {
             toast.error(errorMessage);
           }
         } else {
-          const successMessage =
-            id === 0
-              ? "Player created successfully."
-              : "Player updated successfully.";
-          const dataFields: PlayerDataFields = {
+          let successMessage: string;
+          let operationType: string;
+          let dataFields: SuccessDataFields; 
+
+          const basePlayerData: PlayerDataFields = {
             id:
               id === 0 ? Math.floor(Math.random() * 10000) + 1 : (id as number),
             name: name || `Player ${id}`,
             birth: birth || null,
-            sex: sex || null,
-            clubId: clubId || null,
-            locationId: locationId || null,
+            sex: typeof sex === "boolean" ? sex : null,
+            clubId: typeof clubId === "number" ? clubId : null,
+            locationId: typeof locationId === "number" ? locationId : null,
           };
+
+          if (id === 0) {
+            successMessage = "Player created successfully.";
+            operationType = "Player Creation";
+            dataFields = basePlayerData;
+          } else if (
+            tournamentId !== undefined &&
+            tournamentId !== null &&
+            typeof tournamentId === "number" &&
+            variation !== undefined &&
+            variation !== null &&
+            typeof variation === "number"
+          ) {
+            successMessage = "Player and Tournament updated successfully.";
+            operationType = "Player Update/Tournament";
+            dataFields = {
+              player: basePlayerData,
+              playerTournament: {
+                tournamentId: tournamentId,
+                variation: variation,
+                oldRating: Math.floor(Math.random() * 2000) + 1000,
+              },
+            };
+          } else {
+            successMessage = "Player updated successfully.";
+            operationType = "Player Update";
+            dataFields = basePlayerData;
+          }
 
           setSuccessStack((prev) => [
             {
               _uuid: crypto.randomUUID(),
-              operation: id === 0 ? "Player Creation" : "Player Update",
-              status: 200,
+              operation: operationType, 
+              status: id === 0 ? 201 : 200,
               success: {
                 message: successMessage,
                 dataFields: dataFields,
@@ -395,16 +281,7 @@ export function RatingUpdate() {
       setSelectedMockFileName(null);
       useRatingUpdateStore.getState().setSelectedFileName(null);
     },
-    [
-      setIsRunning,
-      setSuccessStackLength,
-      setErrorStackLength,
-      setMotionGridStatus,
-      setCurrentUpdate,
-      setCurrentIndex,
-      setTotalUpdates,
-      selectedMockFileName,
-    ]
+    [setIsRunning, setMotionGridStatus, setCurrentIndex, setTotalUpdates]
   );
 
   const performClearHistory = useCallback(() => {
@@ -458,18 +335,18 @@ export function RatingUpdate() {
     setSelectedMockFileContent(null);
     setSelectedMockFileName(null);
     const newGeneratedFiles = [];
-    const timestamp = Date.now();
+    const timestamp = Date.now(); 
 
-    const numberOfFilesToGenerate = 4;
+    const numberOfFilesToGenerate = 4; 
     const selectedDisplayNames = getRandomSubset(
       mockFileNames,
       numberOfFilesToGenerate
     );
 
     for (let i = 0; i < numberOfFilesToGenerate; i++) {
-      const numRows = Math.floor(Math.random() * (mockData.length / 2)) + 5;
-      const randomData = getRandomSubset(mockData, numRows);
-      const displayName = selectedDisplayNames[i];
+      const numRows = Math.floor(Math.random() * (mockPlayers.length / 2)) + 5;
+      const randomData = getRandomSubset(mockPlayers, numRows); 
+      const displayName = selectedDisplayNames[i]; 
 
       const uniqueInternalName = `${displayName.replace(
         ".xlsx",
@@ -477,8 +354,8 @@ export function RatingUpdate() {
       )}_${timestamp}_${i + 1}.xlsx`;
 
       newGeneratedFiles.push({
-        name: uniqueInternalName,
-        displayName: displayName,
+        name: uniqueInternalName, 
+        displayName: displayName, 
         data: [excelHeader, ...randomData] as ExcelContent,
       });
     }
@@ -652,9 +529,8 @@ export function RatingUpdate() {
               )}
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 onClick={generateRandomMockFiles}
-                className="w-full mt-2"
               >
                 Generate New Files
               </Button>

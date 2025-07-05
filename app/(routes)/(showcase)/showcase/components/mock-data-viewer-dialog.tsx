@@ -3,8 +3,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -14,12 +14,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type ExcelContent = (string | number | boolean | undefined)[][];
+import { ExcelContent } from "./rating-update-types";
 
 interface MockDataViewerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: ExcelContent | null;
+  data: ExcelContent | null; // Use the imported ExcelContent type
   fileName: string | null;
 }
 
@@ -29,52 +29,36 @@ export function MockDataViewerDialog({
   data,
   fileName,
 }: MockDataViewerDialogProps) {
-  if (!data || !fileName) {
-    return null;
-  }
-
-  const headers = data.length > 0 ? data[0] : [];
-  const rows = data.length > 1 ? data.slice(1) : [];
+  const headerRow = data ? data[0] : [];
+  const dataRows = data ? data.slice(1) : [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-11/12 sm:max-w-5xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="w-11/12 sm:max-w-5xl max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Mock Data for: {fileName}</DialogTitle>
-          <DialogDescription>
-            Displaying the content of the selected mock Excel file.
-          </DialogDescription>
+          <DialogTitle>Mock Data Viewer: {fileName}</DialogTitle>
         </DialogHeader>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {headers.map((header) => (
-                  <TableHead
-                    key={crypto.randomUUID()}
-                    className="whitespace-nowrap"
-                  >
-                    {String(header)}
-                  </TableHead>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {headerRow.map((header) => (
+                <TableHead key={crypto.randomUUID()}>{header}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {dataRows.map((row) => (
+              <TableRow key={crypto.randomUUID()}>
+                {row.map((cell) => (
+                  <TableCell key={crypto.randomUUID()}>
+                    {cell === undefined || cell === null ? "-" : String(cell)}
+                  </TableCell>
                 ))}
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((row) => (
-                <TableRow key={crypto.randomUUID()}>
-                  {row.map((cell) => (
-                    <TableCell
-                      key={crypto.randomUUID()}
-                      className="whitespace-nowrap"
-                    >
-                      {String(cell)}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+            ))}
+          </TableBody>
+        </Table>
       </DialogContent>
     </Dialog>
   );
