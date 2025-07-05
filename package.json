@@ -15,6 +15,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@base-ui-components/react": "^1.0.0-beta.1",
     "@hookform/resolvers": "^5.1.1",
     "@radix-ui/react-accordion": "^1.2.10",
     "@radix-ui/react-alert-dialog": "^1.1.14",
@@ -48,8 +49,8 @@
     "drizzle-orm": "^0.43.1",
     "drizzle-zod": "^0.7.1",
     "idb-keyval": "^6.2.2",
-    "lucide-react": "^0.523.0",
-    "motion": "^12.22.0",
+    "lucide-react": "^0.525.0",
+    "motion": "^12.23.0",
     "next": "15.4.0-canary.94",
     "next-themes": "^0.4.6",
     "postgres": "^3.4.5",

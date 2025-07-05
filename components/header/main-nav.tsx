@@ -1,33 +1,39 @@
 /** biome-ignore-all lint/nursery/noShadow: No */
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-import { navigationData } from "./header-navigation-data"
+import { navigationData } from "./header-navigation-data";
 import {
-	NavigationMenu,
-	NavigationMenuContent,
-	NavigationMenuItem,
-	NavigationMenuLink,
-	NavigationMenuList,
-	NavigationMenuTrigger,
-	navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
 
 export function MainNav() {
-	const pathname = usePathname()
-	const items = navigationData()
+  const pathname = usePathname();
+  const items = navigationData();
 
-	const getIsActive = (href: string) => pathname === href
+  const getIsActive = (href: string) => pathname === href;
 
-	return (
+  return (
     <div className="mr-4 flex">
-      <Link href="/" className="mr-4 flex items-center space-x-2 lg:mr-6">
-        <span className="mt-0.5 font-bold">FSX</span>
-      </Link>
+      {pathname === "/" ? (
+        <div className="mr-4 flex items-center space-x-2 lg:mr-6">
+          <span className="mt-0.5 font-bold">FSX</span>
+        </div>
+      ) : (
+        <Link href="/" className="mr-4 flex items-center space-x-2 lg:mr-6">
+          <span className="mt-0.5 font-bold">FSX</span>
+        </Link>
+      )}
       <NavigationMenu className="ml-1 hidden lg:block">
         <NavigationMenuList className="gap-4 space-x-[inherit] text-sm lg:gap-6">
           {items.map(({ label, items, href, target }) => {
@@ -112,14 +118,14 @@ export function MainNav() {
 }
 
 const NavigationMenuImage = ({ href }: { href: string }) => {
-	return (
-		<>
-			{href === "#" && (
-				<div className="relative h-[147px] w-[128px] min-w-[128px] overflow-hidden rounded-md border bg-gradient-to-br from-cyan-500 to-blue-500 shadow" />
-			)}
-			{href === "##" && (
-				<div className="relative h-[147px] w-[128px] min-w-[128px] overflow-hidden rounded-md border bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow" />
-			)}
-		</>
-	)
-}
+  return (
+    <>
+      {href === "#" && (
+        <div className="relative h-[147px] w-[128px] min-w-[128px] overflow-hidden rounded-md border bg-gradient-to-br from-cyan-500 to-blue-500 shadow" />
+      )}
+      {href === "##" && (
+        <div className="relative h-[147px] w-[128px] min-w-[128px] overflow-hidden rounded-md border bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow" />
+      )}
+    </>
+  );
+};

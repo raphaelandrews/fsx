@@ -29,7 +29,7 @@ export const navigationData: Navigation = () => [
 	},
 	{
 		label: "Rating Update",
-		href: "/canvas/rating-update",
+		href: "/rating-update",
 		icon: DatabaseIcon,
 	},
 	{

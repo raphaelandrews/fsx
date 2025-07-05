@@ -8,13 +8,13 @@ import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header";
 
 export const metadata: Metadata = {
   title: "Normas Técnicas",
-  description: "Normas técnicas, documentos e história da FSX.",
+  description: "Normas técnicas da FSX.",
   openGraph: {
     type: "website",
     locale: "pt_BR",
     url: `${siteConfig.url}/normas-tecnicas`,
     title: "FSX | Normas Técnicas",
-    description: "Normas técnicas, documentos e história da FSX.",
+    description: "Normas técnicas da FSX.",
     siteName: "FSX | Normas Técnicas",
     images: [
       {

@@ -13,6 +13,8 @@ import {
   ScrollIcon,
   BookmarkIcon,
   LinkIcon,
+  BookCopyIcon,
+  DatabaseIcon,
 } from "lucide-react";
 
 type NavigationItem = {
@@ -55,8 +57,7 @@ export const navigationData: Navigation = () => [
       },
       {
         label: "Circuitos",
-        description:
-          "Circuitos de Sergipe.",
+        description: "Circuitos de Sergipe.",
         href: "/circuitos",
         icon: MedalIcon,
         target: "_self",
@@ -80,7 +81,7 @@ export const navigationData: Navigation = () => [
   {
     label: "Institucional",
     href: "##",
-    icon: BookIcon,
+    icon: BookCopyIcon,
     target: "_self",
     items: [
       {
@@ -98,17 +99,17 @@ export const navigationData: Navigation = () => [
         target: "_self",
       },
       {
-        label: "Links úteis",
-        description: "Principais links.",
-        href: "/links",
-        icon: LinkIcon,
-        target: "_blank",
-      },
-      {
         label: "Normas Técnicas",
         description: "Normas.",
         href: "/normas-tecnicas",
         icon: BookIcon,
+        target: "_self",
+      },
+      {
+        label: "Atualização de Rating",
+        description: "Processo de atualização.",
+        href: "/showcase/atualizacao-rating",
+        icon: DatabaseIcon,
         target: "_self",
       },
       {
@@ -124,6 +125,13 @@ export const navigationData: Navigation = () => [
     label: "Calendário",
     href: "https://docs.google.com/spreadsheets/d/1FqWEWcpcRzW0r4wnsjLOIFmrwFkcqd9gnA7Lk1ZZ5uM",
     icon: CalendarIcon,
+    target: "_blank",
+  },
+  {
+    label: "Links",
+    description: "Principais links.",
+    href: "/links",
+    icon: LinkIcon,
     target: "_blank",
   },
 ];
