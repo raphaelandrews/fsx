@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { players, playersToTournaments } from "@/db/schema";
+import type { players, playersToTournaments } from "@/db/schema";
 import { desc } from "drizzle-orm";
 
 export async function getMaxId(

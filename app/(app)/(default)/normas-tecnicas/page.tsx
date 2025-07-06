@@ -8,19 +8,12 @@ import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header";
 
 export const metadata: Metadata = {
   title: "Normas Técnicas",
-  description: "Normas técnicas da FSX.",
+  description: "Normas técnicas da Federação Sergipana de Xadrez.",
   openGraph: {
-    type: "website",
-    locale: "pt_BR",
     url: `${siteConfig.url}/normas-tecnicas`,
-    title: "FSX | Normas Técnicas",
-    description: "Normas técnicas da FSX.",
-    siteName: "FSX | Normas Técnicas",
-    images: [
-      {
-        url: `/og?title=${encodeURIComponent("Normas Técnicas")}`,
-      },
-    ],
+    title: "Normas Técnicas",
+    description: "Normas técnicas da Federação Sergipana de Xadrez.",
+    siteName: "Normas Técnicas",
   },
 };
 

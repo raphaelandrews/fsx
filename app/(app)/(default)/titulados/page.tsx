@@ -11,19 +11,12 @@ import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
 
 export const metadata: Metadata = {
   title: "Titulados",
-  description: "Titulados FSX",
+  description: "Titulados da Federação Sergipana de Xadrez.",
   openGraph: {
-    type: "website",
-    locale: "pt_BR",
     url: `${siteConfig.url}/titulados`,
-    title: "FSX | Titulados",
-    description: "Titulados da Federação Sergipana de Xadrez",
-    siteName: "FSX | Titulados",
-    images: [
-      {
-        url: `/og?title=${encodeURIComponent("Titulados")}`,
-      },
-    ],
+    title: "Titulados",
+    description: "Titulados da Federação Sergipana de Xadrez.",
+    siteName: "Titulados",
   },
 };
 

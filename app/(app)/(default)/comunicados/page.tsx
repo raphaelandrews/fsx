@@ -21,23 +21,14 @@ import {
 } from "@/components/ui/pagination"
 import { Skeleton } from "@/components/ui/skeleton"
 
-export const revalidate = 2_592_000
-
 export const metadata: Metadata = {
   title: "Comunicados",
-  description: "Comunicados da FSX",
+  description: "Comunicados da Federação Sergipana de Xadrez.",
   openGraph: {
-    type: "website",
-    locale: "pt_BR",
     url: `${siteConfig.url}/comunicados`,
-    title: "FSX | Comunicados",
-    description: "Comunicados da Federação Sergipana de Xadrez",
-    siteName: "FSX | Comunicados",
-    images: [
-      {
-        url: `/og?title=${encodeURIComponent("Comunicados")}`,
-      },
-    ],
+    title: "Comunicados",
+    description: "Comunicados da Federação Sergipana de Xadrez.",
+    siteName: "Comunicados",
   },
 };
 

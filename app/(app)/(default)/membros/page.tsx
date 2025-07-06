@@ -10,19 +10,12 @@ import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
 
 export const metadata: Metadata = {
   title: "Membros",
-  description: "Diretoria e árbitros da FSX.",
+  description: "Diretoria e árbitros da Federação Sergipana de Xadrez.",
   openGraph: {
-    type: "website",
-    locale: "pt_BR",
     url: `${siteConfig.url}/membros`,
-    title: "FSX | Membros",
-    description: "Diretoria e árbitros da FSX.",
-    siteName: "FSX | Membros",
-    images: [
-      {
-        url: `/og?title=${encodeURIComponent("Membros")}`,
-      },
-    ],
+    title: "Membros",
+    description: "Diretoria e árbitros da Federação Sergipana de Xadrez.",
+    siteName: "Membros",
   },
 };
 

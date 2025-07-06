@@ -11,20 +11,14 @@ import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
 
 export const metadata: Metadata = {
   title: "Circuitos",
-  description: "Circuitos de Xadrez de Sergipe",
+  description:
+    "Classificação e informações dos circuitos de Xadrez de Sergipe.",
   openGraph: {
-    type: "website",
-    locale: "pt_BR",
     url: `${siteConfig.url}/circuitos`,
-    title: "FSX | Circuitos",
+    title: "Circuitos",
     description:
-      "Classificação e informações dos circuitos de Xadrez de Sergipe",
-    siteName: "FSX | Circuitos",
-    images: [
-      {
-        url: `/og?title=${encodeURIComponent("Circuitos")}`,
-      },
-    ],
+      "Classificação e informações dos circuitos de Xadrez de Sergipe.",
+    siteName: "Circuitos",
   },
 };
 

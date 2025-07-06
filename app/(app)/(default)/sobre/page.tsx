@@ -8,19 +8,12 @@ import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
 
 export const metadata: Metadata = {
   title: "Sobre",
-  description: "Documentos e história da FSX.",
+  description: "Documentos e história da Federação Sergipana de Xadrez.",
   openGraph: {
-    type: "website",
-    locale: "pt_BR",
     url: `${siteConfig.url}/sobre`,
-    title: "FSX | Sobre",
-    description: "Documentos e história da FSX.",
-    siteName: "FSX | Sobre",
-    images: [
-      {
-        url: `/og?title=${encodeURIComponent("Sobre")}`,
-      },
-    ],
+    title: "Sobre",
+    description: "Documentos e história da Federação Sergipana de Xadrez.",
+    siteName: "Sobre",
   },
 };
 
