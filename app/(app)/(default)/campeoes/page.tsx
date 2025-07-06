@@ -12,19 +12,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export const metadata: Metadata = {
   title: "Galeria de Campeões",
-  description: "Campeões dos Campeonatos Sergipanos",
+  description: "Campeões Sergipanos.",
   openGraph: {
-    type: "website",
-    locale: "pt_BR",
     url: `${siteConfig.url}/campeoes`,
-    title: "FSX | Galeria de Campeões",
-    description: "Galeria de Campeões Sergipanos de Xadrez",
-    siteName: "FSX | Galeria de Campeões",
-    images: [
-      {
-        url: `/og?title=${encodeURIComponent("Galeria de Campeões")}`,
-      },
-    ],
+    title: "Galeria de Campeões",
+    description: "Campeões Sergipanos.",
+    siteName: "Galeria de Campeões",
   },
 };
 export default async function Page() {

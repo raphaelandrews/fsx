@@ -37,11 +37,9 @@ export async function generateMetadata({
     title,
     description: content,
     openGraph: {
-      type: "website",
-      locale: "pt_BR",
       title,
-      description: content ?? undefined,
-      siteName: `FSX | ${title}`,
+      description: content,
+      siteName: title,
       url: `${siteConfig.url}/noticias/${resolvedParams.slug}`,
       images: [
         {

@@ -5,19 +5,12 @@ import { RatingUpdate } from "../components/rating-update";
 
 export const metadata: Metadata = {
   title: "Atualização de rating",
-  description: "Processo de atualização de rating da FSX.",
+  description: "Processo de atualização de rating.",
   openGraph: {
-    type: "website",
-    locale: "pt_BR",
     url: `${siteConfig.url}/showcase/atualizacao-rating`,
-    title: "FSX | Atualização de rating",
-    description: "Processo de atualização de rating da FSX.",
-    siteName: "FSX | Atualização de rating",
-    images: [
-      {
-        url: `/og?title=${encodeURIComponent("Atualização de rating")}`,
-      },
-    ],
+    title: "Atualização de rating",
+    description: "Processo de atualização de rating.",
+    siteName: "Atualização de rating",
   },
 };
 

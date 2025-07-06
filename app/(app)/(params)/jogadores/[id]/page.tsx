@@ -23,19 +23,12 @@ export async function generateMetadata({
 
   return {
     title: name,
-    description: "Perfil do jogador na Federação Sergipana de Xadrez",
+    description: "Perfil do jogador.",
     openGraph: {
-      type: "website",
-      locale: "pt_BR",
       title: name,
-      description: "Perfil do jogador na Federação Sergipana de Xadrez",
-      siteName: `FSX | ${name}`,
+      description: "Perfil do jogador.",
+      siteName: name,
       url: `${siteConfig.url}/jogadores/${resolvedParams.id}`,
-      images: [
-        {
-          url: `/og?title=${encodeURIComponent(name)}`,
-        },
-      ],
     },
   };
 }

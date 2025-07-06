@@ -51,7 +51,7 @@ import {
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
-import { playerByIdQueryOptions } from "@/lib/client-queries/player-by-id/query-options"
+import { playerByIdQueryOptions } from "@/db/client-queries/player-by-id/query-options"
 
 export const PlayerSheet = ({
 	id,

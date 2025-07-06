@@ -16,22 +16,16 @@ import { buttonVariants } from "@/components/ui/button"
 
 export const metadata: Metadata = {
   title: "Links",
-  description: "Links da FSX",
+  description: "Links úteis.",
   openGraph: {
-    type: "website",
-    locale: "pt_BR",
     url: `${siteConfig.url}/links`,
-    title: "FSX | Links",
-    description: "Links da Federação Sergipana de Xadrez",
-    siteName: "FSX | Links",
-    images: [
-      {
-        url: `/og?title=${encodeURIComponent("Links")}`,
-      },
-    ],
+    title: "Links",
+    description: "Links úteis.",
+    siteName: "Links",
   },
 };
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0
 
 const Links = async () => {

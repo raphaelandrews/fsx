@@ -9,19 +9,12 @@ import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
 
 export const metadata: Metadata = {
   title: "Ratings",
-  description: "Ratings da FSX",
+  description: "Ratings da Federação Sergipana de Xadrez.",
   openGraph: {
-    type: "website",
-    locale: "pt_BR",
     url: `${siteConfig.url}/rating`,
-    title: "FSX | Ratings",
-    description: "Ratings da Federação Sergipana de Xadrez",
-    siteName: "FSX | Ratings",
-    images: [
-      {
-        url: `/og?title=${encodeURIComponent("Ratings")}`,
-      },
-    ],
+    title: "Ratings",
+    description: "Ratings da Federação Sergipana de Xadrez.",
+    siteName: "Ratings",
   },
 };
 

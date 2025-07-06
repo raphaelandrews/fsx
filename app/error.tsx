@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/performance/noImgElement: No */
 "use client";
 
 import Link from "next/link";
@@ -6,6 +7,7 @@ import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+// biome-ignore lint/suspicious/noShadowRestrictedNames: No
 export default function Error() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
