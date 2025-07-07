@@ -16,7 +16,7 @@ export const getLinkGroups = unstable_cache(
 						icon: true,
 						order: true,
 					},
-					orderBy: (links, { desc }) => desc(links.order),
+					orderBy: (links, { asc }) => asc(links.order),
 				},
 			},
 			orderBy: (linksGroups, { asc }) => asc(linksGroups.id),
