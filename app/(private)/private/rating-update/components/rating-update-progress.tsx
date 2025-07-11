@@ -11,7 +11,7 @@ export function RatingUpdateProgress() {
     <Progress value={progress} className="w-[300px] space-y-2">
       <div className="flex items-center justify-between gap-1 mb-1.5">
         <ProgressLabel className="text-sm font-medium">
-          <Badge variant="sea" className="rounded-sm">
+          <Badge variant="bulbasaur" className="rounded-sm">
             {currentIndex}/{totalUpdates}
           </Badge>
         </ProgressLabel>

@@ -1,10 +1,11 @@
+import type { JSX } from "react";
 import { CalendarIcon, ClockIcon, TrophyIcon } from "lucide-react";
 
 import type { Event } from "@/db/queries";
 
 import { Section } from "./section";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Badge } from "../ui/badge";
 
 export function Events({ events }: { events: Event[] }) {
   return (
@@ -137,41 +138,38 @@ function EventCard({
           </Button>
         </div>
       ) : (
-        <Button variant="secondary" disabled={true} className="w-full">Em Breve</Button>
+        <Button variant="secondary" disabled={true} className="w-full">
+          Em Breve
+        </Button>
       )}
     </div>
   );
 }
 
-function formattedBadge({
+export function formattedBadge({
   type,
   timeControl,
 }: {
   type?: string;
   timeControl?: string;
 }) {
-  if (type === "open") {
-    return <Badge variant="bulbasaur">Aberto</Badge>;
+  const badgeMap: { [key: string]: JSX.Element } = {
+    open: <Badge variant="bulbasaur">Aberto</Badge>,
+    closed: <Badge variant="strawberry">Fechado</Badge>,
+    school: <Badge variant="jam">Escolar</Badge>,
+
+    standard: <Badge variant="noir">Clássico</Badge>,
+    rapid: <Badge variant="sea">Rápido</Badge>,
+    blitz: <Badge variant="ice">Blitz</Badge>,
+    bullet: <Badge variant="raspberry">Bullet</Badge>,
+  };
+
+  if (type && badgeMap[type]) {
+    return badgeMap[type];
   }
 
-  if (type === "closed") {
-    return <Badge variant="strawberry">Fechado</Badge>;
-  }
-
-  if (type === "school") {
-    return <Badge variant="honey">Escolar</Badge>;
-  }
-
-  if (timeControl === "standard") {
-    return <Badge variant="dark">Clássico</Badge>;
-  }
-
-  if (timeControl === "rapid") {
-    return <Badge variant="sea">Rápido</Badge>;
-  }
-
-  if (timeControl === "blitz") {
-    return <Badge variant="gold">Blitz</Badge>;
+  if (timeControl && badgeMap[timeControl]) {
+    return badgeMap[timeControl];
   }
 
   return null;
