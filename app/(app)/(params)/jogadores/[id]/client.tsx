@@ -93,262 +93,264 @@ export function Client({ player }: { player: PlayerById }) {
 	const [selectedRatingType, setSelectedRatingType] = React.useState("rapid")
 
 	return (
-		<section className="m-auto w-11/12 max-w-lg pt-12 pb-20">
-			<div className="mb-12">
-				<div className="h-32 w-full rounded-md" style={headerGradient} />
-				<Avatar className="-translate-y-1/2 -translate-x-1/2 absolute left-1/2 h-20 w-20 rounded-[10px] border-4 border-background">
-					<AvatarImage alt={player.name} src={player.imageUrl ?? ""} />
-					<AvatarFallback style={avatarGradient} />
-				</Avatar>
-			</div>
+    <section className="m-auto w-11/12 max-w-lg pt-12 pb-20">
+      <div className="mb-12">
+        <div className="h-32 w-full rounded-md" style={headerGradient} />
+        <Avatar className="-translate-y-1/2 -translate-x-1/2 absolute left-1/2 h-20 w-20 rounded-[10px] border-4 border-background">
+          <AvatarImage alt={player.name} src={player.imageUrl ?? ""} />
+          <AvatarFallback style={avatarGradient} />
+        </Avatar>
+      </div>
 
-			<div className="flex items-center justify-center gap-1">
-				<h2 className="mt-1 text-center font-medium text-lg">
-					{internalTitle && (
-						<span className="text-gold">{internalTitle.title.shortTitle} </span>
-					)}
-					{player.nickname ? player.nickname : player.name}
-				</h2>
+      <div className="flex items-center justify-center gap-1">
+        <h2 className="mt-1 text-center font-medium text-lg">
+          {internalTitle && (
+            <span className="text-amber-500">
+              {internalTitle.title.shortTitle}{" "}
+            </span>
+          )}
+          {player.nickname ? player.nickname : player.name}
+        </h2>
 
-				{player.verified && (
-					<Popover>
-						<PopoverTrigger asChild className="hover:cursor-pointer">
-							<VerifiedIcon
-								aria-label="Verificado"
-								className="!fill-[#1CA0F2] mt-1 stroke-background dark:stroke-[1.5]"
-							/>
-						</PopoverTrigger>
-						<PopoverContent>
-							<p className="font-semibold text-primary">Perfil verificado</p>
-							<p className="mt-2 font-medium text-sm">
-								Esse perfil atualizou os dados e foi verificado.
-							</p>
-							<a
-								className={`${buttonVariants({
-									variant: "default",
-								})} mt-3 w-full`}
-								href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
-								rel="noreferrer"
-								target="_blank"
-							>
-								Obter verificação
-							</a>
-						</PopoverContent>
-					</Popover>
-				)}
-			</div>
+        {player.verified && (
+          <Popover>
+            <PopoverTrigger asChild className="hover:cursor-pointer">
+              <VerifiedIcon
+                aria-label="Verificado"
+                className="!fill-[#1CA0F2] mt-1 stroke-background dark:stroke-[1.5]"
+              />
+            </PopoverTrigger>
+            <PopoverContent>
+              <p className="font-semibold text-primary">Perfil verificado</p>
+              <p className="mt-2 font-medium text-sm">
+                Esse perfil atualizou os dados e foi verificado.
+              </p>
+              <a
+                className={`${buttonVariants({
+                  variant: "default",
+                })} mt-3 w-full`}
+                href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
+                rel="noreferrer"
+                target="_blank"
+              >
+                Obter verificação
+              </a>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
 
-			{(managementRole || refereeRole) && (
-				<div className="mt-8 flex flex-col items-center justify-center gap-1.5">
-					{managementRole && (
-						<Badge variant="default">{managementRole.role.role}</Badge>
-					)}
-					{refereeRole && (
-						<Badge variant="default">{refereeRole.role.role}</Badge>
-					)}
-				</div>
-			)}
+      {(managementRole || refereeRole) && (
+        <div className="mt-8 flex flex-col items-center justify-center gap-1.5">
+          {managementRole && (
+            <Badge variant="default">{managementRole.role.role}</Badge>
+          )}
+          {refereeRole && (
+            <Badge variant="default">{refereeRole.role.role}</Badge>
+          )}
+        </div>
+      )}
 
-			{player.defendingChampions && player.defendingChampions?.length > 0 && (
-				<div className="mt-8 flex flex-wrap justify-center gap-1.5">
-					{player.defendingChampions?.map((championship) => (
-						<div key={championship.championship.name}>
-							{formatDefendingChampions(championship.championship.name, 20)}
-						</div>
-					))}
-				</div>
-			)}
+      {player.defendingChampions && player.defendingChampions?.length > 0 && (
+        <div className="mt-8 flex flex-wrap justify-center gap-1.5">
+          {player.defendingChampions?.map((championship) => (
+            <div key={championship.championship.name}>
+              {formatDefendingChampions(championship.championship.name, 20)}
+            </div>
+          ))}
+        </div>
+      )}
 
-			{orderPodiums.length > 0 && (
-				<div className="mt-8 flex flex-wrap justify-center gap-1.5">
-					{orderPodiums.map((podium) => (
-						<Popover key={podium.place + podium.tournament.name}>
-							<PopoverTrigger className="rounded-md bg-muted p-2 text-primary dark:bg-primary-foreground/60">
-								{FormatPodium(
-									podium.place,
-									podium.tournament.championshipId ?? 0
-								)}
-							</PopoverTrigger>
-							<PopoverContent className="max-w-72 text-center">
-								{FormatPodiumTitle(podium.place)} {podium.tournament.name}
-							</PopoverContent>
-						</Popover>
-					))}
-				</div>
-			)}
+      {orderPodiums.length > 0 && (
+        <div className="mt-8 flex flex-wrap justify-center gap-1.5">
+          {orderPodiums.map((podium) => (
+            <Popover key={podium.place + podium.tournament.name}>
+              <PopoverTrigger className="rounded-md bg-muted p-2 text-primary dark:bg-primary-foreground/60">
+                {FormatPodium(
+                  podium.place,
+                  podium.tournament.championshipId ?? 0
+                )}
+              </PopoverTrigger>
+              <PopoverContent className="max-w-72 text-center">
+                {FormatPodiumTitle(podium.place)} {podium.tournament.name}
+              </PopoverContent>
+            </Popover>
+          ))}
+        </div>
+      )}
 
-			{!(managementRole || refereeRole) &&
-				orderPodiums.length <= 0 &&
-				player.defendingChampions &&
-				player.defendingChampions?.length <= 0 && <div className="pt-3" />}
+      {!(managementRole || refereeRole) &&
+        orderPodiums.length <= 0 &&
+        player.defendingChampions &&
+        player.defendingChampions?.length <= 0 && <div className="pt-3" />}
 
-			<div className="mt-5">
-				<Info content={player.name} label="Nome" />
+      <div className="mt-5">
+        <Info content={player.name} label="Nome" />
 
-				{internalTitle && (
-					<Info label="Titulação">
-						{internalTitle && <p>{internalTitle.title.title}</p>}
-					</Info>
-				)}
+        {internalTitle && (
+          <Info label="Titulação">
+            {internalTitle && <p>{internalTitle.title.title}</p>}
+          </Info>
+        )}
 
-				{externalTitle && (
-					<Info label="Titulação CBX/FIDE">
-						{externalTitle && <p>{externalTitle.title.title}</p>}
-					</Info>
-				)}
+        {externalTitle && (
+          <Info label="Titulação CBX/FIDE">
+            {externalTitle && <p>{externalTitle.title.title}</p>}
+          </Info>
+        )}
 
-				{player.club && (
-					<Info label="Clube">
-						<div className="flex items-center gap-2">
-							<Avatar className="size-4 rounded object-contain">
-								<AvatarImage
-									alt={player.club.name as string}
-									className="size-4 rounded object-contain"
-									src={
-										(player.club.logo as string)
-											? (player.club.logo as string)
-											: "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
-									}
-									title={player.club.name as string}
-								/>
-								<AvatarFallback className="size-4 rounded-none object-contain" />
-							</Avatar>
-							<p>{player.club.name}</p>
-						</div>
-					</Info>
-				)}
+        {player.club && (
+          <Info label="Clube">
+            <div className="flex items-center gap-2">
+              <Avatar className="size-4 rounded object-contain">
+                <AvatarImage
+                  alt={player.club.name as string}
+                  className="size-4 rounded object-contain"
+                  src={
+                    (player.club.logo as string)
+                      ? (player.club.logo as string)
+                      : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
+                  }
+                  title={player.club.name as string}
+                />
+                <AvatarFallback className="size-4 rounded-none object-contain" />
+              </Avatar>
+              <p>{player.club.name}</p>
+            </div>
+          </Info>
+        )}
 
-				{player.location && (
-					<Info label="Local">
-						<div className="flex items-center gap-2">
-							<Avatar className="size-4 rounded object-contain">
-								<AvatarImage
-									alt={player.location.name as string}
-									className="size-4 rounded object-contain"
-									src={
-										(player.location.flag as string)
-											? (player.location.flag as string)
-											: "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
-									}
-									title={player.location.name as string}
-								/>
-								<AvatarFallback className="size-4 rounded-none object-contain" />
-							</Avatar>
-							<p>{player.location?.name}</p>
-						</div>
-					</Info>
-				)}
+        {player.location && (
+          <Info label="Local">
+            <div className="flex items-center gap-2">
+              <Avatar className="size-4 rounded object-contain">
+                <AvatarImage
+                  alt={player.location.name as string}
+                  className="size-4 rounded object-contain"
+                  src={
+                    (player.location.flag as string)
+                      ? (player.location.flag as string)
+                      : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
+                  }
+                  title={player.location.name as string}
+                />
+                <AvatarFallback className="size-4 rounded-none object-contain" />
+              </Avatar>
+              <p>{player.location?.name}</p>
+            </div>
+          </Info>
+        )}
 
-				<Info label="Status">
-					{player.active ? (
-						<div className="flex items-center gap-2">
-							<span className="relative flex h-2 w-2">
-								<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
-								<span className="relative inline-flex h-2 w-2 rounded-full bg-green-600" />
-							</span>
-							<p>Ativo</p>
-						</div>
-					) : (
-						<div className="flex items-center gap-2">
-							<span className="relative flex h-2 w-2">
-								<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-								<span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
-							</span>
-							<p>Inativo</p>
-						</div>
-					)}
-				</Info>
-			</div>
+        <Info label="Status">
+          {player.active ? (
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-600" />
+              </span>
+              <p>Ativo</p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
+              </span>
+              <p>Inativo</p>
+            </div>
+          )}
+        </Info>
+      </div>
 
-			<div className="mt-3">
-				<Info label="Ratings" />
-				<div className="grid grid-cols-3 gap-2">
-					<RatingCard label="Clássico" rating={player.classic} />
-					<RatingCard label="Rápido" rating={player.rapid} />
-					<RatingCard label="Blitz" rating={player.blitz} />
-				</div>
+      <div className="mt-3">
+        <Info label="Ratings" />
+        <div className="grid grid-cols-3 gap-2">
+          <RatingCard label="Clássico" rating={player.classic} />
+          <RatingCard label="Rápido" rating={player.rapid} />
+          <RatingCard label="Blitz" rating={player.blitz} />
+        </div>
 
-				<Info label="IDs" />
-				<div className="grid grid-cols-3 gap-2">
-					<RatingCard label="FSX" rating={player.id} />
-					<RatingCard
-						label="CBX"
-						link={
-							player.cbxId ? (
-								<a
-									className="flex justify-center text-primary transition hover:underline"
-									href={`https://www.cbx.org.br/jogador/${player.cbxId}`}
-									rel="noreferrer"
-									target="_blank"
-								>
-									{player.cbxId} <ExternalLink className="ml-2 w-4" />
-								</a>
-							) : (
-								<span>-</span>
-							)
-						}
-					/>
-					<RatingCard
-						label="FIDE"
-						link={
-							player.fideId ? (
-								<a
-									className="flex justify-center text-primary transition hover:underline"
-									href={`https://ratings.fide.com/profile/${player.fideId}`}
-									rel="noreferrer"
-									target="_blank"
-								>
-									{player.fideId} <ExternalLink className="ml-2 w-4" />
-								</a>
-							) : (
-								<span>-</span>
-							)
-						}
-					/>
-				</div>
-			</div>
+        <Info label="IDs" />
+        <div className="grid grid-cols-3 gap-2">
+          <RatingCard label="FSX" rating={player.id} />
+          <RatingCard
+            label="CBX"
+            link={
+              player.cbxId ? (
+                <a
+                  className="flex justify-center text-primary transition hover:underline"
+                  href={`https://www.cbx.org.br/jogador/${player.cbxId}`}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {player.cbxId} <ExternalLink className="ml-2 w-4" />
+                </a>
+              ) : (
+                <span>-</span>
+              )
+            }
+          />
+          <RatingCard
+            label="FIDE"
+            link={
+              player.fideId ? (
+                <a
+                  className="flex justify-center text-primary transition hover:underline"
+                  href={`https://ratings.fide.com/profile/${player.fideId}`}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {player.fideId} <ExternalLink className="ml-2 w-4" />
+                </a>
+              ) : (
+                <span>-</span>
+              )
+            }
+          />
+        </div>
+      </div>
 
-			{tournaments.length > 0 && (
-				<>
-					<Info label="Performance" />
-					<span className="text-xs">Últimos 12 torneios</span>
-					<div className="flex justify-end">
-						<Select
-							onValueChange={(value) => setSelectedRatingType(value)}
-							value={selectedRatingType}
-						>
-							<SelectTrigger className="mt-2 w-auto">
-								<SelectValue placeholder="Selecione o tipo de rating" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="classic">Clássico</SelectItem>
-								<SelectItem value="rapid">Rápido</SelectItem>
-								<SelectItem value="blitz">Blitz</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-					<div className="mt-2">
-						<VariationChart
-							player={player}
-							selectedRatingType={selectedRatingType}
-						/>
-						<TotalRatingChart
-							player={player}
-							selectedRatingType={selectedRatingType}
-						/>
-					</div>
-				</>
-			)}
+      {tournaments.length > 0 && (
+        <>
+          <Info label="Performance" />
+          <span className="text-xs">Últimos 12 torneios</span>
+          <div className="flex justify-end">
+            <Select
+              onValueChange={(value) => setSelectedRatingType(value)}
+              value={selectedRatingType}
+            >
+              <SelectTrigger className="mt-2 w-auto">
+                <SelectValue placeholder="Selecione o tipo de rating" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="classic">Clássico</SelectItem>
+                <SelectItem value="rapid">Rápido</SelectItem>
+                <SelectItem value="blitz">Blitz</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="mt-2">
+            <VariationChart
+              player={player}
+              selectedRatingType={selectedRatingType}
+            />
+            <TotalRatingChart
+              player={player}
+              selectedRatingType={selectedRatingType}
+            />
+          </div>
+        </>
+      )}
 
-			{tournaments && (
-				<div className="mt-3">
-					<Info label="Torneios">
-						<DataTable columns={columns} data={tournaments} />
-					</Info>
-				</div>
-			)}
-		</section>
-	)
+      {tournaments && (
+        <div className="mt-3">
+          <Info label="Torneios">
+            <DataTable columns={columns} data={tournaments} />
+          </Info>
+        </div>
+      )}
+    </section>
+  );
 }
 
 const Info = ({

@@ -31,24 +31,25 @@ export const Actions = ({
 	}
 
 	return (
-		<>
-			<Button
-				className="flex cursor-pointer items-center gap-3"
-				onClick={() => setOpen(true)}
-				onKeyDown={handleKeyboardEvent}
-				onKeyUp={handleKeyboardEvent}
-				variant="link"
-			>
-				<Avatar className="h-8 w-8 rounded-md">
-					<AvatarImage alt={name} src={imageUrl || undefined} />
-					<AvatarFallback style={gradient} />
-				</Avatar>
-				<div className="whitespace-nowrap font-medium">
-					<span className="text-gold">{shortTitle}</span> {nickname || name}
-				</div>
-			</Button>
+    <>
+      <Button
+        className="flex cursor-pointer items-center gap-3"
+        onClick={() => setOpen(true)}
+        onKeyDown={handleKeyboardEvent}
+        onKeyUp={handleKeyboardEvent}
+        variant="link"
+      >
+        <Avatar className="h-8 w-8 rounded-md">
+          <AvatarImage alt={name} src={imageUrl || undefined} />
+          <AvatarFallback style={gradient} />
+        </Avatar>
+        <div className="whitespace-nowrap font-medium">
+          <span className="text-amber-500">{shortTitle}</span>{" "}
+          {nickname || name}
+        </div>
+      </Button>
 
-			{open && <PlayerSheet id={id} open={open} setOpen={setOpen} />}
-		</>
-	)
+      {open && <PlayerSheet id={id} open={open} setOpen={setOpen} />}
+    </>
+  );
 }

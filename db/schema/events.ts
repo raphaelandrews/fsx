@@ -13,6 +13,7 @@ export const eventTimeControlEnum = pgEnum("event_time_control", [
 	"standard",
 	"rapid",
 	"blitz",
+	"bullet"
 ])
 
 export const events = pgTable("events", {

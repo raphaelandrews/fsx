@@ -34,6 +34,16 @@ export default function Error() {
             <img src="/capybara.gif" alt="Capivara" className="ml-2 mr-4" />
             <img src="/capybara-cake.gif" alt="Capivara" />
             <img src="/capybara-heart.gif" alt="Capivara" />
+            <img
+              src="/capybara-wine.gif"
+              alt="Capivara"
+              className="ml-2"
+            />
+            <img
+              src="/capybara-wine.gif"
+              alt="Capivara"
+              className="rotate-y-180"
+            />
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">

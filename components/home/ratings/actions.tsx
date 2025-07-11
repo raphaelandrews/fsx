@@ -43,38 +43,38 @@ export const Actions = ({
 	}
 
 	return (
-		<>
-			<div className="group flex items-center gap-3">
-				<Button
-					aria-label={`View ${name}'s profile`}
-					className="flex cursor-pointer items-center gap-3 rounded-md transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-					onClick={() => setOpen(true)}
-					onKeyDown={handleKeyboardEvent}
-					onKeyUp={handleKeyboardEvent}
-					variant="link"
-				>
-					<Avatar className="size-8 rounded-md">
-						<AvatarImage alt={name} src={image ?? undefined} />
-						<AvatarFallback style={gradient} />
-					</Avatar>
-					<div className="whitespace-nowrap font-medium">
-						{shortTitle && <span className="text-gold">{shortTitle}</span>}{" "}
-						{nickname ?? name}
-					</div>
-				</Button>
+    <>
+      <div className="group flex items-center gap-3">
+        <Button
+          aria-label={`View ${name}'s profile`}
+          className="flex cursor-pointer items-center gap-3 rounded-md transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          onClick={() => setOpen(true)}
+          onKeyDown={handleKeyboardEvent}
+          onKeyUp={handleKeyboardEvent}
+          variant="link"
+        >
+          <Avatar className="size-8 rounded-md">
+            <AvatarImage alt={name} src={image ?? undefined} />
+            <AvatarFallback style={gradient} />
+          </Avatar>
+          <div className="whitespace-nowrap font-medium">
+            {shortTitle && <span className="text-amber-500">{shortTitle}</span>}{" "}
+            {nickname ?? name}
+          </div>
+        </Button>
 
-				{defendingChampions && (
-					<div className="flex items-center gap-2">
-						{defendingChampions.map((championship) => (
-							<div key={championship.championship.name}>
-								{formatDefendingChampions(championship.championship.name, 16)}
-							</div>
-						))}
-					</div>
-				)}
-			</div>
+        {defendingChampions && (
+          <div className="flex items-center gap-2">
+            {defendingChampions.map((championship) => (
+              <div key={championship.championship.name}>
+                {formatDefendingChampions(championship.championship.name, 16)}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
-			{open && <PlayerSheet id={id} open={open} setOpen={setOpen} />}
-		</>
-	)
+      {open && <PlayerSheet id={id} open={open} setOpen={setOpen} />}
+    </>
+  );
 }

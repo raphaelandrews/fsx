@@ -42,13 +42,13 @@ export function Client({ cup }: { cup: Cup }) {
           />
           <div className="mt-6 md:mt-0">
             <p>
-              Campeonato Sergipano Bullet de Xadrez é
-              realizado de forma online no{" "}
+              Campeonato Sergipano Bullet de Xadrez é realizado de forma online
+              no{" "}
               <a
                 href="https://lichess.org"
                 target="_blank"
                 rel="noreferrer"
-                className="text-sea hover:underline"
+                className="text-bulbasaur-foreground hover:underline"
               >
                 lichess.org
               </a>
@@ -777,8 +777,8 @@ function renderPlayerTable(group: CupGroup) {
               {player.players.name}
               {index < 2 && (
                 <span className="relative flex w-1.5 h-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75" />
-                  <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-gold" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-amber-500" />
                 </span>
               )}
             </TableCell>
@@ -853,7 +853,7 @@ const InfoCard = ({
               href="https://lichess.org"
               target="_blank"
               rel="noreferrer"
-              className="text-sea"
+              className="text-bulbasaur-foreground"
             >
               lichess.org
             </a>
