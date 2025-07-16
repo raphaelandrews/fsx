@@ -36,8 +36,8 @@ export const playerByIdQueryOptions = (id: number) =>
 		refetchOnWindowFocus: false,
 		refetchOnMount: false,
 		refetchOnReconnect: false,
-		staleTime: 1000 * 60 * 60 * 24 * 2,
-		gcTime: 1000 * 60 * 60 * 24 * 2,
+		staleTime: 1000 * 60 * 60 * 24, 
+		gcTime: 1000 * 60 * 60 * 24 * 2, 
 		retry: (failureCount, error: Error) => {
 			if (error.message.includes("Invalid API")) return false
 			return failureCount < 2
