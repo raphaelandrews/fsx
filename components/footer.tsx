@@ -12,7 +12,7 @@ export function Footer({ className }: { className?: string }) {
         Built by 🏝️{" "}
         <a
           className="font-medium text-bulbasaur-foreground transition duration-200 hover:text-amber-500"
-          href="https://ndrws.neocities.org/"
+          href="https://ndrws.com/"
           rel="noreferrer"
           target="_blank"
         >
