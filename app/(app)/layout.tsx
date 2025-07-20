@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   authors: [
     {
       name: "Raphael Andrews",
-      url: "https://ndrws.neocities.org/",
+      url: "https://ndrws.com/",
     },
   ],
   creator: "Raphael Andrews",
