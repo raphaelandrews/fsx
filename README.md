@@ -34,4 +34,4 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 # 🏝️
 
-Built by [Andrews](https://ndrws.com/)
+Built by [Andrews](https://ndrws.dev/)
