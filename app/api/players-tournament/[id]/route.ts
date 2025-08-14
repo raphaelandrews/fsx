@@ -196,8 +196,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 				active: true,
 			};
 
-			if (birth !== undefined) {
-				if (currentBirth === null) {
+			if (birth !== undefined && birth !== "undefined")  {
+				if (currentBirth === null || parseBirthDate(birth)?.toISOString() !== currentBirth.toISOString()) {
 					let parsedBirth: Date | null | undefined;
 					try {
 						parsedBirth = parseBirthDate(birth);
