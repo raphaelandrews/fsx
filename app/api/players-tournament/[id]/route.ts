@@ -63,7 +63,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			});
 		}
 
-		const currentBirth = player[0].birth;
 		const currentLocationId = player[0].locationId;
 		const currentName = player[0].name;
 
@@ -197,19 +196,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			};
 
 			if (birth !== undefined) {
-				if (currentBirth === null) {
-					let parsedBirth: Date | null | undefined;
-					try {
-						parsedBirth = parseBirthDate(birth);
-					} catch (error) {
-						if (error instanceof Error) {
-							throw error;
-						}
+				let parsedBirth: Date | null | undefined;
+				try {
+					parsedBirth = parseBirthDate(birth);
+				} catch (error) {
+					if (error instanceof Error) {
 						throw error;
 					}
-					updateData.birth = parsedBirth;
-					if (players.birth) fieldsToReturn.birth = players.birth;
+					throw error;
 				}
+				if (parsedBirth !== null) {
+					updateData.birth = parsedBirth;
+				}
+				if (players.birth) fieldsToReturn.birth = players.birth;
 			}
 			if (sex !== undefined) {
 				updateData.sex = sex;
