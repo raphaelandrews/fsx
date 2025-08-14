@@ -61,11 +61,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 		const fieldsToReturn: Record<string, PgColumn> = {};
 
-		if (body.birth !== undefined) {
-			if (currentBirth === null) {
+		if (body.birth !== undefined && body.birth !== "undefined") {
+			if (currentBirth === null || parseBirthDate(body.birth)?.toISOString() !== currentBirth.toISOString()) {
 				let parsedBirth: Date | null | undefined;
 				try {
-					parsedBirth = parseBirthDate(body.birth);
+					const birthInput = body.birth === "undefined" ? undefined : body.birth;
+					parsedBirth = parseBirthDate(birthInput);
 				} catch (error) {
 					if (error instanceof Error) {
 						return new NextResponse(JSON.stringify({ message: error.message }), {
