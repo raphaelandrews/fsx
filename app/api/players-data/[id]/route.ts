@@ -51,6 +51,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			});
 		}
 
+		const currentBirth = player[0].birth;
 		const currentLocationId = player[0].locationId;
 		const currentName = player[0].name;
 
@@ -61,22 +62,22 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 		const fieldsToReturn: Record<string, PgColumn> = {};
 
 		if (body.birth !== undefined) {
-			let parsedBirth: Date | null | undefined;
-			try {
-				parsedBirth = parseBirthDate(body.birth);
-			} catch (error) {
-				if (error instanceof Error) {
-					return new NextResponse(JSON.stringify({ message: error.message }), {
-						status: 400,
-						headers: { "Content-Type": "application/json" },
-					});
+			if (currentBirth === null) {
+				let parsedBirth: Date | null | undefined;
+				try {
+					parsedBirth = parseBirthDate(body.birth);
+				} catch (error) {
+					if (error instanceof Error) {
+						return new NextResponse(JSON.stringify({ message: error.message }), {
+							status: 400,
+							headers: { "Content-Type": "application/json" },
+						});
+					}
+					throw error;
 				}
-				throw error;
-			}
-			if (parsedBirth !== null) {
 				updateData.birth = parsedBirth;
+				if (players.birth) fieldsToReturn.birth = players.birth;
 			}
-			if (players.birth) fieldsToReturn.birth = players.birth;
 		}
 		if (body.sex !== undefined) {
 			updateData.sex = body.sex;

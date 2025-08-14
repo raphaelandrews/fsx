@@ -1,8 +1,7 @@
 import { parseISO, isValid } from 'date-fns';
 
 export function parseBirthDate(dateInput: string | number | null | undefined): Date | null {
-  console.log(dateInput)
-  if (dateInput === null || dateInput === "undefined" || dateInput === "" || dateInput === "string") {
+  if (dateInput === null || dateInput === undefined || dateInput === "") {
     return null;
   }
 
