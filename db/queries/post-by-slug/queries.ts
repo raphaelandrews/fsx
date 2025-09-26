@@ -18,10 +18,10 @@ export const getPostBySlug = (slug: string) => {
 					createdAt: true,
 				},
 			}),
-		[`post-${slug}`],
+		["get-post-by-slug"],
 		{
 			revalidate: 60 * 60 * 24 * 15,
-			tags: [`post-${slug}`],
+			tags: ["posts", `post-${slug}`],
 		}
 	)
 }

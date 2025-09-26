@@ -21,7 +21,7 @@ export const getLinkGroups = unstable_cache(
 			},
 			orderBy: (linksGroups, { asc }) => asc(linksGroups.id),
 		}),
-	["link-groups"],
+	["get-link-groups"],
 	{
 		revalidate: 60 * 60 * 24 * 15,
 		tags: ["link-groups"],

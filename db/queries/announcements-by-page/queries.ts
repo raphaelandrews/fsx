@@ -35,9 +35,9 @@ export const getAnnouncementsByPage = unstable_cache(
 			},
 		}
 	},
-	["announcements-by-page"],
+	["get-announcements-by-page"],
 	{
 		revalidate: 60 * 60 * 24 * 15,
-		tags: ["announcements-by-page"],
+		tags: ["announcements", "announcements-by-page"],
 	}
 )

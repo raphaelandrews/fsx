@@ -18,7 +18,7 @@ export const getPosts = unstable_cache(
 			.orderBy(desc(posts.createdAt))
 			.limit(24)
 			.execute(),
-	["posts"],
+	["get-posts"],
 	{
 		revalidate: 60 * 60 * 24 * 15,
 		tags: ["posts"],

@@ -99,10 +99,10 @@ export const getPlayerById = async (id: number) => {
 					},
 				},
 			}),
-		[`player-${id}`],
+		["get-player-by-id"],
 		{
 			revalidate: 60 * 60 * 24 * 15,
-			tags: [`player-${id}`],
+			tags: ["players", `player-${id}`],
 		}
 	)
 

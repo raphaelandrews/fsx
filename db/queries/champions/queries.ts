@@ -128,7 +128,7 @@ export const getChampions = unstable_cache(
 
 		return response
 	},
-	["champions"],
+	["get-champions"],
 	{
 		revalidate: 60 * 60 * 24 * 15,
 		tags: ["champions"],
