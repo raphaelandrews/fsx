@@ -2,7 +2,7 @@ import { createInsertSchema } from "drizzle-zod"
 import { relations } from "drizzle-orm"
 import { pgTable, serial, text, varchar } from "drizzle-orm/pg-core"
 
-import { circuitPhases, circuitPodiums, players } from "./index"
+import { circuitPhases, players } from "./index"
 
 export const clubs = pgTable("clubs", {
 	id: serial("id").primaryKey(),
@@ -12,7 +12,6 @@ export const clubs = pgTable("clubs", {
 
 export const clubsRelations = relations(clubs, ({ many }) => ({
 	circuitPhases: many(circuitPhases),
-	circuitPodiums: many(circuitPodiums),
 	players: many(players),
 }))
 
