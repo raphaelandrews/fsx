@@ -40,7 +40,7 @@ const MotionGrid = ({
 		if (!animate || frames.length === 0) return
 		intervalRef.current = setInterval(
 			() => setIndex((i) => (i + 1) % frames.length),
-			duration
+			duration,
 		)
 		return () => clearInterval(intervalRef.current as unknown as string)
 	}, [frames.length, duration, animate])
@@ -48,7 +48,7 @@ const MotionGrid = ({
 	const [cols, rows] = gridSize
 
 	const active = new Set<number>(
-		frames[index]?.map(([x, y]) => y * cols + x) ?? []
+		frames[index]?.map(([x, y]) => y * cols + x) ?? [],
 	)
 
 	return (
@@ -68,9 +68,9 @@ const MotionGrid = ({
 						active.has(i)
 							? cn("scale-110 bg-primary", cellActiveClassName)
 							: cn("scale-100 bg-muted", cellInactiveClassName),
-						cellClassName
+						cellClassName,
 					)}
-					key={`${i}-${Math.random()}`}
+					key={`cell-${i}`}
 					{...cellProps}
 					transition={{ duration, ease: "easeInOut" }}
 				/>
