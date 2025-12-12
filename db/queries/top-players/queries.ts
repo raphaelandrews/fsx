@@ -52,9 +52,9 @@ export const getTopPlayers = unstable_cache(
 
 		return { topClassic, topRapid, topBlitz }
 	},
-	["top-players"],
+	["get-top-players"],
 	{
 		revalidate: 60 * 60 * 24 * 15,
-		tags: ["top-players"],
+		tags: ["players", "top-players"],
 	}
 )

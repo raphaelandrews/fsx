@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -14,18 +13,17 @@ import { Github, Loader2 } from "lucide-react"
 
 export function LoginForm() {
 	const [isLoading, setIsLoading] = useState(false)
-	const supabase = createClient()
 
 	const handleGithubLogin = async () => {
 		setIsLoading(true)
 		try {
+			const supabase = createClient()
 			const { error } = await supabase.auth.signInWithOAuth({
-        provider: "github",
-        options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/private/dashboard`,
-        },
-      });
-
+				provider: "github",
+				options: {
+					redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/private/dashboard`,
+				},
+			})
 			if (error) {
 				console.error("Error logging in:", error.message)
 			}

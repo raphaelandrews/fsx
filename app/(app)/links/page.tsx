@@ -15,18 +15,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { buttonVariants } from "@/components/ui/button"
 
 export const metadata: Metadata = {
-  title: "Links",
-  description: "Links úteis.",
-  openGraph: {
-    url: `${siteConfig.url}/links`,
-    title: "Links",
-    description: "Links úteis.",
-    siteName: "Links",
-  },
-};
-
-export const dynamic = "force-dynamic";
-export const revalidate = 0
+	title: "Links",
+	description: "Links úteis.",
+	openGraph: {
+		url: `${siteConfig.url}/links`,
+		title: "Links",
+		description: "Links úteis.",
+		siteName: "Links",
+	},
+}
 
 const Links = async () => {
 	const linkGroups = await getLinkGroups()
@@ -103,23 +100,23 @@ interface Props {
 
 const LinkItem = ({ href, label, icon }: Props) => {
 	return (
-    <Link
-      className={cn(
-        buttonVariants({ variant: "card" }),
-        "flex h-[inherit] w-full items-center justify-between rounded-2xl p-3 shadow"
-      )}
-      href={href}
-      prefetch={false}
-      target="_blank"
-    >
-      <div className="grid h-10 w-10 place-items-center rounded-[10px] bg-sea shadow-lg [&>div>svg]:text-background dark:[&>div>svg]:text-primary [&>svg]:h-5 [&>svg]:w-5">
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: No */}
-        <div dangerouslySetInnerHTML={{ __html: icon }} />
-      </div>
-      <p>{label}</p>
-      <div className="grid h-10 w-10 place-items-center">
-        <ExternalLinkIcon className="h-4 w-4 stroke-foreground" />
-      </div>
-    </Link>
-  );
+		<Link
+			className={cn(
+				buttonVariants({ variant: "card" }),
+				"flex h-[inherit] w-full items-center justify-between rounded-2xl p-3 shadow",
+			)}
+			href={href}
+			prefetch={false}
+			target="_blank"
+		>
+			<div className="grid h-10 w-10 place-items-center rounded-[10px] bg-sea shadow-lg [&>div>svg]:text-background dark:[&>div>svg]:text-primary [&>svg]:h-5 [&>svg]:w-5">
+				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: No */}
+				<div dangerouslySetInnerHTML={{ __html: icon }} />
+			</div>
+			<p>{label}</p>
+			<div className="grid h-10 w-10 place-items-center">
+				<ExternalLinkIcon className="h-4 w-4 stroke-foreground" />
+			</div>
+		</Link>
+	)
 }

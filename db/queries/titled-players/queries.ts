@@ -36,7 +36,7 @@ export const getTitledPlayers = unstable_cache(
 				),
 			orderBy: (players) => [desc(players.rapid)],
 		}),
-	["titled-players"],
+	["get-titled-players"],
 	{
 		revalidate: 60 * 60 * 24 * 15,
 		tags: ["titled-players"],

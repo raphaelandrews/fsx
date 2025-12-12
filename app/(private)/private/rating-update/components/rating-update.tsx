@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback } from "react";
+import { revalidatePlayersAction } from "@/app/actions/revalidate-players";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -768,6 +769,8 @@ export function RatingUpdate() {
                     customError.backendMessage = errorDetail;
                     throw customError;
                   }
+
+                  await revalidatePlayersAction();
 
                   let successPayloadDataFields: PlayerDataFields;
                   let successMessage: string;

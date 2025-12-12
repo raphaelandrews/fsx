@@ -27,9 +27,9 @@ export const getSearchPlayers = unstable_cache(
 			.orderBy(desc(players.rapid))
 			.limit(10)
 			.execute(),
-	["search-players"],
+	["get-search-players"],
 	{
 		revalidate: 60 * 60 * 24 * 15,
-		tags: ["search-players"],
+		tags: ["players", "search-players"],
 	}
 )

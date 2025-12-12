@@ -2,7 +2,7 @@ import { createInsertSchema } from "drizzle-zod"
 import { relations } from "drizzle-orm"
 import { integer, pgEnum, pgTable, serial, smallint } from "drizzle-orm/pg-core"
 
-import { circuitPhases, clubs, players } from "./index"
+import { circuitPhases, players } from "./index"
 
 export const circuitCategoryEnum = pgEnum("circuit_category", [
 	"Sub 8 Masculino",
@@ -54,7 +54,6 @@ export const circuitPodiums = pgTable("circuit_podiums", {
 	playerId: integer("player_id")
 		.notNull()
 		.references(() => players.id),
-	clubId: integer("club_id").references(() => clubs.id),
 	circuitPhaseId: integer("circuit_phase_id")
 		.notNull()
 		.references(() => circuitPhases.id),
@@ -67,10 +66,6 @@ export const circuitPodiumsRelations = relations(circuitPodiums, ({ one }) => ({
 	player: one(players, {
 		fields: [circuitPodiums.playerId],
 		references: [players.id],
-	}),
-	club: one(clubs, {
-		fields: [circuitPodiums.clubId],
-		references: [clubs.id],
 	}),
 	circuitPhase: one(circuitPhases, {
 		fields: [circuitPodiums.circuitPhaseId],
