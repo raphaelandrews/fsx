@@ -164,7 +164,7 @@ export async function getData() {
 						position: 1,
 					},
 					{
-						id: 2,
+						id: 3,
 						players: {
 							id: 3,
 							name: "Fábio Marcel",
@@ -174,7 +174,7 @@ export async function getData() {
 						position: 2,
 					},
 					{
-						id: 3,
+						id: 5,
 						players: {
 							id: 5,
 							name: "Heitor Pedreira",
@@ -202,25 +202,25 @@ export async function getData() {
 									{
 										id: 16,
 										link: "-",
-										winner_id: null,
+										winner_id: 2,
 										game_number: 1,
 									},
 									{
 										id: 17,
 										link: "-",
-										winner_id: null,
+										winner_id: 2,
 										game_number: 2,
 									},
 									{
 										id: 18,
 										link: "-",
-										winner_id: null,
+										winner_id: 2,
 										game_number: 3,
 									},
 								],
 								winner_id: {
-									id: null,
-									name: "",
+									id: 2,
+									name: "Arthur Gabriel",
 									image_url: null,
 								},
 								player_one_id: {
@@ -248,25 +248,25 @@ export async function getData() {
 									{
 										id: 21,
 										link: "-",
-										winner_id: null,
+										winner_id: 2,
 										game_number: 1,
 									},
 									{
 										id: 22,
 										link: "-",
-										winner_id: null,
+										winner_id: 2,
 										game_number: 2,
 									},
 									{
 										id: 23,
 										link: "-",
-										winner_id: null,
+										winner_id: 2,
 										game_number: 3,
 									},
 								],
 								winner_id: {
-									id: null,
-									name: "",
+									id: 2,
+									name: "Arthur Gabriel",
 									image_url: null,
 								},
 								player_one_id: {
@@ -294,25 +294,25 @@ export async function getData() {
 									{
 										id: 26,
 										link: "-",
-										winner_id: null,
+										winner_id: 4,
 										game_number: 1,
 									},
 									{
 										id: 27,
 										link: "-",
-										winner_id: null,
+										winner_id: 4,
 										game_number: 2,
 									},
 									{
 										id: 28,
 										link: "-",
-										winner_id: null,
+										winner_id: 4,
 										game_number: 3,
 									},
 								],
 								winner_id: {
-									id: null,
-									name: "",
+									id: 4,
+									name: "Angledson",
 									image_url: null,
 								},
 								player_one_id: {
@@ -331,7 +331,7 @@ export async function getData() {
 				],
 				cup_players: [
 					{
-						id: 4,
+						id: 2,
 						players: {
 							id: 2,
 							name: "Arthur Gabriel",
@@ -341,7 +341,7 @@ export async function getData() {
 						position: 1,
 					},
 					{
-						id: 5,
+						id: 4,
 						players: {
 							id: 4,
 							name: "Angledson",
@@ -403,8 +403,8 @@ export async function getData() {
 									image_url: null,
 								},
 								player_two_id: {
-									id: 404,
-									name: "",
+									id: 4,
+									name: "Angledson",
 									image_url: null,
 								},
 							},
@@ -435,8 +435,8 @@ export async function getData() {
 								],
 								winner_id: null,
 								player_one_id: {
-									id: 404,
-									name: "",
+									id: 2,
+									name: "Arthur Gabriel",
 									image_url: null,
 								},
 								player_two_id: {
@@ -568,8 +568,8 @@ export async function getData() {
 									image_url: null,
 								},
 								player_two_id: {
-									id: 404,
-									name: "",
+									id: 6,
+									name: "Henry Michel",
 									image_url: null,
 								},
 							},
@@ -710,6 +710,67 @@ export async function getData() {
 						],
 					},
 				],
+			},
+		],
+		cup_podium: [
+			{
+				id: 1,
+				players: {
+					id: 1,
+					name: "",
+					image_url: null,
+				},
+				nickname: null,
+				position: 1,
+			},
+			{
+				id: 2,
+				players: {
+					id: 2,
+					name: "",
+					image_url: null,
+				},
+				nickname: null,
+				position: 2,
+			}, 
+			{
+				id: 3,
+				players: {
+					id: 3,
+					name: "",
+					image_url: null,
+				},
+				nickname: null,
+				position: 3,
+			},
+			{
+				id: 4,
+				players: {
+					id: 4,
+					name: "",
+					image_url: null,
+				},
+				nickname: null,
+				position: 4,
+			}, {
+				id: 5,
+				players: {
+					id: 5,
+					name: "",
+					image_url: null,
+				},
+				nickname: null,
+				position: 5,
+			},
+			{
+				id: 6,
+				players: {
+					id: 6,
+					name: "",
+					image_url: null,
+				},
+				nickname: null,
+				position: 6,
 			},
 		],
 	}

@@ -8,6 +8,7 @@ export interface Cup {
 	rhythm: string
 	cup_groups: CupGroup[]
 	cup_brackets: CupBracket[]
+	cup_podium: CupPlayer[]
 }
 
 export interface CupGroup {
