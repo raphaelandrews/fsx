@@ -96,9 +96,7 @@ export function Client({ cup }: { cup: Cup }) {
                     </li>
                     <li>
                       Todas as partidas da Fase de Grupos, das Chaves dos
-                      Vencedores e Perdedores serão melhor de 5, exceto as
-                      finais das Chaves dos Vencedores e Perdedores, que serão
-                      melhor de 7
+                      Vencedores e Perdedores serão melhor de 5.
                     </li>
                     <li>A Grande Final será melhor de 11</li>
                   </ul>
