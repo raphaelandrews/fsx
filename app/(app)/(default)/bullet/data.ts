@@ -54,8 +54,8 @@ export async function getData() {
 									},
 								],
 								winner_id: {
-									id: null,
-									name: "",
+									id: 3,
+									name: "Fábio Marcel",
 									image_url: null,
 								},
 								player_one_id: {
@@ -100,8 +100,8 @@ export async function getData() {
 									},
 								],
 								winner_id: {
-									id: null,
-									name: "",
+									id: 1,
+									name: "Raphael Andrews",
 									image_url: null,
 								},
 								player_one_id: {
@@ -146,8 +146,8 @@ export async function getData() {
 									},
 								],
 								winner_id: {
-									id: null,
-									name: "",
+									id: 3,
+									name: "Fábio Marcel",
 									image_url: null,
 								},
 								player_one_id: {
@@ -392,25 +392,29 @@ export async function getData() {
 									{
 										id: 30,
 										link: "-",
-										winner_id: 1,
+										winner_id: 3,
 										game_number: 1,
 									},
 									{
 										id: 31,
 										link: "-",
-										winner_id: 1,
+										winner_id: 3,
 										game_number: 2,
 									},
 									{
 										id: 32,
 										link: "-",
-										winner_id: 1,
+										winner_id: 3,
 										game_number: 3,
 									},
 								],
-								winner_id: null,
+								winner_id: {
+									id: 3,
+									name: "Fábio Marcel",
+									image_url: null,
+								},
 								player_one_id: {
-									id: 1,
+									id: 3,
 									name: "Fábio Marcel",
 									image_url: null,
 								},
@@ -451,7 +455,11 @@ export async function getData() {
 										game_number: 4,
 									},
 								],
-								winner_id: null,
+								winner_id: {
+									id: 2,
+									name: "Arthur Gabriel",
+									image_url: null,
+								},
 								player_one_id: {
 									id: 2,
 									name: "Arthur Gabriel",
@@ -506,7 +514,11 @@ export async function getData() {
 										game_number: 5,
 									},
 								],
-								winner_id: null,
+								winner_id: {
+									id: 3,
+									name: "Fábio Marcel",
+									image_url: null,
+								},
 								player_one_id: {
 									id: 3,
 									name: "Fábio Marcel",
@@ -575,25 +587,29 @@ export async function getData() {
 									{
 										id: 46,
 										link: "-",
-										winner_id: null,
+										winner_id: 1,
 										game_number: 1,
 									},
 									{
 										id: 47,
 										link: "-",
-										winner_id: null,
+										winner_id: 1,
 										game_number: 2,
 									},
 									{
 										id: 48,
 										link: "-",
-										winner_id: null,
+										winner_id: 1,
 										game_number: 3,
 									},
 								],
-								winner_id: null,
+								winner_id: {
+									id: 1,
+									name: "Raphael Andrews",
+									image_url: null,
+								},
 								player_one_id: {
-									id: 404,
+									id: 1,
 									name: "Raphael Andrews",
 									image_url: null,
 								},
