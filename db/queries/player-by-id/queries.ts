@@ -1,14 +1,13 @@
 import { eq } from "drizzle-orm"
-
 import { db } from "@/db"
 import { players } from "@/db/schema"
 import { unstable_cache } from "@/lib/unstable_cache"
 
 export const getPlayerById = async (id: number) => {
 	const cachedFn = unstable_cache(
-		async () =>
+		async (playerId: number) =>
 			db.query.players.findFirst({
-				where: eq(players.id, id),
+				where: eq(players.id, playerId),
 				columns: {
 					id: true,
 					name: true,
@@ -99,12 +98,12 @@ export const getPlayerById = async (id: number) => {
 					},
 				},
 			}),
-		["get-player-by-id"],
+		["get-player-by-id", `player-${id}`],
 		{
 			revalidate: 60 * 60 * 24 * 15,
 			tags: ["players", `player-${id}`],
 		}
 	)
 
-	return await cachedFn()
+	return await cachedFn(id)
 }
