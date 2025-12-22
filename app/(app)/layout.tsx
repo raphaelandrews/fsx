@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   authors: [
     {
       name: "Raphael Andrews",
-      url: "https://ndrws.dev/",
+      url: "https://andrews.sh/",
     },
   ],
   creator: "Raphael Andrews",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
     images: OG_IMAGE,
-    creator: "@_ndrws",
+    creator: "@_andrewssh",
   },
   icons: {
     icon: "/favicon.ico",
