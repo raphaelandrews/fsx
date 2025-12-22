@@ -16,7 +16,7 @@ export const siteConfig: SiteConfig = {
 	url: "https://www.fsx.org.br",
 	ogImage: "https://www.fsx.org.br/og/og.jpg",
 	links: {
-		twitter: "https://twitter.com/_ndrws",
+		twitter: "https://twitter.com/_andrewssh",
 		github: "https://github.com/raphaelandrews",
 	},
 }
