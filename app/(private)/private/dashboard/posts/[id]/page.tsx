@@ -12,6 +12,7 @@ export interface Post {
 	image: string
 	content: string
 	slug: string
+	updatedAt: Date | null
 }
 
 async function getPost(postId: string) {
@@ -41,7 +42,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 				<h3 className="font-medium text-lg">Editor</h3>
 				<p className="py-2 text-muted-foreground text-sm">Update your post</p>
 			</div>
-			<Separator className="mb-5 max-w-2xl" />
+			<Separator className="mb-5" />
 			<Editor post={post} />
 		</>
 	)

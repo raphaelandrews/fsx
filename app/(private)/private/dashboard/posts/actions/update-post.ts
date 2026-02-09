@@ -1,13 +1,21 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { eq } from "drizzle-orm"
 import z from "zod"
 
 import { db } from "@/db"
 import { posts } from "@/db/schema"
-import type { Post } from "../[id]/page"
 
-export async function UpdatePost(post: Post) {
+interface UpdatePostInput {
+	id: string
+	title: string
+	slug: string
+	image: string
+	content: string
+}
+
+export async function UpdatePost(post: UpdatePostInput) {
 	try {
 		const updatedPosts = await db
 			.update(posts)
@@ -16,6 +24,7 @@ export async function UpdatePost(post: Post) {
 				slug: post.slug,
 				image: post.image,
 				content: post.content,
+				updatedAt: new Date(),
 			})
 			.where(eq(posts.id, post.id))
 			.returning()
@@ -25,7 +34,14 @@ export async function UpdatePost(post: Post) {
 			return null
 		}
 
-		return updatedPosts[0]
+		const updatedPost = updatedPosts[0]
+
+		revalidatePath("/")
+		revalidatePath(`/noticias/${updatedPost.slug}`)
+		revalidatePath("/noticias")
+		revalidatePath("/private/dashboard/posts")
+
+		return updatedPost
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			console.error("Validation error during post update:", error.errors)

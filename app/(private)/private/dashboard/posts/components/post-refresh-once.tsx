@@ -10,6 +10,7 @@ const PostRefreshOnce = () => {
 
 	React.useEffect(() => {
 		if (search === "refresh") {
+			router.replace("/private/dashboard/posts")
 			router.refresh()
 		}
 	}, [search, router])

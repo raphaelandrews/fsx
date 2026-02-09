@@ -43,7 +43,7 @@ const getPageNumbers = (totalPages: number, currentPage: number) => {
 
 export async function AnnouncementList({ currentPage }: AnnouncementListProps) {
 	const { announcements, pagination } =
-		await getAnnouncementsByPage(currentPage)
+		await getAnnouncementsByPage(currentPage)()
 	const { totalPages, hasNextPage, hasPreviousPage } = pagination
 
 	return (

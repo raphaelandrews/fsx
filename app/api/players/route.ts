@@ -33,7 +33,7 @@ export async function GET(request: Request) {
 			locations: searchParams.getAll("location"),
 		}
 
-		const { players, pagination } = await getPlayersWithFilters(filters)
+		const { players, pagination } = await getPlayersWithFilters(filters)()
 
 		const validation = APIPlayersWithFiltersResponseSchema.safeParse({
 			success: true,

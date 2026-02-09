@@ -42,7 +42,7 @@ const getPageNumbers = (totalPages: number, currentPage: number) => {
 };
 
 export async function NewsList({ currentPage }: NewsListProps) {
-  const { posts, pagination } = await getPostsByPage(currentPage);
+  const { posts, pagination } = await getPostsByPage(currentPage)();
   const { totalPages, hasNextPage, hasPreviousPage } = pagination;
 
   return (

@@ -11,25 +11,29 @@ function normalizeText(text: string): string {
 		.toLowerCase()
 }
 
-export const getSearchPlayers = unstable_cache(
-	(query: string) =>
-		db
-			.select({
-				id: players.id,
-				name: players.name,
-			})
-			.from(players)
-			.where(
-				query.trim()
-					? sql`LOWER(${players.name}) ILIKE ${`%${query}%`} OR LOWER(translate(${players.name}, 'áàâãäéèêëíìîïóòôõöúùûüýÿ', 'aaaaaeeeeiiiiooooouuuuyy')) ILIKE ${`%${normalizeText(query)}%`}`
-					: sql`1=1`
-			)
-			.orderBy(desc(players.rapid))
-			.limit(10)
-			.execute(),
-	["get-search-players"],
-	{
-		revalidate: 60 * 60 * 24 * 15,
-		tags: ["players", "search-players"],
-	}
-)
+export const getSearchPlayers = (query: string) => {
+	const normalizedQuery = normalizeText(query.trim())
+
+	return unstable_cache(
+		() =>
+			db
+				.select({
+					id: players.id,
+					name: players.name,
+				})
+				.from(players)
+				.where(
+					normalizedQuery
+						? sql`LOWER(${players.name}) ILIKE ${`%${query}%`} OR LOWER(translate(${players.name}, 'áàâãäéèêëíìîïóòôõöúùûüýÿ', 'aaaaaeeeeiiiiooooouuuuyy')) ILIKE ${`%${normalizedQuery}%`}`
+						: sql`1=1`
+				)
+				.orderBy(desc(players.rapid))
+				.limit(10)
+				.execute(),
+		["get-search-players", normalizedQuery],
+		{
+			revalidate: 60 * 60 * 24 * 15,
+			tags: ["players", "search-players"],
+		}
+	)
+}

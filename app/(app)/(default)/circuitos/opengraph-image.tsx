@@ -1,0 +1,12 @@
+import { generateDefaultOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og-utils"
+
+export const size = OG_SIZE
+export const contentType = OG_CONTENT_TYPE
+export const alt = "Circuitos"
+
+export default function Image() {
+	return generateDefaultOG({
+		title: "Circuitos",
+		description: "Circuitos e competições de xadrez em Sergipe.",
+	})
+}

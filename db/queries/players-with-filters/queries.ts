@@ -47,29 +47,49 @@ function getBirthDateRange(group: string): [Date, Date] | undefined {
 	}
 }
 
-export const getPlayersWithFilters = unstable_cache(
-	async (params: {
-		page?: number
-		limit?: number
-		sex?: boolean
-		titles?: string[]
-		clubs?: string[]
-		groups?: string[]
-		locations?: string[]
-		sortBy?: "rapid" | "blitz" | "classic"
-		name?: string
-	}) => {
-		const {
-			page = 1,
-			limit = 20,
-			sex,
-			titles: titleFilters = [],
-			clubs: clubFilters = [],
-			groups: groupFilters = [],
-			locations: locationFilters = [],
-			sortBy = "rapid",
-			name,
-		} = params
+interface PlayersFilterParams {
+	page?: number
+	limit?: number
+	sex?: boolean
+	titles?: string[]
+	clubs?: string[]
+	groups?: string[]
+	locations?: string[]
+	sortBy?: "rapid" | "blitz" | "classic"
+	name?: string
+}
+
+function createFilterCacheKey(params: PlayersFilterParams): string {
+	return JSON.stringify({
+		page: params.page ?? 1,
+		limit: params.limit ?? 20,
+		sex: params.sex,
+		titles: (params.titles ?? []).sort(),
+		clubs: (params.clubs ?? []).sort(),
+		groups: (params.groups ?? []).sort(),
+		locations: (params.locations ?? []).sort(),
+		sortBy: params.sortBy ?? "rapid",
+		name: params.name ?? "",
+	})
+}
+
+export const getPlayersWithFilters = (params: PlayersFilterParams) => {
+	const {
+		page = 1,
+		limit = 20,
+		sex,
+		titles: titleFilters = [],
+		clubs: clubFilters = [],
+		groups: groupFilters = [],
+		locations: locationFilters = [],
+		sortBy = "rapid",
+		name,
+	} = params
+
+	const cacheKey = createFilterCacheKey(params)
+
+	return unstable_cache(
+		async () => {
 
 		const whereConditions = [eq(players.active, true)]
 
@@ -246,21 +266,22 @@ export const getPlayersWithFilters = unstable_cache(
 			}
 		}
 
-		return {
-			players: Array.from(playersMap.values()),
-			pagination: {
-				currentPage: page,
-				totalPages,
-				totalItems: uniquePlayerCount,
-				itemsPerPage: limit,
-				hasNextPage: page < totalPages,
-				hasPreviousPage: page > 1,
-			},
+			return {
+				players: Array.from(playersMap.values()),
+				pagination: {
+					currentPage: page,
+					totalPages,
+					totalItems: uniquePlayerCount,
+					itemsPerPage: limit,
+					hasNextPage: page < totalPages,
+					hasPreviousPage: page > 1,
+				},
+			}
+		},
+		["get-players-with-filters", cacheKey],
+		{
+			revalidate: 60 * 60 * 24 * 15,
+			tags: ["players", "players-with-filters"],
 		}
-	},
-	["get-players-with-filters"],
-	{
-		revalidate: 60 * 60 * 24 * 15,
-		tags: ["players","players-with-filters"],
-	}
-)
+	)
+}

@@ -8,7 +8,10 @@ const nextConfig: NextConfig = {
 		viewTransition: true,
 	},
 	images: {
-		domains: ["files.edgestore.dev"],
+		domains: [
+			"files.edgestore.dev",
+			"xfsdbjqtliawxkyddoee.supabase.co",
+		],
 	},
 }
 
