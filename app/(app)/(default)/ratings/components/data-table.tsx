@@ -28,12 +28,19 @@ import { DataTablePagination } from "./data-table-pagination"
 import { DataTableToolbar } from "./data-table-toolbar"
 import { DataTableSkeletonRow } from "./data-table-skeleton"
 
+type FilterOption = {
+	value: string
+	label: string
+}
+
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]
 	data: TData[]
 	totalPages?: number
 	isLoading?: boolean
 	pageSize?: number
+	clubs: FilterOption[]
+	locations: FilterOption[]
 }
 
 export function DataTable<TData, TValue>({
@@ -42,6 +49,8 @@ export function DataTable<TData, TValue>({
 	totalPages = 1,
 	isLoading = false,
 	pageSize = 20,
+	clubs,
+	locations,
 }: DataTableProps<TData, TValue>) {
 	const [rowSelection, setRowSelection] = React.useState({})
 	const [columnVisibility, setColumnVisibility] =
@@ -81,7 +90,7 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className="space-y-4">
-			<DataTableToolbar />
+			<DataTableToolbar clubs={clubs} locations={locations} />
 			<Table>
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
