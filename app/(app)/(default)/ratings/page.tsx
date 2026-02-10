@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { BarChart2Icon } from "lucide-react"
 
 import { siteConfig } from "@/lib/site"
+import { getClubs, getLocations } from "@/db/queries"
 
 import { Client } from "./client"
 import { Announcement } from "@/components/announcement"
@@ -19,6 +20,21 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
+	const [clubsData, locationsData] = await Promise.all([
+		getClubs(),
+		getLocations(),
+	])
+
+	const clubs = clubsData.map((club) => ({
+		value: club.name,
+		label: club.name,
+	}))
+
+	const locations = locationsData.map((location) => ({
+		value: location.name,
+		label: location.name,
+	}))
+
 	return (
 		<>
 			<PageHeader>
@@ -26,7 +42,7 @@ export default async function Page() {
 				<PageHeaderHeading>Ratings</PageHeaderHeading>
 			</PageHeader>
 
-			<Client />
+			<Client clubs={clubs} locations={locations} />
 		</>
 	)
 }

@@ -20,16 +20,25 @@ import {
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+type FilterOption = {
+  value: string;
+  label: string;
+};
+
 interface RatingsTablesProps {
   initialPlayers?: Players[];
   initialPagination?: {
     totalPages: number;
   };
+  clubs: FilterOption[];
+  locations: FilterOption[];
 }
 
 export function Client({
   initialPlayers = [],
   initialPagination = { totalPages: 0 },
+  clubs,
+  locations,
 }: RatingsTablesProps) {
   const [players, setPlayers] = React.useState(initialPlayers);
   const [pagination, setPagination] = React.useState(initialPagination);
@@ -52,14 +61,14 @@ export function Client({
       const titles = searchParams.getAll("title");
       for (const title of titles) params.append("title", title);
 
-      const clubs = searchParams.getAll("club");
-      for (const club of clubs) params.append("club", club);
+      const clubsParam = searchParams.getAll("club");
+      for (const club of clubsParam) params.append("club", club);
 
       const groups = searchParams.getAll("group");
       for (const group of groups) params.append("group", group);
 
-      const locations = searchParams.getAll("location");
-      for (const location of locations) params.append("location", location);
+      const locationsParam = searchParams.getAll("location");
+      for (const location of locationsParam) params.append("location", location);
 
       const response = await fetch(`/api/players?${params.toString()}`);
       const data = await response.json();
@@ -102,6 +111,8 @@ export function Client({
           isLoading={isLoading}
           pageSize={currentLimit}
           totalPages={pagination.totalPages}
+          clubs={clubs}
+          locations={locations}
         />
       </TabsContent>
 
@@ -112,6 +123,8 @@ export function Client({
           isLoading={isLoading}
           pageSize={currentLimit}
           totalPages={pagination.totalPages}
+          clubs={clubs}
+          locations={locations}
         />
       </TabsContent>
 
@@ -122,6 +135,8 @@ export function Client({
           isLoading={isLoading}
           pageSize={currentLimit}
           totalPages={pagination.totalPages}
+          clubs={clubs}
+          locations={locations}
         />
       </TabsContent>
     </Tabs>

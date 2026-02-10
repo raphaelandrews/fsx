@@ -5,6 +5,10 @@ import {
 	TreePalmIcon,
 	StickyNoteIcon,
 	UserIcon,
+	CalendarIcon,
+	MegaphoneIcon,
+	BuildingIcon,
+	MapPinIcon,
 } from "lucide-react"
 
 type NavigationItem = {
@@ -32,6 +36,26 @@ export const navigationData: Navigation = () => [
 		label: "Players",
 		href: "/private/dashboard/players",
 		icon: UserIcon,
+	},
+	{
+		label: "Events",
+		href: "/private/dashboard/events",
+		icon: CalendarIcon,
+	},
+	{
+		label: "Announcements",
+		href: "/private/dashboard/announcements",
+		icon: MegaphoneIcon,
+	},
+	{
+		label: "Clubs",
+		href: "/private/dashboard/clubs",
+		icon: BuildingIcon,
+	},
+	{
+		label: "Locations",
+		href: "/private/dashboard/locations",
+		icon: MapPinIcon,
 	},
 	{
 		label: "Rating Update",

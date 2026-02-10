@@ -4,12 +4,22 @@ import React from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { XIcon } from "lucide-react"
 
-import { birthdays, clubs, locations, sexes, titles } from "./data/data"
+import { birthdays, sexes, titles } from "./data/data"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-export function DataTableToolbar() {
+type FilterOption = {
+	value: string
+	label: string
+}
+
+interface DataTableToolbarProps {
+	clubs: FilterOption[]
+	locations: FilterOption[]
+}
+
+export function DataTableToolbar({ clubs, locations }: DataTableToolbarProps) {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const pathname = usePathname()
