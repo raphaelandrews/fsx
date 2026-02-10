@@ -4,6 +4,7 @@ import {
 	DatabaseIcon,
 	TreePalmIcon,
 	StickyNoteIcon,
+	UserIcon,
 } from "lucide-react"
 
 type NavigationItem = {
@@ -26,6 +27,11 @@ export const navigationData: Navigation = () => [
 		label: "Posts",
 		href: "/private/dashboard/posts",
 		icon: StickyNoteIcon,
+	},
+	{
+		label: "Players",
+		href: "/private/dashboard/players",
+		icon: UserIcon,
 	},
 	{
 		label: "Rating Update",

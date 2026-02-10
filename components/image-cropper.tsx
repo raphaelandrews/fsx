@@ -20,6 +20,10 @@ interface ImageCropperProps {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	onCropComplete: (croppedBlob: Blob) => void
+	aspectRatio?: number
+	outputWidth?: number
+	title?: string
+	description?: string
 }
 
 function centerAspectCrop(
@@ -47,6 +51,10 @@ export function ImageCropper({
 	open,
 	onOpenChange,
 	onCropComplete,
+	aspectRatio = 16 / 9,
+	outputWidth = 600,
+	title = "Crop Image",
+	description = "Adjust the crop area.",
 }: ImageCropperProps) {
 	const [crop, setCrop] = useState<Crop>()
 	const [completedCrop, setCompletedCrop] = useState<CropArea | null>(null)
@@ -56,9 +64,9 @@ export function ImageCropper({
 	const onImageLoad = useCallback(
 		(e: React.SyntheticEvent<HTMLImageElement>) => {
 			const { width, height } = e.currentTarget
-			setCrop(centerAspectCrop(width, height, 16 / 9))
+			setCrop(centerAspectCrop(width, height, aspectRatio))
 		},
-		[]
+		[aspectRatio]
 	)
 
 	const handleCropChange = useCallback((newCrop: Crop) => {
@@ -88,7 +96,10 @@ export function ImageCropper({
 
 		setIsProcessing(true)
 		try {
-			const croppedBlob = await cropImage(imageSrc, completedCrop)
+			const croppedBlob = await cropImage(imageSrc, completedCrop, {
+				outputWidth,
+				aspectRatio,
+			})
 			onCropComplete(croppedBlob)
 			onOpenChange(false)
 		} catch (error) {
@@ -108,10 +119,8 @@ export function ImageCropper({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="max-w-3xl">
 				<DialogHeader>
-					<DialogTitle>Crop Image</DialogTitle>
-					<DialogDescription>
-						Adjust the crop area to fit a 16:9 aspect ratio for the cover image.
-					</DialogDescription>
+					<DialogTitle>{title}</DialogTitle>
+					<DialogDescription>{description}</DialogDescription>
 				</DialogHeader>
 
 				<div className="flex items-center justify-center overflow-hidden rounded-lg bg-muted">
@@ -119,7 +128,7 @@ export function ImageCropper({
 						crop={crop}
 						onChange={handleCropChange}
 						onComplete={handleCropComplete}
-						aspect={16 / 9}
+						aspect={aspectRatio}
 						className="max-h-[60vh]"
 					>
 						<img
