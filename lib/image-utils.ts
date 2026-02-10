@@ -53,23 +53,33 @@ export async function convertToWebP(
 	})
 }
 
+interface CropOptions {
+	outputWidth?: number
+	aspectRatio?: number
+	quality?: number
+}
+
 /**
  * Crop an image to the specified area and return as WebP blob
- * Output: 600x338 (16:9) by default to save storage
+ * Default: 600px wide, 16:9 aspect ratio
  */
 export async function cropImage(
 	imageSrc: string,
 	crop: CropArea,
-	outputWidth: number = 600
+	options: CropOptions = {}
 ): Promise<Blob> {
+	const {
+		outputWidth = 600,
+		aspectRatio = 16 / 9,
+		quality = 0.85,
+	} = options
+
 	return new Promise((resolve, reject) => {
 		const img = new Image()
 
 		img.onload = () => {
 			const canvas = document.createElement("canvas")
 
-			// Calculate output dimensions maintaining 16:9 aspect ratio
-			const aspectRatio = 16 / 9
 			const outputHeight = Math.round(outputWidth / aspectRatio)
 
 			canvas.width = outputWidth
@@ -81,7 +91,6 @@ export async function cropImage(
 				return
 			}
 
-			// Draw the cropped portion of the image
 			ctx.drawImage(
 				img,
 				crop.x,
@@ -103,7 +112,7 @@ export async function cropImage(
 					}
 				},
 				"image/webp",
-				0.85
+				quality
 			)
 		}
 

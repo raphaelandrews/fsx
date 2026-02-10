@@ -5,8 +5,8 @@ import { ImageIcon, UploadIcon, XIcon, Loader2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { ImageCropper } from "./image-cropper"
-import { uploadPostImage, deletePostImage } from "@/lib/supabase-storage"
+import { ImageCropper } from "@/components/image-cropper"
+import { uploadPostImage, deletePostImage } from "@/lib/supabase-storage-posts"
 import { createPreviewUrl, revokePreviewUrl } from "@/lib/image-utils"
 import { cn } from "@/lib/utils"
 
@@ -192,6 +192,10 @@ export function ImageUpload({
 						open={cropperOpen}
 						onOpenChange={handleCropperClose}
 						onCropComplete={handleCropComplete}
+						aspectRatio={16 / 9}
+						outputWidth={600}
+						title="Crop Cover Image"
+						description="Adjust the crop area to fit a 16:9 aspect ratio."
 					/>
 				)}
 			</>
