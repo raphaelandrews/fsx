@@ -11,6 +11,7 @@ import { columnsBlitz, columnsClassic, columnsRapid } from "./columns"
 import { Section } from "@/components/home/section"
 import { RatingUpdateTooltip } from "@/components/rating-update-tooltip"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DottedX } from "@/components/dotted-x"
 
 type SuccessResponse = Extract<APITopPlayersResponse, { success: true }>
 
@@ -29,48 +30,50 @@ export function TopPlayers({ topPlayers }: any) {
 	const currentData = topPlayers[tabMap[currentTab]]
 
 	return (
-		<Section href={"/ratings"} icon={BarChart2Icon} label="Rating" main={false}>
-			<Tabs
-				className="w-full"
-				onValueChange={(value) => setCurrentTab(value as TabValue)}
-				value={currentTab}
-			>
-				<div className="flex flex-col items-start gap-3 mb-4 sm:flex-row sm:items-center">
-					<TabsList className="w-full sm:w-auto">
-						<TabsTrigger
-							className="w-full transition-colors hover:bg-accent/50 sm:w-24"
-							value="classic"
-						>
-							Clássico
-						</TabsTrigger>
-						<TabsTrigger
-							className="w-full transition-colors hover:bg-accent/50 sm:w-24"
-							value="rapid"
-						>
-							Rápido
-						</TabsTrigger>
-						<TabsTrigger
-							className="w-full transition-colors hover:bg-accent/50 sm:w-24"
-							value="blitz"
-						>
-							Blitz
-						</TabsTrigger>
-					</TabsList>
-					<RatingUpdateTooltip />
-				</div>
+		<Section icon={BarChart2Icon} label="Rating" main={false}>
+			<DottedX>
+				<Tabs
+					className="w-full"
+					onValueChange={(value) => setCurrentTab(value as TabValue)}
+					value={currentTab}
+				>
+					<div className="flex flex-col items-start gap-3 mb-4 sm:flex-row sm:items-center">
+						<TabsList className="w-full sm:w-auto">
+							<TabsTrigger
+								className="w-full transition-colors hover:bg-accent/50 sm:w-24"
+								value="classic"
+							>
+								Clássico
+							</TabsTrigger>
+							<TabsTrigger
+								className="w-full transition-colors hover:bg-accent/50 sm:w-24"
+								value="rapid"
+							>
+								Rápido
+							</TabsTrigger>
+							<TabsTrigger
+								className="w-full transition-colors hover:bg-accent/50 sm:w-24"
+								value="blitz"
+							>
+								Blitz
+							</TabsTrigger>
+						</TabsList>
+						<RatingUpdateTooltip />
+					</div>
 
-				<TabsContent className="mt-0" value="classic">
-					<DataTableWrapper columns={columnsClassic} data={currentData} />
-				</TabsContent>
+					<TabsContent className="mt-0" value="classic">
+						<DataTableWrapper columns={columnsClassic} data={currentData} />
+					</TabsContent>
 
-				<TabsContent className="mt-0" value="rapid">
-					<DataTableWrapper columns={columnsRapid} data={currentData} />
-				</TabsContent>
+					<TabsContent className="mt-0" value="rapid">
+						<DataTableWrapper columns={columnsRapid} data={currentData} />
+					</TabsContent>
 
-				<TabsContent className="mt-0" value="blitz">
-					<DataTableWrapper columns={columnsBlitz} data={currentData} />
-				</TabsContent>
-			</Tabs>
+					<TabsContent className="mt-0" value="blitz">
+						<DataTableWrapper columns={columnsBlitz} data={currentData} />
+					</TabsContent>
+				</Tabs>
+			</DottedX>
 		</Section>
 	)
 }

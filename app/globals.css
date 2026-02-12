@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-	--font-sans: var(--font-plus-jakarta-sans), "sans-serif";
+	--font-sans: Geist, "sans-serif";
 }
 
 @layer base {
@@ -54,13 +54,23 @@
 		background-repeat: no-repeat;
 	}
 
-	.dotted-border-y {
+	.dotted-line-horizontal {
 		background-image: repeating-linear-gradient(to right,
 				var(--border) 0px,
 				var(--border) 6px,
 				transparent 6px,
 				transparent 14px);
 		background-size: 100% 1px;
+		background-repeat: no-repeat;
+	}
+
+	.dotted-line-vertical {
+		background-image: repeating-linear-gradient(to bottom,
+				var(--border) 0px,
+				var(--border) 6px,
+				transparent 6px,
+				transparent 14px);
+		background-size: 1px 100%;
 		background-repeat: no-repeat;
 	}
 

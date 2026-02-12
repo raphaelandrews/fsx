@@ -53,32 +53,35 @@ export function PostCard({
 	return (
 		<Link
 			aria-label={`Read posts: ${title}`}
-			className="group"
+			className="group p-3"
 			href={`/noticias/${slug}`}
 			onMouseEnter={onMouseEnter}
 		>
-			<ViewTransition name={`image-${slug}`}>
-				{/** biome-ignore lint/performance/noImgElement: No */}
-				<img
-					alt={title}
-					className="aspect-[2/1] w-full rounded-md object-cover transition-opacity duration-300"
-					decoding="async"
-					loading="lazy"
-					src={image}
-					style={{ opacity: imageLoaded ? 1 : 0 }}
-				/>
-			</ViewTransition>
-			<ViewTransition name={`title-${slug}`}>
-				<h2
-					className={`${
-						main
+			<div className="p-[4px] rounded-[10px] border border-border">
+				<ViewTransition name={`image-${slug}`}>
+					{/** biome-ignore lint/performance/noImgElement: No */}
+					<img
+						alt={title}
+						className="aspect-[2/1] w-full rounded-md object-cover transition-opacity duration-300"
+						decoding="async"
+						loading="lazy"
+						src={image}
+						style={{ opacity: imageLoaded ? 1 : 0 }}
+					/>
+				</ViewTransition>
+			</div>
+			<div className="px-2 flex flex-col gap-1">
+				<ViewTransition name={`title-${slug}`}>
+					<h2
+						className={`${main
 							? "font-bold tracking-tight md:text-xl"
 							: "font-semibold text-sm leading-5"
-					} text-balance mt-2 line-clamp-2`}
-				>
-					{title}
-				</h2>
-			</ViewTransition>
+							} text-balance mt-2 line-clamp-2`}
+					>
+						{title}
+					</h2>
+				</ViewTransition>
+			</div>
 		</Link>
 	)
 }

@@ -6,23 +6,33 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
 import { StatusDot } from "./status-dot"
+import { DottedSeparator } from "@/components/dotted-separator"
+import { DottedX } from "@/components/dotted-x"
 
 export function Events({ events }: { events: Event[] }) {
 	return (
 		<Section icon={TrophyIcon} label="Próximos Eventos" main={false}>
-			<div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-				{events?.map((event: Event) => (
-					<EventCard
-						form={event.form}
-						key={event.id}
-						name={event.name}
-						regulation={event.regulation}
-						startDate={event.startDate}
-						timeControl={event.timeControl}
-						type={event.type}
-					/>
-				))}
-			</div>
+			<DottedX className="p-0">
+				<div className="relative grid sm:grid-cols-2">
+					<div className="absolute top-1/2 left-0 w-full -translate-y-1/2 z-0 hidden md:block">
+						<DottedSeparator />
+					</div>
+					<div className="absolute left-1/2 top-0 h-full -translate-x-1/2 z-0 hidden md:block">
+						<DottedSeparator vertical />
+					</div>
+					{events?.map((event: Event) => (
+						<EventCard
+							form={event.form}
+							key={event.id}
+							name={event.name}
+							regulation={event.regulation}
+							startDate={event.startDate}
+							timeControl={event.timeControl}
+							type={event.type}
+						/>
+					))}
+				</div>
+			</DottedX>
 		</Section>
 	)
 }
@@ -66,47 +76,49 @@ function EventCard({
 		.replace(":", "h")
 
 	return (
-		<div className="grid content-between gap-3 w-full rounded-lg border-2 bg-muted p-4 dark:border-none dark:bg-[#121212]">
-			<div className="grid gap-3 w-full">
-				<div className="flex justify-between gap-1">
-					<h3 className="line-clamp-2 font-medium text-foreground/80 leading-none">
-						{name}
-					</h3>
-					<StatusDot date={startDate} />
+		<div className="p-3">
+			<div className="grid content-between gap-3 w-full rounded-lg border-2 bg-muted p-4 dark:border-none dark:bg-[#121212]">
+				<div className="grid gap-3 w-full">
+					<div className="flex justify-between gap-1">
+						<h3 className="line-clamp-2 font-medium text-foreground/80 leading-none">
+							{name}
+						</h3>
+						<StatusDot date={startDate} />
+					</div>
+					<div className="mt-3 flex gap-1 font-medium text-foreground/60 text-xs">
+						<Badge variant="outline">
+							<CalendarIcon size={12} />
+							<span>{formattedDate}</span>
+						</Badge>
+						<Badge variant="outline">
+							<ClockIcon size={12} />
+							<span>{formattedTime}</span>
+						</Badge>
+					</div>
+					<div className="flex gap-1">
+						{formattedBadge({ type })}
+						{formattedBadge({ timeControl })}
+					</div>
 				</div>
-				<div className="mt-3 flex gap-1 font-medium text-foreground/60 text-xs">
-					<Badge variant="outline">
-						<CalendarIcon size={12} />
-						<span>{formattedDate}</span>
-					</Badge>
-					<Badge variant="outline">
-						<ClockIcon size={12} />
-						<span>{formattedTime}</span>
-					</Badge>
-				</div>
-				<div className="flex gap-1">
-					{formattedBadge({ type })}
-					{formattedBadge({ timeControl })}
-				</div>
+				{form && regulation ? (
+					<div className="grid grid-cols-2 gap-1.5">
+						<Button asChild variant="outline">
+							<a href={form} rel="noreferrer" target="_blank">
+								Formulário
+							</a>
+						</Button>
+						<Button asChild>
+							<a href={regulation} rel="noreferrer" target="_blank">
+								Regulamento
+							</a>
+						</Button>
+					</div>
+				) : (
+					<Button variant="secondary" disabled={true} className="w-full">
+						Em Breve
+					</Button>
+				)}
 			</div>
-			{form && regulation ? (
-				<div className="grid grid-cols-2 gap-1.5">
-					<Button asChild variant="outline">
-						<a href={form} rel="noreferrer" target="_blank">
-							Formulário
-						</a>
-					</Button>
-					<Button asChild>
-						<a href={regulation} rel="noreferrer" target="_blank">
-							Regulamento
-						</a>
-					</Button>
-				</div>
-			) : (
-				<Button variant="secondary" disabled={true} className="w-full">
-					Em Breve
-				</Button>
-			)}
 		</div>
 	)
 }

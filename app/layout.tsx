@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google"
+import { Geist, Geist_Mono } from "next/font/google"
 
 import "./globals.css"
 import { Providers } from "@/components/providers"
@@ -13,11 +13,6 @@ const geistMono = Geist_Mono({
 	subsets: ["latin"],
 })
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-	variable: "--font-plus-jakarta-sans",
-	subsets: ["latin"],
-})
-
 export default function RootLayout({
 	children,
 }: Readonly<{
@@ -26,7 +21,7 @@ export default function RootLayout({
 	return (
 		<html lang="pt-BR" suppressHydrationWarning>
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} antialiased`}
+				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
 				<Providers>{children}</Providers>
 			</body>
