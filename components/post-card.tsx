@@ -72,8 +72,8 @@ export function PostCard({
 				<h2
 					className={`${
 						main
-							? "font-medium tracking-tight md:text-xl"
-							: "font-normal text-sm leading-5"
+							? "font-bold tracking-tight md:text-xl"
+							: "font-semibold text-sm leading-5"
 					} text-balance mt-2 line-clamp-2`}
 				>
 					{title}

@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Announcement } from "@/components/announcement"
+import { DottedY } from "../dotted-y"
 
 interface Props {
 	label?: string
@@ -21,10 +22,11 @@ export function Section({
 	children,
 }: Props) {
 	return (
-		<section className={cn(className, "my-10")}>
+		<section className={cn(className)}>
 			{!main && <Announcement href={href} icon={icon} label={label} />}
 
-			<div className="mt-3">{children}</div>
+			<div className="max-w-[720px] mx-2 sm:mx-8 md:mx-auto relative p-3">{children}</div>
+			<DottedY />
 		</section>
 	)
 }

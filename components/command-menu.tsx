@@ -237,7 +237,7 @@ export function CommandMenu({ ...props }: DialogProps) {
 			<DialogTrigger asChild>
 				<Button
 					className={cn(
-						"relative h-8 w-full justify-start bg-surface pl-2.5 font-normal text-surface-foreground/60 shadow-none sm:pr-12 md:w-40 lg:w-56 xl:w-64 dark:bg-card"
+						"relative h-8 w-full justify-start bg-muted/40 pl-2.5 font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-56 xl:w-64 dark:bg-card"
 					)}
 					onClick={() => setOpen(true)}
 					variant="secondary"
