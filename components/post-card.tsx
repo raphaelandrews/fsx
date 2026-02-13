@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { ViewTransition } from "react"
 import Link from "next/link"
 
+import { cn } from "@/lib/utils"
 import type { FreshPost } from "@/db/queries"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -18,7 +19,8 @@ export function PostCard({
 	slug,
 	main,
 	onMouseEnter,
-}: PostCardProps) {
+	className,
+}: PostCardProps & { className?: string }) {
 	const [loading, setLoading] = useState(true)
 	const [imageLoaded, setImageLoaded] = useState(false)
 
@@ -53,7 +55,7 @@ export function PostCard({
 	return (
 		<Link
 			aria-label={`Read posts: ${title}`}
-			className="group p-3"
+			className={cn("group p-3", className)}
 			href={`/noticias/${slug}`}
 			onMouseEnter={onMouseEnter}
 		>
@@ -62,7 +64,7 @@ export function PostCard({
 					{/** biome-ignore lint/performance/noImgElement: No */}
 					<img
 						alt={title}
-						className="aspect-[2/1] w-full rounded-md object-cover transition-opacity duration-300"
+						className="aspect-[2/1] w-full rounded-md border border-border object-cover transition-opacity duration-300"
 						decoding="async"
 						loading="lazy"
 						src={image}
@@ -74,7 +76,7 @@ export function PostCard({
 				<ViewTransition name={`title-${slug}`}>
 					<h2
 						className={`${main
-							? "font-bold tracking-tight md:text-xl"
+							? "font-bold tracking-tight md:text-lg"
 							: "font-semibold text-sm leading-5"
 							} text-balance mt-2 line-clamp-2`}
 					>

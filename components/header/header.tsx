@@ -8,6 +8,7 @@ import { ModeSwitcher } from "@/components/mode-switcher"
 import { UpdateRegister } from "@/components/update-register"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { DottedSeparator } from "@/components/dotted-separator"
 
 export function Header() {
 	return (
@@ -58,6 +59,7 @@ export function Header() {
 					</Suspense>
 				</div>
 			</div>
+			<DottedSeparator/>
 		</header>
 	)
 }

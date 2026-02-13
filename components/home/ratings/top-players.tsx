@@ -12,6 +12,7 @@ import { Section } from "@/components/home/section"
 import { RatingUpdateTooltip } from "@/components/rating-update-tooltip"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DottedX } from "@/components/dotted-x"
+import { DottedButton } from "@/components/dotted-button"
 
 type SuccessResponse = Extract<APITopPlayersResponse, { success: true }>
 
@@ -74,6 +75,7 @@ export function TopPlayers({ topPlayers }: any) {
 					</TabsContent>
 				</Tabs>
 			</DottedX>
+			<DottedButton href="/rating" label="Ver Rating" />
 		</Section>
 	)
 }

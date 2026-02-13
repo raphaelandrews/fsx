@@ -3,9 +3,10 @@ import { NewspaperIcon } from "lucide-react"
 import type { FreshPost } from "@/db/queries"
 
 import { Section } from "./section"
+import { DottedButton } from "@/components/dotted-button"
+import { DottedSeparator } from "@/components/dotted-separator"
 import { DottedX } from "@/components/dotted-x"
 import { PostCard } from "@/components/post-card"
-import { DottedSeparator } from "@/components/dotted-separator"
 
 interface PostsSectionProps {
 	posts: FreshPost[]
@@ -35,6 +36,7 @@ export function Posts({ posts }: PostsSectionProps) {
 					))}
 				</div>
 			</DottedX>
+			<DottedButton href="/noticias" label="Ver Notícias" />
 		</Section>
 	)
 }

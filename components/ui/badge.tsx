@@ -28,6 +28,7 @@ const badgeVariants = cva(
         blueberry: "border-transparent bg-blueberry text-blueberry-foreground [a&]:hover:bg-blueberry/90",
         jam: "border-transparent bg-jam text-jam-foreground [a&]:hover:bg-jam/90",
         mulberry: "border-transparent bg-mulberry text-mulberry-foreground [a&]:hover:bg-mulberry/90",
+        ghost: "border-transparent text-muted-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
       },
     },
     defaultVariants: {

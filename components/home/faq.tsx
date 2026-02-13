@@ -68,7 +68,7 @@ export function FAQ() {
 						<AccordionTrigger className="text-left pb-0">
 							Como fico sabendo quando terá torneio?
 						</AccordionTrigger>
-						<AccordionContent>
+						<AccordionContent className="pb-0">
 							Acesse nosso{" "}
 							<a
 								className="text-blue-500 hover:underline"

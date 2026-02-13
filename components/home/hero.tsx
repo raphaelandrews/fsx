@@ -15,10 +15,12 @@ export function Hero({ posts }: PostsSectionProps) {
 	const mainPosts = posts.slice(0, 2)
 
 	return (
-		<Section className="!mt-4" icon={FlameIcon} main={true}>
-			<DottedSeparator />
-			<DottedX>
-				<div className="grid gap-8 sm:grid-cols-2">
+		<Section icon={FlameIcon} main={true}>
+			<DottedX className="p-0">
+				<div className="relative grid sm:grid-cols-2">
+					<div className="absolute left-1/2 top-0 h-full -translate-x-1/2 z-0 hidden md:block">
+						<DottedSeparator vertical />
+					</div>
 					{mainPosts?.map((posts: FreshPost) => (
 						<PostCard
 							id={posts.id}
@@ -28,7 +30,7 @@ export function Hero({ posts }: PostsSectionProps) {
 							slug={posts.slug ?? null}
 							title={posts.title}
 						/>
-					))}
+						))}
 				</div>
 			</DottedX>
 		</Section>
