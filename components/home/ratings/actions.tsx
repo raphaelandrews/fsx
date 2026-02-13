@@ -5,44 +5,45 @@ import React from "react"
 import { formatDefendingChampions } from "@/lib/defending-champions"
 import { getGradient } from "@/lib/generate-gradients"
 
-import { PlayerSheet } from "@/components/sheets/player/player-sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
+import { PlayerSheet } from "@/components/sheets/player/player-sheet"
+
 interface Props {
-	id: number
-	name: string
-	nickname?: string | null
-	image?: string | null
-	shortTitle?: string | null
-	defendingChampions?:
-		| {
-				championship: {
-					name: string
-				}
-		  }[]
-		| null
+  id: number
+  name: string
+  nickname?: string | null
+  image?: string | null
+  shortTitle?: string | null
+  defendingChampions?:
+  | {
+    championship: {
+      name: string
+    }
+  }[]
+  | null
 }
 
 export const Actions = ({
-	id,
-	name,
-	nickname,
-	image,
-	shortTitle,
-	defendingChampions,
+  id,
+  name,
+  nickname,
+  image,
+  shortTitle,
+  defendingChampions,
 }: Props) => {
-	const [open, setOpen] = React.useState(false)
-	const gradient = getGradient(id)
+  const [open, setOpen] = React.useState(false)
+  const gradient = getGradient(id)
 
-	const handleKeyboardEvent = (event: React.KeyboardEvent) => {
-		if (event.key === "Enter" || event.key === " ") {
-			event.preventDefault()
-			setOpen(true)
-		}
-	}
+  const handleKeyboardEvent = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault()
+      setOpen(true)
+    }
+  }
 
-	return (
+  return (
     <>
       <div className="group flex items-center gap-3">
         <Button
@@ -74,7 +75,7 @@ export const Actions = ({
         )}
       </div>
 
-      {open && <PlayerSheet id={id} open={open} setOpen={setOpen} />}
+      <PlayerSheet id={id} open={open} setOpen={setOpen} />
     </>
   );
 }

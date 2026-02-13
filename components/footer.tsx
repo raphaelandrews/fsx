@@ -6,7 +6,7 @@ export function Footer({ className }: { className?: string }) {
     <footer>
       <DottedX>
         <div className="text-balance text-center text-muted-foreground text-sm leading-loose">
-          Built by 🏝️{" "}
+          Built by 💿{" "}
           <a
             className="font-medium text-bulbasaur-foreground transition duration-200 hover:text-amber-500"
             href="https://andrews.sh/"

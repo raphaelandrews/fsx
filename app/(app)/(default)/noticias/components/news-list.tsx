@@ -1,6 +1,9 @@
+import { Fragment } from "react";
 import { getPostsByPage } from "@/db/queries";
 
 import { PostCard } from "@/components/post-card";
+import { DottedSeparator } from "@/components/dotted-separator";
+import { DottedX } from "@/components/dotted-x";
 import {
   Pagination,
   PaginationContent,
@@ -47,73 +50,103 @@ export async function NewsList({ currentPage }: NewsListProps) {
 
   return (
     <section>
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-        {posts.map((post) => (
-          <PostCard
-            id={post.id}
-            image={post.image ?? undefined}
-            key={post.id}
-            slug={post.slug ?? ""}
-            title={post.title}
-          />
-        ))}
-      </div>
+      <DottedX className="p-0">
+        <div className="grid sm:grid-cols-2 gap-0 relative">
+          <div className="absolute left-1/2 top-0 h-full -translate-x-1/2 z-0 hidden sm:block">
+            <DottedSeparator vertical />
+          </div>
+          {posts.map((post, index) => (
+            <Fragment key={post.id}>
+              <PostCard
+                id={post.id}
+                image={post.image ?? undefined}
+                key={post.id}
+                slug={post.slug ?? ""}
+                title={post.title}
+              />
+              {(index + 1) % 2 === 0 && index < posts.length - 1 && (
+                <div className="col-span-full hidden sm:block">
+                  <DottedSeparator />
+                </div>
+              )}
+              {/* Mobile separator for single column view */}
+              {index < posts.length - 1 && (
+                <div className="col-span-full sm:hidden">
+                  <DottedSeparator />
+                </div>
+              )}
+            </Fragment>
+          ))}
+        </div>
+      </DottedX>
 
       {totalPages > 1 && (
-        <Pagination className="mt-16">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationFirst
-                aria-disabled={!hasPreviousPage}
-                className={
-                  hasPreviousPage ? "" : "pointer-events-none opacity-50"
-                }
-                href="/noticias?page=1"
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationPrevious
-                aria-disabled={!hasPreviousPage}
-                className={
-                  hasPreviousPage ? "" : "pointer-events-none opacity-50"
-                }
-                href={`/noticias?page=${Math.max(1, currentPage - 1)}`}
-              />
-            </PaginationItem>
-
-            {getPageNumbers(totalPages, currentPage).map((pageNum) =>
-              pageNum === "ellipsis" ? (
-                <PaginationItem key={`ellipsis-${crypto.randomUUID()}`}>
-                  <PaginationEllipsis />
+        <div className="w-full">
+          <DottedSeparator />
+          <DottedX className="p-2 relative">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationFirst
+                    aria-disabled={!hasPreviousPage}
+                    className={
+                      hasPreviousPage ? "" : "pointer-events-none opacity-50"
+                    }
+                    href="/noticias?page=1"
+                  />
                 </PaginationItem>
-              ) : (
-                <PaginationItem key={pageNum}>
-                  <PaginationLink
-                    href={`/noticias?page=${pageNum}`}
-                    isActive={pageNum === currentPage}
-                  >
-                    {pageNum}
-                  </PaginationLink>
+                <PaginationItem>
+                  <PaginationPrevious
+                    aria-disabled={!hasPreviousPage}
+                    className={
+                      hasPreviousPage ? "" : "pointer-events-none opacity-50"
+                    }
+                    href={`/noticias?page=${Math.max(1, currentPage - 1)}`}
+                  />
                 </PaginationItem>
-              )
-            )}
 
-            <PaginationItem>
-              <PaginationNext
-                aria-disabled={!hasNextPage}
-                className={hasNextPage ? "" : "pointer-events-none opacity-50"}
-                href={`/noticias?page=${Math.min(totalPages, currentPage + 1)}`}
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLast
-                aria-disabled={!hasNextPage}
-                className={hasNextPage ? "" : "pointer-events-none opacity-50"}
-                href={`/noticias?page=${totalPages}`}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+                {getPageNumbers(totalPages, currentPage).map((pageNum) =>
+                  pageNum === "ellipsis" ? (
+                    <PaginationItem key={`ellipsis-${crypto.randomUUID()}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink
+                        href={`/noticias?page=${pageNum}`}
+                        isActive={pageNum === currentPage}
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                )}
+
+                <PaginationItem>
+                  <PaginationNext
+                    aria-disabled={!hasNextPage}
+                    className={
+                      hasNextPage ? "" : "pointer-events-none opacity-50"
+                    }
+                    href={`/noticias?page=${Math.min(
+                      totalPages,
+                      currentPage + 1
+                    )}`}
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationLast
+                    aria-disabled={!hasNextPage}
+                    className={
+                      hasNextPage ? "" : "pointer-events-none opacity-50"
+                    }
+                    href={`/noticias?page=${totalPages}`}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </DottedX>
+        </div>
       )}
     </section>
   );

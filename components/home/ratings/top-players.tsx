@@ -75,7 +75,7 @@ export function TopPlayers({ topPlayers }: any) {
 					</TabsContent>
 				</Tabs>
 			</DottedX>
-			<DottedButton href="/rating" label="Ver Rating" />
+			<DottedButton href="/ratings" label="Ver Rating" />
 		</Section>
 	)
 }

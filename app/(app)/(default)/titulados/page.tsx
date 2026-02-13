@@ -6,18 +6,18 @@ import { siteConfig } from "@/lib/site"
 
 import { columns } from "./components/columns"
 import { DataTable } from "./components/data-table"
-import { Announcement } from "@/components/announcement"
-import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
+import { PageHeader } from "@/components/ui/page-header"
+import { DottedX } from "@/components/dotted-x"
 
 export const metadata: Metadata = {
-  title: "Titulados",
-  description: "Titulados da Federação Sergipana de Xadrez.",
-  openGraph: {
-    url: `${siteConfig.url}/titulados`,
-    title: "Titulados",
-    description: "Titulados da Federação Sergipana de Xadrez.",
-    siteName: "Titulados",
-  },
+	title: "Titulados",
+	description: "Titulados da Federação Sergipana de Xadrez.",
+	openGraph: {
+		url: `${siteConfig.url}/titulados`,
+		title: "Titulados",
+		description: "Titulados da Federação Sergipana de Xadrez.",
+		siteName: "Titulados",
+	},
 };
 
 export default async function Page() {
@@ -25,12 +25,11 @@ export default async function Page() {
 
 	return (
 		<>
-			<PageHeader>
-				<Announcement icon={BookmarkIcon} />
-				<PageHeaderHeading>Titulados</PageHeaderHeading>
+			<PageHeader icon={BookmarkIcon} label="Titulados">
+				<DottedX>
+					<DataTable columns={columns} data={data} />
+				</DottedX>
 			</PageHeader>
-
-			<DataTable columns={columns} data={data} />
 		</>
 	)
 }

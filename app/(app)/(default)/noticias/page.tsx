@@ -30,14 +30,14 @@ export async function generateStaticParams() {
 }
 
 async function NewsContent({
-	searchParams,
+  searchParams,
 }: {
-	searchParams: Promise<Record<string, string | string[] | undefined>>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
-	const params = await searchParams
-	const currentPage = Number(params.page) || 1
+  const params = await searchParams
+  const currentPage = Number(params.page) || 1
 
-	return <NewsList currentPage={currentPage} />
+  return <NewsList currentPage={currentPage} />
 }
 
 export default async function Page({
@@ -46,17 +46,10 @@ export default async function Page({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   return (
-    <>
-      <PageHeader>
-        <Announcement icon={NewspaperIcon} />
-        <PageHeaderHeading>Notícias</PageHeaderHeading>
-      </PageHeader>
-
-      <section>
-        <React.Suspense fallback={<NewsSkeleton />}>
-          <NewsContent searchParams={searchParams} />
-        </React.Suspense>
-      </section>
-    </>
+    <PageHeader icon={NewspaperIcon} label="Notícias">
+      <React.Suspense fallback={<NewsSkeleton />}>
+        <NewsContent searchParams={searchParams} />
+      </React.Suspense>
+    </PageHeader>
   );
 }

@@ -1,10 +1,32 @@
+import { type LucideIcon } from "lucide-react"
+
 import { cn } from "@/lib/utils"
+
+import { Announcement } from "@/components/announcement"
+import { DottedSeparator } from "@/components/dotted-separator"
+
+interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+	icon?: LucideIcon
+	label?: string
+}
 
 function PageHeader({
 	className,
 	children,
+	icon,
+	label,
 	...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: PageHeaderProps) {
+	if (icon && label) {
+		return (
+			<section className={cn(className)} {...props}>
+				<Announcement icon={icon} label={label} />
+				{children}
+				<DottedSeparator />
+			</section>
+		)
+	}
+
 	return (
 		<section
 			className={cn(

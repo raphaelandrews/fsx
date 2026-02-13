@@ -6,8 +6,7 @@ import { siteConfig } from "@/lib/site";
 
 import { AnnouncementList } from "./components/announcement-list";
 import { AnnouncementSkeleton } from "./components/announcement-skeleton";
-import { Announcement } from "@/components/announcement";
-import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = {
   title: "Comunicados",
@@ -41,17 +40,12 @@ export default function Page({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   return (
-    <>
-      <PageHeader>
-        <Announcement icon={MegaphoneIcon} />
-        <PageHeaderHeading>Comunicados</PageHeaderHeading>
-      </PageHeader>
-
+    <PageHeader icon={MegaphoneIcon} label="Comunicados">
       <section>
         <React.Suspense fallback={<AnnouncementSkeleton />}>
           <AnnouncementContent searchParams={searchParams} />
         </React.Suspense>
       </section>
-    </>
+    </PageHeader>
   );
 }

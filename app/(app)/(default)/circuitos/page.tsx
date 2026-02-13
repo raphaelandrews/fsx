@@ -6,8 +6,8 @@ import { siteConfig } from "@/lib/site"
 
 import { Client } from "./client"
 import type { Circuit } from "./components/types"
-import { Announcement } from "@/components/announcement"
-import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
+import { PageHeader } from "@/components/ui/page-header"
+import { DottedX } from "@/components/dotted-x"
 
 export const metadata: Metadata = {
   title: "Circuitos",
@@ -23,16 +23,15 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-	const circuits = await getCircuits()
+  const circuits = await getCircuits()
 
-	return (
-		<>
-			<PageHeader>
-				<Announcement icon={MedalIcon} />
-				<PageHeaderHeading>Circuitos</PageHeaderHeading>
-			</PageHeader>
-
-			<Client circuits={circuits as Circuit[]} />
-		</>
-	)
+  return (
+    <>
+      <PageHeader icon={MedalIcon} label="Circuitos">
+        <DottedX>
+          <Client circuits={circuits as Circuit[]} />
+        </DottedX>
+      </PageHeader>
+    </>
+  )
 }
