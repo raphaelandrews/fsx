@@ -3,16 +3,20 @@
 import { useEffect, useState } from "react";
 
 export function StatusDot({ date }: { date: Date | string }) {
-  const [mounted, setMounted] = useState(false);
+  const [currentDate, setCurrentDate] = useState<Date | null>(null);
 
   useEffect(() => {
-    setMounted(true);
+    setCurrentDate(new Date());
+    const interval = setInterval(() => {
+      setCurrentDate(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
   }, []);
 
-  if (!mounted) return null;
+  if (!currentDate) return null;
 
   const dateObj = typeof date === "string" ? new Date(date) : date;
-  const currentDate = new Date();
   const timeDifference = dateObj.getTime() - currentDate.getTime();
   const daysDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
 

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 import { navigationData } from "./header-navigation-data";
+import { DottedSeparator } from "@/components/dotted-separator";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -51,41 +52,45 @@ export function MainNav() {
                     {label}
                   </NavigationMenuTrigger>
 
-                  <NavigationMenuContent className="flex gap-4 p-4 md:w-[500px] lg:w-[850px]">
-                    {href === "#" && <NavigationMenuImage href={href} />}
-                    {href === "##" && <NavigationMenuImage href={href} />}
+                  <NavigationMenuContent className="!p-0">
+                    <div className="relative w-[250px] p-0 border rounded-none bg-popover">
+                      <ul className="grid grid-cols-1 gap-0 relative z-0 !list-none !p-0 !m-0">
+                        {items?.map(
+                          ({ href, icon: Icon, label, description }, index) => {
+                            const isLast = index === items.length - 1;
 
-                    <ul
-                      className="grid grid-cols-3 w-full flex-wrap gap-3"
-                      style={{ maxHeight: "400px" }}
-                    >
-                      {items?.map(
-                        ({ href, icon: Icon, label, description }) => (
-                          <li className="flex-[1_1_45%]" key={label}>
-                            <NavigationMenuLink asChild>
-                              <Link
-                                className={cn(
-                                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-                                  getIsActive(href) && "bg-muted"
+                            return (
+                              <li key={label} className="relative">
+                                <NavigationMenuLink asChild>
+                                  <Link
+                                    className={cn(
+                                      "group flex flex-row items-center gap-4 p-3 hover:bg-muted/50 transition-colors !rounded-none outline-none focus:bg-muted/50 select-none mx-1 my-1.25",
+                                      getIsActive(href) && "bg-muted"
+                                    )}
+                                    href={href}
+                                  >
+                                    <div className="flex items-center justify-center size-8 rounded-md border bg-background group-hover:bg-primary group-hover:border-primary transition-colors duration-300 shrink-0">
+                                      <Icon className="size-4 group-hover:text-primary-foreground transition-colors duration-300" />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                      <span className="text-sm font-semibold leading-none">
+                                        {label}
+                                      </span>
+                                      <span className="text-xs text-muted-foreground font-medium line-clamp-2 leading-snug">
+                                        {description}
+                                      </span>
+                                    </div>
+                                  </Link>
+                                </NavigationMenuLink>
+                                {!isLast && (
+                                  <DottedSeparator className="w-full absolute bottom-0 left-0" />
                                 )}
-                                href={href}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <Icon height={12} width={12} />
-                                  <div className="font-medium text-sm leading-none">
-                                    {label}
-                                  </div>
-                                </div>
-
-                                <p className="line-clamp-2 text-muted-foreground text-sm leading-snug">
-                                  {description}
-                                </p>
-                              </Link>
-                            </NavigationMenuLink>
-                          </li>
-                        )
-                      )}
-                    </ul>
+                              </li>
+                            );
+                          }
+                        )}
+                      </ul>
+                    </div>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               );
@@ -116,16 +121,3 @@ export function MainNav() {
     </div>
   );
 }
-
-const NavigationMenuImage = ({ href }: { href: string }) => {
-  return (
-    <>
-      {href === "#" && (
-        <div className="relative h-[147px] w-[128px] min-w-[128px] overflow-hidden rounded-md border bg-gradient-to-br from-cyan-500 to-blue-500 shadow" />
-      )}
-      {href === "##" && (
-        <div className="relative h-[147px] w-[128px] min-w-[128px] overflow-hidden rounded-md border bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow" />
-      )}
-    </>
-  );
-};

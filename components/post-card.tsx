@@ -55,7 +55,7 @@ export function PostCard({
 	return (
 		<Link
 			aria-label={`Read posts: ${title}`}
-			className={cn("group p-3", className)}
+			className={cn("group flex flex-col p-3", className)}
 			href={`/noticias/${slug}`}
 			onMouseEnter={onMouseEnter}
 		>

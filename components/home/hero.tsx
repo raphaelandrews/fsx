@@ -17,20 +17,24 @@ export function Hero({ posts }: PostsSectionProps) {
 	return (
 		<Section icon={FlameIcon} main={true}>
 			<DottedX className="p-0">
-				<div className="relative grid sm:grid-cols-2">
+				<div className="relative grid sm:grid-cols-2 gap-0">
 					<div className="absolute left-1/2 top-0 h-full -translate-x-1/2 z-0 hidden md:block">
 						<DottedSeparator vertical />
 					</div>
-					{mainPosts?.map((posts: FreshPost) => (
-						<PostCard
-							id={posts.id}
-							image={posts.image ?? null}
-							key={posts.id}
-							main={true}
-							slug={posts.slug ?? null}
-							title={posts.title}
-						/>
-						))}
+					{mainPosts?.map((posts: FreshPost, index: number) => (
+						<div key={posts.id}>
+							<PostCard
+								id={posts.id}
+								image={posts.image ?? null}
+								main={true}
+								slug={posts.slug ?? null}
+								title={posts.title}
+							/>
+							{index !== mainPosts.length - 1 && (
+								<DottedSeparator className="w-full sm:hidden" />
+							)}
+						</div>
+					))}
 				</div>
 			</DottedX>
 		</Section>

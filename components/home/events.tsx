@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { StatusDot } from "./status-dot"
 import { DottedSeparator } from "@/components/dotted-separator"
 import { DottedX } from "@/components/dotted-x"
-import { DottedButton } from "@/components/dotted-button"
 import { Separator } from "@/components/ui/separator"
 
 export function Events({ events }: { events: Event[] }) {

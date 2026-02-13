@@ -25,7 +25,7 @@ export default async function Page() {
 	return (
 		<>
 			<PageHeader icon={ScrollIcon} label="Membros">
-				<DottedX>
+				<DottedX className="p-0">
 					<Client roles={data} />
 				</DottedX>
 			</PageHeader>

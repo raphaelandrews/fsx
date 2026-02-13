@@ -1,16 +1,19 @@
 import { type LucideIcon } from "lucide-react";
 
+import { cn } from "@/lib/utils";
+
 import { Separator } from "@/components/ui/separator";
 import { DottedSeparator } from "@/components/dotted-separator";
 import { DottedX } from "@/components/dotted-x";
 
 interface Props {
   label?: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  className?: string;
 }
 
-export function Announcement({ label, icon: Icon }: Props) {
-  const baseStyles = "inline-flex items-center text-base font-bold";
+export function Announcement({ label, icon: Icon, className }: Props) {
+  const baseStyles = cn("flex items-center text-base font-bold", className);
   const iconStyles = "size-4";
 
   if (label) {
@@ -18,8 +21,8 @@ export function Announcement({ label, icon: Icon }: Props) {
       <>
         <DottedX>
           <div className={baseStyles}>
-            <Icon className={iconStyles} />
-            <Separator className="!w-0.5 !h-4 mx-2" orientation="vertical" />
+            {Icon && <Icon className={iconStyles} />}
+            {Icon && <Separator className="!w-0.5 !h-4 mx-2" orientation="vertical" />}
             {label}
           </div>
         </DottedX>
@@ -32,7 +35,7 @@ export function Announcement({ label, icon: Icon }: Props) {
     <>
       <DottedX>
         <div className="inline-block rounded-md bg-primary-foreground p-2.5 text-muted-foreground">
-          <Icon className="size-4" />
+          {Icon && <Icon className="size-4" />}
         </div>
       </DottedX>
       <DottedSeparator />
