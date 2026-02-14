@@ -59,7 +59,7 @@ export const Actions = ({
             <AvatarFallback style={gradient} />
           </Avatar>
           <div className="whitespace-nowrap font-medium">
-            {shortTitle && <span className="text-yellow-pastel-foreground">{shortTitle}</span>}{" "}
+            {shortTitle && <span className="text-highlight">{shortTitle}</span>}{" "}
             {nickname ?? name}
           </div>
         </Button>
@@ -68,7 +68,7 @@ export const Actions = ({
           <div className="flex items-center gap-2">
             {defendingChampions.map((championship) => (
               <div key={championship.championship.name}>
-                {formatDefendingChampions(championship.championship.name, 16)}
+                {formatDefendingChampions(championship.championship.name)}
               </div>
             ))}
           </div>

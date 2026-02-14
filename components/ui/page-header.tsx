@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 
 import { Announcement } from "@/components/announcement"
 import { DottedSeparator } from "@/components/dotted-separator"
+import { DottedX } from "@/components/dotted-x"
 
 interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 	icon?: LucideIcon
@@ -20,8 +21,10 @@ function PageHeader({
 	if (icon && label) {
 		return (
 			<section className={cn(className)} {...props}>
-				<Announcement icon={icon} label={label} />
-				{children}
+				<DottedX className="p-0">
+					<Announcement icon={icon} label={label} />
+					{children}
+				</DottedX>
 				<DottedSeparator />
 			</section>
 		)

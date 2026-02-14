@@ -48,7 +48,7 @@ export function Client({ cup }: { cup: Cup }) {
                 href="https://lichess.org"
                 target="_blank"
                 rel="noreferrer"
-                className="text-green-pastel-foreground hover:underline"
+                className="text-link hover:underline"
               >
                 lichess.org
               </a>
@@ -771,8 +771,8 @@ function renderPlayerTable(group: CupGroup) {
               {player.players.name}
               {index < 2 && (
                 <span className="relative flex w-1.5 h-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-pastel opacity-75" />
-                  <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-yellow-pastel" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-highlight opacity-75" />
+                  <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-highlight" />
                 </span>
               )}
             </TableCell>
@@ -847,7 +847,7 @@ const InfoCard = ({
               href="https://lichess.org"
               target="_blank"
               rel="noreferrer"
-              className="text-green-pastel-foreground"
+              className="text-link"
             >
               lichess.org
             </a>

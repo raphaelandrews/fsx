@@ -3,7 +3,6 @@ import { FlameIcon } from "lucide-react"
 import type { FreshPost } from "@/db/queries"
 
 import { Section } from "./section"
-import { DottedX } from "@/components/dotted-x"
 import { PostCard } from "@/components/post-card"
 import { DottedSeparator } from "@/components/dotted-separator"
 
@@ -16,8 +15,7 @@ export function Hero({ posts }: PostsSectionProps) {
 
 	return (
 		<Section icon={FlameIcon} main={true}>
-			<DottedX className="p-0">
-				<div className="relative grid sm:grid-cols-2 gap-0">
+			<div className="relative grid sm:grid-cols-2 gap-0">
 					<div className="absolute left-1/2 top-0 h-full -translate-x-1/2 z-0 hidden md:block">
 						<DottedSeparator vertical />
 					</div>
@@ -35,8 +33,7 @@ export function Hero({ posts }: PostsSectionProps) {
 							)}
 						</div>
 					))}
-				</div>
-			</DottedX>
+			</div>
 		</Section>
 	)
 }

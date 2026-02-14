@@ -41,11 +41,9 @@ export default function Page({
 }) {
   return (
     <PageHeader icon={MegaphoneIcon} label="Comunicados">
-      <section>
-        <React.Suspense fallback={<AnnouncementSkeleton />}>
-          <AnnouncementContent searchParams={searchParams} />
-        </React.Suspense>
-      </section>
+      <React.Suspense fallback={<AnnouncementSkeleton />}>
+        <AnnouncementContent searchParams={searchParams} />
+      </React.Suspense>
     </PageHeader>
   );
 }

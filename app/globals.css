@@ -135,21 +135,14 @@
 	--accent: oklch(96.7% .001 286.375);
 	--accent-foreground: oklch(21% .006 285.885);
 
-	--selection: var(--blue-pastel);
-	--selection-foreground: var(--blue-pastel-foreground);
-
-	--link: var(--blue-pastel);
-	--link-foreground: var(--blue-pastel-foreground);
-
-	--destructive: var(--red-pastel);
-	--destructive-foreground: var(--red-pastel-foreground);
-
-	/*
-	--selection: oklch(0.956 0.045 203.388);
+	--selection: oklch(0.293 0.066 243.157);
 	--selection-foreground: oklch(0.76 0.1362 218.47);
 
+	--link: oklch(0.609 0.175 241.254); /* sky-600 */
+
+	--highlight: oklch(0.795 0.184 86.047); /* amber-500 */
+
 	--destructive: oklch(0.577 0.245 27.325);
-	*/
 
 	--border: oklch(92% .004 286.32);
 	--input: oklch(92% .004 286.32);
@@ -157,18 +150,12 @@
 
 	--radius: 0.5rem;
 
-	--chart-1: oklch(68.5% 0.169 237.323);
-	/*sky-500*/
-	--chart-2: oklch(82.8% 0.111 230.318);
-	/*sky-300*/
-	--chart-3: oklch(65.6% 0.241 354.308);
-	/*pink-500*/
-	--chart-4: oklch(82.3% 0.12 346.018);
-	/*pink-300*/
-	--chart-5: oklch(82.8% 0.189 84.429);
-	/*amber-400*/
-	--chart-6: oklch(52.5% 0.223 3.958);
-	/*pink-700*/
+	--chart-1: oklch(68.5% 0.169 237.323); /*sky-500*/
+	--chart-2: oklch(82.8% 0.111 230.318); /*sky-300*/
+	--chart-3: oklch(65.6% 0.241 354.308); /*pink-500*/
+	--chart-4: oklch(82.3% 0.12 346.018); /*pink-300*/
+	--chart-5: oklch(82.8% 0.189 84.429); /*amber-400*/
+	--chart-6: oklch(52.5% 0.223 3.958); /*pink-700*/
 
 	--sidebar: oklch(98.5% 0 0);
 	--sidebar-foreground: oklch(14.1% .005 285.823);
@@ -230,62 +217,6 @@
 
 	--indigo: oklch(0.55 0.20 280);
 	--indigo-foreground: oklch(0.99 0 0);
-
-	/* Catppuccin Light (Latte) - bg: lightened pastels, fg: original Latte accents */
-	--rosewater-pastel: hsl(11, 55%, 88%);
-	--rosewater-pastel-foreground: hsl(11, 59%, 45%);
-
-	--flamingo-pastel: hsl(0, 55%, 88%);
-	--flamingo-pastel-foreground: hsl(0, 60%, 45%);
-
-	--pink-pastel: hsl(316, 65%, 88%);
-	--pink-pastel-foreground: hsl(316, 73%, 45%);
-
-	--mauve-pastel: hsl(266, 70%, 88%);
-	--mauve-pastel-foreground: hsl(266, 85%, 40%);
-
-	--red-pastel: hsl(347, 70%, 88%);
-	--red-pastel-foreground: hsl(347, 87%, 38%);
-
-	--maroon-pastel: hsl(355, 65%, 88%);
-	--maroon-pastel-foreground: hsl(355, 76%, 42%);
-
-	--peach-pastel: hsl(22, 85%, 88%);
-	--peach-pastel-foreground: hsl(22, 99%, 38%);
-
-	--yellow-pastel: hsl(35, 70%, 88%);
-	--yellow-pastel-foreground: hsl(35, 77%, 35%);
-
-	--green-pastel: hsl(109, 50%, 88%);
-	--green-pastel-foreground: hsl(109, 58%, 32%);
-
-	--teal-pastel: hsl(183, 55%, 88%);
-	--teal-pastel-foreground: hsl(183, 74%, 30%);
-
-	--sky-pastel: hsl(197, 75%, 88%);
-	--sky-pastel-foreground: hsl(197, 97%, 35%);
-
-	--sapphire-pastel: hsl(189, 60%, 88%);
-	--sapphire-pastel-foreground: hsl(189, 70%, 34%);
-
-	--blue-pastel: hsl(220, 80%, 90%);
-	--blue-pastel-foreground: hsl(220, 91%, 42%);
-
-	--lavender-pastel: hsl(231, 85%, 92%);
-	--lavender-pastel-foreground: hsl(231, 97%, 50%);
-
-	--text-pastel: hsl(234, 16%, 35%);
-	--subtext1-pastel: hsl(233, 13%, 41%);
-	--subtext0-pastel: hsl(233, 10%, 47%);
-	--overlay2-pastel: hsl(232, 10%, 53%);
-	--overlay1-pastel: hsl(231, 10%, 59%);
-	--overlay0-pastel: hsl(228, 11%, 65%);
-	--surface2-pastel: hsl(227, 12%, 71%);
-	--surface1-pastel: hsl(225, 14%, 77%);
-	--surface0-pastel: hsl(223, 16%, 83%);
-	--base-pastel: hsl(220, 23%, 95%);
-	--mantle-pastel: hsl(220, 22%, 92%);
-	--crust-pastel: hsl(220, 21%, 89%);
 }
 
 .dark {
@@ -310,37 +241,25 @@
 	--accent: oklch(27.4% .006 286.033);
 	--accent-foreground: oklch(98.5% 0 0);
 
-	--selection: var(--lavender-pastel);
-	--selection-foreground: var(--lavender-pastel-foreground);
-
-	--link: var(--blue-pastel);
-	--link-foreground: var(--blue-pastel-foreground);
-
-	--destructive: var(--red-pastel);
-	--destructive-foreground: var(--red-pastel-foreground);
-
-	/*
 	--selection: oklch(0.293 0.066 243.157);
 	--selection-foreground: oklch(0.76 0.1362 218.47);
 
+	--link: oklch(0.746 0.138 232.661); /* sky-400 */
+
+	--highlight: oklch(0.828 0.189 84.429); /* amber-400 */
+
 	--destructive: oklch(0.704 0.191 22.216);
-	*/
 
 	--border: oklch(27.4% .006 286.033);
 	--input: oklch(27.4% .006 286.033);
 	--ring: oklch(44.2% .017 285.786);
 
-	--chart-1: oklch(42.4% 0.199 265.638);
-	/*blue-800*/
-	--chart-2: oklch(54.6% 0.245 262.881);
-	/*blue-600*/
-	--chart-3: oklch(45.5% 0.188 13.697);
-	/*rose-800*/
-	--chart-4: oklch(58.6% 0.253 17.585);
-	/*rose-600*/
+	--chart-1: oklch(42.4% 0.199 265.638); /*blue-800*/
+	--chart-2: oklch(54.6% 0.245 262.881); /*blue-600*/
+	--chart-3: oklch(45.5% 0.188 13.697); /*rose-800*/
+	--chart-4: oklch(58.6% 0.253 17.585); /*rose-600*/
 	--chart-5: oklch(0.72 0.15 60.63);
-	--chart-6: oklch(41% 0.159 10.272);
-	/*rose-900*/
+	--chart-6: oklch(41% 0.159 10.272); /*rose-900*/
 
 	--sidebar: oklch(16% .005 285.823);
 	--sidebar-foreground: oklch(98.5% 0 0);
@@ -352,7 +271,6 @@
 	--sidebar-ring: oklch(44.2% .017 285.786);
 
 	/*Custom*/
-
 	--noir: oklch(0.252 0 0);
 	--noir-foreground: oklch(0.9189 0 0);
 
@@ -403,98 +321,55 @@
 
 	--indigo: oklch(0.45 0.20 280);
 	--indigo-foreground: oklch(0.99 0 0);
-
-
-	/* Catppuccin Mocha - bg: darkened/muted, fg: original Mocha pastels */
-	--rosewater-pastel: hsl(10, 40%, 22%);
-	--rosewater-pastel-foreground: hsl(10, 56%, 85%);
-
-	--flamingo-pastel: hsl(0, 42%, 22%);
-	--flamingo-pastel-foreground: hsl(0, 59%, 82%);
-
-	--pink-pastel: hsl(316, 50%, 22%);
-	--pink-pastel-foreground: hsl(316, 72%, 80%);
-
-	--mauve-pastel: hsl(267, 55%, 22%);
-	--mauve-pastel-foreground: hsl(267, 84%, 75%);
-
-	--red-pastel: hsl(343, 55%, 22%);
-	--red-pastel-foreground: hsl(343, 81%, 72%);
-
-	--maroon-pastel: hsl(350, 45%, 22%);
-	--maroon-pastel-foreground: hsl(350, 65%, 74%);
-
-	--peach-pastel: hsl(23, 60%, 22%);
-	--peach-pastel-foreground: hsl(23, 92%, 72%);
-
-	--yellow-pastel: hsl(41, 55%, 22%);
-	--yellow-pastel-foreground: hsl(41, 86%, 78%);
-
-	--green-pastel: hsl(115, 40%, 20%);
-	--green-pastel-foreground: hsl(115, 54%, 72%);
-
-	--teal-pastel: hsl(170, 42%, 20%);
-	--teal-pastel-foreground: hsl(170, 57%, 70%);
-
-	--sky-pastel: hsl(189, 50%, 20%);
-	--sky-pastel-foreground: hsl(189, 71%, 70%);
-
-	--sapphire-pastel: hsl(199, 52%, 20%);
-	--sapphire-pastel-foreground: hsl(199, 76%, 66%);
-
-	--blue-pastel: hsl(217, 60%, 22%);
-	--blue-pastel-foreground: hsl(217, 92%, 72%);
-
-	--lavender-pastel: hsl(232, 65%, 24%);
-	--lavender-pastel-foreground: hsl(232, 97%, 80%);
-
-	--text-pastel: hsl(226, 64%, 88%);
-	--subtext1-pastel: hsl(227, 35%, 80%);
-	--subtext0-pastel: hsl(228, 24%, 72%);
-	--overlay2-pastel: hsl(228, 17%, 64%);
-	--overlay1-pastel: hsl(230, 13%, 55%);
-	--overlay0-pastel: hsl(231, 11%, 47%);
-	--surface2-pastel: hsl(233, 12%, 39%);
-	--surface1-pastel: hsl(234, 13%, 31%);
-	--surface0-pastel: hsl(237, 16%, 23%);
-	--base-pastel: hsl(240, 21%, 15%);
-	--mantle-pastel: hsl(240, 21%, 12%);
-	--crust-pastel: hsl(240, 23%, 9%);
 }
 
 @theme inline {
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
+
 	--color-card: var(--card);
 	--color-card-foreground: var(--card-foreground);
+
 	--color-popover: var(--popover);
 	--color-popover-foreground: var(--popover-foreground);
+
 	--color-primary: var(--primary);
 	--color-primary-foreground: var(--primary-foreground);
+
 	--color-secondary: var(--secondary);
 	--color-secondary-foreground: var(--secondary-foreground);
+
 	--color-muted: var(--muted);
 	--color-muted-foreground: var(--muted-foreground);
+
 	--color-accent: var(--accent);
 	--color-accent-foreground: var(--accent-foreground);
+
 	--color-selection: var(--selection);
 	--color-selection-foreground: var(--selection-foreground);
+
 	--color-link: var(--link);
-	--color-link-foreground: var(--link-foreground);
+
+	--color-highlight: var(--highlight);
+
 	--color-destructive: var(--destructive);
-	--color-destructive-foreground: var(--destructive-foreground);
+
 	--color-border: var(--border);
 	--color-input: var(--input);
 	--color-ring: var(--ring);
+
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+
 	--color-chart-1: var(--chart-1);
 	--color-chart-2: var(--chart-2);
 	--color-chart-3: var(--chart-3);
 	--color-chart-4: var(--chart-4);
 	--color-chart-5: var(--chart-5);
-	--radius-sm: calc(var(--radius) - 4px);
-	--radius-md: calc(var(--radius) - 2px);
-	--radius-lg: var(--radius);
-	--radius-xl: calc(var(--radius) + 4px);
+	--color-chart-6: var(--chart-6);
+
 	--color-sidebar: var(--sidebar);
 	--color-sidebar-foreground: var(--sidebar-foreground);
 	--color-sidebar-primary: var(--sidebar-primary);
@@ -507,78 +382,52 @@
 	/* Custom */
 	--color-noir: var(--noir);
 	--color-noir-foreground: var(--noir-foreground);
+
 	--color-raspberry: var(--raspberry);
 	--color-raspberry-foreground: var(--raspberry-foreground);
+
 	--color-strawberry: var(--strawberry);
 	--color-strawberry-foreground: var(--strawberry-foreground);
+
 	--color-sun: var(--sun);
 	--color-sun-foreground: var(--sun-foreground);
+
 	--color-honey: var(--honey);
 	--color-honey-foreground: var(--honey-foreground);
+
 	--color-sea: var(--sea);
 	--color-sea-foreground: var(--sea-foreground);
+
 	--color-bulbasaur: var(--bulbasaur);
 	--color-bulbasaur-foreground: var(--bulbasaur-foreground);
+
 	--color-ice: var(--ice);
 	--color-ice-foreground: var(--ice-foreground);
+
 	--color-blueberry: var(--blueberry);
 	--color-blueberry-foreground: var(--blueberry-foreground);
+
 	--color-jam: var(--jam);
 	--color-jam-foreground: var(--jam-foreground);
+
 	--color-mulberry: var(--mulberry);
 	--color-mulberry-foreground: var(--mulberry-foreground);
+
 	--color-mint: var(--mint);
 	--color-mint-foreground: var(--mint-foreground);
+
 	--color-peach: var(--peach);
 	--color-peach-foreground: var(--peach-foreground);
+
 	--color-lavender: var(--lavender);
 	--color-lavender-foreground: var(--lavender-foreground);
+
 	--color-slate: var(--slate);
 	--color-slate-foreground: var(--slate-foreground);
+
 	--color-emerald: var(--emerald);
 	--color-emerald-foreground: var(--emerald-foreground);
+
 	--color-indigo: var(--indigo);
 	--color-indigo-foreground: var(--indigo-foreground);
-
-	/* Catppuccin */
-	--color-rosewater-pastel: var(--rosewater-pastel);
-	--color-rosewater-pastel-foreground: var(--rosewater-pastel-foreground);
-	--color-flamingo-pastel: var(--flamingo-pastel);
-	--color-flamingo-pastel-foreground: var(--flamingo-pastel-foreground);
-	--color-pink-pastel: var(--pink-pastel);
-	--color-pink-pastel-foreground: var(--pink-pastel-foreground);
-	--color-mauve-pastel: var(--mauve-pastel);
-	--color-mauve-pastel-foreground: var(--mauve-pastel-foreground);
-	--color-red-pastel: var(--red-pastel);
-	--color-red-pastel-foreground: var(--red-pastel-foreground);
-	--color-maroon-pastel: var(--maroon-pastel);
-	--color-maroon-pastel-foreground: var(--maroon-pastel-foreground);
-	--color-peach-pastel: var(--peach-pastel);
-	--color-peach-pastel-foreground: var(--peach-pastel-foreground);
-	--color-yellow-pastel: var(--yellow-pastel);
-	--color-yellow-pastel-foreground: var(--yellow-pastel-foreground);
-	--color-green-pastel: var(--green-pastel);
-	--color-green-pastel-foreground: var(--green-pastel-foreground);
-	--color-teal-pastel: var(--teal-pastel);
-	--color-teal-pastel-foreground: var(--teal-pastel-foreground);
-	--color-sky-pastel: var(--sky-pastel);
-	--color-sky-pastel-foreground: var(--sky-pastel-foreground);
-	--color-sapphire-pastel: var(--sapphire-pastel);
-	--color-sapphire-pastel-foreground: var(--sapphire-pastel-foreground);
-	--color-blue-pastel: var(--blue-pastel);
-	--color-blue-pastel-foreground: var(--blue-pastel-foreground);
-	--color-lavender-pastel: var(--lavender-pastel);
-	--color-lavender-pastel-foreground: var(--lavender-pastel-foreground);
-	--color-text-pastel: var(--text-pastel);
-	--color-subtext1-pastel: var(--subtext1-pastel);
-	--color-subtext0-pastel: var(--subtext0-pastel);
-	--color-overlay2-pastel: var(--overlay2-pastel);
-	--color-overlay1-pastel: var(--overlay1-pastel);
-	--color-overlay0-pastel: var(--overlay0-pastel);
-	--color-surface2-pastel: var(--surface2-pastel);
-	--color-surface1-pastel: var(--surface1-pastel);
-	--color-surface0-pastel: var(--surface0-pastel);
-	--color-base-pastel: var(--base-pastel);
-	--color-mantle-pastel: var(--mantle-pastel);
-	--color-crust-pastel: var(--crust-pastel);
 }

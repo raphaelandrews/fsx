@@ -159,7 +159,7 @@ export const PlayerSheet = ({
 					<div className="flex items-center justify-center gap-1">
 						<SheetTitle className="mt-1 text-center">
 							{internalTitle && (
-								<span className="text-yellow-pastel-foreground">
+								<span className="text-highlight">
 									{internalTitle.title.shortTitle}{" "}
 								</span>
 							)}
@@ -170,7 +170,7 @@ export const PlayerSheet = ({
 								<PopoverTrigger>
 									<VerifiedIcon
 										aria-label="Verificado"
-										className="!fill-[#1CA0F2] mt-1 stroke-background dark:stroke-[1.5]"
+										className="!fill-sky-400 mt-1 stroke-background dark:stroke-[1.5]"
 									/>
 								</PopoverTrigger>
 								<PopoverContent>
@@ -204,7 +204,7 @@ export const PlayerSheet = ({
 										(podium.tournament.championshipId as number) || 0
 									)}
 								</PopoverTrigger>
-								<PopoverContent className="max-w-72 text-center">
+								<PopoverContent className="max-w-72 text-center font-medium">
 									{FormatPodiumTitle(podium.place)}{" "}
 									{podium.tournament.name as string}
 								</PopoverContent>

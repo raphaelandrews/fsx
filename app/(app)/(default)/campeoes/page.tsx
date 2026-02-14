@@ -8,7 +8,6 @@ import { columns } from "./components/columns"
 import { DataTable } from "./components/data-table"
 import { PageHeader } from "@/components/ui/page-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DottedX } from "@/components/dotted-x"
 
 export const metadata: Metadata = {
 	title: "Galeria de Campeões",
@@ -63,10 +62,8 @@ export default async function Page() {
 	]
 
 	return (
-		<>
-			<PageHeader icon={TrophyIcon} label="Campeões">
-				<DottedX>
-					<Tabs defaultValue="classic">
+		<PageHeader icon={TrophyIcon} label="Campeões">
+			<Tabs defaultValue="classic">
 						<TabsList className="grid h-20 grid-cols-3 grid-rows-2 sm:h-[inherit] sm:w-[500px] sm:grid-cols-5 sm:grid-rows-1">
 							{tabContent.map((tab) => (
 								<TabsTrigger key={tab.value} value={tab.value}>
@@ -83,9 +80,7 @@ export default async function Page() {
 								/>
 							</TabsContent>
 						))}
-					</Tabs>
-				</DottedX>
-			</PageHeader>
-		</>
+			</Tabs>
+		</PageHeader>
 	)
 }

@@ -3,7 +3,6 @@ import { getPostsByPage } from "@/db/queries";
 
 import { PostCard } from "@/components/post-card";
 import { DottedSeparator } from "@/components/dotted-separator";
-import { DottedX } from "@/components/dotted-x";
 import {
   Pagination,
   PaginationContent,
@@ -49,41 +48,39 @@ export async function NewsList({ currentPage }: NewsListProps) {
   const { totalPages, hasNextPage, hasPreviousPage } = pagination;
 
   return (
-    <section>
-      <DottedX className="p-0">
-        <div className="grid sm:grid-cols-2 gap-0 relative">
-          <div className="absolute left-1/2 top-0 h-full -translate-x-1/2 z-0 hidden sm:block">
-            <DottedSeparator vertical />
-          </div>
-          {posts.map((post, index) => (
-            <Fragment key={post.id}>
-              <PostCard
-                id={post.id}
-                image={post.image ?? undefined}
-                key={post.id}
-                slug={post.slug ?? ""}
-                title={post.title}
-              />
-              {(index + 1) % 2 === 0 && index < posts.length - 1 && (
-                <div className="col-span-full hidden sm:block">
-                  <DottedSeparator />
-                </div>
-              )}
-              {/* Mobile separator for single column view */}
-              {index < posts.length - 1 && (
-                <div className="col-span-full sm:hidden">
-                  <DottedSeparator />
-                </div>
-              )}
-            </Fragment>
-          ))}
+    <>
+      <div className="grid sm:grid-cols-2 gap-0 relative">
+        <div className="absolute left-1/2 top-0 h-full -translate-x-1/2 z-0 hidden sm:block">
+          <DottedSeparator vertical />
         </div>
-      </DottedX>
+        {posts.map((post, index) => (
+          <Fragment key={post.id}>
+            <PostCard
+              id={post.id}
+              image={post.image ?? undefined}
+              key={post.id}
+              slug={post.slug ?? ""}
+              title={post.title}
+            />
+            {(index + 1) % 2 === 0 && index < posts.length - 1 && (
+              <div className="col-span-full hidden sm:block">
+                <DottedSeparator />
+              </div>
+            )}
+            {/* Mobile separator for single column view */}
+            {index < posts.length - 1 && (
+              <div className="col-span-full sm:hidden">
+                <DottedSeparator />
+              </div>
+            )}
+          </Fragment>
+        ))}
+      </div>
 
       {totalPages > 1 && (
-        <div className="w-full">
+        <>
           <DottedSeparator />
-          <DottedX className="p-2 relative">
+          <div className="p-2">
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
@@ -145,9 +142,9 @@ export async function NewsList({ currentPage }: NewsListProps) {
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
-          </DottedX>
-        </div>
+          </div>
+        </>
       )}
-    </section>
+    </>
   );
 }

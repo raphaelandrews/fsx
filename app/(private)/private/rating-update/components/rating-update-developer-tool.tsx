@@ -327,7 +327,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
     >
       <div className="flex items-center space-x-1">
         <div className="w-4 h-4 bg-teal-500 rounded-full transition-transform duration-300 hover:scale-110" />
-        <div className="w-4 h-4 bg-yellow-pastel rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
+        <div className="w-4 h-4 bg-highlight rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
         <div className="w-4 h-4 bg-rose-500 rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
       </div>
       {isActive && (

@@ -6,7 +6,6 @@ import { ArrowUpRight, MegaphoneIcon, ScrollTextIcon, X } from "lucide-react"
 import type { AnnouncementByPage as AnnouncementType } from "@/db/queries"
 
 import { Section } from "./section"
-import { DottedX } from "@/components/dotted-x"
 import { DottedSeparator } from "@/components/dotted-separator"
 import { AnnouncementsModal } from "@/components/modals/announcements-modal"
 import { DottedButton } from "@/components/dotted-button"
@@ -22,17 +21,15 @@ export function Announcements({ announcements }: AnnouncementsSectionProps) {
 			label="Comunicados"
 			main={false}
 		>
-			<DottedX className="p-0">
-				<div className="flex flex-col">
-					{announcements?.map((announcement: AnnouncementType, index: number) => (
-						<AnnouncementItem
-							key={announcement.number}
-							announcement={announcement}
-							isLast={index === announcements.length - 1}
-						/>
-					))}
-				</div>
-			</DottedX>
+			<div className="flex flex-col">
+				{announcements?.map((announcement: AnnouncementType, index: number) => (
+					<AnnouncementItem
+						key={announcement.number}
+						announcement={announcement}
+						isLast={index === announcements.length - 1}
+					/>
+				))}
+			</div>
 			<DottedButton href="/comunicados" label="Ver Comunicados" />
 		</Section>
 	)

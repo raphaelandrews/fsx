@@ -1,4 +1,4 @@
-import { Verified } from "lucide-react"
+import { VerifiedIcon } from "lucide-react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -17,7 +17,7 @@ export function UpdateRegister() {
 					size="sm"
 					variant="ghost"
 				>
-					<Verified
+					<VerifiedIcon
 						aria-hidden="true"
 						className="size-4 shrink-0 fill-[#1CA0F2] stroke-white dark:stroke-[1.5]"
 					/>
@@ -29,7 +29,7 @@ export function UpdateRegister() {
 				sideOffset={8}
 			>
 				<div className="flex items-center gap-2">
-					<Verified
+					<VerifiedIcon
 						aria-hidden="true"
 						className="size-5 min-w-5 fill-[#1CA0F2] stroke-primary dark:stroke-[1.5]"
 					/>

@@ -7,8 +7,7 @@ import { siteConfig } from "@/lib/site";
 
 import { NewsList } from "./components/news-list";
 import { NewsSkeleton } from "./components/news-skeleton";
-import { Announcement } from "@/components/announcement";
-import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = {
   title: "Notícias",

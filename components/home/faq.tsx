@@ -7,7 +7,6 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "@/components/ui/accordion"
-import { DottedX } from "@/components/dotted-x"
 import { DottedSeparator } from "@/components/dotted-separator"
 
 const FAQ_ITEMS = [
@@ -95,8 +94,7 @@ const FAQ_ITEMS = [
 export function FAQ() {
 	return (
 		<Section icon={FileQuestionIcon} label="FAQ" main={false}>
-			<DottedX className="p-0">
-				<Accordion collapsible type="single" className="flex flex-col">
+			<Accordion collapsible type="single" className="flex flex-col">
 					{FAQ_ITEMS.map((item, index) => (
 						<div key={item.value}>
 							<AccordionItem value={item.value} className="border-b-0">
@@ -112,8 +110,7 @@ export function FAQ() {
 							)}
 						</div>
 					))}
-				</Accordion>
-			</DottedX>
+			</Accordion>
 		</Section>
 	)
 }

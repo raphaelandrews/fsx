@@ -7,28 +7,25 @@ import { Button } from "@/components/ui/button"
 
 import { StatusDot } from "./status-dot"
 import { DottedSeparator } from "@/components/dotted-separator"
-import { DottedX } from "@/components/dotted-x"
 import { Separator } from "@/components/ui/separator"
 
 export function Events({ events }: { events: Event[] }) {
 	return (
 		<Section icon={TrophyIcon} label="Próximos Eventos" main={false}>
-			<DottedX className="p-0">
-				<div className="flex flex-col">
-					{events?.map((event: Event, index: number) => (
-						<EventCard
-							form={event.form}
-							key={event.id}
-							name={event.name}
-							regulation={event.regulation}
-							startDate={event.startDate}
-							timeControl={event.timeControl}
-							type={event.type}
-							isLast={index === events.length - 1}
-						/>
-					))}
-				</div>
-			</DottedX>
+			<div className="flex flex-col">
+				{events?.map((event: Event, index: number) => (
+					<EventCard
+						form={event.form}
+						key={event.id}
+						name={event.name}
+						regulation={event.regulation}
+						startDate={event.startDate}
+						timeControl={event.timeControl}
+						type={event.type}
+						isLast={index === events.length - 1}
+					/>
+				))}
+			</div>
 		</Section>
 	)
 }
@@ -137,14 +134,14 @@ export function formattedBadge({
 	timeControl?: string
 }) {
 	const badgeMap: { [key: string]: JSX.Element } = {
-		open: <Badge variant="greenPastel">Aberto</Badge>,
-		closed: <Badge variant="redPastel">Fechado</Badge>,
-		school: <Badge variant="lavenderPastel">Escolar</Badge>,
+		open: <Badge variant="bulbasaur">Aberto</Badge>,
+		closed: <Badge variant="strawberry">Fechado</Badge>,
+		school: <Badge variant="jam">Escolar</Badge>,
 
-		standard: <Badge variant="yellowPastel">Clássico</Badge>,
-		rapid: <Badge variant="skyPastel">Rápido</Badge>,
-		blitz: <Badge variant="bluePastel">Blitz</Badge>,
-		bullet: <Badge variant="pinkPastel">Bullet</Badge>,
+		standard: <Badge variant="noir">Clássico</Badge>,
+		rapid: <Badge variant="sea">Rápido</Badge>,
+		blitz: <Badge variant="ice">Blitz</Badge>,
+		bullet: <Badge variant="raspberry">Bullet</Badge>,
 	}
 
 	if (type && badgeMap[type]) {

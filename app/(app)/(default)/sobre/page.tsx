@@ -4,7 +4,6 @@ import { ScrollIcon, LandmarkIcon, GoalIcon, Link2Icon } from "lucide-react"
 import { siteConfig } from "@/lib/site"
 
 import { PageHeader } from "@/components/ui/page-header"
-import { DottedX } from "@/components/dotted-x"
 import { Announcement } from "@/components/announcement"
 import { DottedSeparator } from "@/components/dotted-separator"
 import { SobreItem } from "./components/sobre-item"
@@ -40,65 +39,61 @@ export default function Page() {
 	];
 
 	return (
-		<>
-			<PageHeader icon={ScrollIcon} label="Sobre">
-				<DottedX className="p-0">
-					<section className="mb-0">
-						<Announcement icon={LandmarkIcon} label="A FSX" className="text-sm" />
+		<PageHeader icon={ScrollIcon} label="Sobre">
+			<section className="mb-0">
+				<Announcement icon={LandmarkIcon} label="A FSX" className="text-sm" />
 
-						<div className="px-4 py-3 text-sm text-foreground space-y-3 leading-relaxed">
-							<p>
-								A Federação Sergipana de Xadrez foi fundada em 11 de dezembro de 1989
-								pelas sociedades desportivas Cotinguiba Esporte Clube, Associação
-								Atlética de Sergipe, Clube Esportivo Sergipe e Clube dos Empregados da
-								Petrobras.
-							</p>
-							<p>
-								A FSX é filiada diretamente à Confederação Brasileira de Xadrez (CBX)
-								e, indiretamente, à Federação Internacional de Xadrez (FIDE).
-							</p>
-						</div>
+				<div className="px-4 py-3 text-sm text-foreground space-y-3 leading-relaxed">
+					<p>
+						A Federação Sergipana de Xadrez foi fundada em 11 de dezembro de 1989
+						pelas sociedades desportivas Cotinguiba Esporte Clube, Associação
+						Atlética de Sergipe, Clube Esportivo Sergipe e Clube dos Empregados da
+						Petrobras.
+					</p>
+					<p>
+						A FSX é filiada diretamente à Confederação Brasileira de Xadrez (CBX)
+						e, indiretamente, à Federação Internacional de Xadrez (FIDE).
+					</p>
+				</div>
 
-						<DottedSeparator className="w-full" />
-					</section>
+				<DottedSeparator className="w-full" />
+			</section>
 
-					<section className="mb-0">
-						<Announcement icon={GoalIcon} label="Finalidades" className="text-sm" />
+			<section className="mb-0">
+				<Announcement icon={GoalIcon} label="Finalidades" className="text-sm" />
 
-						<div className="flex flex-col">
-							{finalidades.map((item, index) => (
-								<SobreItem key={index} isLast={index === finalidades.length - 1}>
-									<div className="flex items-start gap-2">
-										<span className="text-muted-foreground shrink-0">•</span>
-										<p className="text-sm text-foreground">{item}</p>
-									</div>
-								</SobreItem>
-							))}
-						</div>
+				<div className="flex flex-col">
+					{finalidades.map((item, index) => (
+						<SobreItem key={index} isLast={index === finalidades.length - 1}>
+							<div className="flex items-start gap-2">
+								<span className="text-muted-foreground shrink-0">•</span>
+								<p className="text-sm text-foreground">{item}</p>
+							</div>
+						</SobreItem>
+					))}
+				</div>
 
-						<DottedSeparator className="w-full" />
-					</section>
+				<DottedSeparator className="w-full" />
+			</section>
 
-					<section className="mb-0">
-						<Announcement icon={Link2Icon} label="Links" className="text-sm" />
+			<section className="mb-0">
+				<Announcement icon={Link2Icon} label="Links" className="text-sm" />
 
-						<div className="flex flex-col">
-							{links.map((link, index) => (
-								<SobreItem key={index} isLast={index === links.length - 1}>
-									<a
-										className="text-sm text-primary flex items-center gap-2"
-										href={link.href}
-										rel="noreferrer"
-										target={link.href.startsWith("http") || link.href.startsWith("mailto") ? "_blank" : undefined}
-									>
-										{link.label}
-									</a>
-								</SobreItem>
-							))}
-						</div>
-					</section>
-				</DottedX>
-			</PageHeader>
-		</>
+				<div className="flex flex-col">
+					{links.map((link, index) => (
+						<SobreItem key={index} isLast={index === links.length - 1}>
+							<a
+								className="text-sm text-primary flex items-center gap-2"
+								href={link.href}
+								rel="noreferrer"
+								target={link.href.startsWith("http") || link.href.startsWith("mailto") ? "_blank" : undefined}
+							>
+								{link.label}
+							</a>
+						</SobreItem>
+					))}
+				</div>
+			</section>
+		</PageHeader>
 	)
 }

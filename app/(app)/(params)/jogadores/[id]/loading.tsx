@@ -2,16 +2,13 @@ import { UserIcon, TargetIcon, InfoIcon, TrendingUpIcon, Link2Icon, BarChart3Ico
 
 import { Skeleton } from "@/components/ui/skeleton"
 import { PageHeader } from "@/components/ui/page-header"
-import { DottedX } from "@/components/dotted-x"
 import { Announcement } from "@/components/announcement"
 import { DottedSeparator } from "@/components/dotted-separator"
 
 export default function Loading() {
 	return (
-		<div className="mx-auto w-full max-w-[720px]">
-			<PageHeader icon={UserIcon} label="Perfil">
-				<DottedX className="p-0">
-					{/* Header Section */}
+		<PageHeader icon={UserIcon} label="Perfil">
+			{/* Header Section */}
 					<div className="relative">
 						<Skeleton className="h-32 w-full" />
 						<div className="px-4 pb-4">
@@ -127,8 +124,6 @@ export default function Loading() {
 							<Skeleton className="h-64 w-full" />
 						</div>
 					</section>
-				</DottedX>
-			</PageHeader>
-		</div>
+		</PageHeader>
 	)
 }

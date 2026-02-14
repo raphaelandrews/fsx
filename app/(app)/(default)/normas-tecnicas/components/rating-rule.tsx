@@ -13,7 +13,7 @@ export function RatingRule({ k, description, isLast }: RatingRuleProps) {
     <div>
       <div className="m-1">
         <div className="flex items-center gap-3 p-3 hover:bg-muted/50 transition-all">
-          <Badge variant="greenPastel" className="font-mono rounded-xs shrink-0 w-16">
+          <Badge variant="bulbasaur" className="font-mono rounded-xs shrink-0 w-16">
             <span className="mt-0.5">k = {k}</span>
           </Badge>
           <div className="text-sm text-foreground space-y-1">

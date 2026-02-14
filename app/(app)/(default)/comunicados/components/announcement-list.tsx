@@ -1,7 +1,6 @@
 import { getAnnouncementsByPage } from "@/db/queries"
 
 import { DottedSeparator } from "@/components/dotted-separator"
-import { DottedX } from "@/components/dotted-x"
 import {
 	Pagination,
 	PaginationContent,
@@ -50,22 +49,20 @@ export async function AnnouncementList({ currentPage }: AnnouncementListProps) {
 
 	return (
 		<>
-			<DottedX className="p-0">
-				<div className="flex flex-col">
-					{announcements.map((announcement, index) => (
-						<AnnouncementItem
-							key={announcement.number}
-							announcement={announcement}
-							isLast={index === announcements.length - 1}
-						/>
-					))}
-				</div>
-			</DottedX>
+			<div className="flex flex-col">
+				{announcements.map((announcement, index) => (
+					<AnnouncementItem
+						key={announcement.number}
+						announcement={announcement}
+						isLast={index === announcements.length - 1}
+					/>
+				))}
+			</div>
 
 			{totalPages > 1 && (
-				<div className="w-full">
+				<>
 					<DottedSeparator />
-					<DottedX className="p-2 relative">
+					<div className="p-2">
 						<Pagination>
 							<PaginationContent>
 								<PaginationItem>
@@ -123,8 +120,8 @@ export async function AnnouncementList({ currentPage }: AnnouncementListProps) {
 								</PaginationItem>
 							</PaginationContent>
 						</Pagination>
-					</DottedX>
-				</div>
+					</div>
+				</>
 			)}
 		</>
 	)

@@ -1,13 +1,10 @@
 import { Fragment } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DottedSeparator } from "@/components/dotted-separator";
-import { DottedX } from "@/components/dotted-x";
 
 export function NewsSkeleton() {
   return (
-    <div className="w-full">
-      <DottedX className="p-0">
-        <div className="grid sm:grid-cols-2 gap-0 relative">
+    <div className="grid sm:grid-cols-2 gap-0 relative">
           <div className="absolute left-1/2 top-0 h-full -translate-x-1/2 z-0 hidden sm:block">
             <DottedSeparator vertical />
           </div>
@@ -34,8 +31,6 @@ export function NewsSkeleton() {
               )}
             </Fragment>
           ))}
-        </div>
-      </DottedX>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 
 import { Announcement } from "@/components/announcement"
 import { DottedSeparator } from "@/components/dotted-separator"
+import { DottedX } from "@/components/dotted-x"
 
 interface Props {
 	label?: string
@@ -22,10 +23,10 @@ export function Section({
 }: Props) {
 	return (
 		<section className={cn(className)}>
-			{!main && <Announcement icon={icon} label={label} />}
-
-			{children}
-
+			<DottedX className="p-0">
+				{!main && <Announcement icon={icon} label={label} />}
+				{children}
+			</DottedX>
 			<DottedSeparator />
 		</section>
 	)

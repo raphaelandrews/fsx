@@ -1,13 +1,11 @@
 import { Fragment } from "react"
 
 import { DottedSeparator } from "@/components/dotted-separator"
-import { DottedX } from "@/components/dotted-x"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export function AnnouncementSkeleton() {
 	return (
-		<DottedX className="p-0">
-			<div className="flex flex-col">
+		<div className="flex flex-col">
 			{Array.from({ length: 12 }).map((_, index) => (
 				<Fragment key={`announcement-skeleton-${index}`}>
 					<div className="m-1">
@@ -28,7 +26,6 @@ export function AnnouncementSkeleton() {
 					{index < 11 && <DottedSeparator className="w-full" />}
 				</Fragment>
 			))}
-			</div>
-		</DottedX>
+		</div>
 	)
 }

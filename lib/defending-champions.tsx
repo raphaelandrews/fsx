@@ -13,14 +13,13 @@ import {
 } from "@/components/ui/popover"
 
 export const formatDefendingChampions = (
-	championship: string,
-	size: number
+	championship: string
 ) => {
 	if (championship === "Absoluto") {
 		return (
 			<Popover>
 				<PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
-					<TurtleIcon height={size} width={size} />
+					<TurtleIcon className="size-4" />
 				</PopoverTrigger>
 				<PopoverContent>Atual campeão Sergipano Absoluto</PopoverContent>
 			</Popover>
@@ -31,7 +30,7 @@ export const formatDefendingChampions = (
 		return (
 			<Popover>
 				<PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
-					<RabbitIcon height={size} width={size} />
+					<RabbitIcon className="size-4" />
 				</PopoverTrigger>
 				<PopoverContent>Atual campeão Sergipano Rápido</PopoverContent>
 			</Popover>
@@ -42,7 +41,7 @@ export const formatDefendingChampions = (
 		return (
 			<Popover>
 				<PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
-					<ZapIcon height={size} width={size} />
+					<ZapIcon className="size-4" />
 				</PopoverTrigger>
 				<PopoverContent>Atual campeão Sergipano Blitz</PopoverContent>
 			</Popover>
@@ -53,7 +52,7 @@ export const formatDefendingChampions = (
 		return (
 			<Popover>
 				<PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
-					<CrownIcon height={size} width={size} />
+					<CrownIcon className="size-4" />
 				</PopoverTrigger>
 				<PopoverContent>Atual campeã Sergipana Feminino</PopoverContent>
 			</Popover>
@@ -64,7 +63,7 @@ export const formatDefendingChampions = (
 		return (
 			<Popover>
 				<PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
-					<SwordsIcon height={size} width={size} />
+					<SwordsIcon className="size-4" />
 				</PopoverTrigger>
 				<PopoverContent>Atual campeão Sergipano Equipes</PopoverContent>
 			</Popover>

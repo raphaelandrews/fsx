@@ -46,7 +46,6 @@ import {
 	SelectValue,
 } from "@/components/ui/select"
 import { PageHeader } from "@/components/ui/page-header"
-import { DottedX } from "@/components/dotted-x"
 import { Announcement } from "@/components/announcement"
 import { DottedSeparator } from "@/components/dotted-separator"
 
@@ -97,283 +96,283 @@ export function Client({ player }: { player: PlayerById }) {
 	const [selectedRatingType, setSelectedRatingType] = React.useState("rapid")
 
 	return (
-		<div className="mx-auto w-full max-w-[720px]">
-			<PageHeader icon={UserIcon} label="Perfil">
-				<DottedX className="p-0">
-					{/* Header Section */}
-					<div className="relative">
-						<div className="h-32 w-full bg-cover bg-center" style={headerGradient} />
-						<div className="px-4 pb-4">
-							<div className="-mt-12 mb-4 flex justify-center">
-								<Avatar className="h-24 w-24 rounded-[20px] border-4 border-background shadow-sm">
-									<AvatarImage
-										alt={player.name}
-										src={player.imageUrl ?? ""}
-										className="h-full w-full object-cover"
-									/>
-									<AvatarFallback style={avatarGradient} className="rounded-[16px]" />
-								</Avatar>
-							</div>
-
-							<div className="flex flex-col items-center gap-2 text-center">
-								<div className="flex items-center gap-1.5">
-									<h1 className="text-xl font-bold tracking-tight">
-										{internalTitle && (
-											<span className="text-yellow-pastel-foreground mr-1.5">
-												{internalTitle.title.shortTitle}
-											</span>
-										)}
-										{player.nickname || player.name}
-									</h1>
-									{player.verified && (
-										<Popover>
-											<PopoverTrigger asChild className="cursor-pointer">
-												<VerifiedIcon
-													aria-label="Verificado"
-													className="size-5 fill-sky-pastel-foreground text-background dark:text-sky-pastel"
-												/>
-											</PopoverTrigger>
-											<PopoverContent className="w-80 p-4">
-												<div className="space-y-2">
-													<h4 className="font-semibold leading-none">Perfil verificado</h4>
-													<p className="text-sm text-muted-foreground">
-														Esse perfil teve seus dados confirmados pela federação.
-													</p>
-													<a
-														className={buttonVariants({ variant: "outline", className: "w-full" })}
-														href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
-														target="_blank"
-														rel="noreferrer"
-													>
-														Solicitar verificação
-													</a>
-												</div>
-											</PopoverContent>
-										</Popover>
-									)}
-								</div>
-
-								<div className="flex flex-wrap items-center justify-center gap-2">
-									{player.active ? (
-										<Badge variant="outline" className="gap-1.5 pl-1.5 border-green-pastel-foreground/20 bg-green-pastel text-green-pastel-foreground">
-											<span className="relative flex h-2 w-2">
-												<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-pastel-foreground opacity-75"></span>
-												<span className="relative inline-flex rounded-full h-2 w-2 bg-green-pastel-foreground"></span>
-											</span>
-											Ativo
-										</Badge>
-									) : (
-										<Badge variant="outline" className="gap-1.5 pl-1.5 border-red-pastel-foreground/20 bg-red-pastel text-red-pastel-foreground">
-											<span className="relative flex h-2 w-2">
-												<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-pastel-foreground opacity-75"></span>
-												<span className="relative inline-flex rounded-full h-2 w-2 bg-red-pastel-foreground"></span>
-											</span>
-											Inativo
-										</Badge>
-									)}
-
-									{(managementRole || refereeRole) && (
-										<>
-											{managementRole && (
-												<Badge className="bg-mauve-pastel text-mauve-pastel-foreground border-mauve-pastel-foreground/20">{managementRole.role.role}</Badge>
-											)}
-											{refereeRole && (
-												<Badge className="bg-sapphire-pastel text-sapphire-pastel-foreground border-sapphire-pastel-foreground/20">{refereeRole.role.role}</Badge>
-											)}
-										</>
-									)}
-								</div>
-							</div>
-						</div>
-						<DottedSeparator className="w-full" />
+		<PageHeader icon={UserIcon} label="Perfil">
+			{/* Header Section */}
+			<div className="relative">
+				<div className="h-32 w-full bg-cover bg-center" style={headerGradient} />
+				<div className="px-4 pb-4">
+					<div className="-mt-12 mb-4 flex justify-center">
+						<Avatar className="h-24 w-24 rounded-[20px] border-4 border-background shadow-sm">
+							<AvatarImage
+								alt={player.name}
+								src={player.imageUrl ?? ""}
+								className="h-full w-full object-cover"
+							/>
+							<AvatarFallback style={avatarGradient} className="rounded-[16px]" />
+						</Avatar>
 					</div>
 
-					{/* Conquistas Section */}
-					{(orderPodiums.length > 0 || (player.defendingChampions && player.defendingChampions?.length > 0)) && (
-						<section className="mb-0">
-							<Announcement icon={TargetIcon} label="Conquistas" className="text-sm" />
-							<div className="p-3 grid gap-4">
-								{player.defendingChampions && player.defendingChampions?.length > 0 && (
-									<div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-										{player.defendingChampions?.map((championship) => (
-											<div key={championship.championship.name}>
-												{formatDefendingChampions(championship.championship.name, 20)}
-											</div>
-										))}
-									</div>
+					<div className="flex flex-col items-center gap-2 text-center">
+						<div className="flex items-center gap-1.5">
+							<h1 className="text-lg font-semibold tracking-tight">
+								{internalTitle && (
+									<span className="text-highlight mr-1.5">
+										{internalTitle.title.shortTitle}
+									</span>
 								)}
+								{player.nickname || player.name}
+							</h1>
+							{player.verified && (
+								<Popover>
+									<PopoverTrigger asChild className="cursor-pointer">
+										<VerifiedIcon
+											aria-label="Verificado"
+											className="!fill-sky-400 mt-1 stroke-background dark:stroke-[1.5]"
+										/>
+									</PopoverTrigger>
+									<PopoverContent className="w-80 p-4">
+										<div className="space-y-2">
+											<h4 className="font-semibold leading-none">Perfil verificado</h4>
+											<p className="text-sm text-muted-foreground">
+												Esse perfil teve seus dados confirmados pela federação.
+											</p>
+											<a
+												className={buttonVariants({ variant: "outline", className: "w-full" })}
+												href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
+												target="_blank"
+												rel="noreferrer"
+											>
+												Solicitar verificação
+											</a>
+										</div>
+									</PopoverContent>
+								</Popover>
+							)}
+						</div>
 
-								{orderPodiums.length > 0 && (
-									<div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-										{orderPodiums.map((podium) => (
-											<Popover key={podium.place + podium.tournament.name}>
-												<PopoverTrigger className="rounded-md bg-muted p-2 text-xs font-medium transition-colors">
-													{FormatPodium(
-														podium.place,
-														podium.tournament.championshipId ?? 0
-													)}
-												</PopoverTrigger>
-												<PopoverContent className="w-auto p-2 text-xs">
-													<span className="font-semibold">{FormatPodiumTitle(podium.place)}</span> {podium.tournament.name}
-												</PopoverContent>
-											</Popover>
-										))}
+						<div className="flex flex-wrap items-center justify-center gap-2">
+							{(managementRole || refereeRole) && (
+								<>
+									{managementRole && (
+										<Badge variant="secondary">{managementRole.role.role}</Badge>
+									)}
+									{refereeRole && (
+										<Badge variant="default">{refereeRole.role.role}</Badge>
+									)}
+								</>
+							)}
+						</div>
+					</div>
+				</div>
+				<DottedSeparator className="w-full" />
+			</div>
+
+			{/* Conquistas Section */}
+			{(orderPodiums.length > 0 || (player.defendingChampions && player.defendingChampions?.length > 0)) && (
+				<section className="mb-0">
+					<Announcement icon={TargetIcon} label="Conquistas" className="text-sm" />
+					<div className="p-3 grid gap-4">
+						{player.defendingChampions && player.defendingChampions?.length > 0 && (
+							<div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+								{player.defendingChampions?.map((championship) => (
+									<div key={championship.championship.name}>
+										{formatDefendingChampions(championship.championship.name)}
 									</div>
-								)}
+								))}
 							</div>
-							<DottedSeparator className="w-full" />
-						</section>
+						)}
+
+						{orderPodiums.length > 0 && (
+							<div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+								{orderPodiums.map((podium) => (
+									<Popover key={podium.place + podium.tournament.name}>
+										<PopoverTrigger className="rounded-md bg-muted p-2 text-xs font-medium transition-colors">
+											{FormatPodium(
+												podium.place,
+												podium.tournament.championshipId ?? 0
+											)}
+										</PopoverTrigger>
+										<PopoverContent className="w-auto p-2 text-xs font-medium">
+											{FormatPodiumTitle(podium.place)} {podium.tournament.name}
+										</PopoverContent>
+									</Popover>
+								))}
+							</div>
+						)}
+					</div>
+					<DottedSeparator className="w-full" />
+				</section>
+			)}
+
+			{/* Informações Section */}
+			<section className="mb-0">
+				<Announcement icon={InfoIcon} label="Informações" className="text-sm" />
+
+				<div className="flex flex-col">
+					<InfoItem label="Nome Completo" value={player.name} isFirst />
+
+					{internalTitle && (
+						<InfoItem label="Titulação FSX" value={internalTitle.title.title} />
 					)}
 
-					{/* Informações Section */}
-					<section className="mb-0">
-						<Announcement icon={InfoIcon} label="Informações" className="text-sm" />
+					{externalTitle && (
+						<InfoItem label="Titulação CBX/FIDE" value={externalTitle.title.title} />
+					)}
 
-						<div className="flex flex-col">
-							<InfoItem label="Nome Completo" value={player.name} isFirst />
-
-							{internalTitle && (
-								<InfoItem label="Titulação FSX" value={internalTitle.title.title} />
-							)}
-
-							{externalTitle && (
-								<InfoItem label="Titulação CBX/FIDE" value={externalTitle.title.title} />
-							)}
-
-							{player.club && (
-								<InfoItem label="Clube">
-									<div className="flex items-center gap-2">
-										<Avatar className="size-5 rounded-sm">
-											<AvatarImage
-												alt={player.club.name as string}
-												className="object-contain"
-												src={
-													(player.club.logo as string)
-														? (player.club.logo as string)
-														: "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
-												}
-											/>
-											<AvatarFallback className="rounded-none bg-transparent" />
-										</Avatar>
-										<span>{player.club.name}</span>
-									</div>
-								</InfoItem>
-							)}
-
-							{player.location && (
-								<InfoItem label="Localização">
-									<div className="flex items-center gap-2">
-										<Avatar className="size-5 rounded-sm">
-											<AvatarImage
-												alt={player.location.name as string}
-												className="object-contain"
-												src={
-													(player.location.flag as string)
-														? (player.location.flag as string)
-														: "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
-												}
-											/>
-											<AvatarFallback className="rounded-none bg-transparent" />
-										</Avatar>
-										<span>{player.location.name}</span>
-									</div>
-								</InfoItem>
-							)}
-						</div>
-
-						<DottedSeparator className="w-full" />
-					</section>
-
-					{/* Ratings Section */}
-					<section className="mb-0">
-						<Announcement icon={TrendingUpIcon} label="Ratings" className="text-sm" />
-
-						<div className="grid grid-cols-3 divide-x divide-border">
-							<RatingBox label="Clássico" value={player.classic} />
-							<RatingBox label="Rápido" value={player.rapid} />
-							<RatingBox label="Blitz" value={player.blitz} />
-						</div>
-
-						<DottedSeparator className="w-full" />
-					</section>
-
-					{/* IDs Section */}
-					<section className="mb-0">
-						<Announcement icon={Link2Icon} label="IDs" className="text-sm" />
-
-						<div className="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-y sm:divide-y-0 divide-border">
-							<IdBox label="ID FSX" value={String(player.id)} />
-							<IdBox
-								label="ID CBX"
-								value={player.cbxId ? String(player.cbxId) : "-"}
-								href={player.cbxId ? `https://www.cbx.org.br/jogador/${player.cbxId}` : undefined}
-							/>
-							<IdBox
-								label="ID FIDE"
-								value={player.fideId ? String(player.fideId) : "-"}
-								href={player.fideId ? `https://ratings.fide.com/profile/${player.fideId}` : undefined}
-							/>
-						</div>
-
-						<DottedSeparator className="w-full" />
-					</section>
-
-					{/* Performance Section */}
-					{tournaments.length > 0 && (
-						<section className="mb-0">
-							<div className="flex items-center justify-between pr-3">
-								<Announcement icon={BarChart3Icon} label="Performance" className="text-sm flex-1" />
-								<Select
-									onValueChange={(value) => setSelectedRatingType(value)}
-									value={selectedRatingType}
-								>
-									<SelectTrigger className="w-[140px] h-8 text-xs">
-										<SelectValue placeholder="Rating" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="classic">Clássico</SelectItem>
-										<SelectItem value="rapid">Rápido</SelectItem>
-										<SelectItem value="blitz">Blitz</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-
-							<div className="p-4 space-y-6">
-								<div className="space-y-2">
-									<h4 className="text-sm font-medium text-muted-foreground ml-2">Variação de Rating</h4>
-									<VariationChart
-										player={player}
-										selectedRatingType={selectedRatingType}
+					{player.club && (
+						<InfoItem label="Clube">
+							<div className="flex items-center gap-2">
+								<Avatar className="size-5 rounded-sm">
+									<AvatarImage
+										alt={player.club.name as string}
+										className="object-contain"
+										src={
+											(player.club.logo as string)
+												? (player.club.logo as string)
+												: "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
+										}
 									/>
-								</div>
+									<AvatarFallback className="rounded-none bg-transparent" />
+								</Avatar>
+								<span>{player.club.name}</span>
+							</div>
+						</InfoItem>
+					)}
 
-								<DottedSeparator className="w-full" />
-
-								<div className="space-y-2">
-									<h4 className="text-sm font-medium text-muted-foreground ml-2">Evolução de Rating</h4>
-									<TotalRatingChart
-										player={player}
-										selectedRatingType={selectedRatingType}
+					{player.location && (
+						<InfoItem label="Localização">
+							<div className="flex items-center gap-2">
+								<Avatar className="size-5 rounded-sm">
+									<AvatarImage
+										alt={player.location.name as string}
+										className="object-contain"
+										src={
+											(player.location.flag as string)
+												? (player.location.flag as string)
+												: "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
+										}
 									/>
-								</div>
+									<AvatarFallback className="rounded-none bg-transparent" />
+								</Avatar>
+								<span>{player.location.name}</span>
 							</div>
-							<DottedSeparator className="w-full" />
-						</section>
+						</InfoItem>
 					)}
 
-					{/* Torneios Section */}
-					{tournaments && tournaments.length > 0 && (
-						<section className="mb-0">
-							<Announcement icon={CalendarRangeIcon} label="Histórico de Torneios" className="text-sm" />
-							<div className="p-0">
-								<DataTable columns={columns} data={tournaments} />
+					{player.active ? (
+						<InfoItem label="Status">
+							<div className="flex items-center gap-2">
+								<span className="relative flex h-2 w-2">
+									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/75" />
+									<span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600" />
+								</span>
+								<p>Ativo</p>
 							</div>
-						</section>
+						</InfoItem>
+					) : (
+						<InfoItem label="Status">
+							<div className="flex items-center gap-2">
+								<span className="relative flex h-2 w-2">
+									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-500/75" />
+									<span className="relative inline-flex h-2 w-2 rounded-full bg-rose-600" />
+								</span>
+								<p>Inativo</p>
+							</div>
+						</InfoItem>
 					)}
+				</div>
 
-				</DottedX>
-			</PageHeader>
-		</div>
+				<DottedSeparator className="w-full" />
+			</section>
+
+			{/* Ratings Section */}
+			<section className="mb-0">
+				<Announcement icon={TrendingUpIcon} label="Ratings" className="text-sm" />
+
+				<div className="grid grid-cols-3 divide-x divide-border">
+					<RatingBox label="Clássico" value={player.classic} />
+					<RatingBox label="Rápido" value={player.rapid} />
+					<RatingBox label="Blitz" value={player.blitz} />
+				</div>
+
+				<DottedSeparator className="w-full" />
+			</section>
+
+			{/* IDs Section */}
+			<section className="mb-0">
+				<Announcement icon={Link2Icon} label="IDs" className="text-sm" />
+
+				<div className="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-y sm:divide-y-0 divide-border">
+					<IdBox label="ID FSX" value={String(player.id)} />
+					<IdBox
+						label="ID CBX"
+						value={player.cbxId ? String(player.cbxId) : "-"}
+						href={player.cbxId ? `https://www.cbx.org.br/jogador/${player.cbxId}` : undefined}
+					/>
+					<IdBox
+						label="ID FIDE"
+						value={player.fideId ? String(player.fideId) : "-"}
+						href={player.fideId ? `https://ratings.fide.com/profile/${player.fideId}` : undefined}
+					/>
+				</div>
+
+				{tournaments.length > 0 && <DottedSeparator className="w-full" />}
+			</section>
+
+			{/* Performance Section */}
+			{tournaments.length > 0 && (
+				<section className="mb-0">
+					<div className="flex items-center justify-between pr-3">
+						<Announcement icon={BarChart3Icon} label="Performance" className="text-sm flex-1" />
+						<Select
+							onValueChange={(value) => setSelectedRatingType(value)}
+							value={selectedRatingType}
+						>
+							<SelectTrigger className="w-[140px] h-8 text-xs">
+								<SelectValue placeholder="Rating" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="classic">Clássico</SelectItem>
+								<SelectItem value="rapid">Rápido</SelectItem>
+								<SelectItem value="blitz">Blitz</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+
+					<div className="p-4 space-y-6">
+						<div className="space-y-2">
+							<h4 className="text-sm font-medium text-muted-foreground ml-2">Variação de Rating</h4>
+							<VariationChart
+								player={player}
+								selectedRatingType={selectedRatingType}
+							/>
+						</div>
+
+						<DottedSeparator className="w-full" />
+
+						<div className="space-y-2">
+							<h4 className="text-sm font-medium text-muted-foreground ml-2">Evolução de Rating</h4>
+							<TotalRatingChart
+								player={player}
+								selectedRatingType={selectedRatingType}
+							/>
+						</div>
+					</div>
+					<DottedSeparator className="w-full" />
+				</section>
+			)}
+
+			{/* Torneios Section */}
+			{tournaments && tournaments.length > 0 && (
+				<section className="mb-0">
+					<Announcement icon={CalendarRangeIcon} label="Histórico de Torneios" className="text-sm" />
+					<div className="p-0">
+						<DataTable columns={columns} data={tournaments} />
+					</div>
+				</section>
+			)}
+
+		</PageHeader>
 	)
 }
 
@@ -382,7 +381,7 @@ function InfoItem({ label, value, children, isFirst }: { label: string, value?: 
 		<>
 			{!isFirst && <DottedSeparator className="w-full" />}
 			<div className="m-1">
-				<div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 hover:bg-muted/50 transition-colors duration-200 rounded-sm">
+				<div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 hover:bg-muted/50 transition-colors duration-200">
 					<span className="text-sm font-medium text-muted-foreground">{label}</span>
 					<div className="mt-1 sm:mt-0 text-sm font-medium text-foreground">
 						{children ? children : value}
@@ -404,11 +403,11 @@ function RatingBox({ label, value }: { label: string, value?: number | null }) {
 
 function IdBox({ label, value, href }: { label: string, value: string, href?: string }) {
 	const content = (
-		<div className={`p-4 flex flex-col items-center justify-center transition-colors duration-200 group h-full ${href ? "hover:bg-blue-pastel/50" : "hover:bg-muted/50"}`}>
-			<span className={`text-sm font-medium transition-colors ${href ? "text-muted-foreground group-hover:text-blue-pastel-foreground" : "text-muted-foreground"}`}>{label}</span>
+		<div className="p-4 flex flex-col items-center justify-center transition-colors duration-200 group h-full hover:bg-muted/50">
+			<span className="text-sm font-medium transition-colors text-muted-foreground">{label}</span>
 			<div className="flex items-center gap-1.5 mt-1">
-				<span className={`text-base font-semibold transition-colors ${href ? "text-foreground group-hover:text-blue-pastel-foreground" : "text-foreground"}`}>{value}</span>
-				{href && <ArrowUpRight className="size-3 text-muted-foreground group-hover:text-blue-pastel-foreground transition-colors" />}
+				<span className={`text-base font-semibold transition-colors ${href ? "group-hover:underline" : "text-foreground"}`}>{value}</span>
+				{href && <ArrowUpRight className="size-3 text-muted-foreground" />}
 			</div>
 		</div>
 	)

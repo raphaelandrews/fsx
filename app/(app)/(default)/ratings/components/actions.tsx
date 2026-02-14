@@ -65,7 +65,7 @@ export const Actions = ({
 					</Avatar>
 					<div className="whitespace-nowrap font-medium">
 						{internalTitles.length > 0 && (
-							<span className="text-yellow-pastel-foreground">
+							<span className="text-highlight">
 								{internalTitles.map((t) => t.title.shortTitle).join(" ")}
 							</span>
 						)}{" "}
@@ -75,7 +75,7 @@ export const Actions = ({
 				<div className="flex items-center gap-2">
 					{defendingChampions?.map((championship) => (
 						<div key={championship.championship.name}>
-							{formatDefendingChampions(championship.championship.name, 16)}
+							{formatDefendingChampions(championship.championship.name)}
 						</div>
 					))}
 				</div>

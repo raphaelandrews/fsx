@@ -40,7 +40,7 @@ export const Actions = ({ id, name, nickname, image, shortTitle }: Props) => {
 					<AvatarFallback style={gradient} />
 				</Avatar>
 				<div className="whitespace-nowrap font-medium">
-					<span className="text-yellow-pastel-foreground">{shortTitle}</span>{" "}
+					<span className="text-highlight">{shortTitle}</span>{" "}
 					{nickname ? nickname : name}
 				</div>
 			</Button>

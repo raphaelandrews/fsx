@@ -44,7 +44,7 @@ export const Actions = ({
           <AvatarFallback style={gradient} />
         </Avatar>
         <div className="whitespace-nowrap font-medium">
-          <span className="text-yellow-pastel-foreground">{shortTitle}</span>{" "}
+          <span className="text-highlight">{shortTitle}</span>{" "}
           {nickname || name}
         </div>
       </Button>

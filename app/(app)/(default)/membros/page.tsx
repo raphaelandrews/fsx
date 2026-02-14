@@ -8,7 +8,6 @@ import { siteConfig } from "@/lib/site";
 import { Client } from "./client";
 import { MembrosSkeleton } from "./components/membros-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
-import { DottedX } from "@/components/dotted-x";
 
 export const metadata: Metadata = {
 	title: "Membros",
@@ -28,14 +27,10 @@ async function MembrosContent() {
 
 export default function Page() {
 	return (
-		<>
-			<PageHeader icon={ScrollIcon} label="Membros">
-				<DottedX className="p-0">
-					<Suspense fallback={<MembrosSkeleton />}>
-						<MembrosContent />
-					</Suspense>
-				</DottedX>
-			</PageHeader>
-		</>
+		<PageHeader icon={ScrollIcon} label="Membros">
+			<Suspense fallback={<MembrosSkeleton />}>
+				<MembrosContent />
+			</Suspense>
+		</PageHeader>
 	);
 }

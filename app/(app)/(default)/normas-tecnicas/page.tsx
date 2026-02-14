@@ -9,7 +9,6 @@ import { Accordion } from "@/components/ui/accordion";
 import { PageHeader } from "@/components/ui/page-header"
 import { Announcement } from "@/components/announcement";
 import { DottedSeparator } from "@/components/dotted-separator";
-import { DottedX } from "@/components/dotted-x";
 
 export const metadata: Metadata = {
   title: "Normas Técnicas",
@@ -24,10 +23,8 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <>
-      <PageHeader icon={BookIcon} label="Normas Técnicas">
-        <DottedX className="p-0">
-          <section className="mb-0">
+    <PageHeader icon={BookIcon} label="Normas Técnicas">
+      <section className="mb-0">
             <Announcement icon={MedalIcon} label="Titulações" className="text-sm" />
 
             <Accordion type="single" collapsible className="flex flex-col">
@@ -62,10 +59,8 @@ export default function Page() {
                   {item.content}
                 </NormasItem>
               ))}
-            </Accordion>
-          </section>
-        </DottedX>
-      </PageHeader>
-    </>
+        </Accordion>
+      </section>
+    </PageHeader>
   );
 }

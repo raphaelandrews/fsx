@@ -6,7 +6,6 @@ import { getClubs, getLocations } from "@/db/queries"
 
 import { Client } from "./client"
 import { PageHeader } from "@/components/ui/page-header"
-import { DottedX } from "@/components/dotted-x"
 
 export const metadata: Metadata = {
 	title: "Ratings",
@@ -36,12 +35,8 @@ export default async function Page() {
 	}))
 
 	return (
-		<>
-			<PageHeader icon={BarChart2Icon} label="Ratings">
-				<DottedX>
-					<Client clubs={clubs} locations={locations} />
-				</DottedX>
-			</PageHeader>
-		</>
+		<PageHeader icon={BarChart2Icon} label="Ratings">
+			<Client clubs={clubs} locations={locations} />
+		</PageHeader>
 	)
 }
