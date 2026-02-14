@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/nursery/noShadow: No */
 "use client";
 
 import Link from "next/link";
@@ -8,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 import { navigationData } from "./header-navigation-data";
 import { DottedSeparator } from "@/components/dotted-separator";
+import { Logo } from "@/components/logo";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -28,11 +28,11 @@ export function MainNav() {
     <div className="mr-4 flex">
       {pathname === "/" ? (
         <div className="mr-4 flex items-center space-x-2 lg:mr-6">
-          <img src="/logo.svg" alt="Logo" className="h-4" title="Logo" />
+          <Logo className="h-4 text-foreground" />
         </div>
       ) : (
         <Link href="/" className="mr-4 flex items-center space-x-2 lg:mr-6">
-          <img src="/logo.svg" alt="Logo" className="h-4" title="Logo" />
+          <Logo className="h-4 text-foreground" />
         </Link>
       )}
       <NavigationMenu className="ml-1 hidden lg:block">

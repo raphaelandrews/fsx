@@ -17,6 +17,7 @@ import { Announcement } from "@/components/announcement"
 import { DottedSeparator } from "@/components/dotted-separator"
 import { DottedX } from "@/components/dotted-x"
 import { FlickeringGrid } from "@/components/ui/flickering-grid"
+import { Logo } from "@/components/logo"
 
 import {
 	Tooltip,
@@ -57,7 +58,7 @@ const Links = async () => {
 				<DottedSeparator fullWidth />
 				{/* Header Section */}
 				<div className="p-4 flex justify-between items-center gap-4">
-					<img src="/logo.svg" alt="Logo" className="h-5" title="Logo" />
+					<Logo className="h-5 text-foreground" />
 
 					<div className="flex gap-2.5">
 						<Tooltip>
