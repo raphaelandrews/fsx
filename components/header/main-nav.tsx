@@ -69,8 +69,8 @@ export function MainNav() {
                                     )}
                                     href={href}
                                   >
-                                    <div className="flex items-center justify-center size-8 rounded-md border bg-background group-hover:bg-primary group-hover:border-primary transition-colors duration-300 shrink-0">
-                                      <Icon className="size-4 group-hover:text-primary-foreground transition-colors duration-300" />
+                                    <div className={cn("flex items-center justify-center size-8 rounded-md border bg-background group-hover:bg-primary group-hover:border-primary transition-colors duration-300 shrink-0", getIsActive(href) && "bg-primary border-primary")}>
+                                      <Icon className={cn("size-4 group-hover:text-primary-foreground transition-colors duration-300", getIsActive(href) && "text-primary-foreground")} />
                                     </div>
                                     <div className="flex flex-col gap-1">
                                       <span className="text-sm font-semibold leading-none">

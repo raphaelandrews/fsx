@@ -1,5 +1,3 @@
-"use client";
-
 import { Fragment } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DottedSeparator } from "@/components/dotted-separator";
