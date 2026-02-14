@@ -3,8 +3,8 @@
 import { revalidateTag } from "next/cache"
 
 export async function revalidatePlayersAction() {
-	revalidateTag("players")
-	revalidateTag("swiss-manager-export")
+	revalidateTag("players", "max")
+	revalidateTag("swiss-manager-export", "max")
 	return { success: true, message: "Players cache revalidated!" }
 }
 
