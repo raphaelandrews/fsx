@@ -39,9 +39,9 @@ export const columns: ColumnDef<any>[] = [
 
 export function formatVariationColor(variation: number | null | undefined) {
 	if (variation == null) return "text-primary"
-	if (variation > 0) return "text-teal-500"
-	if (variation === 0) return "text-amber-400"
-	if (variation < 0) return "text-red-500"
+	if (variation > 0) return "text-green-pastel-foreground"
+	if (variation === 0) return "text-yellow-pastel-foreground"
+	if (variation < 0) return "text-red-pastel-foreground"
 	return "text-primary"
 }
 

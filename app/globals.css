@@ -116,23 +116,40 @@
 :root {
 	--background: oklch(100% 0 0);
 	--foreground: oklch(14.1% .005 285.823);
+
 	--card: oklch(100% 0 0);
 	--card-foreground: oklch(14.1% .005 285.823);
+
 	--popover: oklch(100% 0 0);
 	--popover-foreground: oklch(14.1% .005 285.823);
+
 	--primary: oklch(21% .006 285.885);
 	--primary-foreground: oklch(98.5% 0 0);
+
 	--secondary: oklch(96.7% .001 286.375);
 	--secondary-foreground: oklch(21% .006 285.885);
+
 	--muted: oklch(96.7% .001 286.375);
 	--muted-foreground: oklch(55.2% .016 285.938);
+
 	--accent: oklch(96.7% .001 286.375);
 	--accent-foreground: oklch(21% .006 285.885);
 
+	--selection: var(--blue-pastel);
+	--selection-foreground: var(--blue-pastel-foreground);
+
+	--link: var(--blue-pastel);
+	--link-foreground: var(--blue-pastel-foreground);
+
+	--destructive: var(--red-pastel);
+	--destructive-foreground: var(--red-pastel-foreground);
+
+	/*
 	--selection: oklch(0.956 0.045 203.388);
 	--selection-foreground: oklch(0.76 0.1362 218.47);
 
 	--destructive: oklch(0.577 0.245 27.325);
+	*/
 
 	--border: oklch(92% .004 286.32);
 	--input: oklch(92% .004 286.32);
@@ -217,30 +234,43 @@
 	/* Catppuccin Light (Latte) - bg: lightened pastels, fg: original Latte accents */
 	--rosewater-pastel: hsl(11, 55%, 88%);
 	--rosewater-pastel-foreground: hsl(11, 59%, 45%);
+
 	--flamingo-pastel: hsl(0, 55%, 88%);
 	--flamingo-pastel-foreground: hsl(0, 60%, 45%);
+
 	--pink-pastel: hsl(316, 65%, 88%);
 	--pink-pastel-foreground: hsl(316, 73%, 45%);
+
 	--mauve-pastel: hsl(266, 70%, 88%);
 	--mauve-pastel-foreground: hsl(266, 85%, 40%);
+
 	--red-pastel: hsl(347, 70%, 88%);
 	--red-pastel-foreground: hsl(347, 87%, 38%);
+
 	--maroon-pastel: hsl(355, 65%, 88%);
 	--maroon-pastel-foreground: hsl(355, 76%, 42%);
+
 	--peach-pastel: hsl(22, 85%, 88%);
 	--peach-pastel-foreground: hsl(22, 99%, 38%);
+
 	--yellow-pastel: hsl(35, 70%, 88%);
 	--yellow-pastel-foreground: hsl(35, 77%, 35%);
+
 	--green-pastel: hsl(109, 50%, 88%);
 	--green-pastel-foreground: hsl(109, 58%, 32%);
+
 	--teal-pastel: hsl(183, 55%, 88%);
 	--teal-pastel-foreground: hsl(183, 74%, 30%);
+
 	--sky-pastel: hsl(197, 75%, 88%);
 	--sky-pastel-foreground: hsl(197, 97%, 35%);
+
 	--sapphire-pastel: hsl(189, 60%, 88%);
 	--sapphire-pastel-foreground: hsl(189, 70%, 34%);
+
 	--blue-pastel: hsl(220, 80%, 90%);
 	--blue-pastel-foreground: hsl(220, 91%, 42%);
+
 	--lavender-pastel: hsl(231, 85%, 92%);
 	--lavender-pastel-foreground: hsl(231, 97%, 50%);
 
@@ -261,23 +291,40 @@
 .dark {
 	--background: oklch(16% .005 285.823);
 	--foreground: oklch(98.5% 0 0);
+
 	--card: oklch(16% .005 285.823);
 	--card-foreground: oklch(98.5% 0 0);
+
 	--popover: oklch(16% .005 285.823);
 	--popover-foreground: oklch(98.5% 0 0);
+
 	--primary: oklch(98.5% 0 0);
 	--primary-foreground: oklch(21% .006 285.885);
+
 	--secondary: oklch(27.4% .006 286.033);
 	--secondary-foreground: oklch(98.5% 0 0);
+
 	--muted: oklch(27.4% .006 286.033);
 	--muted-foreground: oklch(70.5% .015 286.067);
+
 	--accent: oklch(27.4% .006 286.033);
 	--accent-foreground: oklch(98.5% 0 0);
 
+	--selection: var(--lavender-pastel);
+	--selection-foreground: var(--lavender-pastel-foreground);
+
+	--link: var(--blue-pastel);
+	--link-foreground: var(--blue-pastel-foreground);
+
+	--destructive: var(--red-pastel);
+	--destructive-foreground: var(--red-pastel-foreground);
+
+	/*
 	--selection: oklch(0.293 0.066 243.157);
 	--selection-foreground: oklch(0.76 0.1362 218.47);
 
 	--destructive: oklch(0.704 0.191 22.216);
+	*/
 
 	--border: oklch(27.4% .006 286.033);
 	--input: oklch(27.4% .006 286.033);
@@ -305,7 +352,7 @@
 	--sidebar-ring: oklch(44.2% .017 285.786);
 
 	/*Custom*/
-	
+
 	--noir: oklch(0.252 0 0);
 	--noir-foreground: oklch(0.9189 0 0);
 
@@ -356,35 +403,48 @@
 
 	--indigo: oklch(0.45 0.20 280);
 	--indigo-foreground: oklch(0.99 0 0);
-	
+
 
 	/* Catppuccin Mocha - bg: darkened/muted, fg: original Mocha pastels */
 	--rosewater-pastel: hsl(10, 40%, 22%);
 	--rosewater-pastel-foreground: hsl(10, 56%, 85%);
+
 	--flamingo-pastel: hsl(0, 42%, 22%);
 	--flamingo-pastel-foreground: hsl(0, 59%, 82%);
+
 	--pink-pastel: hsl(316, 50%, 22%);
 	--pink-pastel-foreground: hsl(316, 72%, 80%);
+
 	--mauve-pastel: hsl(267, 55%, 22%);
 	--mauve-pastel-foreground: hsl(267, 84%, 75%);
+
 	--red-pastel: hsl(343, 55%, 22%);
 	--red-pastel-foreground: hsl(343, 81%, 72%);
+
 	--maroon-pastel: hsl(350, 45%, 22%);
 	--maroon-pastel-foreground: hsl(350, 65%, 74%);
+
 	--peach-pastel: hsl(23, 60%, 22%);
 	--peach-pastel-foreground: hsl(23, 92%, 72%);
+
 	--yellow-pastel: hsl(41, 55%, 22%);
 	--yellow-pastel-foreground: hsl(41, 86%, 78%);
+
 	--green-pastel: hsl(115, 40%, 20%);
 	--green-pastel-foreground: hsl(115, 54%, 72%);
+
 	--teal-pastel: hsl(170, 42%, 20%);
 	--teal-pastel-foreground: hsl(170, 57%, 70%);
+
 	--sky-pastel: hsl(189, 50%, 20%);
 	--sky-pastel-foreground: hsl(189, 71%, 70%);
+
 	--sapphire-pastel: hsl(199, 52%, 20%);
 	--sapphire-pastel-foreground: hsl(199, 76%, 66%);
+
 	--blue-pastel: hsl(217, 60%, 22%);
 	--blue-pastel-foreground: hsl(217, 92%, 72%);
+
 	--lavender-pastel: hsl(232, 65%, 24%);
 	--lavender-pastel-foreground: hsl(232, 97%, 80%);
 
@@ -417,6 +477,10 @@
 	--color-muted-foreground: var(--muted-foreground);
 	--color-accent: var(--accent);
 	--color-accent-foreground: var(--accent-foreground);
+	--color-selection: var(--selection);
+	--color-selection-foreground: var(--selection-foreground);
+	--color-link: var(--link);
+	--color-link-foreground: var(--link-foreground);
 	--color-destructive: var(--destructive);
 	--color-destructive-foreground: var(--destructive-foreground);
 	--color-border: var(--border);
@@ -439,8 +503,7 @@
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-ring: var(--sidebar-ring);
-	--color-selection: var(--selection);
-	--color-selection-foreground: var(--selection-foreground);
+
 	/* Custom */
 	--color-noir: var(--noir);
 	--color-noir-foreground: var(--noir-foreground);
@@ -476,6 +539,7 @@
 	--color-emerald-foreground: var(--emerald-foreground);
 	--color-indigo: var(--indigo);
 	--color-indigo-foreground: var(--indigo-foreground);
+
 	/* Catppuccin */
 	--color-rosewater-pastel: var(--rosewater-pastel);
 	--color-rosewater-pastel-foreground: var(--rosewater-pastel-foreground);

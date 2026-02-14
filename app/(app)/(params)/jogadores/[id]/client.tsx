@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { ExternalLink, VerifiedIcon } from "lucide-react"
+import { ExternalLink, UserIcon, ArrowUpRight, TrendingUpIcon, CalendarRangeIcon, Link2Icon, InfoIcon, TargetIcon, VerifiedIcon, BarChart3Icon } from "lucide-react"
 import {
 	Bar,
 	BarChart,
@@ -45,6 +45,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
+import { PageHeader } from "@/components/ui/page-header"
+import { DottedX } from "@/components/dotted-x"
+import { Announcement } from "@/components/announcement"
+import { DottedSeparator } from "@/components/dotted-separator"
 
 export function Client({ player }: { player: PlayerById }) {
 	const useGradients = () => {
@@ -93,298 +97,331 @@ export function Client({ player }: { player: PlayerById }) {
 	const [selectedRatingType, setSelectedRatingType] = React.useState("rapid")
 
 	return (
-		<section className="m-auto w-11/12 max-w-lg pt-12 pb-20">
-			<div className="mb-12">
-				<div className="h-32 w-full rounded-md" style={headerGradient} />
-				<Avatar className="-translate-y-1/2 -translate-x-1/2 absolute left-1/2 h-20 w-20 rounded-[10px] border-4 border-background">
-					<AvatarImage alt={player.name} src={player.imageUrl ?? ""} />
-					<AvatarFallback style={avatarGradient} />
-				</Avatar>
-			</div>
+		<div className="mx-auto w-full max-w-[720px]">
+			<PageHeader icon={UserIcon} label="Perfil">
+				<DottedX className="p-0">
+					{/* Header Section */}
+					<div className="relative">
+						<div className="h-32 w-full bg-cover bg-center" style={headerGradient} />
+						<div className="px-4 pb-4">
+							<div className="-mt-12 mb-4 flex justify-center">
+								<Avatar className="h-24 w-24 rounded-[20px] border-4 border-background shadow-sm">
+									<AvatarImage
+										alt={player.name}
+										src={player.imageUrl ?? ""}
+										className="h-full w-full object-cover"
+									/>
+									<AvatarFallback style={avatarGradient} className="rounded-[16px]" />
+								</Avatar>
+							</div>
 
-			<div className="flex items-center justify-center gap-1">
-				<h2 className="mt-1 text-center font-medium text-lg">
-					{internalTitle && (
-						<span className="text-yellow-pastel-foreground">
-							{internalTitle.title.shortTitle}{" "}
-						</span>
-					)}
-					{player.nickname ? player.nickname : player.name}
-				</h2>
+							<div className="flex flex-col items-center gap-2 text-center">
+								<div className="flex items-center gap-1.5">
+									<h1 className="text-xl font-bold tracking-tight">
+										{internalTitle && (
+											<span className="text-yellow-pastel-foreground mr-1.5">
+												{internalTitle.title.shortTitle}
+											</span>
+										)}
+										{player.nickname || player.name}
+									</h1>
+									{player.verified && (
+										<Popover>
+											<PopoverTrigger asChild className="cursor-pointer">
+												<VerifiedIcon
+													aria-label="Verificado"
+													className="size-5 fill-sky-pastel-foreground text-background dark:text-sky-pastel"
+												/>
+											</PopoverTrigger>
+											<PopoverContent className="w-80 p-4">
+												<div className="space-y-2">
+													<h4 className="font-semibold leading-none">Perfil verificado</h4>
+													<p className="text-sm text-muted-foreground">
+														Esse perfil teve seus dados confirmados pela federação.
+													</p>
+													<a
+														className={buttonVariants({ variant: "outline", className: "w-full" })}
+														href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
+														target="_blank"
+														rel="noreferrer"
+													>
+														Solicitar verificação
+													</a>
+												</div>
+											</PopoverContent>
+										</Popover>
+									)}
+								</div>
 
-				{player.verified && (
-					<Popover>
-						<PopoverTrigger asChild className="hover:cursor-pointer">
-							<VerifiedIcon
-								aria-label="Verificado"
-								className="!fill-[#1CA0F2] mt-1 stroke-background dark:stroke-[1.5]"
-							/>
-						</PopoverTrigger>
-						<PopoverContent>
-							<p className="font-semibold text-primary">Perfil verificado</p>
-							<p className="mt-2 font-medium text-sm">
-								Esse perfil atualizou os dados e foi verificado.
-							</p>
-							<a
-								className={`${buttonVariants({
-									variant: "default",
-								})} mt-3 w-full`}
-								href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
-								rel="noreferrer"
-								target="_blank"
-							>
-								Obter verificação
-							</a>
-						</PopoverContent>
-					</Popover>
-				)}
-			</div>
+								<div className="flex flex-wrap items-center justify-center gap-2">
+									{player.active ? (
+										<Badge variant="outline" className="gap-1.5 pl-1.5 border-green-pastel-foreground/20 bg-green-pastel text-green-pastel-foreground">
+											<span className="relative flex h-2 w-2">
+												<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-pastel-foreground opacity-75"></span>
+												<span className="relative inline-flex rounded-full h-2 w-2 bg-green-pastel-foreground"></span>
+											</span>
+											Ativo
+										</Badge>
+									) : (
+										<Badge variant="outline" className="gap-1.5 pl-1.5 border-red-pastel-foreground/20 bg-red-pastel text-red-pastel-foreground">
+											<span className="relative flex h-2 w-2">
+												<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-pastel-foreground opacity-75"></span>
+												<span className="relative inline-flex rounded-full h-2 w-2 bg-red-pastel-foreground"></span>
+											</span>
+											Inativo
+										</Badge>
+									)}
 
-			{(managementRole || refereeRole) && (
-				<div className="mt-8 flex flex-col items-center justify-center gap-1.5">
-					{managementRole && (
-						<Badge variant="default">{managementRole.role.role}</Badge>
-					)}
-					{refereeRole && (
-						<Badge variant="default">{refereeRole.role.role}</Badge>
-					)}
-				</div>
-			)}
-
-			{player.defendingChampions && player.defendingChampions?.length > 0 && (
-				<div className="mt-8 flex flex-wrap justify-center gap-1.5">
-					{player.defendingChampions?.map((championship) => (
-						<div key={championship.championship.name}>
-							{formatDefendingChampions(championship.championship.name, 20)}
+									{(managementRole || refereeRole) && (
+										<>
+											{managementRole && (
+												<Badge className="bg-mauve-pastel text-mauve-pastel-foreground border-mauve-pastel-foreground/20">{managementRole.role.role}</Badge>
+											)}
+											{refereeRole && (
+												<Badge className="bg-sapphire-pastel text-sapphire-pastel-foreground border-sapphire-pastel-foreground/20">{refereeRole.role.role}</Badge>
+											)}
+										</>
+									)}
+								</div>
+							</div>
 						</div>
-					))}
-				</div>
-			)}
+						<DottedSeparator className="w-full" />
+					</div>
 
-			{orderPodiums.length > 0 && (
-				<div className="mt-8 flex flex-wrap justify-center gap-1.5">
-					{orderPodiums.map((podium) => (
-						<Popover key={podium.place + podium.tournament.name}>
-							<PopoverTrigger className="rounded-md bg-muted p-2 text-primary dark:bg-primary-foreground/60">
-								{FormatPodium(
-									podium.place,
-									podium.tournament.championshipId ?? 0
+					{/* Conquistas Section */}
+					{(orderPodiums.length > 0 || (player.defendingChampions && player.defendingChampions?.length > 0)) && (
+						<section className="mb-0">
+							<Announcement icon={TargetIcon} label="Conquistas" className="text-sm" />
+							<div className="p-3 grid gap-4">
+								{player.defendingChampions && player.defendingChampions?.length > 0 && (
+									<div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+										{player.defendingChampions?.map((championship) => (
+											<div key={championship.championship.name}>
+												{formatDefendingChampions(championship.championship.name, 20)}
+											</div>
+										))}
+									</div>
 								)}
-							</PopoverTrigger>
-							<PopoverContent className="max-w-72 text-center">
-								{FormatPodiumTitle(podium.place)} {podium.tournament.name}
-							</PopoverContent>
-						</Popover>
-					))}
-				</div>
-			)}
 
-			{!(managementRole || refereeRole) &&
-				orderPodiums.length <= 0 &&
-				player.defendingChampions &&
-				player.defendingChampions?.length <= 0 && <div className="pt-3" />}
-
-			<div className="mt-5">
-				<Info content={player.name} label="Nome" />
-
-				{internalTitle && (
-					<Info label="Titulação">
-						{internalTitle && <p>{internalTitle.title.title}</p>}
-					</Info>
-				)}
-
-				{externalTitle && (
-					<Info label="Titulação CBX/FIDE">
-						{externalTitle && <p>{externalTitle.title.title}</p>}
-					</Info>
-				)}
-
-				{player.club && (
-					<Info label="Clube">
-						<div className="flex items-center gap-2">
-							<Avatar className="size-4 rounded object-contain">
-								<AvatarImage
-									alt={player.club.name as string}
-									className="size-4 rounded object-contain"
-									src={
-										(player.club.logo as string)
-											? (player.club.logo as string)
-											: "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
-									}
-									title={player.club.name as string}
-								/>
-								<AvatarFallback className="size-4 rounded-none object-contain" />
-							</Avatar>
-							<p>{player.club.name}</p>
-						</div>
-					</Info>
-				)}
-
-				{player.location && (
-					<Info label="Local">
-						<div className="flex items-center gap-2">
-							<Avatar className="size-4 rounded object-contain">
-								<AvatarImage
-									alt={player.location.name as string}
-									className="size-4 rounded object-contain"
-									src={
-										(player.location.flag as string)
-											? (player.location.flag as string)
-											: "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
-									}
-									title={player.location.name as string}
-								/>
-								<AvatarFallback className="size-4 rounded-none object-contain" />
-							</Avatar>
-							<p>{player.location?.name}</p>
-						</div>
-					</Info>
-				)}
-
-				<Info label="Status">
-					{player.active ? (
-						<div className="flex items-center gap-2">
-							<span className="relative flex h-2 w-2">
-								<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
-								<span className="relative inline-flex h-2 w-2 rounded-full bg-green-600" />
-							</span>
-							<p>Ativo</p>
-						</div>
-					) : (
-						<div className="flex items-center gap-2">
-							<span className="relative flex h-2 w-2">
-								<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-								<span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
-							</span>
-							<p>Inativo</p>
-						</div>
+								{orderPodiums.length > 0 && (
+									<div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+										{orderPodiums.map((podium) => (
+											<Popover key={podium.place + podium.tournament.name}>
+												<PopoverTrigger className="rounded-md bg-muted p-2 text-xs font-medium transition-colors">
+													{FormatPodium(
+														podium.place,
+														podium.tournament.championshipId ?? 0
+													)}
+												</PopoverTrigger>
+												<PopoverContent className="w-auto p-2 text-xs">
+													<span className="font-semibold">{FormatPodiumTitle(podium.place)}</span> {podium.tournament.name}
+												</PopoverContent>
+											</Popover>
+										))}
+									</div>
+								)}
+							</div>
+							<DottedSeparator className="w-full" />
+						</section>
 					)}
-				</Info>
-			</div>
 
-			<div className="mt-3">
-				<Info label="Ratings" />
-				<div className="grid grid-cols-3 gap-2">
-					<RatingCard label="Clássico" rating={player.classic} />
-					<RatingCard label="Rápido" rating={player.rapid} />
-					<RatingCard label="Blitz" rating={player.blitz} />
-				</div>
+					{/* Informações Section */}
+					<section className="mb-0">
+						<Announcement icon={InfoIcon} label="Informações" className="text-sm" />
 
-				<Info label="IDs" />
-				<div className="grid grid-cols-3 gap-2">
-					<RatingCard label="FSX" rating={player.id} />
-					<RatingCard
-						label="CBX"
-						link={
-							player.cbxId ? (
-								<a
-									className="flex justify-center text-primary transition hover:underline"
-									href={`https://www.cbx.org.br/jogador/${player.cbxId}`}
-									rel="noreferrer"
-									target="_blank"
+						<div className="flex flex-col">
+							<InfoItem label="Nome Completo" value={player.name} isFirst />
+
+							{internalTitle && (
+								<InfoItem label="Titulação FSX" value={internalTitle.title.title} />
+							)}
+
+							{externalTitle && (
+								<InfoItem label="Titulação CBX/FIDE" value={externalTitle.title.title} />
+							)}
+
+							{player.club && (
+								<InfoItem label="Clube">
+									<div className="flex items-center gap-2">
+										<Avatar className="size-5 rounded-sm">
+											<AvatarImage
+												alt={player.club.name as string}
+												className="object-contain"
+												src={
+													(player.club.logo as string)
+														? (player.club.logo as string)
+														: "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
+												}
+											/>
+											<AvatarFallback className="rounded-none bg-transparent" />
+										</Avatar>
+										<span>{player.club.name}</span>
+									</div>
+								</InfoItem>
+							)}
+
+							{player.location && (
+								<InfoItem label="Localização">
+									<div className="flex items-center gap-2">
+										<Avatar className="size-5 rounded-sm">
+											<AvatarImage
+												alt={player.location.name as string}
+												className="object-contain"
+												src={
+													(player.location.flag as string)
+														? (player.location.flag as string)
+														: "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
+												}
+											/>
+											<AvatarFallback className="rounded-none bg-transparent" />
+										</Avatar>
+										<span>{player.location.name}</span>
+									</div>
+								</InfoItem>
+							)}
+						</div>
+
+						<DottedSeparator className="w-full" />
+					</section>
+
+					{/* Ratings Section */}
+					<section className="mb-0">
+						<Announcement icon={TrendingUpIcon} label="Ratings" className="text-sm" />
+
+						<div className="grid grid-cols-3 divide-x divide-border">
+							<RatingBox label="Clássico" value={player.classic} />
+							<RatingBox label="Rápido" value={player.rapid} />
+							<RatingBox label="Blitz" value={player.blitz} />
+						</div>
+
+						<DottedSeparator className="w-full" />
+					</section>
+
+					{/* IDs Section */}
+					<section className="mb-0">
+						<Announcement icon={Link2Icon} label="IDs" className="text-sm" />
+
+						<div className="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-y sm:divide-y-0 divide-border">
+							<IdBox label="ID FSX" value={String(player.id)} />
+							<IdBox
+								label="ID CBX"
+								value={player.cbxId ? String(player.cbxId) : "-"}
+								href={player.cbxId ? `https://www.cbx.org.br/jogador/${player.cbxId}` : undefined}
+							/>
+							<IdBox
+								label="ID FIDE"
+								value={player.fideId ? String(player.fideId) : "-"}
+								href={player.fideId ? `https://ratings.fide.com/profile/${player.fideId}` : undefined}
+							/>
+						</div>
+
+						<DottedSeparator className="w-full" />
+					</section>
+
+					{/* Performance Section */}
+					{tournaments.length > 0 && (
+						<section className="mb-0">
+							<div className="flex items-center justify-between pr-3">
+								<Announcement icon={BarChart3Icon} label="Performance" className="text-sm flex-1" />
+								<Select
+									onValueChange={(value) => setSelectedRatingType(value)}
+									value={selectedRatingType}
 								>
-									{player.cbxId} <ExternalLink className="ml-2 w-4" />
-								</a>
-							) : (
-								<span>-</span>
-							)
-						}
-					/>
-					<RatingCard
-						label="FIDE"
-						link={
-							player.fideId ? (
-								<a
-									className="flex justify-center text-primary transition hover:underline"
-									href={`https://ratings.fide.com/profile/${player.fideId}`}
-									rel="noreferrer"
-									target="_blank"
-								>
-									{player.fideId} <ExternalLink className="ml-2 w-4" />
-								</a>
-							) : (
-								<span>-</span>
-							)
-						}
-					/>
-				</div>
-			</div>
+									<SelectTrigger className="w-[140px] h-8 text-xs">
+										<SelectValue placeholder="Rating" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="classic">Clássico</SelectItem>
+										<SelectItem value="rapid">Rápido</SelectItem>
+										<SelectItem value="blitz">Blitz</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
 
-			{tournaments.length > 0 && (
-				<>
-					<Info label="Performance" />
-					<span className="text-xs">Últimos 12 torneios</span>
-					<div className="flex justify-end">
-						<Select
-							onValueChange={(value) => setSelectedRatingType(value)}
-							value={selectedRatingType}
-						>
-							<SelectTrigger className="mt-2 w-auto">
-								<SelectValue placeholder="Selecione o tipo de rating" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="classic">Clássico</SelectItem>
-								<SelectItem value="rapid">Rápido</SelectItem>
-								<SelectItem value="blitz">Blitz</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-					<div className="mt-2">
-						<VariationChart
-							player={player}
-							selectedRatingType={selectedRatingType}
-						/>
-						<TotalRatingChart
-							player={player}
-							selectedRatingType={selectedRatingType}
-						/>
-					</div>
-				</>
-			)}
+							<div className="p-4 space-y-6">
+								<div className="space-y-2">
+									<h4 className="text-sm font-medium text-muted-foreground ml-2">Variação de Rating</h4>
+									<VariationChart
+										player={player}
+										selectedRatingType={selectedRatingType}
+									/>
+								</div>
 
-			{tournaments && (
-				<div className="mt-3">
-					<Info label="Torneios">
-						<DataTable columns={columns} data={tournaments} />
-					</Info>
-				</div>
-			)}
-		</section>
-	);
-}
+								<DottedSeparator className="w-full" />
 
-const Info = ({
-	label,
-	content,
-	children,
-}: {
-	label: string
-	content?: string
-	children?: React.ReactNode
-}) => {
-	return (
-		<div>
-			<h3 className="mt-3 text-muted-foreground text-sm">{label}</h3>
-			{content && <p>{content}</p>}
-			{children}
+								<div className="space-y-2">
+									<h4 className="text-sm font-medium text-muted-foreground ml-2">Evolução de Rating</h4>
+									<TotalRatingChart
+										player={player}
+										selectedRatingType={selectedRatingType}
+									/>
+								</div>
+							</div>
+							<DottedSeparator className="w-full" />
+						</section>
+					)}
+
+					{/* Torneios Section */}
+					{tournaments && tournaments.length > 0 && (
+						<section className="mb-0">
+							<Announcement icon={CalendarRangeIcon} label="Histórico de Torneios" className="text-sm" />
+							<div className="p-0">
+								<DataTable columns={columns} data={tournaments} />
+							</div>
+						</section>
+					)}
+
+				</DottedX>
+			</PageHeader>
 		</div>
 	)
 }
 
-interface RatingCardProps {
-	label: string
-	rating?: number | null | undefined
-	link?: React.ReactNode
+function InfoItem({ label, value, children, isFirst }: { label: string, value?: string, children?: React.ReactNode, isFirst?: boolean }) {
+	return (
+		<>
+			{!isFirst && <DottedSeparator className="w-full" />}
+			<div className="m-1">
+				<div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 hover:bg-muted/50 transition-colors duration-200 rounded-sm">
+					<span className="text-sm font-medium text-muted-foreground">{label}</span>
+					<div className="mt-1 sm:mt-0 text-sm font-medium text-foreground">
+						{children ? children : value}
+					</div>
+				</div>
+			</div>
+		</>
+	)
 }
 
-const RatingCard = ({ label, rating, link }: RatingCardProps) => {
+function RatingBox({ label, value }: { label: string, value?: number | null }) {
 	return (
-		<div className="mt-2 rounded-md bg-primary-foreground p-4 text-center">
-			<p className="text-sm">{label}</p>
-			<p className="mt-2 font-medium">{rating}</p>
-			{link}
+		<div className="p-4 flex flex-col items-center justify-center hover:bg-muted/50 transition-colors duration-200">
+			<span className="text-sm text-muted-foreground font-medium">{label}</span>
+			<span className="text-base font-semibold mt-1 text-primary">{value ?? "-"}</span>
 		</div>
 	)
+}
+
+function IdBox({ label, value, href }: { label: string, value: string, href?: string }) {
+	const content = (
+		<div className={`p-4 flex flex-col items-center justify-center transition-colors duration-200 group h-full ${href ? "hover:bg-blue-pastel/50" : "hover:bg-muted/50"}`}>
+			<span className={`text-sm font-medium transition-colors ${href ? "text-muted-foreground group-hover:text-blue-pastel-foreground" : "text-muted-foreground"}`}>{label}</span>
+			<div className="flex items-center gap-1.5 mt-1">
+				<span className={`text-base font-semibold transition-colors ${href ? "text-foreground group-hover:text-blue-pastel-foreground" : "text-foreground"}`}>{value}</span>
+				{href && <ArrowUpRight className="size-3 text-muted-foreground group-hover:text-blue-pastel-foreground transition-colors" />}
+			</div>
+		</div>
+	)
+
+	if (href) {
+		return (
+			<a href={href} target="_blank" rel="noreferrer" className="block h-full">
+				{content}
+			</a>
+		)
+	}
+
+	return content
 }
 
 const extractChartData = (player: PlayerById, selectedRatingType: string) => {
@@ -478,7 +515,7 @@ export function VariationChart({
 
 	if (chartData.length === 0) {
 		return (
-			<div className="mt-2 text-center text-muted-foreground text-sm">
+			<div className="py-8 text-center text-muted-foreground text-sm border border-dashed rounded-md bg-muted/20">
 				Nenhum dado de variação disponível para este tipo de rating.
 			</div>
 		)
@@ -503,7 +540,7 @@ export function VariationChart({
 					top: 24,
 				}}
 			>
-				<CartesianGrid vertical={false} />
+				<CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" />
 				<XAxis
 					axisLine={false}
 					dataKey="name"
@@ -513,7 +550,7 @@ export function VariationChart({
 				/>
 				<ChartTooltip content={<ChartTooltipContent indicator="line" />} />
 				<ChartLegend content={<ChartLegendContent className="-mt-6" />} />
-				<Bar dataKey="variation" fill="var(--chart-5)" radius={4}>
+				<Bar dataKey="variation" fill="var(--chart-5)" radius={[4, 4, 0, 0]}>
 					{chartData.map((entry: { name: string; variation: number }) => (
 						<Cell
 							fill={getFillColorVariation(
@@ -525,7 +562,7 @@ export function VariationChart({
 						/>
 					))}
 					<LabelList
-						className="fill-foreground"
+						className="fill-foreground font-medium"
 						fontSize={12}
 						offset={12}
 						position="top"
@@ -551,18 +588,18 @@ export function TotalRatingChart({
 
 	return (
 		<ChartContainer
-			className="-translate-x-4 mt-4 min-h-[200px] w-[calc(100%+32px)]"
+			className="-translate-x-2 mt-4 min-h-[200px] w-full"
 			config={chartConfig}
 		>
 			<LineChart
 				data={chartData}
 				margin={{
 					top: 24,
-					left: 16,
+					left: 4,
 					right: 16,
 				}}
 			>
-				<CartesianGrid key="cartesian-grid" vertical={false} />
+				<CartesianGrid key="cartesian-grid" vertical={false} strokeDasharray="3 3" className="stroke-muted" />
 				<XAxis
 					axisLine={false}
 					dataKey="name"
@@ -576,7 +613,8 @@ export function TotalRatingChart({
 					domain={["auto", "auto"]}
 					key="y-axis"
 					tickLine={false}
-					width={0}
+					width={40}
+					tick={{ fontSize: 12 }}
 				/>
 				<ChartTooltip
 					content={<ChartTooltipContent indicator="line" />}
@@ -590,6 +628,7 @@ export function TotalRatingChart({
 				<Line
 					activeDot={{
 						r: 6,
+						className: "fill-primary"
 					}}
 					dataKey="totalRating"
 					dot={(props) => {
@@ -607,10 +646,10 @@ export function TotalRatingChart({
 					key="total-rating-line"
 					stroke="var(--chart-1)"
 					strokeWidth={2}
-					type="natural"
+					type="monotone"
 				>
 					<LabelList
-						className="fill-foreground"
+						className="fill-foreground font-medium"
 						fontSize={12}
 						key="label-list"
 						offset={12}
