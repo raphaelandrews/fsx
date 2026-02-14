@@ -112,16 +112,16 @@ export const PlayerSheet = ({
 
 	if (isLoading) {
 		return (
-      <Sheet onOpenChange={setOpen} open={open}>
-        <SheetContent className="!w-[400px] sm:!w-[540px] !max-w-[90%] sm:!max-w-[480px] gap-0 overflow-y-auto overflow-x-hidden p-4 [&>button#close-sheet]:top-2.5 [&>button#close-sheet]:right-2.5">
-          <div className="flex h-full flex-col items-center justify-center">
-            <Skeleton className="mb-4 h-20 w-20 rounded-full" />
-            <Skeleton className="mb-2 h-6 w-48" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-        </SheetContent>
-      </Sheet>
-    );
+			<Sheet onOpenChange={setOpen} open={open}>
+				<SheetContent className="!w-[400px] sm:!w-[540px] !max-w-[90%] sm:!max-w-[480px] gap-0 overflow-y-auto overflow-x-hidden p-4 [&>button#close-sheet]:top-2.5 [&>button#close-sheet]:right-2.5">
+					<div className="flex h-full flex-col items-center justify-center">
+						<Skeleton className="mb-4 h-20 w-20 rounded-full" />
+						<Skeleton className="mb-2 h-6 w-48" />
+						<Skeleton className="h-4 w-32" />
+					</div>
+				</SheetContent>
+			</Sheet>
+		);
 	}
 
 	if (isError) {
@@ -143,258 +143,258 @@ export const PlayerSheet = ({
 	}
 
 	return (
-    <Sheet onOpenChange={setOpen} open={open}>
-      <SheetContent className="!w-[400px] sm:!w-[540px] !max-w-[90%] sm:!max-w-[480px] gap-0 overflow-y-auto overflow-x-hidden p-4 [&>button#close-sheet]:top-2.5 [&>button#close-sheet]:right-2.5">
-        <SheetHeader className="px-0 pt-0">
-          <div className="relative mb-12">
-            <div className="h-32 w-full rounded-md" style={headerGradient} />
-            <Avatar className="-translate-y-1/2 -translate-x-1/2 absolute left-1/2 h-20 w-20 rounded-[10px] border-4 border-background">
-              <AvatarImage
-                alt={player.name}
-                src={player.imageUrl ?? undefined}
-              />
-              <AvatarFallback style={avatarGradient} />
-            </Avatar>
-          </div>
-          <div className="flex items-center justify-center gap-1">
-            <SheetTitle className="mt-1 text-center">
-              {internalTitle && (
-                <span className="text-amber-500">
-                  {internalTitle.title.shortTitle}{" "}
-                </span>
-              )}
-              {player.nickname ? player.nickname : player.name}
-            </SheetTitle>
-            {player.verified && (
-              <Popover>
-                <PopoverTrigger>
-                  <VerifiedIcon
-                    aria-label="Verificado"
-                    className="!fill-[#1CA0F2] mt-1 stroke-background dark:stroke-[1.5]"
-                  />
-                </PopoverTrigger>
-                <PopoverContent>
-                  <p className="font-semibold text-primary">
-                    Perfil verificado
-                  </p>
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-        </SheetHeader>
+		<Sheet onOpenChange={setOpen} open={open}>
+			<SheetContent className="!w-[400px] sm:!w-[540px] !max-w-[90%] sm:!max-w-[480px] gap-0 overflow-y-auto overflow-x-hidden p-4 [&>button#close-sheet]:top-2.5 [&>button#close-sheet]:right-2.5">
+				<SheetHeader className="px-0 pt-0">
+					<div className="relative mb-12">
+						<div className="h-32 w-full rounded-md" style={headerGradient} />
+						<Avatar className="-translate-y-1/2 -translate-x-1/2 absolute left-1/2 h-20 w-20 rounded-[10px] border-4 border-background">
+							<AvatarImage
+								alt={player.name}
+								src={player.imageUrl ?? undefined}
+							/>
+							<AvatarFallback style={avatarGradient} />
+						</Avatar>
+					</div>
+					<div className="flex items-center justify-center gap-1">
+						<SheetTitle className="mt-1 text-center">
+							{internalTitle && (
+								<span className="text-yellow-pastel-foreground">
+									{internalTitle.title.shortTitle}{" "}
+								</span>
+							)}
+							{player.nickname ? player.nickname : player.name}
+						</SheetTitle>
+						{player.verified && (
+							<Popover>
+								<PopoverTrigger>
+									<VerifiedIcon
+										aria-label="Verificado"
+										className="!fill-[#1CA0F2] mt-1 stroke-background dark:stroke-[1.5]"
+									/>
+								</PopoverTrigger>
+								<PopoverContent>
+									<p className="font-semibold text-primary">
+										Perfil verificado
+									</p>
+								</PopoverContent>
+							</Popover>
+						)}
+					</div>
+				</SheetHeader>
 
-        {(managementRole || refereeRole) && (
-          <div className="mt-8 flex flex-col items-center justify-center gap-1.5">
-            {managementRole && (
-              <Badge variant="default">{managementRole.role.role}</Badge>
-            )}
-            {refereeRole && (
-              <Badge variant="default">{refereeRole.role.role}</Badge>
-            )}
-          </div>
-        )}
+				{(managementRole || refereeRole) && (
+					<div className="mt-8 flex flex-col items-center justify-center gap-1.5">
+						{managementRole && (
+							<Badge variant="default">{managementRole.role.role}</Badge>
+						)}
+						{refereeRole && (
+							<Badge variant="default">{refereeRole.role.role}</Badge>
+						)}
+					</div>
+				)}
 
-        {orderPodiums.length > 0 && (
-          <div className="mt-8 flex flex-wrap justify-center gap-1.5">
-            {orderPodiums.map((podium) => (
-              <Popover key={podium.place + podium.tournament.name}>
-                <PopoverTrigger className="rounded-md bg-primary-foreground/60 p-2 text-primary">
-                  {FormatPodium(
-                    podium.place,
-                    (podium.tournament.championshipId as number) || 0
-                  )}
-                </PopoverTrigger>
-                <PopoverContent className="max-w-72 text-center">
-                  {FormatPodiumTitle(podium.place)}{" "}
-                  {podium.tournament.name as string}
-                </PopoverContent>
-              </Popover>
-            ))}
-          </div>
-        )}
+				{orderPodiums.length > 0 && (
+					<div className="mt-8 flex flex-wrap justify-center gap-1.5">
+						{orderPodiums.map((podium) => (
+							<Popover key={podium.place + podium.tournament.name}>
+								<PopoverTrigger className="rounded-md bg-primary-foreground/60 p-2 text-primary">
+									{FormatPodium(
+										podium.place,
+										(podium.tournament.championshipId as number) || 0
+									)}
+								</PopoverTrigger>
+								<PopoverContent className="max-w-72 text-center">
+									{FormatPodiumTitle(podium.place)}{" "}
+									{podium.tournament.name as string}
+								</PopoverContent>
+							</Popover>
+						))}
+					</div>
+				)}
 
-        {!(managementRole || refereeRole) && orderPodiums.length <= 0 && (
-          <div className="pt-3" />
-        )}
+				{!(managementRole || refereeRole) && orderPodiums.length <= 0 && (
+					<div className="pt-3" />
+				)}
 
-        <div className="mt-5">
-          <Info content={player.name} label="Nome" />
+				<div className="mt-5">
+					<Info content={player.name} label="Nome" />
 
-          {internalTitle && (
-            <Info label="Titulação">
-              {internalTitle && <p>{internalTitle.title.title}</p>}
-            </Info>
-          )}
+					{internalTitle && (
+						<Info label="Titulação">
+							{internalTitle && <p>{internalTitle.title.title}</p>}
+						</Info>
+					)}
 
-          {externalTitle && (
-            <Info label="Titulação CBX/FIDE">
-              {externalTitle && <p>{externalTitle.title.title}</p>}
-            </Info>
-          )}
+					{externalTitle && (
+						<Info label="Titulação CBX/FIDE">
+							{externalTitle && <p>{externalTitle.title.title}</p>}
+						</Info>
+					)}
 
-          {player.club && player.club.name !== null && (
-            <Info label="Clube">
-              <div className="flex items-center gap-2">
-                <Avatar className="size-4 rounded object-contain">
-                  <AvatarImage
-                    alt={player.club?.name as string}
-                    className="size-4 rounded object-contain"
-                    src={
-                      (player.club?.logo as string)
-                        ? (player.club?.logo as string)
-                        : LOGO_FALLBACK
-                    }
-                    title={player.club?.name as string}
-                  />
-                  <AvatarFallback className="size-4 rounded-none object-contain" />
-                </Avatar>
-                <p>{player.club.name as string}</p>
-              </div>
-            </Info>
-          )}
+					{player.club && player.club.name !== null && (
+						<Info label="Clube">
+							<div className="flex items-center gap-2">
+								<Avatar className="size-4 rounded object-contain">
+									<AvatarImage
+										alt={player.club?.name as string}
+										className="size-4 rounded object-contain"
+										src={
+											(player.club?.logo as string)
+												? (player.club?.logo as string)
+												: LOGO_FALLBACK
+										}
+										title={player.club?.name as string}
+									/>
+									<AvatarFallback className="size-4 rounded-none object-contain" />
+								</Avatar>
+								<p>{player.club.name as string}</p>
+							</div>
+						</Info>
+					)}
 
-          {player.location && player.location.name !== null && (
-            <Info label="Local">
-              <div className="flex items-center gap-2">
-                <Avatar className="size-4 rounded object-contain">
-                  <AvatarImage
-                    alt={player.location?.name as string}
-                    className="size-4 rounded object-contain"
-                    src={
-                      (player.location?.flag as string)
-                        ? (player.location?.flag as string)
-                        : LOGO_FALLBACK
-                    }
-                    title={player.location?.name as string}
-                  />
-                  <AvatarFallback className="size-4 rounded-none object-contain" />
-                </Avatar>
-                <p>{player.location?.name as string}</p>
-              </div>
-            </Info>
-          )}
+					{player.location && player.location.name !== null && (
+						<Info label="Local">
+							<div className="flex items-center gap-2">
+								<Avatar className="size-4 rounded object-contain">
+									<AvatarImage
+										alt={player.location?.name as string}
+										className="size-4 rounded object-contain"
+										src={
+											(player.location?.flag as string)
+												? (player.location?.flag as string)
+												: LOGO_FALLBACK
+										}
+										title={player.location?.name as string}
+									/>
+									<AvatarFallback className="size-4 rounded-none object-contain" />
+								</Avatar>
+								<p>{player.location?.name as string}</p>
+							</div>
+						</Info>
+					)}
 
-          <Info label="Status">
-            {player.active ? (
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-green-600" />
-                </span>
-                <p>Ativo</p>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
-                </span>
-                <p>Inativo</p>
-              </div>
-            )}
-          </Info>
-        </div>
+					<Info label="Status">
+						{player.active ? (
+							<div className="flex items-center gap-2">
+								<span className="relative flex h-2 w-2">
+									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
+									<span className="relative inline-flex h-2 w-2 rounded-full bg-green-600" />
+								</span>
+								<p>Ativo</p>
+							</div>
+						) : (
+							<div className="flex items-center gap-2">
+								<span className="relative flex h-2 w-2">
+									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+									<span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
+								</span>
+								<p>Inativo</p>
+							</div>
+						)}
+					</Info>
+				</div>
 
-        <div className="mt-3">
-          <Info label="Ratings" />
-          <div className="grid grid-cols-3 gap-2">
-            <RatingCard label="Clássico" rating={player.classic} />
-            <RatingCard label="Rápido" rating={player.rapid} />
-            <RatingCard label="Blitz" rating={player.blitz} />
-          </div>
+				<div className="mt-3">
+					<Info label="Ratings" />
+					<div className="grid grid-cols-3 gap-2">
+						<RatingCard label="Clássico" rating={player.classic} />
+						<RatingCard label="Rápido" rating={player.rapid} />
+						<RatingCard label="Blitz" rating={player.blitz} />
+					</div>
 
-          <Info label="IDs" />
-          <div className="grid grid-cols-3 gap-2">
-            <RatingCard label="FSX" rating={player.id} />
-            <RatingCard
-              label="CBX"
-              link={
-                player.cbxId ? (
-                  <a
-                    className="flex justify-center text-primary transition hover:underline"
-                    href={`https://www.cbx.org.br/jogador/${player.cbxId}`}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    {player.cbxId} <ExternalLink className="ml-2 w-4" />
-                  </a>
-                ) : (
-                  <span>-</span>
-                )
-              }
-            />
-            <RatingCard
-              label="FIDE"
-              link={
-                player.fideId ? (
-                  <a
-                    className="flex justify-center text-primary transition hover:underline"
-                    href={`https://ratings.fide.com/profile/${player.fideId}`}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    {player.fideId} <ExternalLink className="ml-2 w-4" />
-                  </a>
-                ) : (
-                  <span>-</span>
-                )
-              }
-            />
-          </div>
-        </div>
+					<Info label="IDs" />
+					<div className="grid grid-cols-3 gap-2">
+						<RatingCard label="FSX" rating={player.id} />
+						<RatingCard
+							label="CBX"
+							link={
+								player.cbxId ? (
+									<a
+										className="flex justify-center text-primary transition hover:underline"
+										href={`https://www.cbx.org.br/jogador/${player.cbxId}`}
+										rel="noreferrer"
+										target="_blank"
+									>
+										{player.cbxId} <ExternalLink className="ml-2 w-4" />
+									</a>
+								) : (
+									<span>-</span>
+								)
+							}
+						/>
+						<RatingCard
+							label="FIDE"
+							link={
+								player.fideId ? (
+									<a
+										className="flex justify-center text-primary transition hover:underline"
+										href={`https://ratings.fide.com/profile/${player.fideId}`}
+										rel="noreferrer"
+										target="_blank"
+									>
+										{player.fideId} <ExternalLink className="ml-2 w-4" />
+									</a>
+								) : (
+									<span>-</span>
+								)
+							}
+						/>
+					</div>
+				</div>
 
-        {tournaments.length > 0 && (
-          <>
-            <Info label="Performance" />
-            <span className="text-xs">Últimos 12 torneios</span>
-            <div className="flex justify-end">
-              <Select
-                onValueChange={(value) => setSelectedRatingType(value)}
-                value={selectedRatingType}
-              >
-                <SelectTrigger className="mt-2 w-auto">
-                  <SelectValue placeholder="Selecione o tipo de rating" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="classic">Clássico</SelectItem>
-                  <SelectItem value="rapid">Rápido</SelectItem>
-                  <SelectItem value="blitz">Blitz</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="mt-2">
-              <VariationChart
-                player={{
-                  ...player,
-                  active: player.active ?? false,
-                  verified: player.verified ?? false,
-                }}
-                selectedRatingType={selectedRatingType}
-              />
-              <TotalRatingChart
-                player={{
-                  ...player,
-                  active: player.active ?? false,
-                  verified: player.verified ?? false,
-                }}
-                selectedRatingType={selectedRatingType}
-              />
-            </div>
-          </>
-        )}
+				{tournaments.length > 0 && (
+					<>
+						<Info label="Performance" />
+						<span className="text-xs">Últimos 12 torneios</span>
+						<div className="flex justify-end">
+							<Select
+								onValueChange={(value) => setSelectedRatingType(value)}
+								value={selectedRatingType}
+							>
+								<SelectTrigger className="mt-2 w-auto">
+									<SelectValue placeholder="Selecione o tipo de rating" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="classic">Clássico</SelectItem>
+									<SelectItem value="rapid">Rápido</SelectItem>
+									<SelectItem value="blitz">Blitz</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="mt-2">
+							<VariationChart
+								player={{
+									...player,
+									active: player.active ?? false,
+									verified: player.verified ?? false,
+								}}
+								selectedRatingType={selectedRatingType}
+							/>
+							<TotalRatingChart
+								player={{
+									...player,
+									active: player.active ?? false,
+									verified: player.verified ?? false,
+								}}
+								selectedRatingType={selectedRatingType}
+							/>
+						</div>
+					</>
+				)}
 
-        {tournaments && (
-          <div className="mt-3">
-            <Info label="Torneios">
-              <div className="w-full">
-                <DataTable columns={columns} data={tournaments} />
-              </div>
-            </Info>
-          </div>
-        )}
-      </SheetContent>
-    </Sheet>
-  );
+				{tournaments && (
+					<div className="mt-3">
+						<Info label="Torneios">
+							<div className="w-full">
+								<DataTable columns={columns} data={tournaments} />
+							</div>
+						</Info>
+					</div>
+				)}
+			</SheetContent>
+		</Sheet>
+	);
 }
 
 const Info = ({
@@ -435,13 +435,13 @@ const extractChartData = (player: PlayerById, selectedRatingType: string) => {
 	return (
 		player.playersToTournaments
 			?.filter(
-				(ptt) => 
-					ptt.tournament.ratingType === selectedRatingType 
+				(ptt) =>
+					ptt.tournament.ratingType === selectedRatingType
 			)
 			.reverse()
 			.slice(0, 12)
 			.reverse()
-			.map((ptt) => ({ 
+			.map((ptt) => ({
 				name: ptt.tournament.name,
 				variation: ptt.variation,
 			})) || []
@@ -456,13 +456,13 @@ const extractTotalRatingData = (
 	return (
 		player.playersToTournaments
 			?.filter(
-				(ptt) =>  
-					ptt.tournament.ratingType === selectedRatingType 
+				(ptt) =>
+					ptt.tournament.ratingType === selectedRatingType
 			)
 			.reverse()
 			.slice(0, 12)
 			.reverse()
-			.map((ptt) => { 
+			.map((ptt) => {
 				const totalRating = ptt.oldRating + ptt.variation
 				const previousTotalRatingCopy = previousTotalRating
 				previousTotalRating = totalRating

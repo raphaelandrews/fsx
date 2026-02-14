@@ -144,9 +144,9 @@ export function RatingUpdateDeveloperTool() {
               }
               className={
                 isRunning ||
-                !selectedFileName ||
-                successLogLength > 0 ||
-                errorLogLength > 0
+                  !selectedFileName ||
+                  successLogLength > 0 ||
+                  errorLogLength > 0
                   ? "pointer-events-none"
                   : ""
               }
@@ -250,9 +250,9 @@ export function RatingUpdateDeveloperTool() {
               }
               className={
                 isRunning ||
-                !selectedFileName ||
-                successLogLength > 0 ||
-                errorLogLength > 0
+                  !selectedFileName ||
+                  successLogLength > 0 ||
+                  errorLogLength > 0
                   ? "pointer-events-none"
                   : ""
               }
@@ -327,7 +327,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
     >
       <div className="flex items-center space-x-1">
         <div className="w-4 h-4 bg-teal-500 rounded-full transition-transform duration-300 hover:scale-110" />
-        <div className="w-4 h-4 bg-amber-500 rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
+        <div className="w-4 h-4 bg-yellow-pastel rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
         <div className="w-4 h-4 bg-rose-500 rounded-full -ml-2 transition-transform duration-300 hover:scale-110" />
       </div>
       {isActive && (
@@ -342,11 +342,10 @@ const RulesPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
     <div
       className={`
       fixed bottom-16 transform -translate-x-1/2 w-[400px] h-fit left-1/2 mb-0 p-8 border rounded-2xl backdrop-blur-sm shadow-xl transition-all duration-300 ease-out
-      ${
-        isVisible
+      ${isVisible
           ? "opacity-100 translate-y-0 scale-100"
           : "opacity-0 translate-y-2 scale-98 pointer-events-none"
-      }
+        }
     `}
     >
       <article className="[&>p]:text-sm [&>p]:text-foreground/70 [&>p]:mt-1.5 [&>p]:leading-6">
@@ -395,11 +394,10 @@ const InfoPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
     <div
       className={`
       fixed bottom-16 transform -translate-x-1/2 w-fit h-fit left-1/2 mb-0 p-8 border rounded-2xl backdrop-blur-sm shadow-xl transition-all duration-300 ease-out
-      ${
-        isVisible
+      ${isVisible
           ? "opacity-100 translate-y-0 scale-100"
           : "opacity-0 translate-y-2 scale-98 pointer-events-none"
-      }
+        }
     `}
     >
       <article className="[&>p]:text-sm [&>p]:text-foreground/70 [&>p]:mt-1.5 [&>p]:leading-6">
@@ -425,7 +423,7 @@ const InfoPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
           Nas{" "}
           <a
             href="/normas-tecnicas"
-            className="text-blue-500 underline underline-offset-2"
+            className="text-blue-pastel-foreground underline underline-offset-2"
           >
             normas técnicas
           </a>{" "}

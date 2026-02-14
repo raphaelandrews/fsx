@@ -59,7 +59,7 @@ export const Actions = ({
             <AvatarFallback style={gradient} />
           </Avatar>
           <div className="whitespace-nowrap font-medium">
-            {shortTitle && <span className="text-amber-500">{shortTitle}</span>}{" "}
+            {shortTitle && <span className="text-yellow-pastel-foreground">{shortTitle}</span>}{" "}
             {nickname ?? name}
           </div>
         </Button>
