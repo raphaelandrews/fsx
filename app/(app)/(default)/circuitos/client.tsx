@@ -1,7 +1,20 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import type { ColumnDef, Row } from "@tanstack/react-table"
+import React, { useEffect, useState } from "react"
+import {
+	type ColumnDef,
+	type ColumnFiltersState,
+	type Row,
+	type SortingState,
+	type VisibilityState,
+	flexRender,
+	getCoreRowModel,
+	getExpandedRowModel,
+	getFilteredRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	useReactTable,
+} from "@tanstack/react-table"
 
 import type {
 	Circuit,
@@ -22,6 +35,20 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { categories } from "./data/data"
 import CategoryFilter from "./components/category-filter"
+import { DottedSeparator } from "@/components/dotted-separator"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { XIcon } from "lucide-react"
+import { DataTablePagination } from "./components/data-table-pagination"
+import { DataTableFacetedFilter } from "./components/data-table-faceted-filter"
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table"
 
 export function Client({ circuits }: { circuits: Circuit[] }) {
 	const [selectedTab, setSelectedTab] = useState<string | undefined>(undefined)
@@ -65,14 +92,24 @@ export function Client({ circuits }: { circuits: Circuit[] }) {
 			defaultValue={circuits[0].name}
 			onValueChange={setSelectedTab}
 			value={selectedTab}
+			className="gap-0"
 		>
-			<TabsList className="grid w-[400px] max-w-full grid-cols-3">
-				{circuits.map((circuit) => (
-					<TabsTrigger key={circuit.name} value={circuit.name}>
-						{circuit.name}
-					</TabsTrigger>
+			<TabsList className="h-auto w-full rounded-none bg-transparent p-0">
+				{circuits.map((circuit, index) => (
+					<React.Fragment key={circuit.name}>
+						<TabsTrigger
+							className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
+							value={circuit.name}
+						>
+							{circuit.name}
+						</TabsTrigger>
+						{index < circuits.length - 1 && (
+							<div className="h-auto w-px self-stretch bg-[image:repeating-linear-gradient(to_bottom,var(--border)_0px,var(--border)_6px,transparent_6px,transparent_14px)] bg-[length:1px_100%] bg-no-repeat" />
+						)}
+					</React.Fragment>
 				))}
 			</TabsList>
+			<DottedSeparator />
 			{circuits.map((circuit) => (
 				<div key={circuit.name}>
 					<TabsContent value={circuit.name}>
@@ -81,14 +118,26 @@ export function Client({ circuits }: { circuits: Circuit[] }) {
 								defaultValue="Master"
 								onValueChange={setSelectedCategory}
 								value={selectedCategory}
+								className="gap-0"
 							>
-								<TabsList className="mt-2">
-									{["Master", "Juvenil", "Futuro"].map((category) => (
-										<TabsTrigger key={category} value={category}>
-											{category}
-										</TabsTrigger>
-									))}
+								<TabsList className="h-auto w-full rounded-none bg-transparent p-0">
+									{["Master", "Juvenil", "Futuro"].map(
+										(category, index, arr) => (
+											<React.Fragment key={category}>
+												<TabsTrigger
+													className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
+													value={category}
+												>
+													{category}
+												</TabsTrigger>
+												{index < arr.length - 1 && (
+													<div className="h-auto w-px self-stretch bg-[image:repeating-linear-gradient(to_bottom,var(--border)_0px,var(--border)_6px,transparent_6px,transparent_14px)] bg-[length:1px_100%] bg-no-repeat" />
+												)}
+											</React.Fragment>
+										)
+									)}
 								</TabsList>
+								<DottedSeparator />
 								{["Master", "Juvenil", "Futuro"].map((category) => (
 									<TabsContent key={category} value={category}>
 										<PlayerPointsTable
@@ -101,11 +150,23 @@ export function Client({ circuits }: { circuits: Circuit[] }) {
 							</Tabs>
 						)}
 						{circuit.type === "school" && (
-							<Tabs defaultValue="main">
-								<TabsList className="mt-2">
-									<TabsTrigger value="main">Clubes</TabsTrigger>
-									<TabsTrigger value="categories">Categorias</TabsTrigger>
+							<Tabs defaultValue="main" className="gap-0">
+								<TabsList className="h-auto w-full rounded-none bg-transparent p-0">
+									<TabsTrigger
+										className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
+										value="main"
+									>
+										Clubes
+									</TabsTrigger>
+									<div className="h-auto w-px self-stretch bg-[image:repeating-linear-gradient(to_bottom,var(--border)_0px,var(--border)_6px,transparent_6px,transparent_14px)] bg-[length:1px_100%] bg-no-repeat" />
+									<TabsTrigger
+										className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
+										value="categories"
+									>
+										Categorias
+									</TabsTrigger>
 								</TabsList>
+								<DottedSeparator />
 								<TabsContent value="main">
 									<ClubsPointsTable category={undefined} circuit={circuit} />
 								</TabsContent>
@@ -151,22 +212,127 @@ const PlayerPointsTable = ({
 	category?: string
 	filter: boolean
 }) => {
-	const data = aggregatePlayerPoints(circuit, category)
-	const columns = getColumns(circuit.circuitPhase, circuit.type)
+	const data = React.useMemo(() => {
+		const d = aggregatePlayerPoints(circuit, category)
+		d.sort((a, b) => (b.total || 0) - (a.total || 0))
+		return d
+	}, [circuit, category])
 
-	data.sort((a, b) => (b.total || 0) - (a.total || 0))
+	const columns = React.useMemo(
+		() => getColumns(circuit.circuitPhase, circuit.type),
+		[circuit]
+	)
 
-	if (filter) {
-		return (
-			<div className="mt-3">
-				<DataTableSchool columns={columns} data={data} />
-			</div>
-		)
-	}
+	const [sorting, setSorting] = useState<SortingState>([])
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+	const [pagination, setPagination] = useState({
+		pageIndex: 0,
+		pageSize: 20,
+	})
+
+	const table = useReactTable({
+		data,
+		columns,
+		state: {
+			sorting,
+			columnFilters,
+			pagination,
+		},
+		onSortingChange: setSorting,
+		onColumnFiltersChange: setColumnFilters,
+		onPaginationChange: setPagination,
+		getCoreRowModel: getCoreRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+	})
 
 	return (
-		<div className="mt-3">
-			<DataTable columns={columns} data={data} />
+		<div className="flex flex-col">
+			{filter && (
+				<>
+					<div className="p-4">
+						<div className="flex items-center justify-between">
+							<div className="flex flex-1 flex-col items-start space-y-2 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
+								{table.getColumn("category") && (
+									<DataTableFacetedFilter
+										column={table.getColumn("category")}
+										options={categories}
+										title="Categoria"
+									/>
+								)}
+								{table.getState().columnFilters.length > 0 && (
+									<Button
+										className="h-8 px-2 lg:px-3"
+										onClick={() => table.resetColumnFilters()}
+										variant="ghost"
+									>
+										Limpar
+										<XIcon className="ml-2 h-4 w-4" />
+									</Button>
+								)}
+							</div>
+						</div>
+					</div>
+					<DottedSeparator />
+				</>
+			)}
+
+			<div className="relative p-4">
+				<Table>
+					<TableHeader>
+						{table.getHeaderGroups().map((headerGroup) => (
+							<TableRow className="border-b-0" key={headerGroup.id}>
+								{headerGroup.headers.map((header) => {
+									return (
+										<TableHead colSpan={header.colSpan} key={header.id}>
+											{header.isPlaceholder
+												? null
+												: flexRender(
+													header.column.columnDef.header,
+													header.getContext()
+												)}
+										</TableHead>
+									)
+								})}
+							</TableRow>
+						))}
+					</TableHeader>
+					<TableBody>
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row) => (
+								<TableRow
+									className="border-b-0"
+									data-state={row.getIsSelected() && "selected"}
+									key={row.id}
+								>
+									{row.getVisibleCells().map((cell) => (
+										<TableCell key={cell.id}>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext()
+											)}
+										</TableCell>
+									))}
+								</TableRow>
+							))
+						) : (
+							<TableRow>
+								<TableCell
+									className="h-24 text-center"
+									colSpan={columns.length}
+								>
+									Sem resultados.
+								</TableCell>
+							</TableRow>
+						)}
+					</TableBody>
+				</Table>
+			</div>
+			<DottedSeparator />
+			<div className="p-4">
+				<DataTablePagination table={table} />
+			</div>
 		</div>
 	)
 }
@@ -311,30 +477,69 @@ const ClubsPointsTable = ({
 }) => {
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 
-	const combinedCategories = category
-		? [...new Set([...selectedCategories, category])]
-		: selectedCategories
+	const combinedCategories = React.useMemo(
+		() =>
+			category
+				? [...new Set([...selectedCategories, category])]
+				: selectedCategories,
+		[category, selectedCategories]
+	)
 
-	const data = aggregatePoints(
-		circuit,
-		combinedCategories.length > 0 ? combinedCategories : undefined
+	const data = React.useMemo(
+		() =>
+			aggregatePoints(
+				circuit,
+				combinedCategories.length > 0 ? combinedCategories : undefined
+			),
+		[circuit, combinedCategories]
 	)
 
 	if (!(Array.isArray(data) && data.every(isClubPoints))) {
 		return <div>Ops, algo deu errado.</div>
 	}
 
-	const columns = circuitClubsColumns(circuit.circuitPhase)
-
-	const filteredData = data.filter(
-		(club) =>
-			combinedCategories.length === 0 ||
-			club.players.some((player: { category: string }) =>
-				combinedCategories.includes(player.category || "")
-			)
+	const columns = React.useMemo(
+		() => circuitClubsColumns(circuit.circuitPhase),
+		[circuit]
 	)
 
-	filteredData.sort((a, b) => b.total - a.total)
+	const filteredData = React.useMemo(() => {
+		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		const fd = (data as any[]).filter(
+			(club) =>
+				combinedCategories.length === 0 ||
+				club.players.some((player: { category: string }) =>
+					combinedCategories.includes(player.category || "")
+				)
+		)
+		fd.sort((a: any, b: any) => b.total - a.total)
+		return fd
+	}, [data, combinedCategories])
+
+	const [sorting, setSorting] = useState<SortingState>([])
+	const [expanded, setExpanded] = useState({})
+	const [pagination, setPagination] = useState({
+		pageIndex: 0,
+		pageSize: 20,
+	})
+
+	const table = useReactTable({
+		data: filteredData,
+		columns,
+		state: {
+			sorting,
+			expanded,
+			pagination,
+		},
+		onSortingChange: setSorting,
+		onExpandedChange: setExpanded,
+		onPaginationChange: setPagination,
+		getRowCanExpand: () => true,
+		getCoreRowModel: getCoreRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getExpandedRowModel: getExpandedRowModel(),
+	})
 
 	const renderSubComponent = ({ row }: { row: Row<CircuitClub> }) => {
 		const filteredPlayers = row.original.players.filter(
@@ -368,18 +573,78 @@ const ClubsPointsTable = ({
 	}
 
 	return (
-		<div>
-			<CategoryFilter
-				categories={categories}
-				onCategoryChange={setSelectedCategories}
-				selectedCategories={selectedCategories}
-			/>
-			<DataTable
-				columns={columns}
-				data={filteredData}
-				getRowCanExpand={() => true}
-				renderSubComponent={renderSubComponent}
-			/>
+		<div className="flex flex-col">
+			<div className="p-4">
+				<CategoryFilter
+					categories={categories}
+					onCategoryChange={setSelectedCategories}
+					selectedCategories={selectedCategories}
+				/>
+			</div>
+			<DottedSeparator />
+			<div className="relative p-4">
+				<Table>
+					<TableHeader>
+						{table.getHeaderGroups().map((headerGroup) => (
+							<TableRow className="border-b-0" key={headerGroup.id}>
+								{headerGroup.headers.map((header) => {
+									return (
+										<TableHead colSpan={header.colSpan} key={header.id}>
+											{header.isPlaceholder
+												? null
+												: flexRender(
+													header.column.columnDef.header,
+													header.getContext()
+												)}
+										</TableHead>
+									)
+								})}
+							</TableRow>
+						))}
+					</TableHeader>
+					<TableBody>
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row) => (
+								<React.Fragment key={row.id}>
+									<TableRow
+										className="border-b-0"
+										data-state={row.getIsSelected() && "selected"}
+									>
+										{row.getVisibleCells().map((cell) => (
+											<TableCell key={cell.id}>
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext()
+												)}
+											</TableCell>
+										))}
+									</TableRow>
+									{row.getIsExpanded() && (
+										<TableRow>
+											<TableCell colSpan={row.getVisibleCells().length}>
+												{renderSubComponent({ row })}
+											</TableCell>
+										</TableRow>
+									)}
+								</React.Fragment>
+							))
+						) : (
+							<TableRow>
+								<TableCell
+									className="h-24 text-center"
+									colSpan={columns.length}
+								>
+									Sem resultados.
+								</TableCell>
+							</TableRow>
+						)}
+					</TableBody>
+				</Table>
+			</div>
+			<DottedSeparator />
+			<div className="p-4">
+				<DataTablePagination table={table} />
+			</div>
 		</div>
 	)
 }

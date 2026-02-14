@@ -74,7 +74,7 @@ export function DataTableToolbar({ clubs, locations }: DataTableToolbarProps) {
 		<div className="flex items-center justify-between">
 			<div className="flex flex-1 flex-col items-start space-y-2">
 				<Input
-					className="h-8 w-[150px] lg:w-[250px]"
+					className="h-8 w-[150px] lg:w-[250px] border-dashed bg-background focus-visible:border-solid dark:bg-input/30"
 					onChange={(event) => {
 						setInputValue(event.target.value)
 					}}
