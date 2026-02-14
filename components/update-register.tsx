@@ -6,23 +6,34 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 export function UpdateRegister() {
 	return (
 		<Popover>
-			<PopoverTrigger asChild className="h-auto border-0">
-				<Button
-					aria-label="Atualize seu cadastro"
-					className="p-2"
-					size="sm"
-					variant="ghost"
-				>
-					<VerifiedIcon
-						aria-hidden="true"
-						className="size-4 shrink-0 fill-[#1CA0F2] stroke-white dark:stroke-[1.5]"
-					/>
-				</Button>
-			</PopoverTrigger>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<PopoverTrigger asChild>
+						<Button
+							aria-label="Atualize seu cadastro"
+							size="square"
+							variant="dashed"
+						>
+							<VerifiedIcon
+								aria-hidden="true"
+								className="size-4 shrink-0 fill-[#1CA0F2] stroke-white dark:stroke-[1.5]"
+							/>
+						</Button>
+					</PopoverTrigger>
+				</TooltipTrigger>
+				<TooltipContent>
+					<p>Atualize seu cadastro</p>
+				</TooltipContent>
+			</Tooltip>
 			<PopoverContent
 				align="start"
 				className="w-[350px] max-w-[100dvw] p-4"

@@ -25,8 +25,8 @@ export const HeaderNavigationDrawer = () => {
         <Button
           aria-label="Toggle navigation menu"
           className="shrink-0 p-2 hover:bg-muted/50 lg:hidden"
-          size="sm"
-          variant="ghost"
+          size="square"
+          variant="dashed"
         >
           <CommandIcon className="size-4" />
         </Button>

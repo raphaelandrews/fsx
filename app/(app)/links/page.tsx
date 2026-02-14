@@ -12,10 +12,11 @@ import {
 import { siteConfig } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
-import { buttonVariants } from "@/components/ui/button"
-import { PageHeader } from "@/components/ui/page-header"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Announcement } from "@/components/announcement"
 import { DottedSeparator } from "@/components/dotted-separator"
+import { DottedX } from "@/components/dotted-x"
+import { FlickeringGrid } from "@/components/ui/flickering-grid"
 
 import {
 	Tooltip,
@@ -38,23 +39,42 @@ const Links = async () => {
 	const linkGroups = await getLinkGroups()
 
 	return (
-		<PageHeader icon={Link2Icon} label="Links">
-			{/* Profile Section */}
-			<section className="mb-0">
+		<section>
+			<DottedX className="p-0">
+				<div className="p-3">
+					<div className="relative h-32 w-full overflow-hidden rounded-lg">
+						<FlickeringGrid
+							className="absolute inset-0 size-full z-0 [mask-image:radial-gradient(450px_circle_at_center,white,transparent)]"
+							squareSize={4}
+							gridGap={6}
+							color="#60A5FA"
+							maxOpacity={0.5}
+							flickerChance={0.1}
+						/>
+					</div>
+				</div>
+
+				<DottedSeparator fullWidth />
+				{/* Header Section */}
 				<div className="p-4 flex justify-between items-center gap-4">
-					<img src="/logo.svg" alt="Logo" className="h-6" title="Logo" />
+					<img src="/logo.svg" alt="Logo" className="h-5" title="Logo" />
 
 					<div className="flex gap-2.5">
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<a
-									className="rounded-lg p-2 transition bg-background dark:bg-input/30 hover:bg-muted border border-dashed"
-									href="https://www.instagram.com/xadrezsergipe/"
-									rel="noreferrer"
-									target="_blank"
+								<Button
+									size="square"
+									variant="dashed"
+									asChild
 								>
-									<InstagramIcon size={16} />
-								</a>
+									<a
+										href="https://www.instagram.com/xadrezsergipe/"
+										rel="noreferrer"
+										target="_blank"
+									>
+										<InstagramIcon size={16} />
+									</a>
+								</Button>
 							</TooltipTrigger>
 							<TooltipContent>
 								<p>Instagram</p>
@@ -62,14 +82,19 @@ const Links = async () => {
 						</Tooltip>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<a
-									className="rounded-lg p-2 transition bg-background dark:bg-input/30 hover:bg-muted border border-dashed"
-									href="mailto:fsx.presidente@gmail.com"
-									rel="noreferrer"
-									target="_blank"
+								<Button
+									size="square"
+									variant="dashed"
+									asChild
 								>
-									<MailboxIcon size={16} />
-								</a>
+									<a
+										href="mailto:fsx.presidente@gmail.com"
+										rel="noreferrer"
+										target="_blank"
+									>
+										<MailboxIcon size={16} />
+									</a>
+								</Button>
 							</TooltipTrigger>
 							<TooltipContent>
 								<p>Email</p>
@@ -77,29 +102,30 @@ const Links = async () => {
 						</Tooltip>
 					</div>
 				</div>
-			</section>
 
-			{/* Link Groups */}
-			{linkGroups.map((item: LinkGroup, index: number) => (
-				<section className="mb-0" key={item.id}>
-					<Announcement icon={FoldersIcon} label={item.label} className="text-sm" topSeparator />
-					<div className="flex flex-col">
-						{item.links?.map((link: LinkType, linkIndex: number) => (
-							<Fragment key={link.href}>
-								<div className="m-1">
-									<LinkItem
-										href={link.href}
-										icon={link.icon}
-										label={link.label}
-									/>
-								</div>
-								{linkIndex < (item.links?.length ?? 0) - 1 && <DottedSeparator />}
-							</Fragment>
-						))}
-					</div>
-				</section>
-			))}
-		</PageHeader>
+				{/* Link Groups */}
+				{linkGroups.map((item: LinkGroup) => (
+					<section className="mb-0" key={item.id}>
+						<Announcement icon={FoldersIcon} label={item.label} className="text-sm" topSeparator />
+						<div className="flex flex-col">
+							{item.links?.map((link: LinkType, linkIndex: number) => (
+								<Fragment key={link.href}>
+									<div className="m-1">
+										<LinkItem
+											href={link.href}
+											icon={link.icon}
+											label={link.label}
+										/>
+									</div>
+									{linkIndex < (item.links?.length ?? 0) - 1 && <DottedSeparator />}
+								</Fragment>
+							))}
+						</div>
+					</section>
+				))}
+			</DottedX>
+			<DottedSeparator />
+		</section>
 	)
 }
 
@@ -116,7 +142,7 @@ const LinkItem = ({ href, label, icon }: Props) => {
 		<Link
 			className={cn(
 				buttonVariants({ variant: "ghost" }),
-				"flex h-[inherit] w-full items-center justify-between rounded-none px-4 py-3",
+				"flex h-[inherit] w-full items-center justify-between rounded-none p-3",
 			)}
 			href={href}
 			prefetch={false}
@@ -126,7 +152,7 @@ const LinkItem = ({ href, label, icon }: Props) => {
 				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: No */}
 				<div dangerouslySetInnerHTML={{ __html: icon }} />
 			</div>
-			<p>{label}</p>
+			<span>{label}</span>
 			<div className="grid h-8 w-8 place-items-center">
 				<ExternalLinkIcon className="h-4 w-4 stroke-foreground" />
 			</div>
