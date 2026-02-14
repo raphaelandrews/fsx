@@ -45,19 +45,17 @@ export function Client({ roles }: { roles: PlayerRole[] }) {
 						/>
 					))}
 				</div>
-
-				<DottedSeparator />
 			</section>
 
 			<section className="mb-0">
-				<Announcement icon={Flag} label="Árbitros" className="text-sm" />
+				<Announcement icon={Flag} label="Árbitros" className="text-sm" topSeparator bottomSeparator={false} />
 
 				<div className="flex flex-col">
 					{referee.map((item, index) => {
 						if (!item.playersToRoles?.length) return null
 						return (
 							<div key={item.role}>
-								<Announcement label={item.role} className="text-xs" />
+								<Announcement label={item.role} className="text-xs" topSeparator />
 								<div className="flex flex-col">
 									{item.playersToRoles.map((member, index) => (
 										<MemberCard
@@ -69,7 +67,6 @@ export function Client({ roles }: { roles: PlayerRole[] }) {
 										/>
 									))}
 								</div>
-								{index !== referee.length - 1 && <DottedSeparator className="w-full" />}
 							</div>
 						)
 					})}

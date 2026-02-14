@@ -164,13 +164,12 @@ export function Client({ player }: { player: PlayerById }) {
 						</div>
 					</div>
 				</div>
-				<DottedSeparator className="w-full" />
 			</div>
 
 			{/* Conquistas Section */}
 			{(orderPodiums.length > 0 || (player.defendingChampions && player.defendingChampions?.length > 0)) && (
 				<section className="mb-0">
-					<Announcement icon={TargetIcon} label="Conquistas" className="text-sm" />
+					<Announcement icon={TargetIcon} label="Conquistas" className="text-sm" topSeparator />
 					<div className="p-3 grid gap-4">
 						{player.defendingChampions && player.defendingChampions?.length > 0 && (
 							<div className="flex flex-wrap gap-2 justify-center sm:justify-start">
@@ -200,13 +199,12 @@ export function Client({ player }: { player: PlayerById }) {
 							</div>
 						)}
 					</div>
-					<DottedSeparator className="w-full" />
 				</section>
 			)}
 
 			{/* Informações Section */}
 			<section className="mb-0">
-				<Announcement icon={InfoIcon} label="Informações" className="text-sm" />
+				<Announcement icon={InfoIcon} label="Informações" className="text-sm" topSeparator />
 
 				<div className="flex flex-col">
 					<InfoItem label="Nome Completo" value={player.name} isFirst />
@@ -281,26 +279,22 @@ export function Client({ player }: { player: PlayerById }) {
 						</InfoItem>
 					)}
 				</div>
-
-				<DottedSeparator className="w-full" />
 			</section>
 
 			{/* Ratings Section */}
 			<section className="mb-0">
-				<Announcement icon={TrendingUpIcon} label="Ratings" className="text-sm" />
+				<Announcement icon={TrendingUpIcon} label="Ratings" className="text-sm" topSeparator />
 
 				<div className="grid grid-cols-3 divide-x divide-border">
 					<RatingBox label="Clássico" value={player.classic} />
 					<RatingBox label="Rápido" value={player.rapid} />
 					<RatingBox label="Blitz" value={player.blitz} />
 				</div>
-
-				<DottedSeparator className="w-full" />
 			</section>
 
 			{/* IDs Section */}
 			<section className="mb-0">
-				<Announcement icon={Link2Icon} label="IDs" className="text-sm" />
+				<Announcement icon={Link2Icon} label="IDs" className="text-sm" topSeparator />
 
 				<div className="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-y sm:divide-y-0 divide-border">
 					<IdBox label="ID FSX" value={String(player.id)} />
@@ -315,15 +309,15 @@ export function Client({ player }: { player: PlayerById }) {
 						href={player.fideId ? `https://ratings.fide.com/profile/${player.fideId}` : undefined}
 					/>
 				</div>
-
-				{tournaments.length > 0 && <DottedSeparator className="w-full" />}
 			</section>
 
 			{/* Performance Section */}
 			{tournaments.length > 0 && (
 				<section className="mb-0">
-					<div className="flex items-center justify-between pr-3">
-						<Announcement icon={BarChart3Icon} label="Performance" className="text-sm flex-1" />
+
+					<Announcement icon={BarChart3Icon} label="Performance" className="text-sm flex-1" topSeparator />
+
+					<div className="p-4 space-y-6">
 						<Select
 							onValueChange={(value) => setSelectedRatingType(value)}
 							value={selectedRatingType}
@@ -337,9 +331,7 @@ export function Client({ player }: { player: PlayerById }) {
 								<SelectItem value="blitz">Blitz</SelectItem>
 							</SelectContent>
 						</Select>
-					</div>
 
-					<div className="p-4 space-y-6">
 						<div className="space-y-2">
 							<h4 className="text-sm font-medium text-muted-foreground ml-2">Variação de Rating</h4>
 							<VariationChart
@@ -358,15 +350,14 @@ export function Client({ player }: { player: PlayerById }) {
 							/>
 						</div>
 					</div>
-					<DottedSeparator className="w-full" />
 				</section>
 			)}
 
 			{/* Torneios Section */}
 			{tournaments && tournaments.length > 0 && (
 				<section className="mb-0">
-					<Announcement icon={CalendarRangeIcon} label="Histórico de Torneios" className="text-sm" />
-					<div className="p-0">
+					<Announcement icon={CalendarRangeIcon} label="Histórico de Torneios" className="text-sm" topSeparator />
+					<div className="p-4">
 						<DataTable columns={columns} data={tournaments} />
 					</div>
 				</section>

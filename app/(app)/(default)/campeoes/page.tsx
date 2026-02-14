@@ -1,13 +1,12 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { TrophyIcon } from "lucide-react"
 
 import { getChampions } from "@/db/queries"
 import { siteConfig } from "@/lib/site"
 
-import { columns } from "./components/columns"
-import { DataTable } from "./components/data-table"
 import { PageHeader } from "@/components/ui/page-header"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Client } from "./client"
 
 export const metadata: Metadata = {
 	title: "Galeria de Campeões",
@@ -18,7 +17,8 @@ export const metadata: Metadata = {
 		description: "Campeões Sergipanos.",
 		siteName: "Galeria de Campeões",
 	},
-};
+}
+
 export default async function Page() {
 	const data = await getChampions()
 
@@ -47,40 +47,16 @@ export default async function Page() {
 				}))
 				.reverse()
 			return acc
-
 		},
 		// biome-ignore lint/suspicious/noExplicitAny: No
 		{} as Record<string, any>
 	)
 
-	const tabContent = [
-		{ value: "classic", name: "Absoluto" },
-		{ value: "rapid", name: "Rápido" },
-		{ value: "blitz", name: "Blitz" },
-		{ value: "female", name: "Feminino" },
-		{ value: "team", name: "Equipes" },
-	]
-
 	return (
 		<PageHeader icon={TrophyIcon} label="Campeões">
-			<Tabs defaultValue="classic">
-						<TabsList className="grid h-20 grid-cols-3 grid-rows-2 sm:h-[inherit] sm:w-[500px] sm:grid-cols-5 sm:grid-rows-1">
-							{tabContent.map((tab) => (
-								<TabsTrigger key={tab.value} value={tab.value}>
-									{tab.name}
-								</TabsTrigger>
-							))}
-						</TabsList>
-
-						{tabContent.map((tab) => (
-							<TabsContent key={tab.value} value={tab.value}>
-								<DataTable
-									columns={columns}
-									data={championshipMap[tab.name] ?? []}
-								/>
-							</TabsContent>
-						))}
-			</Tabs>
+			<Suspense fallback={<div>Carregando...</div>}>
+				<Client championshipMap={championshipMap} />
+			</Suspense>
 		</PageHeader>
 	)
 }

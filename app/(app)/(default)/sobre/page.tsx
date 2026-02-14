@@ -55,12 +55,10 @@ export default function Page() {
 						e, indiretamente, à Federação Internacional de Xadrez (FIDE).
 					</p>
 				</div>
-
-				<DottedSeparator className="w-full" />
 			</section>
 
 			<section className="mb-0">
-				<Announcement icon={GoalIcon} label="Finalidades" className="text-sm" />
+				<Announcement icon={GoalIcon} label="Finalidades" className="text-sm" topSeparator />
 
 				<div className="flex flex-col">
 					{finalidades.map((item, index) => (
@@ -72,12 +70,10 @@ export default function Page() {
 						</SobreItem>
 					))}
 				</div>
-
-				<DottedSeparator className="w-full" />
 			</section>
 
 			<section className="mb-0">
-				<Announcement icon={Link2Icon} label="Links" className="text-sm" />
+				<Announcement icon={Link2Icon} label="Links" className="text-sm" topSeparator />
 
 				<div className="flex flex-col">
 					{links.map((link, index) => (

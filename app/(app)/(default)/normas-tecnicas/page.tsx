@@ -40,12 +40,10 @@ export default function Page() {
                 </NormasItem>
               ))}
             </Accordion>
-
-            <DottedSeparator className="w-full" />
           </section>
 
           <section className="mb-0">
-            <Announcement icon={BarChart2Icon} label="Variação de Rating" className="text-sm" />
+            <Announcement icon={BarChart2Icon} label="Variação de Rating" className="text-sm" topSeparator />
 
             <Accordion type="single" collapsible className="flex flex-col">
               {ratingVariations.map((item, index) => (
