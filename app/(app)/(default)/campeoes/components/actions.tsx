@@ -4,7 +4,15 @@ import { useMemo, useState } from "react"
 
 import { getGradient } from "@/lib/generate-gradients"
 
-import { PlayerSheet } from "@/components/sheets/player/player-sheet"
+import dynamic from "next/dynamic"
+
+const PlayerSheet = dynamic(
+	() =>
+		import("@/components/sheets/player/player-sheet").then(
+			(mod) => mod.PlayerSheet
+		),
+	{ ssr: false }
+)
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 

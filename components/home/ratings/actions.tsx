@@ -8,7 +8,16 @@ import { getGradient } from "@/lib/generate-gradients"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
-import { PlayerSheet } from "@/components/sheets/player/player-sheet"
+import dynamic from "next/dynamic"
+
+const PlayerSheet = dynamic(
+  () =>
+    import("@/components/sheets/player/player-sheet").then(
+      (mod) => mod.PlayerSheet
+    ),
+  { ssr: false }
+)
+
 
 interface Props {
   id: number

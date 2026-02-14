@@ -28,11 +28,11 @@ export function MainNav() {
     <div className="mr-4 flex">
       {pathname === "/" ? (
         <div className="mr-4 flex items-center space-x-2 lg:mr-6">
-          <span className="mt-0.5 font-bold">FSX</span>
+          <img src="/logo.svg" alt="Logo" className="h-4" title="Logo" />
         </div>
       ) : (
         <Link href="/" className="mr-4 flex items-center space-x-2 lg:mr-6">
-          <span className="mt-0.5 font-bold">FSX</span>
+          <img src="/logo.svg" alt="Logo" className="h-4" title="Logo" />
         </Link>
       )}
       <NavigationMenu className="ml-1 hidden lg:block">
