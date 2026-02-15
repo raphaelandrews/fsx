@@ -6,7 +6,7 @@ import { siteConfig } from "@/lib/site"
 
 import { Client } from "./client"
 import type { Circuit } from "./components/types"
-import { PageHeader } from "@/components/ui/page-header"
+import { PageWrapper } from "@/components/ui/page-wrapper"
 
 export const metadata: Metadata = {
   title: "Circuitos",
@@ -25,8 +25,8 @@ export default async function Page() {
   const circuits = await getCircuits()
 
   return (
-    <PageHeader icon={MedalIcon} label="Circuitos">
+    <PageWrapper icon={MedalIcon} label="Circuitos">
       <Client circuits={circuits as Circuit[]} />
-    </PageHeader>
+    </PageWrapper>
   )
 }

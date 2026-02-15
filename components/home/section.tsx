@@ -12,6 +12,7 @@ interface Props {
 	icon: LucideIcon
 	main: boolean
 	children: React.ReactNode
+	hideSeparator?: boolean
 }
 
 export function Section({
@@ -20,6 +21,7 @@ export function Section({
 	icon,
 	main,
 	children,
+	hideSeparator = false,
 }: Props) {
 	return (
 		<section className={cn(className)}>
@@ -27,7 +29,7 @@ export function Section({
 				{!main && <Announcement icon={icon} label={label} />}
 				{children}
 			</DottedX>
-			<DottedSeparator />
+			{!hideSeparator && <DottedSeparator />}
 		</section>
 	)
 }

@@ -93,7 +93,7 @@ const FAQ_ITEMS = [
 
 export function FAQ() {
 	return (
-		<Section icon={FileQuestionIcon} label="FAQ" main={false}>
+		<Section icon={FileQuestionIcon} label="FAQ" main={false} hideSeparator>
 			<Accordion collapsible type="single" className="flex flex-col">
 					{FAQ_ITEMS.map((item, index) => (
 						<div key={item.value}>

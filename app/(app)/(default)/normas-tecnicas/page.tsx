@@ -6,7 +6,7 @@ import { siteConfig } from "@/lib/site";
 import { titulations, ratingVariations } from "./data";
 import { NormasItem } from "./components/normas-item";
 import { Accordion } from "@/components/ui/accordion";
-import { PageHeader } from "@/components/ui/page-header"
+import { PageWrapper } from "@/components/ui/page-wrapper"
 import { Announcement } from "@/components/announcement";
 import { DottedSeparator } from "@/components/dotted-separator";
 
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <PageHeader icon={BookIcon} label="Normas Técnicas">
+    <PageWrapper icon={BookIcon} label="Normas Técnicas">
       <section className="mb-0">
             <Announcement icon={MedalIcon} label="Titulações" className="text-sm" />
 
@@ -59,6 +59,6 @@ export default function Page() {
               ))}
         </Accordion>
       </section>
-    </PageHeader>
+    </PageWrapper>
   );
 }

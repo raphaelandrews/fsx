@@ -44,10 +44,14 @@ export function PostCard({
 
 	if (loading) {
 		return (
-			<div>
-				<Skeleton className="aspect-[2/1] w-full" />
-				<Skeleton className="mt-2 mb-1 h-5 w-full" />
-				<Skeleton className="h-5 w-4/5" />
+			<div className="p-3">
+				<div className="p-[4px] rounded-[10px] border border-border mb-2">
+					<Skeleton className="aspect-[2/1] w-full rounded-md" />
+				</div>
+				<div className="px-2 flex flex-col gap-1">
+					<Skeleton className="h-5 w-3/4" />
+					<Skeleton className="h-4 w-1/2" />
+				</div>
 			</div>
 		)
 	}

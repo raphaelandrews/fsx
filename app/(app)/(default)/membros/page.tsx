@@ -7,7 +7,7 @@ import { siteConfig } from "@/lib/site";
 
 import { Client } from "./client";
 import { MembrosSkeleton } from "./components/membros-skeleton";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageWrapper } from "@/components/ui/page-wrapper";
 
 export const metadata: Metadata = {
 	title: "Membros",
@@ -27,10 +27,10 @@ async function MembrosContent() {
 
 export default function Page() {
 	return (
-		<PageHeader icon={ScrollIcon} label="Membros">
+		<PageWrapper icon={ScrollIcon} label="Membros">
 			<Suspense fallback={<MembrosSkeleton />}>
 				<MembrosContent />
 			</Suspense>
-		</PageHeader>
+		</PageWrapper>
 	);
 }

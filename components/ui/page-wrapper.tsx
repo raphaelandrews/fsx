@@ -3,21 +3,20 @@ import { type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 import { Announcement } from "@/components/announcement"
-import { DottedSeparator } from "@/components/dotted-separator"
 import { DottedX } from "@/components/dotted-x"
 
-interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+interface PageWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
 	icon?: LucideIcon
 	label?: string
 }
 
-function PageHeader({
+function PageWrapper({
 	className,
 	children,
 	icon,
 	label,
 	...props
-}: PageHeaderProps) {
+}: PageWrapperProps) {
 	if (icon && label) {
 		return (
 			<section className={cn(className)} {...props}>
@@ -25,7 +24,6 @@ function PageHeader({
 					<Announcement icon={icon} label={label} />
 					{children}
 				</DottedX>
-				<DottedSeparator />
 			</section>
 		)
 	}
@@ -88,4 +86,4 @@ function PageActions({
 	)
 }
 
-export { PageActions, PageHeader, PageHeaderDescription, PageHeaderHeading }
+export { PageActions, PageWrapper, PageHeaderDescription, PageHeaderHeading }

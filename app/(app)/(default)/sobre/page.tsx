@@ -3,7 +3,7 @@ import { ScrollIcon, LandmarkIcon, GoalIcon, Link2Icon } from "lucide-react"
 
 import { siteConfig } from "@/lib/site"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { PageWrapper } from "@/components/ui/page-wrapper"
 import { Announcement } from "@/components/announcement"
 import { DottedSeparator } from "@/components/dotted-separator"
 import { SobreItem } from "./components/sobre-item"
@@ -39,7 +39,7 @@ export default function Page() {
 	];
 
 	return (
-		<PageHeader icon={ScrollIcon} label="Sobre">
+		<PageWrapper icon={ScrollIcon} label="Sobre">
 			<section className="mb-0">
 				<Announcement icon={LandmarkIcon} label="A FSX" className="text-sm" />
 
@@ -77,9 +77,9 @@ export default function Page() {
 
 				<div className="flex flex-col">
 					{links.map((link, index) => (
-						<SobreItem key={index} isLast={index === links.length - 1}>
+						<SobreItem key={index} isLast={index === links.length - 1} className="group p-0 hover:bg-transparent">
 							<a
-								className="text-sm text-primary flex items-center gap-2"
+								className="text-sm text-link flex items-center gap-2 p-3 group-hover:underline transition-all"
 								href={link.href}
 								rel="noreferrer"
 								target={link.href.startsWith("http") || link.href.startsWith("mailto") ? "_blank" : undefined}
@@ -90,6 +90,6 @@ export default function Page() {
 					))}
 				</div>
 			</section>
-		</PageHeader>
+		</PageWrapper>
 	)
 }

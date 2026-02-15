@@ -8,7 +8,7 @@ import { siteConfig } from "@/lib/site"
 import { MDX } from "@/components/mdx"
 import { PostTimeAgo } from "../components/post-time-ago"
 import { DottedSeparator } from "@/components/dotted-separator"
-import { PageHeader } from "@/components/ui/page-header"
+import { PageWrapper } from "@/components/ui/page-wrapper"
 
 export async function generateStaticParams() {
 	const posts = await getPosts()
@@ -66,7 +66,7 @@ export default async function Page({
 	}
 
 	return (
-		<PageHeader icon={NewspaperIcon} label="Notícia">
+		<PageWrapper icon={NewspaperIcon} label="Notícia">
 			{/* Title Section */}
 			<section className="mb-0">
 				<div className="p-4">
@@ -87,18 +87,20 @@ export default async function Page({
 
 			{/* Image Section */}
 			{data?.image && (
-				<section className="mb-0">
-					<div className="p-4">
-						<ViewTransition name={`image-${data?.slug}`}>
-							<img
-								alt={data.title}
-								className="w-full rounded-lg object-cover max-h-[400px]"
-								src={data.image}
-							/>
-						</ViewTransition>
-					</div>
+				<>
+					<section className="mb-0 p-4">
+						<div className="p-[4px] rounded-[10px] border border-border">
+							<ViewTransition name={`image-${data?.slug}`}>
+								<img
+									alt={data.title}
+									className="w-full rounded-lg object-cover max-h-[400px]"
+									src={data.image}
+								/>
+							</ViewTransition>
+						</div>
+					</section>
 					<DottedSeparator />
-				</section>
+				</>
 			)}
 
 			{/* Content Section */}
@@ -107,6 +109,6 @@ export default async function Page({
 					<MDX content={data.content} />
 				</section>
 			)}
-		</PageHeader>
+		</PageWrapper>
 	)
 }

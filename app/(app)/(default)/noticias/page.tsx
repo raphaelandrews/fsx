@@ -7,7 +7,7 @@ import { siteConfig } from "@/lib/site";
 
 import { NewsList } from "./components/news-list";
 import { NewsSkeleton } from "./components/news-skeleton";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageWrapper } from "@/components/ui/page-wrapper";
 
 export const metadata: Metadata = {
   title: "Notícias",
@@ -45,10 +45,10 @@ export default async function Page({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   return (
-    <PageHeader icon={NewspaperIcon} label="Notícias">
+    <PageWrapper icon={NewspaperIcon} label="Notícias">
       <React.Suspense fallback={<NewsSkeleton />}>
         <NewsContent searchParams={searchParams} />
       </React.Suspense>
-    </PageHeader>
+    </PageWrapper>
   );
 }

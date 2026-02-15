@@ -5,7 +5,7 @@ import { BookmarkIcon } from "lucide-react"
 import { getTitledPlayers } from "@/db/queries"
 import { siteConfig } from "@/lib/site"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { PageWrapper } from "@/components/ui/page-wrapper"
 import { Client } from "./client"
 
 export const metadata: Metadata = {
@@ -23,10 +23,10 @@ export default async function Page() {
 	const data = await getTitledPlayers()
 
 	return (
-		<PageHeader icon={BookmarkIcon} label="Titulados">
+		<PageWrapper icon={BookmarkIcon} label="Titulados">
 			<Suspense fallback={<div>Carregando...</div>}>
 				<Client data={data} />
 			</Suspense>
-		</PageHeader>
+		</PageWrapper>
 	)
 }

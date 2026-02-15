@@ -1,9 +1,11 @@
 import { cn } from "@/lib/utils"
+import { DottedSeparator } from "./dotted-separator";
 import { DottedX } from "./dotted-x";
 
 export function Footer({ className }: { className?: string }) {
   return (
-    <footer>
+    <footer className={cn(className)}>
+      <DottedSeparator />
       <DottedX>
         <div className="text-balance text-center text-muted-foreground text-sm leading-loose">
           Built by 💿{" "}

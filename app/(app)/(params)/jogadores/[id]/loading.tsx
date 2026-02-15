@@ -1,13 +1,13 @@
 import { UserIcon, TargetIcon, InfoIcon, TrendingUpIcon, Link2Icon, BarChart3Icon, CalendarRangeIcon } from "lucide-react"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import { PageHeader } from "@/components/ui/page-header"
+import { PageWrapper } from "@/components/ui/page-wrapper"
 import { Announcement } from "@/components/announcement"
 import { DottedSeparator } from "@/components/dotted-separator"
 
 export default function Loading() {
 	return (
-		<PageHeader icon={UserIcon} label="Perfil">
+		<PageWrapper icon={UserIcon} label="Perfil">
 			{/* Header Section */}
 					<div className="relative">
 						<Skeleton className="h-32 w-full" />
@@ -124,6 +124,6 @@ export default function Loading() {
 							<Skeleton className="h-64 w-full" />
 						</div>
 					</section>
-		</PageHeader>
+		</PageWrapper>
 	)
 }

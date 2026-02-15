@@ -5,7 +5,7 @@ import { TrophyIcon } from "lucide-react"
 import { getChampions } from "@/db/queries"
 import { siteConfig } from "@/lib/site"
 
-import { PageHeader } from "@/components/ui/page-header"
+import { PageWrapper } from "@/components/ui/page-wrapper"
 import { Client } from "./client"
 
 export const metadata: Metadata = {
@@ -53,10 +53,10 @@ export default async function Page() {
 	)
 
 	return (
-		<PageHeader icon={TrophyIcon} label="Campeões">
+		<PageWrapper icon={TrophyIcon} label="Campeões">
 			<Suspense fallback={<div>Carregando...</div>}>
 				<Client championshipMap={championshipMap} />
 			</Suspense>
-		</PageHeader>
+		</PageWrapper>
 	)
 }
