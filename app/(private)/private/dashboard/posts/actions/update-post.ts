@@ -15,12 +15,18 @@ interface UpdatePostInput {
 	content: string
 }
 
+function sanitizeTitle(title: string): string {
+	return title.trimStart().replace(/\s{2,}/g, " ")
+}
+
 export async function UpdatePost(post: UpdatePostInput) {
 	try {
+		const sanitizedTitle = sanitizeTitle(post.title)
+
 		const updatedPosts = await db
 			.update(posts)
 			.set({
-				title: post.title,
+				title: sanitizedTitle,
 				slug: post.slug,
 				image: post.image,
 				content: post.content,

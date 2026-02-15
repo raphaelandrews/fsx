@@ -23,6 +23,7 @@ export default async function Page() {
 			image: post.image,
 			slug: post.slug,
 			createdAt: post.createdAt ?? "",
+			published: post.published ?? false,
 		}))
 	} catch (e) {
 		console.error("Error fetching posts:", e)

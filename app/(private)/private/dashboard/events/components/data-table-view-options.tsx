@@ -7,8 +7,8 @@ import {
 	DropdownMenuContent,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
+	DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
 import { SlidersHorizontalIcon } from "lucide-react"
 import type { Table } from "@tanstack/react-table"
 

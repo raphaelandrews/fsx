@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -220,7 +221,10 @@ export async function POST(req: Request) {
 		if (!playerDataForResponse || !playerTournamentDataForResponse) {
 			throw new Error("Transaction completed but response data is missing.");
 		}
-	
+
+		revalidateTag("players", "max")
+		revalidateTag("search-players", "max")
+
 		return new NextResponse(
 			JSON.stringify({
 				dataFields: {

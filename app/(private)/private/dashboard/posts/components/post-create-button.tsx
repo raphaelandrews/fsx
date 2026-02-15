@@ -52,7 +52,7 @@ const PostCreateButton = () => {
 
 				router.refresh()
 
-				router.push(`/posts/${response.id}`)
+				router.push(`/private/dashboard/posts/${response.id}`)
 				setIsLoading(false)
 			} else {
 				setIsLoading(false)

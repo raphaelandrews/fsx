@@ -42,6 +42,7 @@ export async function updatePlayer(input: UpdatePlayerInput) {
 
 		revalidateTag(`player-${input.id}`, "max")
 		revalidateTag("players", "max")
+		revalidateTag("search-players", "max")
 		revalidateTag("swiss-manager-export", "max")
 		revalidatePath("/")
 		revalidatePath(`/jogadores/${input.id}`)

@@ -19,6 +19,7 @@ export async function deleteLocation(id: number) {
 
 		revalidateTag("locations", "max")
 		revalidatePath("/")
+		revalidatePath("/ratings")
 		revalidatePath("/private/dashboard/locations")
 
 		return { success: true }

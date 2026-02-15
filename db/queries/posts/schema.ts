@@ -6,6 +6,7 @@ const PostsSchema = z.object({
 	image: z.string(),
 	slug: z.string(),
 	createdAt: z.union([z.date(), z.string()]),
+	published: z.boolean().optional(),
 })
 
 const SuccessSchema = z.object({

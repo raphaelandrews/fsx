@@ -1,7 +1,8 @@
 "use client"
 
+import { useEffect } from "react"
 import { UseFormReturn } from "react-hook-form"
-import { SparklesIcon, CheckIcon, Loader2Icon } from "lucide-react"
+import { CheckIcon, Loader2Icon } from "lucide-react"
 import slugify from "react-slugify"
 
 import {
@@ -19,7 +20,6 @@ import {
 	FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ImageUpload } from "./image-upload"
 import type { SaveStatus } from "@/hooks/use-auto-save"
@@ -66,6 +66,15 @@ export function MetadataSidebar({
 	saveStatus,
 	disabled = false,
 }: MetadataSidebarProps) {
+	const title = form.watch("title")
+
+	useEffect(() => {
+		if (title) {
+			const newSlug = slugify(title)
+			form.setValue("slug", newSlug, { shouldDirty: true })
+		}
+	}, [title, form])
+
 	return (
 		<div className="flex w-full flex-col gap-4 lg:w-80">
 			{/* Save Status Card */}
@@ -136,6 +145,12 @@ export function MetadataSidebar({
 										placeholder="Enter post title"
 										disabled={disabled}
 										{...field}
+										onChange={(e) => {
+											const sanitized = e.target.value
+												.trimStart()
+												.replace(/\s{2,}/g, " ")
+											field.onChange(sanitized)
+										}}
 									/>
 								</FormControl>
 								<FormMessage />
@@ -151,23 +166,12 @@ export function MetadataSidebar({
 								<FormControl>
 									<Input
 										placeholder="post-url-slug"
-										disabled={disabled}
+										disabled
+										readOnly
+										className="bg-muted"
 										{...field}
 									/>
 								</FormControl>
-								<Button
-									className="mt-2 w-full"
-									onClick={() =>
-										field.onChange(slugify(form.getValues("title")))
-									}
-									size="sm"
-									type="button"
-									variant="outline"
-									disabled={disabled}
-								>
-									<SparklesIcon className="mr-2 h-4 w-4" />
-									Generate from title
-								</Button>
 								<FormMessage />
 							</FormItem>
 						)}
