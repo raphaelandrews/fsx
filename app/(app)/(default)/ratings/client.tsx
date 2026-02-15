@@ -442,7 +442,7 @@ function Info() {
     <div className="flex items-center gap-5">
       <Popover>
         <PopoverTrigger asChild>
-          <Button className="h-8 w-8 rounded-full p-0" variant="outline">
+          <Button className="h-8 w-8 rounded-full p-0" variant="dashed">
             <InfoIcon className="h-4 w-4 text-primary" />
             <span className="sr-only">Open popover</span>
           </Button>

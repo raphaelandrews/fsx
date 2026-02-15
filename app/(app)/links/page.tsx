@@ -149,7 +149,7 @@ const LinkItem = ({ href, label, icon }: Props) => {
 			prefetch={false}
 			target="_blank"
 		>
-			<div className="grid h-8 w-8 place-items-center rounded-md bg-link shadow-lg [&>div>svg]:text-background dark:[&>div>svg]:text-primary [&>div>svg]:h-4 [&>div>svg]:w-4">
+			<div className="grid h-8 w-8 place-items-center rounded-md bg-blueberry-foreground shadow-lg [&>div>svg]:text-background dark:[&>div>svg]:text-primary [&>div>svg]:h-4 [&>div>svg]:w-4">
 				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: No */}
 				<div dangerouslySetInnerHTML={{ __html: icon }} />
 			</div>

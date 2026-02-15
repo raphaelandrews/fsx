@@ -156,7 +156,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 							className="hidden size-8 p-0 lg:flex"
 							disabled={!table.getCanPreviousPage()}
 							onClick={() => table.setPageIndex(0)}
-							variant="outline"
+							variant="dashed"
 						>
 							<ChevronsLeft className="size-4" />
 						</Button>
@@ -165,7 +165,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 							className="size-8 p-0"
 							disabled={!table.getCanPreviousPage()}
 							onClick={() => table.previousPage()}
-							variant="outline"
+							variant="dashed"
 						>
 							<ChevronLeft className="size-4" />
 						</Button>
@@ -174,7 +174,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 							className="size-8 p-0"
 							disabled={!table.getCanNextPage()}
 							onClick={() => table.nextPage()}
-							variant="outline"
+							variant="dashed"
 						>
 							<ChevronRight className="size-4" />
 						</Button>
@@ -183,7 +183,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 							className="hidden size-8 p-0 lg:flex"
 							disabled={!table.getCanNextPage()}
 							onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-							variant="outline"
+							variant="dashed"
 						>
 							<ChevronsRight className="size-4" />
 						</Button>

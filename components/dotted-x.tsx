@@ -7,7 +7,7 @@ export function DottedX({
   return (
     <div
       className={cn(
-        "max-w-[720px] mx-2 sm:mx-8 md:mx-auto relative p-3 dotted-border-x",
+        "max-w-[720px] mx-2 sm:mx-8 md:mx-auto relative p-3",
         className,
       )}
     >

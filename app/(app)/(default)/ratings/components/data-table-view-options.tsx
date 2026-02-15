@@ -24,7 +24,7 @@ export function DataTableViewOptions<TData>({
 				<Button
 					className="ml-auto hidden h-8 lg:flex"
 					size="sm"
-					variant="outline"
+					variant="dashed"
 				>
 					<SlidersHorizontalIcon className="mr-2 h-4 w-4" />
 					Colunas
