@@ -4,7 +4,6 @@ const BUCKET_NAME = "post-images"
 
 /**
  * Upload an image to Supabase Storage
- * Uses postId as folder and fixed filename (cover.webp)
  * Automatically replaces existing image via upsert
  * Returns the public URL of the uploaded image
  */
@@ -15,7 +14,7 @@ export async function uploadPostImage(
 	const supabase = createClient()
 
 	// Fixed filename - one image per post
-	const fileName = `${postId}/cover.webp`
+	const fileName = `${postId}/post-${postId}.webp`
 
 	const { data, error } = await supabase.storage
 		.from(BUCKET_NAME)
@@ -43,7 +42,7 @@ export async function uploadPostImage(
 export async function deletePostImage(postId: string): Promise<void> {
 	const supabase = createClient()
 
-	const filePath = `${postId}/cover.webp`
+	const filePath = `${postId}/post-${postId}.webp`
 
 	const { error } = await supabase.storage.from(BUCKET_NAME).remove([filePath])
 
@@ -66,5 +65,5 @@ export async function hasPostImage(postId: string): Promise<boolean> {
 		return false
 	}
 
-	return data.some((file) => file.name === "cover.webp")
+	return data.some((file) => file.name === `post-${postId}.webp`)
 }

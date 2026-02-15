@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { UserIcon, UploadIcon, XIcon, Loader2Icon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { ImageCropper } from "@/components/image-cropper"
 import { uploadPlayerImage, deletePlayerImage } from "@/lib/supabase-storage-players"
 import { createPreviewUrl, revokePreviewUrl } from "@/lib/image-utils"
+import { updatePlayerImage } from "../../actions/update-player-image"
 import { cn } from "@/lib/utils"
 
 interface AvatarUploadProps {
@@ -23,6 +25,7 @@ export function AvatarUpload({
 	onChange,
 	disabled = false,
 }: AvatarUploadProps) {
+	const router = useRouter()
 	const [isUploading, setIsUploading] = useState(false)
 	const [cropperOpen, setCropperOpen] = useState(false)
 	const [imageToCrop, setImageToCrop] = useState<string | null>(null)
@@ -60,6 +63,8 @@ export function AvatarUpload({
 			setIsUploading(true)
 			try {
 				const url = await uploadPlayerImage(croppedBlob, playerId)
+				await updatePlayerImage(playerId, url)
+				router.refresh()
 				onChange(url)
 				toast.success("Avatar uploaded successfully")
 			} catch (error) {
@@ -69,7 +74,7 @@ export function AvatarUpload({
 				setIsUploading(false)
 			}
 		},
-		[imageToCrop, playerId, onChange]
+		[imageToCrop, playerId, onChange, router]
 	)
 
 	const handleRemove = useCallback(async () => {
@@ -80,6 +85,8 @@ export function AvatarUpload({
 			if (value.includes("supabase.co")) {
 				await deletePlayerImage(playerId)
 			}
+			await updatePlayerImage(playerId, null)
+			router.refresh()
 			onChange(null)
 			toast.success("Avatar removed")
 		} catch (error) {
@@ -89,7 +96,7 @@ export function AvatarUpload({
 		} finally {
 			setIsUploading(false)
 		}
-	}, [value, playerId, onChange])
+	}, [value, playerId, onChange, router])
 
 	const handleCropperClose = useCallback(
 		(open: boolean) => {

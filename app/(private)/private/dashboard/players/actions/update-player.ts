@@ -47,6 +47,7 @@ export async function updatePlayer(input: UpdatePlayerInput) {
 		revalidatePath(`/jogadores/${input.id}`)
 		revalidatePath("/ratings")
 		revalidatePath("/titulados")
+		revalidatePath(`/private/dashboard/players/${input.id}`)
 
 		return { success: true, data: updatedPlayers[0] }
 	} catch (error) {

@@ -40,6 +40,7 @@ export async function UpdatePost(post: UpdatePostInput) {
 		revalidatePath(`/noticias/${updatedPost.slug}`)
 		revalidatePath("/noticias")
 		revalidatePath("/private/dashboard/posts")
+		revalidatePath(`/private/dashboard/posts/${updatedPost.id}`)
 
 		return updatedPost
 	} catch (error) {

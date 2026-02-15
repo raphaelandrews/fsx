@@ -52,7 +52,7 @@ export function ImageCropper({
 	onOpenChange,
 	onCropComplete,
 	aspectRatio = 16 / 9,
-	outputWidth = 600,
+	outputWidth = 700,
 	title = "Crop Image",
 	description = "Adjust the crop area.",
 }: ImageCropperProps) {
