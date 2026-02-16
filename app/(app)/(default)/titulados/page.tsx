@@ -16,7 +16,6 @@ export const metadata: Metadata = {
 		url: `${siteConfig.url}/titulados`,
 		title: "Titulados",
 		description: "Titulados da Federação Sergipana de Xadrez.",
-		siteName: "Titulados",
 	},
 }
 

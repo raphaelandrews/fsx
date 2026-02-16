@@ -7,6 +7,5 @@ export const alt = "Membros"
 export default function Image() {
 	return generateDefaultOG({
 		title: "Membros",
-		description: "Membros da diretoria da Federação Sergipana de Xadrez.",
 	})
 }

@@ -14,34 +14,32 @@ export default async function Image({
 	const { slug } = await params
 	const post = await getPostBySlug(slug)()
 
-	if (!post || !post.image) {
-		return generateDefaultOG({
-			title: post?.title || "Notícia",
-			description: post?.content || "Notícia da Federação Sergipana de Xadrez.",
-		})
-	}
-
-	// Use the post's cover image directly
-	return new ImageResponse(
-		<div
-			style={{
-				width: "100%",
-				height: "100%",
-				display: "flex",
-			}}
-		>
-			<img
-				src={post.image}
-				alt={post.title}
+	if (post?.image) {
+		return new ImageResponse(
+			<div
 				style={{
 					width: "100%",
 					height: "100%",
-					objectFit: "cover",
+					display: "flex",
+					backgroundColor: "#000",
 				}}
-			/>
-		</div>,
-		{
-			...OG_SIZE,
-		}
-	)
+			>
+				<img
+					src={post.image}
+					alt={post.title}
+					style={{
+						width: "100%",
+						height: "100%",
+						objectFit: "cover",
+					}}
+				/>
+			</div>,
+			{ ...OG_SIZE }
+		)
+	}
+
+	// Fallback if no image
+	return generateDefaultOG({
+		title: post?.title || "Notícia",
+	})
 }

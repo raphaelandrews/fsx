@@ -16,7 +16,6 @@ export const metadata: Metadata = {
     url: `${siteConfig.url}/noticias`,
     title: "Notícias",
     description: "Notícias e eventos da Federação Sergipana de Xadrez.",
-    siteName: "Notícias",
   },
 };
 

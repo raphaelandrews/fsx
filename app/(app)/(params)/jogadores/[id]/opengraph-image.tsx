@@ -16,7 +16,6 @@ export default async function Image({
 	if (!player) {
 		return generateDefaultOG({
 			title: "Jogador não encontrado",
-			description: "Perfil do jogador na Federação Sergipana de Xadrez.",
 		})
 	}
 

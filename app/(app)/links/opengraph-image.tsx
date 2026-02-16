@@ -7,6 +7,5 @@ export const alt = "Links"
 export default function Image() {
 	return generateDefaultOG({
 		title: "Links",
-		description: "Links úteis da Federação Sergipana de Xadrez.",
 	})
 }

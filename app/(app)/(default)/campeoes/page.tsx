@@ -16,7 +16,6 @@ export const metadata: Metadata = {
 		url: `${siteConfig.url}/campeoes`,
 		title: "Galeria de Campeões",
 		description: "Campeões Sergipanos.",
-		siteName: "Galeria de Campeões",
 	},
 }
 
