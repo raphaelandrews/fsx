@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import { TitledPlayersSkeleton } from "./components/titled-players-skeleton"
 import type { Metadata } from "next"
 import { BookmarkIcon } from "lucide-react"
 
@@ -24,7 +25,7 @@ export default async function Page() {
 
 	return (
 		<PageWrapper icon={BookmarkIcon} label="Titulados">
-			<Suspense fallback={<div>Carregando...</div>}>
+			<Suspense fallback={<TitledPlayersSkeleton />}>
 				<Client data={data} />
 			</Suspense>
 		</PageWrapper>

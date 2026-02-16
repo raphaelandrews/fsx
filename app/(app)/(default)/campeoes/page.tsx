@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import { ChampionsSkeleton } from "./components/champions-skeleton"
 import type { Metadata } from "next"
 import { TrophyIcon } from "lucide-react"
 
@@ -54,7 +55,7 @@ export default async function Page() {
 
 	return (
 		<PageWrapper icon={TrophyIcon} label="Campeões">
-			<Suspense fallback={<div>Carregando...</div>}>
+			<Suspense fallback={<ChampionsSkeleton />}>
 				<Client championshipMap={championshipMap} />
 			</Suspense>
 		</PageWrapper>
