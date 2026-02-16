@@ -42,7 +42,7 @@ const CategoryFilter: React.FC<CategoryFilter> = ({
 	}
 
 	return (
-		<div className="mt-3 flex items-center space-x-2">
+		<div className="flex items-center space-x-2">
 			<Popover>
 				<PopoverTrigger asChild>
 					<Button className="h-8 border-dashed" size="sm" variant="outline">

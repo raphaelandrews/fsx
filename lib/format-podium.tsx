@@ -3,6 +3,7 @@ import {
 	MedalIcon,
 	RabbitIcon,
 	SwordsIcon,
+	TrainFrontIcon,
 	TurtleIcon,
 	ZapIcon,
 } from "lucide-react"
@@ -12,27 +13,31 @@ export function FormatPodium(
 	championship_id: number
 ) {
 	if (place === 1 && championship_id === 1) {
-		return <TurtleIcon height={24} width={24} />
+		return <TurtleIcon className="size-4" />
 	}
 
 	if (place === 1 && championship_id === 2) {
-		return <RabbitIcon height={24} width={24} />
+		return <RabbitIcon className="size-4" />
 	}
 
 	if (place === 1 && championship_id === 3) {
-		return <ZapIcon height={24} width={24} />
+		return <ZapIcon className="size-4" />
 	}
 
 	if (place === 1 && championship_id === 4) {
-		return <CrownIcon height={24} width={24} />
+		return <CrownIcon className="size-4" />
 	}
 
 	if (place === 1 && championship_id === 5) {
-		return <SwordsIcon height={24} width={24} />
+		return <SwordsIcon className="size-4" />
+	}
+
+	if (place === 1 && championship_id === 6) {
+		return <TrainFrontIcon className="size-4" />
 	}
 
 	if (place === 2) {
-		return <MedalIcon height={24} width={24} />
+		return <MedalIcon className="size-4" />
 	}
 }
 

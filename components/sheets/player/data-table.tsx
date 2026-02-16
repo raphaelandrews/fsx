@@ -34,6 +34,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
+import { DottedSeparator } from "@/components/dotted-separator"
 
 interface DataTableProps<TData> {
 	columns: ColumnDef<TData>[]
@@ -68,7 +69,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 
 	return (
 		<div className="space-y-4">
-			<div className="rounded-md">
+			<div className="rounded-md px-4">
 				<Table>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
@@ -78,9 +79,9 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 										{header.isPlaceholder
 											? null
 											: flexRender(
-													header.column.columnDef.header,
-													header.getContext()
-												)}
+												header.column.columnDef.header,
+												header.getContext()
+											)}
 									</TableHead>
 								))}
 							</TableRow>
@@ -118,7 +119,9 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 				</Table>
 			</div>
 
-			<div className="flex flex-col items-end justify-between gap-4 sm:flex-row">
+			<DottedSeparator />
+
+			<div className="flex flex-col items-end justify-between gap-4 sm:flex-row px-4">
 				<div className="flex items-center gap-2">
 					<p className="font-medium text-foreground text-sm">
 						Torneios por página
@@ -153,7 +156,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 							className="hidden size-8 p-0 lg:flex"
 							disabled={!table.getCanPreviousPage()}
 							onClick={() => table.setPageIndex(0)}
-							variant="outline"
+							variant="dashed"
 						>
 							<ChevronsLeft className="size-4" />
 						</Button>
@@ -162,7 +165,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 							className="size-8 p-0"
 							disabled={!table.getCanPreviousPage()}
 							onClick={() => table.previousPage()}
-							variant="outline"
+							variant="dashed"
 						>
 							<ChevronLeft className="size-4" />
 						</Button>
@@ -171,7 +174,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 							className="size-8 p-0"
 							disabled={!table.getCanNextPage()}
 							onClick={() => table.nextPage()}
-							variant="outline"
+							variant="dashed"
 						>
 							<ChevronRight className="size-4" />
 						</Button>
@@ -180,7 +183,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 							className="hidden size-8 p-0 lg:flex"
 							disabled={!table.getCanNextPage()}
 							onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-							variant="outline"
+							variant="dashed"
 						>
 							<ChevronsRight className="size-4" />
 						</Button>

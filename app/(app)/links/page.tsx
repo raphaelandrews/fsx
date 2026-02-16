@@ -1,7 +1,8 @@
 /** biome-ignore-all lint/performance/noImgElement: No */
+import React, { Fragment } from "react"
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ExternalLinkIcon, Verified } from "lucide-react"
+import { ExternalLinkIcon, FoldersIcon, InstagramIcon, Link2Icon, MailboxIcon } from "lucide-react"
 
 import {
 	getLinkGroups,
@@ -11,8 +12,18 @@ import {
 import { siteConfig } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { Announcement } from "@/components/announcement"
+import { DottedSeparator } from "@/components/dotted-separator"
+import { DottedX } from "@/components/dotted-x"
+import { FlickeringGrid } from "@/components/ui/flickering-grid"
+import { Logo } from "@/components/logo"
+
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 export const metadata: Metadata = {
 	title: "Links",
@@ -29,64 +40,93 @@ const Links = async () => {
 	const linkGroups = await getLinkGroups()
 
 	return (
-		<>
-			<Avatar className="h-16 w-16 rounded-md">
-				<AvatarImage
-					alt="FSX Logo"
-					className="object-cover"
-					src="https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETHxsUnVCtk7iXncQ2a89DJ0RhMfAIZzLqeYS3"
-					title="FSX Logo"
-				/>
-				<AvatarFallback className="rounded-md">F</AvatarFallback>
-			</Avatar>
-
-			<section className="flex w-full items-center justify-center gap-3">
-				<div className="flex items-center justify-center gap-2">
-					<h1 className="text-center font-semibold text-2xl text-primary">
-						FSX
-					</h1>
-					<Verified
-						aria-label="Verificado"
-						className="!fill-[#1CA0F2] stroke-background dark:stroke-[1.5]"
-					/>
-				</div>
-			</section>
-
-			<div className="flex gap-2.5">
-				<a
-					className="rounded-lg p-2.5 transition hover:bg-muted"
-					href="https://www.instagram.com/xadrezsergipe/"
-					rel="noreferrer"
-					target="_blank"
-				>
-					<img alt="Instagram" className="h-6 w-6" src="/instagram-logo.svg" />
-				</a>
-				<a
-					className="rounded-lg p-2.5 transition hover:bg-muted"
-					href="mailto:fsx.presidente@gmail.com"
-					rel="noreferrer"
-					target="_blank"
-				>
-					<img alt="email" className="h-6 w-6" src="/gmail-logo.svg" />
-				</a>
-			</div>
-
-			{linkGroups.map((item: LinkGroup) => (
-				<div className="grid w-full gap-3" key={item.id}>
-					<h3 className="text-center font-medium sm:text-lg">{item.label}</h3>
-					<div className="grid w-full gap-2">
-						{item.links?.map((item: LinkType) => (
-							<LinkItem
-								href={item.href}
-								icon={item.icon}
-								key={item.href}
-								label={item.label}
-							/>
-						))}
+		<section>
+			<DottedX className="p-0">
+				<div className="p-3">
+					<div className="relative h-32 w-full overflow-hidden rounded-lg">
+						<FlickeringGrid
+							className="absolute inset-0 size-full z-0 [mask-image:radial-gradient(450px_circle_at_center,white,transparent)]"
+							squareSize={4}
+							gridGap={6}
+							color="#60A5FA"
+							maxOpacity={0.5}
+							flickerChance={0.1}
+						/>
 					</div>
 				</div>
-			))}
-		</>
+
+				<DottedSeparator fullWidth />
+				{/* Header Section */}
+				<div className="p-4 flex justify-between items-center gap-4">
+					<Logo className="h-5 text-foreground" />
+
+					<div className="flex gap-2.5">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									size="square"
+									variant="dashed"
+									asChild
+								>
+									<a
+										href="https://www.instagram.com/xadrezsergipe/"
+										rel="noreferrer"
+										target="_blank"
+									>
+										<InstagramIcon size={16} />
+									</a>
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Instagram</p>
+							</TooltipContent>
+						</Tooltip>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									size="square"
+									variant="dashed"
+									asChild
+								>
+									<a
+										href="mailto:fsx.presidente@gmail.com"
+										rel="noreferrer"
+										target="_blank"
+									>
+										<MailboxIcon size={16} />
+									</a>
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Email</p>
+							</TooltipContent>
+						</Tooltip>
+					</div>
+				</div>
+
+				{/* Link Groups */}
+				{linkGroups.map((item: LinkGroup) => (
+					<section className="mb-0" key={item.id}>
+						<Announcement icon={FoldersIcon} label={item.label} className="text-sm" topSeparator />
+						<div className="flex flex-col">
+							{item.links?.map((link: LinkType, linkIndex: number) => (
+								<Fragment key={link.href}>
+									<div className="m-1">
+										<LinkItem
+											href={link.href}
+											icon={link.icon}
+											label={link.label}
+										/>
+									</div>
+									{linkIndex < (item.links?.length ?? 0) - 1 && <DottedSeparator />}
+								</Fragment>
+							))}
+						</div>
+					</section>
+				))}
+			</DottedX>
+			<DottedSeparator />
+		</section>
 	)
 }
 
@@ -102,19 +142,19 @@ const LinkItem = ({ href, label, icon }: Props) => {
 	return (
 		<Link
 			className={cn(
-				buttonVariants({ variant: "card" }),
-				"flex h-[inherit] w-full items-center justify-between rounded-2xl p-3 shadow",
+				buttonVariants({ variant: "ghost" }),
+				"flex h-[inherit] w-full items-center justify-between rounded-none p-3",
 			)}
 			href={href}
 			prefetch={false}
 			target="_blank"
 		>
-			<div className="grid h-10 w-10 place-items-center rounded-[10px] bg-sea shadow-lg [&>div>svg]:text-background dark:[&>div>svg]:text-primary [&>svg]:h-5 [&>svg]:w-5">
+			<div className="grid h-8 w-8 place-items-center rounded-md bg-blueberry-foreground shadow-lg [&>div>svg]:text-background dark:[&>div>svg]:text-primary [&>div>svg]:h-4 [&>div>svg]:w-4">
 				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: No */}
 				<div dangerouslySetInnerHTML={{ __html: icon }} />
 			</div>
-			<p>{label}</p>
-			<div className="grid h-10 w-10 place-items-center">
+			<span>{label}</span>
+			<div className="grid h-8 w-8 place-items-center">
 				<ExternalLinkIcon className="h-4 w-4 stroke-foreground" />
 			</div>
 		</Link>

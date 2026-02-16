@@ -4,7 +4,15 @@ import { useMemo, useState } from "react"
 
 import { getGradient } from "@/lib/generate-gradients"
 
-import { PlayerSheet } from "@/components/sheets/player/player-sheet"
+import dynamic from "next/dynamic"
+
+const PlayerSheet = dynamic(
+	() =>
+		import("@/components/sheets/player/player-sheet").then(
+			(mod) => mod.PlayerSheet
+		),
+	{ ssr: false }
+)
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
@@ -40,7 +48,7 @@ export const Actions = ({ id, name, nickname, image, shortTitle }: Props) => {
 					<AvatarFallback style={gradient} />
 				</Avatar>
 				<div className="whitespace-nowrap font-medium">
-					<span className="text-amber-500">{shortTitle}</span>{" "}
+					<span className="text-highlight">{shortTitle}</span>{" "}
 					{nickname ? nickname : name}
 				</div>
 			</Button>

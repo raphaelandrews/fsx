@@ -7,6 +7,5 @@ export const alt = "Normas Técnicas"
 export default function Image() {
 	return generateDefaultOG({
 		title: "Normas Técnicas",
-		description: "Normas técnicas e regulamentos da Federação Sergipana de Xadrez.",
 	})
 }

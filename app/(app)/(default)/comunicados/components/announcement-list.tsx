@@ -1,6 +1,6 @@
 import { getAnnouncementsByPage } from "@/db/queries"
 
-import { AnnouncementLink } from "@/components/announcement-link"
+import { DottedSeparator } from "@/components/dotted-separator"
 import {
 	Pagination,
 	PaginationContent,
@@ -12,6 +12,7 @@ import {
 	PaginationNext,
 	PaginationPrevious,
 } from "@/components/ui/pagination"
+import { AnnouncementItem } from "./announcement-item"
 
 interface AnnouncementListProps {
 	currentPage: number
@@ -48,76 +49,79 @@ export async function AnnouncementList({ currentPage }: AnnouncementListProps) {
 
 	return (
 		<>
-			<div className="grid gap-1.5 md:grid-cols-2">
-				{announcements.map((announcement) => (
-					<AnnouncementLink
-						content={announcement.content}
-						id={announcement.id}
+			<div className="flex flex-col">
+				{announcements.map((announcement, index) => (
+					<AnnouncementItem
 						key={announcement.number}
-						number={announcement.number}
-						year={announcement.year}
+						announcement={announcement}
+						isLast={index === announcements.length - 1}
 					/>
 				))}
 			</div>
 
 			{totalPages > 1 && (
-				<Pagination className="mt-16">
-					<PaginationContent>
-						<PaginationItem>
-							<PaginationFirst
-								aria-disabled={!hasPreviousPage}
-								className={
-									hasPreviousPage ? "" : "pointer-events-none opacity-50"
-								}
-								href="/comunicados?page=1"
-							/>
-						</PaginationItem>
-						<PaginationItem>
-							<PaginationPrevious
-								aria-disabled={!hasPreviousPage}
-								className={
-									hasPreviousPage ? "" : "pointer-events-none opacity-50"
-								}
-								href={`/comunicados?page=${Math.max(1, currentPage - 1)}`}
-							/>
-						</PaginationItem>
-
-						{getPageNumbers(totalPages, currentPage).map((pageNum) =>
-							pageNum === "ellipsis" ? (
-								<PaginationItem key={`ellipsis-${crypto.randomUUID()}`}>
-									<PaginationEllipsis />
+				<>
+					<DottedSeparator />
+					<div className="p-2">
+						<Pagination>
+							<PaginationContent>
+								<PaginationItem>
+									<PaginationFirst
+										aria-disabled={!hasPreviousPage}
+										className={
+											hasPreviousPage ? "" : "pointer-events-none opacity-50"
+										}
+										href="/comunicados?page=1"
+									/>
 								</PaginationItem>
-							) : (
-								<PaginationItem key={pageNum}>
-									<PaginationLink
-										href={`/comunicados?page=${pageNum}`}
-										isActive={pageNum === currentPage}
-									>
-										{pageNum}
-									</PaginationLink>
+								<PaginationItem>
+									<PaginationPrevious
+										aria-disabled={!hasPreviousPage}
+										className={
+											hasPreviousPage ? "" : "pointer-events-none opacity-50"
+										}
+										href={`/comunicados?page=${Math.max(1, currentPage - 1)}`}
+									/>
 								</PaginationItem>
-							),
-						)}
 
-						<PaginationItem>
-							<PaginationNext
-								aria-disabled={!hasNextPage}
-								className={hasNextPage ? "" : "pointer-events-none opacity-50"}
-								href={`/comunicados?page=${Math.min(
-									totalPages,
-									currentPage + 1,
-								)}`}
-							/>
-						</PaginationItem>
-						<PaginationItem>
-							<PaginationLast
-								aria-disabled={!hasNextPage}
-								className={hasNextPage ? "" : "pointer-events-none opacity-50"}
-								href={`/comunicados?page=${totalPages}`}
-							/>
-						</PaginationItem>
-					</PaginationContent>
-				</Pagination>
+								{getPageNumbers(totalPages, currentPage).map((pageNum) =>
+									pageNum === "ellipsis" ? (
+										<PaginationItem key={`ellipsis-${crypto.randomUUID()}`}>
+											<PaginationEllipsis />
+										</PaginationItem>
+									) : (
+										<PaginationItem key={pageNum}>
+											<PaginationLink
+												href={`/comunicados?page=${pageNum}`}
+												isActive={pageNum === currentPage}
+											>
+												{pageNum}
+											</PaginationLink>
+										</PaginationItem>
+									),
+								)}
+
+								<PaginationItem>
+									<PaginationNext
+										aria-disabled={!hasNextPage}
+										className={hasNextPage ? "" : "pointer-events-none opacity-50"}
+										href={`/comunicados?page=${Math.min(
+											totalPages,
+											currentPage + 1,
+										)}`}
+									/>
+								</PaginationItem>
+								<PaginationItem>
+									<PaginationLast
+										aria-disabled={!hasNextPage}
+										className={hasNextPage ? "" : "pointer-events-none opacity-50"}
+										href={`/comunicados?page=${totalPages}`}
+									/>
+								</PaginationItem>
+							</PaginationContent>
+						</Pagination>
+					</div>
+				</>
 			)}
 		</>
 	)

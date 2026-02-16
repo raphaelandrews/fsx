@@ -1,10 +1,11 @@
 "use server"
 
+import { revalidatePath, revalidateTag } from "next/cache"
+import { eq } from "drizzle-orm"
 import z from "zod"
 
 import { db } from "@/db"
 import { posts } from "@/db/schema"
-import { eq } from "drizzle-orm"
 
 export async function PublishPost(id: string) {
 	try {
@@ -21,7 +22,18 @@ export async function PublishPost(id: string) {
 			return null
 		}
 
-		return updatedPosts[0]
+		const updatedPost = updatedPosts[0]
+
+		revalidateTag(`post-${id}`, "max")
+		revalidateTag("posts", "max")
+		revalidateTag("fresh-posts", "max")
+		revalidatePath("/")
+		revalidatePath(`/noticias/${updatedPost.slug}`)
+		revalidatePath("/noticias")
+		revalidatePath(`/private/dashboard/posts/${id}`)
+		revalidatePath("/private/dashboard/posts")
+
+		return updatedPost
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			console.error("Validation error:", error.errors)

@@ -65,9 +65,9 @@ export function DataTable<TData, TValue>({
 										{header.isPlaceholder
 											? null
 											: flexRender(
-													header.column.columnDef.header,
-													header.getContext()
-												)}
+												header.column.columnDef.header,
+												header.getContext()
+											)}
 									</TableHead>
 								)
 							})}
@@ -102,7 +102,7 @@ export function DataTable<TData, TValue>({
 					disabled={!table.getCanPreviousPage()}
 					onClick={() => table.previousPage()}
 					size="sm"
-					variant="outline"
+					variant="dashed"
 				>
 					Anterior
 				</Button>
@@ -110,7 +110,7 @@ export function DataTable<TData, TValue>({
 					disabled={!table.getCanNextPage()}
 					onClick={() => table.nextPage()}
 					size="sm"
-					variant="outline"
+					variant="dashed"
 				>
 					Próxima
 				</Button>

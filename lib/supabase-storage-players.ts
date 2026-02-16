@@ -4,8 +4,8 @@ const BUCKET_NAME = "player-images"
 
 /**
  * Upload a player image to Supabase Storage
- * Uses playerId as folder and fixed filename (avatar.webp)
  * Automatically replaces existing image via upsert
+ * Returns the public URL of the uploaded image
  */
 export async function uploadPlayerImage(
 	file: Blob,
@@ -13,7 +13,7 @@ export async function uploadPlayerImage(
 ): Promise<string> {
 	const supabase = createClient()
 
-	const fileName = `${playerId}/avatar.webp`
+	const fileName = `${playerId}/player-${playerId}.webp`
 
 	const { data, error } = await supabase.storage
 		.from(BUCKET_NAME)
@@ -40,7 +40,7 @@ export async function uploadPlayerImage(
 export async function deletePlayerImage(playerId: number): Promise<void> {
 	const supabase = createClient()
 
-	const filePath = `${playerId}/avatar.webp`
+	const filePath = `${playerId}/player-${playerId}.webp`
 
 	const { error } = await supabase.storage.from(BUCKET_NAME).remove([filePath])
 

@@ -11,6 +11,8 @@ import { columnsBlitz, columnsClassic, columnsRapid } from "./columns"
 import { Section } from "@/components/home/section"
 import { RatingUpdateTooltip } from "@/components/rating-update-tooltip"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DottedButton } from "@/components/dotted-button"
+import { DottedSeparator } from "@/components/dotted-separator"
 
 type SuccessResponse = Extract<APITopPlayersResponse, { success: true }>
 
@@ -29,48 +31,58 @@ export function TopPlayers({ topPlayers }: any) {
 	const currentData = topPlayers[tabMap[currentTab]]
 
 	return (
-		<Section href={"/ratings"} icon={BarChart2Icon} label="Rating" main={false}>
+		<Section icon={BarChart2Icon} label="Rating" main={false}>
 			<Tabs
 				className="w-full"
 				onValueChange={(value) => setCurrentTab(value as TabValue)}
 				value={currentTab}
 			>
-				<div className="flex flex-col items-start gap-3 mb-4 sm:flex-row sm:items-center">
-					<TabsList className="w-full sm:w-auto">
-						<TabsTrigger
-							className="w-full transition-colors hover:bg-accent/50 sm:w-24"
-							value="classic"
-						>
-							Clássico
-						</TabsTrigger>
-						<TabsTrigger
-							className="w-full transition-colors hover:bg-accent/50 sm:w-24"
-							value="rapid"
-						>
-							Rápido
-						</TabsTrigger>
-						<TabsTrigger
-							className="w-full transition-colors hover:bg-accent/50 sm:w-24"
-							value="blitz"
-						>
-							Blitz
-						</TabsTrigger>
-					</TabsList>
+				<TabsList className="h-auto w-full rounded-none bg-transparent p-0">
+					<TabsTrigger
+						className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
+						value="classic"
+					>
+						Clássico
+					</TabsTrigger>
+					<div className="h-auto w-px self-stretch bg-[image:repeating-linear-gradient(to_bottom,var(--border)_0px,var(--border)_6px,transparent_6px,transparent_14px)] bg-[length:1px_100%] bg-no-repeat" />
+					<TabsTrigger
+						className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
+						value="rapid"
+					>
+						Rápido
+					</TabsTrigger>
+					<div className="h-auto w-px self-stretch bg-[image:repeating-linear-gradient(to_bottom,var(--border)_0px,var(--border)_6px,transparent_6px,transparent_14px)] bg-[length:1px_100%] bg-no-repeat" />
+					<TabsTrigger
+						className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
+						value="blitz"
+					>
+						Blitz
+					</TabsTrigger>
+				</TabsList>
+
+				<DottedSeparator />
+
+				<div className="p-3">
 					<RatingUpdateTooltip />
 				</div>
 
-				<TabsContent className="mt-0" value="classic">
-					<DataTableWrapper columns={columnsClassic} data={currentData} />
-				</TabsContent>
+				<DottedSeparator />
 
-				<TabsContent className="mt-0" value="rapid">
-					<DataTableWrapper columns={columnsRapid} data={currentData} />
-				</TabsContent>
+				<div className="p-3">
+					<TabsContent className="mt-0" value="classic">
+						<DataTableWrapper columns={columnsClassic} data={currentData} />
+					</TabsContent>
 
-				<TabsContent className="mt-0" value="blitz">
-					<DataTableWrapper columns={columnsBlitz} data={currentData} />
-				</TabsContent>
+					<TabsContent className="mt-0" value="rapid">
+						<DataTableWrapper columns={columnsRapid} data={currentData} />
+					</TabsContent>
+
+					<TabsContent className="mt-0" value="blitz">
+						<DataTableWrapper columns={columnsBlitz} data={currentData} />
+					</TabsContent>
+				</div>
 			</Tabs>
+			<DottedButton href="/ratings" label="Ver Rating" />
 		</Section>
 	)
 }

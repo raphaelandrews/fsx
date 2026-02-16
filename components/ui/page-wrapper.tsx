@@ -1,10 +1,33 @@
+import { type LucideIcon } from "lucide-react"
+
 import { cn } from "@/lib/utils"
 
-function PageHeader({
+import { Announcement } from "@/components/announcement"
+import { DottedX } from "@/components/dotted-x"
+
+interface PageWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
+	icon?: LucideIcon
+	label?: string
+}
+
+function PageWrapper({
 	className,
 	children,
+	icon,
+	label,
 	...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: PageWrapperProps) {
+	if (icon && label) {
+		return (
+			<section className={cn(className)} {...props}>
+				<DottedX className="p-0">
+					<Announcement icon={icon} label={label} />
+					{children}
+				</DottedX>
+			</section>
+		)
+	}
+
 	return (
 		<section
 			className={cn(
@@ -63,4 +86,4 @@ function PageActions({
 	)
 }
 
-export { PageActions, PageHeader, PageHeaderDescription, PageHeaderHeading }
+export { PageActions, PageWrapper, PageHeaderDescription, PageHeaderHeading }

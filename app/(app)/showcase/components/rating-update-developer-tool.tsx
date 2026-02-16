@@ -391,7 +391,7 @@ const InfoPanel: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
           Nas{" "}
           <a
             href="/normas-tecnicas"
-            className="text-blue-500 underline underline-offset-2"
+            className="text-link underline underline-offset-2"
           >
             normas técnicas
           </a>{" "}

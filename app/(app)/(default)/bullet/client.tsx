@@ -48,7 +48,7 @@ export function Client({ cup }: { cup: Cup }) {
                 href="https://lichess.org"
                 target="_blank"
                 rel="noreferrer"
-                className="text-bulbasaur-foreground hover:underline"
+                className="text-link hover:underline"
               >
                 lichess.org
               </a>
@@ -133,18 +133,15 @@ export function Client({ cup }: { cup: Cup }) {
                       <TableRow>
                         <TableCell
                           className={`w-10 rounded-md p-0 !pl-0
-                                ${
-                                  podium.position === 1 &&
-                                  "text-white bg-yellow-500"
-                                } 
-                                ${
-                                  podium.position === 2 &&
-                                  "text-white bg-gray-500"
-                                }
-                                ${
-                                  podium.position === 3 &&
-                                  "text-white bg-orange-500"
-                                }
+                                ${podium.position === 1 &&
+                            "text-white bg-yellow-500"
+                            } 
+                                ${podium.position === 2 &&
+                            "text-white bg-gray-500"
+                            }
+                                ${podium.position === 3 &&
+                            "text-white bg-orange-500"
+                            }
                               `}
                         >
                           {podium.position}
@@ -152,7 +149,7 @@ export function Client({ cup }: { cup: Cup }) {
                         <TableCell className="text-center text-nowrap">
                           {
                             prizeValues[
-                              (podium.position ? podium.position : 0) - 1
+                            (podium.position ? podium.position : 0) - 1
                             ]
                           }
                         </TableCell>
@@ -373,36 +370,32 @@ export function Client({ cup }: { cup: Cup }) {
                                   {playoff.order === 1 && (
                                     <>
                                       <div
-                                        className={`${
-                                          match.order % 2 === 0
+                                        className={`${match.order % 2 === 0
                                             ? "bottom-[calc(50%-1px)]"
                                             : "top-[calc(50%-1px)]"
-                                        } absolute -right-10 translate-x-full w-0.5 h-10 bg-muted`}
+                                          } absolute -right-10 translate-x-full w-0.5 h-10 bg-muted`}
                                       />
                                       <div
-                                        className={`${
-                                          match.order % 2 === 0
+                                        className={`${match.order % 2 === 0
                                             ? "hidden"
                                             : "top-[119%]"
-                                        } absolute -right-10 translate-x-full w-[250px] h-0.5 bg-muted`}
+                                          } absolute -right-10 translate-x-full w-[250px] h-0.5 bg-muted`}
                                       />
                                     </>
                                   )}
                                   {playoff.order === 2 && (
                                     <>
                                       <div
-                                        className={`${
-                                          match.order % 2 === 0
+                                        className={`${match.order % 2 === 0
                                             ? "bottom-[calc(50%-1px)]"
                                             : "top-[calc(50%-1px)]"
-                                        } absolute -right-10 translate-x-full w-0.5 h-20 bg-muted`}
+                                          } absolute -right-10 translate-x-full w-0.5 h-20 bg-muted`}
                                       />
                                       <div
-                                        className={`${
-                                          match.order % 2 === 0
+                                        className={`${match.order % 2 === 0
                                             ? "hidden"
                                             : "top-[175%]"
-                                        } absolute -right-10 translate-x-full w-[250px] h-0.5 bg-muted`}
+                                          } absolute -right-10 translate-x-full w-[250px] h-0.5 bg-muted`}
                                       />
                                     </>
                                   )}
@@ -504,25 +497,23 @@ export function Client({ cup }: { cup: Cup }) {
                                   {(playoff.order === 1 ||
                                     playoff.order === 3 ||
                                     playoff.order === 5) && (
-                                    <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-full w-7.5 h-0.5 bg-muted" />
-                                  )}
+                                      <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-full w-7.5 h-0.5 bg-muted" />
+                                    )}
 
                                   {playoff.order === 2 && (
                                     <>
                                       <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-full w-3.5 h-0.5 bg-muted" />
                                       <div
-                                        className={`${
-                                          match.order % 2 === 0
+                                        className={`${match.order % 2 === 0
                                             ? "bottom-[calc(50%-1px)]"
                                             : "top-[calc(50%-1px)]"
-                                        } absolute -right-3.5 translate-x-full w-0.5 h-10 bg-muted`}
+                                          } absolute -right-3.5 translate-x-full w-0.5 h-10 bg-muted`}
                                       />
                                       <div
-                                        className={`${
-                                          match.order % 2 === 0
+                                        className={`${match.order % 2 === 0
                                             ? "hidden"
                                             : "top-[119%]"
-                                        } absolute -right-4 translate-x-full w-3.5 h-0.5 bg-muted`}
+                                          } absolute -right-4 translate-x-full w-3.5 h-0.5 bg-muted`}
                                       />
                                     </>
                                   )}
@@ -530,18 +521,16 @@ export function Client({ cup }: { cup: Cup }) {
                                     <>
                                       <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-full w-3.5 h-0.5 bg-muted" />
                                       <div
-                                        className={`${
-                                          match.order % 2 === 0
+                                        className={`${match.order % 2 === 0
                                             ? "bottom-[calc(50%-1px)]"
                                             : "top-[calc(50%-1px)]"
-                                        } absolute -right-3.5 translate-x-full w-0.5 h-20 bg-muted`}
+                                          } absolute -right-3.5 translate-x-full w-0.5 h-20 bg-muted`}
                                       />
                                       <div
-                                        className={`${
-                                          match.order % 2 === 0
+                                        className={`${match.order % 2 === 0
                                             ? "hidden"
                                             : "top-[175%]"
-                                        } absolute -right-3.5 translate-x-full w-8 h-0.5 bg-muted`}
+                                          } absolute -right-3.5 translate-x-full w-8 h-0.5 bg-muted`}
                                       />
                                     </>
                                   )}
@@ -671,14 +660,12 @@ const PlayoffPlayerCard = ({
 }) => {
   return (
     <div
-      className={`flex justify-between bg-primary-foreground ${
-        right && "lg:flex-row-reverse"
-      } ${group && "w-full lg:rounded-sm"}`}
+      className={`flex justify-between bg-primary-foreground ${right && "lg:flex-row-reverse"
+        } ${group && "w-full lg:rounded-sm"}`}
     >
       <p
-        className={`text-xs text-nowrap truncate py-1 px-2.5 ${
-          group ? "text-center w-full" : "w-[200px]"
-        }`}
+        className={`text-xs text-nowrap truncate py-1 px-2.5 ${group ? "text-center w-full" : "w-[200px]"
+          }`}
       >
         {name}
       </p>
@@ -702,9 +689,8 @@ const GamePlayerCard = ({
 }) => {
   return (
     <div
-      className={`flex justify-between bg-transparent ${
-        !left && "sm:flex-row-reverse"
-      }`}
+      className={`flex justify-between bg-transparent ${!left && "sm:flex-row-reverse"
+        }`}
     >
       <p className="text-xs text-nowrap truncate w-[200px] py-1 px-2.5 ">
         {name}
@@ -785,8 +771,8 @@ function renderPlayerTable(group: CupGroup) {
               {player.players.name}
               {index < 2 && (
                 <span className="relative flex w-1.5 h-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-amber-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-highlight opacity-75" />
+                  <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-highlight" />
                 </span>
               )}
             </TableCell>
@@ -861,7 +847,7 @@ const InfoCard = ({
               href="https://lichess.org"
               target="_blank"
               rel="noreferrer"
-              className="text-bulbasaur-foreground"
+              className="text-link"
             >
               lichess.org
             </a>

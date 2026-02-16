@@ -5,44 +5,54 @@ import React from "react"
 import { formatDefendingChampions } from "@/lib/defending-champions"
 import { getGradient } from "@/lib/generate-gradients"
 
-import { PlayerSheet } from "@/components/sheets/player/player-sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
+import dynamic from "next/dynamic"
+
+const PlayerSheet = dynamic(
+  () =>
+    import("@/components/sheets/player/player-sheet").then(
+      (mod) => mod.PlayerSheet
+    ),
+  { ssr: false }
+)
+
+
 interface Props {
-	id: number
-	name: string
-	nickname?: string | null
-	image?: string | null
-	shortTitle?: string | null
-	defendingChampions?:
-		| {
-				championship: {
-					name: string
-				}
-		  }[]
-		| null
+  id: number
+  name: string
+  nickname?: string | null
+  image?: string | null
+  shortTitle?: string | null
+  defendingChampions?:
+  | {
+    championship: {
+      name: string
+    }
+  }[]
+  | null
 }
 
 export const Actions = ({
-	id,
-	name,
-	nickname,
-	image,
-	shortTitle,
-	defendingChampions,
+  id,
+  name,
+  nickname,
+  image,
+  shortTitle,
+  defendingChampions,
 }: Props) => {
-	const [open, setOpen] = React.useState(false)
-	const gradient = getGradient(id)
+  const [open, setOpen] = React.useState(false)
+  const gradient = getGradient(id)
 
-	const handleKeyboardEvent = (event: React.KeyboardEvent) => {
-		if (event.key === "Enter" || event.key === " ") {
-			event.preventDefault()
-			setOpen(true)
-		}
-	}
+  const handleKeyboardEvent = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault()
+      setOpen(true)
+    }
+  }
 
-	return (
+  return (
     <>
       <div className="group flex items-center gap-3">
         <Button
@@ -58,7 +68,7 @@ export const Actions = ({
             <AvatarFallback style={gradient} />
           </Avatar>
           <div className="whitespace-nowrap font-medium">
-            {shortTitle && <span className="text-amber-500">{shortTitle}</span>}{" "}
+            {shortTitle && <span className="text-highlight">{shortTitle}</span>}{" "}
             {nickname ?? name}
           </div>
         </Button>
@@ -67,14 +77,14 @@ export const Actions = ({
           <div className="flex items-center gap-2">
             {defendingChampions.map((championship) => (
               <div key={championship.championship.name}>
-                {formatDefendingChampions(championship.championship.name, 16)}
+                {formatDefendingChampions(championship.championship.name)}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {open && <PlayerSheet id={id} open={open} setOpen={setOpen} />}
+      <PlayerSheet id={id} open={open} setOpen={setOpen} />
     </>
   );
 }

@@ -61,7 +61,6 @@ interface CropOptions {
 
 /**
  * Crop an image to the specified area and return as WebP blob
- * Default: 600px wide, 16:9 aspect ratio
  */
 export async function cropImage(
 	imageSrc: string,
@@ -69,7 +68,7 @@ export async function cropImage(
 	options: CropOptions = {}
 ): Promise<Blob> {
 	const {
-		outputWidth = 600,
+		outputWidth = 700,
 		aspectRatio = 16 / 9,
 		quality = 0.85,
 	} = options
@@ -125,16 +124,10 @@ export async function cropImage(
 	})
 }
 
-/**
- * Create a preview URL from a blob
- */
 export function createPreviewUrl(blob: Blob): string {
 	return URL.createObjectURL(blob)
 }
 
-/**
- * Revoke a preview URL to free memory
- */
 export function revokePreviewUrl(url: string): void {
 	URL.revokeObjectURL(url)
 }

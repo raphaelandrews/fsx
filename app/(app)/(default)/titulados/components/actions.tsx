@@ -2,29 +2,37 @@ import { useState, useMemo } from "react"
 
 import { getGradient } from "@/lib/generate-gradients"
 
-import { PlayerSheet } from "@/components/sheets/player/player-sheet"
+import dynamic from "next/dynamic"
+
+const PlayerSheet = dynamic(
+  () =>
+    import("@/components/sheets/player/player-sheet").then(
+      (mod) => mod.PlayerSheet
+    ),
+  { ssr: false }
+)
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
 interface Props {
-	id: number
-	name: string
-	nickname?: string | null
-	image?: string | null
-	shortTitle?: string | null
+  id: number
+  name: string
+  nickname?: string | null
+  image?: string | null
+  shortTitle?: string | null
 }
 
 export const Actions = ({ id, name, nickname, image, shortTitle }: Props) => {
-	const [open, setOpen] = useState(false)
-	const gradient = useMemo(() => getGradient(id), [id])
+  const [open, setOpen] = useState(false)
+  const gradient = useMemo(() => getGradient(id), [id])
 
-	const handleKeyboardEvent = (event: React.KeyboardEvent) => {
-		if (event.key === "Enter" || event.key === " ") {
-			setOpen(true)
-		}
-	}
+  const handleKeyboardEvent = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" || event.key === " ") {
+      setOpen(true)
+    }
+  }
 
-	return (
+  return (
     <>
       <Button
         className="flex cursor-pointer items-center gap-3"
@@ -38,7 +46,7 @@ export const Actions = ({ id, name, nickname, image, shortTitle }: Props) => {
           <AvatarFallback style={gradient} />
         </Avatar>
         <div className="whitespace-nowrap font-medium">
-          <span className="text-amber-500">{shortTitle}</span>{" "}
+          <span className="text-highlight">{shortTitle}</span>{" "}
           {nickname || name}
         </div>
       </Button>

@@ -7,6 +7,5 @@ export const alt = "Circuitos"
 export default function Image() {
 	return generateDefaultOG({
 		title: "Circuitos",
-		description: "Circuitos e competições de xadrez em Sergipe.",
 	})
 }

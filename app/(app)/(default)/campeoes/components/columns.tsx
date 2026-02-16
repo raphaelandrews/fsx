@@ -5,13 +5,14 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { Actions } from "./actions"
 import type { Tournament } from "@/db/queries"
 
-export const columns: ColumnDef<Tournament>[] = [
+// biome-ignore lint/suspicious/noExplicitAny: No
+export const columns: ColumnDef<any>[] = [
 	{
 		accessorKey: "date",
 		header: "Ano",
 		cell: ({ row }) => {
-			const date = row.original.date ? new Date(row.original.date) : null
-			return <div>{date?.toISOString().slice(0, 4) ?? "-"}</div>
+			const date = row.original.date
+			return <div>{date ? date.slice(0, 4) : "-"}</div>
 		},
 	},
 	{

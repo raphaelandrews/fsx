@@ -6,15 +6,20 @@ import { nanoid } from "nanoid"
 import { db } from "@/db"
 import { posts } from "@/db/schema"
 
+function sanitizeTitle(title: string): string {
+	return title.trimStart().replace(/\s{2,}/g, " ")
+}
+
 export async function CreatePost(title: string) {
 	try {
 		const newPostId = nanoid()
+		const sanitizedTitle = sanitizeTitle(title)
 
 		const insertedPosts = await db
 			.insert(posts)
 			.values({
 				id: newPostId,
-				title,
+				title: sanitizedTitle,
 				content: "",
 				image: "",
 				slug: "",

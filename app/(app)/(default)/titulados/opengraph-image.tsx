@@ -7,6 +7,5 @@ export const alt = "Titulados"
 export default function Image() {
 	return generateDefaultOG({
 		title: "Titulados",
-		description: "Jogadores titulados da Federação Sergipana de Xadrez.",
 	})
 }

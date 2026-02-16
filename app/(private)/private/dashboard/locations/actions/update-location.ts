@@ -31,6 +31,7 @@ export async function updateLocation(input: UpdateLocationInput) {
 
 		revalidateTag("locations", "max")
 		revalidatePath("/")
+		revalidatePath("/ratings")
 		revalidatePath("/private/dashboard/locations")
 
 		return { success: true, data: updatedLocations[0] }

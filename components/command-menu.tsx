@@ -237,7 +237,7 @@ export function CommandMenu({ ...props }: DialogProps) {
 			<DialogTrigger asChild>
 				<Button
 					className={cn(
-						"relative h-8 w-full justify-start bg-surface pl-2.5 font-normal text-surface-foreground/60 shadow-none sm:pr-12 md:w-40 lg:w-56 xl:w-64 dark:bg-card"
+						"relative h-8 w-full justify-start pl-2.5 font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-56 xl:w-64 border border-dashed bg-background dark:bg-input/30"
 					)}
 					onClick={() => setOpen(true)}
 					variant="secondary"
@@ -261,7 +261,7 @@ export function CommandMenu({ ...props }: DialogProps) {
 						Procurare jogadores cadastrados na FSX...
 					</DialogDescription>
 				</DialogHeader>
-				<Command className="**:data-[slot=command-input]:!h-9 **:data-[slot=command-input-wrapper]:!h-9 rounded-none bg-transparent **:data-[slot=command-input-wrapper]:mb-0 **:data-[slot=command-input-wrapper]:rounded-md **:data-[slot=command-input-wrapper]:border **:data-[slot=command-input-wrapper]:border-input **:data-[slot=command-input-wrapper]:bg-input/50 **:data-[slot=command-input]:py-0">
+				<Command className="**:data-[slot=command-input]:!h-9 **:data-[slot=command-input-wrapper]:!h-9 rounded-none bg-transparent **:data-[slot=command-input-wrapper]:mb-0">
 					<CommandMenuInput
 						onChange={handleSearchChange}
 						placeholder="Procurar jogadores.."
@@ -366,15 +366,12 @@ function CommandMenuInput({
 }) {
 	return (
 		<div
-			className="flex h-9 items-center gap-2 border-b px-3"
+			className={cn("flex h-9 items-center gap-2 border-b px-3", className)}
 			data-slot="command-input-wrapper"
 		>
 			<SearchIcon className="size-4 shrink-0 opacity-50" />
 			<input
-				className={cn(
-					"flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
-					className
-				)}
+				className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
 				data-slot="command-input"
 				{...props}
 			/>

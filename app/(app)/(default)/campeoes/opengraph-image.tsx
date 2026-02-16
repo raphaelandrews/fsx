@@ -2,11 +2,10 @@ import { generateDefaultOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og-utils"
 
 export const size = OG_SIZE
 export const contentType = OG_CONTENT_TYPE
-export const alt = "Campeões"
+export const alt = "Galeria de Campeões"
 
 export default function Image() {
 	return generateDefaultOG({
-		title: "Campeões",
-		description: "Campeões sergipanos de xadrez ao longo dos anos.",
+		title: "Galeria de Campeões",
 	})
 }

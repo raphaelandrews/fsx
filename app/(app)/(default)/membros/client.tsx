@@ -1,15 +1,24 @@
 "use client"
 
+import { Briefcase, Flag } from "lucide-react"
 import { useMemo } from "react"
 
-import type { PlayerRole } from "@/db/queries"
-import { getGradient } from "@/lib/generate-gradients"
-import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { DottedSeparator } from "@/components/dotted-separator"
+
+import type { PlayerRole } from "@/db/queries"
+import { Announcement } from "@/components/announcement"
 
 export function Client({ roles }: { roles: PlayerRole[] }) {
 	const management = useMemo(() => {
-		return roles.filter((role) => role.type === "management")
+		return roles
+			.filter((role) => role.type === "management")
+			.flatMap((item) =>
+				(item.playersToRoles ?? []).map((member) => ({
+					...member,
+					roleName: item.role,
+				}))
+			)
 	}, [roles])
 
 	const referee = useMemo(() => {
@@ -18,97 +27,87 @@ export function Client({ roles }: { roles: PlayerRole[] }) {
 				(role) =>
 					role.type === "referee" && (role.playersToRoles?.length ?? 0) > 0
 			)
-			.reverse()
 	}, [roles])
 
 	return (
-		<div className="space-y-8">
-			<section>
-				<h2 className="font-semibold leading-none tracking-tight">Diretoria</h2>
-				<div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-					{management.map((item, index) => {
-						if (!item.playersToRoles?.length) return null
-						const gradient = getGradient(index)
-						return (
-							<Card
-								className="rounded-lg bg-card transition-all hover:cursor-pointer hover:bg-accent"
-								key={item.role}
-							>
-								<CardContent className="flex items-center space-x-3 p-3 text-sm">
-									{item.playersToRoles?.map((member) => (
-										<Avatar key={`${item.role}-${member.player.id}`}>
-											<AvatarImage
-												alt={member.player.name}
-												src={member.player.imageUrl || undefined}
-												title={member.player.name}
-											/>
-											<AvatarFallback style={gradient} />
-										</Avatar>
-									))}
-									<div className="mt-1">
-										{item.playersToRoles?.map((member) => (
-											<p
-												className="webkit-line-clamp-1 line-clamp-1 font-medium leading-none"
-												key={`${item.role}-${member.player.id}-name`}
-											>
-												{member.player.name}
-											</p>
-										))}
-										<p className="webkit-line-clamp-1 line-clamp-1 text-muted-foreground">
-											{item.role}
-										</p>
-									</div>
-								</CardContent>
-							</Card>
-						)
-					})}
+		<>
+			<section className="mb-0">
+				<Announcement icon={Briefcase} label="Diretoria" className="text-sm" />
+
+				<div className="flex flex-col">
+					{management.map((member, index) => (
+						<MemberCard
+							key={`${member.roleName}-${member.player.id}`}
+							name={member.player.name}
+							role={member.roleName}
+							imageUrl={member.player.imageUrl}
+							isLast={index === management.length - 1}
+						/>
+					))}
 				</div>
 			</section>
-			<section>
-				<h2 className="font-semibold leading-none tracking-tight">Árbitros</h2>
-				<div className="mt-1 flex flex-col gap-3">
-					{referee.map((item) => {
+
+			<section className="mb-0">
+				<Announcement icon={Flag} label="Árbitros" className="text-sm" topSeparator bottomSeparator={false} />
+
+				<div className="flex flex-col">
+					{referee.map((item, index) => {
 						if (!item.playersToRoles?.length) return null
 						return (
-							<div className="mt-3" key={item.role}>
-								<h3 className="font-medium text-sm leading-none tracking-tight">
-									{item.role}
-								</h3>
-								<div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-									{item.playersToRoles?.map((member) => {
-										const gradient = getGradient(member.player.id)
-										return (
-											<Card
-												className="rounded-lg bg-card transition-all hover:cursor-pointer hover:bg-accent"
-												key={`${item.role}-${member.player.id}`}
-											>
-												<CardContent className="flex items-center space-x-3 p-3 text-sm">
-													<Avatar>
-														<AvatarImage
-															alt={member.player.name}
-															src={member.player.imageUrl || undefined}
-															title={member.player.name}
-														/>
-														<AvatarFallback style={gradient} />
-													</Avatar>
-													<div className="mt-1">
-														<p className="webkit-line-clamp-1 line-clamp-1 font-medium leading-none">
-															{member.player.name}
-														</p>
-														<p className="webkit-line-clamp-1 line-clamp-1 text-muted-foreground">
-															{item.role}
-														</p>
-													</div>
-												</CardContent>
-											</Card>
-										)
-									})}
+							<div key={item.role}>
+								<Announcement label={item.role} className="text-xs" topSeparator />
+								<div className="flex flex-col">
+									{item.playersToRoles.map((member, index) => (
+										<MemberCard
+											key={`${item.role}-${member.player.id}`}
+											name={member.player.name}
+											role={item.role}
+											imageUrl={member.player.imageUrl}
+											isLast={index === item.playersToRoles.length - 1}
+										/>
+									))}
 								</div>
 							</div>
 						)
 					})}
 				</div>
 			</section>
+		</>
+	)
+}
+
+function MemberCard({
+	name,
+	role,
+	imageUrl,
+	isLast,
+}: {
+	name: string
+	role: string
+	imageUrl?: string | null
+	isLast: boolean
+}) {
+	return (
+		<div>
+			<div className="m-1">
+				<div className="flex items-center justify-between group hover:bg-muted/50 transition-colors duration-300 p-3 select-none">
+					<div className="flex items-center gap-4">
+						<Avatar className="size-10">
+							{imageUrl && <AvatarImage src={imageUrl} alt={name} />}
+							<AvatarFallback>
+								<span className="font-bold text-xs text-muted-foreground uppercase">
+									{name.slice(0, 2)}
+								</span>
+							</AvatarFallback>
+						</Avatar>
+						<div className="flex flex-col gap-1">
+							<h3 className="text-sm font-bold leading-tight">{name}</h3>
+							<p className="text-xs font-medium text-muted-foreground">{role}</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			{!isLast && <DottedSeparator className="w-full" />}
 		</div>
 	)
 }

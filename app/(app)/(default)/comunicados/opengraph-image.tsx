@@ -7,6 +7,5 @@ export const alt = "Comunicados"
 export default function Image() {
 	return generateDefaultOG({
 		title: "Comunicados",
-		description: "Comunicados oficiais da Federação Sergipana de Xadrez.",
 	})
 }

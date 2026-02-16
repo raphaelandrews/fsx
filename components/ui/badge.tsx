@@ -17,6 +17,7 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-white focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40 [a&]:hover:bg-destructive/90",
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        ghost: "border-transparent text-muted-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         noir: "border-transparent bg-noir text-noir-foreground [a&]:hover:bg-noir/90",
         raspberry: "border-transparent bg-raspberry text-raspberry-foreground [a&]:hover:bg-raspberry/90",
         strawberry: "border-transparent bg-strawberry text-strawberry-foreground [a&]:hover:bg-strawberry/90",
@@ -28,6 +29,12 @@ const badgeVariants = cva(
         blueberry: "border-transparent bg-blueberry text-blueberry-foreground [a&]:hover:bg-blueberry/90",
         jam: "border-transparent bg-jam text-jam-foreground [a&]:hover:bg-jam/90",
         mulberry: "border-transparent bg-mulberry text-mulberry-foreground [a&]:hover:bg-mulberry/90",
+        mint: "border-transparent bg-mint text-mint-foreground [a&]:hover:bg-mint/90",
+        peach: "border-transparent bg-peach text-peach-foreground [a&]:hover:bg-peach/90",
+        lavender: "border-transparent bg-lavender text-lavender-foreground [a&]:hover:bg-lavender/90",
+        slate: "border-transparent bg-slate text-slate-foreground [a&]:hover:bg-slate/90",
+        emerald: "border-transparent bg-emerald text-emerald-foreground [a&]:hover:bg-emerald/90",
+        indigo: "border-transparent bg-indigo text-indigo-foreground [a&]:hover:bg-indigo/90",
       },
     },
     defaultVariants: {

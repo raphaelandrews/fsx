@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { ImageIcon, UploadIcon, XIcon, Loader2Icon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { ImageCropper } from "@/components/image-cropper"
 import { uploadPostImage, deletePostImage } from "@/lib/supabase-storage-posts"
 import { createPreviewUrl, revokePreviewUrl } from "@/lib/image-utils"
+import { updatePostImage } from "../../actions/update-post-image"
 import { cn } from "@/lib/utils"
 
 interface ImageUploadProps {
@@ -23,6 +25,7 @@ export function ImageUpload({
 	onChange,
 	disabled = false,
 }: ImageUploadProps) {
+	const router = useRouter()
 	const [isDragging, setIsDragging] = useState(false)
 	const [isUploading, setIsUploading] = useState(false)
 	const [cropperOpen, setCropperOpen] = useState(false)
@@ -93,6 +96,8 @@ export function ImageUpload({
 			setIsUploading(true)
 			try {
 				const url = await uploadPostImage(croppedBlob, postId)
+				await updatePostImage(postId, url)
+				router.refresh()
 				onChange(url)
 				toast.success("Image uploaded successfully")
 			} catch (error) {
@@ -102,7 +107,7 @@ export function ImageUpload({
 				setIsUploading(false)
 			}
 		},
-		[imageToCrop, postId, onChange]
+		[imageToCrop, postId, onChange, router]
 	)
 
 	const handleRemove = useCallback(async () => {
@@ -114,6 +119,8 @@ export function ImageUpload({
 			if (value.includes("supabase.co")) {
 				await deletePostImage(postId)
 			}
+			await updatePostImage(postId, "")
+			router.refresh()
 			onChange("")
 			toast.success("Image removed")
 		} catch (error) {
@@ -124,7 +131,7 @@ export function ImageUpload({
 		} finally {
 			setIsUploading(false)
 		}
-	}, [value, postId, onChange])
+	}, [value, postId, onChange, router])
 
 	const handleReplace = useCallback(() => {
 		inputRef.current?.click()

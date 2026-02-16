@@ -1,7 +1,7 @@
 import * as React from "react"
 import { DataTable } from "./data-table"
 
-const SKELETON_KEYS = Array.from({ length: 8 }, () => crypto.randomUUID())
+const SKELETON_KEYS = Array.from({ length: 8 }, (_, i) => `skeleton-${i}`)
 
 function TableLoadingSkeleton() {
 	return (

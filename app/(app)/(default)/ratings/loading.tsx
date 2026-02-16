@@ -2,17 +2,17 @@ import { BarChart2Icon, InfoIcon } from "lucide-react";
 
 import { Announcement } from "@/components/announcement";
 import { DataTableSkeletonRow } from "@/app/(app)/(default)/ratings/components/data-table-skeleton";
-import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header";
+import { PageWrapper, PageHeaderHeading } from "@/components/ui/page-wrapper";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTableToolbarSkeleton } from "@/app/(app)/(default)/ratings/components/data-table-toolbar-skeleton";
 
 export default function Loading() {
   return (
     <>
-      <PageHeader>
+      <PageWrapper>
         <Announcement icon={BarChart2Icon} />
         <PageHeaderHeading>Ratings</PageHeaderHeading>
-      </PageHeader>
+      </PageWrapper>
 
       <Tabs>
         <div className="mb-4 flex flex-col items-start gap-3 lg:flex-row lg:items-center">

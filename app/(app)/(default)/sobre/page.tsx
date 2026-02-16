@@ -1,119 +1,95 @@
 import type { Metadata } from "next"
-import { ScrollIcon } from "lucide-react"
+import { ScrollIcon, LandmarkIcon, GoalIcon, Link2Icon } from "lucide-react"
 
 import { siteConfig } from "@/lib/site"
 
+import { PageWrapper } from "@/components/ui/page-wrapper"
 import { Announcement } from "@/components/announcement"
-import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
+import { DottedSeparator } from "@/components/dotted-separator"
+import { SobreItem } from "./components/sobre-item"
 
 export const metadata: Metadata = {
-  title: "Sobre",
-  description: "Documentos e história da Federação Sergipana de Xadrez.",
-  openGraph: {
-    url: `${siteConfig.url}/sobre`,
-    title: "Sobre",
-    description: "Documentos e história da Federação Sergipana de Xadrez.",
-    siteName: "Sobre",
-  },
+	title: "Sobre",
+	description: "Documentos e história da Federação Sergipana de Xadrez.",
+	openGraph: {
+		url: `${siteConfig.url}/sobre`,
+		title: "Sobre",
+		description: "Documentos e história da Federação Sergipana de Xadrez.",
+		siteName: "Sobre",
+	},
 };
 
 export default function Page() {
+	const finalidades = [
+		"Administrar o xadrez no Estado de Sergipe e desenvolver o xadrez em todas as suas modalidades e manifestações;",
+		"Difundir, incentivar e desenvolver o xadrez no Estado de Sergipe, em todas as suas modalidades e manifestações;",
+		"Dirigir a prática do xadrez em nível estadual, estabelecendo os regulamentos e condições necessárias para a sua boa organização e realização;",
+		"Promover, direta ou indiretamente, competições, exibições, jogos e outras atividades de xadrez;",
+		"Promover, direta ou indiretamente, cursos e outras atividades visando ao aprimoramento técnico do xadrez;",
+		"Representar o xadrez sergipano junto à CBX e suas filiadas;",
+		"Promover o registro de competições e demais atividades de xadrez realizadas em território sergipano;",
+		"Conceder títulos, diplomas e prêmios relacionados às atividades de xadrez, bem como aqueles de natureza honorífica;",
+		"Promover, direta ou indiretamente, a capacitação de enxadristas, técnicos, instrutores, árbitros e demais pessoas envolvidas nas atividades do xadrez.",
+	];
+
+	const links = [
+		{ label: "Normas técnicas", href: "/normas-tecnicas" },
+		{ label: "Membros", href: "/membros" },
+		{ label: "fsx.presidente@gmail.com", href: "mailto:fsx.presidente@gmail.com" },
+	];
+
 	return (
-		<>
-			<PageHeader>
-				<Announcement icon={ScrollIcon} />
-				<PageHeaderHeading>Sobre</PageHeaderHeading>
-			</PageHeader>
+		<PageWrapper icon={ScrollIcon} label="Sobre">
+			<section className="mb-0">
+				<Announcement icon={LandmarkIcon} label="A FSX" className="text-sm" />
 
-			<section className="text-base">
-				<h2 className="mt-8 scroll-m-20 font-heading font-semibold text-xl tracking-tight">
-					A FSX
-				</h2>
-				<p className="mt-3 leading-7">
-					A Federação Sergipana de Xadrez foi fundada em 11 de dezembro de 1989
-					pelas sociedades desportivas Cotinguiba Esporte Clube, Associação
-					Atlética de Sergipe, Clube Esportivo Sergipe e Clube dos Empregados da
-					Petrobras.
-				</p>
-				<p className="mt-2 leading-7">
-					A FSX é filiada diretamente à Confederação Brasileira de Xadrez (CBX)
-					e, indiretamente, à Federação Internacional de Xadrez (FIDE).
-				</p>
-			</section>
-
-			<section className="text-base">
-				<h2 className="mt-5 scroll-m-20 font-heading font-semibold text-xl tracking-tight">
-					Finalidades
-				</h2>
-				<ol className="mt-3 [&>li]:mt-1 [&>li]:leading-7">
-					<li>
-						- Administrar o xadrez no Estado de Sergipe e desenvolver o xadrez
-						em todas as suas modalidades e manifestações;
-					</li>
-					<li>
-						- Difundir, incentivar e desenvolver o xadrez no Estado de Sergipe,
-						em todas as suas modalidades e manifestações;
-					</li>
-					<li>
-						- Dirigir a prática do xadrez em nível estadual, estabelecendo os
-						regulamentos e condições necessárias para a sua boa organização e
-						realização;
-					</li>
-					<li>
-						- Promover, direta ou indiretamente, competições, exibições, jogos e
-						outras atividades de xadrez;
-					</li>
-					<li>
-						- Promover, direta ou indiretamente, cursos e outras atividades
-						visando ao aprimoramento técnico do xadrez;
-					</li>
-					<li>
-						{" "}
-						- Representar o xadrez sergipano junto à CBX e suas filiadas;
-					</li>
-					<li>
-						- Promover o registro de competições e demais atividades de xadrez
-						realizadas em território sergipano;
-					</li>
-					<li>
-						- Conceder títulos, diplomas e prêmios relacionados às atividades de
-						xadrez, bem como aqueles de natureza honorífica;
-					</li>
-					<li>
-						- Promover, direta ou indiretamente, a capacitação de enxadristas,
-						técnicos, instrutores, árbitros e demais pessoas envolvidas nas
-						atividades do xadrez.
-					</li>
-				</ol>
-			</section>
-
-			<section>
-				<h2 className="mt-5 scroll-m-20 font-heading font-semibold text-xl tracking-tight">
-					Links
-				</h2>
-
-				<div className="mt-3 flex flex-col gap-1">
-					<a
-						className="text-blue-500 hover:underline"
-						href="/normas-tecnicas"
-						rel="noreferrer"
-						target="_blank"
-					>
-						Normas técnicas
-					</a>
-					<a className="text-blue-500 hover:underline" href="/membros">
-						Membros
-					</a>
-					<a
-						className="text-blue-500 hover:underline"
-						href="mailto:fsx.presidente@gmail.com"
-						rel="noreferrer"
-						target="_blank"
-					>
-						fsx.presidente@gmail.com
-					</a>
+				<div className="px-4 py-3 text-sm text-foreground space-y-3 leading-relaxed">
+					<p>
+						A Federação Sergipana de Xadrez foi fundada em 11 de dezembro de 1989
+						pelas sociedades desportivas Cotinguiba Esporte Clube, Associação
+						Atlética de Sergipe, Clube Esportivo Sergipe e Clube dos Empregados da
+						Petrobras.
+					</p>
+					<p>
+						A FSX é filiada diretamente à Confederação Brasileira de Xadrez (CBX)
+						e, indiretamente, à Federação Internacional de Xadrez (FIDE).
+					</p>
 				</div>
 			</section>
-		</>
+
+			<section className="mb-0">
+				<Announcement icon={GoalIcon} label="Finalidades" className="text-sm" topSeparator />
+
+				<div className="flex flex-col">
+					{finalidades.map((item, index) => (
+						<SobreItem key={index} isLast={index === finalidades.length - 1}>
+							<div className="flex items-start gap-2">
+								<span className="text-muted-foreground shrink-0">•</span>
+								<p className="text-sm text-foreground">{item}</p>
+							</div>
+						</SobreItem>
+					))}
+				</div>
+			</section>
+
+			<section className="mb-0">
+				<Announcement icon={Link2Icon} label="Links" className="text-sm" topSeparator />
+
+				<div className="flex flex-col">
+					{links.map((link, index) => (
+						<SobreItem key={index} isLast={index === links.length - 1} className="group p-0 hover:bg-transparent">
+							<a
+								className="text-sm text-link flex items-center gap-2 p-3 group-hover:underline transition-all"
+								href={link.href}
+								rel="noreferrer"
+								target={link.href.startsWith("http") || link.href.startsWith("mailto") ? "_blank" : undefined}
+							>
+								{link.label}
+							</a>
+						</SobreItem>
+					))}
+				</div>
+			</section>
+		</PageWrapper>
 	)
 }

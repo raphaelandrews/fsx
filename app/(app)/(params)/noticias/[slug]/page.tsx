@@ -7,6 +7,8 @@ import { getPosts, getPostBySlug } from "@/db/queries"
 import { siteConfig } from "@/lib/site"
 import { MDX } from "@/components/mdx"
 import { PostTimeAgo } from "../components/post-time-ago"
+import { DottedSeparator } from "@/components/dotted-separator"
+import { PageWrapper } from "@/components/ui/page-wrapper"
 
 export async function generateStaticParams() {
 	const posts = await getPosts()
@@ -64,37 +66,49 @@ export default async function Page({
 	}
 
 	return (
-		<section className="m-auto w-11/12 max-w-2xl pt-12 pb-20">
-			<div className="inline-block rounded-md bg-primary-foreground p-2.5 text-muted-foreground">
-				<NewspaperIcon height={16} width={16} />
-			</div>
+		<PageWrapper icon={NewspaperIcon} label="Notícia">
+			{/* Title Section */}
+			<section className="mb-0">
+				<div className="p-4">
+					<ViewTransition name={`title-${data?.slug}`}>
+						<h1 className="text-balance font-semibold text-xl text-primary tracking-tighter">
+							{data?.title}
+						</h1>
+					</ViewTransition>
 
-			<ViewTransition name={`title-${data?.slug}`}>
-				<h1 className="text-balance font-semibold text-2xl text-primary mt-2 tracking-tighter">
-					{data?.title}
-				</h1>
-			</ViewTransition>
-
-			{data?.createdAt && (
-				<div className="mt-2 flex items-center gap-2 text-muted-foreground text-sm">
-					<PostTimeAgo date={data.createdAt} />
+					{data?.createdAt && (
+						<div className="mt-2 flex items-center gap-2 text-muted-foreground text-sm">
+							<PostTimeAgo date={data.createdAt} />
+						</div>
+					)}
 				</div>
+				<DottedSeparator />
+			</section>
+
+			{/* Image Section */}
+			{data?.image && (
+				<>
+					<section className="mb-0 p-4">
+						<div className="p-[4px] rounded-[10px] border border-border">
+							<ViewTransition name={`image-${data?.slug}`}>
+								<img
+									alt={data.title}
+									className="w-full rounded-lg object-cover max-h-[400px]"
+									src={data.image}
+								/>
+							</ViewTransition>
+						</div>
+					</section>
+					<DottedSeparator />
+				</>
 			)}
 
-			<ViewTransition name={`image-${data?.slug}`}>
-				{data?.image && (
-					// biome-ignore lint/performance/noImgElement: No
-					<img
-						alt={data.title}
-						className="m-auto mt-6 h-full w-full max-w-xl rounded-lg"
-						src={data.image}
-					/>
-				)}
-			</ViewTransition>
-
-			<div className="mt-6">
-				{data?.content && <MDX content={data.content} />}
-			</div>
-		</section>
+			{/* Content Section */}
+			{data?.content && (
+				<section className="mb-0 p-4">
+					<MDX content={data.content} />
+				</section>
+			)}
+		</PageWrapper>
 	)
 }

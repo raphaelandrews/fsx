@@ -24,6 +24,7 @@ export async function createLocation(input: CreateLocationInput) {
 
 		revalidateTag("locations", "max")
 		revalidatePath("/")
+		revalidatePath("/ratings")
 		revalidatePath("/private/dashboard/locations")
 
 		return { success: true, data: newLocation[0] }

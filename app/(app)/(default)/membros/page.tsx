@@ -1,35 +1,36 @@
-import type { Metadata } from "next"
-import { ScrollIcon } from "lucide-react"
+import type { Metadata } from "next";
+import { ScrollIcon } from "lucide-react";
+import React, { Suspense } from "react";
 
-import { getPlayersRoles } from "@/db/queries"
-import { siteConfig } from "@/lib/site"
+import { getPlayersRoles } from "@/db/queries";
+import { siteConfig } from "@/lib/site";
 
-import { Client } from "./client"
-import { Announcement } from "@/components/announcement"
-import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
+import { Client } from "./client";
+import { MembrosSkeleton } from "./components/membros-skeleton";
+import { PageWrapper } from "@/components/ui/page-wrapper";
 
 export const metadata: Metadata = {
-  title: "Membros",
-  description: "Diretoria e árbitros da Federação Sergipana de Xadrez.",
-  openGraph: {
-    url: `${siteConfig.url}/membros`,
-    title: "Membros",
-    description: "Diretoria e árbitros da Federação Sergipana de Xadrez.",
-    siteName: "Membros",
-  },
+	title: "Membros",
+	description: "Diretoria e árbitros da Federação Sergipana de Xadrez.",
+	openGraph: {
+		url: `${siteConfig.url}/membros`,
+		title: "Membros",
+		description: "Diretoria e árbitros da Federação Sergipana de Xadrez.",
+		siteName: "Membros",
+	},
 };
 
-export default async function Page() {
-	const data = await getPlayersRoles()
+async function MembrosContent() {
+	const data = await getPlayersRoles();
+	return <Client roles={data} />;
+}
 
+export default function Page() {
 	return (
-		<>
-			<PageHeader>
-				<Announcement icon={ScrollIcon} />
-				<PageHeaderHeading>Membros</PageHeaderHeading>
-			</PageHeader>
-
-			<Client roles={data} />
-		</>
-	)
+		<PageWrapper icon={ScrollIcon} label="Membros">
+			<Suspense fallback={<MembrosSkeleton />}>
+				<MembrosContent />
+			</Suspense>
+		</PageWrapper>
+	);
 }

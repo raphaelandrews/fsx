@@ -5,18 +5,17 @@ import { siteConfig } from "@/lib/site"
 import { getClubs, getLocations } from "@/db/queries"
 
 import { Client } from "./client"
-import { Announcement } from "@/components/announcement"
-import { PageHeader, PageHeaderHeading } from "@/components/ui/page-header"
+import { PageWrapper } from "@/components/ui/page-wrapper"
 
 export const metadata: Metadata = {
-  title: "Ratings",
-  description: "Ratings da Federação Sergipana de Xadrez.",
-  openGraph: {
-    url: `${siteConfig.url}/rating`,
-    title: "Ratings",
-    description: "Ratings da Federação Sergipana de Xadrez.",
-    siteName: "Ratings",
-  },
+	title: "Ratings",
+	description: "Ratings da Federação Sergipana de Xadrez.",
+	openGraph: {
+		url: `${siteConfig.url}/rating`,
+		title: "Ratings",
+		description: "Ratings da Federação Sergipana de Xadrez.",
+		siteName: "Ratings",
+	},
 };
 
 export default async function Page() {
@@ -36,13 +35,8 @@ export default async function Page() {
 	}))
 
 	return (
-		<>
-			<PageHeader>
-				<Announcement icon={BarChart2Icon} />
-				<PageHeaderHeading>Ratings</PageHeaderHeading>
-			</PageHeader>
-
+		<PageWrapper icon={BarChart2Icon} label="Ratings">
 			<Client clubs={clubs} locations={locations} />
-		</>
+		</PageWrapper>
 	)
 }

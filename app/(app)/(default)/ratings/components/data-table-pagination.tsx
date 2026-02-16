@@ -65,7 +65,7 @@ export function DataTablePagination<TData>({
 						}}
 						value={`${currentPageSize}`}
 					>
-						<SelectTrigger className="h-8 w-[70px]">
+						<SelectTrigger className="h-8 w-[70px] border-dashed">
 							<SelectValue
 								placeholder={
 									currentPageSize || table.getState().pagination.pageSize
@@ -90,7 +90,7 @@ export function DataTablePagination<TData>({
 							className="hidden h-8 w-8 p-0 lg:flex"
 							disabled={currentPage <= 1}
 							onClick={() => handlePageChange(1)}
-							variant="outline"
+							variant="dashed"
 						>
 							<span className="sr-only">Go to first page</span>
 							<ChevronsLeftIcon className="h-4 w-4" />
@@ -99,7 +99,7 @@ export function DataTablePagination<TData>({
 							className="h-8 w-8 p-0"
 							disabled={currentPage <= 1}
 							onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-							variant="outline"
+							variant="dashed"
 						>
 							<span className="sr-only">Go to previous page</span>
 							<ChevronLeftIcon className="h-4 w-4" />
@@ -108,7 +108,7 @@ export function DataTablePagination<TData>({
 							className="mr-0 h-8 w-8 p-0 lg:mr-2"
 							disabled={currentPage >= totalPages}
 							onClick={() => handlePageChange(currentPage + 1)}
-							variant="outline"
+							variant="dashed"
 						>
 							<span className="sr-only">Go to next page</span>
 							<ChevronRightIcon className="h-4 w-4" />
@@ -117,7 +117,7 @@ export function DataTablePagination<TData>({
 							className="hidden h-8 w-8 p-0 lg:flex"
 							disabled={currentPage >= totalPages}
 							onClick={() => handlePageChange(totalPages)}
-							variant="outline"
+							variant="dashed"
 						>
 							<span className="sr-only">Go to last page</span>
 							<ChevronsRightIcon className="h-4 w-4" />

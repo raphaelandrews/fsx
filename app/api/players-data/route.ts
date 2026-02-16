@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 
 import { db } from "@/db";
 import { players } from "@/db/schema";
@@ -68,6 +69,9 @@ export async function POST(req: Request) {
 		};
 
 		await db.insert(players).values(createData);
+
+		revalidateTag("players", "max")
+		revalidateTag("search-players", "max")
 
 		return new NextResponse(
 			JSON.stringify({

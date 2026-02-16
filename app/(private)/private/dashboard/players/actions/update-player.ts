@@ -40,13 +40,15 @@ export async function updatePlayer(input: UpdatePlayerInput) {
 			return { success: false, error: "Player not found" }
 		}
 
-		// Revalidate player pages
 		revalidateTag(`player-${input.id}`, "max")
 		revalidateTag("players", "max")
+		revalidateTag("search-players", "max")
+		revalidateTag("swiss-manager-export", "max")
 		revalidatePath("/")
 		revalidatePath(`/jogadores/${input.id}`)
 		revalidatePath("/ratings")
 		revalidatePath("/titulados")
+		revalidatePath(`/private/dashboard/players/${input.id}`)
 
 		return { success: true, data: updatedPlayers[0] }
 	} catch (error) {

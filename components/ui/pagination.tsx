@@ -71,7 +71,7 @@ function PaginationLink({
 			aria-disabled={disabled}
 			className={cn(
 				buttonVariants({
-					variant: isActive ? "outline" : "ghost",
+					variant: isActive ? "dashed" : "ghost",
 					size,
 				}),
 				"hover:cursor-pointer",

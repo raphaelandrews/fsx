@@ -4,7 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
-import { statuses } from "../data/data"
+import { Badge } from "@/components/ui/badge"
 import type { Posts } from "@/db/queries"
 
 export const columns: ColumnDef<Posts>[] = [
@@ -25,26 +25,17 @@ export const columns: ColumnDef<Posts>[] = [
 		enableHiding: false,
 	},
 	{
-		accessorKey: "status",
+		accessorKey: "published",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title="Status" />
 		),
 		cell: ({ row }) => {
-			const status = statuses.find(
-				(status) => status.value === row.getValue("status")
-			)
-
-			if (!status) {
-				return null
-			}
+			const isPublished = row.getValue("published") as boolean
 
 			return (
-				<div className="flex w-[100px] items-center">
-					{status.icon && (
-						<status.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-					)}
-					<span>{status.label}</span>
-				</div>
+				<Badge variant={isPublished ? "bulbasaur" : "destructive"}>
+					{isPublished ? "Published" : "Draft"}
+				</Badge>
 			)
 		},
 		filterFn: (row, id, value) => {
