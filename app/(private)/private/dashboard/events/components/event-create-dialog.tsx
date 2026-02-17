@@ -37,16 +37,29 @@ import { createEvent } from "../actions/create-event"
 
 const CreateEventSchema = z.object({
 	name: z.string().min(1, "Name is required").max(80),
-	startDate: z.string().min(1, "Start date is required"),
-	endDate: z.string().optional(),
+	startDate: z.date({
+		required_error: "Start date is required",
+	}),
+	endDate: z.date().optional(),
 	type: z.enum(["open", "closed", "school"]),
 	timeControl: z.enum(["standard", "rapid", "blitz", "bullet"]),
 	chessResults: z.string().max(500).optional(),
 	regulation: z.string().max(500).optional(),
 	form: z.string().max(500).optional(),
-})
+}).refine(
+	(data) => {
+		if (!data.endDate) return true
+		return data.endDate >= data.startDate
+	},
+	{
+		message: "End date must be after start date",
+		path: ["endDate"],
+	},
+)
 
 type CreateEventFormData = z.infer<typeof CreateEventSchema>
+
+import { DateTimePicker } from "@/components/ui/date-time-picker"
 
 export function EventCreateDialog() {
 	const router = useRouter()
@@ -57,8 +70,8 @@ export function EventCreateDialog() {
 		resolver: zodResolver(CreateEventSchema),
 		defaultValues: {
 			name: "",
-			startDate: "",
-			endDate: "",
+			startDate: new Date(),
+			endDate: undefined,
 			type: "open",
 			timeControl: "rapid",
 			chessResults: "",
@@ -72,8 +85,8 @@ export function EventCreateDialog() {
 
 		const result = await createEvent({
 			name: data.name,
-			startDate: new Date(data.startDate),
-			endDate: data.endDate ? new Date(data.endDate) : null,
+			startDate: data.startDate,
+			endDate: data.endDate || null,
 			type: data.type,
 			timeControl: data.timeControl,
 			chessResults: data.chessResults || null,
@@ -128,7 +141,7 @@ export function EventCreateDialog() {
 							)}
 						/>
 
-						<div className="grid grid-cols-2 gap-4">
+						<div className="flex flex-col gap-4">
 							<FormField
 								control={form.control}
 								name="startDate"
@@ -136,7 +149,11 @@ export function EventCreateDialog() {
 									<FormItem>
 										<FormLabel>Start Date</FormLabel>
 										<FormControl>
-											<Input type="date" disabled={isCreating} {...field} />
+											<DateTimePicker
+												date={field.value}
+												setDate={field.onChange}
+												disabled={isCreating}
+											/>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -150,7 +167,11 @@ export function EventCreateDialog() {
 									<FormItem>
 										<FormLabel>End Date</FormLabel>
 										<FormControl>
-											<Input type="date" disabled={isCreating} {...field} />
+											<DateTimePicker
+												date={field.value}
+												setDate={field.onChange}
+												disabled={isCreating}
+											/>
 										</FormControl>
 										<FormMessage />
 									</FormItem>

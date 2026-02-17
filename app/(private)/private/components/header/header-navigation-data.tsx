@@ -9,6 +9,7 @@ import {
 	MegaphoneIcon,
 	BuildingIcon,
 	MapPinIcon,
+	LinkIcon,
 } from "lucide-react"
 
 type NavigationItem = {
@@ -41,6 +42,11 @@ export const navigationData: Navigation = () => [
 		label: "Events",
 		href: "/private/dashboard/events",
 		icon: CalendarIcon,
+	},
+	{
+		label: "Links",
+		href: "/private/dashboard/links",
+		icon: LinkIcon,
 	},
 	{
 		label: "Announcements",

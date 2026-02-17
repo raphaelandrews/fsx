@@ -27,7 +27,10 @@ const timeControlLabels = {
 }
 
 function formatDate(date: Date) {
-	return new Date(date).toLocaleDateString("pt-BR")
+	return new Date(date).toLocaleString("pt-BR", {
+		dateStyle: "short",
+		timeStyle: "short",
+	})
 }
 
 export const columns: ColumnDef<EventTableData>[] = [
