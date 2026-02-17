@@ -36,18 +36,47 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import type { Event } from "@/db/schema/events"
+import { DateTimePicker } from "@/components/ui/date-time-picker"
+
+const optionalUrlSchema = z
+	.string()
+	.max(500)
+	.nullable()
+	.refine(
+		(value) => {
+			if (!value) return true
+			try {
+				const url = new URL(value)
+				return url.protocol === "http:" || url.protocol === "https:"
+			} catch {
+				return false
+			}
+		},
+		{ message: "Must be a valid HTTP or HTTPS URL" }
+	)
 
 const EventSchema = z.object({
 	id: z.number(),
 	name: z.string().min(1, "Name is required").max(80),
-	chessResults: z.string().max(500).nullable(),
-	startDate: z.string().min(1, "Start date is required"),
-	endDate: z.string().nullable(),
-	regulation: z.string().max(500).nullable(),
-	form: z.string().max(500).nullable(),
+	chessResults: optionalUrlSchema,
+	startDate: z.date({
+		required_error: "Start date is required",
+	}),
+	endDate: z.date().nullable(),
+	regulation: optionalUrlSchema,
+	form: optionalUrlSchema,
 	type: z.enum(["open", "closed", "school"]),
 	timeControl: z.enum(["standard", "rapid", "blitz", "bullet"]),
-})
+}).refine(
+	(data) => {
+		if (!data.endDate) return true
+		return data.endDate >= data.startDate
+	},
+	{
+		message: "End date must be after start date",
+		path: ["endDate"],
+	},
+)
 
 type EventFormData = z.infer<typeof EventSchema>
 
@@ -63,12 +92,8 @@ export function EventEditor({ event }: EventEditorProps) {
 		id: event.id,
 		name: event.name,
 		chessResults: event.chessResults ?? null,
-		startDate: event.startDate
-			? new Date(event.startDate).toISOString().split("T")[0]
-			: "",
-		endDate: event.endDate
-			? new Date(event.endDate).toISOString().split("T")[0]
-			: null,
+		startDate: event.startDate ? new Date(event.startDate) : new Date(),
+		endDate: event.endDate ? new Date(event.endDate) : null,
 		regulation: event.regulation ?? null,
 		form: event.form ?? null,
 		type: event.type,
@@ -87,8 +112,8 @@ export function EventEditor({ event }: EventEditorProps) {
 			id: data.id,
 			name: data.name,
 			chessResults: data.chessResults,
-			startDate: new Date(data.startDate),
-			endDate: data.endDate ? new Date(data.endDate) : null,
+			startDate: data.startDate,
+			endDate: data.endDate,
 			regulation: data.regulation,
 			form: data.form,
 			type: data.type,
@@ -97,6 +122,7 @@ export function EventEditor({ event }: EventEditorProps) {
 
 		if (result.success) {
 			toast.success("Event updated successfully")
+			router.push("/private/dashboard/events")
 			router.refresh()
 		} else {
 			toast.error(result.error || "Failed to update event")
@@ -133,7 +159,7 @@ export function EventEditor({ event }: EventEditorProps) {
 							)}
 						/>
 
-						<div className="grid grid-cols-2 gap-4">
+						<div className="flex flex-col gap-4">
 							<FormField
 								control={form.control}
 								name="startDate"
@@ -141,7 +167,11 @@ export function EventEditor({ event }: EventEditorProps) {
 									<FormItem>
 										<FormLabel>Start Date</FormLabel>
 										<FormControl>
-											<Input type="date" disabled={isSaving} {...field} />
+											<DateTimePicker
+												date={field.value}
+												setDate={field.onChange}
+												disabled={isSaving}
+											/>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -155,14 +185,10 @@ export function EventEditor({ event }: EventEditorProps) {
 									<FormItem>
 										<FormLabel>End Date</FormLabel>
 										<FormControl>
-											<Input
-												type="date"
+											<DateTimePicker
+												date={field.value ?? undefined}
+												setDate={field.onChange}
 												disabled={isSaving}
-												{...field}
-												value={field.value ?? ""}
-												onChange={(e) =>
-													field.onChange(e.target.value || null)
-												}
 											/>
 										</FormControl>
 										<FormMessage />
