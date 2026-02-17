@@ -134,6 +134,7 @@ export function LinkGroupEditor({ linkGroup }: LinkGroupEditorProps) {
 
 		if (result.success) {
 			toast.success("Link group updated successfully")
+			router.push("/private/dashboard/links")
 			router.refresh()
 		} else {
 			toast.error(result.error || "Failed to update link group")
@@ -307,9 +308,8 @@ export function LinkGroupEditor({ linkGroup }: LinkGroupEditorProps) {
 					{links.map((link) => (
 						<div
 							key={link.id}
-							className={`flex items-center gap-3 p-3 rounded-md border ${
-								editingLink?.id === link.id ? "border-primary bg-muted/50" : ""
-							}`}
+							className={`flex items-center gap-3 p-3 rounded-md border ${editingLink?.id === link.id ? "border-primary bg-muted/50" : ""
+								}`}
 						>
 							<GripVerticalIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
 							<div
