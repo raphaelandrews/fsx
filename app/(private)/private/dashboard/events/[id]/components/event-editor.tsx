@@ -84,6 +84,10 @@ interface EventEditorProps {
 	event: Event
 }
 
+function fromLocalDate(date: Date): Date {
+	return new Date(date.getTime() + date.getTimezoneOffset() * 60000)
+}
+
 export function EventEditor({ event }: EventEditorProps) {
 	const router = useRouter()
 	const [isSaving, setIsSaving] = useState(false)
@@ -92,8 +96,8 @@ export function EventEditor({ event }: EventEditorProps) {
 		id: event.id,
 		name: event.name,
 		chessResults: event.chessResults ?? null,
-		startDate: event.startDate ? new Date(event.startDate) : new Date(),
-		endDate: event.endDate ? new Date(event.endDate) : null,
+		startDate: event.startDate ? fromLocalDate(new Date(event.startDate)) : new Date(),
+		endDate: event.endDate ? fromLocalDate(new Date(event.endDate)) : null,
 		regulation: event.regulation ?? null,
 		form: event.form ?? null,
 		type: event.type,
