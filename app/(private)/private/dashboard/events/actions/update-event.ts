@@ -18,10 +18,6 @@ interface UpdateEventInput {
 	timeControl: "standard" | "rapid" | "blitz" | "bullet"
 }
 
-function toLocalDate(date: Date): Date {
-	return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-}
-
 export async function updateEvent(input: UpdateEventInput) {
 	try {
 		const updatedEvents = await db
@@ -29,8 +25,8 @@ export async function updateEvent(input: UpdateEventInput) {
 			.set({
 				name: input.name,
 				chessResults: input.chessResults || null,
-				startDate: toLocalDate(input.startDate),
-				endDate: input.endDate ? toLocalDate(input.endDate) : null,
+				startDate: input.startDate,
+				endDate: input.endDate,
 				regulation: input.regulation || null,
 				form: input.form || null,
 				type: input.type,
