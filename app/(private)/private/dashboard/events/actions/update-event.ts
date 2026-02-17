@@ -10,8 +10,8 @@ interface UpdateEventInput {
 	id: number
 	name: string
 	chessResults: string | null
-	startDate: Date
-	endDate: Date | null
+	startDate: string // ISO string
+	endDate: string | null // ISO string
 	regulation: string | null
 	form: string | null
 	type: "open" | "closed" | "school"
@@ -25,8 +25,8 @@ export async function updateEvent(input: UpdateEventInput) {
 			.set({
 				name: input.name,
 				chessResults: input.chessResults || null,
-				startDate: input.startDate,
-				endDate: input.endDate,
+				startDate: new Date(input.startDate),
+				endDate: input.endDate ? new Date(input.endDate) : null,
 				regulation: input.regulation || null,
 				form: input.form || null,
 				type: input.type,

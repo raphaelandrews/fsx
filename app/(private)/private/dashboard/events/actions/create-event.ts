@@ -7,8 +7,8 @@ import { events } from "@/db/schema"
 
 interface CreateEventInput {
 	name: string
-	startDate: Date
-	endDate: Date | null
+	startDate: string // ISO string
+	endDate: string | null // ISO string
 	type: "open" | "closed" | "school"
 	timeControl: "standard" | "rapid" | "blitz" | "bullet"
 	chessResults: string | null
@@ -22,8 +22,8 @@ export async function createEvent(input: CreateEventInput) {
 			.insert(events)
 			.values({
 				name: input.name,
-				startDate: input.startDate,
-				endDate: input.endDate,
+				startDate: new Date(input.startDate),
+				endDate: input.endDate ? new Date(input.endDate) : null,
 				type: input.type,
 				timeControl: input.timeControl,
 				chessResults: input.chessResults,

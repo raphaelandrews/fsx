@@ -85,8 +85,8 @@ export function EventCreateDialog() {
 
 		const result = await createEvent({
 			name: data.name,
-			startDate: data.startDate,
-			endDate: data.endDate || null,
+			startDate: data.startDate.toISOString(),
+			endDate: data.endDate?.toISOString() || null,
 			type: data.type,
 			timeControl: data.timeControl,
 			chessResults: data.chessResults || null,
