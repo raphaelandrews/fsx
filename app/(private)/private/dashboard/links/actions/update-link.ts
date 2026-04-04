@@ -61,7 +61,7 @@ export async function updateLink(input: UpdateLinkInput) {
 			return { success: false, error: "Link not found" }
 		}
 
-		revalidateTag("link-groups", "max")
+		revalidateTag("link-groups", "default")
 		revalidatePath("/")
 		revalidatePath("/private/dashboard/link-groups")
 

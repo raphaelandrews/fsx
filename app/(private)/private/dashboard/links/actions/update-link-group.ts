@@ -25,7 +25,7 @@ export async function updateLinkGroup(input: UpdateLinkGroupInput) {
 			return { success: false, error: "Link group not found" }
 		}
 
-		revalidateTag("link-groups", "max")
+		revalidateTag("link-groups", "default")
 		revalidatePath("/")
 		revalidatePath("/private/dashboard/link-groups")
 

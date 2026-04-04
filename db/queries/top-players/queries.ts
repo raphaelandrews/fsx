@@ -1,8 +1,8 @@
 import { desc, eq } from "drizzle-orm"
+import { cacheLife, cacheTag } from "next/cache"
 
 import { db } from "@/db"
 import { players } from "@/db/schema"
-import { unstable_cache } from "@/lib/unstable_cache"
 
 const baseConfig = {
 	columns: {
@@ -30,31 +30,28 @@ const baseConfig = {
 	where: eq(players.active, true),
 }
 
-export const getTopPlayers = unstable_cache(
-	async () => {
-		const topClassic = await db.query.players.findMany({
-			...baseConfig,
-			orderBy: desc(players.classic),
-			limit: 10,
-		})
+export async function getTopPlayers() {
+	"use cache"
+	cacheTag("players", "top-players")
+	cacheLife("weeks")
 
-		const topRapid = await db.query.players.findMany({
-			...baseConfig,
-			orderBy: desc(players.rapid),
-			limit: 10,
-		})
+	const topClassic = await db.query.players.findMany({
+		...baseConfig,
+		orderBy: desc(players.classic),
+		limit: 10,
+	})
 
-		const topBlitz = await db.query.players.findMany({
-			...baseConfig,
-			orderBy: desc(players.blitz),
-			limit: 10,
-		})
+	const topRapid = await db.query.players.findMany({
+		...baseConfig,
+		orderBy: desc(players.rapid),
+		limit: 10,
+	})
 
-		return { topClassic, topRapid, topBlitz }
-	},
-	["get-top-players"],
-	{
-		revalidate: 60 * 60 * 24 * 15,
-		tags: ["players", "top-players"],
-	}
-)
+	const topBlitz = await db.query.players.findMany({
+		...baseConfig,
+		orderBy: desc(players.blitz),
+		limit: 10,
+	})
+
+	return { topClassic, topRapid, topBlitz }
+}

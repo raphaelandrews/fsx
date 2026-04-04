@@ -4,7 +4,6 @@ const nextConfig: NextConfig = {
 	cacheComponents: true,
 	experimental: {
 		inlineCss: true,
-		useCache: true,
 		viewTransition: true,
 	},
 	images: {

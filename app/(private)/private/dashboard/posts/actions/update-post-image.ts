@@ -23,9 +23,9 @@ export async function updatePostImage(postId: string, imageUrl: string) {
 
 		const updatedPost = updatedPosts[0]
 
-		revalidateTag(`post-${postId}`, "max")
-		revalidateTag("posts", "max")
-		revalidateTag("fresh-posts", "max")
+		revalidateTag(`post-${postId}`, "default")
+		revalidateTag("posts", "default")
+		revalidateTag("fresh-posts", "default")
 		revalidatePath("/")
 		revalidatePath(`/noticias/${updatedPost.slug}`)
 		revalidatePath("/noticias")

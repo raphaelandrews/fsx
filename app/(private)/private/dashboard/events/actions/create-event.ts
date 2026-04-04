@@ -4,11 +4,12 @@ import { revalidatePath, revalidateTag } from "next/cache"
 
 import { db } from "@/db"
 import { events } from "@/db/schema"
+import { withSequenceFix } from "@/lib/with-sequence-fix"
 
 interface CreateEventInput {
 	name: string
-	startDate: string // ISO string
-	endDate: string | null // ISO string
+	startDate: string
+	endDate: string | null
 	type: "open" | "closed" | "school"
 	timeControl: "standard" | "rapid" | "blitz" | "bullet"
 	chessResults: string | null
@@ -18,21 +19,23 @@ interface CreateEventInput {
 
 export async function createEvent(input: CreateEventInput) {
 	try {
-		const newEvent = await db
-			.insert(events)
-			.values({
-				name: input.name,
-				startDate: new Date(input.startDate),
-				endDate: input.endDate ? new Date(input.endDate) : null,
-				type: input.type,
-				timeControl: input.timeControl,
-				chessResults: input.chessResults,
-				regulation: input.regulation,
-				form: input.form,
-			})
-			.returning()
+		const newEvent = await withSequenceFix("events", () =>
+			db
+				.insert(events)
+				.values({
+					name: input.name,
+					startDate: new Date(input.startDate),
+					endDate: input.endDate ? new Date(input.endDate) : null,
+					type: input.type,
+					timeControl: input.timeControl,
+					chessResults: input.chessResults,
+					regulation: input.regulation,
+					form: input.form,
+				})
+				.returning()
+		)
 
-		revalidateTag("events", "max")
+		revalidateTag("events", "default")
 		revalidatePath("/")
 		revalidatePath("/private/dashboard/events")
 

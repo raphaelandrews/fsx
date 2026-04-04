@@ -3,9 +3,9 @@
 import { revalidatePath, revalidateTag } from "next/cache"
 
 export async function revalidatePlayerImage(playerId: number) {
-  revalidateTag(`player-${playerId}`, "max")
-  revalidateTag("players", "max")
-  revalidateTag("swiss-manager-export", "max")
+  revalidateTag(`player-${playerId}`, "default")
+  revalidateTag("players", "default")
+  revalidateTag("swiss-manager-export", "default")
 
   revalidatePath("/")
   revalidatePath(`/jogadores/${playerId}`)
@@ -16,9 +16,9 @@ export async function revalidatePlayerImage(playerId: number) {
 }
 
 export async function revalidatePostImage(postId: string) {
-  revalidateTag(`post-${postId}`, "max")
-  revalidateTag("posts", "max")
-  revalidateTag("fresh-posts", "max")
+  revalidateTag(`post-${postId}`, "default")
+  revalidateTag("posts", "default")
+  revalidateTag("fresh-posts", "default")
 
   revalidatePath("/")
   revalidatePath("/noticias")

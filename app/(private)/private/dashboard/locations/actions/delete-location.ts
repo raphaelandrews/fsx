@@ -17,7 +17,7 @@ export async function deleteLocation(id: number) {
 			return { success: false, error: "Location not found" }
 		}
 
-		revalidateTag("locations", "max")
+		revalidateTag("locations", "default")
 		revalidatePath("/")
 		revalidatePath("/ratings")
 		revalidatePath("/private/dashboard/locations")

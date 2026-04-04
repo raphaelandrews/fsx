@@ -29,8 +29,8 @@ export async function updateAnnouncement(input: UpdateAnnouncementInput) {
 			return { success: false, error: "Announcement not found" }
 		}
 
-		revalidateTag("announcements", "max")
-		revalidateTag("fresh-announcements", "max")
+		revalidateTag("announcements", "default")
+		revalidateTag("fresh-announcements", "default")
 		revalidatePath("/")
 		revalidatePath("/comunicados")
 

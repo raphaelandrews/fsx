@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 
 import { db } from "@/db"
 import { links } from "@/db/schema"
+import { withSequenceFix } from "@/lib/with-sequence-fix"
 
 interface CreateLinkInput {
 	href: string
@@ -45,18 +46,20 @@ export async function createLink(input: CreateLinkInput) {
 			return { success: false, error: "Order must be a positive integer" }
 		}
 
-		const newLink = await db
-			.insert(links)
-			.values({
-				href: input.href,
-				label: input.label,
-				icon: input.icon,
-				order: input.order,
-				linkGroupId: input.linkGroupId,
-			})
-			.returning()
+		const newLink = await withSequenceFix("links", () =>
+			db
+				.insert(links)
+				.values({
+					href: input.href,
+					label: input.label,
+					icon: input.icon,
+					order: input.order,
+					linkGroupId: input.linkGroupId,
+				})
+				.returning()
+		)
 
-		revalidateTag("link-groups", "max")
+		revalidateTag("link-groups", "default")
 		revalidatePath("/")
 		revalidatePath("/private/dashboard/link-groups")
 

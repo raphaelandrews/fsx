@@ -18,7 +18,7 @@ const CACHE_GROUPS = {
 		"titled-players",
 		"top-players",
 	],
-	Other: ["champions", "circuits", "events", "link-groups"],
+	Other: ["champions", "circuits", "clubs", "events", "link-groups", "locations", "swiss-manager-export"],
 } as const;
 
 type GroupName = keyof typeof CACHE_GROUPS;

@@ -49,7 +49,7 @@ export function AnnouncementCreateDialog() {
 		defaultValues: {
 			year: currentYear,
 			number: "",
-			content: "",
+			content: "XXXXXX recebe o título de XXXXXXXX, tendo cumprido todos os requisitos. Em breve receberá o diploma e fará parte da lista de titulados.",
 		},
 	})
 

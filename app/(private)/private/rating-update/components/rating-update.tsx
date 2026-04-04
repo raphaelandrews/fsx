@@ -354,14 +354,26 @@ export function RatingUpdate() {
                   }
                 }
 
-                const clubId =
+                const clubIdRaw =
                   headerMap.clubid !== undefined
-                    ? Number.parseInt(String(row[headerMap.clubid]))
+                    ? row[headerMap.clubid]
+                    : undefined;
+                const clubId =
+                  clubIdRaw !== undefined &&
+                  clubIdRaw !== null &&
+                  String(clubIdRaw).trim() !== ""
+                    ? Number.parseInt(String(clubIdRaw))
                     : undefined;
 
-                const locationId =
+                const locationIdRaw =
                   headerMap.locationid !== undefined
-                    ? Number.parseInt(String(row[headerMap.locationid]))
+                    ? row[headerMap.locationid]
+                    : undefined;
+                const locationId =
+                  locationIdRaw !== undefined &&
+                  locationIdRaw !== null &&
+                  String(locationIdRaw).trim() !== ""
+                    ? Number.parseInt(String(locationIdRaw))
                     : undefined;
 
                 const tournamentIdRaw =

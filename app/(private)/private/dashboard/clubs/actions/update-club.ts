@@ -27,7 +27,7 @@ export async function updateClub(input: UpdateClubInput) {
 			return { success: false, error: "Club not found" }
 		}
 
-		revalidateTag("clubs", "max")
+		revalidateTag("clubs", "default")
 		revalidatePath("/")
 		revalidatePath("/ratings")
 		revalidatePath("/private/dashboard/clubs")
