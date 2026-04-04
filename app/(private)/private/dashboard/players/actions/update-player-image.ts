@@ -21,9 +21,9 @@ export async function updatePlayerImage(playerId: number, imageUrl: string | nul
 			return { success: false, error: "Player not found" }
 		}
 
-		revalidateTag(`player-${playerId}`, "max")
-		revalidateTag("players", "max")
-		revalidateTag("swiss-manager-export", "max")
+		revalidateTag(`player-${playerId}`, "default")
+		revalidateTag("players", "default")
+		revalidateTag("swiss-manager-export", "default")
 		revalidatePath("/")
 		revalidatePath(`/jogadores/${playerId}`)
 		revalidatePath("/ratings")

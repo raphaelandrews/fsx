@@ -1,29 +1,28 @@
-import { db } from "@/db"
-import { unstable_cache } from "@/lib/unstable_cache"
+import { cacheLife, cacheTag } from "next/cache"
 
-export const getLinkGroups = unstable_cache(
-	() =>
-		db.query.linkGroups.findMany({
-			columns: {
-				id: true,
-				label: true,
-			},
-			with: {
-				links: {
-					columns: {
-						href: true,
-						label: true,
-						icon: true,
-						order: true,
-					},
-					orderBy: (links, { asc }) => asc(links.order),
+import { db } from "@/db"
+
+export async function getLinkGroups() {
+	"use cache"
+	cacheTag("link-groups")
+	cacheLife("weeks")
+
+	return db.query.linkGroups.findMany({
+		columns: {
+			id: true,
+			label: true,
+		},
+		with: {
+			links: {
+				columns: {
+					href: true,
+					label: true,
+					icon: true,
+					order: true,
 				},
+				orderBy: (links, { asc }) => asc(links.order),
 			},
-			orderBy: (linksGroups, { asc }) => asc(linksGroups.id),
-		}),
-	["get-link-groups"],
-	{
-		revalidate: 60 * 60 * 24 * 15,
-		tags: ["link-groups"],
-	}
-)
+		},
+		orderBy: (linksGroups, { asc }) => asc(linksGroups.id),
+	})
+}

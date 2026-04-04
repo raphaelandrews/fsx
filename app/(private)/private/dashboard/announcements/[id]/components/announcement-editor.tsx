@@ -72,7 +72,7 @@ export function AnnouncementEditor({ announcement }: AnnouncementEditorProps) {
 
 		if (result.success) {
 			toast.success("Announcement updated successfully")
-			router.refresh()
+			router.push("/private/dashboard/announcements")
 		} else {
 			toast.error(result.error || "Failed to update announcement")
 		}

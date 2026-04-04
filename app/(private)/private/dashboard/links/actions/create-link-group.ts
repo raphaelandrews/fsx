@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 
 import { db } from "@/db"
 import { linkGroups } from "@/db/schema"
+import { withSequenceFix } from "@/lib/with-sequence-fix"
 
 interface CreateLinkGroupInput {
 	label: string
@@ -11,14 +12,16 @@ interface CreateLinkGroupInput {
 
 export async function createLinkGroup(input: CreateLinkGroupInput) {
 	try {
-		const newLinkGroup = await db
-			.insert(linkGroups)
-			.values({
-				label: input.label,
-			})
-			.returning()
+		const newLinkGroup = await withSequenceFix("link_groups", () =>
+			db
+				.insert(linkGroups)
+				.values({
+					label: input.label,
+				})
+				.returning()
+		)
 
-		revalidateTag("link-groups", "max")
+		revalidateTag("link-groups", "default")
 		revalidatePath("/")
 		revalidatePath("/private/dashboard/link-groups")
 

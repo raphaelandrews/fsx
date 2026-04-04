@@ -17,7 +17,7 @@ export async function deleteEvent(id: number) {
 			return { success: false, error: "Event not found" }
 		}
 
-		revalidateTag("events", "max")
+		revalidateTag("events", "default")
 		revalidatePath("/")
 		revalidatePath("/eventos")
 

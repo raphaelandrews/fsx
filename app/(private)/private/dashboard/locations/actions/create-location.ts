@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 
 import { db } from "@/db"
 import { locations } from "@/db/schema"
+import { withSequenceFix } from "@/lib/with-sequence-fix"
 
 interface CreateLocationInput {
 	name: string
@@ -13,16 +14,18 @@ interface CreateLocationInput {
 
 export async function createLocation(input: CreateLocationInput) {
 	try {
-		const newLocation = await db
-			.insert(locations)
-			.values({
-				name: input.name,
-				type: input.type,
-				flag: input.flag,
-			})
-			.returning()
+		const newLocation = await withSequenceFix("locations", () =>
+			db
+				.insert(locations)
+				.values({
+					name: input.name,
+					type: input.type,
+					flag: input.flag,
+				})
+				.returning()
+		)
 
-		revalidateTag("locations", "max")
+		revalidateTag("locations", "default")
 		revalidatePath("/")
 		revalidatePath("/ratings")
 		revalidatePath("/private/dashboard/locations")

@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 
 import { db } from "@/db"
 import { clubs } from "@/db/schema"
+import { withSequenceFix } from "@/lib/with-sequence-fix"
 
 interface CreateClubInput {
 	name: string
@@ -12,15 +13,17 @@ interface CreateClubInput {
 
 export async function createClub(input: CreateClubInput) {
 	try {
-		const newClub = await db
-			.insert(clubs)
-			.values({
-				name: input.name,
-				logo: input.logo,
-			})
-			.returning()
+		const newClub = await withSequenceFix("clubs", () =>
+			db
+				.insert(clubs)
+				.values({
+					name: input.name,
+					logo: input.logo,
+				})
+				.returning()
+		)
 
-		revalidateTag("clubs", "max")
+		revalidateTag("clubs", "default")
 		revalidatePath("/")
 		revalidatePath("/ratings")
 		revalidatePath("/private/dashboard/clubs")

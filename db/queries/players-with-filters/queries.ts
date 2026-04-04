@@ -1,4 +1,5 @@
 import { and, count, desc, eq, gte, inArray, lte, or, sql } from "drizzle-orm"
+import { cacheLife, cacheTag } from "next/cache"
 
 import { db } from "@/db"
 import {
@@ -10,7 +11,6 @@ import {
 	playersToTitles,
 	titles,
 } from "@/db/schema"
-import { unstable_cache } from "@/lib/unstable_cache"
 
 function normalizeText(text: string): string {
 	return text
@@ -59,21 +59,11 @@ interface PlayersFilterParams {
 	name?: string
 }
 
-function createFilterCacheKey(params: PlayersFilterParams): string {
-	return JSON.stringify({
-		page: params.page ?? 1,
-		limit: params.limit ?? 20,
-		sex: params.sex,
-		titles: (params.titles ?? []).sort(),
-		clubs: (params.clubs ?? []).sort(),
-		groups: (params.groups ?? []).sort(),
-		locations: (params.locations ?? []).sort(),
-		sortBy: params.sortBy ?? "rapid",
-		name: params.name ?? "",
-	})
-}
+export async function getPlayersWithFilters(params: PlayersFilterParams) {
+	"use cache"
+	cacheTag("players", "players-with-filters")
+	cacheLife("weeks")
 
-export const getPlayersWithFilters = (params: PlayersFilterParams) => {
 	const {
 		page = 1,
 		limit = 20,
@@ -86,202 +76,190 @@ export const getPlayersWithFilters = (params: PlayersFilterParams) => {
 		name,
 	} = params
 
-	const cacheKey = createFilterCacheKey(params)
+	const whereConditions = [eq(players.active, true)]
 
-	return unstable_cache(
-		async () => {
-
-		const whereConditions = [eq(players.active, true)]
-
-		if (name) {
-			const normalizedQuery = normalizeText(name)
-			whereConditions.push(
-				sql`LOWER(translate(${players.name}, 'áàâãäéèêëíìîïóòôõöúùûüýÿ', 'aaaaaeeeeiiiiooooouuuuyy')) ILIKE ${`%${normalizedQuery}%`}`
-			)
-		}
-		if (sex === true || sex === false) {
-			whereConditions.push(eq(players.sex, sex === true))
-		}
-		if (titleFilters.length) {
-			whereConditions.push(inArray(titles.shortTitle, titleFilters))
-		}
-		if (clubFilters.length) {
-			whereConditions.push(inArray(clubs.name, clubFilters))
-		}
-		if (groupFilters.length) {
-			const groupConditions = []
-			for (const group of groupFilters) {
-				const range = getBirthDateRange(group)
-				if (range) {
-					groupConditions.push(
-						and(gte(players.birth, range[0]), lte(players.birth, range[1]))
-					)
-				}
-			}
-			if (groupConditions.length > 0) {
-				const condition =
-					groupConditions.length === 1
-						? groupConditions[0]
-						: or(...groupConditions)
-
-				if (condition) {
-					whereConditions.push(condition)
-				}
+	if (name) {
+		const normalizedQuery = normalizeText(name)
+		whereConditions.push(
+			sql`LOWER(translate(${players.name}, 'áàâãäéèêëíìîïóòôõöúùûüýÿ', 'aaaaaeeeeiiiiooooouuuuyy')) ILIKE ${`%${normalizedQuery}%`}`
+		)
+	}
+	if (sex === true || sex === false) {
+		whereConditions.push(eq(players.sex, sex === true))
+	}
+	if (titleFilters.length) {
+		whereConditions.push(inArray(titles.shortTitle, titleFilters))
+	}
+	if (clubFilters.length) {
+		whereConditions.push(inArray(clubs.name, clubFilters))
+	}
+	if (groupFilters.length) {
+		const groupConditions = []
+		for (const group of groupFilters) {
+			const range = getBirthDateRange(group)
+			if (range) {
+				groupConditions.push(
+					and(gte(players.birth, range[0]), lte(players.birth, range[1]))
+				)
 			}
 		}
-		if (locationFilters.length) {
-			whereConditions.push(inArray(locations.name, locationFilters))
+		if (groupConditions.length > 0) {
+			const condition =
+				groupConditions.length === 1
+					? groupConditions[0]
+					: or(...groupConditions)
+
+			if (condition) {
+				whereConditions.push(condition)
+			}
+		}
+	}
+	if (locationFilters.length) {
+		whereConditions.push(inArray(locations.name, locationFilters))
+	}
+
+	const countResult = await db
+		.select({ count: count() })
+		.from(players)
+		.leftJoin(playersToTitles, eq(players.id, playersToTitles.playerId))
+		.leftJoin(titles, eq(playersToTitles.titleId, titles.id))
+		.leftJoin(clubs, eq(players.clubId, clubs.id))
+		.leftJoin(locations, eq(players.locationId, locations.id))
+		.where(and(...whereConditions))
+		.groupBy(players.id)
+
+	const uniquePlayerCount = countResult.length
+	const totalPages = Math.max(1, Math.ceil(uniquePlayerCount / limit))
+	const offset = (page - 1) * limit
+
+	const subquery = db
+		.select({
+			id: players.id,
+			sortValue: players[sortBy],
+		})
+		.from(players)
+		.leftJoin(playersToTitles, eq(players.id, playersToTitles.playerId))
+		.leftJoin(titles, eq(playersToTitles.titleId, titles.id))
+		.leftJoin(clubs, eq(players.clubId, clubs.id))
+		.leftJoin(locations, eq(players.locationId, locations.id))
+		.where(and(...whereConditions))
+		.groupBy(players.id)
+		.orderBy(desc(players[sortBy]))
+		.limit(limit)
+		.offset(offset)
+		.as("subq")
+
+	const rows = await db
+		.select({
+			id: players.id,
+			name: players.name,
+			nickname: players.nickname,
+			classic: players.classic,
+			rapid: players.rapid,
+			blitz: players.blitz,
+			imageUrl: players.imageUrl,
+			birth: players.birth,
+			sex: players.sex,
+			clubs: {
+				id: clubs.id,
+				name: clubs.name,
+				logo: clubs.logo,
+			},
+			locations: {
+				name: locations.name,
+				flag: locations.flag,
+			},
+			championships: {
+				name: championships.name,
+			},
+			titles: {
+				type: titles.type,
+				title: titles.title,
+				shortTitle: titles.shortTitle,
+			},
+		})
+		.from(players)
+		.leftJoin(playersToTitles, eq(players.id, playersToTitles.playerId))
+		.leftJoin(defendingChampions, eq(players.id, defendingChampions.playerId))
+		.leftJoin(
+			championships,
+			eq(defendingChampions.championshipId, championships.id)
+		)
+		.leftJoin(titles, eq(playersToTitles.titleId, titles.id))
+		.leftJoin(clubs, eq(players.clubId, clubs.id))
+		.leftJoin(locations, eq(players.locationId, locations.id))
+		.innerJoin(subquery, eq(players.id, subquery.id))
+		.orderBy(desc(players[sortBy]))
+
+	const playersMap = new Map()
+
+	for (const row of rows) {
+		if (!playersMap.has(row.id)) {
+			playersMap.set(row.id, {
+				id: row.id,
+				name: row.name,
+				nickname: row.nickname,
+				classic: row.classic,
+				rapid: row.rapid,
+				blitz: row.blitz,
+				imageUrl: row.imageUrl,
+				birth: row.birth,
+				sex: row.sex,
+				club: {
+					id: row.clubs?.id ?? 0,
+					name: row.clubs?.name ?? "",
+					logo: row.clubs?.logo ?? "",
+				},
+				location: {
+					name: row.locations?.name ?? "",
+					flag: row.locations?.flag ?? "",
+				},
+				defendingChampions: [],
+				playersToTitles: [],
+			})
 		}
 
-		const countResult = await db
-			.select({ count: count() })
-			.from(players)
-			.leftJoin(playersToTitles, eq(players.id, playersToTitles.playerId))
-			.leftJoin(titles, eq(playersToTitles.titleId, titles.id))
-			.leftJoin(clubs, eq(players.clubId, clubs.id))
-			.leftJoin(locations, eq(players.locationId, locations.id))
-			.where(and(...whereConditions))
-			.groupBy(players.id)
+		const player = playersMap.get(row.id)
 
-		const uniquePlayerCount = countResult.length
-		const totalPages = Math.max(1, Math.ceil(uniquePlayerCount / limit))
-		const offset = (page - 1) * limit
-
-		const subquery = db
-			.select({
-				id: players.id,
-				sortValue: players[sortBy],
-			})
-			.from(players)
-			.leftJoin(playersToTitles, eq(players.id, playersToTitles.playerId))
-			.leftJoin(titles, eq(playersToTitles.titleId, titles.id))
-			.leftJoin(clubs, eq(players.clubId, clubs.id))
-			.leftJoin(locations, eq(players.locationId, locations.id))
-			.where(and(...whereConditions))
-			.groupBy(players.id)
-			.orderBy(desc(players[sortBy]))
-			.limit(limit)
-			.offset(offset)
-			.as("subq")
-
-		const rows = await db
-			.select({
-				id: players.id,
-				name: players.name,
-				nickname: players.nickname,
-				classic: players.classic,
-				rapid: players.rapid,
-				blitz: players.blitz,
-				imageUrl: players.imageUrl,
-				birth: players.birth,
-				sex: players.sex,
-				clubs: {
-					id: clubs.id,
-					name: clubs.name,
-					logo: clubs.logo,
-				},
-				locations: {
-					name: locations.name,
-					flag: locations.flag,
-				},
-				championships: {
-					name: championships.name,
-				},
-				titles: {
-					type: titles.type,
-					title: titles.title,
-					shortTitle: titles.shortTitle,
-				},
-			})
-			.from(players)
-			.leftJoin(playersToTitles, eq(players.id, playersToTitles.playerId))
-			.leftJoin(defendingChampions, eq(players.id, defendingChampions.playerId))
-			.leftJoin(
-				championships,
-				eq(defendingChampions.championshipId, championships.id)
+		if (row.championships?.name) {
+			const championshipExists = player.defendingChampions.some(
+				(c: { championship: { name: string } }) =>
+					c.championship.name === row.championships?.name
 			)
-			.leftJoin(titles, eq(playersToTitles.titleId, titles.id))
-			.leftJoin(clubs, eq(players.clubId, clubs.id))
-			.leftJoin(locations, eq(players.locationId, locations.id))
-			.innerJoin(subquery, eq(players.id, subquery.id))
-			.orderBy(desc(players[sortBy]))
-
-		const playersMap = new Map()
-
-		for (const row of rows) {
-			if (!playersMap.has(row.id)) {
-				playersMap.set(row.id, {
-					id: row.id,
-					name: row.name,
-					nickname: row.nickname,
-					classic: row.classic,
-					rapid: row.rapid,
-					blitz: row.blitz,
-					imageUrl: row.imageUrl,
-					birth: row.birth,
-					sex: row.sex,
-					club: {
-						id: row.clubs?.id ?? 0,
-						name: row.clubs?.name ?? "",
-						logo: row.clubs?.logo ?? "",
-					},
-					location: {
-						name: row.locations?.name ?? "",
-						flag: row.locations?.flag ?? "",
-					},
-					defendingChampions: [],
-					playersToTitles: [],
+			if (!championshipExists) {
+				player.defendingChampions.push({
+					championship: { name: row.championships.name },
 				})
 			}
-
-			const player = playersMap.get(row.id)
-
-			if (row.championships?.name) {
-				const championshipExists = player.defendingChampions.some(
-					(c: { championship: { name: string } }) =>
-						c.championship.name === row.championships?.name
-				)
-				if (!championshipExists) {
-					player.defendingChampions.push({
-						championship: { name: row.championships.name },
-					})
-				}
-			}
-
-			if (row.titles?.shortTitle) {
-				const titleExists = player.playersToTitles.some(
-					(t: { title: { shortTitle: string; type: string } }) =>
-						t.title.shortTitle === row.titles?.shortTitle &&
-						t.title.type === row.titles?.type
-				)
-				if (!titleExists) {
-					player.playersToTitles.push({
-						title: {
-							type: row.titles.type,
-							title: row.titles.title,
-							shortTitle: row.titles.shortTitle,
-						},
-					})
-				}
-			}
 		}
 
-			return {
-				players: Array.from(playersMap.values()),
-				pagination: {
-					currentPage: page,
-					totalPages,
-					totalItems: uniquePlayerCount,
-					itemsPerPage: limit,
-					hasNextPage: page < totalPages,
-					hasPreviousPage: page > 1,
-				},
+		if (row.titles?.shortTitle) {
+			const titleExists = player.playersToTitles.some(
+				(t: { title: { shortTitle: string; type: string } }) =>
+					t.title.shortTitle === row.titles?.shortTitle &&
+					t.title.type === row.titles?.type
+			)
+			if (!titleExists) {
+				player.playersToTitles.push({
+					title: {
+						type: row.titles.type,
+						title: row.titles.title,
+						shortTitle: row.titles.shortTitle,
+					},
+				})
 			}
+		}
+	}
+
+	return {
+		players: Array.from(playersMap.values()),
+		pagination: {
+			currentPage: page,
+			totalPages,
+			totalItems: uniquePlayerCount,
+			itemsPerPage: limit,
+			hasNextPage: page < totalPages,
+			hasPreviousPage: page > 1,
 		},
-		["get-players-with-filters", cacheKey],
-		{
-			revalidate: 60 * 60 * 24 * 15,
-			tags: ["players", "players-with-filters"],
-		}
-	)
+	}
 }

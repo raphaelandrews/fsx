@@ -10,6 +10,7 @@ import {
 	BuildingIcon,
 	MapPinIcon,
 	LinkIcon,
+	AwardIcon,
 } from "lucide-react"
 
 type NavigationItem = {
@@ -39,6 +40,11 @@ export const navigationData: Navigation = () => [
 		icon: UserIcon,
 	},
 	{
+		label: "Titles",
+		href: "/private/dashboard/players/titles",
+		icon: AwardIcon,
+	},
+	{
 		label: "Events",
 		href: "/private/dashboard/events",
 		icon: CalendarIcon,
@@ -64,12 +70,17 @@ export const navigationData: Navigation = () => [
 		icon: MapPinIcon,
 	},
 	{
+		label: "Cache",
+		href: "/private/dashboard/cache",
+		icon: DatabaseIcon,
+	},
+	{
 		label: "Rating Update",
 		href: "/private/rating-update",
 		icon: DatabaseIcon,
 	},
 	{
-		label: "🏝️",
+		label: "🏝",
 		href: "/private/dashboard/user",
 		icon: TreePalmIcon,
 	},

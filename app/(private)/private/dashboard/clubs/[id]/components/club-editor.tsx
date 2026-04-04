@@ -68,7 +68,7 @@ export function ClubEditor({ club }: ClubEditorProps) {
 
 		if (result.success) {
 			toast.success("Club updated successfully")
-			router.refresh()
+			router.push("/private/dashboard/clubs")
 		} else {
 			toast.error(result.error || "Failed to update club")
 		}

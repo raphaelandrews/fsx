@@ -78,7 +78,7 @@ export function LocationEditor({ location }: LocationEditorProps) {
 
 		if (result.success) {
 			toast.success("Location updated successfully")
-			router.refresh()
+			router.push("/private/dashboard/locations")
 		} else {
 			toast.error(result.error || "Failed to update location")
 		}

@@ -17,7 +17,7 @@ export async function deleteClub(id: number) {
 			return { success: false, error: "Club not found" }
 		}
 
-		revalidateTag("clubs", "max")
+		revalidateTag("clubs", "default")
 		revalidatePath("/")
 		revalidatePath("/ratings")
 		revalidatePath("/private/dashboard/clubs")

@@ -40,10 +40,10 @@ export async function updatePlayer(input: UpdatePlayerInput) {
 			return { success: false, error: "Player not found" }
 		}
 
-		revalidateTag(`player-${input.id}`, "max")
-		revalidateTag("players", "max")
-		revalidateTag("search-players", "max")
-		revalidateTag("swiss-manager-export", "max")
+		revalidateTag(`player-${input.id}`, "default")
+		revalidateTag("players", "default")
+		revalidateTag("search-players", "default")
+		revalidateTag("swiss-manager-export", "default")
 		revalidatePath("/")
 		revalidatePath(`/jogadores/${input.id}`)
 		revalidatePath("/ratings")

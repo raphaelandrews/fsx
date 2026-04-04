@@ -39,7 +39,7 @@ export async function updateEvent(input: UpdateEventInput) {
 			return { success: false, error: "Event not found" }
 		}
 
-		revalidateTag("events", "max")
+		revalidateTag("events", "default")
 		revalidatePath("/")
 		revalidatePath("/eventos")
 

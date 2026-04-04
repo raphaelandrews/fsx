@@ -70,8 +70,8 @@ export async function POST(req: Request) {
 
 		await db.insert(players).values(createData);
 
-		revalidateTag("players", "max")
-		revalidateTag("search-players", "max")
+		revalidateTag("players", "default")
+		revalidateTag("search-players", "default")
 
 		return new NextResponse(
 			JSON.stringify({

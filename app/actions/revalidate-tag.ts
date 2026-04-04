@@ -4,7 +4,7 @@ import { revalidateTag } from "next/cache"
 
 export async function revalidateTagAction(tag: string) {
 	try {
-		revalidateTag(tag, "max")
+		revalidateTag(tag, "default")
 		return { success: true, message: `Successfully revalidated tag: ${tag}` }
 	} catch (error) {
 		console.error("Error revalidating tag:", error)
@@ -14,7 +14,7 @@ export async function revalidateTagAction(tag: string) {
 
 export async function revalidateMultipleTagsAction(tags: string[]) {
 	try {
-		tags.forEach((tag) => revalidateTag(tag, "max"))
+		tags.forEach((tag) => revalidateTag(tag, "default"))
 		return {
 			success: true,
 			message: `Successfully revalidated ${tags.length} tags`,

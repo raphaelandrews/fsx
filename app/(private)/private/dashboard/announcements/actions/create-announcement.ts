@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 
 import { db } from "@/db"
 import { announcements } from "@/db/schema"
+import { withSequenceFix } from "@/lib/with-sequence-fix"
 
 interface CreateAnnouncementInput {
 	year: number
@@ -13,17 +14,19 @@ interface CreateAnnouncementInput {
 
 export async function createAnnouncement(input: CreateAnnouncementInput) {
 	try {
-		const newAnnouncement = await db
-			.insert(announcements)
-			.values({
-				year: input.year,
-				number: input.number,
-				content: input.content,
-			})
-			.returning()
+		const newAnnouncement = await withSequenceFix("announcements", () =>
+			db
+				.insert(announcements)
+				.values({
+					year: input.year,
+					number: input.number,
+					content: input.content,
+				})
+				.returning()
+		)
 
-		revalidateTag("announcements", "max")
-		revalidateTag("fresh-announcements", "max")
+		revalidateTag("announcements", "default")
+		revalidateTag("fresh-announcements", "default")
 		revalidatePath("/")
 		revalidatePath("/comunicados")
 
