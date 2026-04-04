@@ -58,9 +58,11 @@ export function Client({ circuits }: { circuits: Circuit[] }) {
 	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
-		if (circuits.length > 0 && circuits[0].circuitPhase.length > 0) {
-			setSelectedTab(circuits[0].name)
-			if (circuits[0].type === "categories") {
+		if (circuits.length > 0) {
+			const firstWithPhases = circuits.find((c) => c.circuitPhase.length > 0)
+			const first = firstWithPhases ?? circuits[0]
+			setSelectedTab(first.name)
+			if (first.type === "categories") {
 				setSelectedCategory("Master")
 			}
 			setLoading(false)
