@@ -11,6 +11,7 @@ import {
 	MapPinIcon,
 	LinkIcon,
 	AwardIcon,
+	DownloadIcon,
 } from "lucide-react"
 
 type NavigationItem = {
@@ -68,6 +69,11 @@ export const navigationData: Navigation = () => [
 		label: "Locations",
 		href: "/private/dashboard/locations",
 		icon: MapPinIcon,
+	},
+	{
+		label: "Backup",
+		href: "/private/dashboard/backup",
+		icon: DownloadIcon,
 	},
 	{
 		label: "Cache",
