@@ -1,3 +1,5 @@
+import type { NextRequest } from "next/server"
+
 import { db } from "@/db"
 import {
 	announcements,
@@ -34,120 +36,50 @@ import {
 	tournaments,
 } from "@/db/schema"
 
-export async function GET() {
-	const [
-		announcementsData,
-		championshipsData,
-		circuitPhasesData,
-		circuitPodiumsData,
-		circuitsData,
-		clubsData,
-		cupBracketsData,
-		cupGamesData,
-		cupGroupsData,
-		cupMatchesData,
-		cupPlayersData,
-		cupPlayoffsData,
-		cupRoundsData,
-		cupsData,
-		defendingChampionsData,
-		eventsData,
-		insigniasData,
-		linkGroupsData,
-		linksData,
-		locationsData,
-		normsData,
-		playersData,
-		playersToInsigniasData,
-		playersToNormsData,
-		playersToRolesData,
-		playersToTitlesData,
-		playersToTournamentsData,
-		postsData,
-		rolesData,
-		titlesData,
-		tournamentPodiumsData,
-		tournamentsData,
-	] = await Promise.all([
-		db.select().from(announcements),
-		db.select().from(championships),
-		db.select().from(circuitPhases),
-		db.select().from(circuitPodiums),
-		db.select().from(circuits),
-		db.select().from(clubs),
-		db.select().from(cupBrackets),
-		db.select().from(cupGames),
-		db.select().from(cupGroups),
-		db.select().from(cupMatches),
-		db.select().from(cupPlayers),
-		db.select().from(cupPlayoffs),
-		db.select().from(cupRounds),
-		db.select().from(cups),
-		db.select().from(defendingChampions),
-		db.select().from(events),
-		db.select().from(insignias),
-		db.select().from(linkGroups),
-		db.select().from(links),
-		db.select().from(locations),
-		db.select().from(norms),
-		db.select().from(players),
-		db.select().from(playersToInsignias),
-		db.select().from(playersToNorms),
-		db.select().from(playersToRoles),
-		db.select().from(playersToTitles),
-		db.select().from(playersToTournaments),
-		db.select().from(posts),
-		db.select().from(roles),
-		db.select().from(titles),
-		db.select().from(tournamentPodiums),
-		db.select().from(tournaments),
-	])
+// biome-ignore lint/suspicious/noExplicitAny: table map requires any
+const TABLE_MAP: Record<string, any> = {
+	announcements,
+	championships,
+	circuitPhases,
+	circuitPodiums,
+	circuits,
+	clubs,
+	cupBrackets,
+	cupGames,
+	cupGroups,
+	cupMatches,
+	cupPlayers,
+	cupPlayoffs,
+	cupRounds,
+	cups,
+	defendingChampions,
+	events,
+	insignias,
+	linkGroups,
+	links,
+	locations,
+	norms,
+	players,
+	playersToInsignias,
+	playersToNorms,
+	playersToRoles,
+	playersToTitles,
+	playersToTournaments,
+	posts,
+	roles,
+	titles,
+	tournamentPodiums,
+	tournaments,
+}
 
-	const backup = {
-		exportedAt: new Date().toISOString(),
-		tables: {
-			announcements: announcementsData,
-			championships: championshipsData,
-			circuitPhases: circuitPhasesData,
-			circuitPodiums: circuitPodiumsData,
-			circuits: circuitsData,
-			clubs: clubsData,
-			cupBrackets: cupBracketsData,
-			cupGames: cupGamesData,
-			cupGroups: cupGroupsData,
-			cupMatches: cupMatchesData,
-			cupPlayers: cupPlayersData,
-			cupPlayoffs: cupPlayoffsData,
-			cupRounds: cupRoundsData,
-			cups: cupsData,
-			defendingChampions: defendingChampionsData,
-			events: eventsData,
-			insignias: insigniasData,
-			linkGroups: linkGroupsData,
-			links: linksData,
-			locations: locationsData,
-			norms: normsData,
-			players: playersData,
-			playersToInsignias: playersToInsigniasData,
-			playersToNorms: playersToNormsData,
-			playersToRoles: playersToRolesData,
-			playersToTitles: playersToTitlesData,
-			playersToTournaments: playersToTournamentsData,
-			posts: postsData,
-			roles: rolesData,
-			titles: titlesData,
-			tournamentPodiums: tournamentPodiumsData,
-			tournaments: tournamentsData,
-		},
+export async function GET(request: NextRequest) {
+	const table = request.nextUrl.searchParams.get("table")
+
+	if (!table || !TABLE_MAP[table]) {
+		return Response.json({ error: "Unknown table" }, { status: 400 })
 	}
 
-	const date = new Date().toISOString().split("T")[0]
-	const filename = `backup-${date}.json`
+	const rows = await db.select().from(TABLE_MAP[table])
 
-	return new Response(JSON.stringify(backup, null, 2), {
-		headers: {
-			"Content-Type": "application/json",
-			"Content-Disposition": `attachment; filename="${filename}"`,
-		},
-	})
+	return Response.json({ table, count: rows.length, rows })
 }

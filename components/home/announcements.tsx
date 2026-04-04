@@ -24,7 +24,7 @@ export function Announcements({ announcements }: AnnouncementsSectionProps) {
 			<div className="flex flex-col">
 				{announcements?.map((announcement: AnnouncementType, index: number) => (
 					<AnnouncementItem
-						key={announcement.number}
+						key={announcement.id}
 						announcement={announcement}
 						isLast={index === announcements.length - 1}
 					/>
