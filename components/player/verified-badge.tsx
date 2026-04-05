@@ -12,14 +12,14 @@ import { Separator } from "@/components/ui/separator"
 
 type Role = { role: { type: string } }
 
-type VerifiedTier = "founder" | "management" | "referee" | "verified"
+type VerifiedTier = "admin" | "management" | "referee" | "verified"
 
 function getTier(
 	playerId: number,
 	roles: Role[],
 	verified: boolean,
 ): VerifiedTier | null {
-	if (playerId === 1) return "founder"
+	if (playerId === 1) return "admin"
 	if (roles.some((r) => r.role.type === "management")) return "management"
 	if (roles.some((r) => r.role.type === "referee")) return "referee"
 	if (verified) return "verified"
@@ -30,24 +30,27 @@ const TIER_CONFIG: Record<
 	VerifiedTier,
 	{ iconClass: string; label: string; description: string }
 > = {
-	founder: {
+	admin: {
 		iconClass:
-			"!fill-bulbasaur-foreground mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
-		label: "Diretoria",
-		description: "Este jogador faz parte da diretoria da federação.",
+			"!fill-bulbasaur dark:!fill-bulbasaur-foreground mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+		label: "Administrador",
+		description: "Este jogador é um administrador da federação.",
 	},
 	management: {
-		iconClass: "!fill-highlight mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+		iconClass:
+			"!fill-highlight mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
 		label: "Diretoria",
 		description: "Este jogador faz parte da diretoria da federação.",
 	},
 	referee: {
-		iconClass: "!fill-slate-500 mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+		iconClass:
+			"!fill-slate-500 mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
 		label: "Árbitro Oficial",
 		description: "Este jogador é um árbitro oficial da federação.",
 	},
 	verified: {
-		iconClass: "!fill-ice-foreground mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+		iconClass:
+			"!fill-sky-400 mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
 		label: "Perfil verificado",
 		description: "Esse perfil teve seus dados confirmados pela federação.",
 	},
