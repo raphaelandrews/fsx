@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ExternalLink, ArrowUpRight, TrendingUpIcon, CalendarRangeIcon, Link2Icon, InfoIcon, TargetIcon, VerifiedIcon, BarChart3Icon } from "lucide-react"
+import { ExternalLink, ArrowUpRight, TrendingUpIcon, CalendarRangeIcon, Link2Icon, InfoIcon, TargetIcon, BarChart3Icon } from "lucide-react"
 
 import type { PlayerById } from "@/db/queries"
 import { formatDefendingChampions } from "@/lib/defending-champions"
@@ -13,7 +13,6 @@ import { DataTable } from "@/components/sheets/player/data-table"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { buttonVariants } from "@/components/ui/button"
 import {
   Popover,
   PopoverContent,
@@ -26,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { VerifiedBadge } from "@/components/player/verified-badge"
 import { Announcement } from "@/components/announcement"
 import { DottedSeparator } from "@/components/dotted-separator"
 import { TotalRatingChart, VariationChart } from "@/components/player/player-charts"
@@ -103,32 +103,11 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
                 )}
                 {player.nickname || player.name}
               </h1>
-              {player.verified && (
-                <Popover>
-                  <PopoverTrigger asChild className="cursor-pointer">
-                    <VerifiedIcon
-                      aria-label="Verificado"
-                      className="!fill-sky-400 mt-1 stroke-background dark:stroke-[1.5]"
-                    />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 p-4">
-                    <div className="space-y-2">
-                      <h4 className="font-semibold leading-none">Perfil verificado</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Esse perfil teve seus dados confirmados pela federação.
-                      </p>
-                      <a
-                        className={buttonVariants({ variant: "outline", className: "w-full" })}
-                        href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Solicitar verificação
-                      </a>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
+              <VerifiedBadge
+                playerId={player.id}
+                roles={player.playersToRoles ?? []}
+                verified={player.verified ?? false}
+              />
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-2">
