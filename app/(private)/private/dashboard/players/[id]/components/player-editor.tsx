@@ -21,12 +21,22 @@ import {
 import {
 	Form,
 	FormControl,
-	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
 	FormMessage,
 } from "@/components/ui/form"
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { SearchableSelect } from "./searchable-select"
@@ -45,6 +55,7 @@ const PlayerSchema = z.object({
 	sex: z.boolean(),
 	clubId: z.number().nullable(),
 	locationId: z.number().nullable(),
+	verified: z.boolean(),
 })
 
 type PlayerFormData = z.infer<typeof PlayerSchema>
@@ -58,6 +69,7 @@ interface PlayerEditorProps {
 export function PlayerEditor({ player, clubs, locations }: PlayerEditorProps) {
 	const router = useRouter()
 	const [isSaving, setIsSaving] = useState(false)
+	const [pendingData, setPendingData] = useState<PlayerFormData | null>(null)
 
 	const defaultValues: PlayerFormData = {
 		id: player.id,
@@ -69,6 +81,7 @@ export function PlayerEditor({ player, clubs, locations }: PlayerEditorProps) {
 		sex: player.sex ?? false,
 		clubId: player.clubId ?? null,
 		locationId: player.locationId ?? null,
+		verified: player.verified ?? false,
 	}
 
 	const form = useForm<PlayerFormData>({
@@ -76,7 +89,7 @@ export function PlayerEditor({ player, clubs, locations }: PlayerEditorProps) {
 		defaultValues,
 	})
 
-	async function onSubmit(data: PlayerFormData) {
+	async function savePlayer(data: PlayerFormData, redirectTo?: string) {
 		setIsSaving(true)
 
 		const result = await updatePlayer({
@@ -89,11 +102,16 @@ export function PlayerEditor({ player, clubs, locations }: PlayerEditorProps) {
 			sex: data.sex,
 			clubId: data.clubId,
 			locationId: data.locationId,
+			verified: data.verified,
 		})
 
 		if (result.success) {
 			toast.success("Player updated successfully")
-			router.refresh()
+			if (redirectTo) {
+				router.push(redirectTo)
+			} else {
+				router.refresh()
+			}
 		} else {
 			toast.error(result.error || "Failed to update player")
 		}
@@ -101,7 +119,39 @@ export function PlayerEditor({ player, clubs, locations }: PlayerEditorProps) {
 		setIsSaving(false)
 	}
 
+	function onSubmit(data: PlayerFormData) {
+		if (!data.verified) {
+			setPendingData(data)
+			return
+		}
+		savePlayer(data, "/private/dashboard/players")
+	}
+
+	function handleConfirmUnverified() {
+		setPendingData(null)
+	}
+
+	function handleCancelUnverified() {
+		setPendingData(null)
+		router.push("/private/dashboard/players")
+	}
+
 	return (
+		<>
+		<AlertDialog open={!!pendingData} onOpenChange={(open) => { if (!open) setPendingData(null) }}>
+			<AlertDialogContent>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Player is not verified</AlertDialogTitle>
+					<AlertDialogDescription>
+						This player is not verified. Do you want to mark them as verified before saving?
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel onClick={handleCancelUnverified}>No</AlertDialogCancel>
+					<AlertDialogAction onClick={handleConfirmUnverified}>Yes</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 				<Card className="max-w-2xl">
@@ -302,6 +352,27 @@ export function PlayerEditor({ player, clubs, locations }: PlayerEditorProps) {
 								</FormItem>
 							)}
 						/>
+
+						<FormField
+							control={form.control}
+							name="verified"
+							render={({ field }) => (
+								<FormItem className="flex items-center gap-2">
+									<FormControl>
+										<Checkbox
+											id="verified"
+											checked={field.value}
+											onCheckedChange={field.onChange}
+											disabled={isSaving}
+										/>
+									</FormControl>
+									<FormLabel htmlFor="verified" className="cursor-pointer">
+										{field.value ? "Verified" : "Not verified"}
+									</FormLabel>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 					</CardContent>
 				</Card>
 
@@ -327,5 +398,6 @@ export function PlayerEditor({ player, clubs, locations }: PlayerEditorProps) {
 				</div>
 			</form>
 		</Form>
+		</>
 	)
 }

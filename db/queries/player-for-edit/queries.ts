@@ -15,6 +15,7 @@ export const getPlayerForEdit = async (id: number) => {
 			sex: true,
 			clubId: true,
 			locationId: true,
+			verified: true,
 		},
 	})
 }

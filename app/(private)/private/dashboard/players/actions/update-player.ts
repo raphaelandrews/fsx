@@ -16,6 +16,7 @@ interface UpdatePlayerInput {
 	sex: boolean
 	clubId: number | null
 	locationId: number | null
+	verified: boolean
 }
 
 export async function updatePlayer(input: UpdatePlayerInput) {
@@ -31,6 +32,7 @@ export async function updatePlayer(input: UpdatePlayerInput) {
 				sex: input.sex,
 				clubId: input.clubId,
 				locationId: input.locationId,
+				verified: input.verified,
 				updatedAt: new Date(),
 			})
 			.where(eq(players.id, input.id))

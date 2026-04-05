@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { revalidateMultipleTagsAction } from "@/app/actions/revalidate-tag";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 const CACHE_GROUPS = {
@@ -98,12 +99,10 @@ export function CacheInvalidation() {
 								key={tag}
 								className="flex cursor-pointer items-center gap-2"
 							>
-								<input
-									type="checkbox"
+								<Checkbox
 									checked={selectedTags.has(tag)}
-									onChange={() => toggleTag(tag)}
+									onCheckedChange={() => toggleTag(tag)}
 									disabled={isPending}
-									className="h-4 w-4 rounded border-gray-300 accent-primary"
 								/>
 								<span className="text-sm">{tag}</span>
 							</Label>
