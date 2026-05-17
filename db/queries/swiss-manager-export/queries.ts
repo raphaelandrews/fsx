@@ -25,7 +25,6 @@ export async function getPlayersForSwissManager() {
 				},
 			},
 		},
-		where: (players, { eq }) => eq(players.active, true),
 		orderBy: (players, { desc }) => [desc(players.rapid)],
 	})
 }
