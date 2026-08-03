@@ -1,0 +1,24 @@
+{
+  "name": "@fsx/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@fsx/db": "workspace:*",
+    "@fsx/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@fsx/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

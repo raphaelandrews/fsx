@@ -1,0 +1,3 @@
+{
+  "extends": "@fsx/config/tsconfig.base.json"
+}
