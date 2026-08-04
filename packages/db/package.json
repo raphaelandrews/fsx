@@ -17,6 +17,7 @@
     "@libsql/client": "catalog:",
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.2",
+    "drizzle-zod": "^0.7.1",
     "libsql": "catalog:",
     "zod": "catalog:"
   },

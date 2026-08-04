@@ -1,0 +1,156 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "@tanstack/react-form";
+import { Button } from "@fsx/ui/components/button";
+import { Input } from "@fsx/ui/components/input";
+import { Label } from "@fsx/ui/components/label";
+import { toast } from "sonner";
+
+import { useTRPC } from "@/utils/trpc";
+
+export const Route = createFileRoute("/_auth/dashboard/links/create")({
+  head: () => ({ title: "Create Link Group - Admin - FSX" }),
+  component: RouteComponent,
+});
+
+function RouteComponent() {
+  const trpc = useTRPC();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  const createGroupMutation = useMutation({
+    ...trpc.links.create.mutationOptions(),
+    onSuccess: (data) => {
+      toast.success("Group created");
+      const groupId = data[0].id;
+      if (links.length > 0) {
+        links.forEach((link) => {
+          createLinkMutation.mutate({
+            href: link.href, label: link.label,
+            icon: link.icon, order: link.order, linkGroupId: groupId,
+          });
+        });
+      }
+      qc.invalidateQueries(trpc.links.list.queryFilter());
+      navigate({ to: "/dashboard/links" });
+    },
+    onError: () => toast.error("Failed to create group"),
+  });
+
+  const createLinkMutation = useMutation(trpc.links.createLink.mutationOptions());
+
+  const form = useForm({
+    defaultValues: {
+      label: "",
+      links: [] as { href: string; label: string; icon: string; order: number }[],
+    },
+    onSubmit: ({ value }) => {
+      createGroupMutation.mutate({ label: value.label });
+    },
+  });
+
+  let links: { href: string; label: string; icon: string; order: number }[] = [];
+
+  return (
+    <div className="mx-auto max-w-lg">
+      <h1 className="mb-6 font-bold text-2xl">Create Link Group</h1>
+      <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
+        <form.Field name="label">
+          {(f) => (
+            <div className="space-y-2">
+              <Label htmlFor={f.name}>Group Label</Label>
+              <Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
+            </div>
+          )}
+        </form.Field>
+
+        <div>
+          <h3 className="mb-2 font-medium text-sm">Links</h3>
+          <form.Field name="links">
+            {(f) => {
+              links = f.state.value;
+              return (
+                <div className="space-y-2">
+                  {f.state.value.map((_, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        placeholder="Label"
+                        value={f.state.value[index].label}
+                        onChange={(e) => {
+                          const next = [...f.state.value];
+                          next[index] = { ...next[index], label: e.target.value };
+                          f.handleChange(next);
+                        }}
+                        className="flex-1"
+                      />
+                      <Input
+                        placeholder="URL"
+                        value={f.state.value[index].href}
+                        onChange={(e) => {
+                          const next = [...f.state.value];
+                          next[index] = { ...next[index], href: e.target.value };
+                          f.handleChange(next);
+                        }}
+                        className="flex-1"
+                      />
+                      <Input
+                        placeholder="Icon"
+                        value={f.state.value[index].icon}
+                        onChange={(e) => {
+                          const next = [...f.state.value];
+                          next[index] = { ...next[index], icon: e.target.value };
+                          f.handleChange(next);
+                        }}
+                        className="w-20"
+                      />
+                      <Input
+                        placeholder="Order"
+                        type="number"
+                        value={String(f.state.value[index].order || 0)}
+                        onChange={(e) => {
+                          const next = [...f.state.value];
+                          next[index] = { ...next[index], order: Number(e.target.value) };
+                          f.handleChange(next);
+                        }}
+                        className="w-20"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const next = f.state.value.filter((_, i) => i !== index);
+                          f.handleChange(next);
+                        }}
+                      >
+                        X
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      f.handleChange([...f.state.value, { label: "", href: "", icon: "", order: f.state.value.length }]);
+                    }}
+                  >
+                    Add Link
+                  </Button>
+                </div>
+              );
+            }}
+          </form.Field>
+        </div>
+
+        <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
+          {({ canSubmit, isSubmitting }) => (
+            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+              {isSubmitting ? "Creating..." : "Create Group"}
+            </Button>
+          )}
+        </form.Subscribe>
+      </form>
+    </div>
+  );
+}

@@ -19,14 +19,13 @@ Built with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-st
 | Styling            | [TailwindCSS v4](https://tailwindcss.com)         |
 | Forms              | [TanStack Form](https://tanstack.com/form)        |
 | Data Fetching      | [TanStack React Query](https://tanstack.com/query) |
-| Client State       | [TanStack Store](https://tanstack.com/store)      |
-| Charts             | [TanStack Charts](https://tanstack.com/charts)    |
+| Client State       | React useState (Zustand removed)                  |
+| Charts             | [TanStack Charts](https://tanstack.com/charts)     |
 | Virtualization     | [TanStack Virtual](https://tanstack.com/virtual)  |
 | Markdown           | [TanStack Markdown](https://tanstack.com/markdown) |
 | Hotkeys            | [TanStack Hotkeys](https://tanstack.com/hotkeys)  |
-| Timing             | [TanStack Pacer](https://tanstack.com/pacer)      |
-| Highlight          | [TanStack Highlight](https://tanstack.com/highlight) |
-| Devtools           | [TanStack Devtools](https://tanstack.com/devtools) |
+| Devtools           | [TanStack Devtools](https://tanstack.com/devtools) (unified: Query + Router + Form) |
+| Icons              | [Hugeicons](https://hugeicons.com)               |
 | Linting            | [Oxlint](https://oxc.rs) + [Oxfmt](https://oxc.rs) |
 | Package            | [bun](https://bun.sh) (monorepo workspaces)       |
 | Deploy             | [Cloudflare Pages](https://pages.cloudflare.com) via [Alchemy](https://alchemy.run) |
@@ -183,5 +182,6 @@ bun run destroy
 
 ## Migration Status
 
-This project is being rewritten from Next.js + Supabase + PostgreSQL.
-See [REWRITING.md](./REWRITING.md) for the full migration plan and progress tracking.
+This project was migrated from Next.js + Supabase + PostgreSQL. The old codebase
+is preserved at `source-project/` for reference.
+See [REWRITING.md](./REWRITING.md) for architecture decisions and best practices.

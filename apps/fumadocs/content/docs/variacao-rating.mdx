@@ -1,0 +1,27 @@
+---
+title: Variação de Rating
+description: Regras sobre o fator K e cálculo de variação de rating da FSX.
+---
+
+# Variação de Rating
+
+O fator K determina a variação máxima de rating que um jogador pode ganhar ou
+perder em cada partida. Quanto menor o K, menor a variação.
+
+## Fatores K
+
+| Fator K | Quando se aplica |
+|---------|------------------|
+| **K=1** | Em torneios que só contenham atletas com idade menor ou igual a 18 anos e o jogador possua rating superior ou igual a 2100. |
+| **K=5** | Em torneios que só contenham atletas com idade menor ou igual a 18 anos. |
+| **K=10** | O enxadrista possua rating igual ou superior a 2300 pontos. |
+| **K=20** | Nas demais situações. |
+
+## Cálculo
+
+A variação de rating é calculada com base na diferença entre o resultado esperado
+(calculado pela fórmula de Elo) e o resultado obtido, multiplicado pelo fator K.
+
+```
+Variação = K × (Resultado − Resultado Esperado)
+```

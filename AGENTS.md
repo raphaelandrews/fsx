@@ -1,6 +1,6 @@
 # Project Context
 
-This project is undergoing a migration from Next.js to Better-T-Stack (TanStack Start, tRPC, Better Auth, SQLite/D1). See `REWRITING.md` for the full plan. The `source-project/` directory contains the old codebase as reference.
+This project was migrated from Next.js + Supabase + PostgreSQL to Better-T-Stack (TanStack Start, tRPC, Better Auth, SQLite/D1). See `REWRITING.md` for architecture decisions and best practices. The `source-project/` directory contains the old codebase as reference.
 
 <!-- intent-skills:start -->
 ## Skill Loading

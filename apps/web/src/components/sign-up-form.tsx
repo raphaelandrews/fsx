@@ -1,6 +1,8 @@
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
+import { Github01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -145,6 +147,29 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
           )}
         </form.Subscribe>
       </form>
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+        </div>
+      </div>
+
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={() =>
+          authClient.signIn.social({
+            provider: "github",
+            callbackURL: "/dashboard",
+          })
+        }
+      >
+        <HugeiconsIcon icon={Github01Icon} className="mr-2 size-4" />
+        GitHub
+      </Button>
 
       <div className="mt-4 text-center">
         <Button

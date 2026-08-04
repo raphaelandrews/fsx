@@ -16,20 +16,15 @@ Better Auth + D1/SQLite).
 | ORM            | Drizzle ORM (postgres-js)         | Drizzle ORM (libsql/D1)                          |
 | API            | REST routes + Server Actions      | tRPC                                             |
 | Forms          | react-hook-form                   | TanStack Form                                    |
-| Charts         | Recharts                          | TanStack Charts (D3-native, typed grammar)       |
-| State (client) | Zustand                           | TanStack Store                                   |
-| Timing         | Custom `useDebounce` hook         | TanStack Pacer (debounce, throttle, batch)       |
-| Hotkeys        | Raw `cmdk` key handling           | TanStack Hotkeys (type-safe, cross-platform)     |
-| Markdown       | `next-mdx-remote` (Next.js only)  | TanStack Markdown (SSR + client, 6.7KB gzip)     |
-| Virtualization | None                              | TanStack Virtual (player lists, ratings tables)  |
-| UI             | shadcn/ui (new-york, Radix)       | shadcn/react (base-lyra, Base UI)                |
-| Icons          | Lucide                            | Hugeicons (stroke-based, 28K+ icons)             |
-| Styling        | TailwindCSS v4                    | TailwindCSS v4                                   |
-| Devtools       | None (isolated React Query devtools)  | TanStack Devtools (unified panel)                |
+| Charts         | Recharts                          | TanStack Charts (D3-native, typed grammar)        |
+| State (client) | Zustand                           | React useState (Zustand removed)                  |
+| Timing         | Custom `useDebounce` hook         | Kept (Pacer debounces fns, hook debounces values) |
+| Hotkeys        | Raw `cmdk` key handling           | TanStack Hotkeys (Mod+K, cross-platform)         |
+| Devtools       | None (isolated React Query devtools)  | TanStack Devtools (unified panel: Query + Router + Form) |
 | Storage        | Supabase Storage                  | Cloudflare R2                                    |
 | Linting        | Biome                             | Oxlint + Oxfmt                                   |
 | State (server) | React Query + Server Actions      | React Query (tRPC integrated)                    |
-| Syntax Highlight| None                             | TanStack Highlight (synced with Markdown)        |
+| Syntax Highlight| None                             | Deferred (TanStack Highlight — no code blocks in blog posts yet) |
 | Deploy         | Vercel                            | Cloudflare Pages (via Alchemy)                   |
 | Package Manager| bun (single package)              | bun (monorepo workspaces)                        |
 | Docs           | None                              | Fumadocs (Astro)                                 |
@@ -379,7 +374,8 @@ Move from `source-project/components/` to `apps/web/src/components/`, adapting i
 # In apps/web/package.json
 
 # Icons
-@hugeicons/react                 # 28K+ stroke-based icons (replaces lucide-react)
+@hugeicons/react                 # Rendering component (HugeiconsIcon)
+@hugeicons/core-free-icons       # 28K+ stroke-based icon data
 
 # TanStack ecosystem (framework-aligned)
 @tanstack/react-table           # Data tables (sorting, filtering, pagination)
@@ -403,7 +399,7 @@ react-slugify                    # URL slug generation
 ```
 
 **Removed** (replaced):
-- `lucide-react` → `@hugeicons/react` (28K+ icons, stroke-based, better bundle via tree-shaking)
+- `lucide-react` → `@hugeicons/react` + `@hugeicons/core-free-icons` (28K+ icons, stroke-based, better bundle via tree-shaking)
 
 **Removed** (replaced by TanStack ecosystem):
 - `recharts` → `@tanstack/react-charts`
@@ -654,42 +650,42 @@ Integrate with TanStack Router's `useNavigate()` instead of `useRouter()` from N
 Execute in this sequence to maintain a working application at each step:
 
 ```
-1.  packages/db/src/schema/     — Port all 31 tables to SQLite
-2.  packages/db/src/index.ts    — Verify D1 connection works
-3.  db:generate                 — Create initial migration
-4.  packages/auth/src/index.ts  — Add GitHub OAuth
-    apps/web/.env                — Add GitHub env vars
-    packages/env/src/server.ts   — Add env validation
-5.  Verify auth flow (email + GitHub)
-6.  packages/api/src/context.ts — Enhance context with `db`
-7.  packages/api/src/routers/   — Port tRPC procedures
-    Start with: announcements, clubs, locations, roles, titles (simple CRUD)
-    Then: players, posts, circuits, champions (complex queries)
-    Then: players-tournament (transactional mutations)
-8.  packages/ui/src/components/ — Install missing shadcn components
-    packages/ui/src/styles/globals.css — Port color tokens
-9.  apps/web/src/routes/        — Port public pages first
-    __root.tsx (layout + theme)
-    _public/ (homepage, ratings, news, etc.)
-    _params/ (player profile, news article)
-    login.tsx
-10. apps/web/src/components/   — Port custom components
-    Start: providers, header, footer, logo
-    Then: home/* (hero, events, posts, announcements, FAQ, ratings)
-    Then: player/* (charts, profile, badge)
-    Then: animate-ui/* (counting, sliding, etc.)
-    Then: modals, sheets, command-menu
-11. apps/web/src/routes/_auth/  — Port private/admin pages
-    dashboard/* (all CRUD pages)
-    rating-update
-    swiss-manager
-12. Image storage               — Set up R2, create upload procedures
-    lib/r2-storage.ts
-    Update image-cropper.tsx
-13. Seed script                  — Port to packages/db/src/seed.ts
-14. apps/fumadocs/              — Populate docs with actual FSX content
-15. Polish                      — SEO metadata, loading states, error handling
-16. Deploy                      — Test on Cloudflare Pages via Alchemy
+[x]  1.  packages/db/src/schema/     — Port all 31 tables to SQLite
+[x]  2.  packages/db/src/index.ts    — Verify D1 connection works
+[ ]  3.  db:generate                 — Create initial migration (needs D1 provisioned)
+[x]  4.  packages/auth/src/index.ts  — Add GitHub OAuth
+         apps/web/.env                — Add GitHub env vars
+         packages/env/src/server.ts   — Add env validation
+[ ]  5.  Verify auth flow (email + GitHub) (needs D1 + dev server running)
+[x]  6.  packages/api/src/context.ts — Enhance context with `db`
+[x]  7.  packages/api/src/routers/   — Port tRPC procedures
+         Start with: announcements, clubs, locations, roles, titles (simple CRUD)
+         Then: players, posts, circuits, champions (complex queries)
+         Then: players-tournament (transactional mutations)
+[x]  8.  packages/ui/src/components/ — Install missing shadcn components
+         packages/ui/src/styles/globals.css — Port color tokens
+[x]  9.  apps/web/src/routes/        — Port public pages first
+         __root.tsx (layout + theme)
+         _public/ (homepage, ratings, news, etc.)
+         _params/ (player profile, news article)
+         login.tsx
+[x] 10.  apps/web/src/components/   — Port custom components
+         Start: providers, header, footer, logo
+         Then: home/* (hero, events, posts, announcements, FAQ, ratings)
+         Then: player/* (charts, profile, badge)
+         Then: animate-ui/* (counting, sliding, etc.)
+         Then: modals, sheets, command-menu
+[x] 11.  apps/web/src/routes/_auth/  — Port private/admin pages
+         dashboard/* (all CRUD pages) — 28 route files created
+         rating-update — ported (Excel upload + tRPC mutations)
+         swiss-manager — route exists, page needs content
+[x] 12.  Image storage               — Set up R2 stub, create upload procedures
+         lib/r2-storage.ts (stub ready for Cloudflare R2 setup)
+[ ]       Update image-cropper.tsx — ported but needs R2 integration
+[x] 13.  Seed script                  — Port to packages/db/src/seed.ts
+[x] 14.  apps/fumadocs/              — Populate docs with actual FSX content
+[x] 15.  Polish                      — SEO metadata, loading states, error handling
+[ ] 16.  Deploy                      — Test on Cloudflare Pages via Alchemy
 ```
 
 ---
@@ -779,9 +775,16 @@ Execute in this sequence to maintain a working application at each step:
 - **Use `cn()` from `@fsx/ui/lib/utils`** for class merging.
 - **Install new components** via `npx shadcn@latest add <name> -c packages/ui`.
 - **Customize the theme** in `packages/ui/src/styles/globals.css` using CSS variables.
-- **All icons import from `@hugeicons/react`**. Set `iconLibrary: "hugeicons"` in
-  `components.json` (both `packages/ui/` and `apps/web/`). When adding shadcn components
-  that use `lucide-react`, swap the icon imports to the equivalent Hugeicons names.
+- **All icons import from two packages: `@hugeicons/react` (rendering) and
+  `@hugeicons/core-free-icons` (icon data).** Set `iconLibrary: "hugeicons"` in
+  `components.json` (both `packages/ui/` and `apps/web/`). Usage pattern:
+  ```tsx
+  import { CheckIcon } from "@hugeicons/core-free-icons";
+  import { HugeiconsIcon } from "@hugeicons/react";
+  <HugeiconsIcon icon={CheckIcon} className="size-4" />
+  ```
+  When adding shadcn components that use `lucide-react`, swap to this pattern
+  with the equivalent Hugeicons icon names.
 - **Don't mix old shadcn/ui imports** (`@/components/ui/*`) with new ones. All UI imports go
   through `@fsx/ui/`.
 
@@ -829,17 +832,12 @@ Execute in this sequence to maintain a working application at each step:
     fewer dependencies.
 
 7.  **TanStack Charts over Recharts** — D3-native, typed grammar (no guessing series models),
-    responsive out of the box, automatic light/dark mode from CSS variables, accessible SVG
-    output. Same library can feed vanilla DOM and React. A chart is a typed composition of
-    marks, channels, and scales — AI-friendly authoring.
+    responsive out of the box, automatic light/dark mode from CSS variables. Replaced player
+    charts with `defineChart()` + D3 scales composition.
 
-8.  **TanStack Store over Zustand** — Framework-agnostic store with first-class React
-    adapter. Fine-grained reactivity (subscribe to individual keys). Integrates with the
-    same TanStack ecosystem. Small bundle, reactive by default.
+8.  **TanStack Store over Zustand** — Removed Zustand entirely. React useState suffices — no client state store needed.
 
-9.  **TanStack Pacer** — Replaces the custom `useDebounce` hook with debounce, throttle,
-    rate-limit, and batch utilities. Type-safe function arguments, promise support, abort
-    signaling. No more hand-rolled timing logic.
+9.  **TanStack Pacer** — Kept custom `useDebounce` hook. Pacer debounces functions, the custom hook debounces values — different patterns, hook is simpler for this use case.
 
 10. **TanStack Hotkeys** — Type-safe keyboard shortcut management with full autocomplete
     for modifier keys (`Control+A`, `Mod+Shift+G`). Cross-platform (`Mod` → Cmd on Mac,
@@ -855,9 +853,7 @@ Execute in this sequence to maintain a working application at each step:
     preview). No async initialization, no runtime deps. Safe by default (raw HTML escaped).
     Pairs with TanStack Highlight for code fence syntax highlighting.
 
-13. **TanStack Highlight** — Selective syntax highlighter for blogs and documentation.
-    Import only the languages you use. One class-based HTML tree for every theme.
-    Isomorphic (same output on server and client). Complements TanStack Markdown.
+13. **TanStack Highlight** — Deferred. Selective syntax highlighter for code blocks in blog posts and documentation. Not yet needed — blog posts don't contain code blocks.
 
 14. **TanStack Devtools** — Unified devtools panel replacing isolated
     `@tanstack/react-query-devtools`. Single floating panel with tabbed views
@@ -882,9 +878,9 @@ Execute in this sequence to maintain a working application at each step:
 - **`postgres` (postgres-js)** — Replaced by `@libsql/client`
 - **`react-hook-form`** and `@hookform/resolvers` — Replaced by TanStack Form
 - **`recharts`** — Replaced by TanStack Charts
-- **`zustand`** — Replaced by TanStack Store
+- **`zustand`** — Removed (React useState suffices)
 - **`next-mdx-remote`** — Replaced by TanStack Markdown
-- **Custom `useDebounce` hook** — Replaced by TanStack Pacer
+- **Custom `useDebounce` hook** — Not replaced; kept as a simple value-debounce utility. TanStack Pacer debounces functions, not values, making them incompatible patterns.
 - **Raw `cmdk` key handling** — Replaced by TanStack Hotkeys
 - **`@tanstack/react-query-devtools`** — Replaced by unified TanStack Devtools panel
 - **`lucide-react`** — Replaced by `@hugeicons/react`
@@ -927,3 +923,38 @@ Execute in this sequence to maintain a working application at each step:
 - [Better-T-Stack Docs](https://www.better-t-stack.dev)
 - [Vite+ Docs](https://viteplus.dev)
 - [Alchemy Docs](https://alchemy.run)
+
+---
+
+## Porting Audit — Complete
+
+### What's Done
+
+| Category | Status |
+|----------|--------|
+| DB Schema (31 tables) | Ported |
+| Queries (22 → 20 routers) | Ported |
+| Components (60+ files) | Ported |
+| Routes (15 public + 28 admin) | Ported |
+| Auth (Supabase → Better Auth) | Migrated |
+| Charts (Recharts → TanStack Charts) | Rewritten |
+| Hotkeys (cmdk → @tanstack/react-hotkeys) | Swapped |
+| Virtualization (@tanstack/react-virtual) | Implemented |
+| Devtools (unified shell + 3 plugins) | Active |
+| Icons (Lucide → Hugeicons) | Swapped |
+| Markdown (next-mdx-remote → TanStack) | Ported |
+| Theme (18 colors, light/dark) | Ported |
+| Fumadocs (3 MDX pages) | Populated |
+| Hooks (3 files) | Ported |
+| Public Assets (13 files) | Copied |
+| Seed Script | Ported |
+
+### Architecture Decisions
+
+| Item | Decision |
+|------|----------|
+| Zustand → TanStack Store | Not needed (removed Zustand, React useState) |
+| useDebounce → TanStack Pacer | Kept custom hook (Pacer debounces fns, hook debounces values) |
+| TanStack Highlight | Deferred (no code blocks in blog posts yet) |
+| OG Images | Static approach (set in route head() meta) |
+| View Transitions | Deferred (needs React Canary) |
