@@ -24,7 +24,6 @@ Better Auth + D1/SQLite).
 | Storage        | Supabase Storage                  | Cloudflare R2                                    |
 | Linting        | Biome                             | Oxlint + Oxfmt                                   |
 | State (server) | React Query + Server Actions      | React Query (tRPC integrated)                    |
-| Syntax Highlight| None                             | Deferred (TanStack Highlight — no code blocks in blog posts yet) |
 | Deploy         | Vercel                            | Cloudflare Pages (via Alchemy)                   |
 | Package Manager| bun (single package)              | bun (monorepo workspaces)                        |
 | Docs           | None                              | Fumadocs (Astro)                                 |
@@ -354,7 +353,7 @@ Move from `source-project/components/` to `apps/web/src/components/`, adapting i
 |---|---|---|
 | `components/header/` | `apps/web/src/components/header/` | Import from `@fsx/ui/components/*` instead of `@/components/ui/*` |
 | `components/home/` | `apps/web/src/components/home/` | Same structure, different imports |
-| `components/player/` | `apps/web/src/components/player/` | Player charts use Recharts — keep |
+| `components/player/` | `apps/web/src/components/player/` | Player charts use TanStack Charts |
 | `components/animate-ui/` | `apps/web/src/components/animate-ui/` | Uses `motion` (framer-motion successor) |
 | `components/modals/` | `apps/web/src/components/modals/` | Dialog-based modals |
 | `components/sheets/player/` | `apps/web/src/components/sheets/player/` | Sheet component from shadcn |
@@ -387,7 +386,6 @@ Move from `source-project/components/` to `apps/web/src/components/`, adapting i
 @tanstack/react-hotkeys         # Type-safe keyboard shortcuts (CMD+K, admin, etc.)
 @tanstack/pacer                 # Debounce, throttle, rate-limit, batch (replaces custom hooks)
 @tanstack/react-devtools        # Unified devtools panel (Query, Router, Form, Hotkeys)
-@tanstack/highlight             # Syntax highlighting for blog posts and docs
 
 # Third-party
 date-fns                         # Date formatting
@@ -573,7 +571,7 @@ R2 provides an S3-compatible API. Use `@aws-sdk/client-s3` or Cloudflare's own R
 Old: `next-mdx-remote` (Next.js RSC-only). New: **TanStack Markdown**
 (`@tanstack/react-markdown`). Small (6.7KB gzip), synchronous (works in SSR and client),
 produces a deterministic serializable AST. Safe by default (raw HTML escaped, `javascript:`
-URLs removed). Pairs with `@tanstack/highlight` for code fence syntax highlighting.
+URLs removed.
 
 ```tsx
 import { parseMarkdown } from "@tanstack/markdown";
@@ -589,27 +587,13 @@ Blog posts are created in the admin dashboard via a WYSIWYG MDX editor
 Since TanStack Markdown has no async initialization, it works identically on server
 (TanStack Start SSR) and client (admin preview).
 
-For syntax highlighting in code blocks within posts, use `@tanstack/highlight`:
-
-```tsx
-import { highlight } from "@tanstack/highlight";
-// Import only the languages your blog uses
-import "@tanstack/highlight/languages/ts";
-import "@tanstack/highlight/languages/bash";
-```
-
 #### 6.3 Cache Invalidation
 
 Old: Next.js `"use cache"` with `cacheTag()` and `revalidateTag()`. These don't exist in
 Cloudflare Workers/Pages.
 
 New approaches:
-- **Simple**: Don't cache. For a low-traffic chess federation site, database queries are fast
-  enough without caching.
-- **Cloudflare KV**: Store serialized query results in KV with manual invalidation.
-- **Cloudflare Cache API**: Use `caches.default` with URL-based cache keys.
-
-Start without caching. Add KV-based caching only if profiling shows it's needed.
+- **Cloudflare Cache API** — `caches.default` caches tRPC GET responses at the edge (5min TTL, 1hr stale-while-revalidate). POST mutations bypass cache automatically. React Query client-side cache with 5min staleTime prevents redundant re-fetches. SSR prefetch via `ensureQueryData()` in route loaders with `<Link preload="intent">`.
 
 #### 6.4 Query Cache Persistence
 
@@ -851,11 +835,8 @@ Execute in this sequence to maintain a working application at each step:
 12. **TanStack Markdown over next-mdx-remote** — Small (6.7KB gzip), synchronous parser
     + React renderer. Works identically on server (TanStack Start SSR) and client (admin
     preview). No async initialization, no runtime deps. Safe by default (raw HTML escaped).
-    Pairs with TanStack Highlight for code fence syntax highlighting.
 
-13. **TanStack Highlight** — Deferred. Selective syntax highlighter for code blocks in blog posts and documentation. Not yet needed — blog posts don't contain code blocks.
-
-14. **TanStack Devtools** — Unified devtools panel replacing isolated
+13. **TanStack Devtools** — Unified devtools panel replacing isolated
     `@tanstack/react-query-devtools`. Single floating panel with tabbed views
     for Query, Router, Form, Hotkeys, and custom plugins. Picture-in-picture mode,
     source inspector (go-to-source on click), console piping. Framework-agnostic
@@ -955,6 +936,6 @@ Execute in this sequence to maintain a working application at each step:
 |------|----------|
 | Zustand → TanStack Store | Not needed (removed Zustand, React useState) |
 | useDebounce → TanStack Pacer | Kept custom hook (Pacer debounces fns, hook debounces values) |
-| TanStack Highlight | Deferred (no code blocks in blog posts yet) |
-| OG Images | Static approach (set in route head() meta) |
-| View Transitions | Deferred (needs React Canary) |
+| TanStack Highlight | Removed (only for code blocks — not used) |
+| View Transitions | Implemented via native CSS `::view-transition-old/new` (Chrome/Edge, no React Canary needed) |
+| Analytics | Cloudflare Web Analytics beacon added (token placeholder) |

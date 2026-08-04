@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -17,14 +17,16 @@ export const Route = createFileRoute("/_auth/dashboard/clubs/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   const createMutation = useMutation({
     ...trpc.clubs.create.mutationOptions(),
     onSuccess: () => {
+      qc.invalidateQueries(trpc.clubs.list.queryFilter());
       toast.success("Club created");
       navigate({ to: "/dashboard/clubs" });
     },
-    onError: () => toast.error("Failed to create club"),
+    onError: (error) => toast.error(error.message ?? "Failed to create club"),
   });
 
   const form = useForm({

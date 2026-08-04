@@ -37,7 +37,7 @@ Built with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-st
 - Admin dashboard: CRUD for players, posts, events, clubs, locations, links, announcements
 - Rating update tool with tournament linking
 - Swiss Manager Excel export
-- Markdown blog posts with syntax highlighting and image upload
+- Markdown blog posts with image upload
 - Command palette (CMD+K) with type-safe keyboard shortcuts
 - Virtualized scrolling for large player lists and rating tables
 - D3-native rating charts with light/dark mode
@@ -116,6 +116,18 @@ bun run dev
 ```
 
 Open [http://localhost:3001](http://localhost:3001).
+
+## Caching Strategy
+
+This is a read-heavy chess federation website. Caching operates at three layers:
+
+| Layer | Mechanism | TTL | What it does |
+|-------|-----------|-----|--------------|
+| Edge CDN | Cloudflare Cache API | 5min | Caches GET responses at the edge. POST bypasses. |
+| Client | React Query | 5min stale / 10min gc | Prevents redundant fetches. Invalids on mutation. |
+| SSR | `ensureQueryData()` + `<Link preload="intent">` | 60s | Prefetches on hover. Server-renders first visit. |
+
+All tRPC queries use `Cache-Control: public, max-age=300, stale-while-revalidate=3600`.
 
 ## Available Scripts
 

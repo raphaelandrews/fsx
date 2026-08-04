@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -17,14 +17,16 @@ export const Route = createFileRoute("/_auth/dashboard/players/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   const createMutation = useMutation({
     ...trpc.players.create.mutationOptions(),
     onSuccess: () => {
+      qc.invalidateQueries(trpc.players.list.queryFilter());
       toast.success("Player created");
       navigate({ to: "/dashboard/players" });
     },
-    onError: () => toast.error("Failed to create player"),
+    onError: (error) => toast.error(error.message ?? "Failed to create player"),
   });
 
   const form = useForm({

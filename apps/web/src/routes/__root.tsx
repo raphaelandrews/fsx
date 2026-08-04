@@ -17,21 +17,26 @@ export interface RouterAppContext {
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   head: () => ({
     meta: [
-      {
-        charSet: "utf-8",
-      },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
-      {
-        title: "Federação Sergipana de Xadrez",
-      },
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "Federação Sergipana de Xadrez" },
+      { name: "description", content: "Site oficial da Federação Sergipana de Xadrez. Ratings, torneios, notícias e campeões do xadrez sergipano." },
+      { property: "og:title", content: "Federação Sergipana de Xadrez" },
+      { property: "og:description", content: "Ratings, torneios, notícias e campeões do xadrez sergipano." },
+      { property: "og:image", content: "/logo.svg" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "view-transition", content: "same-origin" },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/svg+xml", href: "/logo.svg" },
+    ],
+    scripts: [
       {
-        rel: "stylesheet",
-        href: appCss,
+        src: "https://static.cloudflareinsights.com/beacon.min.js",
+        defer: true,
+        "data-cf-beacon": '{"token": "YOUR_CLOUDFLARE_ANALYTICS_TOKEN"}',
       },
     ],
   }),

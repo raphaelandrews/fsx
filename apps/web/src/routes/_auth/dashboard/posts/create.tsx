@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -18,14 +18,16 @@ export const Route = createFileRoute("/_auth/dashboard/posts/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   const createMutation = useMutation({
     ...trpc.posts.create.mutationOptions(),
     onSuccess: () => {
+      qc.invalidateQueries(trpc.posts.list.queryFilter());
       toast.success("Post created");
       navigate({ to: "/dashboard/posts" });
     },
-    onError: () => toast.error("Failed to create post"),
+    onError: (error) => toast.error(error.message ?? "Failed to create post"),
   });
 
   const form = useForm({
