@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import z from "zod";
@@ -43,7 +44,12 @@ interface LogEntry {
 
 const ITEMS_PER_PAGE = 6;
 
-export default function RatingUpdatePage() {
+export const Route = createFileRoute("/_auth/rating-update/")({
+  ssr: false,
+  component: RatingUpdatePage,
+});
+
+function RatingUpdatePage() {
   const [file, setFile] = useState<File | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -146,7 +152,7 @@ export default function RatingUpdatePage() {
               rapid: 1900,
               classic: 1900,
               active: true,
-              sex: false,
+              sex: "male",
               verified: false,
             });
             if (result?.[0]) {

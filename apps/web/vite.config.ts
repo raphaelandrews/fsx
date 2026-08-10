@@ -29,7 +29,14 @@ export default defineConfig({
   },
   plugins: [
     tailwindcss(),
-    tanstackStart(),
+    tanstackStart({
+      prerender: {
+        enabled: true,
+        crawlLinks: true,
+        failOnError: false,
+        retryCount: 1,
+      },
+    }),
     viteReact(),
     ...(shouldUseAlchemy ? [alchemy({ configPath: alchemyConfigPath })] : []),
   ],
