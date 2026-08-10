@@ -1,5 +1,5 @@
 import { createInsertSchema } from "drizzle-zod"
-import { relations } from "drizzle-orm"
+import { relations, sql } from "drizzle-orm"
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { circuitPhases, players } from "./index"
@@ -8,6 +8,8 @@ export const clubs = sqliteTable("clubs", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	name: text("name").notNull().unique(),
 	logo: text("logo"),
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const clubsRelations = relations(clubs, ({ many }) => ({

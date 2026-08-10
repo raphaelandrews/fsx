@@ -1,15 +1,16 @@
 import { createInsertSchema } from "drizzle-zod"
+import { sql } from "drizzle-orm"
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 export const posts = sqliteTable("posts", {
-	id: text("id").primaryKey(),
+	id: integer("id").primaryKey({ autoIncrement: true }),
 	title: text("title").notNull(),
 	image: text("image").notNull(),
 	content: text("content").notNull(),
 	slug: text("slug").unique().notNull(),
 	published: integer("published", { mode: "boolean" }).default(false),
-	createdAt: text("created_at"),
-	updatedAt: text("updated_at"),
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const insertPostSchema = createInsertSchema(posts)

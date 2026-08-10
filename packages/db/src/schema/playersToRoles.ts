@@ -6,8 +6,8 @@ import { players, roles } from "./index"
 
 export const playersToRoles = sqliteTable("players_to_roles", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
-	playerId: integer("player_id").notNull().references(() => players.id),
-	roleId: integer("role_id").notNull().references(() => roles.id),
+	playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+	roleId: integer("role_id").notNull().references(() => roles.id, { onDelete: "cascade" }),
 }, (t) => [uniqueIndex("player_role").on(t.playerId, t.roleId)])
 
 export const playersToRolesRelations = relations(playersToRoles, ({ one }) => ({

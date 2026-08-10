@@ -1,5 +1,5 @@
 import { createInsertSchema } from "drizzle-zod"
-import { relations } from "drizzle-orm"
+import { relations, sql } from "drizzle-orm"
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { cups, defendingChampions, tournaments } from "./index"
@@ -7,6 +7,8 @@ import { cups, defendingChampions, tournaments } from "./index"
 export const championships = sqliteTable("championships", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	name: text("name").notNull().unique(),
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const championshipsRelations = relations(championships, ({ many }) => ({
@@ -15,7 +17,7 @@ export const championshipsRelations = relations(championships, ({ many }) => ({
 	tournaments: many(tournaments),
 }))
 
-export const insertChampionshipsSchema = createInsertSchema(championships)
+export const insertChampionshipSchema = createInsertSchema(championships)
 
 export type Championship = typeof championships.$inferSelect
 export type NewChampionship = typeof championships.$inferInsert

@@ -1,5 +1,5 @@
 import { createInsertSchema } from "drizzle-zod"
-import { relations } from "drizzle-orm"
+import { relations, sql } from "drizzle-orm"
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { championships, cupBrackets, cupGroups } from "./index"
@@ -13,9 +13,11 @@ export const cups = sqliteTable("cups", {
 	prizePool: integer("prize_pool").notNull(),
 	rhythm: text("rhythm").notNull(),
 	championshipId: integer("championship_id").references(() => championships.id),
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
 })
 
-export const cupRelations = relations(cups, ({ one, many }) => ({
+export const cupsRelations = relations(cups, ({ one, many }) => ({
 	championship: one(championships, { fields: [cups.championshipId], references: [championships.id] }),
 	cupBrackets: many(cupBrackets),
 	cupGroups: many(cupGroups),

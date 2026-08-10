@@ -693,6 +693,8 @@ Execute in this sequence to maintain a working application at each step:
   - `routes/api/$.ts` — catch-all API route
 - **No React Server Components**. All rendering is client + SSR. Don't use `"use server"`
   directives — use `createServerFn` with `.handler()` instead.
+- **Selective SSR**: All routes use `ssr: true` (default). Public routes need full SSR for SEO. Admin routes also benefit from SSR since Better Auth sessions are cookie-based (no browser-only APIs). SPA mode (`ssr: false`) is not needed — there are no WebSocket/canvas/localStorage-dependent routes.
+- **SEO**: Every public route has `head()` with title + description. `__root.tsx` provides global OG/twitter meta, canonical URL, and sitemap link. `sitemap.xml` lists all public pages.
 
 ### tRPC
 

@@ -1,16 +1,22 @@
 import { createInsertSchema } from "drizzle-zod"
-import { relations } from "drizzle-orm"
-import { integer, sqliteTable } from "drizzle-orm/sqlite-core"
+import { relations, sql } from "drizzle-orm"
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { circuitPodiums, circuits, clubs, tournaments } from "./index"
 
-export const circuitPhases = sqliteTable("circuit_phases", {
-	id: integer("id").primaryKey({ autoIncrement: true }),
-	circuitId: integer("circuit_id").notNull().references(() => circuits.id),
-	clubId: integer("club_id").references(() => clubs.id),
-	tournamentId: integer("tournament_id").notNull().references(() => tournaments.id),
-	order: integer("order").notNull(),
-})
+export const circuitPhases = sqliteTable(
+	"circuit_phases",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		circuitId: integer("circuit_id").notNull().references(() => circuits.id, { onDelete: "cascade" }),
+		clubId: integer("club_id").references(() => clubs.id),
+		tournamentId: integer("tournament_id").notNull().references(() => tournaments.id),
+		order: integer("order").notNull(),
+		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	},
+	(table) => [index("circuit_phases_circuit_order_idx").on(table.circuitId, table.order)],
+)
 
 export const circuitPhasesRelations = relations(circuitPhases, ({ one, many }) => ({
 	circuit: one(circuits, { fields: [circuitPhases.circuitId], references: [circuits.id] }),

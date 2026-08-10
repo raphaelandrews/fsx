@@ -6,11 +6,11 @@ import { insignias, players } from "./index"
 
 export const playersToInsignias = sqliteTable("players_to_insignias", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
-	playerId: integer("player_id").notNull().references(() => players.id),
-	insigniaId: integer("insignia_id").notNull().references(() => insignias.id),
+	playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+	insigniaId: integer("insignia_id").notNull().references(() => insignias.id, { onDelete: "cascade" }),
 }, (t) => [uniqueIndex("player_insignia").on(t.playerId, t.insigniaId)])
 
-export const playersToInsigniaRelations = relations(playersToInsignias, ({ one }) => ({
+export const playersToInsigniasRelations = relations(playersToInsignias, ({ one }) => ({
 	player: one(players, { fields: [playersToInsignias.playerId], references: [players.id] }),
 	insignia: one(insignias, { fields: [playersToInsignias.insigniaId], references: [insignias.id] }),
 }))

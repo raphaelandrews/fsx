@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, asc } from "drizzle-orm";
 
-import { insignias, insertInsigniaSchema } from "@fsx/db/schema/insignia";
+import { insignias, insertInsigniaSchema } from "@fsx/db/schema/insignias";
 import { protectedProcedure, publicProcedure, router } from "../index";
 
 export const insigniaRouter = router({

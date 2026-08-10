@@ -14,9 +14,6 @@ export function createAuth() {
       schema: schema,
     }),
     trustedOrigins: [env.CORS_ORIGIN],
-    emailAndPassword: {
-      enabled: true,
-    },
     socialProviders: {
       github: {
         clientId: env.GITHUB_CLIENT_ID!,

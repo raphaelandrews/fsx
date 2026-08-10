@@ -31,6 +31,8 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/svg+xml", href: "/logo.svg" },
+      { rel: "canonical", href: "https://fsx.chess" },
+      { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
     ],
     scripts: [
       {

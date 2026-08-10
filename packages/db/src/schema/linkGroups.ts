@@ -1,5 +1,5 @@
 import { createInsertSchema } from "drizzle-zod"
-import { relations } from "drizzle-orm"
+import { relations, sql } from "drizzle-orm"
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { links } from "./index"
@@ -7,6 +7,8 @@ import { links } from "./index"
 export const linkGroups = sqliteTable("link_groups", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	label: text("label").notNull(),
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const linkGroupsRelations = relations(linkGroups, ({ many }) => ({

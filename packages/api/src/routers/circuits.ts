@@ -5,7 +5,7 @@ export const circuitsRouter = router({
     ctx.db.query.circuits.findMany({
       columns: { name: true, type: true },
       with: {
-        circuitPhase: {
+        circuitPhases: {
           columns: { id: true, order: true },
           with: {
             tournament: { columns: { name: true } },

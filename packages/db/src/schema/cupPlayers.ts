@@ -1,15 +1,17 @@
 import { createInsertSchema } from "drizzle-zod"
-import { relations } from "drizzle-orm"
+import { relations, sql } from "drizzle-orm"
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { players, cupGroups } from "./index"
 
 export const cupPlayers = sqliteTable("cup_players", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
-	playerId: integer("player_id").notNull().references(() => players.id),
-	cupGroupId: integer("cup_group_id").notNull().references(() => cupGroups.id),
-	nickname: text("nickname").unique(),
+	playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+	cupGroupId: integer("cup_group_id").notNull().references(() => cupGroups.id, { onDelete: "cascade" }),
+	nickname: text("nickname"),
 	position: integer("position"),
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const cupPlayersRelations = relations(cupPlayers, ({ one }) => ({

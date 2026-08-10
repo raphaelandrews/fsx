@@ -213,7 +213,7 @@ export const playersRouter = router({
       fideId: z.number().nullable().optional(),
       verified: z.boolean().optional(),
       birth: z.string().nullable().optional(),
-      sex: z.boolean().optional(),
+      sex: z.enum(["male", "female"]).optional(),
       clubId: z.number().nullable().optional(),
       locationId: z.number().nullable().optional(),
       description: z.string().nullable().optional(),
@@ -226,7 +226,7 @@ export const playersRouter = router({
     .input(z.object({
       page: z.number().default(1),
       limit: z.number().default(20),
-      sex: z.boolean().optional(),
+      sex: z.enum(["male", "female"]).optional(),
       titles: z.array(z.string()).default([]),
       clubs: z.array(z.string()).default([]),
       groups: z.array(z.string()).default([]),
@@ -245,7 +245,7 @@ export const playersRouter = router({
           sql`LOWER(translate(${playersTable.name}, 'áàâãäéèêëíìîïóòôõöúùûüýÿ', 'aaaaaeeeeiiiiooooouuuuyy')) LIKE ${`%${normalizedQuery}%`}`
         );
       }
-      if (sex === true || sex === false) {
+      if (sex) {
         whereConditions.push(eq(playersTable.sex, sex));
       }
       if (titleFilters.length) {
@@ -344,7 +344,7 @@ export const playersRouter = router({
         blitz: number;
         imageUrl: string | null;
         birth: string | null;
-        sex: boolean;
+        sex: string;
         club: { id: number; name: string; logo: string };
         location: { name: string; flag: string };
         defendingChampions: { championship: { name: string } }[];

@@ -1,5 +1,5 @@
 import { createInsertSchema } from "drizzle-zod"
-import { relations } from "drizzle-orm"
+import { relations, sql } from "drizzle-orm"
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { players } from "./index"
@@ -9,6 +9,8 @@ export const locations = sqliteTable("locations", {
 	name: text("name").notNull().unique(),
 	type: text("type").notNull(),
 	flag: text("flag"),
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const locationsRelations = relations(locations, ({ many }) => ({

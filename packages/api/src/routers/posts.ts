@@ -62,11 +62,11 @@ export const postsRouter = router({
   create: protectedProcedure
     .input(insertPostSchema.omit({ id: true }))
     .mutation(({ ctx, input }) =>
-      ctx.db.insert(posts).values({ id: crypto.randomUUID(), ...input }).returning()
+      ctx.db.insert(posts).values(input).returning()
     ),
   update: protectedProcedure
     .input(z.object({
-      id: z.string(),
+      id: z.number(),
       title: z.string().optional(),
       image: z.string().optional(),
       content: z.string().optional(),
@@ -77,7 +77,7 @@ export const postsRouter = router({
       ctx.db.update(posts).set(input).where(eq(posts.id, input.id)).returning()
     ),
   delete: protectedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ id: z.number() }))
     .mutation(({ ctx, input }) =>
       ctx.db.delete(posts).where(eq(posts.id, input.id))
     ),
