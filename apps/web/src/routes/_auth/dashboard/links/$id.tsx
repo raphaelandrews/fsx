@@ -40,6 +40,22 @@ function RouteComponent() {
     onError: () => toast.error("Failed to delete link"),
   });
 
+  const updateGroupMutation = useMutation({
+    ...trpc.links.updateGroup.mutationOptions(),
+    onSuccess: () => {
+      qc.invalidateQueries(trpc.links.list.queryFilter());
+      toast.success("Group updated");
+    },
+    onError: () => toast.error("Failed to update group"),
+  });
+
+  const groupLabelForm = useForm({
+    defaultValues: { label: group.label },
+    onSubmit: ({ value }) => {
+      updateGroupMutation.mutate({ id: numId, label: value.label });
+    },
+  });
+
   if (!group) {
     return <p>Group not found.</p>;
   }
@@ -50,6 +66,20 @@ function RouteComponent() {
         <h1 className="font-bold text-2xl">Edit: {group.label}</h1>
         <Button variant="outline" onClick={() => navigate({ to: "/dashboard/links" })}>Back</Button>
       </div>
+
+      <form onSubmit={(e) => { e.preventDefault(); groupLabelForm.handleSubmit(); }} className="mb-6 flex items-end gap-2">
+        <groupLabelForm.Field name="label">
+          {(f) => (
+            <div className="flex-1 space-y-1">
+              <Label htmlFor={f.name}>Group Label</Label>
+              <Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
+            </div>
+          )}
+        </groupLabelForm.Field>
+        <groupLabelForm.Subscribe selector={(s) => ({ canSubmit: s.canSubmit })}>
+          {({ canSubmit }) => <Button type="submit" size="sm" disabled={!canSubmit}>Rename</Button>}
+        </groupLabelForm.Subscribe>
+      </form>
 
       <div className="mb-4">
         <h2 className="mb-2 font-semibold">Links</h2>

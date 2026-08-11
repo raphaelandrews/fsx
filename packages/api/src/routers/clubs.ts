@@ -6,7 +6,7 @@ import { protectedProcedure, publicProcedure, router } from "../index";
 
 export const clubsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
-    ctx.db.select({ id: clubs.id, name: clubs.name })
+    ctx.db.select({ id: clubs.id, name: clubs.name, logo: clubs.logo })
       .from(clubs).orderBy(asc(clubs.name))
   ),
   create: protectedProcedure

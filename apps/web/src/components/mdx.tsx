@@ -1,4 +1,3 @@
-"use client";
 
 import { Markdown } from "@tanstack/markdown/react";
 

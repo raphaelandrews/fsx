@@ -1,4 +1,3 @@
-"use client"
 
 import { ReactNode, useCallback } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"

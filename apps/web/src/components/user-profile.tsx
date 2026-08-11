@@ -1,4 +1,3 @@
-"use client"
 
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Mail01Icon, Calendar01Icon, UserIcon } from "@hugeicons/core-free-icons"

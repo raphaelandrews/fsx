@@ -1,4 +1,3 @@
-"use client"
 
 import { Link } from "@tanstack/react-router"
 import { HugeiconsIcon } from "@hugeicons/react"

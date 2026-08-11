@@ -20,13 +20,13 @@ function RouteComponent() {
   const qc = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: posts = [] } = useSuspenseQuery(trpc.posts.list.queryOptions());
-  const post = posts.find((p) => p.id === id);
+  const { data: posts = [] } = useSuspenseQuery(trpc.posts.listAdmin.queryOptions());
+  const post = posts.find((p) => p.id === Number(id));
 
   const updateMutation = useMutation({
     ...trpc.posts.update.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.posts.list.queryFilter());
+      qc.invalidateQueries(trpc.posts.listAdmin.queryFilter());
       toast.success("Post updated");
     },
     onError: () => toast.error("Failed to update post"),
@@ -36,14 +36,14 @@ function RouteComponent() {
     return (
       <div>
         <h1 className="mb-4 font-bold text-2xl">Edit Post</h1>
-        <p className="text-muted-foreground">Post not found in published list.</p>
+        <p className="text-muted-foreground">Post not found.</p>
         <Button variant="outline" className="mt-4" onClick={() => navigate({ to: "/dashboard/posts" })}>Back</Button>
       </div>
     );
   }
 
   const form = useForm({
-    defaultValues: { title: post.title, slug: post.slug, image: post.image ?? "", content: "", published: true as boolean },
+    defaultValues: { title: post.title, slug: post.slug, image: post.image ?? "", content: post.content, published: post.published },
     onSubmit: ({ value }) => {
       updateMutation.mutate({
         id: post.id, title: value.title, slug: value.slug,

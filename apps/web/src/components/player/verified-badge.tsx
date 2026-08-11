@@ -1,4 +1,3 @@
-"use client"
 
 import { HugeiconsIcon } from "@hugeicons/react"
 import { IdVerifiedIcon } from "@hugeicons/core-free-icons"

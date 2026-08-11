@@ -37,7 +37,7 @@ function RouteComponent() {
   }
 
   const form = useForm({
-    defaultValues: { name: club.name, logo: "" },
+    defaultValues: { name: club.name, logo: club.logo ?? "" },
     onSubmit: ({ value }) => {
       updateMutation.mutate({ id: numId, name: value.name, logo: value.logo || null });
     },

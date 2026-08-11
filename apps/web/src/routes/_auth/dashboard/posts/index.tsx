@@ -14,12 +14,12 @@ function RouteComponent() {
   const trpc = useTRPC();
   const qc = useQueryClient();
 
-  const { data: posts = [] } = useSuspenseQuery(trpc.posts.list.queryOptions());
+  const { data: posts = [] } = useSuspenseQuery(trpc.posts.listAdmin.queryOptions());
 
   const deleteMutation = useMutation({
     ...trpc.posts.delete.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.posts.list.queryFilter());
+      qc.invalidateQueries(trpc.posts.listAdmin.queryFilter());
       toast.success("Post deleted");
     },
     onError: () => toast.error("Failed to delete post"),
@@ -39,6 +39,7 @@ function RouteComponent() {
             <tr className="bg-muted/50">
               <th className="px-4 py-2 text-left">Title</th>
               <th className="px-4 py-2 text-left">Slug</th>
+              <th className="px-4 py-2 text-left">Published</th>
               <th className="px-4 py-2 text-right">Actions</th>
             </tr>
           </thead>
@@ -47,6 +48,7 @@ function RouteComponent() {
               <tr key={p.id} className="border-t">
                 <td className="px-4 py-2">{p.title}</td>
                 <td className="px-4 py-2 text-muted-foreground">{p.slug}</td>
+                <td className="px-4 py-2">{p.published ? "Yes" : "No"}</td>
                 <td className="px-4 py-2 text-right">
                   <div className="flex gap-1 justify-end">
                     <Link to="/dashboard/posts/$id" params={{ id: p.id }}>

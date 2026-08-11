@@ -61,7 +61,7 @@ function RouteComponent() {
             {players.map((p) => (
               <tr key={p.id} className="border-t">
                 <td className="px-4 py-2">{p.name}</td>
-                <td className="px-4 py-2 text-center">{p.sex ? "F" : "M"}</td>
+                <td className="px-4 py-2 text-center">{p.sex === "female" ? "F" : "M"}</td>
                 <td className="px-4 py-2">{p.birth}</td>
                 <td className="px-4 py-2">{p.club?.name}</td>
                 <td className="px-4 py-2 text-right">{p.classic}</td>

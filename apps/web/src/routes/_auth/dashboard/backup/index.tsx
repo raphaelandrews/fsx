@@ -9,19 +9,27 @@ function RouteComponent() {
   return (
     <div className="mx-auto max-w-lg">
       <h1 className="mb-6 font-bold text-2xl">Backup</h1>
-      <p className="mb-4 text-muted-foreground text-sm">
-        Database backup and export functionality will be available here. For now, use the Cloudflare D1 dashboard or
-        <code className="mx-1 rounded bg-muted px-1 text-xs">wrangler d1 export</code>
-        to export your database.
-      </p>
-      <div className="rounded-md border p-4">
-        <h2 className="mb-2 font-semibold">D1 Export</h2>
+
+      <div className="mb-6 rounded-md border p-4">
+        <h2 className="mb-2 font-semibold">Cloudflare D1 Export</h2>
         <p className="mb-3 text-muted-foreground text-sm">
-          Run the following command locally to export your D1 database:
+          Execute localmente para exportar o banco de dados D1:
         </p>
         <code className="block rounded bg-muted p-3 text-xs">
           npx wrangler d1 export fsx-db --remote --output=./backup.sql
         </code>
+      </div>
+
+      <div className="rounded-md border p-4">
+        <h2 className="mb-2 font-semibold">Cloudflare Dashboard</h2>
+        <p className="mb-3 text-muted-foreground text-sm">
+          Alternativamente, acesse o painel da Cloudflare para gerenciar backups:
+        </p>
+        <ul className="list-disc pl-5 text-muted-foreground text-sm space-y-1">
+          <li>Workers &amp; Pages &rarr; D1 &rarr; fsx-db &rarr; Backups</li>
+          <li>Downloads manuais e restauração disponíveis</li>
+          <li>Backups automáticos diários (últimos 7 dias)</li>
+        </ul>
       </div>
     </div>
   );

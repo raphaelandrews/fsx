@@ -37,7 +37,7 @@ function RouteComponent() {
   }
 
   const form = useForm({
-    defaultValues: { name: location.name, type: "", flag: "" },
+    defaultValues: { name: location.name, type: location.type, flag: location.flag ?? "" },
     onSubmit: ({ value }) => {
       updateMutation.mutate({ id: numId, name: value.name, type: value.type, flag: value.flag || null });
     },

@@ -1,12 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
-import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
-import { Label } from "@fsx/ui/components/label";
-import { toast } from "sonner";
-import { useState } from "react";
-
-import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/cache/")({
   head: () => ({ title: "Cache - Admin - FSX" }),
@@ -14,31 +6,32 @@ export const Route = createFileRoute("/_auth/dashboard/cache/")({
 });
 
 function RouteComponent() {
-  const trpc = useTRPC();
-  const [tag, setTag] = useState("");
-
-  const revalidateMutation = useMutation({
-    ...trpc.cache.revalidateTag.mutationOptions(),
-    onSuccess: () => toast.success("Cache invalidated"),
-    onError: () => toast.error("Failed to invalidate cache"),
-  });
-
   return (
     <div className="mx-auto max-w-lg">
       <h1 className="mb-6 font-bold text-2xl">Cache</h1>
-      <p className="mb-4 text-muted-foreground text-sm">
-        Invalidate cached data by tag. Common tags: posts, players, events, announcements.
-      </p>
-      <div className="flex gap-2">
-        <div className="flex-1">
-          <Label htmlFor="tag">Tag</Label>
-          <Input id="tag" value={tag} onChange={(e) => setTag(e.target.value)} placeholder="e.g. posts" />
-        </div>
-        <div className="self-end">
-          <Button onClick={() => { if (tag) revalidateMutation.mutate({ tag }); }} disabled={!tag || revalidateMutation.isPending}>
-            {revalidateMutation.isPending ? "Revalidating..." : "Invalidate"}
-          </Button>
-        </div>
+
+      <div className="mb-6 rounded-md border p-4">
+        <h2 className="mb-2 font-semibold">Caching Automático</h2>
+        <p className="mb-3 text-muted-foreground text-sm">
+          A CDN da Cloudflare gerencia o cache automaticamente:
+        </p>
+        <ul className="list-disc pl-5 text-muted-foreground text-sm space-y-1">
+          <li>Páginas públicas são pré-renderizadas no build (HTML estático)</li>
+          <li>Respostas GET do tRPC têm cache de 5 minutos + stale-while-revalidate de 1 hora</li>
+          <li>Mutações POST ignoram o cache automaticamente</li>
+        </ul>
+      </div>
+
+      <div className="rounded-md border p-4">
+        <h2 className="mb-2 font-semibold">Purga Manual</h2>
+        <p className="mb-3 text-muted-foreground text-sm">
+          Para forçar a invalidação imediata do cache, use o painel da Cloudflare:
+        </p>
+        <ol className="list-decimal pl-5 text-muted-foreground text-sm space-y-1">
+          <li>Cloudflare Dashboard &rarr; Websites &rarr; fsx.chess</li>
+          <li>Caching &rarr; Configuration &rarr; Purge Cache</li>
+          <li>Selecione &quot;Purge Everything&quot; para limpar todo o cache</li>
+        </ol>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import { protectedProcedure, publicProcedure, router } from "../index";
 
 export const eventsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
-    ctx.db.select().from(events).orderBy(asc(events.startDate)).limit(4)
+    ctx.db.select().from(events).orderBy(asc(events.startDate))
   ),
   create: protectedProcedure
     .input(insertEventSchema.omit({ id: true }))

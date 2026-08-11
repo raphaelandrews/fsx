@@ -1,4 +1,3 @@
-"use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -65,7 +64,7 @@ function RatingUpdatePage() {
 
   const trpc = useTRPC();
 
-  const linkMutation = useMutation(trpc.playersTournament.link.mutationOptions());
+  const linkMutation = useMutation(trpc.playersTournament.linkWithRating.mutationOptions());
   const createMutation = useMutation(trpc.players.create.mutationOptions());
   const updateMutation = useMutation(trpc.players.update.mutationOptions());
 
@@ -121,9 +120,13 @@ function RatingUpdatePage() {
         const row = dataRows[i];
         const id = Number(row[headerMap["id"]]);
         const name = headerMap["name"] !== undefined ? String(row[headerMap["name"]] ?? "").trim() : undefined;
+        const birth = headerMap["birth"] !== undefined ? String(row[headerMap["birth"]] ?? "").trim() : undefined;
+        const sex = headerMap["sex"] !== undefined ? String(row[headerMap["sex"]] ?? "").trim().toLowerCase() : undefined;
+        const clubId = headerMap["clubid"] !== undefined ? Number(row[headerMap["clubid"]]) || undefined : undefined;
+        const locationId = headerMap["locationid"] !== undefined ? Number(row[headerMap["locationid"]]) || undefined : undefined;
         const tournamentId = headerMap["tournamentid"] !== undefined ? Number(row[headerMap["tournamentid"]]) : undefined;
         const variation = headerMap["variation"] !== undefined ? Number(row[headerMap["variation"]]) : undefined;
-        const ratingType = headerMap["ratingtype"] !== undefined ? String(row[headerMap["ratingtype"]] ?? "").trim() : undefined;
+        const ratingType = headerMap["ratingtype"] !== undefined ? String(row[headerMap["ratingtype"]] ?? "").trim().toLowerCase() : undefined;
 
         setCurrentIndex(i + 1);
         setStatusText(`Processing row ${i + 1} of ${dataRows.length}`);
@@ -133,34 +136,78 @@ function RatingUpdatePage() {
           continue;
         }
 
-        const isTournament = tournamentId !== undefined && !Number.isNaN(tournamentId) &&
-          variation !== undefined && !Number.isNaN(variation) && ratingType;
+        const validRatingTypes = ["blitz", "rapid", "classic"];
+        const hasTournamentData = tournamentId !== undefined && !Number.isNaN(tournamentId) &&
+          variation !== undefined && !Number.isNaN(variation) && ratingType &&
+          validRatingTypes.includes(ratingType);
 
         try {
-          if (isTournament) {
+          if (hasTournamentData && id > 0) {
             await linkMutation.mutateAsync({
               playerId: id,
               tournamentId,
-              oldRating: 1900,
               variation,
+              ratingType: ratingType as "blitz" | "rapid" | "classic",
             });
-            newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name ?? `ID ${id}`} tournament linked`, status: 200, success: { id, name: name ?? "", message: `Variation: ${variation > 0 ? "+" : ""}${variation}` } });
-          } else if (id === 0 && name) {
+            if (name) {
+              await updateMutation.mutateAsync({
+                id,
+                name,
+                birth: birth || undefined,
+                sex: sex === "male" || sex === "female" ? sex : undefined,
+                clubId,
+                locationId,
+              });
+            }
+            newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name ?? `ID ${id}`} rating updated (${ratingType}: ${variation > 0 ? "+" : ""}${variation})`, status: 200, success: { id, name: name ?? "", message: `Rating updated` } });
+          } else if (hasTournamentData && id === 0 && name) {
             const result = await createMutation.mutateAsync({
               name,
+              birth: birth || null,
+              sex: sex === "male" || sex === "female" ? sex : "male",
+              clubId,
+              locationId,
               blitz: 1900,
               rapid: 1900,
               classic: 1900,
               active: true,
-              sex: "male",
+              verified: false,
+            });
+            if (result?.[0]) {
+              await linkMutation.mutateAsync({
+                playerId: result[0].id,
+                tournamentId,
+                variation,
+                ratingType: ratingType as "blitz" | "rapid" | "classic",
+              });
+              newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name} created + linked to tournament`, status: 200, success: { id: result[0].id, name, message: `Created with rating update` } });
+            }
+          } else if (id > 0 && name) {
+            await updateMutation.mutateAsync({
+              id,
+              name,
+              birth: birth || undefined,
+              sex: sex === "male" || sex === "female" ? sex : undefined,
+              clubId,
+              locationId,
+            });
+            newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name} updated`, status: 200, success: { id, name, message: "Updated" } });
+          } else if (id === 0 && name) {
+            const result = await createMutation.mutateAsync({
+              name,
+              birth: birth || null,
+              sex: sex === "male" || sex === "female" ? sex : "male",
+              clubId,
+              locationId,
+              blitz: 1900,
+              rapid: 1900,
+              classic: 1900,
+              active: true,
               verified: false,
             });
             if (result?.[0]) {
               newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name} created`, status: 200, success: { id: result[0].id, name, message: "Created" } });
             }
-          } else if (id > 0 && name) {
-            await updateMutation.mutateAsync({ id, name });
-            newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name} updated`, status: 200, success: { id, name, message: "Updated" } });
           } else {
             newErrors.push({ _uuid: crypto.randomUUID(), operation: `Row ${i + 1}`, status: 400, error: { message: "Invalid data" } });
           }
@@ -259,7 +306,7 @@ function RatingUpdatePage() {
               />
             </div>
             <p className="text-muted-foreground text-xs mt-2">
-              Columns: id, name, tournamentId, variation, ratingType
+              Columns: id, name, birth, sex, clubId, locationId, tournamentId, variation, ratingType
             </p>
           </CardContent>
         </Card>

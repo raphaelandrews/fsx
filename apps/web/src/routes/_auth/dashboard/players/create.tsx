@@ -37,7 +37,7 @@ function RouteComponent() {
       rapid: 1900,
       classic: 1900,
       birth: "",
-      sex: false as boolean,
+      sex: "male" as "male" | "female",
       clubId: null as number | null,
       locationId: null as number | null,
     },
@@ -121,15 +121,17 @@ function RouteComponent() {
         </form.Field>
         <form.Field name="sex">
           {(f) => (
-            <div className="flex items-center gap-2">
-              <input
-                id={f.name}
-                type="checkbox"
-                checked={f.state.value}
-                onChange={(e) => f.handleChange(e.target.checked)}
-                className="h-4 w-4 rounded border-input"
-              />
-              <Label htmlFor={f.name}>Female</Label>
+            <div className="space-y-2">
+              <Label>Sex</Label>
+              <select
+                value={f.state.value}
+                onChange={(e) => f.handleChange(e.target.value as "male" | "female")}
+                onBlur={f.handleBlur}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
             </div>
           )}
         </form.Field>

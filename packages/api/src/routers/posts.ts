@@ -13,6 +13,12 @@ export const postsRouter = router({
       .orderBy(desc(posts.createdAt))
       .limit(24)
   ),
+  listAdmin: protectedProcedure.query(({ ctx }) =>
+    ctx.db
+      .select()
+      .from(posts)
+      .orderBy(desc(posts.createdAt))
+  ),
   bySlug: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(({ ctx, input }) =>

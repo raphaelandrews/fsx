@@ -51,4 +51,9 @@ export const linkGroupsRouter = router({
       await ctx.db.delete(links).where(eq(links.linkGroupId, input.id));
       return ctx.db.delete(linkGroups).where(eq(linkGroups.id, input.id));
     }),
+  updateGroup: protectedProcedure
+    .input(z.object({ id: z.number(), label: z.string().min(1) }))
+    .mutation(({ ctx, input }) =>
+      ctx.db.update(linkGroups).set({ label: input.label }).where(eq(linkGroups.id, input.id)).returning()
+    ),
 });
