@@ -1,4 +1,8 @@
-import { publicProcedure, router } from "../index";
+import { z } from "zod";
+import { eq } from "drizzle-orm";
+
+import { circuits, insertCircuitSchema } from "@fsx/db/schema/circuits";
+import { protectedProcedure, publicProcedure, router } from "../index";
 
 export const circuitsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -30,4 +34,22 @@ export const circuitsRouter = router({
       },
     })
   ),
+  listSimple: publicProcedure.query(({ ctx }) =>
+    ctx.db.select().from(circuits).orderBy(circuits.name)
+  ),
+  create: protectedProcedure
+    .input(insertCircuitSchema.omit({ id: true }))
+    .mutation(({ ctx, input }) =>
+      ctx.db.insert(circuits).values(input).returning()
+    ),
+  update: protectedProcedure
+    .input(z.object({ id: z.number(), name: z.string().min(1).max(80), type: z.enum(["default", "categories", "school"]) }))
+    .mutation(({ ctx, input }) =>
+      ctx.db.update(circuits).set({ name: input.name, type: input.type }).where(eq(circuits.id, input.id)).returning()
+    ),
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(({ ctx, input }) =>
+      ctx.db.delete(circuits).where(eq(circuits.id, input.id))
+    ),
 });

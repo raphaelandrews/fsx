@@ -33,18 +33,19 @@ Built with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-st
 
 ## Features
 
-- Public pages: homepage, news, ratings, player profiles, champions, circuits, members
-- Admin dashboard: CRUD for players, posts, events, clubs, locations, links, announcements
-- Rating update tool with tournament linking
-- Swiss Manager Excel export
-- Markdown blog posts with image upload
+- Public pages: homepage, news, ratings, player profiles, champions, circuits, members, about, norms, links, announcements
+- Admin dashboard: CRUD for players, posts, events, tournaments, championships, clubs, locations, links, circuits, titles, roles, norms, insignias, announcements, tournament podiums
+- Rating update tool with Excel import and live player rating computation
+- Swiss Manager CSV export for public and admin
+- Markdown blog posts with MDX editor
 - Command palette (CMD+K) with type-safe keyboard shortcuts
-- Virtualized scrolling for large player lists and rating tables
 - D3-native rating charts with light/dark mode
+- Animated UI components (counting numbers, sliding numbers, motion grids)
 - Dark mode support
-- Animated UI components
 - Responsive design
-- GitHub OAuth + email/password authentication
+- GitHub OAuth authentication
+- Static prerendering for instant page loads
+- Edge caching via Cloudflare CDN with stale-while-revalidate
 
 ## Project Structure
 

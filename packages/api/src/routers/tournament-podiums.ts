@@ -6,12 +6,24 @@ import { protectedProcedure, publicProcedure, router } from "../index";
 
 export const tournamentPodiumsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
-    ctx.db.select().from(tournamentPodiums)
+    ctx.db.query.tournamentPodiums.findMany({
+      columns: { id: true, playerId: true, tournamentId: true, place: true },
+      with: {
+        player: { columns: { id: true, name: true } },
+        tournament: { columns: { id: true, name: true } },
+      },
+      orderBy: (tp, { asc }) => asc(tp.tournamentId),
+    })
   ),
   create: protectedProcedure
     .input(insertTournamentPodiumSchema.omit({ id: true }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(tournamentPodiums).values(input).returning()
+    ),
+  update: protectedProcedure
+    .input(z.object({ id: z.number(), playerId: z.number(), tournamentId: z.number(), place: z.number().min(1) }))
+    .mutation(({ ctx, input }) =>
+      ctx.db.update(tournamentPodiums).set({ playerId: input.playerId, tournamentId: input.tournamentId, place: input.place }).where(eq(tournamentPodiums.id, input.id)).returning()
     ),
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
