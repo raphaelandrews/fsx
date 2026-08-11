@@ -11,6 +11,7 @@ const DOMAIN = "champions";
 
 export const Route = createFileRoute(PATH + "/")({
   head: () => ({ title: `${TITLE} - Admin - FSX` }),
+  loader: ({ context }) => context.trpc.champions.list.ensureQueryData(),
   component: RouteComponent,
 });
 

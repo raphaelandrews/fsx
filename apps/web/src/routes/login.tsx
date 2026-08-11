@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth-client";
 import Loader from "@/components/loader";
 
 export const Route = createFileRoute("/login")({
+  head: () => ({ title: "Login - FSX" }),
   component: RouteComponent,
 });
 

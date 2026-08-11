@@ -7,6 +7,7 @@ import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/insignias/")({
   head: () => ({ title: "Insignias - Admin - FSX" }),
+  loader: ({ context }) => context.trpc.insignias.list.ensureQueryData(),
   component: RouteComponent,
 });
 

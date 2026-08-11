@@ -11,6 +11,7 @@ import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/$id")({
   head: () => ({ title: "Edit Post - Admin - FSX" }),
+  loader: ({ context }) => context.trpc.posts.listAdmin.ensureQueryData(),
   component: RouteComponent,
 });
 

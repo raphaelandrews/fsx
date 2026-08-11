@@ -11,6 +11,7 @@ export const Route = createFileRoute("/swiss-manager")({
       { name: "description", content: "Exporte dados de jogadores para o Swiss Manager." },
     ],
   }),
+  loader: ({ context }) => context.trpc.swissManager.list.ensureQueryData(),
   component: RouteComponent,
 });
 

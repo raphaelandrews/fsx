@@ -14,6 +14,12 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/_auth/dashboard/players/titles")({
   head: () => ({ title: "Title Assignment - Admin - FSX" }),
   validateSearch: searchSchema,
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.trpc.players.list.ensureQueryData(),
+      context.trpc.titles.list.ensureQueryData(),
+    ]);
+  },
   component: RouteComponent,
 });
 

@@ -7,6 +7,7 @@ import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/locations/")({
   head: () => ({ title: "Locations - Admin - FSX" }),
+  loader: ({ context }) => context.trpc.locations.list.ensureQueryData(),
   component: RouteComponent,
 });
 

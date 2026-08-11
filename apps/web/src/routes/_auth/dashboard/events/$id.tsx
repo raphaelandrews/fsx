@@ -10,6 +10,7 @@ import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/events/$id")({
   head: () => ({ title: "Edit Event - Admin - FSX" }),
+  loader: ({ context }) => context.trpc.events.list.ensureQueryData(),
   component: RouteComponent,
 });
 

@@ -11,6 +11,15 @@ import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/players/$id")({
   head: () => ({ title: "Edit Player - Admin - FSX" }),
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.trpc.clubs.list.ensureQueryData(),
+      context.trpc.locations.list.ensureQueryData(),
+      context.trpc.titles.list.ensureQueryData(),
+      context.trpc.roles.list.ensureQueryData(),
+      context.trpc.insignias.list.ensureQueryData(),
+    ]);
+  },
   component: RouteComponent,
 });
 

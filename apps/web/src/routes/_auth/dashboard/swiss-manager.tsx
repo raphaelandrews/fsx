@@ -6,6 +6,7 @@ import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/swiss-manager")({
   head: () => ({ title: "Swiss Manager - Admin - FSX" }),
+  loader: ({ context }) => context.trpc.swissManager.list.ensureQueryData(),
   component: RouteComponent,
 });
 

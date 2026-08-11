@@ -7,6 +7,7 @@ import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/norms/")({
   head: () => ({ title: "Norms - Admin - FSX" }),
+  loader: ({ context }) => context.trpc.norms.list.ensureQueryData(),
   component: RouteComponent,
 });
 

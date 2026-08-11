@@ -14,6 +14,7 @@ const PATH = "/_auth/dashboard/championships";
 
 export const Route = createFileRoute(PATH + "/$id")({
   head: () => ({ title: `Edit ${TITLE} - Admin - FSX` }),
+  loader: ({ context }) => context.trpc.champions.list.ensureQueryData(),
   component: RouteComponent,
 });
 

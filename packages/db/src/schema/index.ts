@@ -31,4 +31,3 @@ export * from "./roles"
 export * from "./titles"
 export * from "./tournamentPodiums"
 export * from "./tournaments"
-export {}

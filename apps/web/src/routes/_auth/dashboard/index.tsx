@@ -11,6 +11,14 @@ export const Route = createFileRoute("/_auth/dashboard/")({
       { name: "description", content: "Painel administrativo da Federação Sergipana de Xadrez" },
     ],
   }),
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.trpc.players.list.ensureQueryData(),
+      context.trpc.posts.list.ensureQueryData(),
+      context.trpc.announcements.list.ensureQueryData(),
+      context.trpc.events.list.ensureQueryData(),
+    ]);
+  },
   component: RouteComponent,
 });
 

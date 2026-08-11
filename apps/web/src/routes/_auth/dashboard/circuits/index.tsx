@@ -7,6 +7,7 @@ import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/")({
   head: () => ({ title: "Circuits - Admin - FSX" }),
+  loader: ({ context }) => context.trpc.circuits.listSimple.ensureQueryData(),
   component: RouteComponent,
 });
 
