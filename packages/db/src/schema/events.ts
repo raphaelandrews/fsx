@@ -15,7 +15,7 @@ export const events = sqliteTable(
 		type: text("type").notNull(),
 		timeControl: text("time_control").notNull(),
 		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 	},
 	(table) => [index("events_start_date_idx").on(table.startDate)],
 )

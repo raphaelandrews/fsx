@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_public/about")({
   head: () => ({
-    title: "Sobre - FSX",
     meta: [
+      { title: "Sobre - FSX" },
       { name: "description", content: "Sobre a Federação Sergipana de Xadrez" },
     ],
   }),

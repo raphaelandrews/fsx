@@ -12,7 +12,7 @@ export function RatingUpdateTooltip() {
     <Tooltip>
       <TooltipTrigger>
         <Button>
-          <Link to="/showcase/atualizacao-rating">
+          <Link to="/rating-update">
             Atualizacao de Rating
           </Link>
         </Button>

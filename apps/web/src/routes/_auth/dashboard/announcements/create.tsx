@@ -11,7 +11,7 @@ import z from "zod";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/create")({
-  head: () => ({ title: "Create Announcement - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Create Announcement - Admin - FSX" }] }),
   component: RouteComponent,
 });
 
@@ -29,14 +29,14 @@ function RouteComponent() {
   });
 
   const form = useForm({
-    defaultValues: { year: new Date().getFullYear(), number: "", content: "" },
+    defaultValues: { year: new Date().getFullYear(), number: 0, content: "" },
     onSubmit: ({ value }) => {
       createMutation.mutate({ year: value.year, number: value.number, content: value.content });
     },
     validators: {
       onSubmit: z.object({
         year: z.number().int().min(2000),
-        number: z.string().min(1, "Number is required"),
+        number: z.number().int().min(1, "Number is required"),
         content: z.string().min(1, "Content is required"),
       }),
     },
@@ -59,7 +59,7 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Number</Label>
-              <Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
+              <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
               {f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}
             </div>
           )}

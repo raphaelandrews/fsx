@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@fsx/ui/components/car
 import { getUser } from "@/functions/get-user";
 
 export const Route = createFileRoute("/_auth/dashboard/user/")({
-  head: () => ({ title: "User Profile - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "User Profile - Admin - FSX" }] }),
   loader: async () => {
     const session = await getUser();
     return { session };

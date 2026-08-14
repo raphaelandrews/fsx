@@ -11,16 +11,16 @@ import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_public/")({
   head: () => ({
-    title: "Federação Sergipana de Xadrez",
     meta: [
+      { title: "Federação Sergipana de Xadrez" },
       { name: "description", content: "Site oficial da Federação Sergipana de Xadrez" },
     ],
   }),
   loader: ({ context }) => {
-    context.trpc.events.list.ensureQueryData();
-    context.trpc.posts.fresh.ensureQueryData();
-    context.trpc.announcements.fresh.ensureQueryData();
-    context.trpc.topPlayers.list.ensureQueryData();
+    context.queryClient.ensureQueryData(context.trpc.events.list.queryOptions());
+    context.queryClient.ensureQueryData(context.trpc.posts.fresh.queryOptions());
+    context.queryClient.ensureQueryData(context.trpc.announcements.fresh.queryOptions());
+    context.queryClient.ensureQueryData(context.trpc.topPlayers.list.queryOptions());
   },
   component: RouteComponent,
 });

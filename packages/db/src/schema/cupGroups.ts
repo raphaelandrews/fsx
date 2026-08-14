@@ -8,9 +8,9 @@ export const cupGroups = sqliteTable("cup_groups", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	cupId: integer("cup_id").notNull().references(() => cups.id, { onDelete: "cascade" }),
 	name: text("name").notNull(),
-	order: integer("order").notNull(),
+	sortOrder: integer("sort_order").notNull(),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const cupGroupsRelations = relations(cupGroups, ({ one, many }) => ({

@@ -2,12 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_public/announcements")({
   head: () => ({
-    title: "Comunicados - FSX",
     meta: [
+      { title: "Comunicados - FSX" },
       { name: "description", content: "Comunicados oficiais da Federação Sergipana de Xadrez" },
     ],
   }),
-  loader: ({ context }) => context.trpc.announcements.byPage.ensureQueryData({ page: 1 }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.announcements.byPage.queryOptions({ page: 1 })),
   component: RouteComponent,
 });
 

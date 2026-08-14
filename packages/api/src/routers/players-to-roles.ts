@@ -2,10 +2,10 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 
 import { playersToRoles, insertPlayerToRoleSchema } from "@fsx/db/schema/playersToRoles";
-import { protectedProcedure, router } from "../index";
+import { adminProcedure, router } from "../index";
 
 export const playersToRolesRouter = router({
-  listByPlayer: protectedProcedure
+  listByPlayer: adminProcedure
     .input(z.object({ playerId: z.number() }))
     .query(({ ctx, input }) =>
       ctx.db.query.playersToRoles.findMany({
@@ -14,13 +14,13 @@ export const playersToRolesRouter = router({
       })
     ),
 
-  link: protectedProcedure
+  link: adminProcedure
     .input(insertPlayerToRoleSchema.omit({ id: true }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(playersToRoles).values(input).returning()
     ),
 
-  unlink: protectedProcedure
+  unlink: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ ctx, input }) =>
       ctx.db.delete(playersToRoles).where(eq(playersToRoles.id, input.id))

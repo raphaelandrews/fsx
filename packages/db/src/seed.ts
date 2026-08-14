@@ -40,12 +40,12 @@ async function seed() {
   await db
     .insert(schema.roles)
     .values([
-      { role: "Presidente", shortRole: "PRES", type: "management" },
-      { role: "Vice-Presidente", shortRole: "VICE", type: "management" },
-      { role: "Secretário", shortRole: "SEC", type: "management" },
-      { role: "Árbitro Estadual", shortRole: "AE", type: "referee" },
-      { role: "Árbitro Nacional", shortRole: "AN", type: "referee" },
-      { role: "Professor", shortRole: "PROF", type: "teacher" },
+      { name: "Presidente", shortName: "PRES", type: "management" },
+      { name: "Vice-Presidente", shortName: "VICE", type: "management" },
+      { name: "Secretário", shortName: "SEC", type: "management" },
+      { name: "Árbitro Estadual", shortName: "AE", type: "referee" },
+      { name: "Árbitro Nacional", shortName: "AN", type: "referee" },
+      { name: "Professor", shortName: "PROF", type: "teacher" },
     ])
     .onConflictDoNothing();
 
@@ -53,11 +53,11 @@ async function seed() {
   await db
     .insert(schema.titles)
     .values([
-      { title: "Mestre Nacional", shortTitle: "MN", type: "internal" },
-      { title: "Mestre Internacional", shortTitle: "MI", type: "external" },
-      { title: "Mestre FIDE", shortTitle: "MF", type: "external" },
-      { title: "Candidato a Mestre", shortTitle: "CM", type: "external" },
-      { title: "Mestre Feminina FIDE", shortTitle: "WFM", type: "external" },
+      { name: "Mestre Nacional", shortName: "MN", type: "internal" },
+      { name: "Mestre Internacional", shortName: "MI", type: "external" },
+      { name: "Mestre FIDE", shortName: "MF", type: "external" },
+      { name: "Candidato a Mestre", shortName: "CM", type: "external" },
+      { name: "Mestre Feminina FIDE", shortName: "WFM", type: "external" },
     ])
     .onConflictDoNothing();
 

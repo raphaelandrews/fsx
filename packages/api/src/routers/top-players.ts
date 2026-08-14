@@ -14,14 +14,14 @@ const baseConfig = {
     imageUrl: true,
   },
   with: {
-    location: { columns: { name: true, flag: true } },
+    location: { columns: { name: true, flagUrl: true } },
     defendingChampions: {
       columns: {},
       with: { championship: { columns: { name: true } } },
     },
     playersToTitles: {
       columns: {},
-      with: { title: { columns: { title: true, shortTitle: true, type: true } } },
+      with: { title: { columns: { name: true, shortName: true, type: true } } },
     },
   },
 } as const;

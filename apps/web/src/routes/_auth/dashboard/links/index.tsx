@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/links/")({
-  head: () => ({ title: "Links - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.links.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Links - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.links.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -72,7 +72,7 @@ function RouteComponent() {
                   <td className="px-2 py-1">{link.label}</td>
                   <td className="px-2 py-1 text-muted-foreground">{link.href}</td>
                   <td className="px-2 py-1">{link.icon}</td>
-                  <td className="px-2 py-1">{link.order}</td>
+                  <td className="px-2 py-1">{link.sortOrder}</td>
                   <td className="px-2 py-1 text-right">
                     <Button variant="destructive" size="sm" onClick={() => deleteLinkMutation.mutate({ id: link.id })}>
                       Delete

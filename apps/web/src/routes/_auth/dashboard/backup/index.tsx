@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_auth/dashboard/backup/")({
-  head: () => ({ title: "Backup - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Backup - Admin - FSX" }] }),
   component: RouteComponent,
 });
 

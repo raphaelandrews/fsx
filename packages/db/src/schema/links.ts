@@ -9,10 +9,10 @@ export const links = sqliteTable("links", {
 	href: text("href").notNull(),
 	label: text("label").notNull(),
 	icon: text("icon").notNull(),
-	order: integer("order").notNull(),
+	sortOrder: integer("sort_order").notNull(),
 	linkGroupId: integer("link_group_id").references(() => linkGroups.id, { onDelete: "cascade" }).notNull(),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const linksRelations = relations(links, ({ one }) => ({

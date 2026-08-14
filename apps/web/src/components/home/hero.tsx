@@ -5,9 +5,9 @@ import { PostCard } from "@/components/post-card"
 import { DottedSeparator } from "@/components/dotted-separator"
 
 interface FreshPost {
-	id: string
+	id: number
 	title: string
-	image: string | null
+	imageUrl: string | null
 	slug: string | null
 }
 
@@ -27,7 +27,7 @@ export function Hero({ posts }: PostsSectionProps) {
 					{mainPosts?.map((post: FreshPost, index: number) => (
 						<div key={post.id}>
 							<PostCard
-								image={post.image ?? null}
+								imageUrl={post.imageUrl ?? null}
 								main={true}
 								slug={post.slug ?? undefined}
 								title={post.title}

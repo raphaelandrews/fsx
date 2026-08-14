@@ -10,7 +10,7 @@ import z from "zod";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/create")({
-  head: () => ({ title: "Create Podium - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Create Podium - Admin - FSX" }] }),
   component: RouteComponent,
 });
 

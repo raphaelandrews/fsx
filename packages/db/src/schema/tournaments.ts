@@ -12,7 +12,7 @@ export const tournaments = sqliteTable("tournaments", {
 	ratingType: text("rating_type").notNull(),
 	championshipId: integer("championship_id").references(() => championships.id),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const tournamentsRelations = relations(tournaments, ({ one, many }) => ({

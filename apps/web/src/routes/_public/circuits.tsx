@@ -2,12 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_public/circuits")({
   head: () => ({
-    title: "Circuitos - FSX",
     meta: [
+      { title: "Circuitos - FSX" },
       { name: "description", content: "Circuitos de torneios da Federação Sergipana de Xadrez" },
     ],
   }),
-  loader: ({ context }) => context.trpc.circuits.list.ensureQueryData(),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.circuits.list.queryOptions()),
   component: RouteComponent,
 });
 

@@ -10,7 +10,7 @@ import z from "zod";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/create")({
-  head: () => ({ title: "Create Circuit - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Create Circuit - Admin - FSX" }] }),
   component: RouteComponent,
 });
 
@@ -28,7 +28,7 @@ function RouteComponent() {
   const form = useForm({
     defaultValues: { name: "", type: "default" },
     onSubmit: ({ value }) => { createMutation.mutate({ name: value.name, type: value.type }); },
-    validators: { onSubmit: z.object({ name: z.string().min(1, "Name is required") }) },
+    validators: { onSubmit: z.object({ name: z.string().min(1, "Name is required"), type: z.string() }) },
   });
 
   return (

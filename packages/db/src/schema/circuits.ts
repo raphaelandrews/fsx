@@ -9,7 +9,7 @@ export const circuits = sqliteTable("circuits", {
 	name: text("name").notNull().unique(),
 	type: text("type").notNull(),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const circuitsRelations = relations(circuits, ({ many }) => ({

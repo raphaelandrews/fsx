@@ -9,7 +9,7 @@ export const cupBrackets = sqliteTable("cup_brackets", {
 	cupId: integer("cup_id").notNull().references(() => cups.id, { onDelete: "cascade" }),
 	bracketType: text("bracket_type").notNull(),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const cupBracketsRelations = relations(cupBrackets, ({ one, many }) => ({

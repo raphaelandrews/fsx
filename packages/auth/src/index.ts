@@ -14,14 +14,40 @@ export function createAuth() {
       schema: schema,
     }),
     trustedOrigins: [env.CORS_ORIGIN],
+    emailAndPassword: {
+      enabled: false,
+    },
     socialProviders: {
       github: {
         clientId: env.GITHUB_CLIENT_ID!,
         clientSecret: env.GITHUB_CLIENT_SECRET!,
+        mapProfileToUser: (profile) => ({ name: profile.login }),
       },
     },
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
+    databaseHooks: {
+      user: {
+        create: {
+          before: async (user) => {
+            const allowed = env.GITHUB_USERNAME?.trim().toLowerCase();
+            if (allowed) {
+              if (user.name.toLowerCase() !== allowed) {
+                return false;
+              }
+              return;
+            }
+            const existing = await db
+              .select({ id: schema.user.id })
+              .from(schema.user)
+              .limit(1);
+            if (existing.length > 0) {
+              return false;
+            }
+          },
+        },
+      },
+    },
     plugins: [tanstackStartCookies()],
   });
 }

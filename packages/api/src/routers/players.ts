@@ -8,7 +8,7 @@ import { titles } from "@fsx/db/schema/titles";
 import { playersToTitles } from "@fsx/db/schema/playersToTitles";
 import { defendingChampions } from "@fsx/db/schema/defendingChampions";
 import { championships } from "@fsx/db/schema/championships";
-import { protectedProcedure, publicProcedure, router } from "../index";
+import { adminProcedure, publicProcedure, router } from "../index";
 
 function normalizeText(text: string): string {
   return text
@@ -56,19 +56,19 @@ export const playersRouter = router({
         rapid: true,
         blitz: true,
         imageUrl: true,
-        birth: true,
+        birthDate: true,
         sex: true,
       },
       with: {
-        club: { columns: { name: true, logo: true } },
-        location: { columns: { name: true, flag: true } },
+        club: { columns: { name: true, logoUrl: true } },
+        location: { columns: { name: true, flagUrl: true } },
         defendingChampions: {
           columns: {},
           with: { championship: { columns: { name: true } } },
         },
         playersToTitles: {
           columns: { id: true, playerId: true, titleId: true },
-          with: { title: { columns: { id: true, title: true, shortTitle: true, type: true } } },
+          with: { title: { columns: { id: true, name: true, shortName: true, type: true } } },
         },
       },
     })
@@ -93,8 +93,8 @@ export const playersRouter = router({
           verified: true,
         },
         with: {
-          club: { columns: { name: true, logo: true } },
-          location: { columns: { name: true, flag: true } },
+          club: { columns: { name: true, logoUrl: true } },
+          location: { columns: { name: true, flagUrl: true } },
           defendingChampions: {
             columns: {},
             with: { championship: { columns: { name: true } } },
@@ -105,7 +105,7 @@ export const playersRouter = router({
           },
           playersToRoles: {
             columns: {},
-            with: { role: { columns: { role: true, shortRole: true, type: true } } },
+            with: { role: { columns: { name: true, shortName: true, type: true } } },
           },
           tournamentPodiums: {
             columns: { place: true },
@@ -113,7 +113,7 @@ export const playersRouter = router({
           },
           playersToTitles: {
             columns: {},
-            with: { title: { columns: { title: true, shortTitle: true, type: true } } },
+            with: { title: { columns: { name: true, shortName: true, type: true } } },
           },
         },
       })
@@ -181,7 +181,7 @@ export const playersRouter = router({
           cbxId: true,
           fideId: true,
           verified: true,
-          birth: true,
+          birthDate: true,
           sex: true,
           clubId: true,
           locationId: true,
@@ -193,13 +193,13 @@ export const playersRouter = router({
       })
     ),
 
-  create: protectedProcedure
+  create: adminProcedure
     .input(insertPlayerSchema.omit({ id: true }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(playersTable).values(input).returning()
     ),
 
-  update: protectedProcedure
+  update: adminProcedure
     .input(z.object({
       id: z.number(),
       name: z.string().optional(),
@@ -212,7 +212,7 @@ export const playersRouter = router({
       cbxId: z.number().nullable().optional(),
       fideId: z.number().nullable().optional(),
       verified: z.boolean().optional(),
-      birth: z.string().nullable().optional(),
+      birthDate: z.string().nullable().optional(),
       sex: z.enum(["male", "female"]).optional(),
       clubId: z.number().nullable().optional(),
       locationId: z.number().nullable().optional(),
@@ -249,7 +249,7 @@ export const playersRouter = router({
         whereConditions.push(eq(playersTable.sex, sex));
       }
       if (titleFilters.length) {
-        whereConditions.push(inArray(titles.shortTitle, titleFilters));
+        whereConditions.push(inArray(titles.shortName, titleFilters));
       }
       if (clubFilters.length) {
         whereConditions.push(inArray(clubs.name, clubFilters));
@@ -259,7 +259,7 @@ export const playersRouter = router({
         for (const group of groupFilters) {
           const range = getBirthDateRange(group);
           if (range) {
-            groupConditions.push(and(gte(playersTable.birth, range[0]), lte(playersTable.birth, range[1])));
+            groupConditions.push(and(gte(playersTable.birthDate, range[0]), lte(playersTable.birthDate, range[1])));
           }
         }
         if (groupConditions.length > 0) {
@@ -313,17 +313,17 @@ export const playersRouter = router({
           rapid: playersTable.rapid,
           blitz: playersTable.blitz,
           imageUrl: playersTable.imageUrl,
-          birth: playersTable.birth,
+          birthDate: playersTable.birthDate,
           sex: playersTable.sex,
           clubId: clubs.id,
           clubName: clubs.name,
-          clubLogo: clubs.logo,
+          clubLogoUrl: clubs.logoUrl,
           locationName: locations.name,
-          locationFlag: locations.flag,
+          locationFlagUrl: locations.flagUrl,
           championshipName: championships.name,
           titleType: titles.type,
-          titleTitle: titles.title,
-          titleShort: titles.shortTitle,
+          titleName: titles.name,
+          titleShortName: titles.shortName,
         })
         .from(playersTable)
         .leftJoin(playersToTitles, eq(playersTable.id, playersToTitles.playerId))
@@ -343,12 +343,12 @@ export const playersRouter = router({
         rapid: number;
         blitz: number;
         imageUrl: string | null;
-        birth: string | null;
+        birthDate: string | null;
         sex: string;
-        club: { id: number; name: string; logo: string };
-        location: { name: string; flag: string };
+        club: { id: number; name: string; logoUrl: string };
+        location: { name: string; flagUrl: string };
         defendingChampions: { championship: { name: string } }[];
-        playersToTitles: { title: { type: string; title: string; shortTitle: string } }[];
+        playersToTitles: { title: { type: string; name: string; shortName: string } }[];
       }>();
 
       for (const row of rows) {
@@ -361,10 +361,10 @@ export const playersRouter = router({
             rapid: row.rapid,
             blitz: row.blitz,
             imageUrl: row.imageUrl,
-            birth: row.birth,
+            birthDate: row.birthDate,
             sex: row.sex,
-            club: { id: row.clubId ?? 0, name: row.clubName ?? "", logo: row.clubLogo ?? "" },
-            location: { name: row.locationName ?? "", flag: row.locationFlag ?? "" },
+            club: { id: row.clubId ?? 0, name: row.clubName ?? "", logoUrl: row.clubLogoUrl ?? "" },
+            location: { name: row.locationName ?? "", flagUrl: row.locationFlagUrl ?? "" },
             defendingChampions: [],
             playersToTitles: [],
           });
@@ -381,13 +381,13 @@ export const playersRouter = router({
           }
         }
 
-        if (row.titleShort) {
+        if (row.titleShortName) {
           const exists = player.playersToTitles.some(
-            (t) => t.title.shortTitle === row.titleShort && t.title.type === row.titleType
+            (t) => t.title.shortName === row.titleShortName && t.title.type === row.titleType
           );
           if (!exists) {
             player.playersToTitles.push({
-              title: { type: row.titleType!, title: row.titleTitle!, shortTitle: row.titleShort },
+              title: { type: row.titleType!, name: row.titleName!, shortName: row.titleShortName },
             });
           }
         }

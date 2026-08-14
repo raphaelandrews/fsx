@@ -6,12 +6,12 @@ import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/swiss-manager")({
   head: () => ({
-    title: "Swiss Manager - FSX",
     meta: [
+      { title: "Swiss Manager - FSX" },
       { name: "description", content: "Exporte dados de jogadores para o Swiss Manager." },
     ],
   }),
-  loader: ({ context }) => context.trpc.swissManager.list.ensureQueryData(),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.swissManager.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -25,7 +25,7 @@ function RouteComponent() {
     const rows = players.map((p) => [
       p.name,
       p.sex === "female" ? "F" : "M",
-      p.birth ?? "",
+      p.birthDate ?? "",
       p.club?.name ?? "",
       String(p.classic),
       String(p.rapid),
@@ -68,7 +68,7 @@ function RouteComponent() {
               <tr key={p.id} className="border-t">
                 <td className="px-4 py-2">{p.name}</td>
                 <td className="px-4 py-2 text-center">{p.sex === "female" ? "F" : "M"}</td>
-                <td className="px-4 py-2">{p.birth}</td>
+                <td className="px-4 py-2">{p.birthDate}</td>
                 <td className="px-4 py-2">{p.club?.name}</td>
                 <td className="px-4 py-2 text-right">{p.classic}</td>
                 <td className="px-4 py-2 text-right">{p.rapid}</td>

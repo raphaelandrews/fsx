@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/")({
-  head: () => ({ title: "Tournament Podiums - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.tournamentPodiums.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Tournament Podiums - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.tournamentPodiums.list.queryOptions()),
   component: RouteComponent,
 });
 

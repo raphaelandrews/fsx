@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/clubs/$id")({
-  head: () => ({ title: "Edit Club - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.clubs.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Edit Club - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.clubs.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -38,9 +38,9 @@ function RouteComponent() {
   }
 
   const form = useForm({
-    defaultValues: { name: club.name, logo: club.logo ?? "" },
+    defaultValues: { name: club.name, logoUrl: club.logoUrl ?? "" },
     onSubmit: ({ value }) => {
-      updateMutation.mutate({ id: numId, name: value.name, logo: value.logo || null });
+      updateMutation.mutate({ id: numId, name: value.name, logoUrl: value.logoUrl || null });
     },
   });
 
@@ -52,7 +52,7 @@ function RouteComponent() {
       </div>
       <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
         <form.Field name="name">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Name</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
-        <form.Field name="logo">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Logo URL</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
+        <form.Field name="logoUrl">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Logo URL</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
           {({ canSubmit, isSubmitting }) => (
             <Button type="submit" disabled={!canSubmit || isSubmitting}>

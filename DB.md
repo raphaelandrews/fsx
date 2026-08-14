@@ -17,6 +17,45 @@ These conversions are handled by the ORM (Drizzle) and require no manual data tr
 
 ---
 
+## Field Name Standardization (Renames)
+
+The target schema standardizes column names. Apply these renames during migration:
+
+| Table              | Old column (PG)   | New column (SQLite/D1) | Notes                                     |
+|--------------------|-------------------|------------------------|-------------------------------------------|
+| `roles`            | `role`            | `name`                 | entity-name column                        |
+| `roles`            | `short_role`      | `short_name`           | abbreviation                              |
+| `titles`           | `title`           | `name`                 | entity-name column                        |
+| `titles`           | `short_title`     | `short_name`           | abbreviation                              |
+| `insignias`        | `insignia`        | `name`                 | entity-name column                        |
+| `norms`            | `norm`            | `name`                 | entity-name column                        |
+| `posts`            | `image`           | `image_url`            | standardize URL fields                    |
+| `players`          | `birth`           | `birth_date`           | match `start_date` / `end_date`           |
+| `cups`             | `rhythm`          | `rating_type`          | match `tournaments.rating_type`           |
+| `circuit_podiums`  | `place`           | `place`                | type change: `text` → `integer`           |
+| `clubs`            | `logo`            | `logo_url`             | standardize URL fields                    |
+| `locations`        | `flag`            | `flag_url`             | standardize URL fields                    |
+| `links`            | `order`           | `sort_order`           | avoid SQL reserved word, more descriptive |
+| `cup_groups`       | `order`           | `sort_order`           | same as above                             |
+| `cup_rounds`       | `order`           | `sort_order`           | same as above                             |
+| `cup_playoffs`     | `order`           | `sort_order`           | same as above                             |
+| `cup_matches`      | `order`           | `sort_order`           | same as above                             |
+| `circuit_phases`   | `order`           | `sort_order`           | same as above                             |
+| `announcements`    | `number`          | `number`               | type change: `text` → `integer`           |
+
+### Naming conventions applied
+
+- Entity display-name columns are always `name`; abbreviated forms use `short_name`.
+- Image/URL columns use the `*_url` suffix (`image_url`, `logo_url`, `flag_url`).
+- Date columns use the `*_date` suffix (`birth_date`, `start_date`, `end_date`).
+- Ordering columns are `sort_order` (never the reserved word `order`).
+- Boolean columns intentionally have **no** `is` prefix (`active`, `verified`, `published`).
+- `posts.title` is kept as `title` (content entity, idiomatic for articles).
+- `auth.*` tables keep Better Auth's own column names (library-owned schema).
+- Every domain table's `updated_at` auto-updates on writes (`$onUpdate`), in addition to the `CURRENT_TIMESTAMP` default.
+
+---
+
 ## Data Transformations Required
 
 ### 1. `players.sex` — Boolean to Text
@@ -74,7 +113,7 @@ updatedAt  TEXT  DEFAULT CURRENT_TIMESTAMP
 ```
 
 **Previously only `players` and `posts` had these.**  
-All 22 other tables gained them.
+All other tables gained them, **including all junction tables** (`players_to_titles`, `players_to_roles`, `players_to_norms`, `players_to_insignias`, `players_to_tournaments`, `defending_champions`).
 
 Migration script should backfill:
 ```sql
@@ -131,7 +170,7 @@ Foreign keys now cascade on delete for these relationships:
 | `players_club_idx`                      | `players`          | `club_id`                     |
 | `players_location_idx`                  | `players`          | `location_id`                  |
 | `events_start_date_idx`                 | `events`           | `start_date`                  |
-| `circuit_phases_circuit_order_idx`      | `circuit_phases`   | `circuit_id`, `order`          |
+| `circuit_phases_circuit_sort_order_idx` | `circuit_phases`   | `circuit_id`, `sort_order`      |
 | `cup_games_match_game_idx`             | `cup_games`        | `cup_match_id`, `game_number`  |
 | `tournament_podiums_tournament_place_idx`| `tournament_podiums` | `tournament_id`, `place`    |
 
@@ -149,11 +188,13 @@ PostgreSQL enums are now plain `text` columns with Zod validation at the applica
 | `location_type`       | `"city"`, `"state"`, `"country"`                                               |
 | `circuit_type`        | `"default"`, `"categories"`, `"school"`                                        |
 | `circuit_category`    | `"Sub 8 Masculino"`, `"Sub 10 Masculino"`, `"Sub 12 Masculino"`, `"Sub 14 Masculino"`, `"Sub 16 Masculino"`, `"Sub 18 Masculino"`, `"Sub 8 Feminino"`, `"Sub 10 Feminino"`, `"Sub 12 Feminino"`, `"Sub 14 Feminino"`, `"Sub 16 Feminino"`, `"Sub 18 Feminino"`, `"Futuro"`, `"Juvenil"`, `"Master"` |
-| `circuit_place`       | `"1"` through `"25"`                                                            |
+| `circuit_place`       | `1` through `25` — now an **`integer`** (was `text`)                           |
 | `bracket_type`        | `"UB"`, `"LB"`, `"GF"`                                                         |
 | `phase_type`          | `"Oitavas Chave Superior"`, `"Quartas Chave Superior"`, `"Semis Chave Superior"`, `"Final Chave Superior"`, `"Grande Final"`, `"Chave Inferior Round 1"`, `"Chave Inferior Round 2"`, `"Chave Inferior Round 3"`, `"Chave Inferior Round 4"`, `"Quartas Chave Inferior"`, `"Semis Chave Inferior"`, `"Final Chave Inferior"` |
 | `role_type`           | `"management"`, `"referee"`, `"teacher"`                                        |
 | `title_type`          | `"internal"`, `"external"`                                                     |
+
+`cups.rating_type` (formerly `cups.rhythm`) uses the same `rating_type` values as `tournaments.rating_type`.
 
 ---
 

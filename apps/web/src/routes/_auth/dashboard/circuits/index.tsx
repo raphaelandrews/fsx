@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/")({
-  head: () => ({ title: "Circuits - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.circuits.listSimple.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Circuits - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.circuits.listSimple.queryOptions()),
   component: RouteComponent,
 });
 

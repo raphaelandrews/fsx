@@ -10,8 +10,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/$id")({
-  head: () => ({ title: "Edit Announcement - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.announcements.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Edit Announcement - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.announcements.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -68,7 +68,7 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Number</Label>
-              <Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
+              <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
             </div>
           )}
         </form.Field>

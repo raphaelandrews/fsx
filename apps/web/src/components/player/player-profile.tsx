@@ -541,14 +541,14 @@ export interface PlayerById {
   playersToRoles?: Array<{
     role: {
       type: string
-      role: string
+      name: string
     }
   }>
   playersToTitles?: Array<{
     title: {
       type: string
-      shortTitle: string
-      title: string
+      shortName: string
+      name: string
     }
   }>
   tournamentPodiums?: Array<{
@@ -565,11 +565,11 @@ export interface PlayerById {
   }>
   club?: {
     name: string
-    logo?: string | null
+    logoUrl?: string | null
   } | null
   location?: {
     name: string
-    flag?: string | null
+    flagUrl?: string | null
   } | null
 }
 
@@ -641,7 +641,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
               <h1 className="text-lg font-semibold tracking-tight">
                 {internalTitle && (
                   <span className="text-highlight mr-1.5">
-                    {internalTitle.title.shortTitle}
+                    {internalTitle.title.shortName}
                   </span>
                 )}
                 {player.nickname || player.name}
@@ -657,10 +657,10 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
               {(managementRole || refereeRole) && (
                 <>
                   {managementRole && (
-                    <Badge variant="secondary">{managementRole.role.role}</Badge>
+                    <Badge variant="secondary">{managementRole.role.name}</Badge>
                   )}
                   {refereeRole && (
-                    <Badge variant="default">{refereeRole.role.role}</Badge>
+                    <Badge variant="default">{refereeRole.role.name}</Badge>
                   )}
                 </>
               )}
@@ -713,11 +713,11 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
           <InfoItem label="Nome Completo" value={player.name} isFirst />
 
           {internalTitle && (
-            <InfoItem label="Titulação FSX" value={internalTitle.title.title} />
+            <InfoItem label="Titulação FSX" value={internalTitle.title.name} />
           )}
 
           {externalTitle && (
-            <InfoItem label="Titulação CBX/FIDE" value={externalTitle.title.title} />
+            <InfoItem label="Titulação CBX/FIDE" value={externalTitle.title.name} />
           )}
 
           {player.club && (
@@ -728,8 +728,8 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
                     alt={player.club.name as string}
                     className="object-contain"
                     src={
-                      (player.club.logo as string)
-                        ? (player.club.logo as string)
+                      (player.club.logoUrl as string)
+                        ? (player.club.logoUrl as string)
                         : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
                     }
                   />
@@ -748,8 +748,8 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
                     alt={player.location.name as string}
                     className="object-contain"
                     src={
-                      (player.location.flag as string)
-                        ? (player.location.flag as string)
+                      (player.location.flagUrl as string)
+                        ? (player.location.flagUrl as string)
                         : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
                     }
                   />

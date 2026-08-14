@@ -126,7 +126,7 @@ interface Props {
   name: string
   nickname?: string | null
   image?: string | null
-  shortTitle?: string | null
+  shortName?: string | null
   defendingChampions?:
   | {
     championship: {
@@ -141,7 +141,7 @@ export const Actions = ({
   name,
   nickname,
   image,
-  shortTitle,
+  shortName,
   defendingChampions,
 }: Props) => {
   const [open, setOpen] = React.useState(false)
@@ -170,7 +170,7 @@ export const Actions = ({
             <AvatarFallback style={gradient} />
           </Avatar>
           <div className="whitespace-nowrap font-medium">
-            {shortTitle && <span className="text-highlight">{shortTitle}</span>}{" "}
+            {shortName && <span className="text-highlight">{shortName}</span>}{" "}
             {nickname ?? name}
           </div>
         </Button>

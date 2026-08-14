@@ -120,7 +120,7 @@ function RatingUpdatePage() {
         const row = dataRows[i];
         const id = Number(row[headerMap["id"]]);
         const name = headerMap["name"] !== undefined ? String(row[headerMap["name"]] ?? "").trim() : undefined;
-        const birth = headerMap["birth"] !== undefined ? String(row[headerMap["birth"]] ?? "").trim() : undefined;
+        const birthDate = headerMap["birthdate"] !== undefined ? String(row[headerMap["birthdate"]] ?? "").trim() : undefined;
         const sex = headerMap["sex"] !== undefined ? String(row[headerMap["sex"]] ?? "").trim().toLowerCase() : undefined;
         const clubId = headerMap["clubid"] !== undefined ? Number(row[headerMap["clubid"]]) || undefined : undefined;
         const locationId = headerMap["locationid"] !== undefined ? Number(row[headerMap["locationid"]]) || undefined : undefined;
@@ -153,7 +153,7 @@ function RatingUpdatePage() {
               await updateMutation.mutateAsync({
                 id,
                 name,
-                birth: birth || undefined,
+                birthDate: birthDate || undefined,
                 sex: sex === "male" || sex === "female" ? sex : undefined,
                 clubId,
                 locationId,
@@ -163,7 +163,7 @@ function RatingUpdatePage() {
           } else if (hasTournamentData && id === 0 && name) {
             const result = await createMutation.mutateAsync({
               name,
-              birth: birth || null,
+              birthDate: birthDate || null,
               sex: sex === "male" || sex === "female" ? sex : "male",
               clubId,
               locationId,
@@ -186,7 +186,7 @@ function RatingUpdatePage() {
             await updateMutation.mutateAsync({
               id,
               name,
-              birth: birth || undefined,
+              birthDate: birthDate || undefined,
               sex: sex === "male" || sex === "female" ? sex : undefined,
               clubId,
               locationId,
@@ -195,7 +195,7 @@ function RatingUpdatePage() {
           } else if (id === 0 && name) {
             const result = await createMutation.mutateAsync({
               name,
-              birth: birth || null,
+              birthDate: birthDate || null,
               sex: sex === "male" || sex === "female" ? sex : "male",
               clubId,
               locationId,
@@ -306,7 +306,7 @@ function RatingUpdatePage() {
               />
             </div>
             <p className="text-muted-foreground text-xs mt-2">
-              Columns: id, name, birth, sex, clubId, locationId, tournamentId, variation, ratingType
+              Columns: id, name, birthDate, sex, clubId, locationId, tournamentId, variation, ratingType
             </p>
           </CardContent>
         </Card>

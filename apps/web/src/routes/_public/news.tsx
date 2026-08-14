@@ -2,12 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_public/news")({
   head: () => ({
-    title: "Notícias - FSX",
     meta: [
+      { title: "Notícias - FSX" },
       { name: "description", content: "Notícias da Federação Sergipana de Xadrez" },
     ],
   }),
-  loader: ({ context }) => context.trpc.posts.list.ensureQueryData(),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.posts.list.queryOptions()),
   component: RouteComponent,
 });
 

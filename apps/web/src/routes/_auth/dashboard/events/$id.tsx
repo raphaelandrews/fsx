@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/events/$id")({
-  head: () => ({ title: "Edit Event - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.events.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Edit Event - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.events.list.queryOptions()),
   component: RouteComponent,
 });
 

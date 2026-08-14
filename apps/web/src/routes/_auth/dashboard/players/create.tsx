@@ -10,7 +10,7 @@ import z from "zod";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/players/create")({
-  head: () => ({ title: "Create Player - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Create Player - Admin - FSX" }] }),
   component: RouteComponent,
 });
 
@@ -36,7 +36,7 @@ function RouteComponent() {
       blitz: 1900,
       rapid: 1900,
       classic: 1900,
-      birth: "",
+      birthDate: "",
       sex: "male" as "male" | "female",
       clubId: null as number | null,
       locationId: null as number | null,
@@ -48,7 +48,7 @@ function RouteComponent() {
         blitz: value.blitz,
         rapid: value.rapid,
         classic: value.classic,
-        birth: value.birth || null,
+        birthDate: value.birthDate || null,
         sex: value.sex,
         clubId: value.clubId,
         locationId: value.locationId,
@@ -57,6 +57,14 @@ function RouteComponent() {
     validators: {
       onSubmit: z.object({
         name: z.string().min(1, "Name is required"),
+        nickname: z.string(),
+        blitz: z.number(),
+        rapid: z.number(),
+        classic: z.number(),
+        birthDate: z.string(),
+        sex: z.enum(["male", "female"]),
+        clubId: z.number().nullable(),
+        locationId: z.number().nullable(),
       }),
     },
   });
@@ -111,7 +119,7 @@ function RouteComponent() {
             )}
           </form.Field>
         </div>
-        <form.Field name="birth">
+        <form.Field name="birthDate">
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Birth (YYYY-MM-DD)</Label>

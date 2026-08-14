@@ -9,7 +9,7 @@ interface TopPlayer {
 	classic?: number | null
 	rapid?: number | null
 	blitz?: number | null
-	playersToTitles?: Array<{ title: { shortTitle: string } }>
+	playersToTitles?: Array<{ title: { shortName: string } }>
 	defendingChampions?: Array<{ championship: { name: string } }> | null
 }
 
@@ -35,7 +35,7 @@ export const columnsClassic: ColumnDef<TopPlayer>[] = [
 		cell: ({ row }) => {
 			const playerTitles = row.original.playersToTitles
 			if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
-				const shortTitle = playerTitles[0].title.shortTitle
+				const shortName = playerTitles[0].title.shortName
 				return (
 					<Actions
 						defendingChampions={row.original.defendingChampions}
@@ -43,7 +43,7 @@ export const columnsClassic: ColumnDef<TopPlayer>[] = [
 						image={row.original.imageUrl}
 						name={row.original.name}
 						nickname={row.original.nickname}
-						shortTitle={shortTitle}
+						shortName={shortName}
 					/>
 				)
 			}
@@ -92,7 +92,7 @@ export const columnsRapid: ColumnDef<TopPlayer>[] = [
 		cell: ({ row }) => {
 			const playerTitles = row.original.playersToTitles
 			if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
-				const shortTitle = playerTitles[0].title.shortTitle
+				const shortName = playerTitles[0].title.shortName
 				return (
 					<Actions
 						defendingChampions={row.original.defendingChampions}
@@ -100,7 +100,7 @@ export const columnsRapid: ColumnDef<TopPlayer>[] = [
 						image={row.original.imageUrl}
 						name={row.original.name}
 						nickname={row.original.nickname}
-						shortTitle={shortTitle}
+						shortName={shortName}
 					/>
 				)
 			}
@@ -149,7 +149,7 @@ export const columnsBlitz: ColumnDef<TopPlayer>[] = [
 		cell: ({ row }) => {
 			const playerTitles = row.original.playersToTitles
 			if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
-				const shortTitle = playerTitles[0].title.shortTitle
+				const shortName = playerTitles[0].title.shortName
 				return (
 					<Actions
 						defendingChampions={row.original.defendingChampions}
@@ -157,7 +157,7 @@ export const columnsBlitz: ColumnDef<TopPlayer>[] = [
 						image={row.original.imageUrl}
 						name={row.original.name}
 						nickname={row.original.nickname}
-						shortTitle={shortTitle}
+						shortName={shortName}
 					/>
 				)
 			}

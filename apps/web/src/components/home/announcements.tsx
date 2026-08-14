@@ -10,7 +10,7 @@ import { DottedButton } from "@/components/dotted-button"
 
 interface AnnouncementType {
   id: number
-  number: string
+  number: number
   year: number
   content: string
 }

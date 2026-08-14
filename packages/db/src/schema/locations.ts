@@ -8,9 +8,9 @@ export const locations = sqliteTable("locations", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	name: text("name").notNull().unique(),
 	type: text("type").notNull(),
-	flag: text("flag"),
+	flagUrl: text("flag_url"),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const locationsRelations = relations(locations, ({ many }) => ({

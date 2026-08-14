@@ -9,10 +9,10 @@ export const circuitPodiums = sqliteTable("circuit_podiums", {
 	playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
 	circuitPhaseId: integer("circuit_phase_id").notNull().references(() => circuitPhases.id, { onDelete: "cascade" }),
 	category: text("category"),
-	place: text("place").notNull(),
+	place: integer("place").notNull(),
 	points: integer("points").notNull(),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const circuitPodiumsRelations = relations(circuitPodiums, ({ one }) => ({

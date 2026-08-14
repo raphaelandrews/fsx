@@ -21,7 +21,7 @@ const NAV_ITEMS = [
   { to: "/dashboard/roles", label: "Roles" },
   { to: "/dashboard/norms", label: "Norms" },
   { to: "/dashboard/insignias", label: "Insignias" },
-  { to: "/dashboard/rating-update", label: "Rating Update" },
+  { to: "/rating-update", label: "Rating Update" },
   { to: "/dashboard/swiss-manager", label: "Swiss Manager" },
   { to: "/dashboard/cache", label: "Cache" },
   { to: "/dashboard/backup", label: "Backup" },

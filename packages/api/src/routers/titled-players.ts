@@ -11,7 +11,7 @@ export const titledPlayersRouter = router({
         playersToTitles: {
           columns: {},
           with: {
-            title: { columns: { title: true, shortTitle: true, type: true } },
+            title: { columns: { name: true, shortName: true, type: true } },
           },
         },
       },

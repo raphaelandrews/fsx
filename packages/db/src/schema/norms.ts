@@ -6,9 +6,9 @@ import { playersToNorms } from "./index"
 
 export const norms = sqliteTable("norms", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
-	norm: text("norm").notNull().unique(),
+	name: text("name").notNull().unique(),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const normsRelations = relations(norms, ({ many }) => ({

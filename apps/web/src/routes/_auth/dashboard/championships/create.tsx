@@ -13,7 +13,7 @@ const TITLE = "Championship";
 const DOMAIN = "champions" as const;
 
 export const Route = createFileRoute("/_auth/dashboard/championships/create")({
-  head: () => ({ title: `Create ${TITLE} - Admin - FSX` }),
+  head: () => ({ meta: [{ title: `Create ${TITLE} - Admin - FSX` }] }),
   component: RouteComponent,
 });
 

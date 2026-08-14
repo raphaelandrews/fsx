@@ -7,10 +7,10 @@ export const announcements = sqliteTable(
 	{
 		id: integer("id").primaryKey({ autoIncrement: true }),
 		year: integer("year").notNull(),
-		number: text("number").notNull(),
+		number: integer("number").notNull(),
 		content: text("content").notNull(),
 		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 	},
 	(t) => [uniqueIndex("year_number").on(t.year, t.number)],
 )

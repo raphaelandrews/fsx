@@ -2,23 +2,23 @@ import { z } from "zod";
 import { eq, asc } from "drizzle-orm";
 
 import { norms, insertNormSchema } from "@fsx/db/schema/norms";
-import { protectedProcedure, publicProcedure, router } from "../index";
+import { adminProcedure, publicProcedure, router } from "../index";
 
 export const normsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
-    ctx.db.select().from(norms).orderBy(asc(norms.norm))
+    ctx.db.select().from(norms).orderBy(asc(norms.name))
   ),
-  create: protectedProcedure
+  create: adminProcedure
     .input(insertNormSchema.omit({ id: true }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(norms).values(input).returning()
     ),
-  update: protectedProcedure
-    .input(z.object({ id: z.number(), norm: z.string().max(80) }))
+  update: adminProcedure
+    .input(z.object({ id: z.number(), name: z.string().max(80) }))
     .mutation(({ ctx, input }) =>
       ctx.db.update(norms).set(input).where(eq(norms.id, input.id)).returning()
     ),
-  delete: protectedProcedure
+  delete: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ ctx, input }) =>
       ctx.db.delete(norms).where(eq(norms.id, input.id))

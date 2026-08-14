@@ -11,10 +11,10 @@ export const cups = sqliteTable("cups", {
 	startDate: text("start_date").notNull(),
 	endDate: text("end_date").notNull(),
 	prizePool: integer("prize_pool").notNull(),
-	rhythm: text("rhythm").notNull(),
+	ratingType: text("rating_type").notNull(),
 	championshipId: integer("championship_id").references(() => championships.id),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const cupsRelations = relations(cups, ({ one, many }) => ({

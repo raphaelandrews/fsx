@@ -13,7 +13,7 @@ export const cupGames = sqliteTable(
 		gameNumber: integer("game_number").notNull(),
 		link: text("link"),
 		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 	},
 	(table) => [index("cup_games_match_game_idx").on(table.cupMatchId, table.gameNumber)],
 )

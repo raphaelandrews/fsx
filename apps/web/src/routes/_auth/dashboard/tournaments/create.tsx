@@ -10,7 +10,7 @@ import z from "zod";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/tournaments/create")({
-  head: () => ({ title: "Create Tournament - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Create Tournament - Admin - FSX" }] }),
   component: RouteComponent,
 });
 
@@ -28,7 +28,7 @@ function RouteComponent() {
   const form = useForm({
     defaultValues: { name: "", chessResults: "", date: "", ratingType: "rapid", championshipId: null as number | null },
     onSubmit: ({ value }) => { createMutation.mutate({ name: value.name, chessResults: value.chessResults || null, date: value.date || null, ratingType: value.ratingType, championshipId: value.championshipId }); },
-    validators: { onSubmit: z.object({ name: z.string().min(1, "Name is required"), ratingType: z.enum(["blitz", "rapid", "classic"]) }) },
+    validators: { onSubmit: z.object({ name: z.string().min(1, "Name is required"), chessResults: z.string(), date: z.string(), ratingType: z.enum(["blitz", "rapid", "classic"]), championshipId: z.number().nullable() }) },
   });
 
   return (

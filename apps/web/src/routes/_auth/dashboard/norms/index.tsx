@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/norms/")({
-  head: () => ({ title: "Norms - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.norms.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Norms - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.norms.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -35,7 +35,7 @@ function RouteComponent() {
             {norms.map((n) => (
               <tr key={n.id} className="border-t">
                 <td className="px-4 py-2">{n.id}</td>
-                <td className="px-4 py-2">{n.norm}</td>
+                <td className="px-4 py-2">{n.name}</td>
                 <td className="px-4 py-2 text-right">
                   <div className="flex gap-1 justify-end">
                     <Link to="/dashboard/norms/$id" params={{ id: String(n.id) }}><Button variant="outline" size="sm">Edit</Button></Link>

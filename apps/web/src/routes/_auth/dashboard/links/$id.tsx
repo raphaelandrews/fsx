@@ -3,13 +3,14 @@ import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
+import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/links/$id")({
-  head: () => ({ title: "Edit Link Group - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.links.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Edit Link Group - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.links.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -51,7 +52,7 @@ function RouteComponent() {
   });
 
   const groupLabelForm = useForm({
-    defaultValues: { label: group.label },
+    defaultValues: { label: group?.label ?? "" },
     onSubmit: ({ value }) => {
       updateGroupMutation.mutate({ id: numId, label: value.label });
     },
@@ -86,11 +87,11 @@ function RouteComponent() {
         <h2 className="mb-2 font-semibold">Links</h2>
         {group.links.map((link) => {
           const editForm = useForm({
-            defaultValues: { label: link.label, href: link.href, icon: link.icon, order: link.order },
+            defaultValues: { label: link.label, href: link.href, icon: link.icon, sortOrder: link.sortOrder },
             onSubmit: ({ value }) => {
               updateLinkMutation.mutate({
                 id: link.id, label: value.label, href: value.href,
-                icon: value.icon, order: value.order,
+                icon: value.icon, sortOrder: value.sortOrder,
               });
             },
           });
@@ -100,7 +101,7 @@ function RouteComponent() {
               <editForm.Field name="label">{(f) => <Input placeholder="Label" value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} className="flex-1" />}</editForm.Field>
               <editForm.Field name="href">{(f) => <Input placeholder="URL" value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} className="flex-1" />}</editForm.Field>
               <editForm.Field name="icon">{(f) => <Input placeholder="Icon" value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} className="w-20" />}</editForm.Field>
-              <editForm.Field name="order">{(f) => <Input type="number" placeholder="Order" value={String(f.state.value)} onChange={(e) => f.handleChange(Number(e.target.value))} className="w-16" />}</editForm.Field>
+              <editForm.Field name="sortOrder">{(f) => <Input type="number" placeholder="Sort Order" value={String(f.state.value)} onChange={(e) => f.handleChange(Number(e.target.value))} className="w-16" />}</editForm.Field>
               <editForm.Subscribe selector={(s) => ({ canSubmit: s.canSubmit })}>
                 {({ canSubmit }) => <Button type="submit" variant="outline" size="sm" disabled={!canSubmit}>Save</Button>}
               </editForm.Subscribe>
@@ -125,9 +126,9 @@ function NewLinkForm({ groupId, onCreated }: { groupId: number; onCreated: () =>
   });
 
   const form = useForm({
-    defaultValues: { label: "", href: "", icon: "", order: 0 },
+    defaultValues: { label: "", href: "", icon: "", sortOrder: 0 },
     onSubmit: ({ value }) => {
-      createLinkMutation.mutate({ label: value.label, href: value.href, icon: value.icon, order: value.order, linkGroupId: groupId });
+      createLinkMutation.mutate({ label: value.label, href: value.href, icon: value.icon, sortOrder: value.sortOrder, linkGroupId: groupId });
     },
   });
 
@@ -138,7 +139,7 @@ function NewLinkForm({ groupId, onCreated }: { groupId: number; onCreated: () =>
         <form.Field name="label">{(f) => <Input placeholder="Label" value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} className="flex-1" />}</form.Field>
         <form.Field name="href">{(f) => <Input placeholder="URL" value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} className="flex-1" />}</form.Field>
         <form.Field name="icon">{(f) => <Input placeholder="Icon" value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} className="w-20" />}</form.Field>
-        <form.Field name="order">{(f) => <Input type="number" placeholder="Order" value={String(f.state.value)} onChange={(e) => f.handleChange(Number(e.target.value))} className="w-16" />}</form.Field>
+        <form.Field name="sortOrder">{(f) => <Input type="number" placeholder="Sort Order" value={String(f.state.value)} onChange={(e) => f.handleChange(Number(e.target.value))} className="w-16" />}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
           {({ canSubmit, isSubmitting }) => <Button type="submit" size="sm" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "..." : "Add"}</Button>}
         </form.Subscribe>

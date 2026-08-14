@@ -7,9 +7,9 @@ import { circuitPhases, players } from "./index"
 export const clubs = sqliteTable("clubs", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	name: text("name").notNull().unique(),
-	logo: text("logo"),
+	logoUrl: text("logo_url"),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const clubsRelations = relations(clubs, ({ many }) => ({

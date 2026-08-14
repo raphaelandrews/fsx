@@ -1,7 +1,7 @@
-import { protectedProcedure, router } from "../index";
+import { adminProcedure, router } from "../index";
 
 export const seedRouter = router({
-  run: protectedProcedure.mutation(() => {
+  run: adminProcedure.mutation(() => {
     return { seeded: true };
   }),
 });

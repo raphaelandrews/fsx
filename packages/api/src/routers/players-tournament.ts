@@ -4,19 +4,19 @@ import { eq } from "drizzle-orm";
 import { players } from "@fsx/db/schema/players";
 import { playersToTournaments, insertPlayerToTournamentSchema } from "@fsx/db/schema/playersToTournaments";
 import { tournaments } from "@fsx/db/schema/tournaments";
-import { protectedProcedure, router } from "../index";
+import { adminProcedure, router } from "../index";
 
 import { TRPCError } from "@trpc/server";
 
 const ratingTypes = ["blitz", "rapid", "classic"] as const;
 
 export const playersTournamentRouter = router({
-  link: protectedProcedure
+  link: adminProcedure
     .input(insertPlayerToTournamentSchema.omit({ id: true }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(playersToTournaments).values(input).returning()
     ),
-  updateRating: protectedProcedure
+  updateRating: adminProcedure
     .input(z.object({ id: z.number(), oldRating: z.number(), variation: z.number() }))
     .mutation(({ ctx, input }) =>
       ctx.db.update(playersToTournaments)
@@ -24,7 +24,7 @@ export const playersTournamentRouter = router({
         .where(eq(playersToTournaments.id, input.id))
         .returning()
     ),
-  linkWithRating: protectedProcedure
+  linkWithRating: adminProcedure
     .input(z.object({
       playerId: z.number(),
       tournamentId: z.number(),

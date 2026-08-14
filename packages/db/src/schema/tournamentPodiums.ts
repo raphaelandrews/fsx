@@ -12,7 +12,7 @@ export const tournamentPodiums = sqliteTable(
 		tournamentId: integer("tournament_id").notNull().references(() => tournaments.id, { onDelete: "cascade" }),
 		place: integer("place").notNull(),
 		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 	},
 	(t) => [
 		uniqueIndex("player_tournament_podium").on(t.playerId, t.tournamentId),

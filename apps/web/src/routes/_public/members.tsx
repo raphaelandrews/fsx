@@ -5,18 +5,18 @@ import { useVirtualList } from "@/hooks/use-virtual-list";
 
 export const Route = createFileRoute("/_public/members")({
   head: () => ({
-    title: "Membros - FSX",
     meta: [
+      { title: "Membros - FSX" },
       { name: "description", content: "Lista de jogadores da Federação Sergipana de Xadrez" },
     ],
   }),
-  loader: ({ context }) => context.trpc.players.withFilters.ensureQueryData({}),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.players.withFilters.queryOptions({})),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const [data] = useSuspenseQuery(trpc.players.withFilters.queryOptions({}));
+  const { data } = useSuspenseQuery(trpc.players.withFilters.queryOptions({}));
   const { parentRef, virtualizer } = useVirtualList(data.players, { estimateSize: 56 });
 
   return (
@@ -47,7 +47,7 @@ function RouteComponent() {
                   </span>
                   <span className="font-medium">{player.name}</span>
                   <span className="text-muted-foreground text-sm ml-auto">
-                    {player.playersToTitles.map((t: { title: { shortTitle: string } }) => t.title.shortTitle).join(", ")}
+                    {player.playersToTitles.map((t: { title: { shortName: string } }) => t.title.shortName).join(", ")}
                   </span>
                 </div>
               </div>

@@ -11,7 +11,7 @@ export const cupPlayers = sqliteTable("cup_players", {
 	nickname: text("nickname"),
 	position: integer("position"),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const cupPlayersRelations = relations(cupPlayers, ({ one }) => ({

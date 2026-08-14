@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/")({
-  head: () => ({ title: "Posts - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.posts.listAdmin.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Posts - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.posts.listAdmin.queryOptions()),
   component: RouteComponent,
 });
 
@@ -52,7 +52,7 @@ function RouteComponent() {
                 <td className="px-4 py-2">{p.published ? "Yes" : "No"}</td>
                 <td className="px-4 py-2 text-right">
                   <div className="flex gap-1 justify-end">
-                    <Link to="/dashboard/posts/$id" params={{ id: p.id }}>
+                    <Link to="/dashboard/posts/$id" params={{ id: String(p.id) }}>
                       <Button variant="outline" size="sm">Edit</Button>
                     </Link>
                     <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate({ id: p.id })}>

@@ -2,12 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/links")({
   head: () => ({
-    title: "Links - FSX",
     meta: [
+      { title: "Links - FSX" },
       { name: "description", content: "Links úteis do xadrez sergipano" },
     ],
   }),
-  loader: ({ context }) => context.trpc.links.list.ensureQueryData(),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.links.list.queryOptions()),
   component: RouteComponent,
 });
 

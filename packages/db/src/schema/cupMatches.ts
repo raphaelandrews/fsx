@@ -12,10 +12,10 @@ export const cupMatches = sqliteTable("cup_matches", {
 	cupRoundId: integer("cup_round_id").references(() => cupRounds.id, { onDelete: "cascade" }),
 	cupPlayoffId: integer("cup_playoff_id").references(() => cupPlayoffs.id, { onDelete: "cascade" }),
 	bestOf: integer("best_of").notNull(),
-	order: integer("order").notNull(),
+	sortOrder: integer("sort_order").notNull(),
 	date: text("date").notNull(),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const cupMatchesRelations = relations(cupMatches, ({ one, many }) => ({

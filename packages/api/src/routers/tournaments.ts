@@ -2,7 +2,7 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 
 import { tournaments, insertTournamentSchema } from "@fsx/db/schema/tournaments";
-import { protectedProcedure, publicProcedure, router } from "../index";
+import { adminProcedure, publicProcedure, router } from "../index";
 
 export const tournamentsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -31,12 +31,12 @@ export const tournamentsRouter = router({
         },
       })
     ),
-  create: protectedProcedure
+  create: adminProcedure
     .input(insertTournamentSchema.omit({ id: true }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(tournaments).values(input).returning()
     ),
-  update: protectedProcedure
+  update: adminProcedure
     .input(z.object({
       id: z.number(),
       name: z.string().optional(),
@@ -48,7 +48,7 @@ export const tournamentsRouter = router({
     .mutation(({ ctx, input }) =>
       ctx.db.update(tournaments).set(input).where(eq(tournaments.id, input.id)).returning()
     ),
-  delete: protectedProcedure
+  delete: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ ctx, input }) =>
       ctx.db.delete(tournaments).where(eq(tournaments.id, input.id))

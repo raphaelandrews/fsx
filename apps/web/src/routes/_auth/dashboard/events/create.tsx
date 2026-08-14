@@ -10,7 +10,7 @@ import z from "zod";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/events/create")({
-  head: () => ({ title: "Create Event - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Create Event - Admin - FSX" }] }),
   component: RouteComponent,
 });
 
@@ -44,8 +44,12 @@ function RouteComponent() {
       onSubmit: z.object({
         name: z.string().min(1, "Name is required"),
         startDate: z.string().min(1, "Start date is required"),
+        endDate: z.string(),
         type: z.string().min(1, "Type is required"),
         timeControl: z.string().min(1, "Time control is required"),
+        regulation: z.string(),
+        form: z.string(),
+        chessResults: z.string(),
       }),
     },
   });

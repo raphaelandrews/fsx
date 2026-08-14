@@ -10,11 +10,11 @@ import { useTRPC } from "@/utils/trpc";
 
 const TITLE = "Championship";
 const DOMAIN = "champions" as const;
-const PATH = "/_auth/dashboard/championships";
+const PATH = "/dashboard/championships";
 
-export const Route = createFileRoute(PATH + "/$id")({
-  head: () => ({ title: `Edit ${TITLE} - Admin - FSX` }),
-  loader: ({ context }) => context.trpc.champions.list.ensureQueryData(),
+export const Route = createFileRoute("/_auth/dashboard/championships/$id")({
+  head: () => ({ meta: [{ title: `Edit ${TITLE} - Admin - FSX` }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.champions.list.queryOptions()),
   component: RouteComponent,
 });
 

@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/norms/$id")({
-  head: () => ({ title: "Edit Norm - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.norms.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Edit Norm - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.norms.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -33,8 +33,8 @@ function RouteComponent() {
   if (!norm) return <p>Norm not found.</p>;
 
   const form = useForm({
-    defaultValues: { norm: norm.norm },
-    onSubmit: ({ value }) => { updateMutation.mutate({ id: numId, norm: value.norm }); },
+    defaultValues: { name: norm.name },
+    onSubmit: ({ value }) => { updateMutation.mutate({ id: numId, name: value.name }); },
   });
 
   return (
@@ -44,7 +44,7 @@ function RouteComponent() {
         <Button variant="outline" onClick={() => navigate({ to: "/dashboard/norms" })}>Back</Button>
       </div>
       <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
-        <form.Field name="norm">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Norm</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
+        <form.Field name="name">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Norm</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
           {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "Saving..." : "Save Changes"}</Button>}
         </form.Subscribe>

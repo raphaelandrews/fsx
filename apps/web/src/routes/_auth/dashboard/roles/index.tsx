@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/roles/")({
-  head: () => ({ title: "Roles - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.roles.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Roles - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.roles.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -34,8 +34,8 @@ function RouteComponent() {
           <tbody>
             {roles.map((r) => (
               <tr key={r.id} className="border-t">
-                <td className="px-4 py-2">{r.role}</td>
-                <td className="px-4 py-2">{r.shortRole}</td>
+                <td className="px-4 py-2">{r.name}</td>
+                <td className="px-4 py-2">{r.shortName}</td>
                 <td className="px-4 py-2 text-muted-foreground">{r.type}</td>
                 <td className="px-4 py-2 text-right">
                   <div className="flex gap-1 justify-end">

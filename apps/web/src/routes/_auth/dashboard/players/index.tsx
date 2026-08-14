@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/players/")({
-  head: () => ({ title: "Players - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.players.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Players - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.players.list.queryOptions()),
   component: RouteComponent,
 });
 

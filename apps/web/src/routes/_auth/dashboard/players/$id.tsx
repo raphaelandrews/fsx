@@ -10,14 +10,14 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/players/$id")({
-  head: () => ({ title: "Edit Player - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Edit Player - Admin - FSX" }] }),
   loader: async ({ context }) => {
     await Promise.all([
-      context.trpc.clubs.list.ensureQueryData(),
-      context.trpc.locations.list.ensureQueryData(),
-      context.trpc.titles.list.ensureQueryData(),
-      context.trpc.roles.list.ensureQueryData(),
-      context.trpc.insignias.list.ensureQueryData(),
+      context.queryClient.ensureQueryData(context.trpc.clubs.list.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.locations.list.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.titles.list.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.roles.list.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.insignias.list.queryOptions()),
     ]);
   },
   component: RouteComponent,
@@ -30,7 +30,7 @@ function RouteComponent() {
   const navigate = useNavigate();
   const numId = Number(id);
 
-  const [player] = useSuspenseQuery(trpc.players.forEdit.queryOptions({ id: numId }));
+  const { data: player } = useSuspenseQuery(trpc.players.forEdit.queryOptions({ id: numId }));
   const { data: clubs = [] } = useSuspenseQuery(trpc.clubs.list.queryOptions());
   const { data: locations = [] } = useSuspenseQuery(trpc.locations.list.queryOptions());
   const { data: titles = [] } = useSuspenseQuery(trpc.titles.list.queryOptions());
@@ -114,8 +114,8 @@ function RouteComponent() {
       blitz: player.blitz,
       rapid: player.rapid,
       classic: player.classic,
-      birth: player.birth ?? "",
-      sex: player.sex,
+      birthDate: player.birthDate ?? "",
+      sex: player.sex as "male" | "female",
       clubId: player.clubId,
       locationId: player.locationId,
       active: player.active,
@@ -128,7 +128,7 @@ function RouteComponent() {
         blitz: value.blitz,
         rapid: value.rapid,
         classic: value.classic,
-        birth: value.birth || null,
+        birthDate: value.birthDate || null,
         sex: value.sex,
         clubId: value.clubId,
         locationId: value.locationId,
@@ -187,7 +187,7 @@ function RouteComponent() {
             )}
           </form.Field>
         </div>
-        <form.Field name="birth">
+        <form.Field name="birthDate">
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Birth</Label>
@@ -202,7 +202,7 @@ function RouteComponent() {
                 <Label>Sex</Label>
                 <select
                   value={f.state.value}
-                  onChange={(e) => f.handleChange(e.target.value)}
+                  onChange={(e) => f.handleChange(e.target.value as "male" | "female")}
                   onBlur={f.handleBlur}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 >
@@ -262,7 +262,7 @@ function RouteComponent() {
           <div className="flex flex-wrap gap-2 mb-3">
             {playerTitles.map((pt) => (
               <span key={pt.id} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs">
-                {pt.title?.title}
+                {pt.title?.name}
                 <button
                   type="button"
                   className="ml-1 text-muted-foreground hover:text-destructive"
@@ -277,7 +277,7 @@ function RouteComponent() {
             <Select onValueChange={(v) => { if (v) linkTitleMutation.mutate({ playerId: numId, titleId: Number(v) }); }}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Add title" /></SelectTrigger>
               <SelectContent>
-                {titles.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.title}</SelectItem>)}
+                {titles.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -288,7 +288,7 @@ function RouteComponent() {
           <div className="flex flex-wrap gap-2 mb-3">
             {playerRoles.map((pr) => (
               <span key={pr.id} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs">
-                {pr.role?.role}
+                {pr.role?.name}
                 <button
                   type="button"
                   className="ml-1 text-muted-foreground hover:text-destructive"
@@ -303,7 +303,7 @@ function RouteComponent() {
             <Select onValueChange={(v) => { if (v) linkRoleMutation.mutate({ playerId: numId, roleId: Number(v) }); }}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Add role" /></SelectTrigger>
               <SelectContent>
-                {roles.map((r) => <SelectItem key={r.id} value={String(r.id)}>{r.role}</SelectItem>)}
+                {roles.map((r) => <SelectItem key={r.id} value={String(r.id)}>{r.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -314,7 +314,7 @@ function RouteComponent() {
           <div className="flex flex-wrap gap-2 mb-3">
             {playerInsignias.map((pi) => (
               <span key={pi.id} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs">
-                {pi.insignia?.insignia}
+                {pi.insignia?.name}
                 <button
                   type="button"
                   className="ml-1 text-muted-foreground hover:text-destructive"
@@ -329,7 +329,7 @@ function RouteComponent() {
             <Select onValueChange={(v) => { if (v) linkInsigniaMutation.mutate({ playerId: numId, insigniaId: Number(v) }); }}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Add insignia" /></SelectTrigger>
               <SelectContent>
-                {insignias.map((i) => <SelectItem key={i.id} value={String(i.id)}>{i.insignia}</SelectItem>)}
+                {insignias.map((i) => <SelectItem key={i.id} value={String(i.id)}>{i.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

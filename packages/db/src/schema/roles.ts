@@ -6,11 +6,11 @@ import { playersToRoles } from "./index"
 
 export const roles = sqliteTable("roles", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
-	role: text("role").notNull().unique(),
-	shortRole: text("short_role").notNull().unique(),
+	name: text("name").notNull().unique(),
+	shortName: text("short_name").notNull().unique(),
 	type: text("type").notNull(),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const rolesRelations = relations(roles, ({ many }) => ({

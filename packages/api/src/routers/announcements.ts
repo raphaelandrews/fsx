@@ -2,7 +2,7 @@ import { z } from "zod";
 import { eq, desc, count } from "drizzle-orm";
 
 import { announcements, insertAnnouncementSchema } from "@fsx/db/schema/announcements";
-import { protectedProcedure, publicProcedure, router } from "../index";
+import { adminProcedure, publicProcedure, router } from "../index";
 
 export const announcementsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -46,17 +46,17 @@ export const announcementsRouter = router({
       .orderBy(desc(announcements.year), desc(announcements.number))
       .limit(8)
   ),
-  create: protectedProcedure
+  create: adminProcedure
     .input(insertAnnouncementSchema.omit({ id: true }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(announcements).values(input).returning()
     ),
-  update: protectedProcedure
-    .input(z.object({ id: z.number(), year: z.number().optional(), number: z.string().optional(), content: z.string().optional() }))
+  update: adminProcedure
+    .input(z.object({ id: z.number(), year: z.number().optional(), number: z.number().optional(), content: z.string().optional() }))
     .mutation(({ ctx, input }) =>
       ctx.db.update(announcements).set(input).where(eq(announcements.id, input.id)).returning()
     ),
-  delete: protectedProcedure
+  delete: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ ctx, input }) =>
       ctx.db.delete(announcements).where(eq(announcements.id, input.id))

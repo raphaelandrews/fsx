@@ -6,12 +6,12 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 const TITLE = "Championships";
-const PATH = "/_auth/dashboard/championships";
+const PATH = "/dashboard/championships";
 const DOMAIN = "champions";
 
-export const Route = createFileRoute(PATH + "/")({
-  head: () => ({ title: `${TITLE} - Admin - FSX` }),
-  loader: ({ context }) => context.trpc.champions.list.ensureQueryData(),
+export const Route = createFileRoute("/_auth/dashboard/championships/")({
+  head: () => ({ meta: [{ title: `${TITLE} - Admin - FSX` }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.champions.list.queryOptions()),
   component: RouteComponent,
 });
 

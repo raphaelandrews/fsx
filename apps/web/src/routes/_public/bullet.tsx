@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_public/bullet")({
   head: () => ({
-    title: "Boletim - FSX",
     meta: [
+      { title: "Boletim - FSX" },
       { name: "description", content: "Boletim da Federação Sergipana de Xadrez" },
     ],
   }),

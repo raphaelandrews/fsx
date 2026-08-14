@@ -7,7 +7,7 @@ import { Skeleton } from "@fsx/ui/components/skeleton"
 
 interface FreshPost {
   title: string
-  image: string | null
+  imageUrl: string | null
   slug?: string
 }
 
@@ -18,7 +18,7 @@ type PostCardProps = FreshPost & {
 
 export function PostCard({
   title,
-  image,
+  imageUrl,
   slug,
   main,
   onMouseEnter,
@@ -29,7 +29,7 @@ export function PostCard({
 
   useEffect(() => {
     const img = new Image()
-    img.src = image ?? ""
+    img.src = imageUrl ?? ""
     img.onload = () => {
       setImageLoaded(true)
       setLoading(false)
@@ -43,7 +43,7 @@ export function PostCard({
     }, 2500)
 
     return () => clearTimeout(timeout)
-  }, [image, loading])
+  }, [imageUrl, loading])
 
   if (loading) {
     return (
@@ -63,7 +63,8 @@ export function PostCard({
     <Link
       aria-label={`Read posts: ${title}`}
       className={cn("group flex flex-col p-3", className)}
-      to={`/noticias/${slug}`}
+      to="/news/$slug"
+      params={{ slug: slug ?? "" }}
       onMouseEnter={onMouseEnter}
     >
       <div className="p-[4px] rounded-[10px] border border-border">
@@ -73,7 +74,7 @@ export function PostCard({
           className="aspect-[2/1] w-full rounded-md border border-border object-cover transition-opacity duration-300"
           decoding="async"
           loading="lazy"
-          src={image ?? undefined}
+          src={imageUrl ?? undefined}
           style={{ opacity: imageLoaded ? 1 : 0 }}
         />
       </div>

@@ -10,7 +10,7 @@ import z from "zod";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/roles/create")({
-  head: () => ({ title: "Create Role - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Create Role - Admin - FSX" }] }),
   component: RouteComponent,
 });
 
@@ -26,17 +26,17 @@ function RouteComponent() {
   });
 
   const form = useForm({
-    defaultValues: { role: "", shortRole: "", type: "management" },
-    onSubmit: ({ value }) => { createMutation.mutate({ role: value.role, shortRole: value.shortRole, type: value.type }); },
-    validators: { onSubmit: z.object({ role: z.string().min(1, "Role is required"), type: z.enum(["management", "referee", "teacher"]) }) },
+    defaultValues: { name: "", shortName: "", type: "management" },
+    onSubmit: ({ value }) => { createMutation.mutate({ name: value.name, shortName: value.shortName, type: value.type }); },
+    validators: { onSubmit: z.object({ name: z.string().min(1, "Role is required"), shortName: z.string(), type: z.enum(["management", "referee", "teacher"]) }) },
   });
 
   return (
     <div className="mx-auto max-w-lg">
       <h1 className="mb-6 font-bold text-2xl">Create Role</h1>
       <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
-        <form.Field name="role">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Role</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
-        <form.Field name="shortRole">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Short Role</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
+        <form.Field name="name">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Role</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
+        <form.Field name="shortName">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Short Role</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
         <form.Field name="type">{(f) => (<div className="space-y-2"><Label>Type</Label><select value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="management">Management</option><option value="referee">Referee</option><option value="teacher">Teacher</option></select></div>)}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
           {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "Creating..." : "Create Role"}</Button>}

@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/insignias/")({
-  head: () => ({ title: "Insignias - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.insignias.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Insignias - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.insignias.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -35,7 +35,7 @@ function RouteComponent() {
             {insignias.map((i) => (
               <tr key={i.id} className="border-t">
                 <td className="px-4 py-2">{i.id}</td>
-                <td className="px-4 py-2">{i.insignia}</td>
+                <td className="px-4 py-2">{i.name}</td>
                 <td className="px-4 py-2">{i.level}</td>
                 <td className="px-4 py-2 text-right">
                   <div className="flex gap-1 justify-end">

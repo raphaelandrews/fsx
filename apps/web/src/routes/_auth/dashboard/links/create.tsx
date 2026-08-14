@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/links/create")({
-  head: () => ({ title: "Create Link Group - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Create Link Group - Admin - FSX" }] }),
   component: RouteComponent,
 });
 
@@ -27,7 +27,7 @@ function RouteComponent() {
         links.forEach((link) => {
           createLinkMutation.mutate({
             href: link.href, label: link.label,
-            icon: link.icon, order: link.order, linkGroupId: groupId,
+            icon: link.icon, sortOrder: link.sortOrder, linkGroupId: groupId,
           });
         });
       }
@@ -42,14 +42,14 @@ function RouteComponent() {
   const form = useForm({
     defaultValues: {
       label: "",
-      links: [] as { href: string; label: string; icon: string; order: number }[],
+      links: [] as { href: string; label: string; icon: string; sortOrder: number }[],
     },
     onSubmit: ({ value }) => {
       createGroupMutation.mutate({ label: value.label });
     },
   });
 
-  let links: { href: string; label: string; icon: string; order: number }[] = [];
+  let links: { href: string; label: string; icon: string; sortOrder: number }[] = [];
 
   return (
     <div className="mx-auto max-w-lg">
@@ -104,12 +104,12 @@ function RouteComponent() {
                         className="w-20"
                       />
                       <Input
-                        placeholder="Order"
+                        placeholder="Sort Order"
                         type="number"
-                        value={String(f.state.value[index].order || 0)}
+                        value={String(f.state.value[index].sortOrder || 0)}
                         onChange={(e) => {
                           const next = [...f.state.value];
-                          next[index] = { ...next[index], order: Number(e.target.value) };
+                          next[index] = { ...next[index], sortOrder: Number(e.target.value) };
                           f.handleChange(next);
                         }}
                         className="w-20"
@@ -132,7 +132,7 @@ function RouteComponent() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      f.handleChange([...f.state.value, { label: "", href: "", icon: "", order: f.state.value.length }]);
+                      f.handleChange([...f.state.value, { label: "", href: "", icon: "", sortOrder: f.state.value.length }]);
                     }}
                   >
                     Add Link

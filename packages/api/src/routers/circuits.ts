@@ -2,7 +2,7 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 
 import { circuits, insertCircuitSchema } from "@fsx/db/schema/circuits";
-import { protectedProcedure, publicProcedure, router } from "../index";
+import { adminProcedure, publicProcedure, router } from "../index";
 
 export const circuitsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -10,7 +10,7 @@ export const circuitsRouter = router({
       columns: { name: true, type: true },
       with: {
         circuitPhases: {
-          columns: { id: true, order: true },
+          columns: { id: true, sortOrder: true },
           with: {
             tournament: { columns: { name: true } },
             circuitPodiums: {
@@ -20,10 +20,10 @@ export const circuitsRouter = router({
                 player: {
                   columns: { id: true, name: true, nickname: true, imageUrl: true },
                   with: {
-                    club: { columns: { id: true, name: true, logo: true } },
+                    club: { columns: { id: true, name: true, logoUrl: true } },
                     playersToTitles: {
                       columns: {},
-                      with: { title: { columns: { shortTitle: true, type: true } } },
+                      with: { title: { columns: { shortName: true, type: true } } },
                     },
                   },
                 },
@@ -37,17 +37,17 @@ export const circuitsRouter = router({
   listSimple: publicProcedure.query(({ ctx }) =>
     ctx.db.select().from(circuits).orderBy(circuits.name)
   ),
-  create: protectedProcedure
+  create: adminProcedure
     .input(insertCircuitSchema.omit({ id: true }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(circuits).values(input).returning()
     ),
-  update: protectedProcedure
+  update: adminProcedure
     .input(z.object({ id: z.number(), name: z.string().min(1).max(80), type: z.enum(["default", "categories", "school"]) }))
     .mutation(({ ctx, input }) =>
       ctx.db.update(circuits).set({ name: input.name, type: input.type }).where(eq(circuits.id, input.id)).returning()
     ),
-  delete: protectedProcedure
+  delete: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ ctx, input }) =>
       ctx.db.delete(circuits).where(eq(circuits.id, input.id))

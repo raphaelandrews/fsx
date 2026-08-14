@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/insignias/$id")({
-  head: () => ({ title: "Edit Insignia - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.insignias.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Edit Insignia - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.insignias.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -33,8 +33,8 @@ function RouteComponent() {
   if (!insignia) return <p>Insignia not found.</p>;
 
   const form = useForm({
-    defaultValues: { insignia: insignia.insignia, level: insignia.level },
-    onSubmit: ({ value }) => { updateMutation.mutate({ id: numId, insignia: value.insignia, level: value.level }); },
+    defaultValues: { name: insignia.name, level: insignia.level },
+    onSubmit: ({ value }) => { updateMutation.mutate({ id: numId, name: value.name, level: value.level }); },
   });
 
   return (
@@ -44,7 +44,7 @@ function RouteComponent() {
         <Button variant="outline" onClick={() => navigate({ to: "/dashboard/insignias" })}>Back</Button>
       </div>
       <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
-        <form.Field name="insignia">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Insignia</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
+        <form.Field name="name">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Insignia</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
         <form.Field name="level">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Level</Label><Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} /></div>)}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
           {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "Saving..." : "Save Changes"}</Button>}

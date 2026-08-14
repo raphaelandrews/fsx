@@ -6,10 +6,10 @@ import { playersToInsignias } from "./index"
 
 export const insignias = sqliteTable("insignias", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
-	insignia: text("insignia").notNull().unique(),
+	name: text("name").notNull().unique(),
 	level: integer("level").notNull(),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const insigniasRelations = relations(insignias, ({ many }) => ({

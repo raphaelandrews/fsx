@@ -8,9 +8,9 @@ export const cupPlayoffs = sqliteTable("cup_playoffs", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	cupBracketId: integer("cup_bracket_id").notNull().references(() => cupBrackets.id, { onDelete: "cascade" }),
 	phaseType: text("phase_type").notNull(),
-	order: integer("order").notNull(),
+	sortOrder: integer("sort_order").notNull(),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const cupPlayoffsRelations = relations(cupPlayoffs, ({ one, many }) => ({

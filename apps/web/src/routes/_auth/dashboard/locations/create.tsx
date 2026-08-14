@@ -10,7 +10,7 @@ import z from "zod";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/locations/create")({
-  head: () => ({ title: "Create Location - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Create Location - Admin - FSX" }] }),
   component: RouteComponent,
 });
 
@@ -28,14 +28,15 @@ function RouteComponent() {
   });
 
   const form = useForm({
-    defaultValues: { name: "", type: "", flag: "" },
+    defaultValues: { name: "", type: "", flagUrl: "" },
     onSubmit: ({ value }) => {
-      createMutation.mutate({ name: value.name, type: value.type, flag: value.flag || null });
+      createMutation.mutate({ name: value.name, type: value.type, flagUrl: value.flagUrl || null });
     },
     validators: {
       onSubmit: z.object({
         name: z.string().min(1, "Name is required"),
         type: z.string().min(1, "Type is required"),
+        flagUrl: z.string(),
       }),
     },
   });
@@ -46,7 +47,7 @@ function RouteComponent() {
       <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
         <form.Field name="name">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Name</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
         <form.Field name="type">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Type</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
-        <form.Field name="flag">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Flag Emoji</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
+        <form.Field name="flagUrl">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Flag URL</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
           {({ canSubmit, isSubmitting }) => (
             <Button type="submit" disabled={!canSubmit || isSubmitting}>

@@ -8,7 +8,7 @@ export const linkGroups = sqliteTable("link_groups", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	label: text("label").notNull(),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const linkGroupsRelations = relations(linkGroups, ({ many }) => ({

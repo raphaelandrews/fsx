@@ -11,7 +11,7 @@ import z from "zod";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/create")({
-  head: () => ({ title: "Create Post - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Create Post - Admin - FSX" }] }),
   component: RouteComponent,
 });
 
@@ -31,15 +31,17 @@ function RouteComponent() {
   });
 
   const form = useForm({
-    defaultValues: { title: "", slug: "", image: "", content: "", published: false },
+    defaultValues: { title: "", slug: "", imageUrl: "", content: "", published: false },
     onSubmit: ({ value }) => {
-      createMutation.mutate({ title: value.title, slug: value.slug, image: value.image, content: value.content, published: value.published });
+      createMutation.mutate({ title: value.title, slug: value.slug, imageUrl: value.imageUrl, content: value.content, published: value.published });
     },
     validators: {
       onSubmit: z.object({
         title: z.string().min(1, "Title is required"),
         slug: z.string().min(1, "Slug is required"),
+        imageUrl: z.string(),
         content: z.string().min(1, "Content is required"),
+        published: z.boolean(),
       }),
     },
   });
@@ -66,7 +68,7 @@ function RouteComponent() {
             </div>
           )}
         </form.Field>
-        <form.Field name="image">
+        <form.Field name="imageUrl">
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Image URL</Label>

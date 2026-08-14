@@ -12,12 +12,12 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_auth/dashboard/players/titles")({
-  head: () => ({ title: "Title Assignment - Admin - FSX" }),
+  head: () => ({ meta: [{ title: "Title Assignment - Admin - FSX" }] }),
   validateSearch: searchSchema,
   loader: async ({ context }) => {
     await Promise.all([
-      context.trpc.players.list.ensureQueryData(),
-      context.trpc.titles.list.ensureQueryData(),
+      context.queryClient.ensureQueryData(context.trpc.players.list.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.titles.list.queryOptions()),
     ]);
   },
   component: RouteComponent,
@@ -78,7 +78,7 @@ function RouteComponent() {
               {playerTitles.length === 0 && <p className="text-muted-foreground text-sm">No titles assigned.</p>}
               {playerTitles.map((pt) => (
                 <span key={pt.id} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs">
-                  {pt.title?.title}
+                  {pt.title?.name}
                   <button type="button" className="ml-1 text-muted-foreground hover:text-destructive" onClick={() => unlinkMutation.mutate({ id: pt.id })}>
                     &times;
                   </button>
@@ -92,7 +92,7 @@ function RouteComponent() {
             <Select onValueChange={(v) => { if (v) linkMutation.mutate({ playerId: selectedPlayerId, titleId: Number(v) }); }}>
               <SelectTrigger className="w-64"><SelectValue placeholder="Select title" /></SelectTrigger>
               <SelectContent>
-                {titles.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.title} ({t.shortTitle})</SelectItem>)}
+                {titles.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name} ({t.shortName})</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

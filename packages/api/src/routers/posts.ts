@@ -2,18 +2,18 @@ import { z } from "zod";
 import { eq, desc, and, count } from "drizzle-orm";
 
 import { posts, insertPostSchema } from "@fsx/db/schema/posts";
-import { protectedProcedure, publicProcedure, router } from "../index";
+import { adminProcedure, publicProcedure, router } from "../index";
 
 export const postsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
     ctx.db
-      .select({ id: posts.id, title: posts.title, image: posts.image, slug: posts.slug })
+      .select({ id: posts.id, title: posts.title, imageUrl: posts.imageUrl, slug: posts.slug })
       .from(posts)
       .where(eq(posts.published, true))
       .orderBy(desc(posts.createdAt))
       .limit(24)
   ),
-  listAdmin: protectedProcedure.query(({ ctx }) =>
+  listAdmin: adminProcedure.query(({ ctx }) =>
     ctx.db
       .select()
       .from(posts)
@@ -24,7 +24,7 @@ export const postsRouter = router({
     .query(({ ctx, input }) =>
       ctx.db.query.posts.findFirst({
         where: and(eq(posts.slug, input.slug), eq(posts.published, true)),
-        columns: { id: true, title: true, image: true, content: true, slug: true, createdAt: true },
+        columns: { id: true, title: true, imageUrl: true, content: true, slug: true, createdAt: true },
       })
     ),
   byPage: publicProcedure
@@ -33,7 +33,7 @@ export const postsRouter = router({
       const validPage = Math.max(1, input.page);
       const perPage = 12;
       const data = await ctx.db.query.posts.findMany({
-        columns: { id: true, title: true, image: true, slug: true, createdAt: true },
+        columns: { id: true, title: true, imageUrl: true, slug: true, createdAt: true },
         where: eq(posts.published, true),
         orderBy: [desc(posts.createdAt)],
         limit: perPage,
@@ -59,22 +59,22 @@ export const postsRouter = router({
     }),
   fresh: publicProcedure.query(({ ctx }) =>
     ctx.db
-      .select({ id: posts.id, title: posts.title, image: posts.image, slug: posts.slug })
+      .select({ id: posts.id, title: posts.title, imageUrl: posts.imageUrl, slug: posts.slug })
       .from(posts)
       .where(eq(posts.published, true))
       .orderBy(desc(posts.createdAt))
       .limit(6)
   ),
-  create: protectedProcedure
+  create: adminProcedure
     .input(insertPostSchema.omit({ id: true }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(posts).values(input).returning()
     ),
-  update: protectedProcedure
+  update: adminProcedure
     .input(z.object({
       id: z.number(),
       title: z.string().optional(),
-      image: z.string().optional(),
+      imageUrl: z.string().optional(),
       content: z.string().optional(),
       slug: z.string().optional(),
       published: z.boolean().optional(),
@@ -82,7 +82,7 @@ export const postsRouter = router({
     .mutation(({ ctx, input }) =>
       ctx.db.update(posts).set(input).where(eq(posts.id, input.id)).returning()
     ),
-  delete: protectedProcedure
+  delete: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ ctx, input }) =>
       ctx.db.delete(posts).where(eq(posts.id, input.id))

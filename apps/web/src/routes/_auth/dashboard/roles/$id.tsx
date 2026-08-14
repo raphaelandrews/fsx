@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/roles/$id")({
-  head: () => ({ title: "Edit Role - Admin - FSX" }),
-  loader: ({ context }) => context.trpc.roles.list.ensureQueryData(),
+  head: () => ({ meta: [{ title: "Edit Role - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.roles.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -33,8 +33,8 @@ function RouteComponent() {
   if (!role) return <p>Role not found.</p>;
 
   const form = useForm({
-    defaultValues: { role: role.role, shortRole: role.shortRole, type: role.type },
-    onSubmit: ({ value }) => { updateMutation.mutate({ id: numId, role: value.role, shortRole: value.shortRole, type: value.type }); },
+    defaultValues: { name: role.name, shortName: role.shortName, type: role.type },
+    onSubmit: ({ value }) => { updateMutation.mutate({ id: numId, name: value.name, shortName: value.shortName, type: value.type }); },
   });
 
   return (
@@ -44,8 +44,8 @@ function RouteComponent() {
         <Button variant="outline" onClick={() => navigate({ to: "/dashboard/roles" })}>Back</Button>
       </div>
       <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
-        <form.Field name="role">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Role</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
-        <form.Field name="shortRole">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Short Role</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
+        <form.Field name="name">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Role</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
+        <form.Field name="shortName">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Short Role</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
         <form.Field name="type">{(f) => (<div className="space-y-2"><Label>Type</Label><select value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="management">Management</option><option value="referee">Referee</option><option value="teacher">Teacher</option></select></div>)}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
           {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "Saving..." : "Save Changes"}</Button>}
