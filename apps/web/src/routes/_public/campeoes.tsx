@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_public/champions")({
+export const Route = createFileRoute("/_public/campeoes")({
   head: () => ({
     meta: [
       { title: "Campeões - FSX" },

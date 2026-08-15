@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/utils/trpc";
 
-export const Route = createFileRoute("/_public/players/$id")({
+export const Route = createFileRoute("/_public/jogadores/$id")({
   head: () => ({
     meta: [
       { title: "Jogador - FSX" },

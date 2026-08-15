@@ -10,11 +10,18 @@ import { defendingChampions } from "@fsx/db/schema/defendingChampions";
 import { championships } from "@fsx/db/schema/championships";
 import { adminProcedure, publicProcedure, router } from "../index";
 
+const ACCENT_MAP =
+  "áàâãäéèêëíìîïóòôõöúùûüýÿçñÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÝŸÇÑ";
+const ASCII_MAP =
+  "aaaaaeeeeiiiiooooouuuuyycn" + "aaaaaeeeeiiiiooooouuuuyycn";
+
 function normalizeText(text: string): string {
   return text
+    .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
+    .replace(/ç/g, "c")
+    .trim();
 }
 
 function getBirthDateRange(group: string): [string, string] | undefined {
@@ -122,17 +129,7 @@ export const playersRouter = router({
   search: publicProcedure
     .input(z.object({ query: z.string() }))
     .query(({ ctx, input }) => {
-      const ACCENT_MAP = "áàâãäéèêëíìîïóòôõöúùûüýÿçñ";
-      const ASCII_MAP = "aaaaaeeeeiiiiooooouuuuyycn";
-
-      const normalize = (t: string) =>
-        t
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .trim();
-
-      const normalizedQuery = normalize(input.query);
+      const normalizedQuery = normalizeText(input.query);
       const words = normalizedQuery.split(/\s+/).filter(Boolean);
 
       if (words.length === 0) {
@@ -242,7 +239,7 @@ export const playersRouter = router({
       if (name) {
         const normalizedQuery = normalizeText(name);
         whereConditions.push(
-          sql`LOWER(translate(${playersTable.name}, 'áàâãäéèêëíìîïóòôõöúùûüýÿ', 'aaaaaeeeeiiiiooooouuuuyy')) LIKE ${`%${normalizedQuery}%`}`
+          sql`LOWER(translate(${playersTable.name}, ${ACCENT_MAP}, ${ASCII_MAP})) LIKE ${`%${normalizedQuery}%`}`
         );
       }
       if (sex) {

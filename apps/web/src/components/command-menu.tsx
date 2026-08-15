@@ -1,5 +1,6 @@
 
 import { useRouter } from "@tanstack/react-router"
+import { useQuery } from "@tanstack/react-query"
 import { useHotkeys, detectPlatform } from "@tanstack/react-hotkeys"
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -11,6 +12,8 @@ import {
 } from "@hugeicons/core-free-icons"
 
 import { cn } from "@fsx/ui/lib/utils"
+
+import { useTRPC } from "@/utils/trpc"
 
 import { Button } from "@fsx/ui/components/button"
 import {
@@ -29,11 +32,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@fsx/ui/components/dialog"
-
-type SearchPlayer = {
-  id: number
-  name: string
-}
 
 function getGradient(id: number): React.CSSProperties {
   const gradients = [
@@ -71,62 +69,22 @@ const LoadingSkeleton = () => (
 const CommandResults = React.memo(
   ({
     searchTerm,
-    initialPlayers,
     onSelect,
   }: {
     searchTerm: string
-    initialPlayers: {
-      id: number
-      name: string
-      gradient: React.CSSProperties
-    }[]
     onSelect: (playerId: number) => void
   }) => {
-    const [fetchedPlayers, setFetchedPlayers] = React.useState<SearchPlayer[]>(
-      []
+    const trpc = useTRPC()
+    const { data: players = [], isLoading, error } = useQuery(
+      trpc.players.search.queryOptions({ query: searchTerm })
     )
-    const [isLoading, setIsLoading] = React.useState(true)
-    const [error, setError] = React.useState<string | null>(null)
-
-    React.useEffect(() => {
-      if (!searchTerm) {
-        setFetchedPlayers(
-          initialPlayers.map((p) => ({ id: p.id, name: p.name }))
-        )
-        setIsLoading(false)
-        return
-      }
-
-      const fetchPlayers = async () => {
-        setIsLoading(true)
-        setError(null)
-        try {
-          const response = await fetch(`/api/search-players?q=${searchTerm}`)
-          if (!response.ok) {
-            throw new Error(
-              `This is an HTTP error: The status is ${response.status}`
-            )
-          }
-          const json = (await response.json()) as { data?: SearchPlayer[] }
-          setFetchedPlayers(json.data || [])
-        } catch (error) {
-          console.error("Could not fetch players:", error)
-          setError("Failed to fetch players.")
-          setFetchedPlayers([])
-        } finally {
-          setIsLoading(false)
-        }
-      }
-
-      fetchPlayers()
-    }, [searchTerm, initialPlayers])
 
     const playersWithGradients = React.useMemo(() => {
-      return fetchedPlayers.map((player) => ({
+      return players.map((player) => ({
         ...player,
         gradient: getGradient(player.id),
       }))
-    }, [fetchedPlayers])
+    }, [players])
 
     if (isLoading) {
       return <LoadingSkeleton />
@@ -168,40 +126,7 @@ export function CommandMenu({ ...props }: CommandMenuProps) {
   const [searchValue, setSearchValue] = React.useState("")
   const [debouncedSearch, setDebouncedSearch] = React.useState("")
   const [isTyping, setIsTyping] = React.useState(false)
-  const [initialPlayers, setInitialPlayers] = React.useState<
-    { id: number; name: string; gradient: React.CSSProperties }[]
-  >([])
   const dialogOpenRef = React.useRef(open)
-  const hasFetchedInitialPlayersRef = React.useRef(false)
-  const [isLoadingInitialPlayers, setIsLoadingInitialPlayers] =
-    React.useState(false)
-
-  React.useEffect(() => {
-    const fetchInitialPlayers = async () => {
-      setIsLoadingInitialPlayers(true)
-      try {
-        const response = await fetch("/api/search-players?q=")
-        if (!response.ok) throw new Error("Failed to fetch initial players")
-        const json = (await response.json()) as { data?: SearchPlayer[] }
-        const playersWithGradients = (json.data || []).map(
-          (player: SearchPlayer) => ({
-            ...player,
-            gradient: getGradient(player.id),
-          })
-        )
-        setInitialPlayers(playersWithGradients)
-        hasFetchedInitialPlayersRef.current = true
-      } catch (error) {
-        console.error("Could not fetch initial players:", error)
-      } finally {
-        setIsLoadingInitialPlayers(false)
-      }
-    }
-
-    if (open && !hasFetchedInitialPlayersRef.current) {
-      fetchInitialPlayers()
-    }
-  }, [open])
 
   React.useEffect(() => {
     dialogOpenRef.current = open
@@ -238,7 +163,9 @@ export function CommandMenu({ ...props }: CommandMenuProps) {
   ])
 
   const handlePlayerSelect = (playerId: number) => {
-    runCommand(() => router.navigate({ to: `/jogadores/${playerId}` }))
+    runCommand(() =>
+      router.navigate({ to: "/jogadores/$id", params: { id: String(playerId) } })
+    )
   }
 
   return (
@@ -281,13 +208,12 @@ export function CommandMenu({ ...props }: CommandMenuProps) {
               className="!p-0 [&_[cmdk-group-heading]]:!p-3 [&_[cmdk-group-heading]]:!pb-1 [&_[cmdk-group-heading]]:scroll-mt-16"
               heading="Jogadores"
             >
-              {isLoadingInitialPlayers || isTyping ? (
+              {isTyping ? (
                 <LoadingSkeleton />
               ) : (
                 <React.Suspense fallback={<LoadingSkeleton />}>
                   {open && (
                     <CommandResults
-                      initialPlayers={initialPlayers}
                       onSelect={handlePlayerSelect}
                       searchTerm={debouncedSearch}
                     />

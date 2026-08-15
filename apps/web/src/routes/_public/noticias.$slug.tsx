@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/utils/trpc";
 
-export const Route = createFileRoute("/_public/news/$slug")({
+export const Route = createFileRoute("/_public/noticias/$slug")({
   head: () => ({
     meta: [
       { title: "Notícia - FSX" },

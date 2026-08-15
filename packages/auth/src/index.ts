@@ -22,6 +22,7 @@ export function createAuth() {
         clientId: env.GITHUB_CLIENT_ID!,
         clientSecret: env.GITHUB_CLIENT_SECRET!,
         mapProfileToUser: (profile) => ({ name: profile.login }),
+        disableSignUp: env.DISABLE_SIGNUP === "true",
       },
     },
     secret: env.BETTER_AUTH_SECRET,

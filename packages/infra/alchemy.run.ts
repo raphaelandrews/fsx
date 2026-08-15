@@ -22,6 +22,7 @@ export const web = await TanStackStart("web", {
     GITHUB_CLIENT_ID: alchemy.secret.env.GITHUB_CLIENT_ID!,
     GITHUB_CLIENT_SECRET: alchemy.secret.env.GITHUB_CLIENT_SECRET!,
     GITHUB_USERNAME: alchemy.env.GITHUB_USERNAME ?? "",
+    DISABLE_SIGNUP: alchemy.env.DISABLE_SIGNUP ?? "",
   },
 });
 

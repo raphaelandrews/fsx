@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_public/norms")({
+export const Route = createFileRoute("/_public/normas-tecnicas")({
   head: () => ({
     meta: [
       { title: "Normas Técnicas - FSX" },

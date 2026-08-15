@@ -102,7 +102,11 @@ cp apps/web/.env.example apps/web/.env
 | `CORS_ORIGIN`          | Allowed CORS origin (same as auth URL)  |
 | `GITHUB_CLIENT_ID`     | GitHub OAuth app client ID              |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth app client secret          |
-| `DATABASE_URL`         | Local D1 URL (optional, for tooling)    |
+| `GITHUB_USERNAME`      | Pre-lock signups to this GitHub username (optional, empty = first-signup-wins) |
+| `DISABLE_SIGNUP`       | Hard-disable new signups; set `true` after your account exists (optional) |
+| `CLOUDFLARE_ACCOUNT_ID`| Cloudflare account ID (for D1 migrations via drizzle-kit) |
+| `CLOUDFLARE_DATABASE_ID`| Cloudflare D1 database ID (for migrations) |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token (for migrations)   |
 
 ### 3. Generate database migration
 
