@@ -4,6 +4,8 @@ import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
+import { createIsomorphicFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { toast } from "sonner";
 
 import Loader from "./components/loader";
@@ -33,11 +35,26 @@ function createQueryClient() {
   });
 }
 
+const getSSRRequest = createIsomorphicFn()
+  .client(() => undefined)
+  .server(() => getRequest());
+
 const trpcClient = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
       url: "/api/trpc",
       fetch(url, options) {
+        const request = getSSRRequest();
+        if (request) {
+          url = new URL(url.toString(), request.url).toString();
+          const cookie = request.headers.get("cookie");
+          if (cookie) {
+            options = {
+              ...options,
+              headers: { ...options?.headers, cookie },
+            };
+          }
+        }
         return fetch(url, {
           ...options,
           credentials: "include",

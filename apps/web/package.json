@@ -5,7 +5,8 @@
   "scripts": {
     "build": "vp build",
     "serve": "vp preview",
-    "dev:bare": "vp dev"
+    "dev:bare": "vp dev",
+    "vite": "vp"
   },
   "dependencies": {
     "@fsx/api": "workspace:*",

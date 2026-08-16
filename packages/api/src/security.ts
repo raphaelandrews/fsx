@@ -40,7 +40,7 @@ let tableReady: Promise<void> | null = null;
 
 function ensureRateLimitTable(): Promise<void> {
   if (!tableReady) {
-    tableReady = createDb()
+    tableReady = createDb(env.DB)
       .run(sql`
         CREATE TABLE IF NOT EXISTS rate_limits (
           key TEXT NOT NULL,
@@ -57,7 +57,7 @@ function ensureRateLimitTable(): Promise<void> {
 export async function rateLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
   await ensureRateLimitTable();
 
-  const db = createDb();
+  const db = createDb(env.DB);
   const now = Date.now();
   const windowStart = Math.floor(now / config.windowMs) * config.windowMs;
   const resetAt = windowStart + config.windowMs;

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { eq, desc, and, inArray, gte, lte, or, sql, count } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
 
 import { players as playersTable, insertPlayerSchema } from "@fsx/db/schema/players";
 import { clubs } from "@fsx/db/schema/clubs";
@@ -9,11 +10,51 @@ import { playersToTitles } from "@fsx/db/schema/playersToTitles";
 import { defendingChampions } from "@fsx/db/schema/defendingChampions";
 import { championships } from "@fsx/db/schema/championships";
 import { adminProcedure, publicProcedure, router } from "../index";
+import type { Context } from "../context";
 
 const ACCENT_MAP =
   "áàâãäéèêëíìîïóòôõöúùûüýÿçñÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÝŸÇÑ";
 const ASCII_MAP =
   "aaaaaeeeeiiiiooooouuuuyycn" + "aaaaaeeeeiiiiooooouuuuyycn";
+
+function replaceChain(expr: SQL, from: number, to: number): SQL {
+  let e: SQL = expr;
+  for (let i = from; i < to; i++) {
+    e = sql`replace(${e}, ${ACCENT_MAP[i]!}, ${ASCII_MAP[i]!})`;
+  }
+  return e;
+}
+
+// SQLite has no translate(); nested replace() at full depth overflows the
+// parser stack, so split into two 27-deep passes wrapped in a scalar subquery.
+function normalizeNameSql(column: typeof playersTable.name): SQL {
+  const half = Math.ceil(ACCENT_MAP.length / 2);
+  return sql`(SELECT LOWER(${replaceChain(sql`c2`, half, ACCENT_MAP.length)}) FROM (SELECT ${replaceChain(sql`${column}`, 0, half)} AS c2))`;
+}
+
+type Db = Context["db"];
+
+function normalizePlayersSubquery(db: Db) {
+  const half = Math.ceil(ACCENT_MAP.length / 2);
+  const inner = db
+    .select({
+      id: playersTable.id,
+      name: playersTable.name,
+      rapid: playersTable.rapid,
+      halfName: sql`${replaceChain(sql`${playersTable.name}`, 0, half)}`.as("half_name"),
+    })
+    .from(playersTable)
+    .as("pn1");
+  return db
+    .select({
+      id: inner.id,
+      name: inner.name,
+      rapid: inner.rapid,
+      normName: sql`LOWER(${replaceChain(sql`${inner.halfName}`, half, ACCENT_MAP.length)})`.as("norm_name"),
+    })
+    .from(inner)
+    .as("pn2");
+}
 
 function normalizeText(text: string): string {
   return text
@@ -140,27 +181,28 @@ export const playersRouter = router({
           .limit(10);
       }
 
+      const normPlayers = normalizePlayersSubquery(ctx.db);
+
       const wordConditions = words.map(
-        (word) =>
-          sql`LOWER(translate(${playersTable.name}, ${ACCENT_MAP}, ${ASCII_MAP})) LIKE ${`%${word}%`}`
+        (word) => sql`${normPlayers.normName} LIKE ${`%${word}%`}`
       );
 
       const whereClause = sql.join(wordConditions, sql` AND `);
 
       const relevanceScore = sql<number>`
         CASE
-          WHEN LOWER(translate(${playersTable.name}, ${ACCENT_MAP}, ${ASCII_MAP})) = ${normalizedQuery} THEN 4
-          WHEN LOWER(translate(${playersTable.name}, ${ACCENT_MAP}, ${ASCII_MAP})) LIKE ${`${words[0]}%`} THEN 3
-          THEN 2
+          WHEN ${normPlayers.normName} = ${normalizedQuery} THEN 4
+          WHEN ${normPlayers.normName} LIKE ${`${words[0]}%`} THEN 3
+          WHEN ${normPlayers.normName} LIKE ${`%${normalizedQuery}%`} THEN 2
           ELSE 1
         END
       `;
 
       return ctx.db
-        .select({ id: playersTable.id, name: playersTable.name })
-        .from(playersTable)
+        .select({ id: normPlayers.id, name: normPlayers.name })
+        .from(normPlayers)
         .where(whereClause)
-        .orderBy(desc(relevanceScore), desc(playersTable.rapid), sql`LENGTH(${playersTable.name})`)
+        .orderBy(desc(relevanceScore), desc(normPlayers.rapid), sql`LENGTH(${normPlayers.name})`)
         .limit(10);
     }),
 
@@ -239,7 +281,7 @@ export const playersRouter = router({
       if (name) {
         const normalizedQuery = normalizeText(name);
         whereConditions.push(
-          sql`LOWER(translate(${playersTable.name}, ${ACCENT_MAP}, ${ASCII_MAP})) LIKE ${`%${normalizedQuery}%`}`
+          sql`${normalizeNameSql(playersTable.name)} LIKE ${`%${normalizedQuery}%`}`
         );
       }
       if (sex) {
