@@ -103,6 +103,19 @@ No data changes needed. If duplicate nicknames existed in the old DB (they shoul
 
 ---
 
+### 5. `announcements.number` and `circuit_podiums.place` — Text to Integer
+
+Both columns changed type from text (or text-based enum) to `integer` and must be cast during import:
+
+```sql
+UPDATE announcements SET number = CAST(number AS INTEGER);
+UPDATE circuit_podiums SET place = CAST(place AS INTEGER);
+```
+
+`circuit_podiums.place` was a `pgEnum` whose values are the strings `"1"` through `"25"` — cast each to its numeric value. `announcements.number` was `varchar`, so the same cast applies.
+
+---
+
 ## New Columns (All Tables)
 
 Every table has new `createdAt` and `updatedAt` columns:
@@ -249,4 +262,4 @@ After the schema is defined, generate the initial migration:
 bun run db:generate
 ```
 
-This produces SQL migration files under `packages/db/drizzle/`. Run them against the D1 database (via `wrangler` or Alchemy) before starting the app.
+This produces SQL migration files under `packages/db/src/migrations/` (see `out` in `packages/db/drizzle.config.ts`). Run them against the D1 database before starting the app — in local dev `alchemy dev` applies them automatically (the `migrations_dir` in `apps/web/.alchemy/local/wrangler.jsonc` points at `packages/db/src/migrations`).

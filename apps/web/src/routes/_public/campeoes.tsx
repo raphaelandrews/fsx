@@ -1,21 +1,42 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { CrownIcon } from "@hugeicons/core-free-icons"
+import { createFileRoute } from "@tanstack/react-router"
+import { useSuspenseQuery } from "@tanstack/react-query"
+
+import { Announcement } from "@/components/announcement"
+import { ChampionsTabs } from "@/components/campeoes/champions-tabs"
+import type { ChampionTournament } from "@/components/campeoes/columns"
+import { useTRPC } from "@/utils/trpc"
 
 export const Route = createFileRoute("/_public/campeoes")({
   head: () => ({
     meta: [
-      { title: "Campeões - FSX" },
-      { name: "description", content: "Histórico de campeões da Federação Sergipana de Xadrez" },
+      { title: "Galeria de Campeões - FSX" },
+      { name: "description", content: "Campeões Sergipanos." },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.champions.list.queryOptions()),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.champions.gallery.queryOptions()),
   component: RouteComponent,
-});
+})
 
 function RouteComponent() {
+  const trpc = useTRPC()
+  const { data: championships = [] } = useSuspenseQuery(
+    trpc.champions.gallery.queryOptions()
+  )
+
+  const championshipMap = championships.reduce<Record<string, ChampionTournament[]>>(
+    (acc, championship) => {
+      acc[championship.name] = championship.tournaments
+      return acc
+    },
+    {}
+  )
+
   return (
     <div className="container mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-4 font-bold text-2xl">Campeões</h1>
-      <p className="text-muted-foreground">Campeões — em construção</p>
+      <Announcement icon={CrownIcon} label="Campeões" />
+      <ChampionsTabs championshipMap={championshipMap} />
     </div>
-  );
+  )
 }

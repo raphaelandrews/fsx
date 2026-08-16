@@ -17,10 +17,13 @@ const ACCENT_MAP =
 const ASCII_MAP =
   "aaaaaeeeeiiiiooooouuuuyycn" + "aaaaaeeeeiiiiooooouuuuyycn";
 
+// D1 caps bound parameters at 100, so the accent constants are inlined as
+// literals (they are hardcoded, so there is no injection risk) instead of
+// being bound as parameters.
 function replaceChain(expr: SQL, from: number, to: number): SQL {
   let e: SQL = expr;
   for (let i = from; i < to; i++) {
-    e = sql`replace(${e}, ${ACCENT_MAP[i]!}, ${ASCII_MAP[i]!})`;
+    e = sql`replace(${e}, ${sql.raw(`'${ACCENT_MAP[i]}'`)}, ${sql.raw(`'${ASCII_MAP[i]}'`)})`;
   }
   return e;
 }
