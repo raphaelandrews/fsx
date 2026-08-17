@@ -7,6 +7,7 @@ import { Section } from "./section"
 import { DottedSeparator } from "@/components/dotted-separator"
 import { AnnouncementsModal } from "@/components/modals/announcements-modal"
 import { DottedButton } from "@/components/dotted-button"
+import { padNumber } from "@/utils/format"
 
 interface AnnouncementType {
   id: number
@@ -59,7 +60,7 @@ function AnnouncementItem({
 								<div className="flex items-center gap-2">
 									<HugeiconsIcon icon={ScrollIcon} size={14} className="text-muted-foreground" />
 									<h3 className="text-sm font-bold leading-tight">
-										Comunicado {announcement.number}/{announcement.year}
+										Comunicado {padNumber(announcement.number)}/{announcement.year}
 									</h3>
 								</div>
 								<div className="text-muted-foreground group-hover:text-foreground transition-colors">
@@ -77,7 +78,7 @@ function AnnouncementItem({
 
 			<AnnouncementsModal
 				content={announcement.content}
-				number={String(announcement.number)}
+				number={padNumber(announcement.number)}
 				onOpenChange={setIsOpen}
 				open={isOpen}
 				year={announcement.year}

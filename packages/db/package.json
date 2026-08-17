@@ -11,7 +11,9 @@
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",
-    "db:seed": "bun run src/seed.ts"
+    "db:seed": "bun run src/seed.ts",
+    "db:migrate": "bun run src/migrate.ts",
+    "db:migrate:local": "bun run src/migrate.ts --local"
   },
   "dependencies": {
     "@libsql/client": "catalog:",
@@ -24,7 +26,8 @@
   "devDependencies": {
     "@fsx/config": "workspace:*",
     "drizzle-kit": "^0.31.10",
-    "miniflare": "4.20260730.0",
+    "miniflare": "4.20260424.0",
+    "postgres": "catalog:",
     "typescript": "catalog:"
   }
 }

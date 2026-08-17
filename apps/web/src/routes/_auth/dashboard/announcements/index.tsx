@@ -4,6 +4,7 @@ import { Button } from "@fsx/ui/components/button";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
+import { padNumber } from "@/utils/format";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/")({
   head: () => ({ meta: [{ title: "Announcements - Admin - FSX" }] }),
@@ -48,7 +49,7 @@ function RouteComponent() {
             {announcements.map((a) => (
               <tr key={a.id} className="border-t">
                 <td className="px-4 py-2">{a.year}</td>
-                <td className="px-4 py-2">{a.number}</td>
+                <td className="px-4 py-2">{padNumber(a.number)}</td>
                 <td className="px-4 py-2 max-w-xs truncate">{a.content}</td>
                 <td className="px-4 py-2 text-right">
                   <div className="flex gap-1 justify-end">

@@ -11,7 +11,7 @@ const searchSchema = z.object({
   page: z.number().int().positive().default(1),
 });
 
-export const Route = createFileRoute("/_public/noticias")({
+export const Route = createFileRoute("/_public/noticias/")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [

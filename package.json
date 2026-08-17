@@ -13,7 +13,6 @@
       "@types/node": "^22.20.1",
       "@hugeicons/react": "^1.1.9",
       "@hugeicons/core-free-icons": "^4.2.3",
-      "next-themes": "^0.4.6",
       "react": "^19.2.8",
       "react-dom": "^19.2.8",
       "sonner": "^2.0.7",
@@ -25,7 +24,8 @@
       "better-auth": "1.6.25",
       "@types/react": "^19.2.17",
       "@types/react-dom": "^19.2.3",
-      "alchemy": "^0.93.12"
+      "alchemy": "^0.93.12",
+      "postgres": "^3.4.5"
     }
   },
   "type": "module",
@@ -41,6 +41,8 @@
     "dev:web": "vp run --filter web dev",
     "db:generate": "vp run --filter @fsx/db db:generate",
     "db:seed": "vp run --filter @fsx/db db:seed",
+    "db:migrate": "vp run --filter @fsx/db db:migrate",
+    "db:migrate:local": "vp run --filter @fsx/db db:migrate:local",
     "deploy": "vp run --filter @fsx/infra deploy",
     "destroy": "vp run --filter @fsx/infra destroy"
   },

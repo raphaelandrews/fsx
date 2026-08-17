@@ -19,40 +19,47 @@ export interface RouterAppContext {
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   headers: () => SECURITY_HEADERS,
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Federação Sergipana de Xadrez" },
-      {
-        name: "description",
-        content:
-          "Site oficial da Federação Sergipana de Xadrez. Ratings, torneios, notícias e campeões do xadrez sergipano.",
-      },
-      { property: "og:title", content: "Federação Sergipana de Xadrez" },
-      {
-        property: "og:description",
-        content: "Ratings, torneios, notícias e campeões do xadrez sergipano.",
-      },
-      { property: "og:image", content: "/logo.svg" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "view-transition", content: "same-origin" },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", type: "image/svg+xml", href: "/logo.svg" },
-      { rel: "canonical", href: "https://fsx.chess" },
-      { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
-    ],
-    scripts: [
-      {
-        src: "https://static.cloudflareinsights.com/beacon.min.js",
-        defer: true,
-        "data-cf-beacon": '{"token": "YOUR_CLOUDFLARE_ANALYTICS_TOKEN"}',
-      },
-    ],
-  }),
+  head: () => {
+    const analyticsToken = (import.meta as { env?: Record<string, string | undefined> }).env
+      ?.VITE_CLOUDFLARE_ANALYTICS_TOKEN
+    const scripts = analyticsToken
+      ? [
+          {
+            src: "https://static.cloudflareinsights.com/beacon.min.js",
+            defer: true,
+            "data-cf-beacon": JSON.stringify({ token: analyticsToken }),
+          },
+        ]
+      : []
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { title: "Federação Sergipana de Xadrez" },
+        {
+          name: "description",
+          content:
+            "Site oficial da Federação Sergipana de Xadrez. Ratings, torneios, notícias e campeões do xadrez sergipano.",
+        },
+        { property: "og:title", content: "Federação Sergipana de Xadrez" },
+        {
+          property: "og:description",
+          content: "Ratings, torneios, notícias e campeões do xadrez sergipano.",
+        },
+        { property: "og:image", content: "/logo.svg" },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary" },
+        { name: "view-transition", content: "same-origin" },
+      ],
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "icon", type: "image/svg+xml", href: "/logo.svg" },
+        { rel: "canonical", href: "https://fsx.chess" },
+        { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
+      ],
+      scripts,
+    }
+  },
   notFoundComponent: () => <NotFound />,
   errorComponent: ({ error }) => {
     if (typeof document !== "undefined") console.error(error);
@@ -63,20 +70,22 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootDocument() {
   return (
-    <html lang="pt-BR" className="dark">
+    <html lang="pt-BR">
       <head>
         <HeadContent />
       </head>
       <body>
         <Outlet />
         <Toaster richColors />
-        <TanStackDevtools
-          plugins={[
-            { name: "TanStack Query", render: <ReactQueryDevtoolsPanel /> },
-            { name: "TanStack Router", render: <TanStackRouterDevtoolsPanel /> },
-            { name: "TanStack Form", render: <FormDevtoolsPanel /> },
-          ]}
-        />
+        {import.meta.env.DEV && (
+          <TanStackDevtools
+            plugins={[
+              { name: "TanStack Query", render: <ReactQueryDevtoolsPanel /> },
+              { name: "TanStack Router", render: <TanStackRouterDevtoolsPanel /> },
+              { name: "TanStack Form", render: <FormDevtoolsPanel /> },
+            ]}
+          />
+        )}
         <Scripts />
       </body>
     </html>

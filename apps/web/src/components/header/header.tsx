@@ -5,8 +5,7 @@ import { MainNav } from "./main-nav"
 import { HeaderNavigationDrawer } from "./header-navigation-drawer"
 import { CommandMenu } from "../command-menu"
 import { UpdateRegister } from "../update-register"
-import { ModeSwitcher } from "../mode-switcher"
-import { Button } from "@fsx/ui/components/button"
+import { buttonVariants } from "@fsx/ui/components/button"
 import { Separator } from "@fsx/ui/components/separator"
 import { DottedSeparator } from "../dotted-separator"
 import {
@@ -29,16 +28,18 @@ export function Header() {
           <UpdateRegister />
 
           <Tooltip>
-            <TooltipTrigger className="!hidden sm:!flex">
-              <Button size="icon" variant="outline">
+            <TooltipTrigger
+              className="!hidden sm:!flex"
+              render={
                 <a
+                  className={buttonVariants({ variant: "outline", size: "icon" })}
                   href="https://www.instagram.com/xadrezsergipe/"
                   rel="noreferrer"
                   target="_blank"
-                >
-                  <HugeiconsIcon icon={InstagramIcon} size={16} />
-                </a>
-              </Button>
+                />
+              }
+            >
+              <HugeiconsIcon icon={InstagramIcon} size={16} />
             </TooltipTrigger>
             <TooltipContent>
               <p>Instagram</p>
@@ -46,23 +47,23 @@ export function Header() {
           </Tooltip>
 
           <Tooltip>
-            <TooltipTrigger className="!hidden sm:!flex">
-              <Button size="icon" variant="outline">
+            <TooltipTrigger
+              className="!hidden sm:!flex"
+              render={
                 <a
+                  className={buttonVariants({ variant: "outline", size: "icon" })}
                   href="mailto:fsx.presidente@gmail.com"
                   rel="noreferrer"
                   target="_blank"
-                >
-                  <HugeiconsIcon icon={Mail01Icon} size={16} />
-                </a>
-              </Button>
+                />
+              }
+            >
+              <HugeiconsIcon icon={Mail01Icon} size={16} />
             </TooltipTrigger>
             <TooltipContent>
               <p>Email</p>
             </TooltipContent>
           </Tooltip>
-
-          <ModeSwitcher />
 
           <HeaderNavigationDrawer />
         </div>

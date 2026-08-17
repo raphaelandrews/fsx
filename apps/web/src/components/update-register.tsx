@@ -14,29 +14,33 @@ export function UpdateRegister() {
   return (
     <Popover>
       <Tooltip>
-        <TooltipTrigger>
-          <PopoverTrigger>
-            <Button
-              aria-label="Atualize seu cadastro"
-              size="icon"
-              variant="outline"
-            >
-              <svg
-                aria-hidden="true"
-                className="size-4 shrink-0"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <title>Verified Icon</title>
-                <path d="M9 12l2 2 4-4" className="stroke-white dark:stroke-[1.5]" />
-                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" className="fill-[#1CA0F2]" />
-              </svg>
-            </Button>
-          </PopoverTrigger>
+        <TooltipTrigger
+          render={
+            <PopoverTrigger
+              render={
+                <Button
+                  aria-label="Atualize seu cadastro"
+                  size="icon"
+                  variant="outline"
+                />
+              }
+            />
+          }
+        >
+          <svg
+            aria-hidden="true"
+            className="size-4 shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <title>Verified Icon</title>
+            <path d="M9 12l2 2 4-4" className="stroke-white dark:stroke-[1.5]" />
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" className="fill-[#1CA0F2]" />
+          </svg>
         </TooltipTrigger>
         <TooltipContent>
           <p>Atualize seu cadastro</p>

@@ -107,6 +107,7 @@ cp apps/web/.env.example apps/web/.env
 | `CLOUDFLARE_ACCOUNT_ID`| Cloudflare account ID (for D1 migrations via drizzle-kit) |
 | `CLOUDFLARE_DATABASE_ID`| Cloudflare D1 database ID (for migrations) |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token (for migrations)   |
+| `VITE_CLOUDFLARE_ANALYTICS_TOKEN` | Cloudflare Web Analytics token (optional; leave empty to disable analytics) |
 
 ### 3. Generate database migration
 
@@ -114,7 +115,30 @@ cp apps/web/.env.example apps/web/.env
 bun run db:generate
 ```
 
-### 4. Start development
+### 4. Seed or migrate data
+
+For local development with sample data:
+
+```bash
+bun run db:seed
+```
+
+To migrate the real data from the old Supabase Postgres database, add its connection
+string to `packages/db/.env` (`DATABASE_URL=postgresql://...`), then:
+
+```bash
+# Local (writes to the dev D1 in .alchemy/miniflare/v3)
+bun run db:migrate:local
+
+# Remote (writes packages/db/migration-data.sql, then apply with wrangler)
+bun run db:migrate
+bunx wrangler d1 execute <DATABASE_ID> --remote --file=./packages/db/migration-data.sql
+```
+
+> **Note:** stop `alchemy dev` before running `db:migrate:local` (`pkill -f alchemy.run.ts`) —
+> a running dev server keeps a stale in-memory D1 connection and won't see the migrated data.
+
+### 5. Start development
 
 ```bash
 bun run dev
@@ -144,6 +168,9 @@ All tRPC queries use `Cache-Control: public, max-age=300, stale-while-revalidate
 | `bun run destroy`    | Destroy Cloudflare infrastructure            |
 | `bun run dev:web`    | Start only the web application               |
 | `bun run db:generate`| Generate Drizzle migration from schema changes |
+| `bun run db:seed`    | Seed the local DB with sample data            |
+| `bun run db:migrate` | Migrate Supabase data → D1 (writes migration-data.sql) |
+| `bun run db:migrate:local` | Migrate Supabase data → local D1       |
 | `bun run check-types`| TypeScript type checking across all packages |
 | `bun run check`      | Lint + format check                          |
 | `bun run lint`       | Lint check only                              |

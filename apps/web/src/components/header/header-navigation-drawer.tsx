@@ -21,15 +21,17 @@ export const HeaderNavigationDrawer = () => {
 
   return (
     <Drawer onOpenChange={setOpen} open={open}>
-      <DrawerTrigger>
-        <Button
-          aria-label="Toggle navigation menu"
-          className="shrink-0 p-2 hover:bg-muted/50 lg:hidden"
-          size="icon"
-          variant="outline"
-        >
-          <HugeiconsIcon className="size-4" icon={CommandIcon} />
-        </Button>
+      <DrawerTrigger
+        render={
+          <Button
+            aria-label="Toggle navigation menu"
+            className="shrink-0 p-2 hover:bg-muted/50 lg:hidden"
+            size="icon"
+            variant="outline"
+          />
+        }
+      >
+        <HugeiconsIcon className="size-4" icon={CommandIcon} />
       </DrawerTrigger>
 
       <DrawerContent className="rounded-t-lg border-t p-4">

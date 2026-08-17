@@ -63,10 +63,13 @@ function EventCard({
 	const dateObj =
 		typeof startDate === "string" ? new Date(startDate) : startDate
 
+	// Format in a fixed timezone so server (UTC) and client render identical
+	// output and avoid a hydration mismatch.
 	const formattedDate = new Intl.DateTimeFormat("pt-BR", {
 		day: "numeric",
 		month: "short",
 		year: "numeric",
+		timeZone: "America/Sao_Paulo",
 	})
 		.format(dateObj)
 		.replace(/de\s/g, "")
@@ -78,6 +81,7 @@ function EventCard({
 		hour: "2-digit",
 		minute: "2-digit",
 		hour12: false,
+		timeZone: "America/Sao_Paulo",
 	})
 		.format(dateObj)
 		.replace(":00", "h")

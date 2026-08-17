@@ -36,21 +36,23 @@ export function DataTableColumnHeader<TData, TValue>({
 	return (
 		<div className={cn("flex items-center gap-2", className)}>
 			<DropdownMenu>
-				<DropdownMenuTrigger>
-					<Button
-						className="-ms-3 h-8 hover:bg-accent/50 data-[state=open]:bg-accent"
-						size="sm"
-						variant="ghost"
-					>
-						<span>{title}</span>
-						{column.getIsSorted() === "desc" ? (
-							<HugeiconsIcon icon={ArrowDown01Icon} className="ms-2 size-4" />
-						) : column.getIsSorted() === "asc" ? (
-							<HugeiconsIcon icon={ArrowUp01Icon} className="ms-2 size-4" />
-						) : (
-							<HugeiconsIcon icon={ArrowUpDownIcon} className="ms-2 size-4" />
-						)}
-					</Button>
+				<DropdownMenuTrigger
+					render={
+						<Button
+							className="-ms-3 h-8 hover:bg-accent/50 data-[state=open]:bg-accent"
+							size="sm"
+							variant="ghost"
+						/>
+					}
+				>
+					<span>{title}</span>
+					{column.getIsSorted() === "desc" ? (
+						<HugeiconsIcon icon={ArrowDown01Icon} className="ms-2 size-4" />
+					) : column.getIsSorted() === "asc" ? (
+						<HugeiconsIcon icon={ArrowUp01Icon} className="ms-2 size-4" />
+					) : (
+						<HugeiconsIcon icon={ArrowUpDownIcon} className="ms-2 size-4" />
+					)}
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="start" className="min-w-[120px]">
 					<DropdownMenuItem

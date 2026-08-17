@@ -1,3 +1,8 @@
+// Dev tooling (Vite HMR / React Refresh) relies on eval, so allow it in dev
+// only. Production builds keep a strict script-src with no `unsafe-eval`.
+const IS_DEV = (import.meta as { env?: Record<string, unknown> }).env?.DEV === true
+const scriptSrc = `'self' 'unsafe-inline' https://static.cloudflareinsights.com${IS_DEV ? " 'unsafe-eval'" : ""}`
+
 export const SECURITY_HEADERS: Record<string, string> = {
   "Content-Security-Policy": [
     "default-src 'self'",
@@ -7,7 +12,8 @@ export const SECURITY_HEADERS: Record<string, string> = {
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
     "style-src 'self' 'unsafe-inline'",
-    "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
+    `script-src ${scriptSrc}`,
+    "worker-src 'self' blob:",
     "connect-src 'self' https:",
     "form-action 'self'",
   ].join("; "),

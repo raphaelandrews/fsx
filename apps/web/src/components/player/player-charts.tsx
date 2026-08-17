@@ -1,4 +1,5 @@
 import { barY, defineChart, lineY } from "@tanstack/charts";
+import { tooltip } from "@tanstack/charts/tooltip";
 import { Chart } from "@tanstack/react-charts";
 import { scaleBand, scaleLinear } from "d3-scale";
 
@@ -62,7 +63,6 @@ export function VariationChart({
     );
   }
 
-  // @ts-expect-error TanStack Charts v0.x types are strict — runtime API is correct
   const variationChart = defineChart({
     marks: [
       ((barY as any)(chartData, {
@@ -72,7 +72,7 @@ export function VariationChart({
     ],
     x: { scale: () => scaleBand().padding(0.2) },
     y: { scale: scaleLinear, nice: true, grid: true },
-    tooltip: true,
+    tooltip,
   });
 
   return (
@@ -98,7 +98,6 @@ export function TotalRatingChart({
     return <div />;
   }
 
-  // @ts-expect-error TanStack Charts v0.x types are strict — runtime API is correct
   const ratingChart = defineChart({
     marks: [
       ((lineY as any)(chartData, {
@@ -108,7 +107,7 @@ export function TotalRatingChart({
     ],
     x: { scale: () => scaleBand().padding(0.2) },
     y: { scale: scaleLinear, nice: true, grid: true },
-    tooltip: true,
+    tooltip,
   });
 
   return (

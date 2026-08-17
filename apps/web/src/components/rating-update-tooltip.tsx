@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router"
 
-import { Button } from "@fsx/ui/components/button"
+import { buttonVariants } from "@fsx/ui/components/button"
 import {
   Tooltip,
   TooltipContent,
@@ -10,12 +10,10 @@ import {
 export function RatingUpdateTooltip() {
   return (
     <Tooltip>
-      <TooltipTrigger>
-        <Button>
-          <Link to="/rating-update">
-            Atualizacao de Rating
-          </Link>
-        </Button>
+      <TooltipTrigger
+        render={<Link className={buttonVariants()} to="/rating-update" />}
+      >
+        Atualizacao de Rating
       </TooltipTrigger>
       <TooltipContent>
         <p>Entenda como e o processo de atualizacao de rating.</p>

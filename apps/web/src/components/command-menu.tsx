@@ -117,9 +117,7 @@ const CommandResults = React.memo(
 
 CommandResults.displayName = "SearchResults"
 
-type CommandMenuProps = Record<string, never>
-
-export function CommandMenu({ ...props }: CommandMenuProps) {
+export function CommandMenu() {
   const router = useRouter()
   const platform = detectPlatform()
   const [open, setOpen] = React.useState(false)
@@ -170,22 +168,22 @@ export function CommandMenu({ ...props }: CommandMenuProps) {
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
-      <DialogTrigger>
-        <Button
-          className={cn(
-            "relative h-8 w-full justify-start pl-2.5 font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-56 xl:w-64 border border-dashed bg-background dark:bg-input/30"
-          )}
-          onClick={() => setOpen(true)}
-          variant="secondary"
-          {...props}
-        >
-          <span className="hidden lg:inline-flex">Procurar jogadores...</span>
-          <span className="inline-flex lg:hidden">Procurar...</span>
-          <div className="absolute top-1.5 right-1.5 hidden gap-1 md:flex">
-            <CommandMenuKbd>{platform === "mac" ? "⌘" : "Ctrl"}</CommandMenuKbd>
-            <CommandMenuKbd className="aspect-square">K</CommandMenuKbd>
-          </div>
-        </Button>
+      <DialogTrigger
+        render={
+          <Button
+            className={cn(
+              "relative h-8 w-full justify-start pl-2.5 font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-56 xl:w-64 border border-dashed bg-background dark:bg-input/30"
+            )}
+            variant="secondary"
+          />
+        }
+      >
+        <span className="hidden lg:inline-flex">Procurar jogadores...</span>
+        <span className="inline-flex lg:hidden">Procurar...</span>
+        <div className="absolute top-1.5 right-1.5 hidden gap-1 md:flex">
+          <CommandMenuKbd>{platform === "mac" ? "⌘" : "Ctrl"}</CommandMenuKbd>
+          <CommandMenuKbd className="aspect-square">K</CommandMenuKbd>
+        </div>
       </DialogTrigger>
       <DialogContent
         className="rounded-xl border-none bg-clip-padding p-2 pb-11 shadow-2xl ring-4 ring-neutral-200/80 dark:bg-neutral-900 dark:ring-neutral-800"

@@ -85,12 +85,12 @@ If preserving UUIDs is critical for external links (e.g. shared URLs that use `/
 
 ---
 
-### 3. `announcements.content` — Unique Constraint Removed
+### 3. `announcements.content` — Unique Constraint Kept
 
 **Old**: `content` had `.unique()` constraint.  
-**New**: `content` is plain `text`, no unique constraint. The `year_number` composite unique index on `(year, number)` is the actual uniqueness rule.
+**New**: `content` remains `text` with a `.unique()` constraint. Both `content` and the `year_number` composite unique index on `(year, number)` enforce uniqueness.
 
-No data changes needed — the constraint is simply dropped.
+**Before import**: check for duplicate `content` values in the old data and remove or deduplicate them.
 
 ---
 

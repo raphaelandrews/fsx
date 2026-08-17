@@ -9,6 +9,7 @@ import { buttonVariants } from "@fsx/ui/components/button";
 
 import { AnnouncementsModal } from "@/components/modals/announcements-modal";
 import { useTRPC } from "@/utils/trpc";
+import { padNumber } from "@/utils/format";
 
 const searchSchema = z.object({
   page: z.number().int().positive().default(1),
@@ -91,14 +92,14 @@ function AnnouncementRow({
         <div className="flex items-center gap-2">
           <HugeiconsIcon icon={ScrollIcon} size={14} className="text-muted-foreground" />
           <span className="font-semibold text-sm">
-            Comunicado {announcement.number}/{announcement.year}
+            Comunicado {padNumber(announcement.number)}/{announcement.year}
           </span>
         </div>
         <span className="line-clamp-1 text-muted-foreground text-sm">{announcement.content}</span>
       </button>
       <AnnouncementsModal
         content={announcement.content}
-        number={String(announcement.number)}
+        number={padNumber(announcement.number)}
         onOpenChange={setIsOpen}
         open={isOpen}
         year={announcement.year}

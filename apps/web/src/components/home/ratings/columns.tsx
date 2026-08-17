@@ -66,7 +66,7 @@ export const columnsClassic: ColumnDef<TopPlayer>[] = [
 			<DataTableColumnHeader column={column} title="Clássico" />
 		),
 		cell: ({ row }) => {
-			return <div className="font-medium">{row.original.classic}</div>
+			return <div className="font-mono font-medium tabular-nums">{row.original.classic}</div>
 		},
 		enableSorting: false,
 		enableHiding: false,
@@ -123,7 +123,7 @@ export const columnsRapid: ColumnDef<TopPlayer>[] = [
 			<DataTableColumnHeader column={column} title="Rápido" />
 		),
 		cell: ({ row }) => {
-			return <div className="font-medium">{row.original.rapid}</div>
+			return <div className="font-mono font-medium tabular-nums">{row.original.rapid}</div>
 		},
 		enableSorting: false,
 		enableHiding: false,
@@ -180,7 +180,7 @@ export const columnsBlitz: ColumnDef<TopPlayer>[] = [
 			<DataTableColumnHeader column={column} title="Blitz" />
 		),
 		cell: ({ row }) => {
-			return <div className="font-medium">{row.original.blitz}</div>
+			return <div className="font-mono font-medium tabular-nums">{row.original.blitz}</div>
 		},
 		enableSorting: false,
 		enableHiding: false,

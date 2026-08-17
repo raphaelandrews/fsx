@@ -889,7 +889,7 @@ function RatingBox({ label, value }: { label: string, value?: number | null }) {
   return (
     <div className="p-4 flex flex-col items-center justify-center hover:bg-muted/50 transition-colors duration-200">
       <span className="text-sm text-muted-foreground font-medium">{label}</span>
-      <span className="text-base font-semibold mt-1 text-primary">{value ?? "-"}</span>
+      <span className="text-base font-semibold mt-1 text-primary font-mono tabular-nums">{value ?? "-"}</span>
     </div>
   )
 }
@@ -899,7 +899,7 @@ function IdBox({ label, value, href }: { label: string, value: string, href?: st
     <div className="p-4 flex flex-col items-center justify-center transition-colors duration-200 group h-full hover:bg-muted/50">
       <span className="text-sm font-medium transition-colors text-muted-foreground">{label}</span>
       <div className="flex items-center gap-1.5 mt-1">
-        <span className={`text-base font-semibold transition-colors ${href ? "group-hover:underline" : "text-foreground"}`}>{value}</span>
+        <span className={`text-base font-semibold transition-colors font-mono tabular-nums ${href ? "group-hover:underline" : "text-foreground"}`}>{value}</span>
         {href && <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3 text-muted-foreground" />}
       </div>
     </div>
