@@ -11,11 +11,9 @@ function PublicLayout() {
   return (
     <>
       <Header />
-      <div className="mx-2 sm:mx-8 md:mx-auto relative p-3">
-        <main className="min-h-[60vh]">
-          <Outlet />
-        </main>
-      </div>
+      <main className="container max-w-7xl min-h-screen">
+        <Outlet />
+      </main>
       <Footer />
     </>
   );

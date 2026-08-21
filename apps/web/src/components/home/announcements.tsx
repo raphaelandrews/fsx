@@ -5,7 +5,7 @@ import { ArrowUpRight01Icon, Megaphone01Icon, ScrollIcon } from "@hugeicons/core
 
 import { Section } from "./section"
 import { AnnouncementsModal } from "@/components/modals/announcements-modal"
-import { DottedButton } from "@/components/dotted-button"
+import { SectionButton } from "@/components/section-button"
 import { padNumber } from "@/utils/format"
 
 interface AnnouncementType {
@@ -34,7 +34,7 @@ export function Announcements({ announcements }: AnnouncementsSectionProps) {
 					/>
 				))}
 			</div>
-			<DottedButton href="/comunicados" label="Ver Comunicados" />
+			<SectionButton href="/comunicados" label="Ver Comunicados" />
 		</Section>
 	)
 }

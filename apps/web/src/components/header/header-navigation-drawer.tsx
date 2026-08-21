@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import { useLocation } from "@tanstack/react-router"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { CommandIcon, InstagramIcon, Mail01Icon } from "@hugeicons/core-free-icons"
+import { Menu01Icon, InstagramIcon, Mail01Icon } from "@hugeicons/core-free-icons"
 
 import { navigationData } from "./header-navigation-data"
 import { HeaderNavigationDrawerItem } from "./header-navigation-drawer-item"
@@ -25,13 +25,13 @@ export const HeaderNavigationDrawer = () => {
         render={
           <Button
             aria-label="Toggle navigation menu"
-            className="shrink-0 p-2 hover:bg-muted/50 lg:hidden"
+            className="shrink-0 p-2 hover:bg-muted/50 xl:hidden shadow-none"
             size="icon"
             variant="outline"
           />
         }
       >
-        <HugeiconsIcon className="size-4" icon={CommandIcon} />
+        <HugeiconsIcon className="size-4" icon={Menu01Icon} />
       </DrawerTrigger>
 
       <DrawerContent className="rounded-t-lg border-t p-4">

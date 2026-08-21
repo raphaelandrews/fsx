@@ -48,7 +48,7 @@ export function PostCard({
   if (loading) {
     return (
       <div className="p-3">
-        <div className="p-[4px] rounded-[10px] border border-border mb-2">
+        <div className="mb-2">
           <Skeleton className="aspect-[2/1] w-full rounded-md" />
         </div>
         <div className="px-2 flex flex-col gap-1">
@@ -67,11 +67,11 @@ export function PostCard({
       params={{ slug: slug ?? "" }}
       onMouseEnter={onMouseEnter}
     >
-      <div className="p-[4px] rounded-[10px] border border-border">
+      <div className="">
         {/* biome-ignore lint/performance/noImgElement: No */}
         <img
           alt={title}
-          className="aspect-[2/1] w-full rounded-md border border-border object-cover transition-opacity duration-300"
+          className="aspect-2/1 w-full rounded-md border border-border shadow-xs object-cover transition-opacity duration-300"
           decoding="async"
           loading="lazy"
           src={imageUrl ?? undefined}

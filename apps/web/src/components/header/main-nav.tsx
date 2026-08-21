@@ -15,7 +15,6 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
 } from "@fsx/ui/components/navigation-menu"
 
 export function MainNav() {
@@ -25,31 +24,36 @@ export function MainNav() {
   const getIsActive = (href: string) => pathname === href
 
   return (
-    <div className="mr-4 flex">
+    <div className="flex flex-1 items-center">
       {pathname === "/" ? (
-        <div className="mr-4 flex items-center space-x-2 lg:mr-6">
+        <div className="mr-4 flex items-center space-x-2">
           <LogoContextMenu>
             <Logo className="h-4 text-foreground" />
           </LogoContextMenu>
         </div>
       ) : (
-        <Link to="/" className="mr-4 flex items-center space-x-2 lg:mr-6">
+        <Link to="/" className="mr-4 flex items-center space-x-2">
           <LogoContextMenu>
             <Logo className="h-4 text-foreground" />
           </LogoContextMenu>
         </Link>
       )}
-      <NavigationMenu className="ml-1 hidden lg:block">
-        <NavigationMenuList className="gap-4 space-x-[inherit] text-sm lg:gap-6">
+      <NavigationMenu
+        className="mx-auto hidden xl:block"
+        defaultValue="Destaques"
+        positionerClassName="!left-0 !right-0 !w-auto !max-w-none !top-18 md:!top-24 !px-6 sm:!px-8"
+        popupClassName="!w-full !max-w-[1080px] !mx-auto !mt-2 !rounded-2xl !ring-border !shadow-[0_24px_60px_color-mix(in_oklab,var(--primary-foreground)_12%,transparent)]"
+      >
+        <NavigationMenuList className="gap-2 text-sm">
           {items.map(({ label, items, href, target }) => {
             const hasItems = Boolean(items?.length)
 
             if (hasItems) {
               return (
-                <NavigationMenuItem key={label}>
+                <NavigationMenuItem key={label} value={label}>
                   <NavigationMenuTrigger
                     className={cn(
-                      "bg-transparent p-0 text-foreground/60 transition-colors hover:cursor-pointer hover:bg-transparent hover:text-foreground/80 focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                      "rounded-full bg-transparent px-4 text-foreground/70 hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground data-popup-open:bg-muted data-popup-open:text-foreground data-open:bg-muted data-open:text-foreground",
                       getIsActive(href) && "text-foreground"
                     )}
                   >
@@ -57,55 +61,47 @@ export function MainNav() {
                   </NavigationMenuTrigger>
 
                   <NavigationMenuContent className="!p-0">
-                    <div className="relative w-[250px] p-0 border rounded-none bg-popover">
-                      <ul className="grid grid-cols-1 gap-0 relative z-0 !list-none !p-0 !m-0">
-                        {items?.map(
-                          ({ href, icon: Icon, label, description }) => {
-                            return (
-                              <li key={label} className="relative">
-                                <NavigationMenuLink>
-                                  <Link
-                                    className={cn(
-                                      "group flex flex-row items-center gap-4 p-3 hover:bg-muted/50 transition-colors !rounded-none outline-none focus:bg-muted/50 select-none mx-1 my-1.25",
-                                      getIsActive(href) && "bg-muted"
-                                    )}
-                                    to={href}
-                                  >
-                                    <div className={cn("flex items-center justify-center size-8 rounded-md border bg-background group-hover:bg-primary group-hover:border-primary transition-colors duration-300 shrink-0", getIsActive(href) && "bg-primary border-primary")}>
-                                      <HugeiconsIcon className={cn("size-4 group-hover:text-primary-foreground transition-colors duration-300", getIsActive(href) && "text-primary-foreground")} icon={Icon} />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                      <span className="text-sm font-semibold leading-none">
-                                        {label}
-                                      </span>
-                                      <span className="text-xs text-muted-foreground font-medium line-clamp-2 leading-snug">
-                                        {description}
-                                      </span>
-                                    </div>
-                                  </Link>
-                                </NavigationMenuLink>
-                              </li>
-                            )
-                          }
-                        )}
-                      </ul>
-                    </div>
+                    <ul className="grid gap-2 p-6 sm:grid-cols-2 lg:grid-cols-3 !list-none !m-0">
+                      {items?.map(
+                        ({ href, icon: Icon, label, description }) => {
+                          return (
+                            <li key={label}>
+                              <NavigationMenuLink
+                                render={<Link to={href} />}
+                                className="group flex h-full items-start gap-3 rounded-xl border border-transparent p-4 transition-colors hover:border-border hover:bg-muted focus-visible:border-border focus-visible:bg-muted select-none"
+                              >
+                                <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-primary-foreground transition-colors group-hover:bg-primary">
+                                  <HugeiconsIcon
+                                    className="size-[18px]"
+                                    icon={Icon}
+                                  />
+                                </span>
+                                <span className="flex flex-col">
+                                  <span className="text-[15px] font-semibold text-primary-foreground">
+                                    {label}
+                                  </span>
+                                  <span className="text-[13px] leading-snug text-muted-foreground">
+                                    {description}
+                                  </span>
+                                </span>
+                              </NavigationMenuLink>
+                            </li>
+                          )
+                        }
+                      )}
+                    </ul>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               )
             }
 
             return (
-              <NavigationMenuItem
-                className={cn(
-                  navigationMenuTriggerStyle(),
-                  "bg-transparent p-0 text-foreground/60 transition-colors hover:bg-transparent hover:text-foreground/80 focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
-                  getIsActive(href) && "text-foreground"
-                )}
-                key={label}
-              >
+              <NavigationMenuItem key={label}>
                 <Link
-                  className="flex items-center gap-2"
+                  className={cn(
+                    "flex h-9 items-center rounded-full px-3 text-sm font-medium text-foreground/70 transition-colors hover:bg-muted hover:text-foreground",
+                    getIsActive(href) && "text-foreground"
+                  )}
                   to={href}
                   target={target}
                 >
