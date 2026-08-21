@@ -10,18 +10,23 @@ interface Props {
   label?: string
   icon?: IconSvgObject
   className?: string
+  stacked?: boolean
 }
 
-export function Announcement({ label, icon: Icon, className }: Props) {
-  const baseStyles = cn("flex items-center text-base font-bold p-3", className)
-  const iconStyles = "size-4"
+export function Announcement({ label, icon: Icon, className, stacked = false }: Props) {
+  const baseStyles = cn(
+    "flex items-center text-base font-bold p-3",
+    stacked && "flex-col gap-2 px-0 pt-0 pb-6 text-center",
+    className
+  )
+  const iconStyles = stacked ? "size-8" : "size-[1em]"
 
   if (label) {
     return (
       <div className={baseStyles}>
         {Icon && <HugeiconsIcon icon={Icon} className={iconStyles} />}
-        {Icon && <Separator className="!w-0.5 !h-4 mx-2" orientation="vertical" />}
-        {label}
+        {!stacked && Icon && <Separator className="!w-0.5 !h-[1em] mx-[0.5em]" orientation="vertical" />}
+        <span>{label}</span>
       </div>
     )
   }

@@ -1,7 +1,5 @@
 import { NewsIcon } from "@hugeicons/core-free-icons"
 
-import { buttonVariants } from "@fsx/ui/components/button"
-
 import { Section } from "./section"
 import { SectionButton } from "@/components/section-button"
 import { PostCard } from "@/components/post-card"
@@ -18,11 +16,11 @@ interface PostsSectionProps {
 }
 
 export function Posts({ posts }: PostsSectionProps) {
-  const freshPosts = posts.slice(2, 6)
+  const freshPosts = posts.slice(2, 8)
 
   return (
     <Section icon={NewsIcon} label="Notícias" main={false}>
-      <div className="relative grid sm:grid-cols-2 lg:grid-cols-3 gap-0">
+      <div className="relative grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {freshPosts?.map((post: FreshPost) => (
           <div key={post.id}>
             <PostCard

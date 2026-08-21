@@ -40,7 +40,6 @@ export function MainNav() {
       )}
       <NavigationMenu
         className="mx-auto hidden xl:block"
-        defaultValue="Destaques"
         positionerClassName="!left-0 !right-0 !w-auto !max-w-none !top-18 md:!top-24 !px-6 sm:!px-8"
         popupClassName="!w-full !max-w-[1080px] !mx-auto !mt-2 !rounded-2xl !ring-border !shadow-[0_24px_60px_color-mix(in_oklab,var(--primary-foreground)_12%,transparent)]"
       >
@@ -50,7 +49,7 @@ export function MainNav() {
 
             if (hasItems) {
               return (
-                <NavigationMenuItem key={label} value={label}>
+                <NavigationMenuItem key={label}>
                   <NavigationMenuTrigger
                     className={cn(
                       "rounded-full bg-transparent px-4 text-foreground/70 hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground data-popup-open:bg-muted data-popup-open:text-foreground data-open:bg-muted data-open:text-foreground",

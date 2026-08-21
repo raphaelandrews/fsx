@@ -1,7 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import { useSuspenseQuery } from "@tanstack/react-query"
 
-import { Announcement } from "@/components/announcement"
 import { MDX } from "@/components/mdx"
 import { PostTimeAgo } from "@/components/noticias/post-time-ago"
 import { useTRPC } from "@/utils/trpc"
@@ -31,44 +30,40 @@ export const Route = createFileRoute("/_public/noticias/$slug")({
 function RouteComponent() {
   const trpc = useTRPC()
   const { slug } = Route.useParams()
-  const { data: post } = useSuspenseQuery(trpc.posts.bySlug.queryOptions({ slug }))
+  const { data: post } = useSuspenseQuery(
+    trpc.posts.bySlug.queryOptions({ slug })
+  )
 
   if (!post) return null
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <section className="mb-0">
-        <div className="p-4">
-          <h1 className="text-balance text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tighter text-accent">
-            {post.title}
-          </h1>
+    <article className="mx-auto max-w-4xl py-10 md:py-16">
+      <header className="mx-auto max-w-2xl text-center">
+        <h1 className="text-balance text-3xl font-semibold tracking-tight text-accent md:text-4xl">
+          {post.title}
+        </h1>
 
-          {post.createdAt && (
-            <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <PostTimeAgo date={post.createdAt} />
-            </div>
-          )}
-        </div>
-      </section>
+        {post.createdAt && (
+          <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <PostTimeAgo date={post.createdAt} />
+          </div>
+        )}
+      </header>
 
       {post.imageUrl && (
         <img
           alt={post.title}
-          className="max-h-[400px] w-full rounded-lg object-cover"
+          className="mt-8 aspect-video w-full rounded-xl border border-border object-cover"
           decoding="async"
-          loading="lazy"
           src={post.imageUrl}
-        </>
-  )
-}
+        />
+      )}
 
-{
-  post.content && (
-    <section className="mb-0 p-4">
-      <MDX content={post.content} />
-    </section>
-  )
-}
-    </div >
+      {post.content && (
+        <div className="mx-auto mt-10 max-w-2xl">
+          <MDX content={post.content} />
+        </div>
+      )}
+    </article>
   )
 }

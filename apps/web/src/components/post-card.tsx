@@ -71,7 +71,7 @@ export function PostCard({
         {/* biome-ignore lint/performance/noImgElement: No */}
         <img
           alt={title}
-          className="aspect-2/1 w-full rounded-md border border-border shadow-xs object-cover transition-opacity duration-300"
+          className="aspect-2/1 w-full rounded-md border border-border object-cover transition-opacity duration-300"
           decoding="async"
           loading="lazy"
           src={imageUrl ?? undefined}

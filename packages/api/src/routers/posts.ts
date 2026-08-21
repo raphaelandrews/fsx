@@ -63,7 +63,7 @@ export const postsRouter = router({
       .from(posts)
       .where(eq(posts.published, true))
       .orderBy(desc(posts.createdAt))
-      .limit(6)
+      .limit(8)
   ),
   create: adminProcedure
     .input(insertPostSchema.omit({ id: true }))

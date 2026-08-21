@@ -20,9 +20,16 @@ export function Section({
   children,
 }: Props) {
   return (
-    <section className={cn(className)}>
-      <div className="mx-2 sm:mx-8 md:mx-auto relative p-0">
-        {!main && <Announcement icon={icon} label={label} />}
+    <section className={cn(main ? "pt-8 pb-10 md:pb-12" : "py-10 md:py-12", className)}>
+      <div className="relative">
+        {!main && (
+          <Announcement
+            icon={icon}
+            label={label}
+            stacked
+            className="text-xl md:text-2xl font-display"
+          />
+        )}
         {children}
       </div>
     </section>
