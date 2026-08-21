@@ -7,7 +7,6 @@ import {
 import { createFileRoute, Link } from "@tanstack/react-router"
 
 import { Announcement } from "@/components/announcement"
-import { DottedSeparator } from "@/components/dotted-separator"
 import { cn } from "@fsx/ui/lib/utils"
 
 export const Route = createFileRoute("/_public/sobre")({
@@ -25,11 +24,9 @@ export const Route = createFileRoute("/_public/sobre")({
 
 function SobreItem({
   children,
-  isLast,
   className,
 }: {
   children: React.ReactNode
-  isLast?: boolean
   className?: string
 }) {
   return (
@@ -39,7 +36,6 @@ function SobreItem({
           {children}
         </div>
       </div>
-      {!isLast && <DottedSeparator className="w-full" />}
     </div>
   )
 }
@@ -64,7 +60,7 @@ const links = [
 
 function RouteComponent() {
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <Announcement icon={ScrollIcon} label="Sobre" />
 
       <section className="mb-0">
@@ -85,11 +81,11 @@ function RouteComponent() {
       </section>
 
       <section className="mb-0">
-        <Announcement icon={Target01Icon} label="Finalidades" className="text-sm" topSeparator />
+        <Announcement icon={Target01Icon} label="Finalidades" className="text-sm" />
 
         <div className="flex flex-col">
           {finalidades.map((item, index) => (
-            <SobreItem key={index} isLast={index === finalidades.length - 1}>
+            <SobreItem key={index}>
               <div className="flex items-start gap-2">
                 <span className="shrink-0 text-muted-foreground">•</span>
                 <p className="text-sm text-foreground">{item}</p>
@@ -100,13 +96,12 @@ function RouteComponent() {
       </section>
 
       <section className="mb-0">
-        <Announcement icon={Link02Icon} label="Links" className="text-sm" topSeparator />
+        <Announcement icon={Link02Icon} label="Links" className="text-sm" />
 
         <div className="flex flex-col">
           {links.map((link, index) => (
             <SobreItem
               key={index}
-              isLast={index === links.length - 1}
               className="group p-0 hover:bg-transparent"
             >
               {link.href.startsWith("/") ? (

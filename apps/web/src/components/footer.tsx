@@ -1,12 +1,9 @@
 import { cn } from "@fsx/ui/lib/utils"
-import { DottedSeparator } from "./dotted-separator"
-import { DottedX } from "./dotted-x"
 
 export function Footer({ className }: { className?: string }) {
 	return (
 		<footer className={cn(className)}>
-			<DottedSeparator />
-			<DottedX>
+			<div className="max-w-[720px] mx-2 sm:mx-8 md:mx-auto relative p-3">
 				<div className="text-balance text-center text-muted-foreground text-sm leading-loose">
 					Built by 📟{" "}
 					<a
@@ -28,7 +25,7 @@ export function Footer({ className }: { className?: string }) {
 					</a>
 					.
 				</div>
-			</DottedX>
+			</div>
 		</footer>
 	)
 }

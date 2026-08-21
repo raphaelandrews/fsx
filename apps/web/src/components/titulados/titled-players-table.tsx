@@ -25,7 +25,6 @@ import {
   TableRow,
 } from "@fsx/ui/components/table"
 
-import { DottedSeparator } from "@/components/dotted-separator"
 import { titledPlayersColumns, type TitledPlayer } from "./columns"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 import { DataTablePagination } from "./data-table-pagination"
@@ -100,8 +99,6 @@ export function TitledPlayersTable({ data }: { data: TitledPlayer[] }) {
         </div>
       </div>
 
-      <DottedSeparator />
-
       <div className="relative p-4">
         <Table>
           <TableHeader>
@@ -138,8 +135,6 @@ export function TitledPlayersTable({ data }: { data: TitledPlayer[] }) {
           </TableBody>
         </Table>
       </div>
-
-      <DottedSeparator />
 
       <div className="p-4">
         <DataTablePagination table={table} />

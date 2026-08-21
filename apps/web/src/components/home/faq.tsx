@@ -7,7 +7,6 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "@fsx/ui/components/accordion"
-import { DottedSeparator } from "@/components/dotted-separator"
 
 const FAQ_ITEMS = [
 	{
@@ -93,9 +92,9 @@ const FAQ_ITEMS = [
 
 export function FAQ() {
 	return (
-		<Section icon={HelpCircleIcon} label="FAQ" main={false} hideSeparator>
+		<Section icon={HelpCircleIcon} label="FAQ" main={false}>
 			<Accordion className="flex flex-col">
-					{FAQ_ITEMS.map((item, index) => (
+					{FAQ_ITEMS.map((item) => (
 						<div key={item.value}>
 							<AccordionItem value={item.value} className="border-b-0">
 								<div className="m-1">
@@ -105,9 +104,6 @@ export function FAQ() {
 									<AccordionContent className="px-2 pb-2">{item.answer}</AccordionContent>
 								</div>
 							</AccordionItem>
-							{index !== FAQ_ITEMS.length - 1 && (
-								<DottedSeparator className="w-full" />
-							)}
 						</div>
 					))}
 			</Accordion>

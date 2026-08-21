@@ -7,14 +7,11 @@ import {
   AccordionTrigger,
 } from "@fsx/ui/components/accordion"
 
-import { DottedSeparator } from "@/components/dotted-separator"
-
 interface NormasItemProps {
   value: string
   title: string
   description?: string
   children: React.ReactNode
-  isLast: boolean
 }
 
 export function NormasItem({
@@ -22,7 +19,6 @@ export function NormasItem({
   title,
   description,
   children,
-  isLast,
 }: NormasItemProps) {
   return (
     <>
@@ -51,7 +47,6 @@ export function NormasItem({
           </AccordionContent>
         </div>
       </AccordionItem>
-      {!isLast && <DottedSeparator className="w-full" />}
     </>
   )
 }

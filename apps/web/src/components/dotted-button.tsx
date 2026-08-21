@@ -2,8 +2,6 @@
 import { Link } from "@tanstack/react-router"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons"
-import { DottedX } from "./dotted-x"
-import { DottedSeparator } from "./dotted-separator"
 import { Button } from "@fsx/ui/components/button"
 import { cn } from "@fsx/ui/lib/utils"
 
@@ -22,8 +20,7 @@ export function DottedButton({
 }: DottedButtonProps) {
   return (
     <div className="w-full">
-      <DottedSeparator />
-      <DottedX className="p-2 relative">
+      <div className="max-w-[720px] mx-2 sm:mx-8 md:mx-auto relative p-2">
         <div className="flex items-center justify-center select-none">
           <Button
             variant="ghost"
@@ -42,7 +39,7 @@ export function DottedButton({
             </Link>
           </Button>
         </div>
-      </DottedX>
+      </div>
     </div>
   )
 }

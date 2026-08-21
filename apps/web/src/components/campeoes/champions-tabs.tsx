@@ -16,7 +16,6 @@ import {
 } from "@fsx/ui/components/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@fsx/ui/components/tabs"
 
-import { DottedSeparator } from "@/components/dotted-separator"
 import { championColumns, type ChampionTournament } from "./columns"
 
 const tabContent = [
@@ -36,14 +35,10 @@ export function ChampionsTabs({
   return (
     <Tabs defaultValue="classic" className="w-full gap-0">
       <TabsList className="grid h-auto w-full grid-cols-3 gap-0 rounded-none bg-transparent p-0 md:grid-cols-6">
-        {tabContent.map((tab, index) => (
+        {tabContent.map((tab) => (
           <div
             key={tab.value}
-            className={`relative flex items-center justify-center after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-[image:repeating-linear-gradient(to_bottom,var(--border)_0px,var(--border)_6px,transparent_6px,transparent_14px)] after:bg-[length:1px_100%] after:bg-no-repeat last:after:hidden [&:nth-child(3n)]:after:hidden md:[&:nth-child(3n)]:after:block md:[&:nth-child(6n)]:after:hidden ${
-              index < 3
-                ? "before:absolute before:bottom-0 before:left-0 before:right-0 before:h-px before:bg-[image:repeating-linear-gradient(to_right,var(--border)_0px,var(--border)_6px,transparent_6px,transparent_14px)] before:bg-[length:100%_1px] before:bg-no-repeat md:before:hidden"
-                : ""
-            }`}
+            className="relative flex items-center justify-center"
           >
             <TabsTrigger
               className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
@@ -54,8 +49,6 @@ export function ChampionsTabs({
           </div>
         ))}
       </TabsList>
-
-      <DottedSeparator />
 
       {tabContent.map((tab) => (
         <TabsContent key={tab.value} value={tab.value}>
@@ -113,8 +106,6 @@ function CampeoesTable({ data }: { data: ChampionTournament[] }) {
           </TableBody>
         </Table>
       </div>
-
-      <DottedSeparator />
 
       <div className="flex items-center justify-end space-x-2 p-4">
         <Button

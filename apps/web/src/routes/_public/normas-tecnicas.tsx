@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_public/normas-tecnicas")({
 
 function RouteComponent() {
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <Announcement icon={Book01Icon} label="Normas Técnicas" />
 
       <section className="mb-0">
@@ -39,7 +39,6 @@ function RouteComponent() {
               value={`item-${index}`}
               title={item.title}
               description={item.description}
-              isLast={index === titulations.length - 1}
             >
               {item.content}
             </NormasItem>
@@ -52,7 +51,6 @@ function RouteComponent() {
           icon={ChartBarLineIcon}
           label="Variação de Rating"
           className="text-sm"
-          topSeparator
         />
 
         <Accordion className="flex flex-col">
@@ -62,7 +60,6 @@ function RouteComponent() {
               value={`rating-${index}`}
               title={item.title}
               description={item.description}
-              isLast={index === ratingVariations.length - 1}
             >
               {item.content}
             </NormasItem>

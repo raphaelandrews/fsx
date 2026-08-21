@@ -2,7 +2,6 @@ import { createFileRoute, notFound } from "@tanstack/react-router"
 import { useSuspenseQuery } from "@tanstack/react-query"
 
 import { Announcement } from "@/components/announcement"
-import { DottedSeparator } from "@/components/dotted-separator"
 import { MDX } from "@/components/mdx"
 import { PostTimeAgo } from "@/components/noticias/post-time-ago"
 import { useTRPC } from "@/utils/trpc"
@@ -37,7 +36,7 @@ function RouteComponent() {
   if (!post) return null
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <Announcement label="Notícia" />
 
       <section className="mb-0">
@@ -52,7 +51,6 @@ function RouteComponent() {
             </div>
           )}
         </div>
-        <DottedSeparator />
       </section>
 
       {post.imageUrl && (
@@ -68,7 +66,6 @@ function RouteComponent() {
               />
             </div>
           </section>
-          <DottedSeparator />
         </>
       )}
 

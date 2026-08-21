@@ -42,7 +42,7 @@ function RouteComponent() {
   };
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-bold text-2xl">Swiss Manager</h1>
         <Button onClick={exportCSV}>Download CSV</Button>

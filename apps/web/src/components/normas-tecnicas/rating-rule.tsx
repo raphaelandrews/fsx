@@ -1,14 +1,11 @@
 import { Badge } from "@fsx/ui/components/badge"
 
-import { DottedSeparator } from "@/components/dotted-separator"
-
 interface RatingRuleProps {
   k: number | string
   description: React.ReactNode
-  isLast?: boolean
 }
 
-export function RatingRule({ k, description, isLast }: RatingRuleProps) {
+export function RatingRule({ k, description }: RatingRuleProps) {
   return (
     <div>
       <div className="m-1">
@@ -19,7 +16,6 @@ export function RatingRule({ k, description, isLast }: RatingRuleProps) {
           <div className="space-y-1 text-sm text-foreground">{description}</div>
         </div>
       </div>
-      {!isLast && <DottedSeparator className="w-full" />}
     </div>
   )
 }

@@ -7,7 +7,6 @@ import { CommandMenu } from "../command-menu"
 import { UpdateRegister } from "../update-register"
 import { buttonVariants } from "@fsx/ui/components/button"
 import { Separator } from "@fsx/ui/components/separator"
-import { DottedSeparator } from "../dotted-separator"
 import {
   Tooltip,
   TooltipContent,
@@ -68,7 +67,6 @@ export function Header() {
           <HeaderNavigationDrawer />
         </div>
       </div>
-      <DottedSeparator />
     </header>
   )
 }

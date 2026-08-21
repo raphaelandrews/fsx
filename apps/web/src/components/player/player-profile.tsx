@@ -34,7 +34,6 @@ import {
 } from "@fsx/ui/components/select"
 import { VerifiedBadge } from "@/components/player/verified-badge"
 import { Announcement } from "@/components/announcement"
-import { DottedSeparator } from "@/components/dotted-separator"
 import { TotalRatingChart, VariationChart } from "@/components/player/player-charts"
 
 const meshGradients = [
@@ -672,7 +671,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
       {/* Achievements Section */}
       {(orderPodiums.length > 0 || (player.defendingChampions && player.defendingChampions?.length > 0)) && (
         <section className="mb-0">
-          <Announcement icon={Target01Icon} label="Conquistas" className="text-sm" topSeparator />
+          <Announcement icon={Target01Icon} label="Conquistas" className="text-sm" />
           <div className="p-3 grid gap-4">
             {player.defendingChampions && player.defendingChampions?.length > 0 && (
               <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
@@ -707,10 +706,10 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
 
       {/* Info Section */}
       <section className="mb-0">
-        <Announcement icon={InformationCircleIcon} label="Informações" className="text-sm" topSeparator />
+        <Announcement icon={InformationCircleIcon} label="Informações" className="text-sm" />
 
         <div className="flex flex-col">
-          <InfoItem label="Nome Completo" value={player.name} isFirst />
+          <InfoItem label="Nome Completo" value={player.name} />
 
           {internalTitle && (
             <InfoItem label="Titulação FSX" value={internalTitle.title.name} />
@@ -786,7 +785,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
 
       {/* Ratings Section */}
       <section className="mb-0">
-        <Announcement icon={ChartBarLineIcon} label="Ratings" className="text-sm" topSeparator />
+        <Announcement icon={ChartBarLineIcon} label="Ratings" className="text-sm" />
 
         <div className="grid grid-cols-3 divide-x divide-border">
           <RatingBox label="Clássico" value={player.classic} />
@@ -797,7 +796,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
 
       {/* IDs Section */}
       <section className="mb-0">
-        <Announcement icon={Link02Icon} label="IDs" className="text-sm" topSeparator />
+        <Announcement icon={Link02Icon} label="IDs" className="text-sm" />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-y sm:divide-y-0 divide-border">
           <IdBox label="ID FSX" value={String(player.id)} />
@@ -818,7 +817,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
       {tournaments.length > 0 && (
         <section className="mb-0">
 
-          <Announcement icon={BarChartIcon} label="Performance" className="text-sm flex-1" topSeparator />
+          <Announcement icon={BarChartIcon} label="Performance" className="text-sm flex-1" />
 
           <div className="p-4 space-y-6">
             <Select
@@ -843,8 +842,6 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
               />
             </div>
 
-            <DottedSeparator className="w-full" />
-
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground ml-2">Evolução de Rating</h4>
               <TotalRatingChart
@@ -859,7 +856,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
       {/* Tournaments Section */}
       {tournaments && tournaments.length > 0 && (
         <section className="mb-0">
-          <Announcement icon={Calendar01Icon} label="Histórico de Torneios" className="text-sm" topSeparator />
+          <Announcement icon={Calendar01Icon} label="Histórico de Torneios" className="text-sm" />
           <div className="py-4">
             <DataTable columns={columns} data={tournaments} />
           </div>
@@ -869,10 +866,9 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
   )
 }
 
-function InfoItem({ label, value, children, isFirst }: { label: string, value?: string, children?: React.ReactNode, isFirst?: boolean }) {
+function InfoItem({ label, value, children }: { label: string, value?: string, children?: React.ReactNode }) {
   return (
     <>
-      {!isFirst && <DottedSeparator className="w-full" />}
       <div className="m-1">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 hover:bg-muted/50 transition-colors duration-200">
           <span className="text-sm font-medium text-muted-foreground">{label}</span>

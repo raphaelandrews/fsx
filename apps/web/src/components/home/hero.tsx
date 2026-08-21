@@ -2,7 +2,6 @@ import { FireIcon } from "@hugeicons/core-free-icons"
 
 import { Section } from "./section"
 import { PostCard } from "@/components/post-card"
-import { DottedSeparator } from "@/components/dotted-separator"
 
 interface FreshPost {
 	id: number
@@ -21,20 +20,14 @@ export function Hero({ posts }: PostsSectionProps) {
 	return (
 		<Section icon={FireIcon} main={true}>
 			<div className="relative grid sm:grid-cols-2 gap-0">
-					<div className="absolute left-1/2 top-0 h-full -translate-x-1/2 z-0 hidden md:block">
-						<DottedSeparator vertical />
-					</div>
-					{mainPosts?.map((post: FreshPost, index: number) => (
+					{mainPosts?.map((post: FreshPost) => (
 						<div key={post.id}>
 							<PostCard
 								imageUrl={post.imageUrl ?? null}
 								main={true}
 								slug={post.slug ?? undefined}
-								title={post.title}
-							/>
-							{index !== mainPosts.length - 1 && (
-								<DottedSeparator className="w-full sm:hidden" />
-							)}
+							title={post.title}
+						/>
 						</div>
 					))}
 			</div>

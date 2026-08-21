@@ -5,8 +5,6 @@ import { cn } from "@fsx/ui/lib/utils"
 import type { IconSvgObject } from "@/lib/icon-types"
 
 import { Announcement } from "@/components/announcement"
-import { DottedSeparator } from "@/components/dotted-separator"
-import { DottedX } from "@/components/dotted-x"
 
 interface Props {
 	label?: string
@@ -14,7 +12,6 @@ interface Props {
 	icon: IconSvgObject
 	main: boolean
 	children: React.ReactNode
-	hideSeparator?: boolean
 }
 
 export function Section({
@@ -23,11 +20,10 @@ export function Section({
 	icon,
 	main,
 	children,
-	hideSeparator = false,
 }: Props) {
 	return (
 		<section className={cn(className)}>
-			<DottedX className="p-0">
+			<div className="max-w-[720px] mx-2 sm:mx-8 md:mx-auto relative p-0">
 				{!main && <Announcement icon={icon} label={label} />}
 				{main && (
 					<div className="p-3">
@@ -37,8 +33,7 @@ export function Section({
 					</div>
 				)}
 				{children}
-			</DottedX>
-			{!hideSeparator && <DottedSeparator />}
+			</div>
 		</section>
 	)
 }

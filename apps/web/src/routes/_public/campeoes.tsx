@@ -34,7 +34,7 @@ function RouteComponent() {
   )
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <Announcement icon={CrownIcon} label="Campeões" />
       <ChampionsTabs championshipMap={championshipMap} />
     </div>

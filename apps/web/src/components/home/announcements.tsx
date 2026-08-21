@@ -4,7 +4,6 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowUpRight01Icon, Megaphone01Icon, ScrollIcon } from "@hugeicons/core-free-icons"
 
 import { Section } from "./section"
-import { DottedSeparator } from "@/components/dotted-separator"
 import { AnnouncementsModal } from "@/components/modals/announcements-modal"
 import { DottedButton } from "@/components/dotted-button"
 import { padNumber } from "@/utils/format"
@@ -28,11 +27,10 @@ export function Announcements({ announcements }: AnnouncementsSectionProps) {
 			main={false}
 		>
 			<div className="flex flex-col">
-				{announcements?.map((announcement: AnnouncementType, index: number) => (
+				{announcements?.map((announcement: AnnouncementType) => (
 					<AnnouncementItem
 						key={announcement.id}
 						announcement={announcement}
-						isLast={index === announcements.length - 1}
 					/>
 				))}
 			</div>
@@ -43,8 +41,7 @@ export function Announcements({ announcements }: AnnouncementsSectionProps) {
 
 function AnnouncementItem({
 	announcement,
-	isLast,
-}: { announcement: AnnouncementType; isLast: boolean }) {
+}: { announcement: AnnouncementType }) {
 	const [isOpen, setIsOpen] = useState(false)
 
 	return (
@@ -73,7 +70,6 @@ function AnnouncementItem({
 						</div>
 					</div>
 				</div>
-				{!isLast && <DottedSeparator className="w-full" />}
 			</div>
 
 			<AnnouncementsModal

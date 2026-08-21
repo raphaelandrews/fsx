@@ -9,7 +9,6 @@ import { Section } from "@/components/home/section"
 import { RatingUpdateTooltip } from "@/components/rating-update-tooltip"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@fsx/ui/components/tabs"
 import { DottedButton } from "@/components/dotted-button"
-import { DottedSeparator } from "@/components/dotted-separator"
 
 type TabValue = "rapid" | "classic" | "blitz"
 
@@ -37,14 +36,12 @@ export function TopPlayers({ topPlayers }: any) {
 					>
 						Clássico
 					</TabsTrigger>
-					<div className="h-auto w-px self-stretch bg-[image:repeating-linear-gradient(to_bottom,var(--border)_0px,var(--border)_6px,transparent_6px,transparent_14px)] bg-[length:1px_100%] bg-no-repeat" />
 					<TabsTrigger
 						className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
 						value="rapid"
 					>
 						Rápido
 					</TabsTrigger>
-					<div className="h-auto w-px self-stretch bg-[image:repeating-linear-gradient(to_bottom,var(--border)_0px,var(--border)_6px,transparent_6px,transparent_14px)] bg-[length:1px_100%] bg-no-repeat" />
 					<TabsTrigger
 						className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
 						value="blitz"
@@ -53,13 +50,11 @@ export function TopPlayers({ topPlayers }: any) {
 					</TabsTrigger>
 				</TabsList>
 
-				<DottedSeparator />
 
 				<div className="p-3">
 					<RatingUpdateTooltip />
 				</div>
 
-				<DottedSeparator />
 
 				<div className="p-3">
 					<TabsContent className="mt-0" value="classic">

@@ -71,7 +71,7 @@ function RouteComponent() {
   const { players, pagination } = data;
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <h1 className="mb-4 font-bold text-2xl">Ratings</h1>
 
       <div className="mb-4 flex flex-wrap items-end gap-2">

@@ -19,7 +19,6 @@ import {
 import { cn } from "@fsx/ui/lib/utils"
 
 import { Announcement } from "@/components/announcement"
-import { DottedSeparator } from "@/components/dotted-separator"
 import { Footer } from "@/components/footer"
 import { Logo } from "@/components/logo"
 import { useTRPC } from "@/utils/trpc"
@@ -65,16 +64,12 @@ function RouteComponent() {
 
   return (
     <div className="relative flex min-h-dvh flex-col overflow-x-hidden">
-      <div className="pointer-events-none absolute inset-x-2 inset-y-0 dotted-border-x sm:inset-x-8 md:inset-x-0 md:left-1/2 md:max-w-[720px] md:w-full md:-translate-x-1/2" />
       <main className="relative flex-1">
         <section>
           <div className="relative mx-2 p-3 sm:mx-8 md:mx-auto md:max-w-[720px] md:p-3">
             <div className="relative h-32 w-full overflow-hidden rounded-lg">
               <div className="absolute inset-0 z-0 bg-[radial-gradient(450px_circle_at_center,--color-(--primary)/20,transparent)] [mask-image:radial-gradient(450px_circle_at_center,white,transparent)]" />
-              <div className="absolute inset-0 dotted-border-x opacity-40" />
             </div>
-
-            <DottedSeparator fullWidth />
 
             <div className="flex items-center justify-between gap-4 p-4">
               <Logo className="h-5 text-foreground" />
@@ -127,21 +122,19 @@ function RouteComponent() {
 
             {linkGroups.map((item) => (
               <section className="mb-0" key={item.id}>
-                <Announcement icon={FoldersIcon} label={item.label} className="text-sm" topSeparator />
+                <Announcement icon={FoldersIcon} label={item.label} className="text-sm" />
                 <div className="flex flex-col">
-                  {item.links?.map((link, linkIndex) => (
+                  {item.links?.map((link) => (
                     <Fragment key={link.href}>
                       <div className="m-1">
                         <LinkItem href={link.href} icon={link.icon} label={link.label} />
                       </div>
-                      {linkIndex < (item.links?.length ?? 0) - 1 && <DottedSeparator />}
                     </Fragment>
                   ))}
                 </div>
               </section>
             ))}
           </div>
-          <DottedSeparator />
         </section>
       </main>
       <Footer />

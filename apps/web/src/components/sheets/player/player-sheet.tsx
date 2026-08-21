@@ -53,7 +53,7 @@ export const PlayerSheet = ({
 
   return (
     <Sheet onOpenChange={setOpen} open={open}>
-      <SheetContent className="!w-[400px] sm:!w-[540px] !max-w-[90%] sm:!max-w-[600px] gap-0 overflow-y-auto overflow-x-hidden p-0 [&>button#close-sheet]:top-2.5 [&>button#close-sheet]:right-2.5 border-l-0 dotted-line-vertical">
+      <SheetContent className="!w-[400px] sm:!w-[540px] !max-w-[90%] sm:!max-w-[600px] gap-0 overflow-y-auto overflow-x-hidden p-0 [&>button#close-sheet]:top-2.5 [&>button#close-sheet]:right-2.5 border-l-0">
         <PlayerProfile player={player} />
       </SheetContent>
     </Sheet>

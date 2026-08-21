@@ -33,8 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@fsx/ui/components/select"
-import { DottedSeparator } from "@/components/dotted-separator"
-
 interface DataTableProps<TData> {
   columns: ColumnDef<TData>[]
   data: TData[]
@@ -117,8 +115,6 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
           </TableBody>
         </Table>
       </div>
-
-      <DottedSeparator />
 
       <div className="flex flex-col items-end justify-between gap-4 sm:flex-row px-4">
         <div className="flex items-center gap-2">

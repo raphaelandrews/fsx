@@ -27,7 +27,7 @@ function RouteComponent() {
 
   if (!cup) {
     return (
-      <div className="container mx-auto max-w-3xl px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <h1 className="mb-4 font-bold text-2xl">Sergipano Bullet</h1>
         <p className="text-muted-foreground">
           Nenhuma edição do Campeonato Sergipano Bullet disponível.
@@ -37,7 +37,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <BulletClient cup={cup} />
     </div>
   )

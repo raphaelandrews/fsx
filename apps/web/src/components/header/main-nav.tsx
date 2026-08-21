@@ -6,7 +6,6 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { cn } from "@fsx/ui/lib/utils"
 
 import { navigationData } from "./header-navigation-data"
-import { DottedSeparator } from "../dotted-separator"
 import { Logo } from "../logo"
 import { LogoContextMenu } from "./logo-context-menu"
 import {
@@ -61,9 +60,7 @@ export function MainNav() {
                     <div className="relative w-[250px] p-0 border rounded-none bg-popover">
                       <ul className="grid grid-cols-1 gap-0 relative z-0 !list-none !p-0 !m-0">
                         {items?.map(
-                          ({ href, icon: Icon, label, description }, index) => {
-                            const isLast = index === items.length - 1
-
+                          ({ href, icon: Icon, label, description }) => {
                             return (
                               <li key={label} className="relative">
                                 <NavigationMenuLink>
@@ -87,9 +84,6 @@ export function MainNav() {
                                     </div>
                                   </Link>
                                 </NavigationMenuLink>
-                                {!isLast && (
-                                  <DottedSeparator className="w-full absolute bottom-0 left-0" />
-                                )}
                               </li>
                             )
                           }

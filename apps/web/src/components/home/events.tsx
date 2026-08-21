@@ -20,13 +20,12 @@ import { Button } from "@fsx/ui/components/button"
 import { Separator } from "@fsx/ui/components/separator"
 
 import { StatusDot } from "./status-dot"
-import { DottedSeparator } from "@/components/dotted-separator"
 
 export function Events({ events }: { events: Event[] }) {
 	return (
 		<Section icon={Trophy} label="Próximos Eventos" main={false}>
 			<div className="flex flex-col">
-				{events?.map((event: Event, index: number) => (
+				{events?.map((event: Event) => (
 					<EventCard
 						form={event.form}
 						key={event.id}
@@ -35,7 +34,6 @@ export function Events({ events }: { events: Event[] }) {
 						startDate={event.startDate}
 						timeControl={event.timeControl}
 						type={event.type}
-						isLast={index === events.length - 1}
 					/>
 				))}
 			</div>
@@ -50,7 +48,6 @@ function EventCard({
 	regulation,
 	type,
 	timeControl,
-	isLast,
 }: {
 	name: string
 	startDate: string | Date
@@ -58,7 +55,6 @@ function EventCard({
 	regulation: string | null
 	type: string
 	timeControl: string
-	isLast: boolean
 }) {
 	const dateObj =
 		typeof startDate === "string" ? new Date(startDate) : startDate
@@ -134,7 +130,6 @@ function EventCard({
 					</div>
 				</div>
 			</div>
-			{!isLast && <DottedSeparator className="w-full" />}
 		</div>
 	)
 }
