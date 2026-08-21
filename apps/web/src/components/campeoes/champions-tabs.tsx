@@ -41,7 +41,7 @@ export function ChampionsTabs({
             className="relative flex items-center justify-center"
           >
             <TabsTrigger
-              className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
+              className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-none"
               value={tab.value}
             >
               {tab.name}

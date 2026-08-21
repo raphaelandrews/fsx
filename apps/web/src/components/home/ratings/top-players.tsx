@@ -31,19 +31,19 @@ export function TopPlayers({ topPlayers }: any) {
 			>
 				<TabsList className="h-auto w-full rounded-none bg-transparent p-0">
 					<TabsTrigger
-						className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
+						className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-none"
 						value="classic"
 					>
 						Clássico
 					</TabsTrigger>
 					<TabsTrigger
-						className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
+						className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-none"
 						value="rapid"
 					>
 						Rápido
 					</TabsTrigger>
 					<TabsTrigger
-						className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background dark:data-[state=active]:bg-input/30 data-[state=active]:shadow-none"
+						className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-none"
 						value="blitz"
 					>
 						Blitz

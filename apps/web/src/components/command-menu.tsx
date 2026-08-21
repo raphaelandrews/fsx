@@ -172,7 +172,7 @@ export function CommandMenu() {
         render={
           <Button
             className={cn(
-              "relative h-8 w-full justify-start pl-2.5 font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-56 xl:w-64 border border-dashed bg-background dark:bg-input/30"
+              "relative h-8 w-full justify-start pl-2.5 font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-56 xl:w-64 border border-dashed bg-background"
             )}
             variant="secondary"
           />
@@ -186,7 +186,7 @@ export function CommandMenu() {
         </div>
       </DialogTrigger>
       <DialogContent
-        className="rounded-xl border-none bg-clip-padding p-2 pb-11 shadow-2xl ring-4 ring-neutral-200/80 dark:bg-neutral-900 dark:ring-neutral-800"
+        className="rounded-xl border-none bg-clip-padding p-2 pb-11 shadow-2xl ring-4 ring-neutral-200/80"
         showCloseButton={false}
       >
         <DialogHeader className="sr-only">
@@ -221,7 +221,7 @@ export function CommandMenu() {
             </CommandGroup>
           </CommandList>
         </Command>
-        <div className="absolute inset-x-0 bottom-0 z-20 flex h-10 items-center gap-2 rounded-b-xl border-t border-t-neutral-100 bg-neutral-50 px-4 font-medium text-muted-foreground text-xs dark:border-t-neutral-700 dark:bg-neutral-800">
+        <div className="absolute inset-x-0 bottom-0 z-20 flex h-10 items-center gap-2 rounded-b-xl border-t border-t-neutral-100 bg-neutral-50 px-4 font-medium text-muted-foreground text-xs">
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1">
               <CommandMenuKbd>

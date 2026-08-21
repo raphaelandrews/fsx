@@ -64,7 +64,7 @@ export function TitledPlayersTable({ data }: { data: TitledPlayer[] }) {
         <div className="flex items-center justify-between">
           <div className="flex flex-1 flex-col items-start space-y-2 md:flex-row md:items-center md:space-x-2 md:space-y-0">
             <Input
-              className="h-8 w-[150px] border-dashed bg-background focus-visible:border-solid dark:bg-input/30 lg:w-[250px]"
+              className="h-8 w-[150px] border-dashed bg-background focus-visible:border-solid lg:w-[250px]"
               onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
               placeholder="Procurar jogadores..."
               value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}

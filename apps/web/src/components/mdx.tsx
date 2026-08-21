@@ -7,7 +7,7 @@ interface MDXProps {
 
 export function MDX({ content }: MDXProps) {
   return (
-    <div className="prose dark:prose-invert max-w-none">
+    <div className="prose max-w-none">
       <Markdown>{content}</Markdown>
     </div>
   );

@@ -110,7 +110,7 @@ function MatchGamesPopover({ match }: { match: CupMatch }) {
         {match.cupGames.map((game) => (
           <div
             key={game.id}
-            className="flex flex-col even:bg-secondary sm:flex-row dark:even:bg-primary-foreground/60"
+            className="flex flex-col even:bg-secondary sm:flex-row"
           >
             <div className="flex items-center text-nowrap bg-muted px-2.5 py-1 text-xs sm:hidden">
               Jogo {game.gameNumber}
@@ -152,7 +152,7 @@ function PlayoffPlayerCard({
       >
         {name}
       </p>
-      <div className="flex h-6 w-6 items-center justify-center bg-primary text-sm font-semibold text-primary-foreground dark:font-semibold">
+      <div className="flex h-6 w-6 items-center justify-center bg-primary text-sm font-semibold text-primary-foreground">
         {score}
       </div>
     </div>
@@ -173,7 +173,7 @@ const GamePlayerCard = ({
   return (
     <div className={`flex justify-between bg-transparent ${!left && "sm:flex-row-reverse"}`}>
       <p className="w-[200px] truncate text-nowrap px-2.5 py-1 text-xs">{name}</p>
-      <div className="flex h-6 w-6 items-center justify-center bg-primary text-sm font-semibold text-primary-foreground dark:font-semibold">
+      <div className="flex h-6 w-6 items-center justify-center bg-primary text-sm font-semibold text-primary-foreground">
         {id === winner ? 1 : 0}
       </div>
     </div>
@@ -258,7 +258,7 @@ function GroupPlayerTable({ group }: { group: CupGroup }) {
 function InfoCard({ cup }: { cup: Cup }) {
   return (
     <div className="min-w-[250px] max-w-fit overflow-hidden rounded">
-      <h3 className="bg-primary-foreground p-1.5 text-center font-medium dark:bg-primary-foreground/60">
+      <h3 className="bg-primary-foreground p-1.5 text-center font-medium">
         {cup.name}
       </h3>
       <img
@@ -272,25 +272,25 @@ function InfoCard({ cup }: { cup: Cup }) {
       <div className="grid grid-cols-2 text-sm">
         <div>
           <div className="flex justify-end py-1.5 pr-1">Ritmo:</div>
-          <div className="flex justify-end bg-primary-foreground py-1.5 pr-1 dark:bg-primary-foreground/60">
+          <div className="flex justify-end bg-primary-foreground py-1.5 pr-1">
             Prêmio:
           </div>
           <div className="flex justify-end py-1.5 pr-1">Tipo:</div>
-          <div className="flex justify-end bg-primary-foreground py-1.5 pr-1 dark:bg-primary-foreground/60">
+          <div className="flex justify-end bg-primary-foreground py-1.5 pr-1">
             Plataforma:
           </div>
           <div className="flex justify-end py-1.5 pr-1">Data de início:</div>
-          <div className="flex justify-end bg-primary-foreground py-1.5 pr-1 dark:bg-primary-foreground/60">
+          <div className="flex justify-end bg-primary-foreground py-1.5 pr-1">
             Data de fim:
           </div>
         </div>
         <div>
           <div className="py-1.5 pl-1">{cup.ratingType}</div>
-          <div className="bg-primary-foreground py-1.5 pl-1 dark:bg-primary-foreground/60">
+          <div className="bg-primary-foreground py-1.5 pl-1">
             R$ {cup.prizePool}
           </div>
           <div className="py-1.5 pl-1">Online</div>
-          <div className="bg-primary-foreground py-1.5 pl-1 dark:bg-primary-foreground/60">
+          <div className="bg-primary-foreground py-1.5 pl-1">
             <a
               className="text-link"
               href="https://lichess.org"
@@ -301,7 +301,7 @@ function InfoCard({ cup }: { cup: Cup }) {
             </a>
           </div>
           <div className="py-1.5 pl-1">{cup.startDate}</div>
-          <div className="bg-primary-foreground py-1.5 pl-1 dark:bg-primary-foreground/60">
+          <div className="bg-primary-foreground py-1.5 pl-1">
             {cup.endDate}
           </div>
         </div>
@@ -443,7 +443,7 @@ export function BulletClient({ cup }: { cup: Cup }) {
         <div className="mt-8 flex flex-col gap-8 md:grid md:grid-cols-2">
           {cup.cupGroups.map((group) => (
             <div key={group.id}>
-              <h3 className="w-20 truncate rounded-sm bg-primary px-3 py-1 text-center text-sm text-primary-foreground dark:font-semibold">
+              <h3 className="w-20 truncate rounded-sm bg-primary px-3 py-1 text-center text-sm text-primary-foreground">
                 Grupo {group.name}
               </h3>
               <GroupPlayerTable group={group} />

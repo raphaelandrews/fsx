@@ -52,10 +52,7 @@ export function AnnouncementsModal({
   if (!open) return null
 
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/90 backdrop-blur-sm"
-      data-theme="dark"
-    >
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/90 backdrop-blur-sm">
       <div
         aria-describedby="announcement-content"
         className="relative w-[calc(100vw-2rem)] max-w-[500px]"

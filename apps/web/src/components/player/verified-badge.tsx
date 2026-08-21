@@ -32,7 +32,7 @@ const TIER_CONFIG: Record<
 > = {
   admin: {
     iconClass:
-      "!fill-bulbasaur dark:!fill-bulbasaur-foreground mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+      "!fill-bulbasaur mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
     label: "Diretoria",
     description: "Este jogador faz parte da diretoria da federação.",
   },

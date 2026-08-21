@@ -38,7 +38,7 @@ export function UpdateRegister() {
             strokeLinejoin="round"
           >
             <title>Verified Icon</title>
-            <path d="M9 12l2 2 4-4" className="stroke-white dark:stroke-[1.5]" />
+            <path d="M9 12l2 2 4-4" className="stroke-white" />
             <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" className="fill-[#1CA0F2]" />
           </svg>
         </TooltipTrigger>
@@ -63,7 +63,7 @@ export function UpdateRegister() {
             strokeLinejoin="round"
           >
             <title>Verified Icon</title>
-            <path d="M9 12l2 2 4-4" className="stroke-primary dark:stroke-[1.5]" />
+            <path d="M9 12l2 2 4-4" className="stroke-primary" />
             <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" className="fill-[#1CA0F2]" />
           </svg>
           <h3 className="font-semibold text-primary">Verifique seu perfil</h3>
