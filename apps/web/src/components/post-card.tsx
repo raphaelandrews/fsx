@@ -62,7 +62,7 @@ export function PostCard({
   return (
     <Link
       aria-label={`Read posts: ${title}`}
-      className={cn("group flex flex-col p-3", className)}
+      className={cn("group flex flex-col", className)}
       to="/noticias/$slug"
       params={{ slug: slug ?? "" }}
       onMouseEnter={onMouseEnter}
@@ -81,9 +81,9 @@ export function PostCard({
       <div className="px-2 flex flex-col gap-1">
         <h2
           className={`${main
-            ? "font-bold tracking-tight md:text-lg"
-            : "font-semibold text-sm leading-5"
-            } text-balance mt-2 line-clamp-2`}
+            ? "tracking-tight md:text-lg"
+            : "text-md leading-5"
+            } font-semibold text-balance mt-2 line-clamp-2`}
         >
           {title}
         </h2>

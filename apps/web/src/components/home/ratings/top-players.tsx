@@ -6,7 +6,6 @@ import { DataTableWrapper } from "./data-table-wrapper"
 import { columnsBlitz, columnsClassic, columnsRapid } from "./columns"
 
 import { Section } from "@/components/home/section"
-import { RatingUpdateTooltip } from "@/components/rating-update-tooltip"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@fsx/ui/components/tabs"
 import { SectionButton } from "@/components/section-button"
 
@@ -49,12 +48,6 @@ export function TopPlayers({ topPlayers }: any) {
             Blitz
           </TabsTrigger>
         </TabsList>
-
-
-        <div className="p-3">
-          <RatingUpdateTooltip />
-        </div>
-
 
         <div className="p-3">
           <TabsContent className="mt-0" value="classic">

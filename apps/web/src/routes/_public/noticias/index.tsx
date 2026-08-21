@@ -31,13 +31,13 @@ function RouteComponent() {
   const { data } = useSuspenseQuery(trpc.posts.byPage.queryOptions({ page }));
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-4 font-bold text-2xl">Notícias</h1>
+    <>
+      <h1 className="mb-4 font-bold text-3xl lg:text-4xl">Notícias</h1>
 
       {data.posts.length === 0 ? (
         <p className="text-muted-foreground">Nenhuma notícia publicada.</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {data.posts.map((post) => (
             <PostCard
               key={post.id}
@@ -72,6 +72,6 @@ function RouteComponent() {
           </Link>
         )}
       </div>
-    </div>
+    </>
   );
 }

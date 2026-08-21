@@ -37,11 +37,9 @@ function RouteComponent() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Announcement label="Notícia" />
-
       <section className="mb-0">
         <div className="p-4">
-          <h1 className="text-balance text-xl font-semibold tracking-tighter text-primary">
+          <h1 className="text-balance text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tighter text-accent">
             {post.title}
           </h1>
 
@@ -54,26 +52,23 @@ function RouteComponent() {
       </section>
 
       {post.imageUrl && (
-        <>
-          <section className="mb-0 p-4">
-            <div className="rounded-[10px] border border-border p-[4px]">
-              <img
-                alt={post.title}
-                className="max-h-[400px] w-full rounded-lg object-cover"
-                decoding="async"
-                loading="lazy"
-                src={post.imageUrl}
-              />
-            </div>
-          </section>
+        <img
+          alt={post.title}
+          className="max-h-[400px] w-full rounded-lg object-cover"
+          decoding="async"
+          loading="lazy"
+          src={post.imageUrl}
         </>
-      )}
+  )
+}
 
-      {post.content && (
-        <section className="mb-0 p-4">
-          <MDX content={post.content} />
-        </section>
-      )}
-    </div>
+{
+  post.content && (
+    <section className="mb-0 p-4">
+      <MDX content={post.content} />
+    </section>
+  )
+}
+    </div >
   )
 }

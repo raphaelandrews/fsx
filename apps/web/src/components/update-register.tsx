@@ -86,7 +86,7 @@ export function UpdateRegister() {
           rel="noopener noreferrer"
           target="_blank"
         >
-          Obter verificacao
+          Obter Verificação
         </a>
       </PopoverContent>
     </Popover>
