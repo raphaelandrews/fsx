@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@fsx/ui/components/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@fsx/ui/components/table";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
@@ -28,25 +36,32 @@ function RouteComponent() {
         <h1 className="font-bold text-2xl">Titles</h1>
         <Link to="/dashboard/titles/create"><Button>Create Title</Button></Link>
       </div>
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full text-sm">
-          <thead><tr className="bg-muted/50"><th className="px-4 py-2 text-left">Title</th><th className="px-4 py-2 text-left">Short</th><th className="px-4 py-2 text-left">Type</th><th className="px-4 py-2 text-right">Actions</th></tr></thead>
-          <tbody>
+      <div className="overflow-hidden rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Short</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {titles.map((t) => (
-              <tr key={t.id} className="border-t">
-                <td className="px-4 py-2">{t.name}</td>
-                <td className="px-4 py-2">{t.shortName}</td>
-                <td className="px-4 py-2 text-muted-foreground">{t.type}</td>
-                <td className="px-4 py-2 text-right">
-                  <div className="flex gap-1 justify-end">
-                    <Link to="/dashboard/titles/$id" params={{ id: String(t.id) }}><Button variant="outline" size="sm">Edit</Button></Link>
-                    <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate({ id: t.id })}>Delete</Button>
+              <TableRow key={t.id}>
+                <TableCell>{t.name}</TableCell>
+                <TableCell>{t.shortName}</TableCell>
+                <TableCell className="text-muted-foreground">{t.type}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    <Link to="/dashboard/titles/$id" params={{ id: String(t.id) }}><Button size="sm" variant="outline">Edit</Button></Link>
+                    <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate({ id: t.id })}>Delete</Button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

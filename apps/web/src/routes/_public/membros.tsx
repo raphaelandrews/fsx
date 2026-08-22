@@ -3,9 +3,26 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
-import { Button, buttonVariants } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@fsx/ui/components/select";
 
+import { Pagination } from "@fsx/ui/components/pagination";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@fsx/ui/components/table";
+
+import { SearchInput } from "@/components/data-table/search-input";
+import { PageHeader } from "@/components/page-header";
 import { useTRPC } from "@/utils/trpc";
 
 const searchSchema = z.object({
@@ -55,86 +72,91 @@ function RouteComponent() {
   const { players, pagination } = data;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-4 font-bold text-2xl">Membros</h1>
+    <>
+      <PageHeader title="Membros" />
 
-      <div className="mb-4 flex flex-wrap items-end gap-2">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           Sexo
-          <select
-            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+          <Select
+            onValueChange={(value) =>
+              updateSearch({
+                sexo: (value?.trim() || undefined) as typeof search.sexo,
+              })
+            }
             value={search.sexo ?? ""}
-            onChange={(e) => updateSearch({ sexo: (e.target.value || undefined) as typeof search.sexo })}
           >
-            <option value="">Todos</option>
-            <option value="male">Masculino</option>
-            <option value="female">Feminino</option>
-          </select>
+            <SelectTrigger className="h-8 w-[160px]">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value=" ">Todos</SelectItem>
+              <SelectItem value="male">Masculino</SelectItem>
+              <SelectItem value="female">Feminino</SelectItem>
+            </SelectContent>
+          </Select>
         </label>
 
         <form
-          className="flex items-end gap-2"
+          className="flex flex-col gap-1"
           onSubmit={(e) => {
             e.preventDefault();
             updateSearch({ nome: nameInput.trim() || undefined });
           }}
         >
-          <Input
-            className="h-8 w-48"
-            placeholder="Buscar jogador..."
+          <span className="text-xs text-muted-foreground">Buscar</span>
+          <SearchInput
+            placeholder="Nome do jogador..."
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
           />
-          <Button type="submit" size="sm" variant="outline">Buscar</Button>
         </form>
       </div>
 
-      {players.length === 0 ? (
-        <p className="text-muted-foreground">Nenhum membro encontrado.</p>
-      ) : (
-        <div className="divide-y rounded-md border">
-          {players.map((player, index) => (
-            <Link
-              key={player.id}
-              to="/jogadores/$id"
-              params={{ id: String(player.id) }}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-muted/50"
-            >
-              <span className="text-muted-foreground tabular-nums w-8">
-                {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
-              </span>
-              <span className="font-medium">{player.nickname ?? player.name}</span>
-              <span className="text-muted-foreground text-sm ml-auto">
-                {player.playersToTitles.map((t) => t.title.shortName).join(", ")}
-              </span>
-            </Link>
-          ))}
-        </div>
-      )}
-
-      <div className="mt-6 flex items-center justify-center gap-2">
-        {pagination.hasPreviousPage && (
-          <Link
-            to="/membros"
-            search={{ ...search, page: pagination.currentPage - 1 }}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Anterior
-          </Link>
-        )}
-        <span className="text-xs text-muted-foreground">
-          Página {pagination.currentPage} de {pagination.totalPages} · {pagination.totalItems} membros
-        </span>
-        {pagination.hasNextPage && (
-          <Link
-            to="/membros"
-            search={{ ...search, page: pagination.currentPage + 1 }}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Próxima
-          </Link>
-        )}
+      <div className="overflow-hidden rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-10">#</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead className="text-right">Títulos</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {players.map((player, index) => (
+              <TableRow key={player.id}>
+                <TableCell className="text-muted-foreground tabular-nums">
+                  {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
+                </TableCell>
+                <TableCell>
+                  <Link
+                    to="/jogadores/$id"
+                    params={{ id: String(player.id) }}
+                    className="font-medium hover:underline"
+                  >
+                    {player.nickname ?? player.name}
+                  </Link>
+                </TableCell>
+                <TableCell className="text-right text-muted-foreground">
+                  {player.playersToTitles.map((t) => t.title.shortName).join(", ") || "—"}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
-    </div>
+
+      <div className="mt-6 flex justify-center">
+        <Pagination
+          currentPage={pagination.currentPage}
+          hasNextPage={pagination.hasNextPage}
+          hasPreviousPage={pagination.hasPreviousPage}
+          totalPages={pagination.totalPages}
+          onPageChange={(newPage) =>
+            navigate({ to: "/membros", search: { ...search, page: newPage } })
+          }
+        />
+      </div>
+    </>
   );
 }

@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@fsx/ui/components/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@fsx/ui/components/table";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
@@ -28,24 +36,30 @@ function RouteComponent() {
         <h1 className="font-bold text-2xl">Norms</h1>
         <Link to="/dashboard/norms/create"><Button>Create Norm</Button></Link>
       </div>
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full text-sm">
-          <thead><tr className="bg-muted/50"><th className="px-4 py-2 text-left">ID</th><th className="px-4 py-2 text-left">Norm</th><th className="px-4 py-2 text-right">Actions</th></tr></thead>
-          <tbody>
+      <div className="overflow-hidden rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Norm</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {norms.map((n) => (
-              <tr key={n.id} className="border-t">
-                <td className="px-4 py-2">{n.id}</td>
-                <td className="px-4 py-2">{n.name}</td>
-                <td className="px-4 py-2 text-right">
-                  <div className="flex gap-1 justify-end">
-                    <Link to="/dashboard/norms/$id" params={{ id: String(n.id) }}><Button variant="outline" size="sm">Edit</Button></Link>
-                    <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate({ id: n.id })}>Delete</Button>
+              <TableRow key={n.id}>
+                <TableCell className="tabular-nums">{n.id}</TableCell>
+                <TableCell>{n.name}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    <Link to="/dashboard/norms/$id" params={{ id: String(n.id) }}><Button size="sm" variant="outline">Edit</Button></Link>
+                    <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate({ id: n.id })}>Delete</Button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

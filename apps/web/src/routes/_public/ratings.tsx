@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
-import { Button, buttonVariants } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
+
+import { Button } from "@fsx/ui/components/button";
+import { Pagination } from "@fsx/ui/components/pagination";
 import {
   Table,
   TableBody,
@@ -13,14 +16,36 @@ import {
   TableHeader,
   TableRow,
 } from "@fsx/ui/components/table";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@fsx/ui/components/tabs";
 
+import { DataTableFacetedFilter } from "@/components/data-table/data-table-faceted-filter";
+import { SearchInput } from "@/components/data-table/search-input";
+import { PageHeader } from "@/components/page-header";
+import { PlayerActions } from "@/components/campeoes/actions";
+import {
+  ratingGroups,
+  ratingSexes,
+  ratingSortLabels,
+  ratingTitles,
+} from "@/components/ratings/data-options";
 import { useTRPC } from "@/utils/trpc";
 
+const sortByEnum = z.enum(["classic", "rapid", "blitz"]);
+type SortBy = z.infer<typeof sortByEnum>;
+
 const searchSchema = z.object({
-  sexo: z.enum(["male", "female"]).optional(),
-  ordenar: z.enum(["rapid", "blitz", "classic"]).default("rapid"),
   page: z.number().int().positive().default(1),
+  ordenar: sortByEnum.default("rapid"),
+  sexo: z.enum(["male", "female"]).optional(),
   nome: z.string().optional(),
+  local: z.array(z.string()).default([]),
+  clube: z.array(z.string()).default([]),
+  titulo: z.array(z.string()).default([]),
+  grupo: z.array(z.string()).default([]),
 });
 
 export const Route = createFileRoute("/_public/ratings")({
@@ -33,19 +58,38 @@ export const Route = createFileRoute("/_public/ratings")({
   }),
   loaderDeps: ({ search }) => ({
     page: search.page,
-    sex: search.sexo,
     sortBy: search.ordenar,
+    sex: search.sexo,
     name: search.nome,
+    titles: search.titulo,
+    clubs: search.clube,
+    locations: search.local,
+    groups: search.grupo,
   }),
-  loader: ({ context, deps }) =>
-    context.queryClient.ensureQueryData(
-      context.trpc.players.withFilters.queryOptions({
-        page: deps.page,
-        sex: deps.sex,
-        sortBy: deps.sortBy,
-        name: deps.name,
-      })
-    ),
+  loader: async ({ context, deps }) => {
+    // Prime the main data + lookup lists so the route renders with everything
+    // in cache. The component re-uses the same keys via useSuspenseQuery.
+    await Promise.all([
+      context.queryClient.ensureQueryData(
+        context.trpc.players.withFilters.queryOptions({
+          page: deps.page,
+          sortBy: deps.sortBy,
+          sex: deps.sex,
+          name: deps.name,
+          titles: deps.titles,
+          clubs: deps.clubs,
+          locations: deps.locations,
+          groups: deps.groups,
+        })
+      ),
+      context.queryClient.ensureQueryData(
+        context.trpc.clubs.list.queryOptions()
+      ),
+      context.queryClient.ensureQueryData(
+        context.trpc.locations.list.queryOptions()
+      ),
+    ]);
+  },
   component: RouteComponent,
 });
 
@@ -53,13 +97,25 @@ function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const search = Route.useSearch();
+
   const { data } = useSuspenseQuery(
     trpc.players.withFilters.queryOptions({
       page: search.page,
-      sex: search.sexo,
       sortBy: search.ordenar,
+      sex: search.sexo,
       name: search.nome,
+      titles: search.titulo,
+      clubs: search.clube,
+      locations: search.local,
+      groups: search.grupo,
     })
+  );
+
+  const { data: clubs = [] } = useSuspenseQuery(
+    trpc.clubs.list.queryOptions()
+  );
+  const { data: locations = [] } = useSuspenseQuery(
+    trpc.locations.list.queryOptions()
   );
 
   const [nameInput, setNameInput] = useState(search.nome ?? "");
@@ -68,66 +124,161 @@ function RouteComponent() {
     navigate({ to: "/ratings", search: { ...search, ...partial, page: 1 } });
   };
 
+  const clearFilters = () => {
+    setNameInput("");
+    navigate({
+      to: "/ratings",
+      search: {
+        ...search,
+        page: 1,
+        sexo: undefined,
+        nome: undefined,
+        local: [],
+        clube: [],
+        titulo: [],
+        grupo: [],
+      },
+    });
+  };
+
+  const isFiltered =
+    Boolean(search.sexo) ||
+    Boolean(search.nome) ||
+    search.local.length > 0 ||
+    search.clube.length > 0 ||
+    search.titulo.length > 0 ||
+    search.grupo.length > 0 ||
+    nameInput.length > 0;
+
   const { players, pagination } = data;
+  const ratingColumn = ratingSortLabels[search.ordenar];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-4 font-bold text-2xl">Ratings</h1>
+    <>
+      <PageHeader title="Ratings" />
 
-      <div className="mb-4 flex flex-wrap items-end gap-2">
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-          Ordenar por
-          <select
-            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-            value={search.ordenar}
-            onChange={(e) => updateSearch({ ordenar: e.target.value as typeof search.ordenar })}
-          >
-            <option value="rapid">Rápido</option>
-            <option value="blitz">Blitz</option>
-            <option value="classic">Clássico</option>
-          </select>
-        </label>
+      {/* Rating tabs — drive which rating column is rendered below */}
+      <Tabs
+        className="mb-4 w-full"
+        onValueChange={(value) =>
+          updateSearch({ ordenar: value as SortBy })
+        }
+        value={search.ordenar}
+      >
+        <TabsList
+          className="h-auto w-full grid-cols-3 gap-0 rounded-none bg-transparent p-0"
+          variant="line"
+        >
+          <TabsTrigger className="flex-1 py-2.5" value="classic">
+            Clássico
+          </TabsTrigger>
+          <TabsTrigger className="flex-1 py-2.5" value="rapid">
+            Rápido
+          </TabsTrigger>
+          <TabsTrigger className="flex-1 py-2.5" value="blitz">
+            Blitz
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-          Sexo
-          <select
-            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-            value={search.sexo ?? ""}
-            onChange={(e) => updateSearch({ sexo: (e.target.value || undefined) as typeof search.sexo })}
-          >
-            <option value="">Todos</option>
-            <option value="male">Masculino</option>
-            <option value="female">Feminino</option>
-          </select>
-        </label>
+      {/* Faceted filters + search */}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        <DataTableFacetedFilter
+          options={locations.map((l) => ({
+            label: l.name,
+            value: l.name,
+          }))}
+          title="Local"
+          value={search.local}
+          onChange={(v) => updateSearch({ local: v })}
+        />
+
+        <DataTableFacetedFilter
+          options={clubs.map((c) => ({
+            label: c.name,
+            value: c.name,
+          }))}
+          title="Clubes"
+          value={search.clube}
+          onChange={(v) => updateSearch({ clube: v })}
+        />
+
+        <DataTableFacetedFilter
+          options={ratingTitles.map((t) => ({
+            label: t.label,
+            value: t.value,
+          }))}
+          title="Títulos"
+          value={search.titulo}
+          onChange={(v) => updateSearch({ titulo: v })}
+        />
+
+        <DataTableFacetedFilter
+          options={ratingGroups.map((g) => ({
+            label: g.label,
+            value: g.value,
+          }))}
+          title="Grupo"
+          value={search.grupo}
+          onChange={(v) => updateSearch({ grupo: v })}
+        />
+
+        <DataTableFacetedFilter
+          options={ratingSexes.map((s) => ({
+            label: s.label,
+            value: s.value,
+          }))}
+          singleSelect
+          title="Categoria"
+          value={search.sexo ? [search.sexo] : []}
+          onChange={(v) =>
+            updateSearch({
+              sexo: (v[0] as typeof search.sexo | undefined) ?? undefined,
+            })
+          }
+        />
 
         <form
-          className="flex items-end gap-2"
+          className="flex flex-col gap-1"
           onSubmit={(e) => {
             e.preventDefault();
             updateSearch({ nome: nameInput.trim() || undefined });
           }}
         >
-          <Input
-            className="h-8 w-48"
-            placeholder="Buscar jogador..."
+          <span className="text-xs text-muted-foreground">Buscar</span>
+          <SearchInput
+            placeholder="Nome do jogador..."
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
           />
-          <Button type="submit" size="sm" variant="outline">Buscar</Button>
         </form>
+
+        {isFiltered ? (
+          <Button
+            className="h-8 px-2 lg:px-3"
+            onClick={clearFilters}
+            variant="ghost"
+          >
+            Limpar
+            <HugeiconsIcon
+              className="ml-2 size-4"
+              icon={Cancel01Icon}
+              strokeWidth={2}
+            />
+          </Button>
+        ) : null}
       </div>
 
-      <div className="overflow-hidden rounded-md border">
+      {/* Table — single rating column driven by the active tab */}
+      <div className="overflow-hidden rounded-lg">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/50">
+            <TableRow>
               <TableHead className="w-10">#</TableHead>
               <TableHead>Jogador</TableHead>
+              <TableHead>Local</TableHead>
               <TableHead>Clube</TableHead>
-              <TableHead className="text-right">Rápido</TableHead>
-              <TableHead className="text-right">Blitz</TableHead>
-              <TableHead className="text-right">Clássico</TableHead>
+              <TableHead className="text-right">{ratingColumn}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -137,46 +288,43 @@ function RouteComponent() {
                   {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
                 </TableCell>
                 <TableCell>
-                  <Link to="/jogadores/$id" params={{ id: String(player.id) }} className="font-medium hover:underline">
-                    {player.playersToTitles[0] && (
-                      <span className="text-highlight mr-1">{player.playersToTitles[0].title.shortName}</span>
-                    )}
-                    {player.nickname ?? player.name}
-                  </Link>
+                  <PlayerActions
+                    id={player.id}
+                    image={player.imageUrl}
+                    name={player.name}
+                    nickname={player.nickname}
+                    shortTitle={player.playersToTitles?.[0]?.title.shortName ?? null}
+                  />
                 </TableCell>
-                <TableCell className="text-muted-foreground">{player.club?.name ?? "—"}</TableCell>
-                <TableCell className="text-right tabular-nums">{player.rapid}</TableCell>
-                <TableCell className="text-right tabular-nums">{player.blitz}</TableCell>
-                <TableCell className="text-right tabular-nums">{player.classic}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {player.location?.name ?? "—"}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {player.club?.name ?? "—"}
+                </TableCell>
+                <TableCell className="text-right tabular-nums font-medium">
+                  {player[search.ordenar]}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
 
-      <div className="mt-6 flex items-center justify-center gap-2">
-        {pagination.hasPreviousPage && (
-          <Link
-            to="/ratings"
-            search={{ ...search, page: pagination.currentPage - 1 }}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Anterior
-          </Link>
-        )}
-        <span className="text-xs text-muted-foreground">
-          Página {pagination.currentPage} de {pagination.totalPages} · {pagination.totalItems} jogadores
-        </span>
-        {pagination.hasNextPage && (
-          <Link
-            to="/ratings"
-            search={{ ...search, page: pagination.currentPage + 1 }}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Próxima
-          </Link>
-        )}
+      <div className="mt-6 flex justify-center">
+        <Pagination
+          currentPage={pagination.currentPage}
+          hasNextPage={pagination.hasNextPage}
+          hasPreviousPage={pagination.hasPreviousPage}
+          totalPages={pagination.totalPages}
+          onPageChange={(newPage) =>
+            navigate({
+              to: "/ratings",
+              search: { ...search, page: newPage },
+            })
+          }
+        />
       </div>
-    </div>
+    </>
   );
 }

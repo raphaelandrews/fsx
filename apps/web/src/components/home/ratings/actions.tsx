@@ -1,5 +1,5 @@
 
-import React from "react"
+import { useState } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   TrainIcon,
@@ -144,26 +144,17 @@ export const Actions = ({
   shortName,
   defendingChampions,
 }: Props) => {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = useState(false)
   const gradient = getGradient(id)
-
-  const handleKeyboardEvent = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault()
-      setOpen(true)
-    }
-  }
 
   return (
     <>
-      <div className="group flex items-center gap-3">
+      <div className="flex items-center gap-3">
         <Button
-          aria-label={`View ${name}'s profile`}
-          className="flex cursor-pointer items-center gap-3 rounded-md transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          aria-label={`Ver perfil de ${name}`}
+          className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:underline"
           onClick={() => setOpen(true)}
-          onKeyDown={handleKeyboardEvent}
-          onKeyUp={handleKeyboardEvent}
-          variant="link"
+          variant="ghost"
         >
           <Avatar className="size-8 rounded-md">
             <AvatarImage alt={name} src={image ?? undefined} />
@@ -188,5 +179,5 @@ export const Actions = ({
 
       <PlayerSheet open={open} setOpen={setOpen} />
     </>
-  );
+  )
 }

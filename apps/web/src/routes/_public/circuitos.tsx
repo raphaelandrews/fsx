@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 
+import { PageHeader } from "@/components/page-header";
 import { useTRPC } from "@/utils/trpc";
 import { slugify } from "@/utils/slugify";
 
@@ -40,8 +41,8 @@ function RouteComponent() {
   const activeCircuit = circuits.find((c) => slugify(c.name) === activeSlug) ?? circuits[0];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-4 font-bold text-2xl">Circuitos</h1>
+    <>
+      <PageHeader title="Circuitos" />
 
       {circuits.length === 0 ? (
         <p className="text-muted-foreground">Nenhum circuito cadastrado.</p>
@@ -52,7 +53,10 @@ function RouteComponent() {
             onValueChange={(value) => navigate({ to: "/circuitos", search: { circuito: value } })}
             className="w-full"
           >
-            <TabsList className="mb-6 w-full overflow-x-auto">
+            <TabsList
+              className="mb-6 w-full overflow-x-auto"
+              variant="line"
+            >
               {circuits.map((circuit) => (
                 <TabsTrigger key={circuit.name} value={slugify(circuit.name)}>
                   {circuit.name}
@@ -97,6 +101,6 @@ function RouteComponent() {
           )}
         </>
       )}
-    </div>
+    </>
   );
 }

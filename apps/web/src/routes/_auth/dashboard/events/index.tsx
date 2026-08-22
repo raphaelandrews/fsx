@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@fsx/ui/components/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@fsx/ui/components/table";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
@@ -34,40 +42,40 @@ function RouteComponent() {
           <Button>Create Event</Button>
         </Link>
       </div>
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-muted/50">
-              <th className="px-4 py-2 text-left">Name</th>
-              <th className="px-4 py-2 text-left">Type</th>
-              <th className="px-4 py-2 text-left">Start Date</th>
-              <th className="px-4 py-2 text-left">End Date</th>
-              <th className="px-4 py-2 text-left">Time Control</th>
-              <th className="px-4 py-2 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="overflow-hidden rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Start Date</TableHead>
+              <TableHead>End Date</TableHead>
+              <TableHead>Time Control</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {events.map((e) => (
-              <tr key={e.id} className="border-t">
-                <td className="px-4 py-2">{e.name}</td>
-                <td className="px-4 py-2">{e.type}</td>
-                <td className="px-4 py-2">{e.startDate}</td>
-                <td className="px-4 py-2">{e.endDate}</td>
-                <td className="px-4 py-2">{e.timeControl}</td>
-                <td className="px-4 py-2 text-right">
-                  <div className="flex gap-1 justify-end">
+              <TableRow key={e.id}>
+                <TableCell>{e.name}</TableCell>
+                <TableCell>{e.type}</TableCell>
+                <TableCell>{e.startDate}</TableCell>
+                <TableCell>{e.endDate}</TableCell>
+                <TableCell>{e.timeControl}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
                     <Link to="/dashboard/events/$id" params={{ id: String(e.id) }}>
-                      <Button variant="outline" size="sm">Edit</Button>
+                      <Button size="sm" variant="outline">Edit</Button>
                     </Link>
-                    <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate({ id: e.id })}>
+                    <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate({ id: e.id })}>
                       Delete
                     </Button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

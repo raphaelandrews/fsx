@@ -35,42 +35,24 @@ export const championColumns: ColumnDef<ChampionTournament>[] = [
     id: "champion",
     header: "Campeão",
     cell: ({ row }) => {
-      const podiums = row.original.tournamentPodiums
-      const champion = podiums?.[0]?.player
-      const championTeam = podiums?.[1]?.player
+      const podiums = row.original.tournamentPodiums ?? []
+      const champions = podiums.filter((p) => p.place === 1).map((p) => p.player)
 
-      if (podiums?.[3]?.player) {
-        return (
-          <div className="flex items-center gap-3">
-            <PlayerActions
-              id={champion.id}
-              image={champion.imageUrl}
-              name={champion.name}
-              nickname={champion.nickname}
-              shortTitle={champion.playersToTitles?.[0]?.title.shortTitle}
-            />
-            <PlayerActions
-              id={championTeam.id}
-              image={championTeam.imageUrl}
-              name={championTeam.name}
-              nickname={championTeam.nickname}
-              shortTitle={championTeam.playersToTitles?.[0]?.title.shortTitle}
-            />
-          </div>
-        )
-      }
+      if (champions.length === 0) return <p>-</p>
+
       return (
-        <>
-          {champion && (
+        <div className="flex items-center gap-3">
+          {champions.map((player) => (
             <PlayerActions
-              id={champion.id}
-              image={champion.imageUrl}
-              name={champion.name}
-              nickname={champion.nickname}
-              shortTitle={champion.playersToTitles?.[0]?.title.shortTitle}
+              key={player.id}
+              id={player.id}
+              image={player.imageUrl}
+              name={player.name}
+              nickname={player.nickname}
+              shortTitle={player.playersToTitles?.[0]?.title.shortTitle}
             />
-          )}
-        </>
+          ))}
+        </div>
       )
     },
   },
@@ -78,46 +60,24 @@ export const championColumns: ColumnDef<ChampionTournament>[] = [
     id: "runner-up",
     header: "Vice",
     cell: ({ row }) => {
-      const podiums = row.original.tournamentPodiums
-      const runnerUp = podiums?.[1]?.player
-      const runnerUpTeam = podiums?.[2]?.player
-      const teamRunnerUp = podiums?.[3]?.player
+      const podiums = row.original.tournamentPodiums ?? []
+      const runnerUps = podiums.filter((p) => p.place === 2).map((p) => p.player)
 
-      if (teamRunnerUp) {
-        return (
-          <div className="flex items-center gap-3">
-            <PlayerActions
-              id={teamRunnerUp.id}
-              image={teamRunnerUp.imageUrl}
-              name={teamRunnerUp.name}
-              nickname={teamRunnerUp.nickname}
-              shortTitle={teamRunnerUp.playersToTitles?.[0]?.title.shortTitle}
-            />
-            {runnerUpTeam && (
-              <PlayerActions
-                id={runnerUpTeam.id}
-                image={runnerUpTeam.imageUrl}
-                name={runnerUpTeam.name}
-                nickname={runnerUpTeam.nickname}
-                shortTitle={runnerUpTeam.playersToTitles?.[0]?.title.shortTitle}
-              />
-            )}
-          </div>
-        )
-      }
+      if (runnerUps.length === 0) return <p>-</p>
+
       return (
-        <>
-          {runnerUp && (
+        <div className="flex items-center gap-3">
+          {runnerUps.map((player) => (
             <PlayerActions
-              id={runnerUp.id}
-              image={runnerUp.imageUrl}
-              name={runnerUp.name}
-              nickname={runnerUp.nickname}
-              shortTitle={runnerUp.playersToTitles?.[0]?.title.shortTitle}
+              key={player.id}
+              id={player.id}
+              image={player.imageUrl}
+              name={player.name}
+              nickname={player.nickname}
+              shortTitle={player.playersToTitles?.[0]?.title.shortTitle}
             />
-          )}
-          {!runnerUp && <p>-</p>}
-        </>
+          ))}
+        </div>
       )
     },
   },

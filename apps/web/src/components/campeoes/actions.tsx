@@ -1,4 +1,4 @@
-import React from "react"
+import { useState } from "react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar"
 import { Button } from "@fsx/ui/components/button"
@@ -15,25 +15,16 @@ interface Props {
 }
 
 export const PlayerActions = ({ id, name, nickname, image, shortTitle }: Props) => {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = useState(false)
   const gradient = getGradient(id)
-
-  const handleKeyboardEvent = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault()
-      setOpen(true)
-    }
-  }
 
   return (
     <>
       <Button
         aria-label={`Ver perfil de ${name}`}
-        className="flex cursor-pointer items-center gap-3"
+        className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:underline"
         onClick={() => setOpen(true)}
-        onKeyDown={handleKeyboardEvent}
-        onKeyUp={handleKeyboardEvent}
-        variant="link"
+        variant="ghost"
       >
         <Avatar className="size-8 rounded-md">
           <AvatarImage alt={name} src={image ?? undefined} />

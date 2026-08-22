@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@fsx/ui/components/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@fsx/ui/components/table";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
@@ -34,34 +42,34 @@ function RouteComponent() {
           <Button>Create Location</Button>
         </Link>
       </div>
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-muted/50">
-              <th className="px-4 py-2 text-left">ID</th>
-              <th className="px-4 py-2 text-left">Name</th>
-              <th className="px-4 py-2 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="overflow-hidden rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {locations.map((l) => (
-              <tr key={l.id} className="border-t">
-                <td className="px-4 py-2">{l.id}</td>
-                <td className="px-4 py-2">{l.name}</td>
-                <td className="px-4 py-2 text-right">
-                  <div className="flex gap-1 justify-end">
+              <TableRow key={l.id}>
+                <TableCell className="tabular-nums">{l.id}</TableCell>
+                <TableCell>{l.name}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
                     <Link to="/dashboard/locations/$id" params={{ id: String(l.id) }}>
-                      <Button variant="outline" size="sm">Edit</Button>
+                      <Button size="sm" variant="outline">Edit</Button>
                     </Link>
-                    <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate({ id: l.id })}>
+                    <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate({ id: l.id })}>
                       Delete
                     </Button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

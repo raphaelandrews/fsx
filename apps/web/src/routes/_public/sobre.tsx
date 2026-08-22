@@ -1,12 +1,12 @@
 import {
   LandmarkIcon,
   Link02Icon,
-  ScrollIcon,
   Target01Icon,
 } from "@hugeicons/core-free-icons"
 import { createFileRoute, Link } from "@tanstack/react-router"
 
 import { Announcement } from "@/components/announcement"
+import { PageHeader } from "@/components/page-header"
 import { cn } from "@fsx/ui/lib/utils"
 
 export const Route = createFileRoute("/_public/sobre")({
@@ -60,8 +60,8 @@ const links = [
 
 function RouteComponent() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Announcement icon={ScrollIcon} label="Sobre" />
+    <>
+      <PageHeader title="Sobre" />
 
       <section className="mb-0">
         <Announcement icon={LandmarkIcon} label="A FSX" className="text-sm" />
@@ -125,6 +125,6 @@ function RouteComponent() {
           ))}
         </div>
       </section>
-    </div>
+    </>
   )
 }

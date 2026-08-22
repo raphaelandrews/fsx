@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@fsx/ui/components/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@fsx/ui/components/table";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
@@ -49,39 +57,39 @@ function RouteComponent() {
             <h2 className="font-semibold">{group.label}</h2>
             <div className="flex gap-1">
               <Link to="/dashboard/links/$id" params={{ id: String(group.id) }}>
-                <Button variant="outline" size="sm">Edit</Button>
+                <Button size="sm" variant="outline">Edit</Button>
               </Link>
-              <Button variant="destructive" size="sm" onClick={() => deleteGroupMutation.mutate({ id: group.id })}>
+              <Button size="sm" variant="destructive" onClick={() => deleteGroupMutation.mutate({ id: group.id })}>
                 Delete
               </Button>
             </div>
           </div>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-muted/30">
-                <th className="px-2 py-1 text-left">Label</th>
-                <th className="px-2 py-1 text-left">URL</th>
-                <th className="px-2 py-1 text-left">Icon</th>
-                <th className="px-2 py-1 text-left">Order</th>
-                <th className="px-2 py-1 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="border">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Label</TableHead>
+                <TableHead>URL</TableHead>
+                <TableHead>Icon</TableHead>
+                <TableHead>Order</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {group.links.map((link) => (
-                <tr key={link.id} className="border-t">
-                  <td className="px-2 py-1">{link.label}</td>
-                  <td className="px-2 py-1 text-muted-foreground">{link.href}</td>
-                  <td className="px-2 py-1">{link.icon}</td>
-                  <td className="px-2 py-1">{link.sortOrder}</td>
-                  <td className="px-2 py-1 text-right">
-                    <Button variant="destructive" size="sm" onClick={() => deleteLinkMutation.mutate({ id: link.id })}>
+                <TableRow key={link.id}>
+                  <TableCell>{link.label}</TableCell>
+                  <TableCell className="text-muted-foreground">{link.href}</TableCell>
+                  <TableCell>{link.icon}</TableCell>
+                  <TableCell>{link.sortOrder}</TableCell>
+                  <TableCell className="text-right">
+                    <Button size="sm" variant="destructive" onClick={() => deleteLinkMutation.mutate({ id: link.id })}>
                       Delete
                     </Button>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       ))}
     </div>

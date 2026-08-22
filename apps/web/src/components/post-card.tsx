@@ -81,7 +81,7 @@ export function PostCard({
       <div className="px-2 flex flex-col gap-1">
         <h2
           className={`${main
-            ? "tracking-tight md:text-lg"
+            ? "tracking-tight text-lg md:text-xl"
             : "text-md leading-5"
             } font-semibold text-balance mt-2 line-clamp-2`}
         >

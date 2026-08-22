@@ -1,8 +1,7 @@
-import { Bookmark01Icon } from "@hugeicons/core-free-icons"
 import { createFileRoute } from "@tanstack/react-router"
 import { useSuspenseQuery } from "@tanstack/react-query"
 
-import { Announcement } from "@/components/announcement"
+import { PageHeader } from "@/components/page-header"
 import { TitledPlayersTable } from "@/components/titulados/titled-players-table"
 import { useTRPC } from "@/utils/trpc"
 
@@ -28,9 +27,9 @@ function RouteComponent() {
   )
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Announcement icon={Bookmark01Icon} label="Titulados" />
+    <>
+      <PageHeader title="Titulados" />
       <TitledPlayersTable data={titledPlayers} />
-    </div>
+    </>
   )
 }

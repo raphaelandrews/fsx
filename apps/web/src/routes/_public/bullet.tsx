@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useSuspenseQuery } from "@tanstack/react-query"
 
+import { PageHeader } from "@/components/page-header"
 import { BulletClient } from "@/components/bullet/bullet-client"
 import { useTRPC } from "@/utils/trpc"
 
@@ -27,18 +28,19 @@ function RouteComponent() {
 
   if (!cup) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-4 font-bold text-2xl">Sergipano Bullet</h1>
+      <>
+        <PageHeader title="Sergipano Bullet" />
         <p className="text-muted-foreground">
           Nenhuma edição do Campeonato Sergipano Bullet disponível.
         </p>
-      </div>
+      </>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <>
+      <PageHeader title="Sergipano Bullet" />
       <BulletClient cup={cup} />
-    </div>
+    </>
   )
 }

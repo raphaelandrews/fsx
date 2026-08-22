@@ -1,6 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Button } from "@fsx/ui/components/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@fsx/ui/components/table";
 
 import { useTRPC } from "@/utils/trpc";
 
@@ -50,33 +58,33 @@ function RouteComponent() {
       <p className="mb-4 text-muted-foreground text-sm">
         Exporte dados de {players.length} jogadores para importação no Swiss Manager.
       </p>
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-muted/50">
-              <th className="px-4 py-2 text-left">Nome</th>
-              <th className="px-4 py-2 text-center">Sexo</th>
-              <th className="px-4 py-2 text-left">Nascimento</th>
-              <th className="px-4 py-2 text-left">Clube</th>
-              <th className="px-4 py-2 text-right">Clássico</th>
-              <th className="px-4 py-2 text-right">Rápido</th>
-              <th className="px-4 py-2 text-right">Blitz</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="overflow-hidden rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead className="text-center">Sexo</TableHead>
+              <TableHead>Nascimento</TableHead>
+              <TableHead>Clube</TableHead>
+              <TableHead className="text-right">Clássico</TableHead>
+              <TableHead className="text-right">Rápido</TableHead>
+              <TableHead className="text-right">Blitz</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {players.map((p) => (
-              <tr key={p.id} className="border-t">
-                <td className="px-4 py-2">{p.name}</td>
-                <td className="px-4 py-2 text-center">{p.sex === "female" ? "F" : "M"}</td>
-                <td className="px-4 py-2">{p.birthDate}</td>
-                <td className="px-4 py-2">{p.club?.name}</td>
-                <td className="px-4 py-2 text-right">{p.classic}</td>
-                <td className="px-4 py-2 text-right">{p.rapid}</td>
-                <td className="px-4 py-2 text-right">{p.blitz}</td>
-              </tr>
+              <TableRow key={p.id}>
+                <TableCell>{p.name}</TableCell>
+                <TableCell className="text-center">{p.sex === "female" ? "F" : "M"}</TableCell>
+                <TableCell>{p.birthDate}</TableCell>
+                <TableCell>{p.club?.name}</TableCell>
+                <TableCell className="text-right tabular-nums">{p.classic}</TableCell>
+                <TableCell className="text-right tabular-nums">{p.rapid}</TableCell>
+                <TableCell className="text-right tabular-nums">{p.blitz}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

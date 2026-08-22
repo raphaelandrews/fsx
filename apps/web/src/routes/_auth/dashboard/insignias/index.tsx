@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@fsx/ui/components/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@fsx/ui/components/table";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
@@ -28,25 +36,32 @@ function RouteComponent() {
         <h1 className="font-bold text-2xl">Insignias</h1>
         <Link to="/dashboard/insignias/create"><Button>Create Insignia</Button></Link>
       </div>
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full text-sm">
-          <thead><tr className="bg-muted/50"><th className="px-4 py-2 text-left">ID</th><th className="px-4 py-2 text-left">Insignia</th><th className="px-4 py-2 text-left">Level</th><th className="px-4 py-2 text-right">Actions</th></tr></thead>
-          <tbody>
+      <div className="overflow-hidden rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Insignia</TableHead>
+              <TableHead>Level</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {insignias.map((i) => (
-              <tr key={i.id} className="border-t">
-                <td className="px-4 py-2">{i.id}</td>
-                <td className="px-4 py-2">{i.name}</td>
-                <td className="px-4 py-2">{i.level}</td>
-                <td className="px-4 py-2 text-right">
-                  <div className="flex gap-1 justify-end">
-                    <Link to="/dashboard/insignias/$id" params={{ id: String(i.id) }}><Button variant="outline" size="sm">Edit</Button></Link>
-                    <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate({ id: i.id })}>Delete</Button>
+              <TableRow key={i.id}>
+                <TableCell className="tabular-nums">{i.id}</TableCell>
+                <TableCell>{i.name}</TableCell>
+                <TableCell>{i.level}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    <Link to="/dashboard/insignias/$id" params={{ id: String(i.id) }}><Button size="sm" variant="outline">Edit</Button></Link>
+                    <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate({ id: i.id })}>Delete</Button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

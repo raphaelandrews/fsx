@@ -15,8 +15,8 @@ import {
 } from "@tanstack/react-table"
 
 import { Button } from "@fsx/ui/components/button"
-import { Input } from "@fsx/ui/components/input"
 import {
+  EmptyTableRow,
   Table,
   TableBody,
   TableCell,
@@ -25,9 +25,10 @@ import {
   TableRow,
 } from "@fsx/ui/components/table"
 
+import { DataTablePagination } from "@/components/data-table/data-table-pagination"
+import { SearchInput } from "@/components/data-table/search-input"
 import { titledPlayersColumns, type TitledPlayer } from "./columns"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
-import { DataTablePagination } from "./data-table-pagination"
 import { externalTitles, internalTitles } from "./data"
 
 export function TitledPlayersTable({ data }: { data: TitledPlayer[] }) {
@@ -61,49 +62,45 @@ export function TitledPlayersTable({ data }: { data: TitledPlayer[] }) {
   return (
     <div className="flex flex-col">
       <div className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-1 flex-col items-start space-y-2 md:flex-row md:items-center md:space-x-2 md:space-y-0">
-            <Input
-              className="h-8 w-[150px] border-dashed bg-background focus-visible:border-solid lg:w-[250px]"
-              onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-              placeholder="Procurar jogadores..."
-              value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <SearchInput
+            onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
+            placeholder="Procurar jogadores..."
+            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+            widthClass="w-full sm:w-[250px]"
+          />
+          {table.getColumn("internalTitle") && (
+            <DataTableFacetedFilter
+              column={table.getColumn("internalTitle")}
+              options={internalTitles}
+              title="FSX"
             />
-            <div className="flex flex-1 flex-col items-start space-y-2 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
-              {table.getColumn("internalTitle") && (
-                <DataTableFacetedFilter
-                  column={table.getColumn("internalTitle")}
-                  options={internalTitles}
-                  title="FSX"
-                />
-              )}
-              {table.getColumn("externalTitle") && (
-                <DataTableFacetedFilter
-                  column={table.getColumn("externalTitle")}
-                  options={externalTitles}
-                  title="CBX/FIDE"
-                />
-              )}
-              {isFiltered && (
-                <Button
-                  className="h-8 px-2 lg:px-3"
-                  onClick={() => table.resetColumnFilters()}
-                  variant="ghost"
-                >
-                  Limpar
-                  <HugeiconsIcon className="ml-2 size-4" icon={Cancel01Icon} />
-                </Button>
-              )}
-            </div>
-          </div>
+          )}
+          {table.getColumn("externalTitle") && (
+            <DataTableFacetedFilter
+              column={table.getColumn("externalTitle")}
+              options={externalTitles}
+              title="CBX/FIDE"
+            />
+          )}
+          {isFiltered && (
+            <Button
+              className="h-8 px-2 lg:px-3"
+              onClick={() => table.resetColumnFilters()}
+              variant="ghost"
+            >
+              Limpar
+              <HugeiconsIcon className="ml-2 size-4" icon={Cancel01Icon} />
+            </Button>
+          )}
         </div>
       </div>
 
-      <div className="relative p-4">
+      <div className="overflow-hidden rounded-lg">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow className="border-b-0" key={headerGroup.id}>
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead colSpan={header.colSpan} key={header.id}>
                     {header.isPlaceholder
@@ -117,7 +114,7 @@ export function TitledPlayersTable({ data }: { data: TitledPlayer[] }) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow className="border-b-0" key={row.id}>
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -126,18 +123,16 @@ export function TitledPlayersTable({ data }: { data: TitledPlayer[] }) {
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell className="h-24 text-center" colSpan={titledPlayersColumns.length}>
-                  Sem resultados.
-                </TableCell>
-              </TableRow>
+              <EmptyTableRow colSpan={titledPlayersColumns.length}>
+                Sem resultados.
+              </EmptyTableRow>
             )}
           </TableBody>
         </Table>
       </div>
 
       <div className="p-4">
-        <DataTablePagination table={table} />
+        <DataTablePagination table={table} pageSizeOptions={[10, 20, 30, 40, 50]} />
       </div>
     </div>
   )

@@ -5,8 +5,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { Button } from "@fsx/ui/components/button"
 import {
+  EmptyTableRow,
   Table,
   TableBody,
   TableCell,
@@ -16,6 +16,7 @@ import {
 } from "@fsx/ui/components/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@fsx/ui/components/tabs"
 
+import { DataTablePagination } from "@/components/data-table/data-table-pagination"
 import { championColumns, type ChampionTournament } from "./columns"
 
 const tabContent = [
@@ -34,19 +35,18 @@ export function ChampionsTabs({
 }) {
   return (
     <Tabs defaultValue="classic" className="w-full gap-0">
-      <TabsList className="grid h-auto w-full grid-cols-3 gap-0 rounded-none bg-transparent p-0 md:grid-cols-6">
+      <TabsList
+        className="h-auto w-full grid-cols-3 gap-0 rounded-none bg-transparent p-0 md:grid-cols-6"
+        variant="line"
+      >
         {tabContent.map((tab) => (
-          <div
+          <TabsTrigger
+            className="w-full py-2.5"
             key={tab.value}
-            className="relative flex items-center justify-center"
+            value={tab.value}
           >
-            <TabsTrigger
-              className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-none"
-              value={tab.value}
-            >
-              {tab.name}
-            </TabsTrigger>
-          </div>
+            {tab.name}
+          </TabsTrigger>
         ))}
       </TabsList>
 
@@ -70,60 +70,45 @@ function CampeoesTable({ data }: { data: ChampionTournament[] }) {
 
   return (
     <div className="flex flex-col">
-      <div className="relative p-4">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow className="border-b-0" key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow className="border-b-0" key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+      <div className="p-4">
+        <div className="overflow-hidden rounded-lg">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell className="h-24 text-center" colSpan={championColumns.length}>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <EmptyTableRow colSpan={championColumns.length}>
                   Sem resultados.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                </EmptyTableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
-      <div className="flex items-center justify-end space-x-2 p-4">
-        <Button
-          disabled={!table.getCanPreviousPage()}
-          onClick={() => table.previousPage()}
-          size="sm"
-          variant="outline"
-        >
-          Anterior
-        </Button>
-        <Button
-          disabled={!table.getCanNextPage()}
-          onClick={() => table.nextPage()}
-          size="sm"
-          variant="outline"
-        >
-          Próxima
-        </Button>
+      <div className="p-4">
+        <DataTablePagination table={table} pageSizeOptions={[10, 20, 30, 40, 50]} />
       </div>
     </div>
   )

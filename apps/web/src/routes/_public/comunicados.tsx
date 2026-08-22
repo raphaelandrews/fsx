@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ScrollIcon } from "@hugeicons/core-free-icons";
 import { z } from "zod";
 
-import { buttonVariants } from "@fsx/ui/components/button";
+import { Pagination } from "@fsx/ui/components/pagination";
 
 import { AnnouncementsModal } from "@/components/modals/announcements-modal";
+import { PageHeader } from "@/components/page-header";
 import { useTRPC } from "@/utils/trpc";
 import { padNumber } from "@/utils/format";
 
@@ -31,12 +32,13 @@ export const Route = createFileRoute("/_public/comunicados")({
 
 function RouteComponent() {
   const trpc = useTRPC();
+  const navigate = useNavigate();
   const { page } = Route.useSearch();
   const { data } = useSuspenseQuery(trpc.announcements.byPage.queryOptions({ page }));
 
   return (
     <>
-      <h1 className="mb-4 font-bold text-2xl">Comunicados</h1>
+      <PageHeader title="Comunicados" />
 
       {data.announcements.length === 0 ? (
         <p className="text-muted-foreground">Nenhum comunicado publicado.</p>
@@ -48,28 +50,16 @@ function RouteComponent() {
         </div>
       )}
 
-      <div className="mt-6 flex items-center justify-center gap-2">
-        {data.pagination.hasPreviousPage && (
-          <Link
-            to="/comunicados"
-            search={{ page: data.pagination.currentPage - 1 }}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Anterior
-          </Link>
-        )}
-        <span className="text-xs text-muted-foreground">
-          Página {data.pagination.currentPage} de {data.pagination.totalPages}
-        </span>
-        {data.pagination.hasNextPage && (
-          <Link
-            to="/comunicados"
-            search={{ page: data.pagination.currentPage + 1 }}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Próxima
-          </Link>
-        )}
+      <div className="mt-6">
+        <Pagination
+          currentPage={data.pagination.currentPage}
+          hasNextPage={data.pagination.hasNextPage}
+          hasPreviousPage={data.pagination.hasPreviousPage}
+          totalPages={data.pagination.totalPages}
+          onPageChange={(newPage) =>
+            navigate({ to: "/comunicados", search: { page: newPage } })
+          }
+        />
       </div>
     </>
   );

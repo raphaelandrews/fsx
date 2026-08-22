@@ -28,23 +28,17 @@ export function TopPlayers({ topPlayers }: any) {
         onValueChange={(value) => setCurrentTab(value as TabValue)}
         value={currentTab}
       >
-        <TabsList className="h-auto w-full rounded-none bg-transparent p-0">
-          <TabsTrigger
-            className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-none"
-            value="classic"
-          >
+        <TabsList
+          className="h-auto w-full gap-0 rounded-none bg-transparent p-0"
+          variant="line"
+        >
+          <TabsTrigger className="flex-1 py-2.5" value="classic">
             Clássico
           </TabsTrigger>
-          <TabsTrigger
-            className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-none"
-            value="rapid"
-          >
+          <TabsTrigger className="flex-1 py-2.5" value="rapid">
             Rápido
           </TabsTrigger>
-          <TabsTrigger
-            className="w-full rounded-none border-0 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-none"
-            value="blitz"
-          >
+          <TabsTrigger className="flex-1 py-2.5" value="blitz">
             Blitz
           </TabsTrigger>
         </TabsList>

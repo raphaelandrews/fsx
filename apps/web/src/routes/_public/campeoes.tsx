@@ -1,10 +1,9 @@
-import { CrownIcon } from "@hugeicons/core-free-icons"
 import { createFileRoute } from "@tanstack/react-router"
 import { useSuspenseQuery } from "@tanstack/react-query"
 
-import { Announcement } from "@/components/announcement"
 import { ChampionsTabs } from "@/components/campeoes/champions-tabs"
 import type { ChampionTournament } from "@/components/campeoes/columns"
+import { PageHeader } from "@/components/page-header"
 import { useTRPC } from "@/utils/trpc"
 
 export const Route = createFileRoute("/_public/campeoes")({
@@ -34,9 +33,9 @@ function RouteComponent() {
   )
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Announcement icon={CrownIcon} label="Campeões" />
+    <>
+      <PageHeader title="Campeões" />
       <ChampionsTabs championshipMap={championshipMap} />
-    </div>
+    </>
   )
 }

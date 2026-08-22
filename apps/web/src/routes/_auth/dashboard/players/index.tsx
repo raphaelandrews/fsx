@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@fsx/ui/components/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@fsx/ui/components/table";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
@@ -34,53 +42,53 @@ function RouteComponent() {
           <Button>Create Player</Button>
         </Link>
       </div>
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-muted/50">
-              <th className="px-4 py-2 text-left">Name</th>
-              <th className="px-4 py-2 text-left">Nickname</th>
-              <th className="px-4 py-2 text-right">Blitz</th>
-              <th className="px-4 py-2 text-right">Rapid</th>
-              <th className="px-4 py-2 text-right">Classic</th>
-              <th className="px-4 py-2 text-center">Sex</th>
-              <th className="px-4 py-2 text-left">Club</th>
-              <th className="px-4 py-2 text-left">Location</th>
-              <th className="px-4 py-2 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="overflow-hidden rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Nickname</TableHead>
+              <TableHead className="text-right">Blitz</TableHead>
+              <TableHead className="text-right">Rapid</TableHead>
+              <TableHead className="text-right">Classic</TableHead>
+              <TableHead className="text-center">Sex</TableHead>
+              <TableHead>Club</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {players.map((p) => (
-              <tr key={p.id} className="border-t">
-                <td className="px-4 py-2">{p.name}</td>
-                <td className="px-4 py-2">{p.nickname}</td>
-                <td className="px-4 py-2 text-right">{p.blitz}</td>
-                <td className="px-4 py-2 text-right">{p.rapid}</td>
-                <td className="px-4 py-2 text-right">{p.classic}</td>
-                <td className="px-4 py-2 text-center">{p.sex === "female" ? "F" : "M"}</td>
-                <td className="px-4 py-2">{p.club?.name}</td>
-                <td className="px-4 py-2">{p.location?.name}</td>
-                <td className="px-4 py-2 text-right">
-                  <div className="flex gap-1 justify-end">
+              <TableRow key={p.id}>
+                <TableCell>{p.name}</TableCell>
+                <TableCell>{p.nickname}</TableCell>
+                <TableCell className="text-right tabular-nums">{p.blitz}</TableCell>
+                <TableCell className="text-right tabular-nums">{p.rapid}</TableCell>
+                <TableCell className="text-right tabular-nums">{p.classic}</TableCell>
+                <TableCell className="text-center">{p.sex === "female" ? "F" : "M"}</TableCell>
+                <TableCell>{p.club?.name}</TableCell>
+                <TableCell>{p.location?.name}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
                     <Link to="/dashboard/players/$id" params={{ id: String(p.id) }}>
-                      <Button variant="outline" size="sm">Edit</Button>
+                      <Button size="sm" variant="outline">Edit</Button>
                     </Link>
                     <Link to="/dashboard/players/titles" search={{ playerId: p.id }}>
-                      <Button variant="outline" size="sm">Titles</Button>
+                      <Button size="sm" variant="outline">Titles</Button>
                     </Link>
                     <Button
-                      variant="destructive"
                       size="sm"
+                      variant="destructive"
                       onClick={() => deleteMutation.mutate({ id: p.id, active: false })}
                     >
                       Deactivate
                     </Button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
