@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
-import { Pagination } from "@fsx/ui/components/pagination";
+import { Pagination } from "@/components/data-table/pagination";
 
 import { PageHeader } from "@/components/page-header";
 import { PostCard } from "@/components/post-card";

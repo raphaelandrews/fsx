@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { to: "/dashboard/locations", label: "Locations" },
   { to: "/dashboard/links", label: "Links" },
   { to: "/dashboard/circuits", label: "Circuits" },
+  { to: "/dashboard/school-results", label: "School Results" },
   { to: "/dashboard/tournament-podiums", label: "Podiums" },
   { to: "/dashboard/titles", label: "Titles" },
   { to: "/dashboard/roles", label: "Roles" },

@@ -5,7 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ScrollIcon } from "@hugeicons/core-free-icons";
 import { z } from "zod";
 
-import { Pagination } from "@fsx/ui/components/pagination";
+import { Pagination } from "@/components/data-table/pagination";
 
 import { AnnouncementsModal } from "@/components/modals/announcements-modal";
 import { PageHeader } from "@/components/page-header";

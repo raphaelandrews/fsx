@@ -7,7 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 
 import { Button } from "@fsx/ui/components/button";
-import { Pagination } from "@fsx/ui/components/pagination";
+import { Pagination } from "@/components/data-table/pagination";
 import {
   Table,
   TableBody,

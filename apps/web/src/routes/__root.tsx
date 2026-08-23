@@ -24,12 +24,12 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
       ?.VITE_CLOUDFLARE_ANALYTICS_TOKEN
     const scripts = analyticsToken
       ? [
-          {
-            src: "https://static.cloudflareinsights.com/beacon.min.js",
-            defer: true,
-            "data-cf-beacon": JSON.stringify({ token: analyticsToken }),
-          },
-        ]
+        {
+          src: "https://static.cloudflareinsights.com/beacon.min.js",
+          defer: true,
+          "data-cf-beacon": JSON.stringify({ token: analyticsToken }),
+        },
+      ]
       : []
     return {
       meta: [
@@ -70,7 +70,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootDocument() {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

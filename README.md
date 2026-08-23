@@ -34,7 +34,8 @@ Built with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-st
 ## Features
 
 - Public pages: homepage, news, ratings, player profiles, champions, circuits, members, about, norms, links, announcements
-- Admin dashboard: CRUD for players, posts, events, tournaments, championships, clubs, locations, links, circuits, titles, roles, norms, insignias, announcements, tournament podiums
+- Admin dashboard: CRUD for players, posts, events, tournaments, championships, clubs, locations, links, circuits, titles, roles, norms, insignias, announcements, tournament podiums, school results
+- "Jogos Escolares TV Sergipe" school-tournament leaderboards (`/escolas`): school rankings by points and by medals (Olympic gold→silver→bronze) across 6 age groups × sex × individual/team, with click-to-drilldown
 - Rating update tool with Excel import and live player rating computation
 - Swiss Manager CSV export for public and admin
 - Markdown blog posts with MDX editor

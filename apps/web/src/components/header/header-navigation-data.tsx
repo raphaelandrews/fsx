@@ -14,6 +14,7 @@ import {
   Link01Icon,
   BookBookmark01Icon,
   Database01Icon,
+  Trophy,
 } from "@hugeicons/core-free-icons"
 
 type NavigationItem = {
@@ -73,6 +74,13 @@ export const navigationData: Navigation = () => [
         description: "Galeria dos campeões.",
         href: "/campeoes",
         icon: CrownIcon,
+        target: "_self",
+      },
+      {
+        label: "Jogos Escolares",
+        description: "Classificação por escola.",
+        href: "/escolas",
+        icon: Trophy,
         target: "_self",
       },
     ],

@@ -15,8 +15,8 @@ import {
 } from "@tanstack/react-table"
 
 import { Button } from "@fsx/ui/components/button"
+import { EmptyTableRow } from "@/components/data-table/empty-table-row"
 import {
-  EmptyTableRow,
   Table,
   TableBody,
   TableCell,

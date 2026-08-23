@@ -1,193 +1,222 @@
-import { useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
+import type { inferRouterOutputs } from "@trpc/server";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { z } from "zod";
+import { CrownIcon, Flag01Icon } from "@hugeicons/core-free-icons";
+
+import type { AppRouter } from "@fsx/api/routers/index";
 
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@fsx/ui/components/avatar";
-import { Badge } from "@fsx/ui/components/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@fsx/ui/components/select";
+import { Separator } from "@fsx/ui/components/separator";
 
-import { Pagination } from "@fsx/ui/components/pagination";
-
-import { SearchInput } from "@/components/data-table/search-input";
+import { Announcement } from "@/components/announcement";
 import { PageHeader } from "@/components/page-header";
 import { getGradient } from "@/lib/gradients";
 import { useTRPC } from "@/utils/trpc";
 
-const searchSchema = z.object({
-  sexo: z.enum(["male", "female"]).optional(),
-  page: z.number().int().positive().default(1),
-  nome: z.string().optional(),
-});
-
 export const Route = createFileRoute("/_public/membros")({
-  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "Membros - FSX" },
-      { name: "description", content: "Lista de jogadores da Federação Sergipana de Xadrez" },
+      {
+        name: "description",
+        content:
+          "Diretoria e árbitros da Federação Sergipana de Xadrez.",
+      },
     ],
   }),
-  loaderDeps: ({ search }) => ({ page: search.page, sex: search.sexo, name: search.nome }),
-  loader: ({ context, deps }) =>
+  loader: ({ context }) =>
     context.queryClient.ensureQueryData(
-      context.trpc.players.withFilters.queryOptions({
-        page: deps.page,
-        sex: deps.sex,
-        name: deps.name,
-      })
+      context.trpc.roles.listWithPlayers.queryOptions()
     ),
   component: RouteComponent,
 });
 
+type RolesWithPlayers = inferRouterOutputs<AppRouter>["roles"]["listWithPlayers"];
+
+interface Member {
+  id: number;
+  name: string;
+  imageUrl: string | null;
+  role: string;
+}
+
+function flattenMembers(
+  roles: RolesWithPlayers,
+  type: "management" | "referee"
+): Member[] {
+  const members = roles
+    .filter((r) => r.type === type)
+    .flatMap((role) =>
+      role.playersToRoles.map((pr) => ({
+        id: pr.player.id,
+        name: pr.player.name,
+        imageUrl: pr.player.imageUrl,
+        role: role.name,
+      }))
+    );
+
+  if (type === "management") {
+    return members.sort(
+      (a, b) =>
+        roleOrderIndex(DIRETORIA_ROLE_ORDER, a.role) -
+          roleOrderIndex(DIRETORIA_ROLE_ORDER, b.role) ||
+        a.name.localeCompare(b.name, "pt-BR")
+    );
+  }
+
+  return members.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+}
+
+const REFEREE_ROLE_ORDER = ["Árbitro Nacional", "Árbitro Auxiliar", "Árbitro Estadual"];
+
+const DIRETORIA_ROLE_ORDER = [
+  "Presidente",
+  "Vice-Presidente",
+  "Vice-Presidente Financeiro",
+  "Vice-Presidente Técnico",
+  "Vice-Presidente Administrativo",
+];
+
+function roleOrderIndex(order: readonly string[], name: string): number {
+  const lower = name.toLowerCase();
+  const index = order.findIndex((entry) => lower === entry.toLowerCase());
+  return index === -1 ? order.length : index;
+}
+
+function groupRefereeRoles(
+  roles: RolesWithPlayers
+): { name: string; members: Member[] }[] {
+  return roles
+    .filter((r) => r.type === "referee" && r.playersToRoles.length > 0)
+    .map((role) => ({
+      name: role.name,
+      members: role.playersToRoles
+        .map((pr) => ({
+          id: pr.player.id,
+          name: pr.player.name,
+          imageUrl: pr.player.imageUrl,
+          role: role.name,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+    }))
+    .sort(
+      (a, b) =>
+        roleOrderIndex(REFEREE_ROLE_ORDER, a.name) -
+          roleOrderIndex(REFEREE_ROLE_ORDER, b.name) ||
+        a.name.localeCompare(b.name, "pt-BR")
+    );
+}
+
 function RouteComponent() {
   const trpc = useTRPC();
-  const navigate = useNavigate();
-  const search = Route.useSearch();
-  const { data } = useSuspenseQuery(
-    trpc.players.withFilters.queryOptions({
-      page: search.page,
-      sex: search.sexo,
-      name: search.nome,
-    })
+  const { data: roles = [] } = useSuspenseQuery(
+    trpc.roles.listWithPlayers.queryOptions()
   );
 
-  const [nameInput, setNameInput] = useState(search.nome ?? "");
-
-  const updateSearch = (partial: Partial<typeof search>) => {
-    navigate({ to: "/membros", search: { ...search, ...partial, page: 1 } });
-  };
-
-  const { players, pagination } = data;
+  const diretoria = useMemo(() => flattenMembers(roles, "management"), [roles]);
+  const refereeGroups = useMemo(() => groupRefereeRoles(roles), [roles]);
 
   return (
     <>
-      <PageHeader title="Membros" />
+      <PageHeader
+        title="Membros"
+        description="Diretoria e árbitros da Federação Sergipana de Xadrez."
+      />
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-          Sexo
-          <Select
-            onValueChange={(value) =>
-              updateSearch({
-                sexo: (value?.trim() || undefined) as typeof search.sexo,
-              })
-            }
-            value={search.sexo ?? ""}
-          >
-            <SelectTrigger className="h-8 w-[160px]">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value=" ">Todos</SelectItem>
-              <SelectItem value="male">Masculino</SelectItem>
-              <SelectItem value="female">Feminino</SelectItem>
-            </SelectContent>
-          </Select>
-        </label>
+      <section className="mb-10">
+        <Announcement label="Diretoria" icon={CrownIcon} />
+        {diretoria.length === 0 ? (
+          <EmptyState message="Nenhum membro da diretoria cadastrado." />
+        ) : (
+          <MemberList members={diretoria} />
+        )}
+      </section>
 
-        <form
-          className="flex flex-col gap-1"
-          onSubmit={(e) => {
-            e.preventDefault();
-            updateSearch({ nome: nameInput.trim() || undefined });
-          }}
-        >
-          <span className="text-xs text-muted-foreground">Buscar</span>
-          <SearchInput
-            placeholder="Nome do jogador..."
-            value={nameInput}
-            onChange={(e) => setNameInput(e.target.value)}
-          />
-        </form>
-      </div>
-
-      {players.length === 0 ? (
-        <p className="text-muted-foreground">Nenhum membro encontrado.</p>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {players.map((player) => (
-            <PlayerCard key={player.id} player={player} />
-          ))}
-        </div>
-      )}
-
-      <div className="mt-6 flex justify-center">
-        <Pagination
-          currentPage={pagination.currentPage}
-          hasNextPage={pagination.hasNextPage}
-          hasPreviousPage={pagination.hasPreviousPage}
-          totalPages={pagination.totalPages}
-          onPageChange={(newPage) =>
-            navigate({ to: "/membros", search: { ...search, page: newPage } })
-          }
-        />
-      </div>
+      <section>
+        <Announcement label="Árbitros" icon={Flag01Icon} />
+        {refereeGroups.length === 0 ? (
+          <EmptyState message="Nenhum árbitro cadastrado." />
+        ) : (
+          <div className="flex flex-col gap-6">
+            {refereeGroups.map((group) => (
+              <div key={group.name} className="flex flex-col">
+                <Separator />
+                <h3 className="p-3 text-sm font-semibold text-muted-foreground">
+                  {group.name}
+                </h3>
+                <MemberList members={group.members} />
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </>
   );
 }
 
-interface PlayerCardData {
-  id: number;
-  name: string;
-  nickname: string | null;
-  imageUrl: string | null;
-  playersToTitles: { title: { shortName: string } }[];
+function EmptyState({ message }: { message: string }) {
+  return (
+    <p className="px-3 text-sm text-muted-foreground">{message}</p>
+  );
 }
 
-function PlayerCard({ player }: { player: PlayerCardData }) {
-  const firstTitle = player.playersToTitles?.[0]?.title.shortName;
-  const gradient = getGradient(player.id);
+function MemberList({ members }: { members: Member[] }) {
+  return (
+    <div className="flex flex-col">
+      {members.map((member, index) => (
+        <MemberCard
+          key={member.id}
+          member={member}
+          isLast={index === members.length - 1}
+        />
+      ))}
+    </div>
+  );
+}
+
+function MemberCard({
+  member,
+  isLast,
+}: {
+  member: Member;
+  isLast: boolean;
+}) {
+  const gradient = getGradient(member.id);
+  const initials = member.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
 
   return (
-    <Link
-      aria-label={`Ver perfil de ${player.nickname ?? player.name}`}
-      className="group flex flex-col items-center gap-3 rounded-lg border border-border bg-background p-5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-      to="/jogadores/$id"
-      params={{ id: String(player.id) }}
-    >
-      <Avatar className="size-20 rounded-md">
-        <AvatarImage alt={player.name} src={player.imageUrl ?? undefined} />
-        <AvatarFallback style={gradient} />
-      </Avatar>
-
-      <div className="flex flex-col items-center gap-1">
-        {firstTitle ? (
-          <span className="text-xs font-semibold text-highlight">
-            {firstTitle}
+    <div>
+      <div className="group flex items-center gap-4 p-3 transition-colors duration-300 hover:bg-muted/50">
+        <Avatar className="size-12">
+          <AvatarImage alt={member.name} src={member.imageUrl ?? undefined} />
+          <AvatarFallback style={gradient}>
+            {initials ? (
+              <span className="text-xs font-bold uppercase text-white/90">
+                {initials}
+              </span>
+            ) : null}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm font-semibold leading-tight">
+            {member.name}
           </span>
-        ) : null}
-        <span className="font-medium leading-tight">
-          {player.nickname ?? player.name}
-        </span>
-        {player.nickname ? (
-          <span className="text-xs text-muted-foreground">{player.name}</span>
-        ) : null}
-      </div>
-
-      {player.playersToTitles.length > 0 ? (
-        <div className="flex flex-wrap justify-center gap-1">
-          {player.playersToTitles.map((t) => (
-            <Badge
-              className="rounded-full px-2 font-normal"
-              key={t.title.shortName}
-              variant="secondary"
-            >
-              {t.title.shortName}
-            </Badge>
-          ))}
+          <span className="text-xs font-medium text-muted-foreground">
+            {member.role}
+          </span>
         </div>
-      ) : null}
-    </Link>
+      </div>
+      {!isLast ? <Separator /> : null}
+    </div>
   );
 }

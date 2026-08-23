@@ -7,6 +7,7 @@ import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { toast } from "sonner";
+import { ThemeProvider } from "next-themes";
 
 import Loader from "./components/loader";
 import { routeTree } from "./routeTree.gen";
@@ -81,7 +82,9 @@ export const getRouter = () => {
     defaultNotFoundComponent: () => <div>Not Found</div>,
     Wrap: ({ children }) => (
       <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-        {children}
+        <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
+          {children}
+        </ThemeProvider>
       </TRPCProvider>
     ),
   });

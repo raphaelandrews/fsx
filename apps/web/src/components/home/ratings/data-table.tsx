@@ -13,8 +13,8 @@ import {
 	useReactTable,
 } from "@tanstack/react-table"
 
+import { EmptyTableRow } from "@/components/data-table/empty-table-row"
 import {
-	EmptyTableRow,
 	Table,
 	TableBody,
 	TableCell,

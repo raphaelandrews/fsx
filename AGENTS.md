@@ -19,6 +19,12 @@ Migration gotchas:
 - D1 caps each SQL statement at 100 KB — the migration batches INSERTs accordingly.
 - The migration preserves `id`s (required for FKs) except `posts.id` (UUID → fresh autoincrement),
   and preserves `created_at`/`updated_at` for `players` and `posts`.
+- New Drizzle schema migrations (e.g. `0002_peaceful_masked_marvel.sql`) must go through `alchemy dev`'s
+  migration tracker — do NOT apply them manually via raw `sqlite3` against `.alchemy/miniflare/v3/d1/…sqlite`.
+  A raw apply creates the table but never records it in `d1_migrations`, so the next `alchemy dev` startup
+  re-runs migrations and fails with `D1_ERROR: table … already exists`. To recover: stop dev,
+  `rm -rf .alchemy/miniflare/v3/d1`, restart `bun dev` (alchemy auto-applies all pending migrations),
+  then `bun run db:seed`.
 
 ## Frontend conventions
 

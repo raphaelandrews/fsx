@@ -101,7 +101,7 @@ async function seed() {
       .onConflictDoNothing();
 
     console.log("  → players");
-    await db
+    const [andrews, maria, carlos, ana, pedro] = await db
       .insert(schema.players)
       .values([
         {
@@ -156,6 +156,25 @@ async function seed() {
           classic: 1570,
           locationId: itabaiana?.id,
         },
+      ])
+      .onConflictDoNothing()
+      .returning();
+
+    console.log("  → school results");
+    await db
+      .insert(schema.schoolResults)
+      .values([
+        // Individual results
+        { clubId: clubAracaju!.id, playerId: andrews?.id, ageGroup: "14", sex: "male", modality: "individual", place: 1, points: schema.PLACE_POINTS[1]! },
+        { clubId: clubUfs!.id, playerId: maria?.id, ageGroup: "14", sex: "female", modality: "individual", place: 2, points: schema.PLACE_POINTS[2]! },
+        { clubId: clubAracaju!.id, playerId: carlos?.id, ageGroup: "12", sex: "male", modality: "individual", place: 3, points: schema.PLACE_POINTS[3]! },
+        { clubId: clubUfs!.id, playerId: ana?.id, ageGroup: "12", sex: "female", modality: "individual", place: 4, points: schema.PLACE_POINTS[4]! },
+        { clubId: clubAracaju!.id, playerId: pedro?.id, ageGroup: "16", sex: "male", modality: "individual", place: 5, points: schema.PLACE_POINTS[5]! },
+        // Team results
+        { clubId: clubAracaju!.id, teamName: "A", ageGroup: "14", sex: "male", modality: "team", place: 1, points: schema.PLACE_POINTS[1]! },
+        { clubId: clubAracaju!.id, teamName: "B", ageGroup: "14", sex: "male", modality: "team", place: 2, points: schema.PLACE_POINTS[2]! },
+        { clubId: clubUfs!.id, teamName: "A", ageGroup: "12", sex: "female", modality: "team", place: 1, points: schema.PLACE_POINTS[1]! },
+        { clubId: clubUfs!.id, teamName: "B", ageGroup: "12", sex: "female", modality: "team", place: 3, points: schema.PLACE_POINTS[3]! },
       ])
       .onConflictDoNothing();
 
