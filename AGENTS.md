@@ -35,6 +35,9 @@ Migration gotchas:
   `route.tsx` (layout with `<Outlet/>`) + `index.tsx` + `$param.tsx` directory structure. A flat
   `foo.tsx` + `foo.$id.tsx` pair makes `$id` a child of the list route, which then needs an
   `<Outlet/>` to render.
+- **Only write comments when strictly necessary to understand the code.** Skip commentary that
+  just restates what the code does; reserve comments for non-obvious "why" decisions, gotchas,
+  or invariants that aren't clear from reading the code itself.
 
 <!-- intent-skills:start -->
 ## Skill Loading

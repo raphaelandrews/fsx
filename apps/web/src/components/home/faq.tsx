@@ -18,7 +18,7 @@ const FAQ_ITEMS = [
 				taxa de inscrição. Os links são disponibilizados no site e no instagram
 				({" "}
 				<a
-					className="text-link hover:underline"
+					className="text-link hover:text-primary"
 					href="https://www.instagram.com/xadrezsergipe"
 					rel="noreferrer"
 					target="_blank"
@@ -28,7 +28,7 @@ const FAQ_ITEMS = [
 				). Alguns torneios são válidos para rating CBX e FIDE, nesses casos, é
 				necessário também preencher o{" "}
 				<a
-					className="text-link hover:underline"
+					className="text-link hover:text-primary"
 					href="https://www.cbx.org.br/cadastro"
 					rel="noreferrer"
 					target="_blank"
@@ -49,7 +49,7 @@ const FAQ_ITEMS = [
 				primeiro torneio, não é preciso fazer nenhuma solicitação. Assim que o
 				enxadrista estiver cadastrado, ele pode preencher o{" "}
 				<a
-					className="text-link hover:underline"
+					className="text-link hover:text-primary"
 					href="https://forms.gle/5JXbBckcWB33EprW8"
 					rel="noreferrer"
 					target="_blank"
@@ -68,7 +68,7 @@ const FAQ_ITEMS = [
 			<>
 				Acesse nosso{" "}
 				<a
-					className="text-link hover:underline"
+					className="text-link hover:text-primary"
 					href="https://docs.google.com/spreadsheets/d/1FqWEWcpcRzW0r4wnsjLOIFmrwFkcqd9gnA7Lk1ZZ5uM"
 					rel="noreferrer"
 					target="_blank"
@@ -77,7 +77,7 @@ const FAQ_ITEMS = [
 				</a>
 				. Os torneios são divulgados no site e instagram (
 				<a
-					className="text-link hover:underline"
+					className="text-link hover:text-primary"
 					href="https://www.instagram.com/xadrezsergipe"
 					rel="noreferrer"
 					target="_blank"

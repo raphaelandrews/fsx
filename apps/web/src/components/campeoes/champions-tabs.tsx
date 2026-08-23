@@ -35,20 +35,15 @@ export function ChampionsTabs({
 }) {
   return (
     <Tabs defaultValue="classic" className="w-full gap-0">
-      <TabsList
-        className="h-auto w-full grid-cols-3 gap-0 rounded-none bg-transparent p-0 md:grid-cols-6"
-        variant="line"
-      >
-        {tabContent.map((tab) => (
-          <TabsTrigger
-            className="w-full py-2.5"
-            key={tab.value}
-            value={tab.value}
-          >
-            {tab.name}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      <div className="flex justify-center">
+        <TabsList className="grid grid-cols-3 md:grid-cols-6">
+          {tabContent.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
 
       {tabContent.map((tab) => (
         <TabsContent key={tab.value} value={tab.value}>

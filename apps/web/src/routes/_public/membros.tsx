@@ -4,6 +4,12 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@fsx/ui/components/avatar";
+import { Badge } from "@fsx/ui/components/badge";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -12,17 +18,10 @@ import {
 } from "@fsx/ui/components/select";
 
 import { Pagination } from "@fsx/ui/components/pagination";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@fsx/ui/components/table";
 
 import { SearchInput } from "@/components/data-table/search-input";
 import { PageHeader } from "@/components/page-header";
+import { getGradient } from "@/lib/gradients";
 import { useTRPC } from "@/utils/trpc";
 
 const searchSchema = z.object({
@@ -113,38 +112,15 @@ function RouteComponent() {
         </form>
       </div>
 
-      <div className="overflow-hidden rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-10">#</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead className="text-right">Títulos</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {players.map((player, index) => (
-              <TableRow key={player.id}>
-                <TableCell className="text-muted-foreground tabular-nums">
-                  {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
-                </TableCell>
-                <TableCell>
-                  <Link
-                    to="/jogadores/$id"
-                    params={{ id: String(player.id) }}
-                    className="font-medium hover:underline"
-                  >
-                    {player.nickname ?? player.name}
-                  </Link>
-                </TableCell>
-                <TableCell className="text-right text-muted-foreground">
-                  {player.playersToTitles.map((t) => t.title.shortName).join(", ") || "—"}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      {players.length === 0 ? (
+        <p className="text-muted-foreground">Nenhum membro encontrado.</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {players.map((player) => (
+            <PlayerCard key={player.id} player={player} />
+          ))}
+        </div>
+      )}
 
       <div className="mt-6 flex justify-center">
         <Pagination
@@ -158,5 +134,60 @@ function RouteComponent() {
         />
       </div>
     </>
+  );
+}
+
+interface PlayerCardData {
+  id: number;
+  name: string;
+  nickname: string | null;
+  imageUrl: string | null;
+  playersToTitles: { title: { shortName: string } }[];
+}
+
+function PlayerCard({ player }: { player: PlayerCardData }) {
+  const firstTitle = player.playersToTitles?.[0]?.title.shortName;
+  const gradient = getGradient(player.id);
+
+  return (
+    <Link
+      aria-label={`Ver perfil de ${player.nickname ?? player.name}`}
+      className="group flex flex-col items-center gap-3 rounded-lg border border-border bg-background p-5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+      to="/jogadores/$id"
+      params={{ id: String(player.id) }}
+    >
+      <Avatar className="size-20 rounded-md">
+        <AvatarImage alt={player.name} src={player.imageUrl ?? undefined} />
+        <AvatarFallback style={gradient} />
+      </Avatar>
+
+      <div className="flex flex-col items-center gap-1">
+        {firstTitle ? (
+          <span className="text-xs font-semibold text-highlight">
+            {firstTitle}
+          </span>
+        ) : null}
+        <span className="font-medium leading-tight">
+          {player.nickname ?? player.name}
+        </span>
+        {player.nickname ? (
+          <span className="text-xs text-muted-foreground">{player.name}</span>
+        ) : null}
+      </div>
+
+      {player.playersToTitles.length > 0 ? (
+        <div className="flex flex-wrap justify-center gap-1">
+          {player.playersToTitles.map((t) => (
+            <Badge
+              className="rounded-full px-2 font-normal"
+              key={t.title.shortName}
+              variant="secondary"
+            >
+              {t.title.shortName}
+            </Badge>
+          ))}
+        </div>
+      ) : null}
+    </Link>
   );
 }

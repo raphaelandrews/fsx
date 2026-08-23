@@ -53,16 +53,15 @@ function RouteComponent() {
             onValueChange={(value) => navigate({ to: "/circuitos", search: { circuito: value } })}
             className="w-full"
           >
-            <TabsList
-              className="mb-6 w-full overflow-x-auto"
-              variant="line"
-            >
-              {circuits.map((circuit) => (
-                <TabsTrigger key={circuit.name} value={slugify(circuit.name)}>
-                  {circuit.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="mb-6 flex w-full justify-center overflow-x-auto">
+              <TabsList className="overflow-x-auto">
+                {circuits.map((circuit) => (
+                  <TabsTrigger key={circuit.name} value={slugify(circuit.name)}>
+                    {circuit.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
           </Tabs>
 
           {activeCircuit && (

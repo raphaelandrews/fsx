@@ -40,7 +40,7 @@ export function MainNav() {
       )}
       <NavigationMenu
         className="mx-auto hidden xl:block"
-        positionerClassName="!left-0 !right-0 !w-auto !max-w-none !top-18 md:!top-24 !px-6 sm:!px-8"
+        positionerClassName="!left-0 !right-0 !w-auto !max-w-none !top-[6rem] md:!top-[7.5rem] !px-6 sm:!px-8"
         popupClassName="!w-full !max-w-[1080px] !mx-auto !mt-2 !rounded-2xl !ring-border !shadow-[0_24px_60px_color-mix(in_oklab,var(--primary-foreground)_12%,transparent)]"
       >
         <NavigationMenuList className="gap-2 text-sm">

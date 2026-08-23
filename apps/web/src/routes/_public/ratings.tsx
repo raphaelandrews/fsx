@@ -17,6 +17,10 @@ import {
   TableRow,
 } from "@fsx/ui/components/table";
 import {
+  Avatar,
+  AvatarImage,
+} from "@fsx/ui/components/avatar";
+import {
   Tabs,
   TabsList,
   TabsTrigger,
@@ -165,20 +169,13 @@ function RouteComponent() {
         }
         value={search.ordenar}
       >
-        <TabsList
-          className="h-auto w-full grid-cols-3 gap-0 rounded-none bg-transparent p-0"
-          variant="line"
-        >
-          <TabsTrigger className="flex-1 py-2.5" value="classic">
-            Clássico
-          </TabsTrigger>
-          <TabsTrigger className="flex-1 py-2.5" value="rapid">
-            Rápido
-          </TabsTrigger>
-          <TabsTrigger className="flex-1 py-2.5" value="blitz">
-            Blitz
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex justify-center">
+          <TabsList>
+            <TabsTrigger value="classic">Clássico</TabsTrigger>
+            <TabsTrigger value="rapid">Rápido</TabsTrigger>
+            <TabsTrigger value="blitz">Blitz</TabsTrigger>
+          </TabsList>
+        </div>
       </Tabs>
 
       {/* Faceted filters + search */}
@@ -269,16 +266,16 @@ function RouteComponent() {
         ) : null}
       </div>
 
-      {/* Table — single rating column driven by the active tab */}
+      {/* Table — column order: # / Nome / [rating] / Local (flag) / Clube (logo) */}
       <div className="overflow-hidden rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-10">#</TableHead>
               <TableHead>Jogador</TableHead>
+              <TableHead className="text-right">{ratingColumn}</TableHead>
               <TableHead>Local</TableHead>
               <TableHead>Clube</TableHead>
-              <TableHead className="text-right">{ratingColumn}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -296,14 +293,40 @@ function RouteComponent() {
                     shortTitle={player.playersToTitles?.[0]?.title.shortName ?? null}
                   />
                 </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {player.location?.name ?? "—"}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {player.club?.name ?? "—"}
-                </TableCell>
                 <TableCell className="text-right tabular-nums font-medium">
                   {player[search.ordenar]}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {player.location?.flagUrl ? (
+                      <Avatar className="size-5 rounded">
+                        <AvatarImage
+                          alt={player.location.name ?? ""}
+                          className="object-contain"
+                          src={player.location.flagUrl}
+                        />
+                      </Avatar>
+                    ) : null}
+                    <span className="text-muted-foreground">
+                      {player.location?.name ?? "—"}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {player.club?.logoUrl ? (
+                      <Avatar className="size-5 rounded">
+                        <AvatarImage
+                          alt={player.club.name ?? ""}
+                          className="object-contain"
+                          src={player.club.logoUrl}
+                        />
+                      </Avatar>
+                    ) : null}
+                    <span className="text-muted-foreground">
+                      {player.club?.name ?? "—"}
+                    </span>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

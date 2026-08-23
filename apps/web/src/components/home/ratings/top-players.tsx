@@ -28,20 +28,13 @@ export function TopPlayers({ topPlayers }: any) {
         onValueChange={(value) => setCurrentTab(value as TabValue)}
         value={currentTab}
       >
-        <TabsList
-          className="h-auto w-full gap-0 rounded-none bg-transparent p-0"
-          variant="line"
-        >
-          <TabsTrigger className="flex-1 py-2.5" value="classic">
-            Clássico
-          </TabsTrigger>
-          <TabsTrigger className="flex-1 py-2.5" value="rapid">
-            Rápido
-          </TabsTrigger>
-          <TabsTrigger className="flex-1 py-2.5" value="blitz">
-            Blitz
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex justify-center">
+          <TabsList>
+            <TabsTrigger value="classic">Clássico</TabsTrigger>
+            <TabsTrigger value="rapid">Rápido</TabsTrigger>
+            <TabsTrigger value="blitz">Blitz</TabsTrigger>
+          </TabsList>
+        </div>
 
         <div className="p-3">
           <TabsContent className="mt-0" value="classic">

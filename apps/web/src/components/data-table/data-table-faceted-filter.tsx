@@ -67,7 +67,7 @@ export function DataTableFacetedFilter({
       <PopoverTrigger
         render={
           <Button
-            className={cn("h-8 border-dashed", className)}
+            className={cn("h-8", className)}
             size="sm"
             variant="outline"
           />
@@ -83,15 +83,15 @@ export function DataTableFacetedFilter({
           <>
             <Separator className="mx-2 h-4" orientation="vertical" />
             <Badge
-              className="rounded-sm px-1 font-normal lg:hidden"
+              className="rounded-full px-1.5 font-normal lg:hidden"
               variant="secondary"
             >
               {selectedCount}
             </Badge>
-            <div className="hidden space-x-1 lg:flex">
+            <div className="hidden flex-wrap items-center gap-1 lg:flex">
               {selectedCount > 2 ? (
                 <Badge
-                  className="rounded-sm px-1 font-normal"
+                  className="rounded-full px-1.5 font-normal"
                   variant="secondary"
                 >
                   {selectedCount} selecionados
@@ -101,7 +101,7 @@ export function DataTableFacetedFilter({
                   .filter((option) => selectedValues.has(option.value))
                   .map((option) => (
                     <Badge
-                      className="rounded-sm px-1 font-normal"
+                      className="rounded-full px-1.5 font-normal"
                       key={option.value}
                       variant="secondary"
                     >

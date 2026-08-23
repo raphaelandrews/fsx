@@ -106,14 +106,14 @@ function RouteComponent() {
             >
               {link.href.startsWith("/") ? (
                 <Link
-                  className="flex items-center gap-2 p-3 text-sm text-link transition-all group-hover:underline"
+                  className="flex items-center gap-2 p-3 text-sm text-link transition-all group-hover:text-primary"
                   to={link.href}
                 >
                   {link.label}
                 </Link>
               ) : (
                 <a
-                  className="flex items-center gap-2 p-3 text-sm text-link transition-all group-hover:underline"
+                  className="flex items-center gap-2 p-3 text-sm text-link transition-all group-hover:text-primary"
                   href={link.href}
                   rel="noreferrer"
                   target="_blank"

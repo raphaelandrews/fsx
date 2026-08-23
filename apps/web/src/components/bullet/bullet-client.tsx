@@ -363,7 +363,7 @@ export function BulletClient({ cup }: { cup: Cup }) {
             <p>
               Campeonato Sergipano Bullet de Xadrez é realizado de forma online no{" "}
               <a
-                className="text-link hover:underline"
+                className="text-link hover:text-primary"
                 href="https://lichess.org"
                 rel="noreferrer"
                 target="_blank"
