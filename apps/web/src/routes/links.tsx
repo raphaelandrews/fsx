@@ -95,7 +95,7 @@ function RouteComponent() {
                   <TooltipTrigger
                     render={
                       <Button
-                        className="size-8 border-dashed"
+                        className="size-8"
                         size="icon"
                         variant="outline"
                         render={
@@ -117,7 +117,7 @@ function RouteComponent() {
                   <TooltipTrigger
                     render={
                       <Button
-                        className="size-8 border-dashed"
+                        className="size-8"
                         size="icon"
                         variant="outline"
                         render={

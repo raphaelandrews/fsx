@@ -299,7 +299,7 @@ function RouteComponent() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     {player.location?.flagUrl ? (
-                      <Avatar className="size-5 rounded">
+                      <Avatar className="size-5 rounded-sm">
                         <AvatarImage
                           alt={player.location.name ?? ""}
                           className="object-contain"
@@ -315,7 +315,7 @@ function RouteComponent() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     {player.club?.logoUrl ? (
-                      <Avatar className="size-5 rounded">
+                      <Avatar className="size-5 rounded-sm">
                         <AvatarImage
                           alt={player.club.name ?? ""}
                           className="object-contain"
