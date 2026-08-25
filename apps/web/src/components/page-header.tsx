@@ -58,8 +58,7 @@ interface PageHeaderProps {
  * - weight: `font-semibold` (matches the project's display convention; bolder
  *   than body, lighter than the old `font-bold` listings).
  * - tracking: `tracking-tight` for display polish on the larger sizes.
- * - color: inherited from the global `h1 { @apply font-display text-accent }`
- *   rule in `globals.css`.
+ * - color: inherits `text-foreground` from the `body` rule in `globals.css`.
  * - wrap: `text-balance` for clean centered line breaks.
  */
 export function PageHeader({ title, description, className }: PageHeaderProps) {

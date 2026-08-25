@@ -24,7 +24,7 @@ export const PlayerSheet = ({
       <Sheet onOpenChange={setOpen} open={open}>
         <SheetContent className="!w-[400px] sm:!w-[540px] !max-w-[90%] sm:!max-w-[480px] gap-0 overflow-y-auto overflow-x-hidden p-4 [&>button#close-sheet]:top-2.5 [&>button#close-sheet]:right-2.5">
           <div className="flex h-full flex-col items-center justify-center">
-            <Skeleton className="mb-4 h-20 w-20 rounded-full" />
+            <Skeleton className="mb-4 h-20 w-20 rounded-[20px]" />
             <Skeleton className="mb-2 h-6 w-48" />
             <Skeleton className="h-4 w-32" />
           </div>

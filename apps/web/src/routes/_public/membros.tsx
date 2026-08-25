@@ -197,7 +197,7 @@ function MemberCard({
   return (
     <div>
       <div className="group flex items-center gap-4 p-3 transition-colors duration-300 hover:bg-muted/50">
-        <Avatar className="size-12">
+        <Avatar className="size-12 rounded-md">
           <AvatarImage alt={member.name} src={member.imageUrl ?? undefined} />
           <AvatarFallback style={gradient}>
             {initials ? (

@@ -27,7 +27,7 @@ export function Section({
             icon={icon}
             label={label}
             stacked
-            className="text-xl md:text-2xl font-display text-accent"
+            className="text-xl md:text-2xl font-display text-foreground"
           />
         )}
         {children}

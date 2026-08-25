@@ -57,7 +57,7 @@ export function VariationChart({
 
   if (chartData.length === 0) {
     return (
-      <div className="py-8 text-center text-muted-foreground text-sm border border-dashed rounded-md bg-muted/20">
+      <div className="py-8 text-center text-muted-foreground text-sm border rounded-md bg-muted/20">
         Nenhum dado de variação disponível para este tipo de rating.
       </div>
     );

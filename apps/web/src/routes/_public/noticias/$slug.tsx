@@ -39,7 +39,7 @@ function RouteComponent() {
   return (
     <article className="mx-auto max-w-4xl py-10 md:py-16">
       <header className="mx-auto max-w-2xl text-center">
-        <h1 className="text-balance text-3xl font-semibold tracking-tight text-accent md:text-4xl">
+        <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
           {post.title}
         </h1>
 

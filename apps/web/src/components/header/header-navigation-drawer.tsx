@@ -57,7 +57,7 @@ export const HeaderNavigationDrawer = () => {
           </Link>
           <DrawerClose
             aria-label="Fechar menu"
-            className="rounded-full border border-border p-2.5 text-primary-foreground transition-colors hover:bg-muted"
+            className="rounded-full border border-border p-2.5 text-foreground transition-colors hover:bg-muted"
           >
             <HugeiconsIcon className="size-5" icon={Cancel01Icon} />
           </DrawerClose>
@@ -73,7 +73,7 @@ export const HeaderNavigationDrawer = () => {
                     <button
                       type="button"
                       onClick={() => setOpenSection(isOpen ? null : label)}
-                      className="flex w-full items-center justify-between py-3 text-left text-lg font-semibold text-primary-foreground"
+                      className="flex w-full items-center justify-between py-3 text-left text-lg font-semibold text-foreground"
                     >
                       {label}
                       <HugeiconsIcon
@@ -114,7 +114,7 @@ export const HeaderNavigationDrawer = () => {
                     to={href}
                     target={target}
                     onClick={() => setOpen(false)}
-                    className="block py-3 text-lg font-semibold text-primary-foreground"
+                    className="block py-3 text-lg font-semibold text-foreground"
                   >
                     {label}
                   </Link>
@@ -128,7 +128,7 @@ export const HeaderNavigationDrawer = () => {
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => setOpen(false)}
-                className="block py-3 text-lg font-semibold text-primary-foreground"
+                className="block py-3 text-lg font-semibold text-foreground"
               >
                 Instagram
               </a>
@@ -137,7 +137,7 @@ export const HeaderNavigationDrawer = () => {
               <a
                 href="mailto:fsx.presidente@gmail.com"
                 onClick={() => setOpen(false)}
-                className="block py-3 text-lg font-semibold text-primary-foreground"
+                className="block py-3 text-lg font-semibold text-foreground"
               >
                 Email
               </a>
