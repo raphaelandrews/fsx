@@ -26,7 +26,7 @@ export const schoolResults = sqliteTable(
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
     clubId: integer("club_id").notNull().references(() => clubs.id, { onDelete: "cascade" }),
-    playerId: integer("player_id").references(() => players.id, { onDelete: "cascade" }),
+    playerId: integer("player_id").references(() => players.id, { onDelete: "set null" }),
     teamName: text("team_name"),
     ageGroup: text("age_group").notNull(),
     sex: text("sex").notNull(),

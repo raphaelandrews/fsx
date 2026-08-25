@@ -7,7 +7,7 @@ import { ModeSwitcher } from "../mode-switcher"
 export function Header() {
   return (
     <header className="w-full border-border/40 bg-background">
-      <div className="container relative max-w-7xl flex h-22 md:h-28 items-center">
+      <div className="container relative max-w-7xl flex h-16 items-center">
         <MainNav />
         <div className="flex items-center gap-2 md:justify-end">
           <div className="flex w-full flex-1 md:w-auto md:flex-none">

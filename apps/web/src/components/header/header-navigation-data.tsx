@@ -13,8 +13,6 @@ import {
   Bookmark01Icon,
   Link01Icon,
   BookBookmark01Icon,
-  Database01Icon,
-  Trophy,
 } from "@hugeicons/core-free-icons"
 
 type NavigationItem = {
@@ -76,13 +74,6 @@ export const navigationData: Navigation = () => [
         icon: CrownIcon,
         target: "_self",
       },
-      {
-        label: "Jogos Escolares",
-        description: "Classificação por escola.",
-        href: "/escolas",
-        icon: Trophy,
-        target: "_self",
-      },
     ],
   },
   {
@@ -110,13 +101,6 @@ export const navigationData: Navigation = () => [
         description: "Normas.",
         href: "/normas-tecnicas",
         icon: Book01Icon,
-        target: "_self",
-      },
-      {
-        label: "Atualização de Rating",
-        description: "Processo de atualização.",
-        href: "/showcase/atualizacao-rating",
-        icon: Database01Icon,
         target: "_self",
       },
       {

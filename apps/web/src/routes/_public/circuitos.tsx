@@ -77,11 +77,13 @@ function RouteComponent() {
                     <ul className="divide-y">
                       {phase.circuitPodiums.map((podium, index) => (
                         <li
-                          key={`${podium.player?.id ?? index}-${podium.place}`}
+                          key={`${podium.player?.id ?? index}-${podium.place ?? "unranked"}`}
                           className="flex items-center justify-between px-4 py-2 text-sm"
                         >
                           <span className="flex items-center gap-2">
-                            <span className="text-muted-foreground tabular-nums w-6">{podium.place}º</span>
+                            <span className="text-muted-foreground tabular-nums w-6">
+                              {podium.place != null ? `${podium.place}º` : "—"}
+                            </span>
                             <span className="font-medium">
                               {podium.player?.nickname ?? podium.player?.name ?? "—"}
                             </span>

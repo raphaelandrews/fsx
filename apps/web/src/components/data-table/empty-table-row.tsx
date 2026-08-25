@@ -1,3 +1,5 @@
+import type { ReactNode } from "react"
+
 import { TableCell, TableRow } from "@fsx/ui/components/table"
 import { cn } from "@fsx/ui/lib/utils"
 
@@ -7,7 +9,7 @@ export function EmptyTableRow({
   className,
 }: {
   colSpan: number
-  children: React.ReactNode
+  children: ReactNode
   className?: string
 }) {
   return (

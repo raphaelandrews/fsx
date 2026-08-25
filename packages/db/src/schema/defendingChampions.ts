@@ -6,7 +6,7 @@ import { championships, players } from "./index"
 
 export const defendingChampions = sqliteTable("defending_champions", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
-	playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+	playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "restrict" }),
 	championshipId: integer("championship_id").notNull().references(() => championships.id, { onDelete: "cascade" }),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),

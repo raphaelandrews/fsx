@@ -15,7 +15,7 @@ import {
   PopoverTrigger,
 } from "@fsx/ui/components/popover"
 
-import { PlayerSheet } from "@/components/sheets/player/player-sheet"
+import { PlayerSheetById } from "@/components/sheets/player/player-sheet-by-id"
 
 const meshGradients = [
   {
@@ -177,7 +177,7 @@ export const Actions = ({
         )}
       </div>
 
-      <PlayerSheet open={open} setOpen={setOpen} />
+      {open && <PlayerSheetById id={id} open={open} setOpen={setOpen} />}
     </>
   )
 }

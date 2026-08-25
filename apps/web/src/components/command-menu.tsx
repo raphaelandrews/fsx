@@ -1,7 +1,7 @@
 
 import { useRouter } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
-import { useHotkeys, detectPlatform } from "@tanstack/react-hotkeys"
+import { useHotkeys } from "@tanstack/react-hotkeys"
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
@@ -119,7 +119,6 @@ CommandResults.displayName = "SearchResults"
 
 export function CommandMenu() {
   const router = useRouter()
-  const platform = detectPlatform()
   const [open, setOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
   const [debouncedSearch, setDebouncedSearch] = React.useState("")
@@ -172,17 +171,17 @@ export function CommandMenu() {
         render={
           <Button
             className={cn(
-              "relative h-9 w-full justify-start rounded-full bg-muted pl-3 font-normal text-muted-foreground shadow-none border-0 sm:pr-12 md:w-40 lg:w-48"
+              "relative h-8 w-full justify-start rounded-lg border-none bg-muted pl-3 text-foreground shadow-none transition-colors hover:bg-muted/50 md:w-48 lg:w-40 xl:w-48 dark:bg-card"
             )}
             variant="ghost"
           />
         }
       >
-        <span className="hidden lg:inline-flex font-sm">Procurar jogadores...</span>
-        <span className="inline-flex lg:hidden">Procurar...</span>
+        <span className="hidden lg:inline-flex text-sm">Procurar jogadores...</span>
+        <span className="inline-flex text-sm lg:hidden">Procurar...</span>
       </DialogTrigger>
       <DialogContent
-        className="rounded-xl border-none bg-clip-padding p-2 pb-11 shadow-2xl ring-4 ring-neutral-200/80"
+        className="rounded-xl border-none bg-clip-padding p-2 pb-11 shadow-2xl ring-4 ring-neutral-200/80 dark:ring-neutral-800"
         showCloseButton={false}
       >
         <DialogHeader className="sr-only">
@@ -191,7 +190,7 @@ export function CommandMenu() {
             Procurare jogadores cadastrados na FSX...
           </DialogDescription>
         </DialogHeader>
-        <Command className="**:data-[slot=command-input]:!h-9 **:data-[slot=command-input-wrapper]:!h-9 rounded-none bg-transparent **:data-[slot=command-input-wrapper]:mb-0">
+        <Command className="rounded-none bg-transparent">
           <CommandMenuInput
             onChange={handleSearchChange}
             placeholder="Procurar jogadores.."
@@ -217,7 +216,7 @@ export function CommandMenu() {
             </CommandGroup>
           </CommandList>
         </Command>
-        <div className="absolute inset-x-0 bottom-0 z-20 flex h-10 items-center gap-2 rounded-b-xl border-t border-t-neutral-100 bg-neutral-50 px-4 font-medium text-muted-foreground text-xs">
+        <div className="absolute inset-x-0 bottom-0 z-20 flex h-10 items-center gap-2 rounded-b-xl border-t border-t-neutral-100 bg-neutral-50 px-4 text-xs font-medium text-muted-foreground dark:border-t-neutral-700 dark:bg-neutral-800">
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1">
               <CommandMenuKbd>
@@ -295,12 +294,15 @@ function CommandMenuInput({
 }: React.ComponentProps<"input">) {
   return (
     <div
-      className={cn("flex h-9 items-center gap-2 border-b px-3", className)}
+      className={cn(
+        "mb-0 flex h-9 items-center gap-2 rounded-md border border-input bg-input/50 px-3",
+        className
+      )}
       data-slot="command-input-wrapper"
     >
       <HugeiconsIcon className="size-4 shrink-0 opacity-50" icon={SearchIcon} />
       <input
-        className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-9 w-full rounded-md bg-transparent py-0 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
         data-slot="command-input"
         {...props}
       />

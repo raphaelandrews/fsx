@@ -6,7 +6,7 @@ import { players, cupGroups } from "./index"
 
 export const cupPlayers = sqliteTable("cup_players", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
-	playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+	playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "restrict" }),
 	cupGroupId: integer("cup_group_id").notNull().references(() => cupGroups.id, { onDelete: "cascade" }),
 	nickname: text("nickname"),
 	position: integer("position"),

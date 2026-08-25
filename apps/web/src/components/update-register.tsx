@@ -10,6 +10,9 @@ import {
   TooltipTrigger,
 } from "@fsx/ui/components/tooltip"
 
+import { HugeiconsIcon } from "@hugeicons/react"
+import { CheckmarkBadge01Icon } from "@hugeicons/core-free-icons"
+
 export function UpdateRegister() {
   return (
     <Popover>
@@ -21,26 +24,16 @@ export function UpdateRegister() {
                 <Button
                   aria-label="Atualize seu cadastro"
                   size="icon"
-                  variant="outline"
+                  variant="ghost"
                 />
               }
             />
           }
         >
-          <svg
-            aria-hidden="true"
-            className="size-4 shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <title>Verified Icon</title>
-            <path d="M9 12l2 2 4-4" className="stroke-white" />
-            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" className="fill-[#1CA0F2]" />
-          </svg>
+          <HugeiconsIcon
+            icon={CheckmarkBadge01Icon}
+            className="size-4 text-white [&_path:first-child]:fill-[#1CA0F2]"
+          />
         </TooltipTrigger>
         <TooltipContent>
           <p>Atualize seu cadastro</p>
@@ -52,20 +45,11 @@ export function UpdateRegister() {
         sideOffset={8}
       >
         <div className="flex items-center gap-2">
-          <svg
-            aria-hidden="true"
-            className="size-5 min-w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <title>Verified Icon</title>
-            <path d="M9 12l2 2 4-4" className="stroke-primary" />
-            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" className="fill-[#1CA0F2]" />
-          </svg>
+          <HugeiconsIcon
+            icon={CheckmarkBadge01Icon}
+            className="size-4 text-white [&_path:first-child]:fill-[#1CA0F2]"
+          />
+
           <h3 className="font-semibold text-primary">Verifique seu perfil</h3>
         </div>
         <div className="mt-2 space-y-2">

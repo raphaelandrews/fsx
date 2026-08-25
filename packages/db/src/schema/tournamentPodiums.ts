@@ -8,7 +8,7 @@ export const tournamentPodiums = sqliteTable(
 	"tournament_podiums",
 	{
 		id: integer("id").primaryKey({ autoIncrement: true }),
-		playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+		playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "restrict" }),
 		tournamentId: integer("tournament_id").notNull().references(() => tournaments.id, { onDelete: "cascade" }),
 		place: integer("place").notNull(),
 		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),

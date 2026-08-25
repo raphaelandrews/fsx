@@ -463,8 +463,7 @@ async function migrateLocal(statements: string[]) {
 			.filter((f) => f.endsWith(".sql"))
 			.sort()
 		for (const file of migrationFiles) {
-			const name = file.replace(/\.sql$/, "")
-			if (appliedNames.has(name)) continue
+			if (appliedNames.has(file)) continue
 			const sqlText = readFileSync(resolve(migrationsDir, file), "utf8")
 			for (const s of sqlText
 				.split("--> statement-breakpoint")
@@ -474,9 +473,9 @@ async function migrateLocal(statements: string[]) {
 			}
 			await d1
 				.prepare(`INSERT INTO d1_migrations (name, type) VALUES (?, ?)`)
-				.bind(name, "migration")
+				.bind(file, "migration")
 				.run()
-			console.log(`  ✓ applied migration ${name}`)
+			console.log(`  ✓ applied migration ${file}`)
 		}
 
 		// Wipe existing domain data first so re-running is idempotent.

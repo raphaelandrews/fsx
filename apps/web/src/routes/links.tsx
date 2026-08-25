@@ -19,6 +19,7 @@ import {
 import { cn } from "@fsx/ui/lib/utils"
 
 import { Announcement } from "@/components/announcement"
+import { FlickeringGrid } from "@/components/flickering-grid"
 import { Footer } from "@/components/footer"
 import { Logo } from "@/components/logo"
 import { useTRPC } from "@/utils/trpc"
@@ -46,13 +47,20 @@ function LinkItem({ href, label, icon }: { href: string; label: string; icon: st
       rel="noreferrer"
       target="_blank"
     >
-      <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-lg [&>div>svg]:h-4 [&>div>svg]:w-4">
+      <div
+        aria-hidden="true"
+        className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-lg [&>div>svg]:h-4 [&>div>svg]:w-4"
+      >
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static icon markup from the database */}
         <div dangerouslySetInnerHTML={{ __html: icon }} />
       </div>
       <span>{label}</span>
       <div className="grid h-8 w-8 place-items-center">
-        <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-4 stroke-foreground" />
+        <HugeiconsIcon
+          aria-hidden="true"
+          className="size-4 stroke-foreground"
+          icon={ArrowUpRight01Icon}
+        />
       </div>
     </a>
   )
@@ -66,9 +74,17 @@ function RouteComponent() {
     <div className="relative flex min-h-dvh flex-col overflow-x-hidden">
       <main className="relative flex-1">
         <section>
+          <h1 className="sr-only">Links</h1>
           <div className="relative mx-2 p-3 sm:mx-8 md:mx-auto md:max-w-[720px] md:p-3">
             <div className="relative h-32 w-full overflow-hidden rounded-lg">
-              <div className="absolute inset-0 z-0 bg-[radial-gradient(450px_circle_at_center,--color-(--primary)/20,transparent)] [mask-image:radial-gradient(450px_circle_at_center,white,transparent)]" />
+              <FlickeringGrid
+                className="absolute inset-0 z-0 size-full [mask-image:radial-gradient(450px_circle_at_50%_50%,white,transparent)]"
+                color="#7ec051"
+                flickerChance={0.1}
+                gridGap={6}
+                maxOpacity={0.5}
+                squareSize={4}
+              />
             </div>
 
             <div className="flex items-center justify-between gap-4 p-4">
@@ -84,6 +100,7 @@ function RouteComponent() {
                         variant="outline"
                         render={
                           <a
+                            aria-label="Instagram"
                             href="https://www.instagram.com/xadrezsergipe/"
                             rel="noreferrer"
                             target="_blank"
@@ -105,6 +122,7 @@ function RouteComponent() {
                         variant="outline"
                         render={
                           <a
+                            aria-label="Email"
                             href="mailto:fsx.presidente@gmail.com"
                             rel="noreferrer"
                             target="_blank"
