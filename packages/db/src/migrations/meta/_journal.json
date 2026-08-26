@@ -43,6 +43,13 @@
       "when": 1787613108089,
       "tag": "0005_sturdy_mulholland_black",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1787718829282,
+      "tag": "0006_fixed_scrambler",
+      "breakpoints": true
     }
   ]
 }

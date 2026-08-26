@@ -61,29 +61,34 @@ export function PostCard({
 
   return (
     <Link
-      aria-label={`Read posts: ${title}`}
-      className={cn("group flex flex-col", className)}
+      className={cn(
+        "group flex flex-col rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        className,
+      )}
       to="/noticias/$slug"
       params={{ slug: slug ?? "" }}
       onMouseEnter={onMouseEnter}
     >
-      <div className="">
+      <div className="overflow-hidden rounded-md">
         {/* biome-ignore lint/performance/noImgElement: No */}
         <img
-          alt={title}
-          className="aspect-2/1 w-full rounded-md border border-border object-cover transition-opacity duration-300"
+          alt=""
+          className="aspect-2/1 w-full rounded-md border border-border object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
           decoding="async"
           loading="lazy"
           src={imageUrl ?? undefined}
           style={{ opacity: imageLoaded ? 1 : 0 }}
         />
       </div>
-      <div className="px-2 flex flex-col gap-1">
+
+      <div className="flex flex-col gap-1 px-2">
         <h2
-          className={`${main
-            ? "tracking-tight text-lg md:text-xl"
-            : "text-md leading-5"
-            } font-semibold text-balance mt-2 line-clamp-2`}
+          className={cn(
+            "mt-2 line-clamp-2 font-semibold text-balance transition-colors duration-200 group-hover:text-primary",
+            main
+              ? "text-lg tracking-tight md:text-xl"
+              : "text-md leading-5",
+          )}
         >
           {title}
         </h2>

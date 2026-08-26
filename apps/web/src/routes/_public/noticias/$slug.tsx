@@ -1,7 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import { useSuspenseQuery } from "@tanstack/react-query"
 
-import { MDX } from "@/components/mdx"
+import { Markdown } from "@/components/markdown"
 import { PostTimeAgo } from "@/components/noticias/post-time-ago"
 import { useTRPC } from "@/utils/trpc"
 
@@ -61,7 +61,7 @@ function RouteComponent() {
 
       {post.content && (
         <div className="mx-auto mt-10 max-w-2xl">
-          <MDX content={post.content} />
+          <Markdown content={post.content} />
         </div>
       )}
     </article>

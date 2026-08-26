@@ -5,7 +5,7 @@ import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 export const posts = sqliteTable("posts", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	title: text("title").notNull(),
-	imageUrl: text("image_url").notNull(),
+	imageUrl: text("image_url"),
 	content: text("content").notNull(),
 	slug: text("slug").unique().notNull(),
 	published: integer("published", { mode: "boolean" }).default(false).notNull(),

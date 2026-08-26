@@ -52,6 +52,14 @@ export function Footer({ className }: { className?: string }) {
           <Logo className="h-6 w-auto" />
         </Link>
 
+        <img
+          alt=""
+          aria-hidden="true"
+          className="h-4 w-auto rounded-xs"
+          loading="lazy"
+          src="/sergipe_flag.svg"
+        />
+
         <div className="flex flex-col items-center gap-6">
           <div className="flex items-center gap-5 text-muted-foreground">
             {socials.map(({ label, href, icon }) => (
@@ -108,18 +116,6 @@ export function Footer({ className }: { className?: string }) {
             </a>
             .
           </div>
-
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <img
-              alt=""
-              aria-hidden="true"
-              className="h-4 w-auto rounded-sm"
-              loading="lazy"
-              src="/sergipe_flag.svg"
-            />
-            <span>Sergipe, Brasil</span>
-          </div>
-
         </div>
       </div>
     </footer>

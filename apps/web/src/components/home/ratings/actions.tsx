@@ -148,36 +148,38 @@ export const Actions = ({
   const gradient = getGradient(id)
 
   return (
-    <>
-      <div className="flex items-center gap-3">
-        <Button
-          aria-label={`Ver perfil de ${name}`}
-          className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:underline"
-          onClick={() => setOpen(true)}
-          variant="ghost"
-        >
-          <Avatar className="size-8 rounded-md">
-            <AvatarImage alt={name} src={image ?? undefined} />
-            <AvatarFallback style={gradient} />
-          </Avatar>
-          <div className="whitespace-nowrap font-medium">
-            {shortName && <span className="text-highlight">{shortName}</span>}{" "}
-            {nickname ?? name}
-          </div>
-        </Button>
+    <div className="flex items-center gap-3">
+      <PlayerSheetById
+        id={id}
+        open={open}
+        setOpen={setOpen}
+        trigger={
+          <Button
+            aria-label={`Ver perfil de ${name}`}
+            className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:text-primary dark:hover:bg-transparent aria-expanded:bg-transparent"
+            variant="ghost"
+          >
+            <Avatar className="size-8 rounded-md">
+              <AvatarImage alt={name} src={image ?? undefined} />
+              <AvatarFallback style={gradient} />
+            </Avatar>
+            <div className="whitespace-nowrap font-medium">
+              {shortName && <span className="text-highlight">{shortName}</span>}{" "}
+              {nickname ?? name}
+            </div>
+          </Button>
+        }
+      />
 
-        {defendingChampions && (
-          <div className="flex items-center gap-2">
-            {defendingChampions.map((championship) => (
-              <div key={championship.championship.name}>
-                {formatDefendingChampions(championship.championship.name)}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {open && <PlayerSheetById id={id} open={open} setOpen={setOpen} />}
-    </>
+      {defendingChampions && (
+        <div className="flex items-center gap-2">
+          {defendingChampions.map((championship) => (
+            <div key={championship.championship.name}>
+              {formatDefendingChampions(championship.championship.name)}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

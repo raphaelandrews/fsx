@@ -74,7 +74,7 @@ export const postsRouter = router({
     .input(z.object({
       id: z.number(),
       title: z.string().optional(),
-      imageUrl: z.string().optional(),
+      imageUrl: z.string().nullable().optional(),
       content: z.string().optional(),
       slug: z.string().optional(),
       published: z.boolean().optional(),

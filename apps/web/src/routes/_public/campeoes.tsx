@@ -4,6 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { ChampionsTabs } from "@/components/campeoes/champions-tabs"
 import type { ChampionTournament } from "@/components/campeoes/columns"
 import { PageHeader } from "@/components/page-header"
+import { TableSkeleton } from "@/components/skeletons/table-skeleton"
 import { useTRPC } from "@/utils/trpc"
 
 export const Route = createFileRoute("/_public/campeoes")({
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/_public/campeoes")({
   }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.champions.gallery.queryOptions()),
+  pendingComponent: () => <TableSkeleton />,
   component: RouteComponent,
 })
 

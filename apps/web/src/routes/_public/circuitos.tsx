@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 
 import { PageHeader } from "@/components/page-header";
+import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { useTRPC } from "@/utils/trpc";
 import { slugify } from "@/utils/slugify";
 
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/_public/circuitos")({
     };
   },
   loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.circuits.list.queryOptions()),
+  pendingComponent: () => <TableSkeleton />,
   component: RouteComponent,
 });
 

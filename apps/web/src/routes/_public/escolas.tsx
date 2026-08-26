@@ -22,6 +22,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@fsx/ui/components/dialog";
 import { EmptyTableRow } from "@/components/data-table/empty-table-row";
 import {
@@ -39,6 +40,7 @@ import {
 } from "@fsx/ui/components/tabs";
 
 import { PageHeader } from "@/components/page-header";
+import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { getGradient } from "@/lib/gradients";
 import { useTRPC } from "@/utils/trpc";
 
@@ -175,6 +177,7 @@ export const Route = createFileRoute("/_public/escolas")({
       ),
     ]);
   },
+  pendingComponent: () => <TableSkeleton />,
   component: RouteComponent,
 });
 
@@ -319,9 +322,15 @@ function RouteComponent() {
         </Tabs>
       </div>
 
-      {/* Leaderboard table */}
-      <div className="overflow-hidden rounded-lg">
-        <Table>
+      <Dialog
+        open={openClubId !== null}
+        onOpenChange={(open) => {
+          if (!open) setOpenClubId(null);
+        }}
+      >
+        {/* Leaderboard table */}
+        <div className="overflow-hidden rounded-lg">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-10">#</TableHead>
@@ -388,13 +397,7 @@ function RouteComponent() {
       </div>
 
       {/* Drilldown dialog — opens when a school's row is clicked */}
-      <Dialog
-        onOpenChange={(open) => {
-          if (!open) setOpenClubId(null);
-        }}
-        open={openClub !== null}
-      >
-        <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{openClub?.name ?? "Escola"}</DialogTitle>
             <DialogDescription>
@@ -449,11 +452,15 @@ function LeaderboardRow({
         {position}º
       </TableCell>
       <TableCell>
-        <Button
-          aria-label={`Ver resultados de ${row.name}`}
-          className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:underline"
+        <DialogTrigger
           onClick={onOpen}
-          variant="ghost"
+          render={
+            <Button
+              aria-label={`Ver resultados de ${row.name}`}
+              className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:underline dark:hover:bg-transparent aria-expanded:bg-transparent"
+              variant="ghost"
+            />
+          }
         >
           <Avatar className="size-8 rounded-md">
             <AvatarImage
@@ -470,7 +477,7 @@ function LeaderboardRow({
             </AvatarFallback>
           </Avatar>
           <span className="font-medium whitespace-nowrap">{row.name}</span>
-        </Button>
+        </DialogTrigger>
       </TableCell>
       {showMedals ? (
         <>

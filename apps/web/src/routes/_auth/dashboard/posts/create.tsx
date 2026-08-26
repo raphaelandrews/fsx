@@ -23,7 +23,10 @@ function RouteComponent() {
   const createMutation = useMutation({
     ...trpc.posts.create.mutationOptions(),
     onSuccess: () => {
+      qc.invalidateQueries(trpc.posts.listAdmin.queryFilter());
       qc.invalidateQueries(trpc.posts.list.queryFilter());
+      qc.invalidateQueries(trpc.posts.fresh.queryFilter());
+      qc.invalidateQueries(trpc.posts.byPage.queryFilter());
       toast.success("Post created");
       navigate({ to: "/dashboard/posts" });
     },
@@ -33,7 +36,7 @@ function RouteComponent() {
   const form = useForm({
     defaultValues: { title: "", slug: "", imageUrl: "", content: "", published: false },
     onSubmit: ({ value }) => {
-      createMutation.mutate({ title: value.title, slug: value.slug, imageUrl: value.imageUrl, content: value.content, published: value.published });
+      createMutation.mutate({ title: value.title, slug: value.slug, imageUrl: value.imageUrl || null, content: value.content, published: value.published });
     },
     validators: {
       onSubmit: z.object({

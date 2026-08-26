@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Pagination } from "@/components/data-table/pagination";
 
 import { PageHeader } from "@/components/page-header";
+import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
 import { PostCard } from "@/components/post-card";
 import { useTRPC } from "@/utils/trpc";
 
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/_public/noticias/")({
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(context.trpc.posts.byPage.queryOptions({ page: deps.page })),
+  pendingComponent: () => <CardGridSkeleton />,
   component: RouteComponent,
 });
 

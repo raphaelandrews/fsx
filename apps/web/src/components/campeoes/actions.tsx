@@ -19,24 +19,26 @@ export const PlayerActions = ({ id, name, nickname, image, shortTitle }: Props) 
   const gradient = getGradient(id)
 
   return (
-    <>
-      <Button
-        aria-label={`Ver perfil de ${name}`}
-        className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:underline"
-        onClick={() => setOpen(true)}
-        variant="ghost"
-      >
-        <Avatar className="size-8 rounded-md">
-          <AvatarImage alt={name} src={image ?? undefined} />
-          <AvatarFallback style={gradient} />
-        </Avatar>
-        <div className="font-medium whitespace-nowrap">
-          {shortTitle && <span className="text-highlight">{shortTitle}</span>}{" "}
-          {nickname ?? name}
-        </div>
-      </Button>
-
-      {open && <PlayerSheetById id={id} open={open} setOpen={setOpen} />}
-    </>
+    <PlayerSheetById
+      id={id}
+      open={open}
+      setOpen={setOpen}
+      trigger={
+        <Button
+          aria-label={`Ver perfil de ${name}`}
+          className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:text-primary dark:hover:bg-transparent aria-expanded:bg-transparent"
+          variant="ghost"
+        >
+          <Avatar className="size-8 rounded-md">
+            <AvatarImage alt={name} src={image ?? undefined} />
+            <AvatarFallback style={gradient} />
+          </Avatar>
+          <div className="font-medium whitespace-nowrap">
+            {shortTitle && <span className="text-highlight">{shortTitle}</span>}{" "}
+            {nickname ?? name}
+          </div>
+        </Button>
+      }
+    />
   )
 }

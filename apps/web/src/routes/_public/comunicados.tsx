@@ -9,6 +9,7 @@ import { Pagination } from "@/components/data-table/pagination";
 
 import { AnnouncementsModal } from "@/components/modals/announcements-modal";
 import { PageHeader } from "@/components/page-header";
+import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
 import { useTRPC } from "@/utils/trpc";
 import { padNumber } from "@/utils/format";
 
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/_public/comunicados")({
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(context.trpc.announcements.byPage.queryOptions({ page: deps.page })),
+  pendingComponent: () => <CardGridSkeleton />,
   component: RouteComponent,
 });
 
@@ -73,27 +75,26 @@ function AnnouncementRow({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <>
-      <button
-        type="button"
-        className="flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-muted/50"
-        onClick={() => setIsOpen(true)}
-      >
-        <div className="flex items-center gap-2">
-          <HugeiconsIcon icon={ScrollIcon} size={14} className="text-muted-foreground" />
-          <span className="font-semibold text-sm">
-            Comunicado {padNumber(announcement.number)}/{announcement.year}
-          </span>
-        </div>
-        <span className="line-clamp-1 text-muted-foreground text-sm">{announcement.content}</span>
-      </button>
-      <AnnouncementsModal
-        content={announcement.content}
-        number={padNumber(announcement.number)}
-        onOpenChange={setIsOpen}
-        open={isOpen}
-        year={announcement.year}
-      />
-    </>
+    <AnnouncementsModal
+      content={announcement.content}
+      number={padNumber(announcement.number)}
+      onOpenChange={setIsOpen}
+      open={isOpen}
+      trigger={
+        <button
+          type="button"
+          className="flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-muted/50"
+        >
+          <div className="flex items-center gap-2">
+            <HugeiconsIcon icon={ScrollIcon} size={14} className="text-muted-foreground" />
+            <span className="font-semibold text-sm">
+              Comunicado {padNumber(announcement.number)}/{announcement.year}
+            </span>
+          </div>
+          <span className="line-clamp-1 text-muted-foreground text-sm">{announcement.content}</span>
+        </button>
+      }
+      year={announcement.year}
+    />
   );
 }

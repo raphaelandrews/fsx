@@ -15,6 +15,7 @@ import { Separator } from "@fsx/ui/components/separator";
 
 import { Announcement } from "@/components/announcement";
 import { PageHeader } from "@/components/page-header";
+import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
 import { getGradient } from "@/lib/gradients";
 import { useTRPC } from "@/utils/trpc";
 
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/_public/membros")({
     context.queryClient.ensureQueryData(
       context.trpc.roles.listWithPlayers.queryOptions()
     ),
+  pendingComponent: () => <CardGridSkeleton />,
   component: RouteComponent,
 });
 

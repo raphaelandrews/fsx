@@ -29,6 +29,7 @@ import {
 import { DataTableFacetedFilter } from "@/components/data-table/data-table-faceted-filter";
 import { SearchInput } from "@/components/data-table/search-input";
 import { PageHeader } from "@/components/page-header";
+import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { PlayerActions } from "@/components/campeoes/actions";
 import {
   ratingGroups,
@@ -94,6 +95,7 @@ export const Route = createFileRoute("/_public/ratings")({
       ),
     ]);
   },
+  pendingComponent: () => <TableSkeleton cols={5} />,
   component: RouteComponent,
 });
 
@@ -236,13 +238,11 @@ function RouteComponent() {
         />
 
         <form
-          className="flex flex-col gap-1"
           onSubmit={(e) => {
             e.preventDefault();
             updateSearch({ nome: nameInput.trim() || undefined });
           }}
         >
-          <span className="text-xs text-muted-foreground">Buscar</span>
           <SearchInput
             placeholder="Nome do jogador..."
             value={nameInput}
