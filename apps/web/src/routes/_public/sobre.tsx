@@ -2,7 +2,6 @@ import { LandmarkIcon, Link02Icon, Target01Icon } from "@hugeicons/core-free-ico
 import { createFileRoute } from "@tanstack/react-router";
 
 import { Announcement } from "@/components/announcement";
-import { DottedSeparator } from "@/components/dotted-separator";
 import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_public/sobre")({
@@ -46,7 +45,6 @@ function RouteComponent() {
 
       <section className="mb-0">
         <Announcement icon={LandmarkIcon} label="A FSX" className="text-sm" />
-        <DottedSeparator />
 
         <div className="space-y-3 px-4 py-3 text-sm leading-relaxed text-foreground">
           <p>
@@ -62,13 +60,11 @@ function RouteComponent() {
       </section>
 
       <section className="mb-0">
-        <DottedSeparator />
         <Announcement icon={Target01Icon} label="Finalidades" className="text-sm" />
-        <DottedSeparator />
 
         <div className="flex flex-col">
           {finalidades.map((item, index) => (
-            <SobreItem key={index} isLast={index === finalidades.length - 1}>
+            <SobreItem key={index}>
               <div className="flex items-start gap-2">
                 <span className="shrink-0 text-muted-foreground">•</span>
                 <p className="text-sm text-foreground">{item}</p>
@@ -79,17 +75,11 @@ function RouteComponent() {
       </section>
 
       <section className="mb-0">
-        <DottedSeparator />
         <Announcement icon={Link02Icon} label="Links" className="text-sm" />
-        <DottedSeparator />
 
         <div className="flex flex-col">
           {links.map((link, index) => (
-            <SobreItem
-              key={index}
-              isLast={index === links.length - 1}
-              className="group p-0 hover:bg-transparent"
-            >
+            <SobreItem key={index} className="group p-0 hover:bg-transparent">
               <a
                 className="flex items-center gap-2 p-3 text-sm text-link transition-all group-hover:underline"
                 href={link.href}
@@ -110,21 +100,10 @@ function RouteComponent() {
   );
 }
 
-function SobreItem({
-  children,
-  isLast,
-  className,
-}: {
-  children: React.ReactNode;
-  isLast?: boolean;
-  className?: string;
-}) {
+function SobreItem({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div>
-      <div className="m-1">
-        <div className={`p-3 transition-all hover:bg-muted/50 ${className ?? ""}`}>{children}</div>
-      </div>
-      {!isLast && <DottedSeparator className="w-full" />}
+    <div className="m-1">
+      <div className={`p-3 transition-all hover:bg-muted/50 ${className ?? ""}`}>{children}</div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
-import type { ComponentProps, ComponentPropsWithoutRef } from "react"
+import type { ComponentProps, ComponentPropsWithoutRef } from "react";
 
-import { Link, useLocation } from "@tanstack/react-router"
-import { HugeiconsIcon } from "@hugeicons/react"
+import { Link, useLocation } from "@tanstack/react-router";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   NavigationMenu,
@@ -11,22 +11,22 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-} from "@fsx/ui/components/navigation-menu"
+} from "@fsx/ui/components/navigation-menu";
 
-import { navigationData } from "./header-navigation-data"
-import { Logo } from "../logo"
-import { LogoContextMenu } from "./logo-context-menu"
+import { navigationData } from "./header-navigation-data";
+import { Logo } from "../logo";
+import { LogoContextMenu } from "./logo-context-menu";
 
 export function MainNav() {
-  const pathname = useLocation().pathname
-  const items = navigationData()
+  const pathname = useLocation().pathname;
+  const items = navigationData();
 
   return (
     <div className="flex flex-1 items-center">
       {pathname === "/" ? (
         <div className="mr-4 flex items-center space-x-2">
           <LogoContextMenu>
-            <Logo className="h-4 text-foreground hover:text-primary transition-colors" />
+            <Logo className="h-4 text-foreground" />
           </LogoContextMenu>
         </div>
       ) : (
@@ -39,26 +39,21 @@ export function MainNav() {
       <NavigationMenu className="mx-auto hidden xl:block">
         <NavigationMenuList>
           {items.map(({ label, items, href, target }) => {
-            const hasItems = Boolean(items?.length)
+            const hasItems = Boolean(items?.length);
 
             if (hasItems) {
               return (
                 <NavigationMenuItem key={label}>
                   <NavigationMenuTrigger>{label}</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="m-0 flex w-72 list-none flex-col gap-px p-0">
+                  <NavigationMenuContent className="p-0">
+                    <ul className="m-0 flex w-64 list-none flex-col gap-1.5 p-2">
                       {items?.map(({ href, icon, label }) => (
-                        <ListItem
-                          key={label}
-                          href={href}
-                          icon={icon}
-                          title={label}
-                        />
+                        <ListItem key={label} href={href} icon={icon} title={label} />
                       ))}
                     </ul>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
-              )
+              );
             }
 
             return (
@@ -72,12 +67,12 @@ export function MainNav() {
                   }
                 />
               </NavigationMenuItem>
-            )
+            );
           })}
         </NavigationMenuList>
       </NavigationMenu>
     </div>
-  )
+  );
 }
 
 function ListItem({
@@ -86,25 +81,20 @@ function ListItem({
   icon,
   ...props
 }: ComponentPropsWithoutRef<"li"> & {
-  href: string
-  icon: ComponentProps<typeof HugeiconsIcon>["icon"]
+  href: string;
+  icon: ComponentProps<typeof HugeiconsIcon>["icon"];
 }) {
   return (
     <li {...props}>
       <NavigationMenuLink
+        className="w-full justify-start gap-1.5 rounded-[6px] p-2 bg-noir text-noir-foreground transition-colors duration-200 select-none hover:bg-muted"
         render={
           <Link to={href}>
-            <div className="grid w-full grid-cols-[20px_1fr] items-center gap-x-2">
-              <span className="flex size-5 items-center justify-center rounded-[2px] bg-muted text-muted-foreground">
-                <HugeiconsIcon className="size-4" icon={icon} />
-              </span>
-              <span className="text-sm/5 font-medium text-foreground">
-                {title}
-              </span>
-            </div>
+            <HugeiconsIcon className="size-4 text-muted-foreground" icon={icon} />
+            <span className="text-sm font-medium text-foreground">{title}</span>
           </Link>
         }
       />
     </li>
-  )
+  );
 }

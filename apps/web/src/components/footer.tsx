@@ -1,14 +1,10 @@
-import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  GithubIcon,
-  InstagramIcon,
-  Mail01Icon,
-} from "@hugeicons/core-free-icons"
-import { Link } from "@tanstack/react-router"
+import { HugeiconsIcon } from "@hugeicons/react";
+import { InstagramIcon, Mail01Icon } from "@hugeicons/core-free-icons";
+import { Link } from "@tanstack/react-router";
 
-import { Logo } from "@/components/logo"
+import { Logo } from "@/components/logo";
 
-import { cn } from "@fsx/ui/lib/utils"
+import { cn } from "@fsx/ui/lib/utils";
 
 const footerLinks = [
   { label: "Home", to: "/" },
@@ -20,7 +16,7 @@ const footerLinks = [
   { label: "Membros", to: "/membros" },
   { label: "Titulados", to: "/titulados" },
   { label: "Sobre", to: "/sobre" },
-]
+];
 
 const socials = [
   {
@@ -29,26 +25,17 @@ const socials = [
     icon: InstagramIcon,
   },
   {
-    label: "Código-fonte da FSX no GitHub",
-    href: "https://github.com/raphaelandrews/fsx",
-    icon: GithubIcon,
-  },
-  {
     label: "Enviar e-mail para a FSX",
     href: "mailto:fsx.presidente@gmail.com",
     icon: Mail01Icon,
   },
-]
+];
 
 export function Footer({ className }: { className?: string }) {
   return (
     <footer className={cn("bg-background text-foreground", className)}>
       <div className="container flex max-w-7xl flex-col items-center gap-8 px-3 py-14 sm:px-8">
-        <Link
-          aria-label="FSX — Página inicial"
-          className="text-foreground transition-colors hover:text-primary"
-          to="/"
-        >
+        <Link aria-label="FSX — Página inicial" className="text-foreground" to="/">
           <Logo className="h-6 w-auto" />
         </Link>
 
@@ -66,16 +53,12 @@ export function Footer({ className }: { className?: string }) {
               <a
                 key={href}
                 aria-label={label}
-                className="inline-flex transition-all duration-300 hover:-translate-y-1 hover:text-primary"
+                className="inline-flex transition-colors hover:text-foreground"
                 href={href}
                 rel="noreferrer"
                 target={href.startsWith("mailto:") ? undefined : "_blank"}
               >
-                <HugeiconsIcon
-                  className="size-6"
-                  icon={icon}
-                  strokeWidth={2}
-                />
+                <HugeiconsIcon className="size-6" icon={icon} strokeWidth={2} />
               </a>
             ))}
           </div>
@@ -87,7 +70,7 @@ export function Footer({ className }: { className?: string }) {
             {footerLinks.map((link) => (
               <Link
                 key={link.to}
-                className="text-sm text-muted-foreground transition-colors duration-200 hover:text-primary"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 to={link.to}
               >
                 {link.label}
@@ -119,6 +102,5 @@ export function Footer({ className }: { className?: string }) {
         </div>
       </div>
     </footer>
-  )
+  );
 }
-

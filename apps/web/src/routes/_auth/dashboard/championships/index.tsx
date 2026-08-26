@@ -40,7 +40,7 @@ function RouteComponent() {
         <h1 className="font-bold text-2xl">{TITLE}</h1>
         <Link to={`${PATH}/create`}><Button>Create</Button></Link>
       </div>
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

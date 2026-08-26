@@ -36,7 +36,7 @@ function RouteComponent() {
         <h1 className="font-bold text-2xl">Roles</h1>
         <Link to="/dashboard/roles/create"><Button>Create Role</Button></Link>
       </div>
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

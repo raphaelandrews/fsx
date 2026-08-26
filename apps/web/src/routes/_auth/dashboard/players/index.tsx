@@ -42,7 +42,7 @@ function RouteComponent() {
           <Button>Create Player</Button>
         </Link>
       </div>
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

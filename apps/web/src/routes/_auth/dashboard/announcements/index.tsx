@@ -43,7 +43,7 @@ function RouteComponent() {
           <Button>Create Announcement</Button>
         </Link>
       </div>
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

@@ -1,55 +1,43 @@
-import { Fragment } from "react"
-import { HugeiconsIcon } from "@hugeicons/react"
+import { Fragment } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowUpRight01Icon,
   FoldersIcon,
   InstagramIcon,
-  MailboxIcon,
-} from "@hugeicons/core-free-icons"
-import { createFileRoute } from "@tanstack/react-router"
-import { useSuspenseQuery } from "@tanstack/react-query"
+  Mail01Icon,
+} from "@hugeicons/core-free-icons";
+import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { buttonVariants } from "@fsx/ui/components/button"
-import { Button } from "@fsx/ui/components/button"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@fsx/ui/components/tooltip"
-import { cn } from "@fsx/ui/lib/utils"
+import { Button } from "@fsx/ui/components/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@fsx/ui/components/tooltip";
 
-import { Announcement } from "@/components/announcement"
-import { FlickeringGrid } from "@/components/flickering-grid"
-import { Footer } from "@/components/footer"
-import { Logo } from "@/components/logo"
-import { useTRPC } from "@/utils/trpc"
+import { Announcement } from "@/components/announcement";
+import { FlickeringGrid } from "@/components/flickering-grid";
+import { Footer } from "@/components/footer";
+import { Logo } from "@/components/logo";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/links")({
   head: () => ({
-    meta: [
-      { title: "Links - FSX" },
-      { name: "description", content: "Links úteis." },
-    ],
+    meta: [{ title: "Links - FSX" }, { name: "description", content: "Links úteis." }],
   }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.links.list.queryOptions()),
   component: RouteComponent,
-})
+});
 
 function LinkItem({ href, label, icon }: { href: string; label: string; icon: string }) {
   return (
     <a
-      className={cn(
-        buttonVariants({ variant: "ghost" }),
-        "flex h-[inherit] w-full items-center justify-between rounded-none p-3",
-      )}
+      className="flex h-[inherit] w-full items-center justify-between rounded-lg bg-card p-3 transition-colors hover:bg-muted"
       href={href}
       rel="noreferrer"
       target="_blank"
     >
       <div
         aria-hidden="true"
-        className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-lg [&>div>svg]:h-4 [&>div>svg]:w-4"
+        className="grid h-8 w-8 place-items-center rounded-md bg-bulbasaur text-bulbasaur-foreground shadow-lg [&>div>svg]:h-4 [&>div>svg]:w-4"
       >
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static icon markup from the database */}
         <div dangerouslySetInnerHTML={{ __html: icon }} />
@@ -63,12 +51,12 @@ function LinkItem({ href, label, icon }: { href: string; label: string; icon: st
         />
       </div>
     </a>
-  )
+  );
 }
 
 function RouteComponent() {
-  const trpc = useTRPC()
-  const { data: linkGroups = [] } = useSuspenseQuery(trpc.links.list.queryOptions())
+  const trpc = useTRPC();
+  const { data: linkGroups = [] } = useSuspenseQuery(trpc.links.list.queryOptions());
 
   return (
     <div className="relative flex min-h-dvh flex-col overflow-x-hidden">
@@ -131,7 +119,7 @@ function RouteComponent() {
                       />
                     }
                   >
-                    <HugeiconsIcon icon={MailboxIcon} className="size-4" />
+                    <HugeiconsIcon icon={Mail01Icon} className="size-4" />
                   </TooltipTrigger>
                   <TooltipContent>Email</TooltipContent>
                 </Tooltip>
@@ -157,5 +145,5 @@ function RouteComponent() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }

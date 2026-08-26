@@ -7,9 +7,20 @@ import { adminProcedure, publicProcedure, router } from "../index";
 export const announcementsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
     ctx.db
-      .select({ id: announcements.id, year: announcements.year, number: announcements.number, content: announcements.content })
+      .select({
+        id: announcements.id,
+        year: announcements.year,
+        number: announcements.number,
+        content: announcements.content,
+      })
       .from(announcements)
-      .orderBy(desc(announcements.year), desc(announcements.number))
+      .orderBy(desc(announcements.year), desc(announcements.number)),
+  ),
+  byId: publicProcedure.input(z.object({ id: z.number() })).query(({ ctx, input }) =>
+    ctx.db.query.announcements.findFirst({
+      columns: { id: true, year: true, number: true, content: true },
+      where: eq(announcements.id, input.id),
+    }),
   ),
   byPage: publicProcedure
     .input(z.object({ page: z.number().default(1) }))
@@ -22,9 +33,7 @@ export const announcementsRouter = router({
         limit: perPage,
         offset: (validPage - 1) * perPage,
       });
-      const countResult = await ctx.db
-        .select({ value: count() })
-        .from(announcements);
+      const countResult = await ctx.db.select({ value: count() }).from(announcements);
       const totalItems = countResult[0]?.value ?? 0;
       const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
       return {
@@ -41,24 +50,34 @@ export const announcementsRouter = router({
     }),
   fresh: publicProcedure.query(({ ctx }) =>
     ctx.db
-      .select({ id: announcements.id, year: announcements.year, number: announcements.number, content: announcements.content })
+      .select({
+        id: announcements.id,
+        year: announcements.year,
+        number: announcements.number,
+        content: announcements.content,
+      })
       .from(announcements)
       .orderBy(desc(announcements.year), desc(announcements.number))
-      .limit(8)
+      .limit(8),
   ),
   create: adminProcedure
     .input(insertAnnouncementSchema.omit({ id: true }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.insert(announcements).values(input).returning()
-    ),
+    .mutation(({ ctx, input }) => ctx.db.insert(announcements).values(input).returning()),
   update: adminProcedure
-    .input(z.object({ id: z.number(), year: z.number().optional(), number: z.number().optional(), content: z.string().optional() }))
+    .input(
+      z.object({
+        id: z.number(),
+        year: z.number().optional(),
+        number: z.number().optional(),
+        content: z.string().optional(),
+      }),
+    )
     .mutation(({ ctx, input }) =>
-      ctx.db.update(announcements).set(input).where(eq(announcements.id, input.id)).returning()
+      ctx.db.update(announcements).set(input).where(eq(announcements.id, input.id)).returning(),
     ),
   delete: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ ctx, input }) =>
-      ctx.db.delete(announcements).where(eq(announcements.id, input.id))
+      ctx.db.delete(announcements).where(eq(announcements.id, input.id)),
     ),
 });

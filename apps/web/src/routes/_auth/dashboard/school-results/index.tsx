@@ -46,7 +46,7 @@ function RouteComponent() {
           <Link to="/dashboard/school-results/create"><Button>Create Result</Button></Link>
         </div>
       </div>
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

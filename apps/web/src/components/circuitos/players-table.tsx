@@ -51,7 +51,7 @@ export function PlayersTable({
 
   return (
     <div className="flex flex-col">
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

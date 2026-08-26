@@ -26,8 +26,7 @@ export function Section({
           <Announcement
             icon={icon}
             label={label}
-            stacked
-            className="text-xl md:text-2xl font-display text-foreground"
+            className="text-[1.15rem] font-bold leading-tight text-title"
           />
         )}
         {children}

@@ -66,7 +66,7 @@ function CampeoesTable({ data }: { data: ChampionTournament[] }) {
   return (
     <div className="flex flex-col">
       <div className="p-4">
-        <div className="overflow-hidden rounded-lg">
+        <div className="overflow-hidden">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (

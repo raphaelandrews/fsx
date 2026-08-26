@@ -71,12 +71,12 @@ interface Props {
   image?: string | null;
   shortName?: string | null;
   defendingChampions?:
-    | {
-        championship: {
-          name: string;
-        };
-      }[]
-    | null;
+  | {
+    championship: {
+      name: string;
+    };
+  }[]
+  | null;
 }
 
 export const Actions = ({ id, name, nickname, image, shortName, defendingChampions }: Props) => {
@@ -92,7 +92,7 @@ export const Actions = ({ id, name, nickname, image, shortName, defendingChampio
         trigger={
           <Button
             aria-label={`Ver perfil de ${name}`}
-            className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:text-primary dark:hover:bg-transparent aria-expanded:bg-transparent"
+            className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:underline dark:hover:bg-transparent aria-expanded:bg-transparent"
             variant="ghost"
           >
             <Avatar className="size-8 rounded-md">

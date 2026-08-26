@@ -26,7 +26,7 @@ export const PlayerActions = ({ id, name, nickname, image, shortTitle }: Props) 
       trigger={
         <Button
           aria-label={`Ver perfil de ${name}`}
-          className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:text-primary dark:hover:bg-transparent aria-expanded:bg-transparent"
+          className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:underline dark:hover:bg-transparent aria-expanded:bg-transparent"
           variant="ghost"
         >
           <Avatar className="size-8 rounded-md">

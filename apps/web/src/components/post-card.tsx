@@ -1,20 +1,17 @@
+import { Link } from "@tanstack/react-router";
 
-import { useState, useEffect } from "react"
-import { Link } from "@tanstack/react-router"
-
-import { cn } from "@fsx/ui/lib/utils"
-import { Skeleton } from "@fsx/ui/components/skeleton"
+import { cn } from "@fsx/ui/lib/utils";
 
 interface FreshPost {
-  title: string
-  imageUrl: string | null
-  slug?: string
+  title: string;
+  imageUrl: string | null;
+  slug?: string;
 }
 
 type PostCardProps = FreshPost & {
-  main?: boolean
-  onMouseEnter?: () => void
-}
+  main?: boolean;
+  onMouseEnter?: () => void;
+};
 
 export function PostCard({
   title,
@@ -24,75 +21,38 @@ export function PostCard({
   onMouseEnter,
   className,
 }: PostCardProps & { className?: string }) {
-  const [loading, setLoading] = useState(true)
-  const [imageLoaded, setImageLoaded] = useState(false)
-
-  useEffect(() => {
-    const img = new Image()
-    img.src = imageUrl ?? ""
-    img.onload = () => {
-      setImageLoaded(true)
-      setLoading(false)
-    }
-    img.onerror = () => {
-      setLoading(false)
-    }
-
-    const timeout = setTimeout(() => {
-      if (loading) setLoading(false)
-    }, 2500)
-
-    return () => clearTimeout(timeout)
-  }, [imageUrl, loading])
-
-  if (loading) {
-    return (
-      <div className="p-3">
-        <div className="mb-2">
-          <Skeleton className="aspect-[2/1] w-full rounded-md" />
-        </div>
-        <div className="px-2 flex flex-col gap-1">
-          <Skeleton className="h-5 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-        </div>
-      </div>
-    )
-  }
-
   return (
     <Link
       className={cn(
-        "group flex flex-col rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        "group flex w-full cursor-pointer flex-col gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         className,
       )}
       to="/noticias/$slug"
       params={{ slug: slug ?? "" }}
       onMouseEnter={onMouseEnter}
     >
-      <div className="overflow-hidden rounded-md">
-        {/* biome-ignore lint/performance/noImgElement: No */}
-        <img
-          alt=""
-          className="aspect-2/1 w-full rounded-md border border-border object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
-          decoding="async"
-          loading="lazy"
-          src={imageUrl ?? undefined}
-          style={{ opacity: imageLoaded ? 1 : 0 }}
-        />
+      <div className="relative aspect-video w-full overflow-hidden rounded-md bg-muted select-none">
+        {imageUrl ? (
+          <img
+            alt={title}
+            className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+            decoding="async"
+            loading="lazy"
+            src={imageUrl}
+          />
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-1 px-2">
-        <h2
+        <h3
           className={cn(
-            "mt-2 line-clamp-2 font-semibold text-balance transition-colors duration-200 group-hover:text-primary",
-            main
-              ? "text-lg tracking-tight md:text-xl"
-              : "text-md leading-5",
+            "line-clamp-2 font-bold leading-[1.1] text-foreground",
+            main ? "text-lg md:text-xl" : "text-[1.1rem]",
           )}
         >
           {title}
-        </h2>
+        </h3>
       </div>
     </Link>
-  )
+  );
 }

@@ -1,12 +1,12 @@
-import { HelpCircleIcon } from "@hugeicons/core-free-icons"
+import { HelpCircleIcon } from "@hugeicons/core-free-icons";
 
-import { Section } from "./section"
+import { Section } from "./section";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@fsx/ui/components/accordion"
+} from "@fsx/ui/components/accordion";
 
 const FAQ_ITEMS = [
   {
@@ -14,21 +14,20 @@ const FAQ_ITEMS = [
     question: "O que preciso fazer para jogar torneios?",
     answer: (
       <>
-        Para jogar os torneios da FSX, basta preencher o formulário e pagar a
-        taxa de inscrição. Os links são disponibilizados no site e no instagram
-        ({" "}
+        Para jogar os torneios da FSX, basta preencher o formulário e pagar a taxa de inscrição. Os
+        links são disponibilizados no site e no instagram ({" "}
         <a
-          className="text-link no-underline! transition-colors hover:text-primary! focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="text-link no-underline! hover:underline! hover:text-link!"
           href="https://www.instagram.com/xadrezsergipe"
           rel="noreferrer"
           target="_blank"
         >
           @xadrezsergipe
         </a>
-        ). Alguns torneios são válidos para rating CBX e FIDE, nesses casos, é
-        necessário também preencher o{" "}
+        ). Alguns torneios são válidos para rating CBX e FIDE, nesses casos, é necessário também
+        preencher o{" "}
         <a
-          className="text-link no-underline! transition-colors hover:text-primary! focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="text-link no-underline! hover:underline! hover:text-link!"
           href="https://www.cbx.org.br/cadastro"
           rel="noreferrer"
           target="_blank"
@@ -41,23 +40,22 @@ const FAQ_ITEMS = [
   },
   {
     value: "item-2",
-    question:
-      "Como faço para me cadastrar na FSX? É preciso pagar alguma taxa/anuidade?",
+    question: "Como faço para me cadastrar na FSX? É preciso pagar alguma taxa/anuidade?",
     answer: (
       <>
-        O cadastro do enxadrista é feito pela FSX assim que ele joga seu
-        primeiro torneio, não é preciso fazer nenhuma solicitação. Assim que o
-        enxadrista estiver cadastrado, ele pode preencher o{" "}
+        O cadastro do enxadrista é feito pela FSX assim que ele joga seu primeiro torneio, não é
+        preciso fazer nenhuma solicitação. Assim que o enxadrista estiver cadastrado, ele pode
+        preencher o{" "}
         <a
-          className="text-link no-underline! transition-colors hover:text-primary! focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="text-link no-underline! hover:underline! hover:text-link!"
           href="https://forms.gle/5JXbBckcWB33EprW8"
           rel="noreferrer"
           target="_blank"
         >
           formulário de atualização de dados
         </a>{" "}
-        para adicionar algumas informações ao seu perfil. Não é necessário pagar
-        taxas, somente as de inscrição dos torneios.
+        para adicionar algumas informações ao seu perfil. Não é necessário pagar taxas, somente as
+        de inscrição dos torneios.
       </>
     ),
   },
@@ -68,7 +66,7 @@ const FAQ_ITEMS = [
       <>
         Acesse nosso{" "}
         <a
-          className="text-link no-underline! transition-colors hover:text-primary! focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="text-link no-underline! hover:underline! hover:text-link!"
           href="https://docs.google.com/spreadsheets/d/1FqWEWcpcRzW0r4wnsjLOIFmrwFkcqd9gnA7Lk1ZZ5uM"
           rel="noreferrer"
           target="_blank"
@@ -77,7 +75,7 @@ const FAQ_ITEMS = [
         </a>
         . Os torneios são divulgados no site e instagram (
         <a
-          className="text-link no-underline! transition-colors hover:text-primary! focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="text-link no-underline! hover:underline! hover:text-link!"
           href="https://www.instagram.com/xadrezsergipe"
           rel="noreferrer"
           target="_blank"
@@ -88,7 +86,7 @@ const FAQ_ITEMS = [
       </>
     ),
   },
-]
+];
 
 export function FAQ() {
   return (
@@ -108,5 +106,5 @@ export function FAQ() {
         ))}
       </Accordion>
     </Section>
-  )
+  );
 }

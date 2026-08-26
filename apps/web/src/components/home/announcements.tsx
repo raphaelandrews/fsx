@@ -1,48 +1,38 @@
+import { useState } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowUpRight01Icon, Megaphone01Icon, ScrollIcon } from "@hugeicons/core-free-icons";
 
-import { useState } from "react"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowUpRight01Icon, Megaphone01Icon, ScrollIcon } from "@hugeicons/core-free-icons"
-
-import { Section } from "./section"
-import { AnnouncementsModal } from "@/components/modals/announcements-modal"
-import { SectionButton } from "@/components/section-button"
-import { padNumber } from "@/utils/format"
+import { Section } from "./section";
+import { AnnouncementsModal } from "@/components/modals/announcements-modal";
+import { SectionButton } from "@/components/section-button";
+import { padNumber } from "@/utils/format";
 
 interface AnnouncementType {
-  id: number
-  number: number
-  year: number
-  content: string
+  id: number;
+  number: number;
+  year: number;
+  content: string;
 }
 
 interface AnnouncementsSectionProps {
-  announcements: AnnouncementType[]
+  announcements: AnnouncementType[];
 }
 
 export function Announcements({ announcements }: AnnouncementsSectionProps) {
   return (
-    <Section
-      icon={Megaphone01Icon}
-      label="Comunicados"
-      main={false}
-    >
+    <Section icon={Megaphone01Icon} label="Comunicados" main={false}>
       <div className="grid md:grid-cols-2">
         {announcements?.map((announcement: AnnouncementType) => (
-          <AnnouncementItem
-            key={announcement.id}
-            announcement={announcement}
-          />
+          <AnnouncementItem key={announcement.id} announcement={announcement} />
         ))}
       </div>
       <SectionButton href="/comunicados" label="Ver Comunicados" />
     </Section>
-  )
+  );
 }
 
-function AnnouncementItem({
-  announcement,
-}: { announcement: AnnouncementType }) {
-  const [isOpen, setIsOpen] = useState(false)
+function AnnouncementItem({ announcement }: { announcement: AnnouncementType }) {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <AnnouncementsModal
@@ -59,7 +49,7 @@ function AnnouncementItem({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <HugeiconsIcon icon={ScrollIcon} size={14} className="text-muted-foreground" />
-                <h3 className="text-sm font-bold leading-tight">
+                <h3 className="text-sm leading-tight font-bold">
                   Comunicado {padNumber(announcement.number)}/{announcement.year}
                 </h3>
               </div>
@@ -67,13 +57,11 @@ function AnnouncementItem({
                 <HugeiconsIcon icon={ArrowUpRight01Icon} size={14} />
               </div>
             </div>
-            <p className="text-muted-foreground text-xs line-clamp-2">
-              {announcement.content}
-            </p>
+            <p className="text-muted-foreground text-xs line-clamp-2">{announcement.content}</p>
           </div>
         </button>
       }
       year={announcement.year}
     />
-  )
+  );
 }

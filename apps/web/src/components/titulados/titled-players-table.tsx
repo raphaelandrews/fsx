@@ -96,7 +96,7 @@ export function TitledPlayersTable({ data }: { data: TitledPlayer[] }) {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

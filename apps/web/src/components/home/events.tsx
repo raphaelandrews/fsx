@@ -142,14 +142,14 @@ export function formattedBadge({
   timeControl?: string
 }) {
   const badgeMap: { [key: string]: JSX.Element } = {
-    open: <Badge variant="default">Aberto</Badge>,
-    closed: <Badge variant="secondary">Fechado</Badge>,
-    school: <Badge variant="outline">Escolar</Badge>,
+    open: <Badge variant="bulbasaur">Aberto</Badge>,
+    closed: <Badge variant="strawberry">Fechado</Badge>,
+    school: <Badge variant="jam">Escolar</Badge>,
 
-    standard: <Badge variant="default">Clássico</Badge>,
-    rapid: <Badge variant="secondary">Rápido</Badge>,
-    blitz: <Badge variant="outline">Blitz</Badge>,
-    bullet: <Badge variant="secondary">Bullet</Badge>,
+    standard: <Badge variant="noir">Clássico</Badge>,
+    rapid: <Badge variant="sea">Rápido</Badge>,
+    blitz: <Badge variant="ice">Blitz</Badge>,
+    bullet: <Badge variant="raspberry">Bullet</Badge>,
   }
 
   if (type && badgeMap[type]) {

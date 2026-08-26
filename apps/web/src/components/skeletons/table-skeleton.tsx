@@ -21,7 +21,7 @@ export function TableSkeleton({ rows = 8, cols = 5 }: TableSkeletonProps) {
           <Skeleton className="h-8 w-24" />
           <Skeleton className="h-8 w-40" />
         </div>
-        <div className="overflow-hidden rounded-lg border border-border">
+        <div className="overflow-hidden border border-border">
           <div
             className="grid gap-2 border-b bg-muted/40 p-3"
             style={{ gridTemplateColumns }}

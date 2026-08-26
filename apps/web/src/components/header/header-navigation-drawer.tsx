@@ -57,7 +57,7 @@ export const HeaderNavigationDrawer = () => {
           </Link>
           <DrawerClose
             aria-label="Fechar menu"
-            className="rounded-full border border-border p-2.5 text-foreground transition-colors hover:bg-muted"
+            className="rounded-md border border-border p-2.5 text-foreground transition-colors hover:bg-muted"
           >
             <HugeiconsIcon className="size-5" icon={Cancel01Icon} />
           </DrawerClose>
@@ -92,7 +92,7 @@ export const HeaderNavigationDrawer = () => {
                               to={sub.href}
                               target={sub.target}
                               onClick={() => setOpen(false)}
-                              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                              className="flex items-center gap-3 px-3 py-2.5 text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
                             >
                               <HugeiconsIcon
                                 className="size-5 shrink-0"

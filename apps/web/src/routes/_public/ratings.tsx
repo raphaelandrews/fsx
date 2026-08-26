@@ -242,7 +242,7 @@ function RouteComponent() {
       </div>
 
       {/* Table — column order: # / Nome / [rating] / Local (flag) / Clube (logo) */}
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -274,11 +274,12 @@ function RouteComponent() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     {player.location?.flagUrl ? (
-                      <Avatar className="size-5 rounded-sm">
+                      <Avatar className="size-4 rounded object-contain">
                         <AvatarImage
                           alt={player.location.name ?? ""}
                           className="object-contain"
                           src={player.location.flagUrl}
+                          title={player.location.name ?? ""}
                         />
                       </Avatar>
                     ) : null}

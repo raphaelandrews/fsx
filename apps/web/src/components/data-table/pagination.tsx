@@ -1,60 +1,56 @@
-import { HugeiconsIcon } from "@hugeicons/react"
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
   ArrowLeftDoubleIcon,
   ArrowRight01Icon,
   ArrowRightDoubleIcon,
   MoreHorizontalCircle01Icon,
-} from "@hugeicons/core-free-icons"
+} from "@hugeicons/core-free-icons";
 
-import { Button } from "@fsx/ui/components/button"
-import { cn } from "@fsx/ui/lib/utils"
+import { Button } from "@fsx/ui/components/button";
+import { cn } from "@fsx/ui/lib/utils";
 
 interface PaginationProps {
-  currentPage: number
-  totalPages: number
-  hasPreviousPage: boolean
-  hasNextPage: boolean
-  onPageChange: (page: number) => void
-  showLabel?: boolean
-  showEdges?: boolean
-  siblingCount?: number
-  className?: string
+  currentPage: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+  onPageChange: (page: number) => void;
+  showLabel?: boolean;
+  showEdges?: boolean;
+  siblingCount?: number;
+  className?: string;
 }
 
 type PageItem =
   | { type: "page"; page: number; isCurrent: boolean }
-  | { type: "ellipsis"; key: "start" | "end" }
+  | { type: "ellipsis"; key: "start" | "end" };
 
-function buildPageItems(
-  currentPage: number,
-  totalPages: number,
-  siblingCount: number
-): PageItem[] {
-  const totalNumbers = siblingCount * 2 + 5
+function buildPageItems(currentPage: number, totalPages: number, siblingCount: number): PageItem[] {
+  const totalNumbers = siblingCount * 2 + 5;
   if (totalPages <= totalNumbers) {
     return Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => ({
       type: "page" as const,
       page,
       isCurrent: page === currentPage,
-    }))
+    }));
   }
 
-  const leftSibling = Math.max(currentPage - siblingCount, 1)
-  const rightSibling = Math.min(currentPage + siblingCount, totalPages)
+  const leftSibling = Math.max(currentPage - siblingCount, 1);
+  const rightSibling = Math.min(currentPage + siblingCount, totalPages);
 
-  const showStartEllipsis = leftSibling > 2
-  const showEndEllipsis = rightSibling < totalPages - 1
+  const showStartEllipsis = leftSibling > 2;
+  const showEndEllipsis = rightSibling < totalPages - 1;
 
-  const items: PageItem[] = []
+  const items: PageItem[] = [];
 
-  items.push({ type: "page", page: 1, isCurrent: currentPage === 1 })
+  items.push({ type: "page", page: 1, isCurrent: currentPage === 1 });
 
   if (showStartEllipsis) {
-    items.push({ type: "ellipsis", key: "start" })
+    items.push({ type: "ellipsis", key: "start" });
   } else {
     for (let page = 2; page < leftSibling; page++) {
-      items.push({ type: "page", page, isCurrent: page === currentPage })
+      items.push({ type: "page", page, isCurrent: page === currentPage });
     }
   }
 
@@ -63,23 +59,23 @@ function buildPageItems(
     page <= (showStartEllipsis ? Math.min(rightSibling, totalPages - 1) : rightSibling);
     page++
   ) {
-    if (page === 1 || page === totalPages) continue
-    items.push({ type: "page", page, isCurrent: page === currentPage })
+    if (page === 1 || page === totalPages) continue;
+    items.push({ type: "page", page, isCurrent: page === currentPage });
   }
 
   if (showEndEllipsis) {
-    items.push({ type: "ellipsis", key: "end" })
+    items.push({ type: "ellipsis", key: "end" });
   } else {
     for (let page = rightSibling + 1; page < totalPages; page++) {
-      items.push({ type: "page", page, isCurrent: page === currentPage })
+      items.push({ type: "page", page, isCurrent: page === currentPage });
     }
   }
 
   if (!items.some((item) => item.type === "page" && item.page === totalPages)) {
-    items.push({ type: "page", page: totalPages, isCurrent: currentPage === totalPages })
+    items.push({ type: "page", page: totalPages, isCurrent: currentPage === totalPages });
   }
 
-  return items
+  return items;
 }
 
 function PageButton({
@@ -87,9 +83,9 @@ function PageButton({
   isCurrent,
   onPageChange,
 }: {
-  page: number
-  isCurrent: boolean
-  onPageChange: (page: number) => void
+  page: number;
+  isCurrent: boolean;
+  onPageChange: (page: number) => void;
 }) {
   return (
     <Button
@@ -102,7 +98,7 @@ function PageButton({
     >
       {page}
     </Button>
-  )
+  );
 }
 
 function Ellipsis({ keyId }: { keyId: "start" | "end" }) {
@@ -112,14 +108,10 @@ function Ellipsis({ keyId }: { keyId: "start" | "end" }) {
       className="flex h-8 w-8 items-center justify-center text-muted-foreground"
       data-ellipsis={keyId}
     >
-      <HugeiconsIcon
-        className="size-4"
-        icon={MoreHorizontalCircle01Icon}
-        strokeWidth={2}
-      />
+      <HugeiconsIcon className="size-4" icon={MoreHorizontalCircle01Icon} strokeWidth={2} />
       <span className="sr-only">Mais páginas</span>
     </span>
-  )
+  );
 }
 
 export function Pagination({
@@ -133,16 +125,16 @@ export function Pagination({
   siblingCount = 1,
   className,
 }: PaginationProps) {
-  if (totalPages <= 1) return null
+  if (totalPages <= 1) return null;
 
-  const items = buildPageItems(currentPage, totalPages, siblingCount)
+  const items = buildPageItems(currentPage, totalPages, siblingCount);
 
   return (
     <nav
       aria-label="Paginação"
       className={cn(
         "flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:gap-3",
-        className
+        className,
       )}
     >
       <div className="flex items-center gap-1">
@@ -152,14 +144,10 @@ export function Pagination({
             className="hidden sm:inline-flex"
             disabled={!hasPreviousPage}
             onClick={() => onPageChange(1)}
-            size="icon-sm"
+            size="icon"
             variant="ghost"
           >
-            <HugeiconsIcon
-              className="size-4"
-              icon={ArrowLeftDoubleIcon}
-              strokeWidth={2}
-            />
+            <HugeiconsIcon className="size-4" icon={ArrowLeftDoubleIcon} strokeWidth={2} />
           </Button>
         ) : null}
 
@@ -168,14 +156,10 @@ export function Pagination({
           className="gap-1.5 px-2.5"
           disabled={!hasPreviousPage}
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-          size="sm"
+          size="default"
           variant="outline"
         >
-          <HugeiconsIcon
-            className="size-4"
-            icon={ArrowLeft01Icon}
-            strokeWidth={2}
-          />
+          <HugeiconsIcon className="size-4" icon={ArrowLeft01Icon} strokeWidth={2} />
           <span className="hidden sm:inline">Anterior</span>
         </Button>
 
@@ -190,7 +174,7 @@ export function Pagination({
                 page={item.page}
                 onPageChange={onPageChange}
               />
-            )
+            ),
           )}
         </div>
 
@@ -199,15 +183,11 @@ export function Pagination({
           className="gap-1.5 px-2.5"
           disabled={!hasNextPage}
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-          size="sm"
+          size="default"
           variant="outline"
         >
           <span className="hidden sm:inline">Próxima</span>
-          <HugeiconsIcon
-            className="size-4"
-            icon={ArrowRight01Icon}
-            strokeWidth={2}
-          />
+          <HugeiconsIcon className="size-4" icon={ArrowRight01Icon} strokeWidth={2} />
         </Button>
 
         {showEdges ? (
@@ -216,14 +196,10 @@ export function Pagination({
             className="hidden sm:inline-flex"
             disabled={!hasNextPage}
             onClick={() => onPageChange(totalPages)}
-            size="icon-sm"
+            size="icon"
             variant="ghost"
           >
-            <HugeiconsIcon
-              className="size-4"
-              icon={ArrowRightDoubleIcon}
-              strokeWidth={2}
-            />
+            <HugeiconsIcon className="size-4" icon={ArrowRightDoubleIcon} strokeWidth={2} />
           </Button>
         ) : null}
       </div>
@@ -234,5 +210,5 @@ export function Pagination({
         </p>
       ) : null}
     </nav>
-  )
+  );
 }

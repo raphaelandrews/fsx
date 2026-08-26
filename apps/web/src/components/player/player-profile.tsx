@@ -337,7 +337,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
           {player.location && (
             <InfoItem label="Localização">
               <div className="flex items-center gap-2">
-                <Avatar className="size-5 rounded-sm">
+                <Avatar className="size-4 rounded object-contain">
                   <AvatarImage
                     alt={player.location.name as string}
                     className="object-contain"

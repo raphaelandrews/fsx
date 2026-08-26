@@ -58,7 +58,7 @@ function RouteComponent() {
       <p className="mb-4 text-muted-foreground text-sm">
         Exporte dados de {players.length} jogadores para importação no Swiss Manager.
       </p>
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

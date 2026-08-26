@@ -11,7 +11,7 @@ function PublicLayout() {
   return (
     <>
       <Header />
-      <main className="container max-w-7xl min-h-screen">
+      <main className="container max-w-5xl! min-h-dvh">
         <Outlet />
       </main>
       <Footer />

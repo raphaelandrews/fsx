@@ -36,7 +36,7 @@ function RouteComponent() {
         <h1 className="font-bold text-2xl">Tournament Podiums</h1>
         <Link to="/dashboard/tournament-podiums/create"><Button>Create Podium</Button></Link>
       </div>
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

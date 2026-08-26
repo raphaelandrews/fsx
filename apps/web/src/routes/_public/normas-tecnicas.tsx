@@ -1,10 +1,7 @@
 import { ChartBarLineIcon, Medal01Icon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { Accordion } from "@fsx/ui/components/accordion";
-
 import { Announcement } from "@/components/announcement";
-import { DottedSeparator } from "@/components/dotted-separator";
 import { NormasItem } from "@/components/normas-tecnicas/normas-item";
 import { ratingVariations, titulations } from "@/components/normas-tecnicas/data";
 import { PageHeader } from "@/components/page-header";
@@ -32,41 +29,26 @@ function RouteComponent() {
 
       <section className="mb-0">
         <Announcement icon={Medal01Icon} label="Titulações" className="text-sm" />
-        <DottedSeparator />
 
-        <Accordion className="flex flex-col">
-          {titulations.map((item, index) => (
-            <NormasItem
-              key={item.title}
-              value={`item-${index}`}
-              title={item.title}
-              description={item.description}
-              isLast={index === titulations.length - 1}
-            >
+        <div className="flex flex-col">
+          {titulations.map((item) => (
+            <NormasItem key={item.title} title={item.title} description={item.description}>
               {item.content}
             </NormasItem>
           ))}
-        </Accordion>
+        </div>
       </section>
 
       <section className="mb-0">
-        <DottedSeparator />
         <Announcement icon={ChartBarLineIcon} label="Variação de Rating" className="text-sm" />
-        <DottedSeparator />
 
-        <Accordion className="flex flex-col">
-          {ratingVariations.map((item, index) => (
-            <NormasItem
-              key={item.title}
-              value={`item-${index}`}
-              title={item.title}
-              description={item.description}
-              isLast={index === ratingVariations.length - 1}
-            >
+        <div className="flex flex-col">
+          {ratingVariations.map((item) => (
+            <NormasItem key={item.title} title={item.title} description={item.description}>
               {item.content}
             </NormasItem>
           ))}
-        </Accordion>
+        </div>
       </section>
     </>
   );

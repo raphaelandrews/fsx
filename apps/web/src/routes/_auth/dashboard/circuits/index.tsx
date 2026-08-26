@@ -36,7 +36,7 @@ function RouteComponent() {
         <h1 className="font-bold text-2xl">Circuits</h1>
         <Link to="/dashboard/circuits/create"><Button>Create Circuit</Button></Link>
       </div>
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

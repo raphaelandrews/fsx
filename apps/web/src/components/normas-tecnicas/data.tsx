@@ -178,7 +178,7 @@ export const ratingVariations = [
           k={10}
           description="O enxadrista possua rating igual ou superior a 2300 pontos."
         />
-        <RatingRule k={20} description="Nas demais situações." isLast />
+        <RatingRule k={20} description="Nas demais situações." />
       </div>
     ),
   },
