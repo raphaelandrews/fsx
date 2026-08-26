@@ -6,11 +6,7 @@ import { CrownIcon, Flag01Icon } from "@hugeicons/core-free-icons";
 
 import type { AppRouter } from "@fsx/api/routers/index";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@fsx/ui/components/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
 import { Separator } from "@fsx/ui/components/separator";
 
 import { Announcement } from "@/components/announcement";
@@ -25,15 +21,12 @@ export const Route = createFileRoute("/_public/membros")({
       { title: "Membros - FSX" },
       {
         name: "description",
-        content:
-          "Diretoria e árbitros da Federação Sergipana de Xadrez.",
+        content: "Diretoria e árbitros da Federação Sergipana de Xadrez.",
       },
     ],
   }),
   loader: ({ context }) =>
-    context.queryClient.ensureQueryData(
-      context.trpc.roles.listWithPlayers.queryOptions()
-    ),
+    context.queryClient.ensureQueryData(context.trpc.roles.listWithPlayers.queryOptions()),
   pendingComponent: () => <CardGridSkeleton />,
   component: RouteComponent,
 });
@@ -47,10 +40,7 @@ interface Member {
   role: string;
 }
 
-function flattenMembers(
-  roles: RolesWithPlayers,
-  type: "management" | "referee"
-): Member[] {
+function flattenMembers(roles: RolesWithPlayers, type: "management" | "referee"): Member[] {
   const members = roles
     .filter((r) => r.type === type)
     .flatMap((role) =>
@@ -59,15 +49,14 @@ function flattenMembers(
         name: pr.player.name,
         imageUrl: pr.player.imageUrl,
         role: role.name,
-      }))
+      })),
     );
 
   if (type === "management") {
     return members.sort(
       (a, b) =>
         roleOrderIndex(DIRETORIA_ROLE_ORDER, a.role) -
-          roleOrderIndex(DIRETORIA_ROLE_ORDER, b.role) ||
-        a.name.localeCompare(b.name, "pt-BR")
+          roleOrderIndex(DIRETORIA_ROLE_ORDER, b.role) || a.name.localeCompare(b.name, "pt-BR"),
     );
   }
 
@@ -90,9 +79,7 @@ function roleOrderIndex(order: readonly string[], name: string): number {
   return index === -1 ? order.length : index;
 }
 
-function groupRefereeRoles(
-  roles: RolesWithPlayers
-): { name: string; members: Member[] }[] {
+function groupRefereeRoles(roles: RolesWithPlayers): { name: string; members: Member[] }[] {
   return roles
     .filter((r) => r.type === "referee" && r.playersToRoles.length > 0)
     .map((role) => ({
@@ -108,17 +95,14 @@ function groupRefereeRoles(
     }))
     .sort(
       (a, b) =>
-        roleOrderIndex(REFEREE_ROLE_ORDER, a.name) -
-          roleOrderIndex(REFEREE_ROLE_ORDER, b.name) ||
-        a.name.localeCompare(b.name, "pt-BR")
+        roleOrderIndex(REFEREE_ROLE_ORDER, a.name) - roleOrderIndex(REFEREE_ROLE_ORDER, b.name) ||
+        a.name.localeCompare(b.name, "pt-BR"),
     );
 }
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const { data: roles = [] } = useSuspenseQuery(
-    trpc.roles.listWithPlayers.queryOptions()
-  );
+  const { data: roles = [] } = useSuspenseQuery(trpc.roles.listWithPlayers.queryOptions());
 
   const diretoria = useMemo(() => flattenMembers(roles, "management"), [roles]);
   const refereeGroups = useMemo(() => groupRefereeRoles(roles), [roles]);
@@ -148,9 +132,7 @@ function RouteComponent() {
             {refereeGroups.map((group) => (
               <div key={group.name} className="flex flex-col">
                 <Separator />
-                <h3 className="p-3 text-sm font-semibold text-muted-foreground">
-                  {group.name}
-                </h3>
+                <h3 className="p-3 text-sm font-semibold text-muted-foreground">{group.name}</h3>
                 <MemberList members={group.members} />
               </div>
             ))}
@@ -162,32 +144,20 @@ function RouteComponent() {
 }
 
 function EmptyState({ message }: { message: string }) {
-  return (
-    <p className="px-3 text-sm text-muted-foreground">{message}</p>
-  );
+  return <p className="px-3 text-sm text-muted-foreground">{message}</p>;
 }
 
 function MemberList({ members }: { members: Member[] }) {
   return (
     <div className="flex flex-col">
       {members.map((member, index) => (
-        <MemberCard
-          key={member.id}
-          member={member}
-          isLast={index === members.length - 1}
-        />
+        <MemberCard key={member.id} member={member} isLast={index === members.length - 1} />
       ))}
     </div>
   );
 }
 
-function MemberCard({
-  member,
-  isLast,
-}: {
-  member: Member;
-  isLast: boolean;
-}) {
+function MemberCard({ member, isLast }: { member: Member; isLast: boolean }) {
   const gradient = getGradient(member.id);
   const initials = member.name
     .split(/\s+/)
@@ -203,19 +173,13 @@ function MemberCard({
           <AvatarImage alt={member.name} src={member.imageUrl ?? undefined} />
           <AvatarFallback style={gradient}>
             {initials ? (
-              <span className="text-xs font-bold uppercase text-white/90">
-                {initials}
-              </span>
+              <span className="text-xs font-bold uppercase text-foreground">{initials}</span>
             ) : null}
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-semibold leading-tight">
-            {member.name}
-          </span>
-          <span className="text-xs font-medium text-muted-foreground">
-            {member.role}
-          </span>
+          <span className="text-sm font-semibold leading-tight">{member.name}</span>
+          <span className="text-xs font-medium text-muted-foreground">{member.role}</span>
         </div>
       </div>
       {!isLast ? <Separator /> : null}

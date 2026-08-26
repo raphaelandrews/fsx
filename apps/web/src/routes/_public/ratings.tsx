@@ -16,15 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@fsx/ui/components/table";
-import {
-  Avatar,
-  AvatarImage,
-} from "@fsx/ui/components/avatar";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "@fsx/ui/components/tabs";
+import { Avatar, AvatarImage } from "@fsx/ui/components/avatar";
+import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 
 import { DataTableFacetedFilter } from "@/components/data-table/data-table-faceted-filter";
 import { SearchInput } from "@/components/data-table/search-input";
@@ -85,14 +78,10 @@ export const Route = createFileRoute("/_public/ratings")({
           clubs: deps.clubs,
           locations: deps.locations,
           groups: deps.groups,
-        })
+        }),
       ),
-      context.queryClient.ensureQueryData(
-        context.trpc.clubs.list.queryOptions()
-      ),
-      context.queryClient.ensureQueryData(
-        context.trpc.locations.list.queryOptions()
-      ),
+      context.queryClient.ensureQueryData(context.trpc.clubs.list.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.locations.list.queryOptions()),
     ]);
   },
   pendingComponent: () => <TableSkeleton cols={5} />,
@@ -114,15 +103,11 @@ function RouteComponent() {
       clubs: search.clube,
       locations: search.local,
       groups: search.grupo,
-    })
+    }),
   );
 
-  const { data: clubs = [] } = useSuspenseQuery(
-    trpc.clubs.list.queryOptions()
-  );
-  const { data: locations = [] } = useSuspenseQuery(
-    trpc.locations.list.queryOptions()
-  );
+  const { data: clubs = [] } = useSuspenseQuery(trpc.clubs.list.queryOptions());
+  const { data: locations = [] } = useSuspenseQuery(trpc.locations.list.queryOptions());
 
   const [nameInput, setNameInput] = useState(search.nome ?? "");
 
@@ -166,9 +151,7 @@ function RouteComponent() {
       {/* Rating tabs — drive which rating column is rendered below */}
       <Tabs
         className="mb-4 w-full"
-        onValueChange={(value) =>
-          updateSearch({ ordenar: value as SortBy })
-        }
+        onValueChange={(value) => updateSearch({ ordenar: value as SortBy })}
         value={search.ordenar}
       >
         <div className="flex justify-center">
@@ -251,17 +234,9 @@ function RouteComponent() {
         </form>
 
         {isFiltered ? (
-          <Button
-            className="h-8 px-2 lg:px-3"
-            onClick={clearFilters}
-            variant="ghost"
-          >
+          <Button className="h-8 px-2 lg:px-3" onClick={clearFilters} variant="ghost">
             Limpar
-            <HugeiconsIcon
-              className="ml-2 size-4"
-              icon={Cancel01Icon}
-              strokeWidth={2}
-            />
+            <HugeiconsIcon className="ml-2 size-4" icon={Cancel01Icon} strokeWidth={2} />
           </Button>
         ) : null}
       </div>
@@ -273,7 +248,7 @@ function RouteComponent() {
             <TableRow>
               <TableHead className="w-10">#</TableHead>
               <TableHead>Jogador</TableHead>
-              <TableHead className="text-right">{ratingColumn}</TableHead>
+              <TableHead className="text-center">{ratingColumn}</TableHead>
               <TableHead>Local</TableHead>
               <TableHead>Clube</TableHead>
             </TableRow>
@@ -293,7 +268,7 @@ function RouteComponent() {
                     shortTitle={player.playersToTitles?.[0]?.title.shortName ?? null}
                   />
                 </TableCell>
-                <TableCell className="text-right tabular-nums font-medium">
+                <TableCell className="text-center tabular-nums font-medium">
                   {player[search.ordenar]}
                 </TableCell>
                 <TableCell>
@@ -307,9 +282,7 @@ function RouteComponent() {
                         />
                       </Avatar>
                     ) : null}
-                    <span className="text-muted-foreground">
-                      {player.location?.name ?? "—"}
-                    </span>
+                    <span className="text-muted-foreground">{player.location?.name ?? "—"}</span>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -323,9 +296,7 @@ function RouteComponent() {
                         />
                       </Avatar>
                     ) : null}
-                    <span className="text-muted-foreground">
-                      {player.club?.name ?? "—"}
-                    </span>
+                    <span className="text-muted-foreground">{player.club?.name ?? "—"}</span>
                   </div>
                 </TableCell>
               </TableRow>

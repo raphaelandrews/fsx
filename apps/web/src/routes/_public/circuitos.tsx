@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 
+import { CircuitView } from "@/components/circuitos/circuit-view";
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { useTRPC } from "@/utils/trpc";
@@ -18,9 +19,7 @@ export const Route = createFileRoute("/_public/circuitos")({
   head: ({ loaderData, match }) => {
     const circuits = (loaderData ?? []) as Array<{ name: string }>;
     const activeSlug = match.search?.circuito;
-    const circuit = activeSlug
-      ? circuits.find((c) => slugify(c.name) === activeSlug)
-      : circuits[0];
+    const circuit = activeSlug ? circuits.find((c) => slugify(c.name) === activeSlug) : circuits[0];
     return {
       meta: [
         { title: circuit ? `${circuit.name} - Circuitos - FSX` : "Circuitos - FSX" },
@@ -28,7 +27,8 @@ export const Route = createFileRoute("/_public/circuitos")({
       ],
     };
   },
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.circuits.list.queryOptions()),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.circuits.list.queryOptions()),
   pendingComponent: () => <TableSkeleton />,
   component: RouteComponent,
 });
@@ -44,7 +44,10 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader title="Circuitos" />
+      <PageHeader
+        description="Classificação e resultados dos circuitos da Federação Sergipana de Xadrez."
+        title="Circuitos"
+      />
 
       {circuits.length === 0 ? (
         <p className="text-muted-foreground">Nenhum circuito cadastrado.</p>
@@ -53,9 +56,9 @@ function RouteComponent() {
           <Tabs
             value={activeSlug}
             onValueChange={(value) => navigate({ to: "/circuitos", search: { circuito: value } })}
-            className="w-full"
+            className="mb-6 w-full"
           >
-            <div className="mb-6 flex w-full justify-center overflow-x-auto">
+            <div className="flex w-full justify-center overflow-x-auto">
               <TabsList className="overflow-x-auto">
                 {circuits.map((circuit) => (
                   <TabsTrigger key={circuit.name} value={slugify(circuit.name)}>
@@ -66,42 +69,7 @@ function RouteComponent() {
             </div>
           </Tabs>
 
-          {activeCircuit && (
-            <div className="space-y-6">
-              {activeCircuit.circuitPhases.map((phase) => (
-                <section key={phase.id} className="rounded-md border">
-                  <h2 className="border-b bg-muted/50 px-4 py-2 text-sm font-semibold">
-                    {phase.tournament?.name ?? `Etapa ${phase.sortOrder}`}
-                  </h2>
-                  {phase.circuitPodiums.length === 0 ? (
-                    <p className="px-4 py-3 text-muted-foreground text-sm">Sem resultados.</p>
-                  ) : (
-                    <ul className="divide-y">
-                      {phase.circuitPodiums.map((podium, index) => (
-                        <li
-                          key={`${podium.player?.id ?? index}-${podium.place ?? "unranked"}`}
-                          className="flex items-center justify-between px-4 py-2 text-sm"
-                        >
-                          <span className="flex items-center gap-2">
-                            <span className="text-muted-foreground tabular-nums w-6">
-                              {podium.place != null ? `${podium.place}º` : "—"}
-                            </span>
-                            <span className="font-medium">
-                              {podium.player?.nickname ?? podium.player?.name ?? "—"}
-                            </span>
-                            {podium.category && (
-                              <span className="text-muted-foreground text-xs">{podium.category}</span>
-                            )}
-                          </span>
-                          <span className="font-semibold tabular-nums">{podium.points} pts</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </section>
-              ))}
-            </div>
-          )}
+          {activeCircuit && <CircuitView circuit={activeCircuit} />}
         </>
       )}
     </>
