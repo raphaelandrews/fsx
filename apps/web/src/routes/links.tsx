@@ -37,7 +37,7 @@ function LinkItem({ href, label, icon }: { href: string; label: string; icon: st
     >
       <div
         aria-hidden="true"
-        className="grid h-8 w-8 place-items-center rounded-md bg-bulbasaur text-bulbasaur-foreground shadow-lg [&>div>svg]:h-4 [&>div>svg]:w-4"
+        className="grid h-8 w-8 place-items-center rounded-md bg-forest text-forest-foreground shadow-lg [&>div>svg]:h-4 [&>div>svg]:w-4"
       >
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static icon markup from the database */}
         <div dangerouslySetInnerHTML={{ __html: icon }} />
