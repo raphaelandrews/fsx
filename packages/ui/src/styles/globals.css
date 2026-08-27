@@ -87,6 +87,9 @@
 	--bulbasaur: oklch(0.8 0.0487 172.55);
 	--bulbasaur-foreground: oklch(0.2 0.1535 163.22);
 
+  --forest: oklch(0.86 0.17 134.52);
+  --forest-foreground: oklch(0.25 0.03 136);
+
 	--ice: oklch(0.8 0.0342 215.01);
 	--ice-foreground: oklch(0.2 0.1036 218.04);
 
@@ -119,8 +122,8 @@
 }
 
 .dark {
-	--background: oklch(16% .005 285.823);
-	--foreground: oklch(98.5% 0 0);
+	--background: oklch(0.161 0.0039 164.5); /*ok*/
+	--foreground:oklch(0.9192 0.0058 128.53); /*ok*/
 
 	--card: oklch(16% .005 285.823);
 	--card-foreground: oklch(98.5% 0 0);
@@ -128,14 +131,14 @@
 	--popover: oklch(16% .005 285.823);
 	--popover-foreground: oklch(98.5% 0 0);
 
-	--primary: oklch(98.5% 0 0);
-	--primary-foreground: oklch(21% .006 285.885);
+  --primary: oklch(0.74 0.16 134.52); /*ok*/
+  --primary-foreground: oklch(0.26 0.05 150); /*ok*/
 
 	--secondary: oklch(27.4% .006 286.033);
 	--secondary-foreground: oklch(98.5% 0 0);
 
 	--muted: oklch(27.4% .006 286.033);
-	--muted-foreground: oklch(70.5% .015 286.067);
+	--muted-foreground: oklch(0.7191 0.0061 128.56); /*ok*/
 
 	--accent: oklch(27.4% .006 286.033);
 	--accent-foreground: oklch(98.5% 0 0);
@@ -143,9 +146,11 @@
 	--selection: oklch(0.293 0.066 243.157);
 	--selection-foreground: oklch(0.76 0.1362 218.47);
 
-	--link: oklch(0.746 0.138 232.661); /* sky-400 */
+  --link: oklch(0.8606 0.1766 250); /*ok*/
+  --highlight: oklch(0.86 0.15 85); /*ok*/
 
-	--highlight: oklch(0.828 0.189 84.429); /* amber-400 */
+  --selection: oklch(0.86 0.17 134); /*ok*/
+  --selection-foreground: oklch(0.28 0.09 150); /*ok*/
 
 	--destructive: oklch(0.704 0.191 22.216);
 
@@ -190,6 +195,9 @@
 
 	--bulbasaur: oklch(0.2621 0.0487 172.55);
 	--bulbasaur-foreground: oklch(0.7729 0.1535 163.22);
+
+  --forest: oklch(0.2513 0.027 136.23); /*ok*/
+  --forest-foreground: oklch(0.8606 0.1766 134.52); /*ok*/
 
 	--ice: oklch(0.2304 0.0342 215.01);
 	--ice-foreground: oklch(0.7786 0.1036 218.04);
@@ -286,6 +294,8 @@
   --color-sea-foreground: var(--sea-foreground);
   --color-bulbasaur: var(--bulbasaur);
   --color-bulbasaur-foreground: var(--bulbasaur-foreground);
+  --color-forest: var(--forest);
+  --color-forest-foreground: var(--forest-foreground);
   --color-ice: var(--ice);
   --color-ice-foreground: var(--ice-foreground);
   --color-blueberry: var(--blueberry);
@@ -304,6 +314,8 @@
   --color-slate-foreground: var(--slate-foreground);
   --color-emerald: var(--emerald);
   --color-emerald-foreground: var(--emerald-foreground);
+  --color-forest: var(--forest);
+  --color-forest-foreground: var(--forest-foreground);
   --color-indigo: var(--indigo);
   --color-indigo-foreground: var(--indigo-foreground);
 }

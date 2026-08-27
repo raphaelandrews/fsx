@@ -81,7 +81,7 @@ export function Footer({ className }: { className?: string }) {
           <div className="text-balance text-center text-muted-foreground text-sm leading-loose">
             Built by 📟{" "}
             <a
-              className="font-medium text-bulbasaur-foreground transition duration-200 hover:text-highlight"
+              className="font-medium text-forest-foreground transition duration-200 hover:text-highlight"
               href="https://andrews.sh/"
               rel="noreferrer"
               target="_blank"

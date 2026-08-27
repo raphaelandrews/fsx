@@ -1,12 +1,12 @@
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef } from "@tanstack/react-table";
 
 // biome-ignore lint/suspicious/noExplicitAny: No
 export const columns: ColumnDef<any>[] = [
   {
     accessorKey: "tournament.name",
-    header: "Evento",
+    header: () => <div className="text-left">Evento</div>,
     cell: ({ row }) => (
-      <p className="whitespace-nowrap font-medium text-foreground">
+      <p className="whitespace-nowrap font-medium text-foreground text-left">
         {row.original.tournament.name}
       </p>
     ),
@@ -17,9 +17,7 @@ export const columns: ColumnDef<any>[] = [
     cell: ({ row }) => (
       <div className="font-medium text-foreground">
         {row.original.oldRating}
-        <span
-          className={`${formatVariationColor(row.original.variation)} ms-2`}
-        >
+        <span className={`${formatVariationColor(row.original.variation)} ms-2`}>
           {formatVariationSymbol(row.original.variation)}
           {row.original.variation}
         </span>
@@ -35,21 +33,21 @@ export const columns: ColumnDef<any>[] = [
       </p>
     ),
   },
-]
+];
 
 export function formatVariationColor(variation: number | null | undefined) {
-  if (variation == null) return "text-primary"
-  if (variation > 0) return "text-bulbasaur-foreground"
-  if (variation === 0) return "text-highlight"
-  if (variation < 0) return "text-destructive"
-  return "text-primary"
+  if (variation == null) return "text-primary";
+  if (variation > 0) return "text-bulbasaur-foreground";
+  if (variation === 0) return "text-highlight";
+  if (variation < 0) return "text-destructive";
+  return "text-primary";
 }
 
 export function formatVariationSymbol(variation: number | null | undefined) {
-  if (variation == null) return "?"
-  if (variation > 0) return "+"
-  if (variation === 0) return "="
-  return ""
+  if (variation == null) return "?";
+  if (variation > 0) return "+";
+  if (variation === 0) return "=";
+  return "";
 }
 
 export function formatRatingType(type: string | null | undefined) {
@@ -57,6 +55,6 @@ export function formatRatingType(type: string | null | undefined) {
     classic: "Clássico",
     rapid: "Rápido",
     blitz: "Blitz",
-  }
-  return type ? (types[type as keyof typeof types] ?? "?") : "?"
+  };
+  return type ? (types[type as keyof typeof types] ?? "?") : "?";
 }
