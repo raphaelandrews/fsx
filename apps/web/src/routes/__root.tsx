@@ -62,7 +62,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   },
   notFoundComponent: () => <NotFound />,
   errorComponent: ({ error }) => {
-    console.error("[fsx:ssr-error]", error);
+    if (typeof document !== "undefined") console.error(error);
     return <ErrorFallback />;
   },
   component: RootDocument,

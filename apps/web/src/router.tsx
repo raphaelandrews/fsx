@@ -47,7 +47,15 @@ const trpcClient = createTRPCClient<AppRouter>({
       fetch(url, options) {
         const request = getSSRRequest();
         if (request) {
-          url = new URL(url.toString(), request.url).toString();
+          // On the server, self-fetch the Worker via its canonical workers.dev
+          // origin. The custom domain (www.fsx.org.br) still resolves through
+          // DNS to the legacy Next.js app, so self-fetching it returns the
+          // wrong app (an HTML 404) instead of this Worker's /api/trpc JSON.
+          // In dev there is no split, so reuse the request origin (localhost).
+          const base = import.meta.env.DEV
+            ? request.url
+            : "https://fsx-web-raphael.hey-02c.workers.dev";
+          url = new URL(url.toString(), base).toString();
           const cookie = request.headers.get("cookie");
           if (cookie) {
             options = {
@@ -59,13 +67,6 @@ const trpcClient = createTRPCClient<AppRouter>({
         return fetch(url, {
           ...options,
           credentials: "include",
-        }).then(async (res) => {
-          const ct = res.headers.get("content-type") ?? "";
-          if (!ct.includes("json") || res.status >= 400) {
-            const body = await res.clone().text();
-            console.error("[fsx:trpc-fetch]", res.status, ct, url, body.slice(0, 200));
-          }
-          return res;
         });
       },
     }),

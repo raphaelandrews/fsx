@@ -20,6 +20,7 @@ const searchSchema = z.object({
       "female-all",
     ])
     .optional(),
+  escola: z.coerce.number().optional(),
 });
 
 export const Route = createFileRoute("/_public/tv-sergipe")({
