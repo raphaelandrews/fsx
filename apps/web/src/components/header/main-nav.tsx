@@ -87,7 +87,7 @@ function ListItem({
   return (
     <li {...props}>
       <NavigationMenuLink
-        className="w-full justify-start gap-1.5 rounded-[6px] p-2 bg-noir text-noir-foreground transition-colors duration-200 select-none hover:bg-muted"
+        className="w-full justify-start gap-1.5 rounded-[6px] p-2 bg-muted text-muted-foreground transition-colors duration-200 select-none hover:bg-primary hover:text-primary-foreground"
         render={
           <Link to={href}>
             <HugeiconsIcon className="size-4 text-muted-foreground" icon={icon} />

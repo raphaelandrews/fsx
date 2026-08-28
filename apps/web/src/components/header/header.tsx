@@ -2,7 +2,6 @@ import { MainNav } from "./main-nav"
 import { HeaderNavigationDrawer } from "./header-navigation-drawer"
 import { CommandMenu } from "../command-menu"
 import { UpdateRegister } from "../update-register"
-import { ModeSwitcher } from "../mode-switcher"
 
 export function Header() {
   return (
@@ -15,7 +14,6 @@ export function Header() {
           </div>
 
           <UpdateRegister />
-          <ModeSwitcher />
           <HeaderNavigationDrawer />
         </div>
       </div>

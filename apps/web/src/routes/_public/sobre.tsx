@@ -79,20 +79,19 @@ function RouteComponent() {
 
         <div className="flex flex-col">
           {links.map((link, index) => (
-            <SobreItem key={index} className="group p-0 hover:bg-transparent">
-              <a
-                className="flex items-center gap-2 p-3 text-sm text-link transition-all group-hover:underline"
-                href={link.href}
-                rel="noreferrer"
-                target={
-                  link.href.startsWith("http") || link.href.startsWith("mailto")
-                    ? "_blank"
-                    : undefined
-                }
-              >
-                {link.label}
-              </a>
-            </SobreItem>
+            <a
+              key={index}
+              className="flex items-center gap-2 p-3 text-sm text-link transition-all hover:underline"
+              href={link.href}
+              rel="noreferrer"
+              target={
+                link.href.startsWith("http") || link.href.startsWith("mailto")
+                  ? "_blank"
+                  : undefined
+              }
+            >
+              {link.label}
+            </a>
           ))}
         </div>
       </section>

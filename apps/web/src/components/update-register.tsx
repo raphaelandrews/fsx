@@ -24,7 +24,7 @@ export function UpdateRegister() {
                 <Button
                   aria-label="Atualize seu cadastro"
                   size="icon"
-                  variant="ghost"
+                  variant="secondary"
                 />
               }
             />

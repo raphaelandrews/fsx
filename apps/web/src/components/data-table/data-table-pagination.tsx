@@ -189,7 +189,7 @@ export function DataTablePagination<TData>({
           className="hidden sm:inline-flex"
           disabled={!table.getCanPreviousPage()}
           onClick={() => goto(1)}
-          size="icon-sm"
+          size="icon"
           variant="ghost"
         >
           <HugeiconsIcon
@@ -204,7 +204,7 @@ export function DataTablePagination<TData>({
           className="gap-1.5 px-2.5"
           disabled={!table.getCanPreviousPage()}
           onClick={() => table.previousPage()}
-          size="sm"
+          size="default"
           variant="outline"
         >
           <HugeiconsIcon
@@ -235,7 +235,7 @@ export function DataTablePagination<TData>({
           className="gap-1.5 px-2.5"
           disabled={!table.getCanNextPage()}
           onClick={() => table.nextPage()}
-          size="sm"
+          size="default"
           variant="outline"
         >
           <span className="hidden sm:inline">Próxima</span>
@@ -251,7 +251,7 @@ export function DataTablePagination<TData>({
           className="hidden sm:inline-flex"
           disabled={!table.getCanNextPage()}
           onClick={() => goto(totalPages)}
-          size="icon-sm"
+          size="icon"
           variant="ghost"
         >
           <HugeiconsIcon

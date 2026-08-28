@@ -270,36 +270,36 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
       {/* Achievements Section */}
       {(orderPodiums.length > 0 ||
         (player.defendingChampions && player.defendingChampions?.length > 0)) && (
-        <section className="mb-0">
-          <Announcement icon={Target01Icon} label="Conquistas" className="text-sm" />
-          <div className="p-3 grid gap-4">
-            {player.defendingChampions && player.defendingChampions?.length > 0 && (
-              <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                {player.defendingChampions?.map((championship) => (
-                  <div key={championship.championship.name}>
-                    {formatDefendingChampions(championship.championship.name)}
-                  </div>
-                ))}
-              </div>
-            )}
+          <section className="mb-0">
+            <Announcement icon={Target01Icon} label="Conquistas" className="text-sm" />
+            <div className="p-3 grid gap-4">
+              {player.defendingChampions && player.defendingChampions?.length > 0 && (
+                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                  {player.defendingChampions?.map((championship) => (
+                    <div key={championship.championship.name}>
+                      {formatDefendingChampions(championship.championship.name)}
+                    </div>
+                  ))}
+                </div>
+              )}
 
-            {orderPodiums.length > 0 && (
-              <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                {orderPodiums.map((podium) => (
-                  <Popover key={podium.place + podium.tournament.name}>
-                    <PopoverTrigger className="rounded-md bg-muted p-2 text-xs font-medium transition-colors">
-                      {FormatPodium(podium.place, podium.tournament.championshipId ?? 0)}
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-2 text-xs font-medium">
-                      {FormatPodiumTitle(podium.place)} {podium.tournament.name}
-                    </PopoverContent>
-                  </Popover>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+              {orderPodiums.length > 0 && (
+                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                  {orderPodiums.map((podium) => (
+                    <Popover key={podium.place + podium.tournament.name}>
+                      <PopoverTrigger className="rounded-md bg-muted p-2 text-xs font-medium transition-colors">
+                        {FormatPodium(podium.place, podium.tournament.championshipId ?? 0)}
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-2 text-xs font-medium">
+                        {FormatPodiumTitle(podium.place)} {podium.tournament.name}
+                      </PopoverContent>
+                    </Popover>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
       {/* Info Section */}
       <section className="mb-0">
@@ -481,7 +481,7 @@ function RatingBox({ label, value }: { label: string; value?: number | null }) {
   return (
     <div className="p-4 flex flex-col items-center justify-center hover:bg-muted/50 transition-colors duration-200">
       <span className="text-sm text-muted-foreground font-medium">{label}</span>
-      <span className="text-base font-semibold mt-1 text-primary font-mono tabular-nums">
+      <span className="text-base font-semibold mt-1 text-foreground font-mono tabular-nums">
         {value ?? "-"}
       </span>
     </div>

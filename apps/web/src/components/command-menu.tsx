@@ -171,9 +171,9 @@ export function CommandMenu() {
         render={
           <Button
             className={cn(
-              "relative h-8 w-full justify-start rounded-lg border border-border bg-input pl-3 text-foreground shadow-none transition-colors hover:bg-muted/50 md:w-48 lg:w-40 xl:w-48"
+              "relative h-8 w-full justify-start rounded-lg pl-3 shadow-none transition-colors md:w-48 lg:w-40 xl:w-48"
             )}
-            variant="ghost"
+            variant="secondary"
           />
         }
       >

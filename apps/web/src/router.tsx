@@ -82,7 +82,7 @@ export const getRouter = () => {
     defaultNotFoundComponent: () => <div>Not Found</div>,
     Wrap: ({ children }) => (
       <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" storageKey="fsx-theme" disableTransitionOnChange>
           {children}
         </ThemeProvider>
       </TRPCProvider>

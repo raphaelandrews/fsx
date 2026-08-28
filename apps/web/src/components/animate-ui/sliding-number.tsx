@@ -123,7 +123,6 @@ function SlidingNumber({
   ...props
 }: SlidingNumberProps) {
   const localRef = React.useRef<HTMLSpanElement>(null)
-  // biome-ignore lint/style/noNonNullAssertion: No
   React.useImperativeHandle(ref, () => localRef.current!)
 
   const inViewResult = useInView(localRef, {

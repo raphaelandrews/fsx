@@ -1,9 +1,10 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { InstagramIcon, Mail01Icon } from "@hugeicons/core-free-icons";
+import { InstagramIcon, Mail02Icon } from "@hugeicons/core-free-icons";
 import { Link } from "@tanstack/react-router";
 
 import { Logo } from "@/components/logo";
 
+import { buttonVariants } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
 const footerLinks = [
@@ -27,7 +28,7 @@ const socials = [
   {
     label: "Enviar e-mail para a FSX",
     href: "mailto:fsx.presidente@gmail.com",
-    icon: Mail01Icon,
+    icon: Mail02Icon,
   },
 ];
 
@@ -48,17 +49,17 @@ export function Footer({ className }: { className?: string }) {
         />
 
         <div className="flex flex-col items-center gap-6">
-          <div className="flex items-center gap-5 text-muted-foreground">
+          <div className="flex items-center gap-5">
             {socials.map(({ label, href, icon }) => (
               <a
                 key={href}
                 aria-label={label}
-                className="inline-flex transition-colors hover:text-foreground"
+                className={buttonVariants({ variant: "secondary", size: "icon" })}
                 href={href}
                 rel="noreferrer"
                 target={href.startsWith("mailto:") ? undefined : "_blank"}
               >
-                <HugeiconsIcon className="size-6" icon={icon} strokeWidth={2} />
+                <HugeiconsIcon className="size-4" icon={icon} strokeWidth={2} />
               </a>
             ))}
           </div>
@@ -81,12 +82,12 @@ export function Footer({ className }: { className?: string }) {
           <div className="text-balance text-center text-muted-foreground text-sm leading-loose">
             Built by 📟{" "}
             <a
-              className="font-medium text-forest-foreground transition duration-200 hover:text-highlight"
+              className="font-medium text-primary transition duration-200 hover:text-highlight"
               href="https://andrews.sh/"
               rel="noreferrer"
               target="_blank"
             >
-              Andrews
+              Raphael
             </a>
             .{" "}
             <a

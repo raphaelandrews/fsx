@@ -99,7 +99,7 @@ function EventCard({
               <Separator orientation="vertical" className="h-4 mx-1.5" />
               <HugeiconsIcon icon={Clock01Icon} size={14} /> <span>{formattedTime}</span>
             </div>
-            <div className="flex gap-1.5 align-middle">
+            <div className="hidden gap-1.5 align-middle">
               {formattedBadge({ type })}
               {formattedBadge({ timeControl })}
             </div>

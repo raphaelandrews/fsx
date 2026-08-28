@@ -24,7 +24,6 @@ export const HeaderNavigationDrawer = () => {
   const [openSection, setOpenSection] = useState<string | null>(null)
   const pathname = useLocation().pathname
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: No
   useEffect(() => {
     setOpen(false)
   }, [pathname])

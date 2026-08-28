@@ -4,7 +4,7 @@ import {
   ArrowUpRight01Icon,
   FoldersIcon,
   InstagramIcon,
-  Mail01Icon,
+  Mail02Icon,
 } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -39,7 +39,6 @@ function LinkItem({ href, label, icon }: { href: string; label: string; icon: st
         aria-hidden="true"
         className="grid h-8 w-8 place-items-center rounded-md bg-forest text-forest-foreground shadow-lg [&>div>svg]:h-4 [&>div>svg]:w-4"
       >
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static icon markup from the database */}
         <div dangerouslySetInnerHTML={{ __html: icon }} />
       </div>
       <span>{label}</span>
@@ -119,7 +118,7 @@ function RouteComponent() {
                       />
                     }
                   >
-                    <HugeiconsIcon icon={Mail01Icon} className="size-4" />
+                    <HugeiconsIcon icon={Mail02Icon} className="size-4" />
                   </TooltipTrigger>
                   <TooltipContent>Email</TooltipContent>
                 </Tooltip>
