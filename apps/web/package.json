@@ -42,6 +42,7 @@
     "dotenv": "catalog:",
     "libsql": "catalog:",
     "motion": "^12.43.0",
+    "next-themes": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-image-crop": "^11.0.7",

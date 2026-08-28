@@ -13,10 +13,16 @@ const app = await alchemy("fsx");
 
 const db = await D1Database("database", {
   migrationsDir: "../../packages/db/src/migrations",
+  // Adopt the existing remote D1 database (fsx-database-raphael) if it
+  // already exists instead of failing on re-deploy.
+  adopt: true,
 });
 
 export const web = await TanStackStart("web", {
   cwd: "../../apps/web",
+  // Adopt the existing remote worker (fsx-web-raphael) if it already exists
+  // instead of failing on re-deploy.
+  adopt: true,
   bindings: {
     DB: db,
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,

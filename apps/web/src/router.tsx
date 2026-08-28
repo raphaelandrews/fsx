@@ -59,6 +59,13 @@ const trpcClient = createTRPCClient<AppRouter>({
         return fetch(url, {
           ...options,
           credentials: "include",
+        }).then(async (res) => {
+          const ct = res.headers.get("content-type") ?? "";
+          if (!ct.includes("json") || res.status >= 400) {
+            const body = await res.clone().text();
+            console.error("[fsx:trpc-fetch]", res.status, ct, url, body.slice(0, 200));
+          }
+          return res;
         });
       },
     }),

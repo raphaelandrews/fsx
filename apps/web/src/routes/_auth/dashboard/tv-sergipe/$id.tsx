@@ -7,17 +7,13 @@ import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
+import { SearchableSelect } from "@/components/searchable-select";
 import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS } from "./-constants";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/$id")({
   head: () => ({ meta: [{ title: "Edit TV Sergipe - Admin - FSX" }] }),
-  loader: async ({ context }) => {
-    await Promise.all([
-      context.queryClient.ensureQueryData(context.trpc.tvSergipe.list.queryOptions()),
-      context.queryClient.ensureQueryData(context.trpc.clubs.list.queryOptions()),
-      context.queryClient.ensureQueryData(context.trpc.players.list.queryOptions()),
-    ]);
-  },
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.tvSergipe.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -29,8 +25,6 @@ function RouteComponent() {
   const numId = Number(id);
 
   const { data: results = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
-  const { data: clubs = [] } = useSuspenseQuery(trpc.clubs.list.queryOptions());
-  const { data: players = [] } = useSuspenseQuery(trpc.players.list.queryOptions());
   const result = results.find((r) => r.id === numId);
 
   const updateMutation = useMutation({
@@ -78,10 +72,14 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label>Escola</Label>
-              <select value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                <option value="">Select club</option>
-                {clubs.map((c) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
-              </select>
+              <SearchableSelect
+                value={f.state.value}
+                onChange={(v) => f.handleChange(v)}
+                getQueryOptions={(q) => trpc.clubs.search.queryOptions({ query: q })}
+                placeholder="Buscar escola..."
+                emptyText="Nenhuma escola encontrada."
+                initialLabel={result.club?.name}
+              />
             </div>
           )}
         </form.Field>
@@ -122,10 +120,14 @@ function RouteComponent() {
             {(f) => (
               <div className="space-y-2">
                 <Label>Jogador</Label>
-                <select value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <option value="">Select player</option>
-                  {players.map((p) => <option key={p.id} value={String(p.id)}>{p.name}</option>)}
-                </select>
+                <SearchableSelect
+                  value={f.state.value}
+                  onChange={(v) => f.handleChange(v)}
+                  getQueryOptions={(q) => trpc.players.search.queryOptions({ query: q })}
+                  placeholder="Buscar jogador..."
+                  emptyText="Nenhum jogador encontrado."
+                  initialLabel={result.player?.name}
+                />
               </div>
             )}
           </form.Field>

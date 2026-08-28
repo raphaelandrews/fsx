@@ -49,17 +49,20 @@ export const tvSergipeRouter = router({
   ),
   leaderboard: publicProcedure
     .input(
-      z.object({
-        ageGroup: ageGroupEnum.optional(),
-        sex: sexEnum.optional(),
-        modality: modalityEnum.optional(),
-      })
+      z
+        .object({
+          ageGroup: ageGroupEnum.optional(),
+          sex: sexEnum.optional(),
+          modality: modalityEnum.optional(),
+        })
+        .optional()
     )
     .query(({ ctx, input }) => {
+      const { ageGroup, sex, modality } = input ?? {};
       const conditions = [
-        input.ageGroup ? eq(tvSergipe.ageGroup, input.ageGroup) : undefined,
-        input.sex ? eq(tvSergipe.sex, input.sex) : undefined,
-        input.modality ? eq(tvSergipe.modality, input.modality) : undefined,
+        ageGroup ? eq(tvSergipe.ageGroup, ageGroup) : undefined,
+        sex ? eq(tvSergipe.sex, sex) : undefined,
+        modality ? eq(tvSergipe.modality, modality) : undefined,
       ].filter(Boolean);
       return ctx.db
         .select({
