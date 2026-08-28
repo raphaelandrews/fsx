@@ -16,7 +16,7 @@ import { playersToTitlesRouter } from "./players-to-titles";
 import { playersTournamentRouter } from "./players-tournament";
 import { postsRouter } from "./posts";
 import { rolesRouter } from "./roles";
-import { schoolResultsRouter } from "./school-results";
+import { tvSergipeRouter } from "./tv-sergipe";
 import { seedRouter } from "./seed";
 import { swissManagerRouter } from "./swiss-manager";
 import { titledPlayersRouter } from "./titled-players";
@@ -43,7 +43,7 @@ export const appRouter = router({
   playersTournament: playersTournamentRouter,
   posts: postsRouter,
   roles: rolesRouter,
-  schoolResults: schoolResultsRouter,
+  tvSergipe: tvSergipeRouter,
   seed: seedRouter,
   swissManager: swissManagerRouter,
   titledPlayers: titledPlayersRouter,

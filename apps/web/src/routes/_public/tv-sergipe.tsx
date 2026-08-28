@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { EscolasView } from "@/components/escolas/escolas-view";
-import { AGE_GROUPS, subScopeToFilters, type SubScopeId } from "@/components/escolas/constants";
+import { TvSergipeView } from "@/components/tv-sergipe/tv-sergipe-view";
+import { AGE_GROUPS, subScopeToFilters, type SubScopeId } from "@/components/tv-sergipe/constants";
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 
@@ -22,7 +22,7 @@ const searchSchema = z.object({
     .optional(),
 });
 
-export const Route = createFileRoute("/_public/escolas")({
+export const Route = createFileRoute("/_public/tv-sergipe")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/_public/escolas")({
   loader: ({ context, deps }) => {
     // List is always needed — it's the source of the drilldown data.
     const listPromise = context.queryClient.ensureQueryData(
-      context.trpc.schoolResults.list.queryOptions(),
+      context.trpc.tvSergipe.list.queryOptions(),
     );
 
     const filters = deps.idade ? subScopeToFilters((deps.escopo ?? "geral") as SubScopeId) : {};
@@ -50,7 +50,7 @@ export const Route = createFileRoute("/_public/escolas")({
     return Promise.all([
       listPromise,
       context.queryClient.ensureQueryData(
-        context.trpc.schoolResults.leaderboard.queryOptions({
+        context.trpc.tvSergipe.leaderboard.queryOptions({
           ageGroup: deps.idade,
           sex: filters.sex,
           modality: filters.modality,
@@ -69,7 +69,7 @@ function RouteComponent() {
         title="Jogos Escolares TV Sergipe"
         description="Classificação por escola nos Jogos Escolares TV Sergipe — medalhas e pontos por idade, sexo e modalidade."
       />
-      <EscolasView />
+      <TvSergipeView />
     </>
   );
 }

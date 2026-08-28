@@ -52,24 +52,24 @@ import {
   type SubScopeId,
 } from "./constants";
 
-type LeaderboardRow = inferRouterOutputs<AppRouter>["schoolResults"]["leaderboard"][number];
-type SchoolResult = inferRouterOutputs<AppRouter>["schoolResults"]["list"][number];
+type LeaderboardRow = inferRouterOutputs<AppRouter>["tvSergipe"]["leaderboard"][number];
+type SchoolResult = inferRouterOutputs<AppRouter>["tvSergipe"]["list"][number];
 
-export function EscolasView() {
+export function TvSergipeView() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const search = useSearch({ from: "/_public/escolas" });
+  const search = useSearch({ from: "/_public/tv-sergipe" });
 
   const filters = search.idade ? subScopeToFilters((search.escopo ?? "geral") as SubScopeId) : {};
 
   const { data: leaderboard = [] } = useSuspenseQuery(
-    trpc.schoolResults.leaderboard.queryOptions({
+    trpc.tvSergipe.leaderboard.queryOptions({
       ageGroup: search.idade,
       sex: filters.sex,
       modality: filters.modality,
     }),
   );
-  const { data: allResults = [] } = useSuspenseQuery(trpc.schoolResults.list.queryOptions());
+  const { data: allResults = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
 
   const [openClubId, setOpenClubId] = useState<number | null>(null);
   const openClub = useMemo(
@@ -109,7 +109,7 @@ export function EscolasView() {
         className="mb-4 w-full"
         onValueChange={(value) =>
           navigate({
-            to: "/escolas",
+            to: "/tv-sergipe",
             search: {
               ...search,
               idade: value === "geral" ? undefined : (value as AgeGroup),
@@ -138,7 +138,7 @@ export function EscolasView() {
           className="mb-6 w-full"
           onValueChange={(value) =>
             navigate({
-              to: "/escolas",
+              to: "/tv-sergipe",
               search: { ...search, escopo: value as SubScopeId },
             })
           }
@@ -167,7 +167,7 @@ export function EscolasView() {
           className="w-fit"
           onValueChange={(value) =>
             navigate({
-              to: "/escolas",
+              to: "/tv-sergipe",
               search: { ...search, view: value as "medals" | "points" },
             })
           }

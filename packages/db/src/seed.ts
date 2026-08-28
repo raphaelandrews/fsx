@@ -162,7 +162,7 @@ async function seed() {
 
     console.log("  → school results");
     await db
-      .insert(schema.schoolResults)
+      .insert(schema.tvSergipe)
       .values([
         // Individual results
         { clubId: clubAracaju!.id, playerId: andrews?.id, ageGroup: "14", sex: "male", modality: "individual", place: 1, points: schema.PLACE_POINTS[1]! },

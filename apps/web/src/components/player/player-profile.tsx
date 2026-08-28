@@ -220,6 +220,12 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
 
   const [selectedRatingType, setSelectedRatingType] = React.useState("rapid");
 
+  const ratingTypeLabels: Record<string, string> = {
+    classic: "Clássico",
+    rapid: "Rápido",
+    blitz: "Blitz",
+  };
+
   return (
     <>
       {/* Header Section */}
@@ -419,7 +425,9 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
               value={selectedRatingType}
             >
               <SelectTrigger className="w-[140px] h-8 text-xs">
-                <SelectValue placeholder="Rating" />
+                <SelectValue placeholder="Rating">
+                  {(value) => ratingTypeLabels[value as string] ?? value}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="classic">Clássico</SelectItem>

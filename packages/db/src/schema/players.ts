@@ -2,7 +2,7 @@ import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
-import { circuitPodiums, cupPlayers, clubs, defendingChampions, locations, playersToRoles, playersToTournaments, playersToNorms, tournamentPodiums, cupMatches, cupGames, playersToInsignias, schoolResults } from "./index"
+import { circuitPodiums, cupPlayers, clubs, defendingChampions, locations, playersToRoles, playersToTournaments, playersToNorms, tournamentPodiums, cupMatches, cupGames, playersToInsignias, tvSergipe } from "./index"
 import { playersToTitles } from "./playersToTitles"
 
 export const players = sqliteTable(
@@ -48,7 +48,7 @@ export const playersRelations = relations(players, ({ one, many }) => ({
 	playersToRoles: many(playersToRoles),
 	playersToTitles: many(playersToTitles),
 	playersToTournaments: many(playersToTournaments),
-	schoolResults: many(schoolResults),
+	tvSergipe: many(tvSergipe),
 	tournamentPodiums: many(tournamentPodiums),
 }))
 

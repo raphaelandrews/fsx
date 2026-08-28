@@ -3,6 +3,9 @@ import { TanStackStart } from "alchemy/cloudflare";
 import { D1Database } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
+// Shared secrets for both envs — single source of truth.
+config({ path: "../../apps/web/.env.common", override: true });
+// Dev-specific domain URLs (localhost). Loaded non-overriding so common wins.
 config({ path: "./.env" });
 config({ path: "../../apps/web/.env" });
 

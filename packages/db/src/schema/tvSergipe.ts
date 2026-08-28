@@ -21,8 +21,8 @@ export const TEAM_MEDAL_WEIGHT = 2
 export const INDIVIDUAL_MEDAL_WEIGHT = 1
 
 // A team result credits 2 medals of its type; individual credits 1. Points stay 1x per placement.
-export const schoolResults = sqliteTable(
-  "school_results",
+export const tvSergipe = sqliteTable(
+  "tv_sergipe",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
     clubId: integer("club_id").notNull().references(() => clubs.id, { onDelete: "cascade" }),
@@ -37,19 +37,19 @@ export const schoolResults = sqliteTable(
     updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
   },
   (t) => ({
-    ageSexModalityIdx: index("school_results_age_sex_modality_idx").on(t.ageGroup, t.sex, t.modality),
-    clubAgeIdx: index("school_results_club_age_idx").on(t.clubId, t.ageGroup),
+    ageSexModalityIdx: index("tv_sergipe_age_sex_modality_idx").on(t.ageGroup, t.sex, t.modality),
+    clubAgeIdx: index("tv_sergipe_club_age_idx").on(t.clubId, t.ageGroup),
     // NULL-distinct in SQLite means team rows (playerId NULL) and individual rows (teamName NULL) don't collide.
-    individualUnique: uniqueIndex("school_results_individual_unique_idx").on(t.playerId, t.ageGroup, t.sex),
-    teamUnique: uniqueIndex("school_results_team_unique_idx").on(t.clubId, t.ageGroup, t.sex, t.teamName),
+    individualUnique: uniqueIndex("tv_sergipe_individual_unique_idx").on(t.playerId, t.ageGroup, t.sex),
+    teamUnique: uniqueIndex("tv_sergipe_team_unique_idx").on(t.clubId, t.ageGroup, t.sex, t.teamName),
   })
 )
 
-export const schoolResultsRelations = relations(schoolResults, ({ one }) => ({
-  club: one(clubs, { fields: [schoolResults.clubId], references: [clubs.id] }),
-  player: one(players, { fields: [schoolResults.playerId], references: [players.id] }),
+export const tvSergipeRelations = relations(tvSergipe, ({ one }) => ({
+  club: one(clubs, { fields: [tvSergipe.clubId], references: [clubs.id] }),
+  player: one(players, { fields: [tvSergipe.playerId], references: [players.id] }),
 }))
 
-export const insertSchoolResultsSchema = createInsertSchema(schoolResults)
-export type SchoolResult = typeof schoolResults.$inferSelect
-export type NewSchoolResult = typeof schoolResults.$inferInsert
+export const insertTvSergipeSchema = createInsertSchema(tvSergipe)
+export type TvSergipeResult = typeof tvSergipe.$inferSelect
+export type NewTvSergipeResult = typeof tvSergipe.$inferInsert

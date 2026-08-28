@@ -5,15 +5,15 @@ import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
-import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
 import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS } from "./-constants";
 
-export const Route = createFileRoute("/_auth/dashboard/school-results/create")({
-  head: () => ({ meta: [{ title: "Create School Result - Admin - FSX" }] }),
+export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/$id")({
+  head: () => ({ meta: [{ title: "Edit TV Sergipe - Admin - FSX" }] }),
   loader: async ({ context }) => {
     await Promise.all([
+      context.queryClient.ensureQueryData(context.trpc.tvSergipe.list.queryOptions()),
       context.queryClient.ensureQueryData(context.trpc.clubs.list.queryOptions()),
       context.queryClient.ensureQueryData(context.trpc.players.list.queryOptions()),
     ]);
@@ -22,31 +22,38 @@ export const Route = createFileRoute("/_auth/dashboard/school-results/create")({
 });
 
 function RouteComponent() {
+  const { id } = Route.useParams();
   const trpc = useTRPC();
-  const navigate = useNavigate();
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  const numId = Number(id);
 
+  const { data: results = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
   const { data: clubs = [] } = useSuspenseQuery(trpc.clubs.list.queryOptions());
   const { data: players = [] } = useSuspenseQuery(trpc.players.list.queryOptions());
+  const result = results.find((r) => r.id === numId);
 
-  const createMutation = useMutation({
-    ...trpc.schoolResults.create.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.schoolResults.list.queryFilter()); toast.success("Result created"); navigate({ to: "/dashboard/school-results" }); },
-    onError: (error) => toast.error(error.message ?? "Failed to create result"),
+  const updateMutation = useMutation({
+    ...trpc.tvSergipe.update.mutationOptions(),
+    onSuccess: () => { qc.invalidateQueries(trpc.tvSergipe.list.queryFilter()); toast.success("Result updated"); },
+    onError: () => toast.error("Failed to update result"),
   });
+
+  if (!result) return <p>Result not found.</p>;
 
   const form = useForm({
     defaultValues: {
-      clubId: "",
-      playerId: "",
-      teamName: "",
-      ageGroup: "8",
-      sex: "male" as "male" | "female",
-      modality: "individual" as "individual" | "team",
-      place: 1,
+      clubId: String(result.clubId),
+      playerId: result.playerId ? String(result.playerId) : "",
+      teamName: result.teamName ?? "",
+      ageGroup: result.ageGroup,
+      sex: result.sex as "male" | "female",
+      modality: result.modality as "individual" | "team",
+      place: result.place,
     },
     onSubmit: ({ value }) => {
-      createMutation.mutate({
+      updateMutation.mutate({
+        id: numId,
         clubId: Number(value.clubId),
         playerId: value.modality === "individual" ? Number(value.playerId) : null,
         teamName: value.modality === "team" ? value.teamName : null,
@@ -56,24 +63,16 @@ function RouteComponent() {
         place: value.place,
       });
     },
-    validators: {
-      onSubmit: z.object({
-        clubId: z.string().min(1, "Escola é obrigatória"),
-        playerId: z.string(),
-        teamName: z.string(),
-        ageGroup: z.enum(AGE_GROUPS),
-        sex: z.enum(["male", "female"]),
-        modality: z.enum(["individual", "team"]),
-        place: z.number().int().min(1).max(8),
-      }),
-    },
   });
 
   const modality = useStore(form.store, (s) => s.values.modality);
 
   return (
     <div className="mx-auto max-w-lg">
-      <h1 className="mb-6 font-bold text-2xl">Create School Result</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="font-bold text-2xl">Edit TV Sergipe</h1>
+        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/tv-sergipe" })}>Back</Button>
+      </div>
       <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
         <form.Field name="clubId">
           {(f) => (
@@ -83,7 +82,6 @@ function RouteComponent() {
                 <option value="">Select club</option>
                 {clubs.map((c) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
               </select>
-              {f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}
             </div>
           )}
         </form.Field>
@@ -148,12 +146,11 @@ function RouteComponent() {
               <Label htmlFor={f.name}>Lugar (1–8)</Label>
               <Input id={f.name} type="number" min={1} max={8} value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
               <p className="text-muted-foreground text-xs">Pontos: {PLACE_POINTS[f.state.value] ?? "—"}</p>
-              {f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}
             </div>
           )}
         </form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
-          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "Creating..." : "Create Result"}</Button>}
+          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "Saving..." : "Save Changes"}</Button>}
         </form.Subscribe>
       </form>
     </div>

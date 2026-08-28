@@ -14,6 +14,8 @@ apps/web/src/routeTree.gen.ts
 # Environment variables
 .env
 .env*.local
+.env.prod
+.env.common
 
 # IDEs and editors
 .vscode/*

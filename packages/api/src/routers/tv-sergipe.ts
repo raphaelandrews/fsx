@@ -6,8 +6,8 @@ import {
   INDIVIDUAL_MEDAL_WEIGHT,
   PLACE_POINTS,
   TEAM_MEDAL_WEIGHT,
-  schoolResults,
-} from "@fsx/db/schema/schoolResults";
+  tvSergipe,
+} from "@fsx/db/schema/tvSergipe";
 import { clubs } from "@fsx/db/schema/clubs";
 import { adminProcedure, publicProcedure, router } from "../index";
 
@@ -35,16 +35,16 @@ const resultInput = z
   });
 
 const medalColumn = (place: number) =>
-  sql<number>`sum(case when ${schoolResults.place} = ${place} then (case when ${schoolResults.modality} = 'team' then ${TEAM_MEDAL_WEIGHT} else ${INDIVIDUAL_MEDAL_WEIGHT} end) else 0 end)`;
+  sql<number>`sum(case when ${tvSergipe.place} = ${place} then (case when ${tvSergipe.modality} = 'team' then ${TEAM_MEDAL_WEIGHT} else ${INDIVIDUAL_MEDAL_WEIGHT} end) else 0 end)`;
 
-export const schoolResultsRouter = router({
+export const tvSergipeRouter = router({
   list: publicProcedure.query(({ ctx }) =>
-    ctx.db.query.schoolResults.findMany({
+    ctx.db.query.tvSergipe.findMany({
       with: {
         club: { columns: { id: true, name: true, logoUrl: true } },
         player: { columns: { id: true, name: true } },
       },
-      orderBy: [asc(schoolResults.ageGroup), asc(schoolResults.sex), asc(schoolResults.modality), desc(schoolResults.points)],
+      orderBy: [asc(tvSergipe.ageGroup), asc(tvSergipe.sex), asc(tvSergipe.modality), desc(tvSergipe.points)],
     })
   ),
   leaderboard: publicProcedure
@@ -57,24 +57,24 @@ export const schoolResultsRouter = router({
     )
     .query(({ ctx, input }) => {
       const conditions = [
-        input.ageGroup ? eq(schoolResults.ageGroup, input.ageGroup) : undefined,
-        input.sex ? eq(schoolResults.sex, input.sex) : undefined,
-        input.modality ? eq(schoolResults.modality, input.modality) : undefined,
+        input.ageGroup ? eq(tvSergipe.ageGroup, input.ageGroup) : undefined,
+        input.sex ? eq(tvSergipe.sex, input.sex) : undefined,
+        input.modality ? eq(tvSergipe.modality, input.modality) : undefined,
       ].filter(Boolean);
       return ctx.db
         .select({
-          clubId: schoolResults.clubId,
+          clubId: tvSergipe.clubId,
           name: clubs.name,
           logoUrl: clubs.logoUrl,
-          points: sql<number>`sum(${schoolResults.points})`,
+          points: sql<number>`sum(${tvSergipe.points})`,
           gold: medalColumn(1),
           silver: medalColumn(2),
           bronze: medalColumn(3),
         })
-        .from(schoolResults)
-        .innerJoin(clubs, eq(schoolResults.clubId, clubs.id))
+        .from(tvSergipe)
+        .innerJoin(clubs, eq(tvSergipe.clubId, clubs.id))
         .where(conditions.length ? and(...conditions) : undefined)
-        .groupBy(schoolResults.clubId, clubs.name, clubs.logoUrl)
+        .groupBy(tvSergipe.clubId, clubs.name, clubs.logoUrl)
         .orderBy(desc(sql`points`))
     }),
   create: adminProcedure
@@ -82,7 +82,7 @@ export const schoolResultsRouter = router({
     .mutation(({ ctx, input }) => {
       const points = PLACE_POINTS[input.place]!;
       return ctx.db
-        .insert(schoolResults)
+        .insert(tvSergipe)
         .values({
           clubId: input.clubId,
           playerId: input.modality === "individual" ? input.playerId : null,
@@ -100,7 +100,7 @@ export const schoolResultsRouter = router({
     .mutation(({ ctx, input }) => {
       const { id, ...rest } = input;
       return ctx.db
-        .update(schoolResults)
+        .update(tvSergipe)
         .set({
           clubId: rest.clubId,
           playerId: rest.modality === "individual" ? rest.playerId : null,
@@ -111,11 +111,11 @@ export const schoolResultsRouter = router({
           place: rest.place,
           points: PLACE_POINTS[rest.place]!,
         })
-        .where(eq(schoolResults.id, id))
+        .where(eq(tvSergipe.id, id))
         .returning();
     }),
   delete: adminProcedure
     .input(z.object({ id: z.number() }))
-    .mutation(({ ctx, input }) => ctx.db.delete(schoolResults).where(eq(schoolResults.id, input.id))),
-  deleteAll: adminProcedure.mutation(({ ctx }) => ctx.db.delete(schoolResults)),
+    .mutation(({ ctx, input }) => ctx.db.delete(tvSergipe).where(eq(tvSergipe.id, input.id))),
+  deleteAll: adminProcedure.mutation(({ ctx }) => ctx.db.delete(tvSergipe)),
 });
