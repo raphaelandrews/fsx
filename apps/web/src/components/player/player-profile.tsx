@@ -30,7 +30,7 @@ import {
 import { VerifiedBadge } from "@/components/player/verified-badge";
 import { Announcement } from "@/components/announcement";
 import { TotalRatingChart, VariationChart } from "@/components/player/player-charts";
-import { getGradient } from "@/lib/gradients";
+import { getInitials } from "@/lib/initials";
 
 function FormatPodium(place: number | null | undefined, championship_id: number) {
   if (place === 1 && championship_id === 1) {
@@ -185,15 +185,6 @@ export interface PlayerById {
 }
 
 export function PlayerProfile({ player }: { player: PlayerById }) {
-  const useGradients = () => {
-    const [headerGradient, avatarGradient] = React.useMemo(
-      () => [getGradient(player.id), getGradient(player.id + 1)],
-      [player.id],
-    );
-    return { headerGradient, avatarGradient };
-  };
-  const { headerGradient, avatarGradient } = useGradients();
-
   const orderPodiums = React.useMemo(() => {
     return player?.tournamentPodiums ? [...player.tournamentPodiums].reverse() : [];
   }, [player?.tournamentPodiums]);
@@ -230,19 +221,19 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
     <>
       {/* Header Section */}
       <div className="relative">
-        <div
-          className="h-32 w-full bg-cover bg-center rounded-t-lg sm:rounded-none"
-          style={headerGradient}
-        />
         <div className="px-4 pb-4">
-          <div className="-mt-12 mb-4 flex justify-center">
-            <Avatar className="h-24 w-24 rounded-[20px] border-4 border-background shadow-sm">
+          <div className="mb-4 flex justify-center pt-12">
+            <Avatar className="h-24 w-24 after:border-0 after:mix-blend-normal">
               <AvatarImage
                 alt={player.name}
                 src={player.imageUrl ?? ""}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover rounded-2xl"
               />
-              <AvatarFallback style={avatarGradient} className="rounded-[16px]" />
+              <AvatarFallback className="rounded-2xl">
+                <span className="text-foreground text-xl uppercase">
+                  {getInitials(player.name)}
+                </span>
+              </AvatarFallback>
             </Avatar>
           </div>
 
@@ -323,18 +314,23 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
           {player.club && (
             <InfoItem label="Clube">
               <div className="flex items-center gap-2">
-                <Avatar className="size-5 rounded-sm">
-                  <AvatarImage
-                    alt={player.club.name as string}
-                    className="object-contain"
-                    src={
-                      (player.club.logoUrl as string)
-                        ? (player.club.logoUrl as string)
-                        : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
-                    }
-                  />
-                  <AvatarFallback className="rounded-none bg-transparent" />
-                </Avatar>
+                {player.club.logoUrl ? (
+                  <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded">
+                    <img
+                      alt={player.club.name as string}
+                      className="aspect-square size-full object-contain"
+                      src={player.club.logoUrl}
+                    />
+                  </span>
+                ) : (
+                  <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded bg-muted">
+                    <span className="flex aspect-square size-full items-center justify-center">
+                      <span className="text-xs uppercase text-foreground">
+                        {getInitials(player.club.name)}
+                      </span>
+                    </span>
+                  </span>
+                )}
                 <span>{player.club.name}</span>
               </div>
             </InfoItem>
@@ -343,18 +339,18 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
           {player.location && (
             <InfoItem label="Localização">
               <div className="flex items-center gap-2">
-                <Avatar className="size-4 rounded object-contain">
-                  <AvatarImage
+                <span className="relative flex shrink-0 size-4 overflow-hidden rounded object-contain">
+                  <img
                     alt={player.location.name as string}
-                    className="object-contain"
+                    className="aspect-square size-4 rounded object-contain"
                     src={
                       (player.location.flagUrl as string)
                         ? (player.location.flagUrl as string)
                         : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
                     }
+                    title={player.location.name as string}
                   />
-                  <AvatarFallback className="rounded-none bg-transparent" />
-                </Avatar>
+                </span>
                 <span>{player.location.name}</span>
               </div>
             </InfoItem>
@@ -388,7 +384,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
       <section className="mb-0">
         <Announcement icon={ChartBarLineIcon} label="Ratings" className="text-sm" />
 
-        <div className="grid grid-cols-3 divide-x divide-border">
+        <div className="grid grid-cols-3 gap-4">
           <RatingBox label="Clássico" value={player.classic} />
           <RatingBox label="Rápido" value={player.rapid} />
           <RatingBox label="Blitz" value={player.blitz} />
@@ -399,7 +395,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
       <section className="mb-0">
         <Announcement icon={Link02Icon} label="IDs" className="text-sm" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-y sm:divide-y-0 divide-border">
+        <div className="grid grid-cols-3 gap-4">
           <IdBox label="ID FSX" value={String(player.id)} />
           <IdBox
             label="ID CBX"
@@ -487,9 +483,9 @@ function InfoItem({
 
 function RatingBox({ label, value }: { label: string; value?: number | null }) {
   return (
-    <div className="p-4 flex flex-col items-center justify-center hover:bg-muted/50 transition-colors duration-200">
+    <div className="p-4 flex flex-col items-center justify-center gap-1 bg-secondary rounded-2xl h-full">
       <span className="text-sm text-muted-foreground font-medium">{label}</span>
-      <span className="text-base font-semibold mt-1 text-foreground font-mono tabular-nums">
+      <span className="text-base font-semibold text-foreground font-mono tabular-nums">
         {value ?? "-"}
       </span>
     </div>
@@ -498,11 +494,11 @@ function RatingBox({ label, value }: { label: string; value?: number | null }) {
 
 function IdBox({ label, value, href }: { label: string; value: string; href?: string }) {
   const content = (
-    <div className="p-4 flex flex-col items-center justify-center transition-colors duration-200 group h-full hover:bg-muted/50">
-      <span className="text-sm font-medium transition-colors text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-1.5 mt-1">
+    <div className="p-4 flex flex-col items-center justify-center gap-1 bg-secondary rounded-2xl h-full">
+      <span className="text-sm text-muted-foreground font-medium">{label}</span>
+      <div className="flex items-center gap-1.5">
         <span
-          className={`text-base font-semibold transition-colors font-mono tabular-nums ${href ? "group-hover:underline" : "text-foreground"}`}
+          className={`text-base font-semibold font-mono tabular-nums ${href ? "group-hover:underline" : "text-foreground"}`}
         >
           {value}
         </span>

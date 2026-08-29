@@ -1,8 +1,21 @@
+import { Link } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Card, CardHeader, CardTitle, CardContent } from "@fsx/ui/components/card";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  UserGroupIcon,
+  NewsIcon,
+  Megaphone01Icon,
+  Calendar04Icon,
+  ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
+import type { IconSvgElement } from "@hugeicons/react";
+
+import { Card, CardContent } from "@fsx/ui/components/card";
+import { cn } from "@fsx/ui/lib/utils";
 
 import { useTRPC } from "@/utils/trpc";
+import { AdminPageHeader } from "@/components/admin/page-header";
 
 export const Route = createFileRoute("/_auth/dashboard/")({
   head: () => ({
@@ -22,6 +35,14 @@ export const Route = createFileRoute("/_auth/dashboard/")({
   component: RouteComponent,
 });
 
+type Stat = {
+  label: string;
+  value: number;
+  icon: IconSvgElement;
+  to: string;
+  tone: string;
+};
+
 function RouteComponent() {
   const trpc = useTRPC();
 
@@ -30,43 +51,90 @@ function RouteComponent() {
   const { data: announcements = [] } = useSuspenseQuery(trpc.announcements.list.queryOptions());
   const { data: events = [] } = useSuspenseQuery(trpc.events.list.queryOptions());
 
+  const stats: Stat[] = [
+    { label: "Jogadores", value: players.length, icon: UserGroupIcon, to: "/dashboard/players", tone: "text-sky-600" },
+    { label: "Posts", value: posts.length, icon: NewsIcon, to: "/dashboard/posts", tone: "text-violet-600" },
+    { label: "Comunicados", value: announcements.length, icon: Megaphone01Icon, to: "/dashboard/announcements", tone: "text-amber-600" },
+    { label: "Eventos", value: events.length, icon: Calendar04Icon, to: "/dashboard/events", tone: "text-emerald-600" },
+  ];
+
   return (
     <div>
-      <h1 className="mb-6 font-bold text-2xl">Admin Dashboard</h1>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Players</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-bold text-2xl">{players.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Posts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-bold text-2xl">{posts.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Announcements</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-bold text-2xl">{announcements.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Events</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-bold text-2xl">{events.length}</p>
-          </CardContent>
-        </Card>
+      <AdminPageHeader
+        title="Visão geral"
+        description="Resumo das atividades da federação."
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.label} className="overflow-hidden">
+            <CardContent className="p-5">
+              <Link to={stat.to} className="group flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                  <p className="mt-1 font-semibold text-3xl tracking-tight tabular-nums">
+                    {stat.value}
+                  </p>
+                </div>
+                <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted", stat.tone)}>
+                  <HugeiconsIcon className="size-5" icon={stat.icon} strokeWidth={2} />
+                </div>
+              </Link>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <QuickLink
+          title="Atualização de Elo"
+          description="Importe resultados e recalcule os ratings por rodada."
+          to="/rating-update"
+        />
+        <QuickLink
+          title="Swiss Manager"
+          description="Exporte os resultados no formato CSV."
+          to="/dashboard/swiss-manager"
+        />
+        <QuickLink
+          title="Cache"
+          description="Invalide as caches públicas e reinicie sequências."
+          to="/dashboard/cache"
+        />
+        <QuickLink
+          title="Backup"
+          description="Baixe uma cópia dos dados da federação."
+          to="/dashboard/backup"
+        />
       </div>
     </div>
+  );
+}
+
+function QuickLink({
+  title,
+  description,
+  to,
+}: {
+  title: string;
+  description: string;
+  to: string;
+}) {
+  return (
+    <Link to={to}>
+      <Card className="group h-full transition-colors hover:border-foreground/20">
+        <CardContent className="flex items-center justify-between gap-3 p-5">
+          <div>
+            <p className="font-medium">{title}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
+          </div>
+          <HugeiconsIcon
+            className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground"
+            icon={ArrowRight01Icon}
+            strokeWidth={2}
+          />
+        </CardContent>
+      </Card>
+    </Link>
   );
 }

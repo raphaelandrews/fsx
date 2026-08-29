@@ -19,16 +19,12 @@ const resultInput = z
   .object({
     clubId: z.number(),
     playerId: z.number().nullable().optional(),
-    teamName: z.string().nullable().optional(),
     ageGroup: ageGroupEnum,
     sex: sexEnum,
     modality: modalityEnum,
     place: z.number().int().min(1).max(8),
   })
   .superRefine((val, ctx) => {
-    if (val.modality === "team" && !val.teamName) {
-      ctx.addIssue({ code: "custom", message: "Nome da equipe é obrigatório para equipes", path: ["teamName"] });
-    }
     if (val.modality === "individual" && !val.playerId) {
       ctx.addIssue({ code: "custom", message: "Jogador é obrigatório para individual", path: ["playerId"] });
     }
@@ -89,7 +85,6 @@ export const tvSergipeRouter = router({
         .values({
           clubId: input.clubId,
           playerId: input.modality === "individual" ? input.playerId : null,
-          teamName: input.modality === "team" ? input.teamName : null,
           ageGroup: input.ageGroup,
           sex: input.sex,
           modality: input.modality,
@@ -107,7 +102,6 @@ export const tvSergipeRouter = router({
         .set({
           clubId: rest.clubId,
           playerId: rest.modality === "individual" ? rest.playerId : null,
-          teamName: rest.modality === "team" ? rest.teamName : null,
           ageGroup: rest.ageGroup,
           sex: rest.sex,
           modality: rest.modality,

@@ -14,6 +14,15 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 const CACHE_MAX_AGE = 300;
 const CACHE_SWR = 3600;
 
+// A session cookie means the request is authenticated. Cache API entries are
+// keyed by URL + method only, so caching authenticated GETs would both serve
+// stale data to admins after a mutation AND leak protected procedure output to
+// unauthenticated callers (the cache is read before tRPC auth middleware runs).
+// Skip the edge cache entirely for cookie-bearing requests; they go to origin.
+function isAuthenticated(request: Request): boolean {
+  return (request.headers.get("cookie") ?? "").includes("session_token");
+}
+
 async function handler({ request }: { request: Request }) {
   const method = request.method;
 
@@ -35,7 +44,8 @@ async function handler({ request }: { request: Request }) {
 
   if (method === "GET") {
     const cache = (caches as any).default as Cache | undefined;
-    if (cache) {
+    const authenticated = isAuthenticated(request);
+    if (cache && !authenticated) {
       const cached = await cache.match(request);
       if (cached) return cached;
     }
@@ -49,7 +59,7 @@ async function handler({ request }: { request: Request }) {
 
     applySecurityHeaders(response.headers);
 
-    if (response.status === 200 && cache) {
+    if (response.status === 200 && cache && !authenticated) {
       const toCache = new Response(response.clone().body, {
         status: response.status,
         statusText: response.statusText,

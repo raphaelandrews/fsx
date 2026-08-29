@@ -1,18 +1,28 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@fsx/ui/components/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@fsx/ui/components/table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 
+import { Button } from "@fsx/ui/components/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@fsx/ui/components/alert-dialog";
+
 import { useTRPC } from "@/utils/trpc";
-import { MODALITY_LABELS, SEX_LABELS } from "./-constants";
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/")({
   head: () => ({ meta: [{ title: "TV Sergipe - Admin - FSX" }] }),
@@ -23,66 +33,116 @@ export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/")({
 function RouteComponent() {
   const trpc = useTRPC();
   const qc = useQueryClient();
-  const { data: results = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
+
+  const { data = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
 
   const deleteMutation = useMutation({
     ...trpc.tvSergipe.delete.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.tvSergipe.list.queryFilter()); toast.success("Result deleted"); },
-    onError: () => toast.error("Failed to delete result"),
+    onSuccess: () => {
+      qc.invalidateQueries(trpc.tvSergipe.list.queryFilter());
+      toast.success("Resultado excluído");
+    },
+    onError: () => toast.error("Falha ao excluir resultado"),
   });
 
   const deleteAllMutation = useMutation({
     ...trpc.tvSergipe.deleteAll.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.tvSergipe.list.queryFilter()); toast.success("All results deleted"); },
-    onError: () => toast.error("Failed to delete all results"),
+    onSuccess: () => {
+      qc.invalidateQueries(trpc.tvSergipe.list.queryFilter());
+      toast.success("Todos os resultados excluídos");
+    },
+    onError: () => toast.error("Falha ao excluir todos os resultados"),
   });
+
+  const columns: ColumnDef<(typeof data)[number]>[] = [
+    {
+      accessorKey: "club",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Escola" />,
+      cell: ({ row }) => <span className="font-medium">{row.original.club?.name ?? "—"}</span>,
+    },
+    {
+      accessorKey: "ageGroup",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Categoria" />,
+      cell: ({ row }) => <span className="tabular-nums">{row.original.ageGroup}</span>,
+    },
+    {
+      accessorKey: "sex",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Sexo" />,
+      cell: ({ row }) => <span>{row.original.sex === "male" ? "Masculino" : "Feminino"}</span>,
+    },
+    {
+      accessorKey: "modality",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Modalidade" />,
+      cell: ({ row }) => <span>{row.original.modality === "team" ? "Equipe" : "Individual"}</span>,
+    },
+    {
+      accessorKey: "player",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Jogador" />,
+      cell: ({ row }) => <span>{row.original.player?.name ?? "—"}</span>,
+    },
+    {
+      accessorKey: "place",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Lugar" />,
+      cell: ({ row }) => <span className="tabular-nums">{row.original.place}º</span>,
+    },
+    {
+      accessorKey: "points",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Pontos" />,
+      cell: ({ row }) => <span className="tabular-nums">{row.original.points}</span>,
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">Ações</span>,
+      cell: ({ row }) => (
+        <DataTableRowActions
+          id={row.original.id}
+          editTo="/dashboard/tv-sergipe/$id"
+          onDelete={() => deleteMutation.mutate({ id: row.original.id })}
+        />
+      ),
+    },
+  ];
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">TV Sergipe</h1>
-        <div className="flex gap-2">
-          <Button variant="destructive" onClick={() => { if (window.confirm("Delete all school results? This cannot be undone.")) deleteAllMutation.mutate(); }}>Delete All Results</Button>
-          <Link to="/dashboard/tv-sergipe/create"><Button>Create Result</Button></Link>
-        </div>
-      </div>
-      <div className="overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Escola</TableHead>
-              <TableHead>Categoria</TableHead>
-              <TableHead>Sexo</TableHead>
-              <TableHead>Modalidade</TableHead>
-              <TableHead>Equipe</TableHead>
-              <TableHead>Jogador</TableHead>
-              <TableHead>Lugar</TableHead>
-              <TableHead>Pontos</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {results.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell>{r.club?.name}</TableCell>
-                <TableCell>{r.ageGroup}</TableCell>
-                <TableCell>{SEX_LABELS[r.sex as "male" | "female"]}</TableCell>
-                <TableCell>{MODALITY_LABELS[r.modality as "individual" | "team"]}</TableCell>
-                <TableCell>{r.teamName ?? "—"}</TableCell>
-                <TableCell>{r.player?.name ?? "—"}</TableCell>
-                <TableCell>{r.place}</TableCell>
-                <TableCell>{r.points}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Link to="/dashboard/tv-sergipe/$id" params={{ id: String(r.id) }}><Button size="sm" variant="outline">Edit</Button></Link>
-                    <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate({ id: r.id })}>Delete</Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <AdminPageHeader
+        title="TV Sergipe"
+        description="Resultados dos Jogos Escolares TV Sergipe."
+        actions={
+          <div className="flex gap-2">
+            <Button variant="destructive" onClick={() => setConfirmDeleteAll(true)}>
+              Excluir todos
+            </Button>
+            <Link to="/dashboard/tv-sergipe/create">
+              <Button>Novo resultado</Button>
+            </Link>
+          </div>
+        }
+      />
+      <DataTable
+        columns={columns}
+        data={data}
+        toolbar={(table) => (
+          <DataTableToolbar table={table} searchPlaceholder="Buscar resultado..." />
+        )}
+        pagination={(table) => <DataTablePagination table={table} />}
+      />
+
+      <AlertDialog open={confirmDeleteAll} onOpenChange={setConfirmDeleteAll}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir todos os resultados?</AlertDialogTitle>
+            <AlertDialogDescription>Isso não pode ser desfeito.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={() => deleteAllMutation.mutate()}>
+              Excluir todos
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

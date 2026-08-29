@@ -116,7 +116,7 @@ cp apps/web/.env.example apps/web/.env
 bun run db:generate
 ```
 
-### 4. Seed or migrate data
+### 4. Seed the database
 
 For local development with sample data:
 
@@ -124,20 +124,8 @@ For local development with sample data:
 bun run db:seed
 ```
 
-To migrate the real data from the old Supabase Postgres database, add its connection
-string to `packages/db/.env` (`DATABASE_URL=postgresql://...`), then:
-
-```bash
-# Local (writes to the dev D1 in .alchemy/miniflare/v3)
-bun run db:migrate:local
-
-# Remote (writes packages/db/migration-data.sql, then apply with wrangler)
-bun run db:migrate
-bunx wrangler d1 execute <DATABASE_ID> --remote --file=./packages/db/migration-data.sql
-```
-
-> **Note:** stop `alchemy dev` before running `db:migrate:local` (`pkill -f alchemy.run.ts`) —
-> a running dev server keeps a stale in-memory D1 connection and won't see the migrated data.
+> **Note:** stop `alchemy dev` before running `db:seed` (`pkill -f alchemy.run.ts`) —
+> a running dev server keeps a stale in-memory D1 connection and won't see the seeded data.
 
 ### 5. Start development
 
@@ -170,8 +158,6 @@ All tRPC queries use `Cache-Control: public, max-age=300, stale-while-revalidate
 | `bun run dev:web`    | Start only the web application               |
 | `bun run db:generate`| Generate Drizzle migration from schema changes |
 | `bun run db:seed`    | Seed the local DB with sample data            |
-| `bun run db:migrate` | Migrate Supabase data → D1 (writes migration-data.sql) |
-| `bun run db:migrate:local` | Migrate Supabase data → local D1       |
 | `bun run check-types`| TypeScript type checking across all packages |
 | `bun run check`      | Lint + format check                          |
 | `bun run lint`       | Lint check only                              |

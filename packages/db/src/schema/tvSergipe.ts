@@ -27,7 +27,6 @@ export const tvSergipe = sqliteTable(
     id: integer("id").primaryKey({ autoIncrement: true }),
     clubId: integer("club_id").notNull().references(() => clubs.id, { onDelete: "cascade" }),
     playerId: integer("player_id").references(() => players.id, { onDelete: "set null" }),
-    teamName: text("team_name"),
     ageGroup: text("age_group").notNull(),
     sex: text("sex").notNull(),
     modality: text("modality").notNull(),
@@ -39,9 +38,8 @@ export const tvSergipe = sqliteTable(
   (t) => ({
     ageSexModalityIdx: index("tv_sergipe_age_sex_modality_idx").on(t.ageGroup, t.sex, t.modality),
     clubAgeIdx: index("tv_sergipe_club_age_idx").on(t.clubId, t.ageGroup),
-    // NULL-distinct in SQLite means team rows (playerId NULL) and individual rows (teamName NULL) don't collide.
+    // NULL-distinct in SQLite means team rows (playerId NULL) and individual rows don't collide.
     individualUnique: uniqueIndex("tv_sergipe_individual_unique_idx").on(t.playerId, t.ageGroup, t.sex),
-    teamUnique: uniqueIndex("tv_sergipe_team_unique_idx").on(t.clubId, t.ageGroup, t.sex, t.teamName),
   })
 )
 

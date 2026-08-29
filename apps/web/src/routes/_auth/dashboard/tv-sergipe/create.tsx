@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm, useStore } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
 import z from "zod";
@@ -31,7 +30,6 @@ function RouteComponent() {
     defaultValues: {
       clubId: "",
       playerId: "",
-      teamName: "",
       ageGroup: "8",
       sex: "male" as "male" | "female",
       modality: "individual" as "individual" | "team",
@@ -41,7 +39,6 @@ function RouteComponent() {
       createMutation.mutate({
         clubId: Number(value.clubId),
         playerId: value.modality === "individual" ? Number(value.playerId) : null,
-        teamName: value.modality === "team" ? value.teamName : null,
         ageGroup: value.ageGroup as (typeof AGE_GROUPS)[number],
         sex: value.sex,
         modality: value.modality,
@@ -52,7 +49,6 @@ function RouteComponent() {
       onSubmit: z.object({
         clubId: z.string().min(1, "Escola é obrigatória"),
         playerId: z.string(),
-        teamName: z.string(),
         ageGroup: z.enum(AGE_GROUPS),
         sex: z.enum(["male", "female"]),
         modality: z.enum(["individual", "team"]),
@@ -131,20 +127,17 @@ function RouteComponent() {
           </form.Field>
         )}
         {modality === "team" && (
-          <form.Field name="teamName">
-            {(f) => (
-              <div className="space-y-2">
-                <Label htmlFor={f.name}>Equipe (A/B/…)</Label>
-                <Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
-              </div>
-            )}
-          </form.Field>
+          <p className="text-muted-foreground text-sm">Resultado para a equipe do clube selecionado.</p>
         )}
         <form.Field name="place">
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Lugar (1–8)</Label>
-              <Input id={f.name} type="number" min={1} max={8} value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
+              <select id={f.name} value={String(f.state.value)} onChange={(e) => f.handleChange(Number(e.target.value))} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                {Array.from({ length: 8 }, (_, i) => i + 1).map((p) => (
+                  <option key={p} value={p}>{p}º</option>
+                ))}
+              </select>
               <p className="text-muted-foreground text-xs">Pontos: {PLACE_POINTS[f.state.value] ?? "—"}</p>
               {f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}
             </div>

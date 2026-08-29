@@ -171,10 +171,8 @@ async function seed() {
         { clubId: clubUfs!.id, playerId: ana?.id, ageGroup: "12", sex: "female", modality: "individual", place: 4, points: schema.PLACE_POINTS[4]! },
         { clubId: clubAracaju!.id, playerId: pedro?.id, ageGroup: "16", sex: "male", modality: "individual", place: 5, points: schema.PLACE_POINTS[5]! },
         // Team results
-        { clubId: clubAracaju!.id, teamName: "A", ageGroup: "14", sex: "male", modality: "team", place: 1, points: schema.PLACE_POINTS[1]! },
-        { clubId: clubAracaju!.id, teamName: "B", ageGroup: "14", sex: "male", modality: "team", place: 2, points: schema.PLACE_POINTS[2]! },
-        { clubId: clubUfs!.id, teamName: "A", ageGroup: "12", sex: "female", modality: "team", place: 1, points: schema.PLACE_POINTS[1]! },
-        { clubId: clubUfs!.id, teamName: "B", ageGroup: "12", sex: "female", modality: "team", place: 3, points: schema.PLACE_POINTS[3]! },
+        { clubId: clubAracaju!.id, ageGroup: "14", sex: "male", modality: "team", place: 1, points: schema.PLACE_POINTS[1]! },
+        { clubId: clubUfs!.id, ageGroup: "12", sex: "female", modality: "team", place: 1, points: schema.PLACE_POINTS[1]! },
       ])
       .onConflictDoNothing();
 

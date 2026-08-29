@@ -1,10 +1,8 @@
 import type { ColumnDef, RowData } from "@tanstack/react-table";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
-
 import { PlayerActions } from "@/components/campeoes/actions";
 import { DataTableColumnHeader } from "@/components/home/ratings/data-table-column-header";
-import { getGradient } from "@/lib/gradients";
+import { getInitials } from "@/lib/initials";
 
 import type { ClubRow, PlayerRow } from "./types";
 
@@ -12,15 +10,6 @@ declare module "@tanstack/react-table" {
   interface ColumnMeta<TData extends RowData, TValue> {
     className?: string;
   }
-}
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
 }
 
 function indexColumn<T>(): ColumnDef<T> {
@@ -131,20 +120,21 @@ export function buildClubColumns(phases: string[]): ColumnDef<ClubRow>[] {
         const club = row.original;
         return (
           <div className="flex items-center gap-3">
-            <Avatar className="size-8 rounded-md">
-              <AvatarImage
-                alt={club.clubName}
-                className="object-contain"
-                src={club.clubLogo ?? undefined}
-              />
-              <AvatarFallback style={getGradient(club.clubId ?? 0)}>
-                {initials(club.clubName) ? (
-                  <span className="text-xs font-bold uppercase text-foreground">
-                    {initials(club.clubName)}
+            <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded">
+              {club.clubLogo ? (
+                <img
+                  alt={club.clubName}
+                  className="aspect-square size-full object-contain"
+                  src={club.clubLogo}
+                />
+              ) : (
+                <span className="flex aspect-square size-full items-center justify-center rounded bg-muted">
+                  <span className="text-xs uppercase text-foreground">
+                    {getInitials(club.clubName)}
                   </span>
-                ) : null}
-              </AvatarFallback>
-            </Avatar>
+                </span>
+              )}
+            </span>
             <span className="font-medium whitespace-nowrap">{club.clubName}</span>
           </div>
         );
