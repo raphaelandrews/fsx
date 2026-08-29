@@ -384,7 +384,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
       <section className="mb-0">
         <Announcement icon={ChartBarLineIcon} label="Ratings" className="text-sm" />
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <RatingBox label="Clássico" value={player.classic} />
           <RatingBox label="Rápido" value={player.rapid} />
           <RatingBox label="Blitz" value={player.blitz} />
@@ -395,7 +395,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
       <section className="mb-0">
         <Announcement icon={Link02Icon} label="IDs" className="text-sm" />
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <IdBox label="ID FSX" value={String(player.id)} />
           <IdBox
             label="ID CBX"
@@ -483,9 +483,9 @@ function InfoItem({
 
 function RatingBox({ label, value }: { label: string; value?: number | null }) {
   return (
-    <div className="p-4 flex flex-col items-center justify-center gap-1 bg-secondary rounded-2xl h-full">
-      <span className="text-sm text-muted-foreground font-medium">{label}</span>
-      <span className="text-base font-semibold text-foreground font-mono tabular-nums">
+    <div className="p-3 sm:p-4 flex flex-col items-center justify-center gap-1 bg-secondary rounded-2xl h-full">
+      <span className="text-xs sm:text-sm text-muted-foreground font-medium text-center">{label}</span>
+      <span className="text-sm sm:text-base font-semibold text-foreground font-mono tabular-nums">
         {value ?? "-"}
       </span>
     </div>
@@ -494,11 +494,11 @@ function RatingBox({ label, value }: { label: string; value?: number | null }) {
 
 function IdBox({ label, value, href }: { label: string; value: string; href?: string }) {
   const content = (
-    <div className="p-4 flex flex-col items-center justify-center gap-1 bg-secondary rounded-2xl h-full">
-      <span className="text-sm text-muted-foreground font-medium">{label}</span>
+    <div className="p-3 sm:p-4 flex flex-col items-center justify-center gap-1 bg-secondary rounded-2xl h-full">
+      <span className="text-xs sm:text-sm text-muted-foreground font-medium text-center">{label}</span>
       <div className="flex items-center gap-1.5">
         <span
-          className={`text-base font-semibold font-mono tabular-nums ${href ? "group-hover:underline" : "text-foreground"}`}
+          className={`text-sm sm:text-base font-semibold font-mono tabular-nums ${href ? "group-hover:underline" : "text-foreground"}`}
         >
           {value}
         </span>

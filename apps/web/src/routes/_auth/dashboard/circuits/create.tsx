@@ -21,7 +21,7 @@ function RouteComponent() {
 
   const createMutation = useMutation({
     ...trpc.circuits.create.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.circuits.listSimple.queryFilter()); toast.success("Circuit created"); navigate({ to: "/dashboard/circuits" }); },
+    onSuccess: () => { qc.invalidateQueries(trpc.circuits.listYesple.queryFilter()); toast.success("Circuit created"); navigate({ to: "/dashboard/circuits" }); },
     onError: (error) => toast.error(error.message ?? "Failed to create circuit"),
   });
 

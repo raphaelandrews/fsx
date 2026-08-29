@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_auth/dashboard/")({
   head: () => ({
     meta: [
       { title: "Admin Dashboard - FSX" },
-      { name: "description", content: "Painel administrativo da Federação Sergipana de Xadrez" },
+      { name: "description", content: "Sergipe Chess Federation admin dashboard" },
     ],
   }),
   loader: async ({ context }) => {
@@ -52,7 +52,7 @@ function RouteComponent() {
   const { data: events = [] } = useSuspenseQuery(trpc.events.list.queryOptions());
 
   const stats: Stat[] = [
-    { label: "Jogadores", value: players.length, icon: UserGroupIcon, to: "/dashboard/players", tone: "text-sky-600" },
+    { label: "Playeres", value: players.length, icon: UserGroupIcon, to: "/dashboard/players", tone: "text-sky-600" },
     { label: "Posts", value: posts.length, icon: NewsIcon, to: "/dashboard/posts", tone: "text-violet-600" },
     { label: "Comunicados", value: announcements.length, icon: Megaphone01Icon, to: "/dashboard/announcements", tone: "text-amber-600" },
     { label: "Eventos", value: events.length, icon: Calendar04Icon, to: "/dashboard/events", tone: "text-emerald-600" },
@@ -61,8 +61,8 @@ function RouteComponent() {
   return (
     <div>
       <AdminPageHeader
-        title="Visão geral"
-        description="Resumo das atividades da federação."
+        title="Overview"
+        description="Summary of the federation's activity."
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -87,23 +87,23 @@ function RouteComponent() {
 
       <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <QuickLink
-          title="Atualização de Elo"
-          description="Importe resultados e recalcule os ratings por rodada."
+          title="Rating Update"
+          description="Import results and recompute ratings per round."
           to="/rating-update"
         />
         <QuickLink
           title="Swiss Manager"
-          description="Exporte os resultados no formato CSV."
+          description="Export results in CSV format."
           to="/dashboard/swiss-manager"
         />
         <QuickLink
           title="Cache"
-          description="Invalide as caches públicas e reinicie sequências."
+          description="Invalidate public caches and reset sequences."
           to="/dashboard/cache"
         />
         <QuickLink
           title="Backup"
-          description="Baixe uma cópia dos dados da federação."
+          description="Download a copy of the federation's data."
           to="/dashboard/backup"
         />
       </div>

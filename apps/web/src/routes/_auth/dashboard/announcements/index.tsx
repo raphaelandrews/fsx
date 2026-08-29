@@ -30,9 +30,9 @@ function RouteComponent() {
     ...trpc.announcements.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.announcements.list.queryFilter());
-      toast.success("Comunicado excluído");
+      toast.success("Announcement deleted");
     },
-    onError: () => toast.error("Falha ao excluir comunicado"),
+    onError: () => toast.error("Failed to delete announcement"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
@@ -43,22 +43,22 @@ function RouteComponent() {
     },
     {
       accessorKey: "year",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Ano" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Year" />,
       cell: ({ row }) => <span className="tabular-nums">{row.getValue("year")}</span>,
     },
     {
       accessorKey: "number",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Número" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Number" />,
       cell: ({ row }) => <span className="tabular-nums">{padNumber(row.original.number)}</span>,
     },
     {
       accessorKey: "content",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Conteúdo" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Content" />,
       cell: ({ row }) => <span className="max-w-xs truncate block">{row.getValue("content")}</span>,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -74,10 +74,10 @@ function RouteComponent() {
     <div>
       <AdminPageHeader
         title="Comunicados"
-        description="Gerencie os comunicados oficiais."
+        description="Manage the official announcements."
         actions={
           <Link to="/dashboard/announcements/create">
-            <Button>Novo comunicado</Button>
+            <Button>New announcement</Button>
           </Link>
         }
       />
@@ -85,7 +85,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="content" searchPlaceholder="Buscar comunicado..." />
+          <DataTableToolbar table={table} searchKey="content" searchPlaceholder="Search announcement..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />

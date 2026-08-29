@@ -30,15 +30,15 @@ function RouteComponent() {
     ...trpc.posts.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.posts.listAdmin.queryFilter());
-      toast.success("Post excluído");
+      toast.success("Post deleted");
     },
-    onError: () => toast.error("Falha ao excluir post"),
+    onError: () => toast.error("Failed to delete post"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
     {
       accessorKey: "title",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Título" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Title" />,
       cell: ({ row }) => <span className="font-medium">{row.getValue("title")}</span>,
     },
     {
@@ -48,16 +48,16 @@ function RouteComponent() {
     },
     {
       accessorKey: "published",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Publicado" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Published" />,
       cell: ({ row }) => (
         <Badge variant={row.original.published ? "default" : "outline"}>
-          {row.original.published ? "Sim" : "Não"}
+          {row.original.published ? "Yes" : "No"}
         </Badge>
       ),
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -73,10 +73,10 @@ function RouteComponent() {
     <div>
       <AdminPageHeader
         title="Posts"
-        description="Gerencie as postagens do site."
+        description="Manage site posts."
         actions={
           <Link to="/dashboard/posts/create">
-            <Button>Novo post</Button>
+            <Button>New post</Button>
           </Link>
         }
       />
@@ -84,7 +84,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="title" searchPlaceholder="Buscar post..." />
+          <DataTableToolbar table={table} searchKey="title" searchPlaceholder="Search post..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />

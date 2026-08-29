@@ -55,12 +55,16 @@ import {
   SEX_LABEL,
   SUB_SCOPE_TABS,
   TEAM_MEDAL_WEIGHT,
-  subScopeToFilters,
   type AgeGroup,
   type Modality,
   type Sex,
   type SubScopeId,
 } from "./constants";
+import {
+  resolveTvSergipeFilters,
+  tvSergipeLeaderboardOptions,
+  tvSergipeListOptions,
+} from "./queries";
 
 type LeaderboardRow = inferRouterOutputs<AppRouter>["tvSergipe"]["leaderboard"][number];
 type SchoolResult = inferRouterOutputs<AppRouter>["tvSergipe"]["list"][number];
@@ -79,16 +83,12 @@ export function TvSergipeView() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/_public/tv-sergipe" });
 
-  const filters = search.idade ? subScopeToFilters((search.escopo ?? "geral") as SubScopeId) : {};
+  const filters = resolveTvSergipeFilters({ idade: search.idade, escopo: search.escopo });
 
   const { data: leaderboard = [] } = useSuspenseQuery(
-    trpc.tvSergipe.leaderboard.queryOptions({
-      ageGroup: search.idade,
-      sex: filters.sex,
-      modality: filters.modality,
-    }),
+    tvSergipeLeaderboardOptions(trpc, filters),
   );
-  const { data: allResults = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
+  const { data: allResults = [] } = useSuspenseQuery(tvSergipeListOptions(trpc));
 
   const orderedRows = useMemo(() => {
     if (search.view !== "medals") return leaderboard;

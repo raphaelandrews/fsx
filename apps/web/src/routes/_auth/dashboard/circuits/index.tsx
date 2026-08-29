@@ -15,7 +15,7 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/")({
   head: () => ({ meta: [{ title: "Circuits - Admin - FSX" }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.circuits.listSimple.queryOptions()),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.circuits.listYesple.queryOptions()),
   component: RouteComponent,
 });
 
@@ -23,15 +23,15 @@ function RouteComponent() {
   const trpc = useTRPC();
   const qc = useQueryClient();
 
-  const { data = [] } = useSuspenseQuery(trpc.circuits.listSimple.queryOptions());
+  const { data = [] } = useSuspenseQuery(trpc.circuits.listYesple.queryOptions());
 
   const deleteMutation = useMutation({
     ...trpc.circuits.delete.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.circuits.listSimple.queryFilter());
-      toast.success("Circuito excluído");
+      qc.invalidateQueries(trpc.circuits.listYesple.queryFilter());
+      toast.success("Circuit deleted");
     },
-    onError: () => toast.error("Falha ao excluir circuito"),
+    onError: () => toast.error("Failed to delete circuit"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
@@ -42,17 +42,17 @@ function RouteComponent() {
     },
     {
       accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
       accessorKey: "type",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Tipo" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
       cell: ({ row }) => <span className="text-muted-foreground">{row.getValue("type")}</span>,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -68,10 +68,10 @@ function RouteComponent() {
     <div>
       <AdminPageHeader
         title="Circuitos"
-        description="Gerencie os circuitos de xadrez."
+        description="Manage chess circuits."
         actions={
           <Link to="/dashboard/circuits/create">
-            <Button>Novo circuito</Button>
+            <Button>New circuit</Button>
           </Link>
         }
       />
@@ -79,7 +79,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Buscar circuito..." />
+          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search circuit..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />

@@ -29,9 +29,9 @@ function RouteComponent() {
     ...trpc.titles.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.titles.list.queryFilter());
-      toast.success("Título excluído");
+      toast.success("Title deleted");
     },
-    onError: () => toast.error("Falha ao excluir título"),
+    onError: () => toast.error("Failed to delete title"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
@@ -42,20 +42,20 @@ function RouteComponent() {
     },
     {
       accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
       accessorKey: "shortName",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Sigla" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Abbreviation" />,
     },
     {
       accessorKey: "type",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Tipo" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -70,11 +70,11 @@ function RouteComponent() {
   return (
     <div>
       <AdminPageHeader
-        title="Títulos"
-        description="Gerencie os títulos de xadrez."
+        title="Titles"
+        description="Manage chess titles."
         actions={
           <Link to="/dashboard/titles/create">
-            <Button>Novo título</Button>
+            <Button>New title</Button>
           </Link>
         }
       />
@@ -82,7 +82,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Buscar título..." />
+          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search title..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />

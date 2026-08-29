@@ -29,9 +29,9 @@ function RouteComponent() {
     ...trpc.norms.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.norms.list.queryFilter());
-      toast.success("Norma excluída");
+      toast.success("Norm deleted");
     },
-    onError: () => toast.error("Falha ao excluir norma"),
+    onError: () => toast.error("Failed to delete norm"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
@@ -42,12 +42,12 @@ function RouteComponent() {
     },
     {
       accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -63,10 +63,10 @@ function RouteComponent() {
     <div>
       <AdminPageHeader
         title="Normas"
-        description="Gerencie as normas técnicas."
+        description="Manage technical norms."
         actions={
           <Link to="/dashboard/norms/create">
-            <Button>Nova norma</Button>
+            <Button>New norm</Button>
           </Link>
         }
       />
@@ -74,7 +74,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Buscar norma..." />
+          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search norm..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />

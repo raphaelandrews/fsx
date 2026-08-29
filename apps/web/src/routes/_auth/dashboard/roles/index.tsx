@@ -29,9 +29,9 @@ function RouteComponent() {
     ...trpc.roles.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.roles.list.queryFilter());
-      toast.success("Função excluída");
+      toast.success("Role deleted");
     },
-    onError: () => toast.error("Falha ao excluir função"),
+    onError: () => toast.error("Failed to delete role"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
@@ -42,20 +42,20 @@ function RouteComponent() {
     },
     {
       accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
       accessorKey: "shortName",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Sigla" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Abbreviation" />,
     },
     {
       accessorKey: "type",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Tipo" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -70,11 +70,11 @@ function RouteComponent() {
   return (
     <div>
       <AdminPageHeader
-        title="Funções"
-        description="Gerencie as funções dos atletas."
+        title="Roles"
+        description="Manage athletes' roles."
         actions={
           <Link to="/dashboard/roles/create">
-            <Button>Nova função</Button>
+            <Button>New role</Button>
           </Link>
         }
       />
@@ -82,7 +82,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Buscar função..." />
+          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search role..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />

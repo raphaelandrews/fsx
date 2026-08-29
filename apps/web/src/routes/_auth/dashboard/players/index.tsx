@@ -41,20 +41,20 @@ function RouteComponent() {
     ...trpc.players.update.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.players.list.queryFilter());
-      toast.success("Jogador desativado");
+      toast.success("Player desativado");
     },
-    onError: () => toast.error("Falha ao desativar jogador"),
+    onError: () => toast.error("Failed to deactivate player"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
     {
       accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
     },
     {
       accessorKey: "nickname",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Apelido" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Nickname" />,
       cell: ({ row }) => <span>{row.getValue("nickname") ?? "—"}</span>,
     },
     {
@@ -74,24 +74,24 @@ function RouteComponent() {
     },
     {
       accessorKey: "club",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Clube" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Club" />,
       cell: ({ row }) => <span>{row.original.club?.name ?? "—"}</span>,
     },
     {
       accessorKey: "location",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Localidade" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Location" />,
       cell: ({ row }) => <span>{row.original.location?.name ?? "—"}</span>,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-1">
           <Link
             to="/dashboard/players/titles"
             search={{ playerId: row.original.id }}
           >
-            <Button size="sm" variant="outline">Títulos</Button>
+            <Button size="sm" variant="outline">Titles</Button>
           </Link>
           <DataTableRowActions
             id={row.original.id}
@@ -107,11 +107,11 @@ function RouteComponent() {
   return (
     <div>
       <AdminPageHeader
-        title="Jogadores"
-        description="Gerencie os jogadores do estado."
+        title="Playeres"
+        description="Manage the state's players."
         actions={
           <Link to="/dashboard/players/create">
-            <Button>Novo jogador</Button>
+            <Button>New player</Button>
           </Link>
         }
       />
@@ -119,7 +119,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Buscar jogador..." />
+          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search player..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />
@@ -127,20 +127,20 @@ function RouteComponent() {
       <AlertDialog open={deactivateId !== null} onOpenChange={(open) => { if (!open) setDeactivateId(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Desativar jogador?</AlertDialogTitle>
+            <AlertDialogTitle>Deactivate player?</AlertDialogTitle>
             <AlertDialogDescription>
-              O jogador continuará no banco de dados, mas não aparecerá como ativo.
+              The player will stay in the database but won't appear as active.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={() => {
                 if (deactivateId !== null) deactivateMutation.mutate({ id: deactivateId, active: false });
               }}
             >
-              Desativar
+              Deactivate
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

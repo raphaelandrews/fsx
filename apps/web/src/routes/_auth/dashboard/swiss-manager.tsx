@@ -24,7 +24,7 @@ function RouteComponent() {
   const { data: players = [] } = useSuspenseQuery(trpc.swissManager.list.queryOptions());
 
   const exportCSV = () => {
-    const headers = ["Nome", "Sexo", "Nascimento", "Clube", "Classico", "Rapido", "Blitz"];
+    const headers = ["Name", "Sex", "Birth date", "Club", "Classico", "Rapido", "Blitz"];
     const rows = players.map((p) => [
       p.name,
       p.sex ? "F" : "M",

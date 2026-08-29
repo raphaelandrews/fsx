@@ -29,30 +29,30 @@ function RouteComponent() {
     ...trpc.tournamentPodiums.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.tournamentPodiums.list.queryFilter());
-      toast.success("Pódio excluído");
+      toast.success("Podium deleted");
     },
-    onError: () => toast.error("Falha ao excluir pódio"),
+    onError: () => toast.error("Failed to delete podium"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
     {
       accessorKey: "place",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Lugar" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Place" />,
       cell: ({ row }) => <span className="tabular-nums font-medium">{row.original.place}º</span>,
     },
     {
       accessorKey: "player",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Jogador" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Player" />,
       cell: ({ row }) => <span>{row.original.player?.name ?? "—"}</span>,
     },
     {
       accessorKey: "tournament",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Torneio" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Tournament" />,
       cell: ({ row }) => <span>{row.original.tournament?.name ?? "—"}</span>,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -67,11 +67,11 @@ function RouteComponent() {
   return (
     <div>
       <AdminPageHeader
-        title="Pódios"
-        description="Gerencie os pódios dos torneios."
+        title="Podiums"
+        description="Manage tournament podiums."
         actions={
           <Link to="/dashboard/tournament-podiums/create">
-            <Button>Novo pódio</Button>
+            <Button>New podium</Button>
           </Link>
         }
       />
@@ -79,7 +79,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchPlaceholder="Buscar jogador..." />
+          <DataTableToolbar table={table} searchPlaceholder="Search player..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />

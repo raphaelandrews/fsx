@@ -41,64 +41,66 @@ function RouteComponent() {
     ...trpc.tvSergipe.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.tvSergipe.list.queryFilter());
-      toast.success("Resultado excluído");
+      qc.invalidateQueries(trpc.tvSergipe.leaderboard.queryFilter());
+      toast.success("Result deleted");
     },
-    onError: () => toast.error("Falha ao excluir resultado"),
+    onError: () => toast.error("Failed to delete result"),
   });
 
   const deleteAllMutation = useMutation({
     ...trpc.tvSergipe.deleteAll.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.tvSergipe.list.queryFilter());
-      toast.success("Todos os resultados excluídos");
+      qc.invalidateQueries(trpc.tvSergipe.leaderboard.queryFilter());
+      toast.success("All results deleted");
     },
-    onError: () => toast.error("Falha ao excluir todos os resultados"),
+    onError: () => toast.error("Failed to delete all results"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
     {
       accessorKey: "club",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Escola" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="School" />,
       cell: ({ row }) => <span className="font-medium">{row.original.club?.name ?? "—"}</span>,
     },
     {
       accessorKey: "ageGroup",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Categoria" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Category" />,
       cell: ({ row }) => <span className="tabular-nums">{row.original.ageGroup}</span>,
     },
     {
       accessorKey: "sex",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Sexo" />,
-      cell: ({ row }) => <span>{row.original.sex === "male" ? "Masculino" : "Feminino"}</span>,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Sex" />,
+      cell: ({ row }) => <span>{row.original.sex === "male" ? "Male" : "Female"}</span>,
     },
     {
       accessorKey: "modality",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Modalidade" />,
-      cell: ({ row }) => <span>{row.original.modality === "team" ? "Equipe" : "Individual"}</span>,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Modality" />,
+      cell: ({ row }) => <span>{row.original.modality === "team" ? "Team" : "Individual"}</span>,
     },
     {
       accessorKey: "teamName",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Equipe" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Team" />,
       cell: ({ row }) => <span>{row.original.teamName ?? "—"}</span>,
     },
     {
       accessorKey: "player",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Jogador" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Player" />,
       cell: ({ row }) => <span>{row.original.player?.name ?? "—"}</span>,
     },
     {
       accessorKey: "place",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Lugar" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Place" />,
       cell: ({ row }) => <span className="tabular-nums">{row.original.place}º</span>,
     },
     {
       accessorKey: "points",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Pontos" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Points" />,
       cell: ({ row }) => <span className="tabular-nums">{row.original.points}</span>,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -113,14 +115,14 @@ function RouteComponent() {
     <div>
       <AdminPageHeader
         title="TV Sergipe"
-        description="Resultados dos Jogos Escolares TV Sergipe."
+        description="Jogos Schoolres TV Sergipe results."
         actions={
           <div className="flex gap-2">
             <Button variant="destructive" onClick={() => setConfirmDeleteAll(true)}>
-              Excluir todos
+              Delete all
             </Button>
             <Link to="/dashboard/tv-sergipe/create">
-              <Button>Novo resultado</Button>
+              <Button>New result</Button>
             </Link>
           </div>
         }
@@ -129,7 +131,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchPlaceholder="Buscar resultado..." />
+          <DataTableToolbar table={table} searchPlaceholder="Search result..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />
@@ -137,13 +139,13 @@ function RouteComponent() {
       <AlertDialog open={confirmDeleteAll} onOpenChange={setConfirmDeleteAll}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir todos os resultados?</AlertDialogTitle>
-            <AlertDialogDescription>Isso não pode ser desfeito.</AlertDialogDescription>
+            <AlertDialogTitle>Delete all os resultados?</AlertDialogTitle>
+            <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={() => deleteAllMutation.mutate()}>
-              Excluir todos
+              Delete all
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

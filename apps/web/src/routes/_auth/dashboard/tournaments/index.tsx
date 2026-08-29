@@ -29,15 +29,15 @@ function RouteComponent() {
     ...trpc.tournaments.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.tournaments.list.queryFilter());
-      toast.success("Torneio excluído");
+      toast.success("Tournament deleted");
     },
-    onError: () => toast.error("Falha ao excluir torneio"),
+    onError: () => toast.error("Failed to delete tournament"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
     {
       accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
@@ -51,12 +51,12 @@ function RouteComponent() {
     },
     {
       accessorKey: "championship",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Campeonato" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Championship" />,
       cell: ({ row }) => <span>{row.original.championship?.name ?? "—"}</span>,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -71,11 +71,11 @@ function RouteComponent() {
   return (
     <div>
       <AdminPageHeader
-        title="Torneios"
-        description="Gerencie os torneios oficiais."
+        title="Tournaments"
+        description="Manage the official tournaments."
         actions={
           <Link to="/dashboard/tournaments/create">
-            <Button>Novo torneio</Button>
+            <Button>New tournament</Button>
           </Link>
         }
       />
@@ -83,7 +83,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Buscar torneio..." />
+          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search tournament..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />

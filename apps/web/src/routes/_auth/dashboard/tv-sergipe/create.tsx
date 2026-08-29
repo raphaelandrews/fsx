@@ -22,7 +22,7 @@ function RouteComponent() {
 
   const createMutation = useMutation({
     ...trpc.tvSergipe.create.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.tvSergipe.list.queryFilter()); toast.success("Result created"); navigate({ to: "/dashboard/tv-sergipe" }); },
+    onSuccess: () => { qc.invalidateQueries(trpc.tvSergipe.list.queryFilter()); qc.invalidateQueries(trpc.tvSergipe.leaderboard.queryFilter()); toast.success("Result created"); navigate({ to: "/dashboard/tv-sergipe" }); },
     onError: (error) => toast.error(error.message ?? "Failed to create result"),
   });
 
@@ -49,7 +49,7 @@ function RouteComponent() {
     },
     validators: {
       onSubmit: z.object({
-        clubId: z.string().min(1, "Escola é obrigatória"),
+        clubId: z.string().min(1, "School is required"),
         playerId: z.string(),
         teamName: z.enum(TEAM_NAMES),
         ageGroup: z.enum(AGE_GROUPS),
@@ -69,13 +69,13 @@ function RouteComponent() {
         <form.Field name="clubId">
           {(f) => (
             <div className="space-y-2">
-              <Label>Escola</Label>
+              <Label>School</Label>
               <SearchableSelect
                 value={f.state.value}
                 onChange={(v) => f.handleChange(v)}
                 getQueryOptions={(q) => trpc.clubs.search.queryOptions({ query: q })}
-                placeholder="Buscar escola..."
-                emptyText="Nenhuma escola encontrada."
+                placeholder="Search school..."
+                emptyText="No school found."
               />
               {f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}
             </div>
@@ -85,7 +85,7 @@ function RouteComponent() {
           <form.Field name="ageGroup">
             {(f) => (
               <div className="space-y-2">
-                <Label>Categoria</Label>
+                <Label>Category</Label>
                 <select value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                   {AGE_GROUPS.map((g) => <option key={g} value={g}>{g} anos</option>)}
                 </select>
@@ -95,7 +95,7 @@ function RouteComponent() {
           <form.Field name="sex">
             {(f) => (
               <div className="space-y-2">
-                <Label>Sexo</Label>
+                <Label>Sex</Label>
                 <select value={f.state.value} onChange={(e) => f.handleChange(e.target.value as "male" | "female")} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                   {SEX_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
@@ -106,7 +106,7 @@ function RouteComponent() {
         <form.Field name="modality">
           {(f) => (
             <div className="space-y-2">
-              <Label>Modalidade</Label>
+              <Label>Modality</Label>
               <select value={f.state.value} onChange={(e) => f.handleChange(e.target.value as "individual" | "team")} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 {MODALITY_OPTIONS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
               </select>
@@ -117,13 +117,13 @@ function RouteComponent() {
           <form.Field name="playerId">
             {(f) => (
               <div className="space-y-2">
-                <Label>Jogador</Label>
+                <Label>Player</Label>
                 <SearchableSelect
                   value={f.state.value}
                   onChange={(v) => f.handleChange(v)}
                   getQueryOptions={(q) => trpc.players.search.queryOptions({ query: q })}
-                  placeholder="Buscar jogador..."
-                  emptyText="Nenhum jogador encontrado."
+                  placeholder="Search player..."
+                  emptyText="No player found."
                 />
               </div>
             )}
@@ -133,9 +133,9 @@ function RouteComponent() {
           <form.Field name="teamName">
             {(f) => (
               <div className="space-y-2">
-                <Label htmlFor={f.name}>Equipe (A–J)</Label>
+                <Label htmlFor={f.name}>Team (A–J)</Label>
                 <select id={f.name} value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  {TEAM_NAMES.map((n) => <option key={n} value={n}>Equipe {n}</option>)}
+                  {TEAM_NAMES.map((n) => <option key={n} value={n}>Team {n}</option>)}
                 </select>
               </div>
             )}
@@ -144,13 +144,13 @@ function RouteComponent() {
         <form.Field name="place">
           {(f) => (
             <div className="space-y-2">
-              <Label htmlFor={f.name}>Lugar (1–8)</Label>
+              <Label htmlFor={f.name}>Place (1–8)</Label>
               <select id={f.name} value={String(f.state.value)} onChange={(e) => f.handleChange(Number(e.target.value))} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 {Array.from({ length: 8 }, (_, i) => i + 1).map((p) => (
                   <option key={p} value={p}>{p}º</option>
                 ))}
               </select>
-              <p className="text-muted-foreground text-xs">Pontos: {PLACE_POINTS[f.state.value] ?? "—"}</p>
+              <p className="text-muted-foreground text-xs">Points: {PLACE_POINTS[f.state.value] ?? "—"}</p>
               {f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}
             </div>
           )}

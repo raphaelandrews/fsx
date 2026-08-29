@@ -29,9 +29,9 @@ function RouteComponent() {
     ...trpc.insignias.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.insignias.list.queryFilter());
-      toast.success("Insígnia excluída");
+      toast.success("Insignia deleted");
     },
-    onError: () => toast.error("Falha ao excluir insígnia"),
+    onError: () => toast.error("Failed to delete insignia"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
@@ -42,17 +42,17 @@ function RouteComponent() {
     },
     {
       accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
       accessorKey: "level",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nível" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Level" />,
       cell: ({ row }) => <span className="tabular-nums">{row.getValue("level")}</span>,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -67,11 +67,11 @@ function RouteComponent() {
   return (
     <div>
       <AdminPageHeader
-        title="Insígnias"
-        description="Gerencie as insígnias."
+        title="Insignias"
+        description="Manage insignias."
         actions={
           <Link to="/dashboard/insignias/create">
-            <Button>Nova insígnia</Button>
+            <Button>New insignia</Button>
           </Link>
         }
       />
@@ -79,7 +79,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Buscar insígnia..." />
+          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search insignia..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />

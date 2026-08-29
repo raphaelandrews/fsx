@@ -29,24 +29,24 @@ function RouteComponent() {
     ...trpc.locations.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.locations.list.queryFilter());
-      toast.success("Localidade excluída");
+      toast.success("Location deleted");
     },
-    onError: () => toast.error("Falha ao excluir localidade"),
+    onError: () => toast.error("Failed to delete location"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
     {
       accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
       accessorKey: "type",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Tipo" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -61,11 +61,11 @@ function RouteComponent() {
   return (
     <div>
       <AdminPageHeader
-        title="Localidades"
-        description="Gerencie as cidades e estados."
+        title="Locations"
+        description="Manage cities and states."
         actions={
           <Link to="/dashboard/locations/create">
-            <Button>Nova localidade</Button>
+            <Button>New location</Button>
           </Link>
         }
       />
@@ -73,7 +73,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Buscar localidade..." />
+          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search location..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />

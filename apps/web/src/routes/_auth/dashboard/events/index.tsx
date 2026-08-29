@@ -29,39 +29,39 @@ function RouteComponent() {
     ...trpc.events.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.events.list.queryFilter());
-      toast.success("Evento excluído");
+      toast.success("Event deleted");
     },
-    onError: () => toast.error("Falha ao excluir evento"),
+    onError: () => toast.error("Failed to delete event"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
     {
       accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
       accessorKey: "type",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Tipo" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
     },
     {
       accessorKey: "startDate",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Início" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Start" />,
       cell: ({ row }) => <span className="tabular-nums">{row.getValue("startDate")}</span>,
     },
     {
       accessorKey: "endDate",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Fim" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="End" />,
       cell: ({ row }) => <span className="tabular-nums">{row.getValue("endDate") ?? "—"}</span>,
     },
     {
       accessorKey: "timeControl",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Controle" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Time control" />,
       cell: ({ row }) => <span className="tabular-nums">{row.getValue("timeControl") ?? "—"}</span>,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -77,10 +77,10 @@ function RouteComponent() {
     <div>
       <AdminPageHeader
         title="Eventos"
-        description="Gerencie os eventos oficiais."
+        description="Manage the official events."
         actions={
           <Link to="/dashboard/events/create">
-            <Button>Novo evento</Button>
+            <Button>New event</Button>
           </Link>
         }
       />
@@ -88,7 +88,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Buscar evento..." />
+          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search event..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />

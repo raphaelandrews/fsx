@@ -29,9 +29,9 @@ function RouteComponent() {
     ...trpc.clubs.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.clubs.list.queryFilter());
-      toast.success("Clube excluído");
+      toast.success("Club deleted");
     },
-    onError: () => toast.error("Falha ao excluir clube"),
+    onError: () => toast.error("Failed to delete club"),
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
@@ -42,12 +42,12 @@ function RouteComponent() {
     },
     {
       accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
@@ -62,11 +62,11 @@ function RouteComponent() {
   return (
     <div>
       <AdminPageHeader
-        title="Clubes"
-        description="Gerencie os clubes filiados."
+        title="Clubs"
+        description="Manage the member clubs."
         actions={
           <Link to="/dashboard/clubs/create">
-            <Button>Novo clube</Button>
+            <Button>New club</Button>
           </Link>
         }
       />
@@ -74,7 +74,7 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Buscar clube..." />
+          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search club..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />

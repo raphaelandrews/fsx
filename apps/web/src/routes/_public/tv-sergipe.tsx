@@ -2,7 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { TvSergipeView } from "@/components/tv-sergipe/tv-sergipe-view";
-import { AGE_GROUPS, subScopeToFilters, type SubScopeId } from "@/components/tv-sergipe/constants";
+import {
+  AGE_GROUPS,
+} from "@/components/tv-sergipe/constants";
+import {
+  resolveTvSergipeFilters,
+  tvSergipeLeaderboardOptions,
+  tvSergipeListOptions,
+} from "@/components/tv-sergipe/queries";
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 
@@ -43,19 +50,15 @@ export const Route = createFileRoute("/_public/tv-sergipe")({
   loader: ({ context, deps }) => {
     // List is always needed — it's the source of the drilldown data.
     const listPromise = context.queryClient.ensureQueryData(
-      context.trpc.tvSergipe.list.queryOptions(),
+      tvSergipeListOptions(context.trpc),
     );
 
-    const filters = deps.idade ? subScopeToFilters((deps.escopo ?? "geral") as SubScopeId) : {};
+    const filters = resolveTvSergipeFilters({ idade: deps.idade, escopo: deps.escopo });
 
     return Promise.all([
       listPromise,
       context.queryClient.ensureQueryData(
-        context.trpc.tvSergipe.leaderboard.queryOptions({
-          ageGroup: deps.idade,
-          sex: filters.sex,
-          modality: filters.modality,
-        }),
+        tvSergipeLeaderboardOptions(context.trpc, filters),
       ),
     ]);
   },
