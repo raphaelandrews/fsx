@@ -77,6 +77,11 @@ function RouteComponent() {
       cell: ({ row }) => <span>{row.original.modality === "team" ? "Equipe" : "Individual"}</span>,
     },
     {
+      accessorKey: "teamName",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Equipe" />,
+      cell: ({ row }) => <span>{row.original.teamName ?? "—"}</span>,
+    },
+    {
       accessorKey: "player",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Jogador" />,
       cell: ({ row }) => <span>{row.original.player?.name ?? "—"}</span>,

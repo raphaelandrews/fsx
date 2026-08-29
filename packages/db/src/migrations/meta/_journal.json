@@ -64,6 +64,13 @@
       "when": 1787967393241,
       "tag": "0008_faithful_orphan",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1787979965929,
+      "tag": "0009_romantic_karnak",
+      "breakpoints": true
     }
   ]
 }

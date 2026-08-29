@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
 import { SearchableSelect } from "@/components/searchable-select";
-import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS } from "./-constants";
+import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS, TEAM_NAMES } from "./-constants";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/$id")({
   head: () => ({ meta: [{ title: "Edit TV Sergipe - Admin - FSX" }] }),
@@ -38,6 +38,7 @@ function RouteComponent() {
     defaultValues: {
       clubId: String(result.clubId),
       playerId: result.playerId ? String(result.playerId) : "",
+      teamName: result.teamName ?? "A",
       ageGroup: result.ageGroup,
       sex: result.sex as "male" | "female",
       modality: result.modality as "individual" | "team",
@@ -48,6 +49,7 @@ function RouteComponent() {
         id: numId,
         clubId: Number(value.clubId),
         playerId: value.modality === "individual" ? Number(value.playerId) : null,
+        teamName: value.modality === "team" ? (value.teamName as (typeof TEAM_NAMES)[number]) : null,
         ageGroup: value.ageGroup as (typeof AGE_GROUPS)[number],
         sex: value.sex,
         modality: value.modality,
@@ -130,7 +132,16 @@ function RouteComponent() {
           </form.Field>
         )}
         {modality === "team" && (
-          <p className="text-muted-foreground text-sm">Resultado para a equipe do clube selecionado.</p>
+          <form.Field name="teamName">
+            {(f) => (
+              <div className="space-y-2">
+                <Label htmlFor={f.name}>Equipe (A–J)</Label>
+                <select id={f.name} value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  {TEAM_NAMES.map((n) => <option key={n} value={n}>Equipe {n}</option>)}
+                </select>
+              </div>
+            )}
+          </form.Field>
         )}
         <form.Field name="place">
           {(f) => (

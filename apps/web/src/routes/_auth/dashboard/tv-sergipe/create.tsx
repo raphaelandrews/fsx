@@ -8,7 +8,7 @@ import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
 import { SearchableSelect } from "@/components/searchable-select";
-import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS } from "./-constants";
+import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS, TEAM_NAMES } from "./-constants";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/create")({
   head: () => ({ meta: [{ title: "Create TV Sergipe - Admin - FSX" }] }),
@@ -30,6 +30,7 @@ function RouteComponent() {
     defaultValues: {
       clubId: "",
       playerId: "",
+      teamName: "A",
       ageGroup: "8",
       sex: "male" as "male" | "female",
       modality: "individual" as "individual" | "team",
@@ -39,6 +40,7 @@ function RouteComponent() {
       createMutation.mutate({
         clubId: Number(value.clubId),
         playerId: value.modality === "individual" ? Number(value.playerId) : null,
+        teamName: value.modality === "team" ? (value.teamName as (typeof TEAM_NAMES)[number]) : null,
         ageGroup: value.ageGroup as (typeof AGE_GROUPS)[number],
         sex: value.sex,
         modality: value.modality,
@@ -49,6 +51,7 @@ function RouteComponent() {
       onSubmit: z.object({
         clubId: z.string().min(1, "Escola é obrigatória"),
         playerId: z.string(),
+        teamName: z.enum(TEAM_NAMES),
         ageGroup: z.enum(AGE_GROUPS),
         sex: z.enum(["male", "female"]),
         modality: z.enum(["individual", "team"]),
@@ -127,7 +130,16 @@ function RouteComponent() {
           </form.Field>
         )}
         {modality === "team" && (
-          <p className="text-muted-foreground text-sm">Resultado para a equipe do clube selecionado.</p>
+          <form.Field name="teamName">
+            {(f) => (
+              <div className="space-y-2">
+                <Label htmlFor={f.name}>Equipe (A–J)</Label>
+                <select id={f.name} value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  {TEAM_NAMES.map((n) => <option key={n} value={n}>Equipe {n}</option>)}
+                </select>
+              </div>
+            )}
+          </form.Field>
         )}
         <form.Field name="place">
           {(f) => (

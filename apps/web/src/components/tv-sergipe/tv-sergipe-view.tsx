@@ -450,7 +450,9 @@ function ResultRow({ result }: { result: SchoolResult }) {
         {MODALITY_LABEL[result.modality as Modality]}
       </TableCell>
       <TableCell className="text-left text-sm font-medium">
-        {result.modality === "team" ? result.club.name : (result.player?.name ?? "—")}
+        {result.modality === "team"
+          ? `${result.club.name}${result.teamName ? ` ${result.teamName}` : ""}`
+          : (result.player?.name ?? "—")}
       </TableCell>
       <TableCell className="text-center text-sm tabular-nums">{result.place}º</TableCell>
       <TableCell className="text-center text-sm tabular-nums">{result.points}</TableCell>
