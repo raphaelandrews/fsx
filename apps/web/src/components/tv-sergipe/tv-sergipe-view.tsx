@@ -357,9 +357,13 @@ function SchoolRows({
                 : cell.column.id === "bronze"
                   ? school.bronze
                   : school.points;
+          const isEmpty =
+            cell.column.id === "gold" || cell.column.id === "silver" || cell.column.id === "bronze"
+              ? value === 0
+              : false;
           return (
             <TableCell className="text-center font-semibold tabular-nums" key={cell.id}>
-              {value}
+              {isEmpty ? "—" : value}
             </TableCell>
           );
         })}
@@ -440,8 +444,8 @@ function MedalHead({ icon, label, color }: { icon: (typeof MedalFirstPlaceIcon);
 }
 
 function ResultRow({ result }: { result: SchoolResult }) {
-  const place = result.place as 1 | 2 | 3;
-  const medalLabel = MEDAL_LABEL[place];
+  const place = result.place as number;
+  const medalLabel = MEDAL_LABEL[place as 1 | 2 | 3];
   const medalCount = result.modality === "team" ? TEAM_MEDAL_WEIGHT : INDIVIDUAL_MEDAL_WEIGHT;
   const medalVariant = place === 1 ? "default" : place === 2 ? "secondary" : "outline";
 
@@ -459,10 +463,14 @@ function ResultRow({ result }: { result: SchoolResult }) {
       <TableCell className="text-center text-sm tabular-nums">{result.place}º</TableCell>
       <TableCell className="text-center text-sm tabular-nums">{result.points}</TableCell>
       <TableCell className="text-right">
-        <Badge variant={medalVariant}>
-          {medalLabel}
-          {medalCount > 1 ? ` ×${medalCount}` : ""}
-        </Badge>
+        {medalLabel ? (
+          <Badge variant={medalVariant}>
+            {medalLabel}
+            {medalCount > 1 ? ` ×${medalCount}` : ""}
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
       </TableCell>
     </TableRow>
   );
