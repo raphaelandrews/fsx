@@ -55,8 +55,8 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  --selection: oklch(0.293 0.066 243.157);
-  --selection-foreground: oklch(0.76 0.1362 218.47);
+  --selection: oklch(0.6 0.21 267);
+  --selection-foreground: oklch(1 0 0);
 
   --link: oklch(0.609 0.175 241.254); /* sky-600 */
 
@@ -142,9 +142,6 @@
 
   --accent: oklch(27.4% 0.006 286.033);
   --accent-foreground: oklch(98.5% 0 0);
-
-  --selection: oklch(0.293 0.066 243.157);
-  --selection-foreground: oklch(0.76 0.1362 218.47);
 
   --link: oklch(0.8606 0.1766 250); /*ok*/
   --highlight: oklch(0.86 0.15 85); /*ok*/

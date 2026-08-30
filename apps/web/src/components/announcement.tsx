@@ -25,7 +25,7 @@ export function Announcement({ label, icon: Icon, className, stacked = false }: 
     return (
       <div className={baseStyles}>
         {Icon && <HugeiconsIcon icon={Icon} className={iconStyles} />}
-        {!stacked && Icon && <Separator className="!w-0.5 !h-[1em] mx-[0.5em]" orientation="vertical" />}
+        {!stacked && Icon && <Separator className="!w-0.5 !h-[1em] mx-[0.5em] mt-0.75" orientation="vertical" />}
         <span>{label}</span>
       </div>
     )

@@ -357,13 +357,9 @@ function SchoolRows({
                 : cell.column.id === "bronze"
                   ? school.bronze
                   : school.points;
-          const isEmpty =
-            cell.column.id === "gold" || cell.column.id === "silver" || cell.column.id === "bronze"
-              ? value === 0
-              : false;
           return (
             <TableCell className="text-center font-semibold tabular-nums" key={cell.id}>
-              {isEmpty ? "—" : value}
+              {value}
             </TableCell>
           );
         })}
