@@ -80,7 +80,7 @@ export const tvSergipeRouter = router({
         .innerJoin(clubs, eq(tvSergipe.clubId, clubs.id))
         .where(conditions.length ? and(...conditions) : undefined)
         .groupBy(tvSergipe.clubId, clubs.name, clubs.logoUrl)
-        .orderBy(desc(sql`points`))
+        .orderBy(desc(sql`sum(${tvSergipe.points})`))
     }),
   create: adminProcedure
     .input(resultInput)

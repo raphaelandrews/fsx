@@ -33,7 +33,7 @@ export function Announcement({ label, icon: Icon, className, stacked = false }: 
 
   return (
     <div className="p-3">
-      <div className="inline-block rounded-md bg-primary-foreground p-2.5 text-muted-foreground">
+      <div className="inline-block rounded-md bg-primary p-2.5 text-primary-foreground">
         {Icon && <HugeiconsIcon icon={Icon} className="size-4" />}
       </div>
     </div>

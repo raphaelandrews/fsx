@@ -129,7 +129,7 @@ function QuickLink({
             <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
           </div>
           <HugeiconsIcon
-            className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground"
+            className="size-5 shrink-0 text-primary-foreground transition-transform group-hover:translate-x-0.5"
             icon={ArrowRight01Icon}
             strokeWidth={2}
           />

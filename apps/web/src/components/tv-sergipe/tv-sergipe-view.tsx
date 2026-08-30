@@ -91,13 +91,16 @@ export function TvSergipeView() {
   const { data: allResults = [] } = useSuspenseQuery(tvSergipeListOptions(trpc));
 
   const orderedRows = useMemo(() => {
-    if (search.view !== "medals") return leaderboard;
-    return [...leaderboard].sort((a, b) => {
-      if (b.gold !== a.gold) return b.gold - a.gold;
-      if (b.silver !== a.silver) return b.silver - a.silver;
-      if (b.bronze !== a.bronze) return b.bronze - a.bronze;
-      return b.points - a.points;
-    });
+    if (search.view === "medals") {
+      return [...leaderboard].sort((a, b) => {
+        if (b.gold !== a.gold) return b.gold - a.gold;
+        if (b.silver !== a.silver) return b.silver - a.silver;
+        if (b.bronze !== a.bronze) return b.bronze - a.bronze;
+        return b.points - a.points;
+      });
+    }
+    // Points view: strictly descending by total points.
+    return [...leaderboard].sort((a, b) => b.points - a.points);
   }, [leaderboard, search.view]);
 
   const isMedalView = search.view === "medals";
@@ -107,14 +110,16 @@ export function TvSergipeView() {
 
   // Applies the current age/sex/modality scope + the row's school.
   const resultsForClub = (clubId: number, scope: ResultScope) =>
-    allResults.filter((r) => {
-      if (r.club.id !== clubId) return false;
-      if (search.idade && r.ageGroup !== search.idade) return false;
-      if (filters.sex && r.sex !== filters.sex) return false;
-      if (filters.modality && r.modality !== filters.modality) return false;
-      if (scope !== "todos" && r.modality !== scope) return false;
-      return true;
-    });
+    allResults
+      .filter((r) => {
+        if (r.club.id !== clubId) return false;
+        if (search.idade && r.ageGroup !== search.idade) return false;
+        if (filters.sex && r.sex !== filters.sex) return false;
+        if (filters.modality && r.modality !== filters.modality) return false;
+        if (scope !== "todos" && r.modality !== scope) return false;
+        return true;
+      })
+      .sort((a, b) => b.points - a.points);
 
   const table = useReactTable({
     data: orderedRows,

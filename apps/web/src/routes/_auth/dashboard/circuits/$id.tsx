@@ -10,7 +10,7 @@ import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/$id")({
   head: () => ({ meta: [{ title: "Edit Circuit - Admin - FSX" }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.circuits.listYesple.queryOptions()),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.circuits.listSimple.queryOptions()),
   component: RouteComponent,
 });
 
@@ -21,12 +21,12 @@ function RouteComponent() {
   const navigate = useNavigate();
   const numId = Number(id);
 
-  const { data: circuits = [] } = useSuspenseQuery(trpc.circuits.listYesple.queryOptions());
+  const { data: circuits = [] } = useSuspenseQuery(trpc.circuits.listSimple.queryOptions());
   const circuit = circuits.find((c) => c.id === numId);
 
   const updateMutation = useMutation({
     ...trpc.circuits.update.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.circuits.listYesple.queryFilter()); toast.success("Circuit updated"); },
+    onSuccess: () => { qc.invalidateQueries(trpc.circuits.listSimple.queryFilter()); toast.success("Circuit updated"); },
     onError: () => toast.error("Failed to update circuit"),
   });
 

@@ -64,7 +64,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {toolbar?.(table)}
-      <div className="overflow-hidden rounded-xl border">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

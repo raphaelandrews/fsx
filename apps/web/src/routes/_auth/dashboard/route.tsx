@@ -16,7 +16,6 @@ function DashboardLayout() {
           <Outlet />
         </div>
       </main>
-      <Footer className="max-w-[1120px]" />
     </div>
   );
 }
