@@ -36,10 +36,9 @@ export function AdminHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-border/40 border-b bg-background/95 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-[1280px] items-center gap-2 px-4 sm:px-6">
+      <div className="mx-auto flex h-14 max-w-[1120px] items-center gap-2 px-4 sm:px-6">
         <Link to="/dashboard" className="flex shrink-0 items-center gap-2 font-bold">
           <Logo className="h-6 w-auto" />
-          <span className="hidden sm:inline">Admin</span>
         </Link>
 
         {/* Desktop mega-menu nav */}

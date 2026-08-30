@@ -1,8 +1,10 @@
 import type { ColumnDef, RowData } from "@tanstack/react-table";
 
+import { cn } from "@fsx/ui/lib/utils";
+
 import { PlayerActions } from "@/components/campeoes/actions";
 import { DataTableColumnHeader } from "@/components/home/ratings/data-table-column-header";
-import { getInitials } from "@/lib/initials";
+import { avatarGradientFor } from "@/components/avatar-gradient";
 
 import type { ClubRow, PlayerRow } from "./types";
 
@@ -128,11 +130,7 @@ export function buildClubColumns(phases: string[]): ColumnDef<ClubRow>[] {
                   src={club.clubLogo}
                 />
               ) : (
-                <span className="flex aspect-square size-full items-center justify-center rounded bg-muted">
-                  <span className="text-xs uppercase text-foreground">
-                    {getInitials(club.clubName)}
-                  </span>
-                </span>
+                <span className={cn("relative flex shrink-0 h-5 w-5 overflow-hidden rounded", avatarGradientFor(club.clubName))} />
               )}
             </span>
             <span className="font-medium whitespace-nowrap">{club.clubName}</span>

@@ -59,7 +59,9 @@ export function SwissManagerExport() {
           <label className="text-sm font-medium">Rating Type</label>
           <Select value={ratingType} onValueChange={(value) => setRatingType(value as RatingType)}>
             <SelectTrigger>
-              <SelectValue placeholder="Select a rating type" />
+              <SelectValue placeholder="Select a rating type">
+                <span className="capitalize">{RATING_TYPE_LABELS[ratingType]}</span>
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {RATING_TYPES.map((type) => (

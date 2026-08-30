@@ -20,9 +20,16 @@ interface DataTableViewOptionsProps<TData> {
 export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button />}>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            className="text-muted-foreground hover:bg-muted/50 data-[state=open]:bg-muted/50"
+            variant="ghost"
+          />
+        }
+      >
         <HugeiconsIcon className="mr-2 size-4" icon={SlidersHorizontalIcon} strokeWidth={2} />
-        Visualizar
+        View
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[180px]">
         <DropdownMenuGroup>

@@ -1,45 +1,20 @@
+"use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
-import z from "zod";
 
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@fsx/ui/components/alert-dialog";
 import { Button } from "@fsx/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@fsx/ui/components/card";
-import { Input } from "@fsx/ui/components/input";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@fsx/ui/components/alert-dialog";
 
 import { useTRPC } from "@/utils/trpc";
-
-const fileSchema = z
-  .instanceof(File, { message: "Please select a file." })
-  .refine(
-    (file) => {
-      if (!file) return false;
-      const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
-      return [".xlsx", ".xls"].includes(ext);
-    },
-    { message: "Only Excel files (.xlsx, .xls) are allowed." },
-  );
-
-interface LogEntry {
-  _uuid: string;
-  operation: string;
-  status: number;
-  success?: { id: number; name: string; message: string };
-  error?: { message: string };
-}
+import { RatingUpdateLogs } from "@/components/rating-update/rating-update-logs";
+import { RatingUpdateMonitor } from "@/components/rating-update/rating-update-monitor";
+import { RatingUpdateToolbar } from "@/components/rating-update/rating-update-toolbar";
+import type { AnimationState } from "@/components/rating-update/motion-grid-states";
+import type { RatingUpdateProps } from "@/components/rating-update/rating-update-types";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -49,24 +24,30 @@ export const Route = createFileRoute("/_auth/rating-update/")({
 });
 
 function RatingUpdatePage() {
+  const trpc = useTRPC();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef(false);
+
   const [file, setFile] = useState<File | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [totalUpdates, setTotalUpdates] = useState(0);
-  const [successLog, setSuccessLog] = useState<LogEntry[]>([]);
-  const [errorLog, setErrorLog] = useState<LogEntry[]>([]);
+  const [successLog, setSuccessLog] = useState<RatingUpdateProps[]>([]);
+  const [errorLog, setErrorLog] = useState<RatingUpdateProps[]>([]);
   const [successPage, setSuccessPage] = useState(1);
   const [errorPage, setErrorPage] = useState(1);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [statusText, setStatusText] = useState("Ready");
-  const fileRef = useRef<HTMLInputElement>(null);
-  const abortRef = useRef(false);
-
-  const trpc = useTRPC();
+  const [animationState, setAnimationState] = useState<AnimationState>("ready");
 
   const linkMutation = useMutation(trpc.playersTournament.linkWithRating.mutationOptions());
   const createMutation = useMutation(trpc.players.create.mutationOptions());
   const updateMutation = useMutation(trpc.players.update.mutationOptions());
+
+  const setMotionGridStatus = useCallback((text: string, animation: AnimationState) => {
+    setStatusText(text);
+    setAnimationState(animation);
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("rating-update-log");
@@ -75,22 +56,49 @@ function RatingUpdatePage() {
         const { success, errors } = JSON.parse(saved);
         if (success?.length) setSuccessLog(success);
         if (errors?.length) setErrorLog(errors);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   }, []);
 
-  const persist = (s: LogEntry[], e: LogEntry[]) => {
+  const persist = (s: RatingUpdateProps[], e: RatingUpdateProps[]) => {
     localStorage.setItem("rating-update-log", JSON.stringify({ success: s, errors: e }));
   };
 
-  const handleProcess = useCallback(async () => {
-    if (!file) return;
+  const validateExcel = (headerMap: Record<string, number>) => {
+    const available = Object.keys(headerMap);
+    const hasPlayerData = ["name", "sex", "birth", "locationid", "clubid"].some((c) => c in headerMap);
+    const hasAllTournament = ["tournamentid", "variation", "ratingtype"].every((c) => c in headerMap);
+    const hasPartialTournament = ["tournamentid", "variation", "ratingtype"].some((c) => c in headerMap);
+
+    if (available.length === 1 && available[0] === "id") {
+      setMotionGridStatus("Error: Only 'id' column present", "x");
+      throw new Error("File contains only the 'id' column. Additional data columns are required.");
+    }
+    if (hasPartialTournament && !hasAllTournament) {
+      setMotionGridStatus("Error: Incomplete tournament columns", "x");
+      throw new Error("If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be included.");
+    }
+    if (!hasPlayerData && !hasAllTournament) {
+      setMotionGridStatus("Error: No valid data columns found", "x");
+      throw new Error("File must contain either player data columns or complete tournament columns.");
+    }
+  };
+
+  const handleProcess = async () => {
+    if (!file) {
+      toast.error("Please select a file to upload.");
+      return;
+    }
     abortRef.current = false;
     setIsRunning(true);
     setCurrentIndex(0);
     setSuccessLog([]);
     setErrorLog([]);
-    setStatusText("Reading file...");
+    setSuccessPage(1);
+    setErrorPage(1);
+    setMotionGridStatus("Reading Excel file", "searching");
 
     try {
       const data = new Uint8Array(await file.arrayBuffer());
@@ -102,116 +110,90 @@ function RatingUpdatePage() {
       const headerMap: Record<string, number> = {};
       headers.forEach((h, i) => { headerMap[h] = i; });
 
+      validateExcel(headerMap);
+
       if (headerMap["id"] === undefined) {
-        toast.error("Missing 'id' column");
-        setIsRunning(false);
+        setMotionGridStatus("Error: 'id' column missing", "x");
+        toast.error("Mandatory column 'id' is missing in the Excel file.");
         return;
       }
 
       const dataRows = rows.slice(1).filter((r) => r.some((c) => c !== null && c !== undefined && c !== ""));
+      if (dataRows.length === 0) {
+        setMotionGridStatus("Error: No valid data rows found", "x");
+        toast.error("File contains no data rows or all rows are empty.");
+        return;
+      }
       setTotalUpdates(dataRows.length);
 
-      const newSuccess: LogEntry[] = [];
-      const newErrors: LogEntry[] = [];
+      const newSuccess: RatingUpdateProps[] = [];
+      const newErrors: RatingUpdateProps[] = [];
 
       for (let i = 0; i < dataRows.length; i++) {
         if (abortRef.current) break;
+        setCurrentIndex(i + 1);
+        setMotionGridStatus(`Processing row ${i + 1} of ${dataRows.length}`, "busy");
 
         const row = dataRows[i];
-        const id = Number(row[headerMap["id"]]);
+        const id = Number.parseInt(String(row[headerMap["id"]]), 10);
         const name = headerMap["name"] !== undefined ? String(row[headerMap["name"]] ?? "").trim() : undefined;
-        const birthDate = headerMap["birthdate"] !== undefined ? String(row[headerMap["birthdate"]] ?? "").trim() : undefined;
-        const sex = headerMap["sex"] !== undefined ? String(row[headerMap["sex"]] ?? "").trim().toLowerCase() : undefined;
-        const clubId = headerMap["clubid"] !== undefined ? Number(row[headerMap["clubid"]]) || undefined : undefined;
-        const locationId = headerMap["locationid"] !== undefined ? Number(row[headerMap["locationid"]]) || undefined : undefined;
-        const tournamentId = headerMap["tournamentid"] !== undefined ? Number(row[headerMap["tournamentid"]]) : undefined;
-        const variation = headerMap["variation"] !== undefined ? Number(row[headerMap["variation"]]) : undefined;
-        const ratingType = headerMap["ratingtype"] !== undefined ? String(row[headerMap["ratingtype"]] ?? "").trim().toLowerCase() : undefined;
+        const birth = headerMap["birth"] !== undefined ? String(row[headerMap["birth"]] ?? "").trim() : undefined;
+        const sexRaw = headerMap["sex"] !== undefined ? String(row[headerMap["sex"]] ?? "").trim().toLowerCase() : undefined;
+        const clubIdRaw = headerMap["clubid"] !== undefined ? String(row[headerMap["clubid"]] ?? "").trim() : undefined;
+        const locationIdRaw = headerMap["locationid"] !== undefined ? String(row[headerMap["locationid"]] ?? "").trim() : undefined;
+        const tournamentIdRaw = headerMap["tournamentid"] !== undefined ? String(row[headerMap["tournamentid"]] ?? "").trim() : undefined;
+        const variationRaw = headerMap["variation"] !== undefined ? String(row[headerMap["variation"]] ?? "").trim() : undefined;
+        const ratingTypeRaw = headerMap["ratingtype"] !== undefined ? String(row[headerMap["ratingtype"]] ?? "").trim().toLowerCase() : undefined;
 
-        setCurrentIndex(i + 1);
-        setStatusText(`Processing row ${i + 1} of ${dataRows.length}`);
+        const sex = sexRaw === "true" || sexRaw === "1" || sexRaw === "t" ? "male" : sexRaw === "false" || sexRaw === "0" || sexRaw === "f" ? "female" : undefined;
+        const clubId = clubIdRaw ? Number.parseInt(clubIdRaw, 10) : undefined;
+        const locationId = locationIdRaw ? Number.parseInt(locationIdRaw, 10) : undefined;
+        const tournamentId = tournamentIdRaw ? Number.parseInt(tournamentIdRaw, 10) : undefined;
+        const variation = variationRaw ? Number.parseInt(variationRaw, 10) : undefined;
+        const ratingType = ratingTypeRaw;
 
+        const validRatingTypes = ["blitz", "rapid", "classic"] as const;
+        const isTournamentUpdate = tournamentId !== undefined || variation !== undefined || ratingType !== undefined;
+        const hasValidTournamentData = tournamentId !== undefined && variation !== undefined && ratingType && validRatingTypes.includes(ratingType as (typeof validRatingTypes)[number]);
+
+        if (isTournamentUpdate && !hasValidTournamentData) {
+          newErrors.push({ _uuid: crypto.randomUUID(), operation: `Row ${i + 1}`, status: 400, error: { message: "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be valid." } });
+          continue;
+        }
         if (Number.isNaN(id) || id < 0) {
-          newErrors.push({ _uuid: crypto.randomUUID(), operation: `Row ${i + 1}`, status: 400, error: { message: "Invalid ID" } });
+          newErrors.push({ _uuid: crypto.randomUUID(), operation: `Row ${i + 1}`, status: 400, error: { message: "Invalid or missing 'id'. ID must be 0 or positive." } });
+          continue;
+        }
+        if (id === 0 && !name) {
+          newErrors.push({ _uuid: crypto.randomUUID(), operation: `Row ${i + 1}`, status: 400, error: { message: "Missing or empty 'name' for new player." } });
           continue;
         }
 
-        const validRatingTypes = ["blitz", "rapid", "classic"];
-        const hasTournamentData = tournamentId !== undefined && !Number.isNaN(tournamentId) &&
-          variation !== undefined && !Number.isNaN(variation) && ratingType &&
-          validRatingTypes.includes(ratingType);
-
         try {
-          if (hasTournamentData && id > 0) {
-            await linkMutation.mutateAsync({
-              playerId: id,
-              tournamentId,
-              variation,
-              ratingType: ratingType as "blitz" | "rapid" | "classic",
-            });
-            if (name) {
-              await updateMutation.mutateAsync({
-                id,
-                name,
-                birthDate: birthDate || undefined,
-                sex: sex === "male" || sex === "female" ? sex : undefined,
-                clubId,
-                locationId,
-              });
+          if (isTournamentUpdate && id > 0) {
+            await linkMutation.mutateAsync({ playerId: id, tournamentId: tournamentId!, variation: variation!, ratingType: ratingType as "blitz" | "rapid" | "classic" });
+            if (name || birth || sex || clubId || locationId) {
+              await updateMutation.mutateAsync({ id, name, birthDate: birth || undefined, sex, clubId, locationId });
             }
-            newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name ?? `ID ${id}`} rating updated (${ratingType}: ${variation > 0 ? "+" : ""}${variation})`, status: 200, success: { id, name: name ?? "", message: `Rating updated` } });
-          } else if (hasTournamentData && id === 0 && name) {
-            const result = await createMutation.mutateAsync({
-              name,
-              birthDate: birthDate || null,
-              sex: sex === "male" || sex === "female" ? sex : "male",
-              clubId,
-              locationId,
-              blitz: 1900,
-              rapid: 1900,
-              classic: 1900,
-              active: true,
-              verified: false,
-            });
+            newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name ?? `ID ${id}`} updated (${ratingType}: ${variation! > 0 ? "+" : ""}${variation})`, status: 200, success: { dataFields: { id, name: name ?? "", birth: birth ?? null, sex: sex === "female", clubId: clubId ?? null, locationId: locationId ?? null }, message: "Rating updated" } });
+          } else if (isTournamentUpdate && id === 0 && name) {
+            const result = await createMutation.mutateAsync({ name, birthDate: birth || null, sex: sex ?? "male", clubId, locationId, blitz: 1900, rapid: 1900, classic: 1900, active: true, verified: false });
             if (result?.[0]) {
-              await linkMutation.mutateAsync({
-                playerId: result[0].id,
-                tournamentId,
-                variation,
-                ratingType: ratingType as "blitz" | "rapid" | "classic",
-              });
-              newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name} created + linked to tournament`, status: 200, success: { id: result[0].id, name, message: `Created with rating update` } });
+              await linkMutation.mutateAsync({ playerId: result[0].id, tournamentId: tournamentId!, variation: variation!, ratingType: ratingType as "blitz" | "rapid" | "classic" });
+              newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name} created + linked to tournament`, status: 200, success: { dataFields: { id: result[0].id, name, birth: birth ?? null, sex: sex === "female", clubId: clubId ?? null, locationId: locationId ?? null }, message: "Created with rating update" } });
             }
-          } else if (id > 0 && name) {
-            await updateMutation.mutateAsync({
-              id,
-              name,
-              birthDate: birthDate || undefined,
-              sex: sex === "male" || sex === "female" ? sex : undefined,
-              clubId,
-              locationId,
-            });
-            newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name} updated`, status: 200, success: { id, name, message: "Updated" } });
+          } else if (id > 0 && (name || birth || sex || clubId || locationId)) {
+            await updateMutation.mutateAsync({ id, name, birthDate: birth || undefined, sex, clubId, locationId });
+            newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name ?? `ID ${id}`} updated`, status: 200, success: { dataFields: { id, name: name ?? "", birth: birth ?? null, sex: sex === "female", clubId: clubId ?? null, locationId: locationId ?? null }, message: "Updated" } });
           } else if (id === 0 && name) {
-            const result = await createMutation.mutateAsync({
-              name,
-              birthDate: birthDate || null,
-              sex: sex === "male" || sex === "female" ? sex : "male",
-              clubId,
-              locationId,
-              blitz: 1900,
-              rapid: 1900,
-              classic: 1900,
-              active: true,
-              verified: false,
-            });
+            const result = await createMutation.mutateAsync({ name, birthDate: birth || null, sex: sex ?? "male", clubId, locationId, blitz: 1900, rapid: 1900, classic: 1900, active: true, verified: false });
             if (result?.[0]) {
-              newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name} created`, status: 200, success: { id: result[0].id, name, message: "Created" } });
+              newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name} created`, status: 200, success: { dataFields: { id: result[0].id, name, birth: birth ?? null, sex: sex === "female", clubId: clubId ?? null, locationId: locationId ?? null }, message: "Created" } });
             }
           } else {
-            newErrors.push({ _uuid: crypto.randomUUID(), operation: `Row ${i + 1}`, status: 400, error: { message: "Invalid data" } });
+            newErrors.push({ _uuid: crypto.randomUUID(), operation: `Row ${i + 1}`, status: 400, error: { message: "Invalid data: no valid operation." } });
           }
-        } catch (err: unknown) {
+        } catch (err) {
           const msg = err instanceof Error ? err.message : "Unknown error";
           newErrors.push({ _uuid: crypto.randomUUID(), operation: name ?? `ID ${id}`, status: 500, error: { message: msg } });
         }
@@ -223,18 +205,18 @@ function RatingUpdatePage() {
 
       if (!abortRef.current) {
         toast.success(`Processed: ${newSuccess.length} success, ${newErrors.length} errors`);
-        setStatusText("Complete");
+        setMotionGridStatus("Update process completed successfully", "saving");
       } else {
         toast.info("Process stopped");
-        setStatusText("Stopped");
+        setMotionGridStatus("Process stopped", "stop");
       }
-    } catch (err: unknown) {
+    } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to process file");
-      setStatusText("Error");
+      setMotionGridStatus("Error", "x");
     } finally {
       setIsRunning(false);
     }
-  }, [file, linkMutation, createMutation, updateMutation]);
+  };
 
   const clearHistory = () => {
     localStorage.removeItem("rating-update-log");
@@ -245,135 +227,98 @@ function RatingUpdatePage() {
     setFile(null);
     if (fileRef.current) fileRef.current.value = "";
     setShowClearConfirm(false);
-    setStatusText("Ready");
-    toast.info("History cleared");
+    setMotionGridStatus("History cleared. Ready to start", "ready");
+  };
+
+  const clearFile = () => {
+    setFile(null);
+    if (fileRef.current) fileRef.current.value = "";
+    setMotionGridStatus("File input cleared", "ready");
+    toast.info("File input cleared.");
   };
 
   const successTotalPages = Math.ceil(successLog.length / ITEMS_PER_PAGE);
   const errorTotalPages = Math.ceil(errorLog.length / ITEMS_PER_PAGE);
+  const hasLogs = successLog.length > 0 || errorLog.length > 0;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Rating Update</h1>
-          <p className="text-muted-foreground text-sm">{statusText}</p>
-        </div>
-        <div className="flex gap-2">
-          {isRunning ? (
-            <Button variant="destructive" onClick={() => { abortRef.current = true; setIsRunning(false); }}>
-              Stop
-            </Button>
-          ) : (
-            <Button onClick={handleProcess} disabled={!file}>
-              Run
-            </Button>
-          )}
-          <Button variant="outline" onClick={clearHistory} disabled={isRunning}>
-            Clear
-          </Button>
-        </div>
-      </div>
+    <div className="relative h-[calc(100dvh-4rem)] overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(var(--muted),transparent_1px)] [background-size:16px_16px]" />
 
-      {!isRunning && successLog.length === 0 && errorLog.length === 0 && (
-        <Card className="max-w-lg">
-          <CardHeader>
-            <CardTitle>Upload Excel File</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => fileRef.current?.click()}>
-                Choose File
-              </Button>
-              <span className="text-muted-foreground text-sm">
-                {file?.name ?? "No file chosen"}
-              </span>
-              <Input
-                type="file"
-                className="sr-only"
-                ref={fileRef}
-                accept=".xls,.xlsx"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  try {
-                    fileSchema.parse(f);
-                    setFile(f ?? null);
-                    setStatusText(`File loaded: ${f?.name}`);
-                  } catch {
-                    toast.error("Invalid file. Only .xlsx and .xls allowed.");
+      <RatingUpdateMonitor
+        animationState={animationState}
+        currentIndex={currentIndex}
+        statusText={statusText}
+        totalUpdates={totalUpdates}
+      />
+
+      {!isRunning && !hasLogs && (
+        <div className="absolute top-[40%] left-1/2 w-full max-w-lg -translate-x-1/2 rounded-xl bg-background p-6 shadow-md">
+          <h2 className="mb-2 font-medium">Select Excel File</h2>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => fileRef.current?.click()}>Choose File</Button>
+            <span className="text-sm text-muted-foreground">{file?.name ?? "No file chosen"}</span>
+            <input
+              type="file"
+              className="sr-only"
+              accept=".xls,.xlsx"
+              ref={fileRef}
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null;
+                if (f) {
+                  const ext = f.name.substring(f.name.lastIndexOf(".")).toLowerCase();
+                  if (![".xlsx", ".xls"].includes(ext)) {
+                    toast.error("Only Excel files (.xlsx, .xls) are allowed.");
+                    setFile(null);
+                    return;
                   }
-                }}
-              />
-            </div>
-            <p className="text-muted-foreground text-xs mt-2">
-              Columns: id, name, birthDate, sex, clubId, locationId, tournamentId, variation, ratingType
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {isRunning && (
-        <div className="mb-4">
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary transition-all duration-300"
-              style={{ width: `${totalUpdates ? (currentIndex / totalUpdates) * 100 : 0}%` }}
+                }
+                setFile(f);
+                setMotionGridStatus(f ? `File loaded: ${f.name}` : "File input cleared", "add");
+              }}
             />
           </div>
-          <p className="text-muted-foreground text-xs mt-1">
-            {currentIndex} / {totalUpdates}
+          <p className="mt-2 text-xs text-muted-foreground">
+            Columns: id, name, birth, sex, clubId, locationId, tournamentId, variation, ratingType
           </p>
         </div>
       )}
 
-      {(successLog.length > 0 || errorLog.length > 0) && (
-        <div className="grid grid-cols-2 gap-8">
-          <div>
-            <h2 className="mb-2 font-medium text-green-600">Success ({successLog.length})</h2>
-            <div className="space-y-2">
-              {successLog.slice((successPage - 1) * ITEMS_PER_PAGE, successPage * ITEMS_PER_PAGE).map((e) => (
-                <Card key={e._uuid}>
-                  <CardContent className="p-3 text-sm">{e.operation}</CardContent>
-                </Card>
-              ))}
-            </div>
+      {hasLogs && (
+        <div className="absolute top-[18%] left-1/2 flex -translate-x-1/2 gap-6">
+          <div className="flex flex-col items-center gap-3">
+            <LogTitle title="Success log" length={successLog.length} success />
+            <RatingUpdateLogs updates={successLog.slice((successPage - 1) * ITEMS_PER_PAGE, successPage * ITEMS_PER_PAGE)} />
             {successTotalPages > 1 && (
-              <div className="mt-2 flex gap-2">
-                <Button variant="outline" size="sm" disabled={successPage === 1} onClick={() => setSuccessPage((p) => p - 1)}>Prev</Button>
-                <span className="text-sm self-center">{successPage}/{successTotalPages}</span>
-                <Button variant="outline" size="sm" disabled={successPage === successTotalPages} onClick={() => setSuccessPage((p) => p + 1)}>Next</Button>
-              </div>
+              <LogPagination currentPage={successPage} totalPages={successTotalPages} onPageChange={setSuccessPage} />
             )}
           </div>
-          <div>
-            <h2 className="mb-2 font-medium text-red-600">Errors ({errorLog.length})</h2>
-            <div className="space-y-2">
-              {errorLog.slice((errorPage - 1) * ITEMS_PER_PAGE, errorPage * ITEMS_PER_PAGE).map((e) => (
-                <Card key={e._uuid}>
-                  <CardContent className="p-3 text-sm">
-                    <p className="font-medium">{e.operation}</p>
-                    <p className="text-muted-foreground text-xs">{e.error?.message}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          <div className="flex flex-col items-center gap-3">
+            <LogTitle title="Error log" length={errorLog.length} success={false} />
+            <RatingUpdateLogs updates={errorLog.slice((errorPage - 1) * ITEMS_PER_PAGE, errorPage * ITEMS_PER_PAGE)} />
             {errorTotalPages > 1 && (
-              <div className="mt-2 flex gap-2">
-                <Button variant="outline" size="sm" disabled={errorPage === 1} onClick={() => setErrorPage((p) => p - 1)}>Prev</Button>
-                <span className="text-sm self-center">{errorPage}/{errorTotalPages}</span>
-                <Button variant="outline" size="sm" disabled={errorPage === errorTotalPages} onClick={() => setErrorPage((p) => p + 1)}>Next</Button>
-              </div>
+              <LogPagination currentPage={errorPage} totalPages={errorTotalPages} onPageChange={setErrorPage} />
             )}
           </div>
         </div>
       )}
 
+      <RatingUpdateToolbar
+        hasLogs={hasLogs}
+        isRunning={isRunning}
+        onClearFile={clearFile}
+        onClearHistory={() => setShowClearConfirm(true)}
+        onRun={handleProcess}
+        onStop={() => { abortRef.current = true; setIsRunning(false); setMotionGridStatus("Stopped", "stop"); }}
+        selectedFileName={file?.name ?? null}
+      />
+
       <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Clear history?</AlertDialogTitle>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete all success and error logs from local storage.
+              This action cannot be undone. This will permanently delete your success and error history from local storage.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -382,6 +327,27 @@ function RatingUpdatePage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+function LogTitle({ title, length, success }: { title: string; length: number; success: boolean }) {
+  return (
+    <div className="flex w-fit items-center gap-2 rounded-md border px-3 py-2">
+      <p className={success ? "font-medium text-green-600" : "font-medium text-red-600"}>{title}</p>
+      <span className={`text-xs rounded-sm px-1.5 py-0.5 ${success ? "bg-[#E8F5E9] text-[#388E3C] dark:bg-[#022C22] dark:text-[#1BC994]" : "bg-[#FFEBEE] text-[#D32F2F] dark:bg-[#4D0217] dark:text-[#FF6982]"}`}>
+        {length}
+      </span>
+    </div>
+  );
+}
+
+function LogPagination({ currentPage, totalPages, onPageChange }: { currentPage: number; totalPages: number; onPageChange: (p: number) => void }) {
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)}>Previous</Button>
+      <span className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
+      <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)}>Next</Button>
     </div>
   );
 }

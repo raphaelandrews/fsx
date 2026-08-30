@@ -45,7 +45,16 @@ export function DataTableRowActions({
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button />}>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              aria-label="Abrir menu"
+              className="h-8 w-8 p-0 text-muted-foreground hover:bg-muted/50"
+              size="icon"
+              variant="ghost"
+            />
+          }
+        >
           <HugeiconsIcon className="size-4" icon={EllipsisIcon} strokeWidth={2} />
           <span className="sr-only">Abrir menu</span>
         </DropdownMenuTrigger>

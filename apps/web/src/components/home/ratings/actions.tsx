@@ -7,7 +7,7 @@ import { Button } from "@fsx/ui/components/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@fsx/ui/components/popover";
 
 import { PlayerSheetById } from "@/components/sheets/player/player-sheet-by-id";
-import { getInitials } from "@/lib/initials";
+import { avatarGradient } from "@/components/avatar-gradient";
 
 function formatDefendingChampions(championship: string) {
   const cmp = championship;
@@ -96,11 +96,7 @@ export const Actions = ({ id, name, nickname, image, shortName, defendingChampio
           >
             <Avatar className="size-8 rounded-md">
               <AvatarImage alt={name} src={image ?? undefined} />
-              <AvatarFallback>
-                <span className="text-xs uppercase text-foreground">
-                  {getInitials(nickname ?? name)}
-                </span>
-              </AvatarFallback>
+              <AvatarFallback className={avatarGradient(id)} />
             </Avatar>
             <div className="whitespace-nowrap font-medium">
               {shortName && <span className="text-highlight">{shortName}</span>} {nickname ?? name}

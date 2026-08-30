@@ -44,7 +44,8 @@ import {
 } from "@fsx/ui/components/table";
 import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 
-import { getInitials } from "@/lib/initials";
+import { cn } from "@fsx/ui/lib/utils";
+import { avatarGradientFor } from "@/components/avatar-gradient";
 import { useTRPC } from "@/utils/trpc";
 import {
   AGE_GROUPS,
@@ -340,11 +341,7 @@ function SchoolRows({
                         src={school.logoUrl}
                       />
                     ) : (
-                      <span className="flex aspect-square size-full items-center justify-center rounded bg-muted">
-                        <span className="text-xs uppercase text-foreground">
-                          {getInitials(school.name)}
-                        </span>
-                      </span>
+                      <span className={cn("relative flex shrink-0 h-5 w-5 overflow-hidden rounded", avatarGradientFor(school.name))} />
                     )}
                   </span>
                   <span className="font-medium whitespace-nowrap">{school.name}</span>

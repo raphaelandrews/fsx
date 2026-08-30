@@ -30,7 +30,8 @@ import {
   ratingTitles,
 } from "@/components/ratings/data-options";
 import { useTRPC } from "@/utils/trpc";
-import { getInitials } from "@/lib/initials";
+import { cn } from "@fsx/ui/lib/utils";
+import { avatarGradientFor } from "@/components/avatar-gradient";
 
 const sortByEnum = z.enum(["classic", "rapid", "blitz"]);
 type SortBy = z.infer<typeof sortByEnum>;
@@ -297,13 +298,7 @@ function RouteComponent() {
                         />
                       </span>
                     ) : player.club?.name ? (
-                      <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded bg-muted">
-                        <span className="flex aspect-square size-full items-center justify-center">
-                          <span className="text-xs uppercase text-foreground">
-                            {getInitials(player.club.name)}
-                          </span>
-                        </span>
-                      </span>
+                      <span className={cn("relative flex shrink-0 h-5 w-5 overflow-hidden rounded", avatarGradientFor(player.club.name))} />
                     ) : null}
                     <span className="text-muted-foreground">{player.club?.name ?? "—"}</span>
                   </div>

@@ -30,7 +30,8 @@ import {
 import { VerifiedBadge } from "@/components/player/verified-badge";
 import { Announcement } from "@/components/announcement";
 import { TotalRatingChart, VariationChart } from "@/components/player/player-charts";
-import { getInitials } from "@/lib/initials";
+import { cn } from "@fsx/ui/lib/utils";
+import { avatarGradient, avatarGradientFor } from "@/components/avatar-gradient";
 
 function FormatPodium(place: number | null | undefined, championship_id: number) {
   if (place === 1 && championship_id === 1) {
@@ -229,11 +230,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
                 src={player.imageUrl ?? ""}
                 className="h-full w-full object-cover rounded-2xl"
               />
-              <AvatarFallback className="rounded-2xl">
-                <span className="text-foreground text-xl uppercase">
-                  {getInitials(player.name)}
-                </span>
-              </AvatarFallback>
+              <AvatarFallback className={cn("rounded-2xl", avatarGradient(player.id))} />
             </Avatar>
           </div>
 
@@ -323,13 +320,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
                     />
                   </span>
                 ) : (
-                  <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded bg-muted">
-                    <span className="flex aspect-square size-full items-center justify-center">
-                      <span className="text-xs uppercase text-foreground">
-                        {getInitials(player.club.name)}
-                      </span>
-                    </span>
-                  </span>
+                  <span className={cn("relative flex shrink-0 h-5 w-5 overflow-hidden rounded", avatarGradientFor(player.club.name))} />
                 )}
                 <span>{player.club.name}</span>
               </div>
