@@ -32,6 +32,19 @@ function blobToBase64(blob: Blob): Promise<string> {
   });
 }
 
+// Use a data: URL for the crop preview instead of a blob: URL. Blob URLs can
+// fail to render in <img> in some contexts (strict COOP/CORP, extensions,
+// cross-origin embeds) and must be manually revoked; data: URLs render
+// everywhere and need no lifecycle management.
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Failed to read image"));
+    reader.readAsDataURL(file);
+  });
+}
+
 export function ImageUpload({
   kind,
   value,
@@ -54,13 +67,18 @@ export function ImageUpload({
   const uploadMutation = useMutation(trpc.images.upload.mutationOptions());
   const deleteMutation = useMutation(trpc.images.delete.mutationOptions());
 
-  const selectFile = useCallback((file: File) => {
+  const selectFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
       return;
     }
-    setImageToCrop(URL.createObjectURL(file));
-    setCropperOpen(true);
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setImageToCrop(dataUrl);
+      setCropperOpen(true);
+    } catch {
+      toast.error("Failed to read image file");
+    }
   }, []);
 
   const handleInputChange = useCallback(
@@ -85,11 +103,7 @@ export function ImageUpload({
 
   const handleCropComplete = useCallback(
     async (croppedBlob: Blob) => {
-      if (imageToCrop) {
-        URL.revokeObjectURL(imageToCrop);
-        setImageToCrop(null);
-      }
-
+      setImageToCrop(null);
       setIsUploading(true);
       try {
         const data = await blobToBase64(croppedBlob);
@@ -115,7 +129,7 @@ export function ImageUpload({
         setIsUploading(false);
       }
     },
-    [value, kind, uploadMutation, deleteMutation, onChange, imageToCrop],
+    [value, kind, uploadMutation, deleteMutation, onChange],
   );
 
   const handleRemove = useCallback(async () => {
@@ -134,16 +148,12 @@ export function ImageUpload({
     }
   }, [value, disabled, deleteMutation, onChange]);
 
-  const handleCropperClose = useCallback(
-    (open: boolean) => {
-      if (!open && imageToCrop) {
-        URL.revokeObjectURL(imageToCrop);
-        setImageToCrop(null);
-      }
-      setCropperOpen(open);
-    },
-    [imageToCrop],
-  );
+  const handleCropperClose = useCallback((open: boolean) => {
+    if (!open) {
+      setImageToCrop(null);
+    }
+    setCropperOpen(open);
+  }, []);
 
   return (
     <div className={className}>

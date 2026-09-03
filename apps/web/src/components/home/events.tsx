@@ -21,10 +21,26 @@ export interface Event {
 }
 
 export function Events({ events }: { events: Event[] }) {
+  // Fixed timezone so the server (UTC) and client pick the same "today" and
+  // avoid a hydration mismatch. en-CA yields an ISO YYYY-MM-DD string.
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+  const upcoming = [...events]
+    .filter((event) => (event.startDate ?? "").slice(0, 10) >= today)
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
+    .slice(0, 6);
+
+  if (upcoming.length === 0) return null;
+
   return (
     <Section icon={Trophy} label="Próximos Eventos" main={false}>
       <div className="grid sm:grid-cols-2 md:grid-cols-3">
-        {events?.map((event: Event) => (
+        {upcoming.map((event) => (
           <EventCard
             key={event.id}
             name={event.name}
@@ -89,12 +105,17 @@ function EventCard({
             {links.length > 0 ? (
               <div className="flex flex-wrap gap-2 mt-1">
                 {links.map((link) => {
+                  const isForm = link.label
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .toLowerCase()
+                    .startsWith("formul");
                   if (link.href) {
                     return (
                       <Button
                         key={link.id}
                         size="sm"
-                        variant="outline"
+                        variant={isForm ? "default" : "outline"}
                         className="h-8"
                         onClick={() => window.open(link.href!, "_blank", "noreferrer")}
                       >

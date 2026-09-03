@@ -10,6 +10,7 @@ import z from "zod";
 
 import { ImageUpload } from "@/components/image-upload";
 import { useTRPC } from "@/utils/trpc";
+import { sanitizeTitle, slugify } from "@/utils/slugify";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/create")({
   head: () => ({ meta: [{ title: "Create Post - Admin - FSX" }] }),
@@ -74,7 +75,11 @@ function RouteComponent() {
                 id={f.name}
                 value={f.state.value}
                 onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
+                onChange={(e) => {
+                  const value = sanitizeTitle(e.target.value);
+                  f.handleChange(value);
+                  form.setFieldValue("slug", slugify(value));
+                }}
               />
               {f.state.meta.errors.map((e) => (
                 <p key={e?.message} className="text-destructive text-xs">
@@ -88,17 +93,7 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Slug</Label>
-              <Input
-                id={f.name}
-                value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
-              />
-              {f.state.meta.errors.map((e) => (
-                <p key={e?.message} className="text-destructive text-xs">
-                  {e?.message}
-                </p>
-              ))}
+              <Input id={f.name} value={f.state.value} disabled />
             </div>
           )}
         </form.Field>

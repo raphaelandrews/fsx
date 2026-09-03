@@ -97,10 +97,12 @@ export function ImageCropper({
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<CropArea | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [didImageFail, setDidImageFail] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
   const onImageLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
+      setDidImageFail(false);
       const { width, height } = e.currentTarget;
       setCrop(centerAspectCrop(width, height, aspectRatio));
     },
@@ -152,27 +154,39 @@ export function ImageCropper({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <div className="flex items-center justify-center overflow-hidden rounded-lg bg-muted">
-          <ReactCrop
-            crop={crop}
-            onChange={handleCropChange}
-            onComplete={handleCropComplete}
-            aspect={aspectRatio}
-            className="max-h-[60vh]"
-          >
-            <img
-              ref={imgRef}
-              src={imageSrc}
-              alt="Crop preview"
-              onLoad={onImageLoad}
-              className="max-h-[60vh] object-contain"
-            />
-          </ReactCrop>
+          {didImageFail ? (
+            <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-2 p-6 text-center">
+              <p className="text-sm font-medium text-destructive">Could not preview this image</p>
+              <p className="text-xs text-muted-foreground">
+                The file may be in a format your browser cannot display (e.g. HEIC). Try another
+                image.
+              </p>
+            </div>
+          ) : (
+            <ReactCrop
+              crop={crop}
+              onChange={handleCropChange}
+              onComplete={handleCropComplete}
+              aspect={aspectRatio}
+              className="max-h-[60vh]"
+            >
+              <img
+                ref={imgRef}
+                key={imageSrc}
+                src={imageSrc}
+                alt="Crop preview"
+                onLoad={onImageLoad}
+                onError={() => setDidImageFail(true)}
+                className="max-h-[60vh] object-contain"
+              />
+            </ReactCrop>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel} disabled={isProcessing}>
             Cancel
           </Button>
-          <Button onClick={handleApply} disabled={isProcessing || !completedCrop}>
+          <Button onClick={handleApply} disabled={isProcessing || !completedCrop || didImageFail}>
             {isProcessing ? "Processing..." : "Apply Crop"}
           </Button>
         </DialogFooter>
