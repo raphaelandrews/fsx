@@ -4,11 +4,11 @@ import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
-import { Textarea } from "@fsx/ui/components/textarea";
 import { toast } from "sonner";
 import z from "zod";
 
 import { ImageUpload } from "@/components/image-upload";
+import { MarkdownEditor } from "@/components/markdown-editor";
 import { useTRPC } from "@/utils/trpc";
 import { sanitizeTitle, slugify } from "@/utils/slugify";
 
@@ -117,12 +117,11 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Content</Label>
-              <Textarea
+              <MarkdownEditor
                 id={f.name}
                 rows={8}
                 value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
+                onChange={(v) => f.handleChange(v)}
               />
               {f.state.meta.errors.map((e) => (
                 <p key={e?.message} className="text-destructive text-xs">

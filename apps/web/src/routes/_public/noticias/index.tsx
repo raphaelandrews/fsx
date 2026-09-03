@@ -13,6 +13,11 @@ const searchSchema = z.object({
   page: z.number().int().positive().default(1),
 });
 
+// Keep content short-lived so admin edits appear fast on revisit; matches the
+// short server-side cache TTL (see routes/api/trpc/$.ts) instead of the global
+// 5m staleTime.
+const PUBLICATION_STALE_TIME = 60_000;
+
 export const Route = createFileRoute("/_public/noticias/")({
   validateSearch: searchSchema,
   head: () => ({
@@ -23,7 +28,9 @@ export const Route = createFileRoute("/_public/noticias/")({
   }),
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context, deps }) =>
-    context.queryClient.ensureQueryData(context.trpc.posts.byPage.queryOptions({ page: deps.page })),
+    context.queryClient.ensureQueryData(
+      context.trpc.posts.byPage.queryOptions({ page: deps.page }, { staleTime: PUBLICATION_STALE_TIME }),
+    ),
   pendingComponent: () => <CardGridSkeleton />,
   component: RouteComponent,
 });
@@ -32,7 +39,9 @@ function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const { page } = Route.useSearch();
-  const { data } = useSuspenseQuery(trpc.posts.byPage.queryOptions({ page }));
+  const { data } = useSuspenseQuery(
+    trpc.posts.byPage.queryOptions({ page }, { staleTime: PUBLICATION_STALE_TIME }),
+  );
 
   return (
     <>

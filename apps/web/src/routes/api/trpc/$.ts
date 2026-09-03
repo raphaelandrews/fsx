@@ -11,12 +11,20 @@ import { applySecurityHeaders } from "@fsx/api/security-headers";
 import { createFileRoute } from "@tanstack/react-router";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
-// Short, no-SWR TTL. When the server self-fetches these public GETs on SSR it
-// goes through the same Cache API; an SWR window (the old stale-while-revalidate
-// = 1h) made the home page keep serving events/posts up to an hour after an
-// admin edit. Without SWR, an entry only lives for CACHE_MAX_AGE and then
-// always results in an origin re-read.
+// Short TTL for public GETs. When the server self-fetches these on SSR it goes
+// through the same Cache API, so this is what keeps the home page (hero/fresh
+// posts, events, etc.) reflecting admin edits quickly for every visitor. The
+// Cloudflare Cache API does not reliably honor `max-age` on the `match()` path,
+// so we also store a fetch timestamp and treat an entry as a miss once it is
+// older than CACHE_MAX_AGE — otherwise a hit could be served stale indefinitely
+// (e.g. a new post staying off the hero for hours on other browsers).
 const CACHE_MAX_AGE = 60;
+const CACHE_FETCHED_AT_HEADER = "x-cache-fetched-at";
+
+function isCachedEntryFresh(cached: Response): boolean {
+  const fetchedAt = Number(cached.headers.get(CACHE_FETCHED_AT_HEADER) ?? 0);
+  return fetchedAt > 0 && Date.now() - fetchedAt < CACHE_MAX_AGE * 1000;
+}
 
 // A session cookie means the request is authenticated. Cache API entries are
 // keyed by URL + method only, so caching authenticated GETs would both serve
@@ -51,7 +59,8 @@ async function handler({ request }: { request: Request }) {
     const authenticated = isAuthenticated(request);
     if (cache && !authenticated) {
       const cached = await cache.match(request);
-      if (cached) return cached;
+      if (cached && isCachedEntryFresh(cached)) return cached;
+      if (cached) await cache.delete(request).catch(() => {});
     }
 
     const response = await fetchRequestHandler({
@@ -69,7 +78,8 @@ async function handler({ request }: { request: Request }) {
         statusText: response.statusText,
         headers: response.headers,
       });
-      toCache.headers.set("Cache-Control", `public, max-age=${CACHE_MAX_AGE}`);
+      toCache.headers.set("Cache-Control", `public, max-age=${CACHE_MAX_AGE}, must-revalidate`);
+      toCache.headers.set(CACHE_FETCHED_AT_HEADER, String(Date.now()));
       await cache.put(request, toCache);
     }
 
