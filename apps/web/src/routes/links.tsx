@@ -1,16 +1,8 @@
 import { Fragment } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowUpRight01Icon,
-  FoldersIcon,
-  InstagramIcon,
-  Mail02Icon,
-} from "@hugeicons/core-free-icons";
+import { ArrowUpRight01Icon, FoldersIcon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-
-import { Button } from "@fsx/ui/components/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@fsx/ui/components/tooltip";
 
 import { Announcement } from "@/components/announcement";
 import { FlickeringGrid } from "@/components/flickering-grid";
@@ -27,7 +19,22 @@ export const Route = createFileRoute("/links")({
   component: RouteComponent,
 });
 
-function LinkItem({ href, label, icon }: { href: string; label: string; icon: string }) {
+function LinkItem({ href, label, icon }: { href: string | null; label: string; icon: string }) {
+  if (!href) {
+    return (
+      <div className="flex h-[inherit] w-full items-center justify-between rounded-lg bg-card p-3 opacity-70">
+        <div
+          aria-hidden="true"
+          className="grid h-8 w-8 place-items-center rounded-md bg-muted text-muted-foreground [&>div>svg]:h-4 [&>div>svg]:w-4"
+        >
+          <div dangerouslySetInnerHTML={{ __html: icon }} />
+        </div>
+        <span className="text-muted-foreground">{label}</span>
+        <span className="text-xs text-muted-foreground">Em breve</span>
+      </div>
+    );
+  }
+
   return (
     <a
       className="flex h-[inherit] w-full items-center justify-between rounded-lg bg-card p-3 transition-colors hover:bg-muted"
@@ -83,7 +90,7 @@ function RouteComponent() {
                 <Announcement icon={FoldersIcon} label={item.label} className="text-sm" />
                 <div className="flex flex-col">
                   {item.links?.map((link) => (
-                    <Fragment key={link.href}>
+                    <Fragment key={link.id}>
                       <div className="m-1">
                         <LinkItem href={link.href} icon={link.icon} label={link.label} />
                       </div>

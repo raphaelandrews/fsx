@@ -59,8 +59,8 @@ async function cropImage(
         if (blob) resolve(blob);
         else reject(new Error("Failed to create blob"));
       },
-      "image/jpeg",
-      0.95,
+      "image/webp",
+      0.85,
     );
   });
 }
@@ -111,21 +111,18 @@ export function ImageCropper({
     setCrop(newCrop);
   }, []);
 
-  const handleCropComplete = useCallback(
-    (c: Crop) => {
-      if (!imgRef.current) return;
-      const image = imgRef.current;
-      const scaleX = image.naturalWidth / image.width;
-      const scaleY = image.naturalHeight / image.height;
-      setCompletedCrop({
-        x: (c.x ?? 0) * scaleX,
-        y: (c.y ?? 0) * scaleY,
-        width: (c.width ?? 0) * scaleX,
-        height: (c.height ?? 0) * scaleY,
-      });
-    },
-    [],
-  );
+  const handleCropComplete = useCallback((c: Crop) => {
+    if (!imgRef.current) return;
+    const image = imgRef.current;
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    setCompletedCrop({
+      x: (c.x ?? 0) * scaleX,
+      y: (c.y ?? 0) * scaleY,
+      width: (c.width ?? 0) * scaleX,
+      height: (c.height ?? 0) * scaleY,
+    });
+  }, []);
 
   const handleApply = async () => {
     if (!completedCrop || !imgRef.current) return;

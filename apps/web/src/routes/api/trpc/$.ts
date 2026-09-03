@@ -11,8 +11,12 @@ import { applySecurityHeaders } from "@fsx/api/security-headers";
 import { createFileRoute } from "@tanstack/react-router";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
-const CACHE_MAX_AGE = 300;
-const CACHE_SWR = 3600;
+// Short, no-SWR TTL. When the server self-fetches these public GETs on SSR it
+// goes through the same Cache API; an SWR window (the old stale-while-revalidate
+// = 1h) made the home page keep serving events/posts up to an hour after an
+// admin edit. Without SWR, an entry only lives for CACHE_MAX_AGE and then
+// always results in an origin re-read.
+const CACHE_MAX_AGE = 60;
 
 // A session cookie means the request is authenticated. Cache API entries are
 // keyed by URL + method only, so caching authenticated GETs would both serve
@@ -65,10 +69,7 @@ async function handler({ request }: { request: Request }) {
         statusText: response.statusText,
         headers: response.headers,
       });
-      toCache.headers.set(
-        "Cache-Control",
-        `public, max-age=${CACHE_MAX_AGE}, stale-while-revalidate=${CACHE_SWR}`,
-      );
+      toCache.headers.set("Cache-Control", `public, max-age=${CACHE_MAX_AGE}`);
       await cache.put(request, toCache);
     }
 

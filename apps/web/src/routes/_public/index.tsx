@@ -17,7 +17,9 @@ export const Route = createFileRoute("/_public/")({
     ],
   }),
   loader: ({ context }) => {
-    context.queryClient.ensureQueryData(context.trpc.events.list.queryOptions());
+    context.queryClient.ensureQueryData(
+      context.trpc.events.list.queryOptions(undefined, { staleTime: 30_000 }),
+    );
     context.queryClient.ensureQueryData(context.trpc.posts.fresh.queryOptions());
     context.queryClient.ensureQueryData(context.trpc.announcements.fresh.queryOptions());
     context.queryClient.ensureQueryData(context.trpc.topPlayers.list.queryOptions());
@@ -27,7 +29,9 @@ export const Route = createFileRoute("/_public/")({
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const { data: events = [] } = useSuspenseQuery(trpc.events.list.queryOptions());
+  const { data: events = [] } = useSuspenseQuery(
+    trpc.events.list.queryOptions(undefined, { staleTime: 30_000 }),
+  );
   const { data: posts = [] } = useSuspenseQuery(trpc.posts.fresh.queryOptions());
   const { data: announcements = [] } = useSuspenseQuery(trpc.announcements.fresh.queryOptions());
   const { data: topPlayers } = useSuspenseQuery(trpc.topPlayers.list.queryOptions());

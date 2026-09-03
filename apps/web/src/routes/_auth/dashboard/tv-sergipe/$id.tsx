@@ -2,11 +2,12 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm, useStore } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
-import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
+import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
 import { SearchableSelect } from "@/components/searchable-select";
+import { FormField } from "@/components/form/form-field";
 import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS, TEAM_NAMES } from "./-constants";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/$id")({
@@ -28,7 +29,11 @@ function RouteComponent() {
 
   const updateMutation = useMutation({
     ...trpc.tvSergipe.update.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.tvSergipe.list.queryFilter()); qc.invalidateQueries(trpc.tvSergipe.leaderboard.queryFilter()); toast.success("Result updated"); },
+    onSuccess: () => {
+      qc.invalidateQueries(trpc.tvSergipe.list.queryFilter());
+      qc.invalidateQueries(trpc.tvSergipe.leaderboard.queryFilter());
+      toast.success("Result updated");
+    },
     onError: () => toast.error("Failed to update result"),
   });
 
@@ -44,12 +49,24 @@ function RouteComponent() {
       modality: result.modality as "individual" | "team",
       place: result.place,
     },
+    validators: {
+      onSubmit: z.object({
+        clubId: z.string().min(1, "School is required"),
+        playerId: z.string(),
+        teamName: z.enum(TEAM_NAMES),
+        ageGroup: z.enum(AGE_GROUPS),
+        sex: z.enum(["male", "female"]),
+        modality: z.enum(["individual", "team"]),
+        place: z.number().int().min(1, "Place is required").max(8),
+      }),
+    },
     onSubmit: ({ value }) => {
       updateMutation.mutate({
         id: numId,
         clubId: Number(value.clubId),
         playerId: value.modality === "individual" ? Number(value.playerId) : null,
-        teamName: value.modality === "team" ? (value.teamName as (typeof TEAM_NAMES)[number]) : null,
+        teamName:
+          value.modality === "team" ? (value.teamName as (typeof TEAM_NAMES)[number]) : null,
         ageGroup: value.ageGroup as (typeof AGE_GROUPS)[number],
         sex: value.sex,
         modality: value.modality,
@@ -64,13 +81,20 @@ function RouteComponent() {
     <div className="mx-auto max-w-lg">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-bold text-2xl">Edit TV Sergipe</h1>
-        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/tv-sergipe" })}>Back</Button>
+        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/tv-sergipe" })}>
+          Back
+        </Button>
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+        className="space-y-4"
+      >
         <form.Field name="clubId">
           {(f) => (
-            <div className="space-y-2">
-              <Label>School</Label>
+            <FormField label="School" error={f.state.meta.errors[0]?.message} required>
               <SearchableSelect
                 value={f.state.value}
                 onChange={(v) => f.handleChange(v)}
@@ -79,46 +103,72 @@ function RouteComponent() {
                 emptyText="No school found."
                 initialLabel={result.club?.name}
               />
-            </div>
+            </FormField>
           )}
         </form.Field>
         <div className="grid grid-cols-2 gap-4">
           <form.Field name="ageGroup">
             {(f) => (
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <select value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  {AGE_GROUPS.map((g) => <option key={g} value={g}>{g} anos</option>)}
+              <FormField label="Category" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+                <select
+                  id={f.name}
+                  value={f.state.value}
+                  onChange={(e) => f.handleChange(e.target.value)}
+                  onBlur={f.handleBlur}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  {AGE_GROUPS.map((g) => (
+                    <option key={g} value={g}>
+                      {g} anos
+                    </option>
+                  ))}
                 </select>
-              </div>
+              </FormField>
             )}
           </form.Field>
           <form.Field name="sex">
             {(f) => (
-              <div className="space-y-2">
-                <Label>Sex</Label>
-                <select value={f.state.value} onChange={(e) => f.handleChange(e.target.value as "male" | "female")} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  {SEX_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+              <FormField label="Sex" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+                <select
+                  id={f.name}
+                  value={f.state.value}
+                  onChange={(e) => f.handleChange(e.target.value as "male" | "female")}
+                  onBlur={f.handleBlur}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  {SEX_OPTIONS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
                 </select>
-              </div>
+              </FormField>
             )}
           </form.Field>
         </div>
         <form.Field name="modality">
           {(f) => (
-            <div className="space-y-2">
-              <Label>Modality</Label>
-              <select value={f.state.value} onChange={(e) => f.handleChange(e.target.value as "individual" | "team")} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                {MODALITY_OPTIONS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+            <FormField label="Modality" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+              <select
+                id={f.name}
+                value={f.state.value}
+                onChange={(e) => f.handleChange(e.target.value as "individual" | "team")}
+                onBlur={f.handleBlur}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                {MODALITY_OPTIONS.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
               </select>
-            </div>
+            </FormField>
           )}
         </form.Field>
         {modality === "individual" && (
           <form.Field name="playerId">
             {(f) => (
-              <div className="space-y-2">
-                <Label>Player</Label>
+              <FormField label="Player" error={f.state.meta.errors[0]?.message}>
                 <SearchableSelect
                   value={f.state.value}
                   onChange={(v) => f.handleChange(v)}
@@ -127,37 +177,65 @@ function RouteComponent() {
                   emptyText="No player found."
                   initialLabel={result.player?.name}
                 />
-              </div>
+              </FormField>
             )}
           </form.Field>
         )}
         {modality === "team" && (
           <form.Field name="teamName">
             {(f) => (
-              <div className="space-y-2">
-                <Label htmlFor={f.name}>Team (A–J)</Label>
-                <select id={f.name} value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  {TEAM_NAMES.map((n) => <option key={n} value={n}>Team {n}</option>)}
+              <FormField
+                label="Team (A–J)"
+                htmlFor={f.name}
+                error={f.state.meta.errors[0]?.message}
+              >
+                <select
+                  id={f.name}
+                  value={f.state.value}
+                  onChange={(e) => f.handleChange(e.target.value)}
+                  onBlur={f.handleBlur}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  {TEAM_NAMES.map((n) => (
+                    <option key={n} value={n}>
+                      Team {n}
+                    </option>
+                  ))}
                 </select>
-              </div>
+              </FormField>
             )}
           </form.Field>
         )}
         <form.Field name="place">
           {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Place (1–8)</Label>
-              <select id={f.name} value={String(f.state.value)} onChange={(e) => f.handleChange(Number(e.target.value))} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+            <FormField label="Place (1–8)" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+              <select
+                id={f.name}
+                value={String(f.state.value)}
+                onChange={(e) => f.handleChange(Number(e.target.value))}
+                onBlur={f.handleBlur}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
                 {Array.from({ length: 8 }, (_, i) => i + 1).map((p) => (
-                  <option key={p} value={p}>{p}º</option>
+                  <option key={p} value={p}>
+                    {p}º
+                  </option>
                 ))}
               </select>
-              <p className="text-muted-foreground text-xs">Points: {PLACE_POINTS[f.state.value] ?? "—"}</p>
-            </div>
+              <p className="text-muted-foreground text-xs">
+                Points: {PLACE_POINTS[f.state.value] ?? "—"}
+              </p>
+            </FormField>
           )}
         </form.Field>
-        <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
-          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "Saving..." : "Save Changes"}</Button>}
+        <form.Subscribe
+          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
+        >
+          {({ canSubmit, isSubmitting }) => (
+            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
+          )}
         </form.Subscribe>
       </form>
     </div>

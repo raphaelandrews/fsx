@@ -6,6 +6,8 @@ import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
 
+import { LinkIconSelect } from "@/components/link-icon-select";
+import { DEFAULT_LINK_ICON } from "@/lib/link-icons";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/links/create")({
@@ -26,8 +28,11 @@ function RouteComponent() {
       if (links.length > 0) {
         links.forEach((link) => {
           createLinkMutation.mutate({
-            href: link.href, label: link.label,
-            icon: link.icon, sortOrder: link.sortOrder, linkGroupId: groupId,
+            href: link.href,
+            label: link.label,
+            icon: link.icon,
+            sortOrder: link.sortOrder,
+            linkGroupId: groupId,
           });
         });
       }
@@ -54,18 +59,32 @@ function RouteComponent() {
   return (
     <div className="mx-auto max-w-lg">
       <h1 className="mb-6 font-bold text-2xl">Create Link Group</h1>
-      <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+        className="space-y-4"
+      >
         <form.Field name="label">
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Group Label</Label>
-              <Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
+              <Input
+                id={f.name}
+                value={f.state.value}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
             </div>
           )}
         </form.Field>
 
         <div>
-          <h3 className="mb-2 font-medium text-sm">Links</h3>
+          <h3 className="mb-1 font-medium text-sm">Links</h3>
+          <p className="mb-2 text-xs text-muted-foreground">
+            Deixe a URL em branco para sinalizar que ainda não está disponível ("em breve").
+          </p>
           <form.Field name="links">
             {(f) => {
               links = f.state.value;
@@ -84,7 +103,8 @@ function RouteComponent() {
                         className="flex-1"
                       />
                       <Input
-                        placeholder="URL"
+                        type="url"
+                        placeholder="URL (opcional)"
                         value={f.state.value[index].href}
                         onChange={(e) => {
                           const next = [...f.state.value];
@@ -93,15 +113,13 @@ function RouteComponent() {
                         }}
                         className="flex-1"
                       />
-                      <Input
-                        placeholder="Icon"
+                      <LinkIconSelect
                         value={f.state.value[index].icon}
-                        onChange={(e) => {
+                        onChange={(svg) => {
                           const next = [...f.state.value];
-                          next[index] = { ...next[index], icon: e.target.value };
+                          next[index] = { ...next[index], icon: svg };
                           f.handleChange(next);
                         }}
-                        className="w-20"
                       />
                       <Input
                         placeholder="Sort Order"
@@ -132,7 +150,15 @@ function RouteComponent() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      f.handleChange([...f.state.value, { label: "", href: "", icon: "", sortOrder: f.state.value.length }]);
+                      f.handleChange([
+                        ...f.state.value,
+                        {
+                          label: "",
+                          href: "",
+                          icon: DEFAULT_LINK_ICON,
+                          sortOrder: f.state.value.length,
+                        },
+                      ]);
                     }}
                   >
                     Add Link
@@ -143,7 +169,9 @@ function RouteComponent() {
           </form.Field>
         </div>
 
-        <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
+        <form.Subscribe
+          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
+        >
           {({ canSubmit, isSubmitting }) => (
             <Button type="submit" disabled={!canSubmit || isSubmitting}>
               {isSubmitting ? "Creating..." : "Create Group"}

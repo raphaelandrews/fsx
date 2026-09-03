@@ -15,7 +15,8 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 
 export const Route = createFileRoute("/_auth/dashboard/events/")({
   head: () => ({ meta: [{ title: "Events - Admin - FSX" }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.events.list.queryOptions()),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.events.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -41,23 +42,9 @@ function RouteComponent() {
       cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
-      accessorKey: "type",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
-    },
-    {
       accessorKey: "startDate",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Start" />,
       cell: ({ row }) => <span className="tabular-nums">{row.getValue("startDate")}</span>,
-    },
-    {
-      accessorKey: "endDate",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="End" />,
-      cell: ({ row }) => <span className="tabular-nums">{row.getValue("endDate") ?? "—"}</span>,
-    },
-    {
-      accessorKey: "timeControl",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Time control" />,
-      cell: ({ row }) => <span className="tabular-nums">{row.getValue("timeControl") ?? "—"}</span>,
     },
     {
       id: "actions",

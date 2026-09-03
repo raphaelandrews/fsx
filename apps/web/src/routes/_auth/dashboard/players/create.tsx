@@ -7,6 +7,7 @@ import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
 import z from "zod";
 
+import { ImageUpload } from "@/components/image-upload";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/players/create")({
@@ -40,6 +41,7 @@ function RouteComponent() {
       sex: "male" as "male" | "female",
       clubId: null as number | null,
       locationId: null as number | null,
+      imageUrl: "",
     },
     onSubmit: ({ value }) => {
       createMutation.mutate({
@@ -52,6 +54,7 @@ function RouteComponent() {
         sex: value.sex,
         clubId: value.clubId,
         locationId: value.locationId,
+        imageUrl: value.imageUrl || null,
       });
     },
     validators: {
@@ -65,6 +68,7 @@ function RouteComponent() {
         sex: z.enum(["male", "female"]),
         clubId: z.number().nullable(),
         locationId: z.number().nullable(),
+        imageUrl: z.string(),
       }),
     },
   });
@@ -73,15 +77,27 @@ function RouteComponent() {
     <div className="mx-auto max-w-lg">
       <h1 className="mb-6 font-bold text-2xl">Create Player</h1>
       <form
-        onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
         className="space-y-4"
       >
         <form.Field name="name">
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Name</Label>
-              <Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
-              {f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}
+              <Input
+                id={f.name}
+                value={f.state.value}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
+              {f.state.meta.errors.map((e) => (
+                <p key={e?.message} className="text-destructive text-xs">
+                  {e?.message}
+                </p>
+              ))}
             </div>
           )}
         </form.Field>
@@ -89,7 +105,27 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Nickname</Label>
-              <Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
+              <Input
+                id={f.name}
+                value={f.state.value}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
+            </div>
+          )}
+        </form.Field>
+        <form.Field name="imageUrl">
+          {(f) => (
+            <div className="space-y-2">
+              <Label>Photo</Label>
+              <ImageUpload
+                kind="players"
+                value={f.state.value || null}
+                onChange={(url) => f.handleChange(url ?? "")}
+                title="Crop Player Photo"
+                description="Adjust the crop area for a square avatar."
+                outputWidth={120}
+              />
             </div>
           )}
         </form.Field>
@@ -98,7 +134,13 @@ function RouteComponent() {
             {(f) => (
               <div className="space-y-2">
                 <Label htmlFor={f.name}>Blitz</Label>
-                <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
+                <Input
+                  id={f.name}
+                  type="number"
+                  value={String(f.state.value)}
+                  onBlur={f.handleBlur}
+                  onChange={(e) => f.handleChange(Number(e.target.value))}
+                />
               </div>
             )}
           </form.Field>
@@ -106,7 +148,13 @@ function RouteComponent() {
             {(f) => (
               <div className="space-y-2">
                 <Label htmlFor={f.name}>Rapid</Label>
-                <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
+                <Input
+                  id={f.name}
+                  type="number"
+                  value={String(f.state.value)}
+                  onBlur={f.handleBlur}
+                  onChange={(e) => f.handleChange(Number(e.target.value))}
+                />
               </div>
             )}
           </form.Field>
@@ -114,7 +162,13 @@ function RouteComponent() {
             {(f) => (
               <div className="space-y-2">
                 <Label htmlFor={f.name}>Classic</Label>
-                <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
+                <Input
+                  id={f.name}
+                  type="number"
+                  value={String(f.state.value)}
+                  onBlur={f.handleBlur}
+                  onChange={(e) => f.handleChange(Number(e.target.value))}
+                />
               </div>
             )}
           </form.Field>
@@ -123,7 +177,12 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Birth (YYYY-MM-DD)</Label>
-              <Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
+              <Input
+                id={f.name}
+                value={f.state.value}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
             </div>
           )}
         </form.Field>
@@ -147,7 +206,13 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Club ID</Label>
-              <Input id={f.name} type="number" value={f.state.value?.toString() ?? ""} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)} />
+              <Input
+                id={f.name}
+                type="number"
+                value={f.state.value?.toString() ?? ""}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)}
+              />
             </div>
           )}
         </form.Field>
@@ -155,11 +220,19 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Location ID</Label>
-              <Input id={f.name} type="number" value={f.state.value?.toString() ?? ""} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)} />
+              <Input
+                id={f.name}
+                type="number"
+                value={f.state.value?.toString() ?? ""}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)}
+              />
             </div>
           )}
         </form.Field>
-        <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
+        <form.Subscribe
+          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
+        >
           {({ canSubmit, isSubmitting }) => (
             <Button type="submit" disabled={!canSubmit || isSubmitting}>
               {isSubmitting ? "Creating..." : "Create Player"}

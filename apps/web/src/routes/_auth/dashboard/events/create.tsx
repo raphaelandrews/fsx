@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -7,6 +8,7 @@ import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
 import z from "zod";
 
+import { EventLinksEditor, type EventLinkDraft } from "@/components/event-links-editor";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/events/create")({
@@ -17,39 +19,37 @@ export const Route = createFileRoute("/_auth/dashboard/events/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [links, setLinks] = useState<EventLinkDraft[]>([]);
 
-  const createMutation = useMutation({
-    ...trpc.events.create.mutationOptions(),
-    onSuccess: () => {
-      toast.success("Event created");
-      navigate({ to: "/dashboard/events" });
-    },
-    onError: () => toast.error("Failed to create event"),
-  });
+  const createMutation = useMutation(trpc.events.create.mutationOptions());
+  const setLinksMutation = useMutation(trpc.events.setLinks.mutationOptions());
 
   const form = useForm({
-    defaultValues: {
-      name: "", startDate: "", endDate: "", type: "", timeControl: "",
-      regulation: "", form: "", chessResults: "",
-    },
-    onSubmit: ({ value }) => {
-      createMutation.mutate({
-        name: value.name, startDate: value.startDate, endDate: value.endDate || null,
-        type: value.type, timeControl: value.timeControl,
-        regulation: value.regulation || null, form: value.form || null,
-        chessResults: value.chessResults || null,
-      });
+    defaultValues: { name: "", startDate: "" },
+    onSubmit: async ({ value }) => {
+      try {
+        const [created] = await createMutation.mutateAsync({
+          name: value.name,
+          startDate: value.startDate,
+        });
+        if (links.length > 0) {
+          await setLinksMutation.mutateAsync({
+            eventId: created.id,
+            links: links.map((l, i) => ({ ...l, sortOrder: i + 1 })),
+          });
+        }
+        qc.invalidateQueries(trpc.events.list.queryFilter());
+        toast.success("Event created");
+        navigate({ to: "/dashboard/events" });
+      } catch {
+        toast.error("Failed to create event");
+      }
     },
     validators: {
       onSubmit: z.object({
         name: z.string().min(1, "Name is required"),
         startDate: z.string().min(1, "Start date is required"),
-        endDate: z.string(),
-        type: z.string().min(1, "Type is required"),
-        timeControl: z.string().min(1, "Time control is required"),
-        regulation: z.string(),
-        form: z.string(),
-        chessResults: z.string(),
       }),
     },
   });
@@ -57,20 +57,54 @@ function RouteComponent() {
   return (
     <div className="mx-auto max-w-lg">
       <h1 className="mb-6 font-bold text-2xl">Create Event</h1>
-      <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
-        <form.Field name="name">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Name</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
-        <div className="grid grid-cols-2 gap-4">
-          <form.Field name="startDate">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Start Date</Label><Input id={f.name} type="date" value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
-          <form.Field name="endDate">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>End Date</Label><Input id={f.name} type="date" value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <form.Field name="type">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Type</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
-          <form.Field name="timeControl">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Time Control</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
-        </div>
-        <form.Field name="regulation">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Regulation</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
-        <form.Field name="form">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Form</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
-        <form.Field name="chessResults">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Chess Results URL</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
-        <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+        className="space-y-4"
+      >
+        <form.Field name="name">
+          {(f) => (
+            <div className="space-y-2">
+              <Label htmlFor={f.name}>Name</Label>
+              <Input
+                id={f.name}
+                value={f.state.value}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
+              {f.state.meta.errors.map((e) => (
+                <p key={e?.message} className="text-destructive text-xs">
+                  {e?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
+        <form.Field name="startDate">
+          {(f) => (
+            <div className="space-y-2">
+              <Label htmlFor={f.name}>Start Date</Label>
+              <Input
+                id={f.name}
+                type="date"
+                value={f.state.value}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
+              {f.state.meta.errors.map((e) => (
+                <p key={e?.message} className="text-destructive text-xs">
+                  {e?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
+        <EventLinksEditor value={links} onChange={setLinks} />
+        <form.Subscribe
+          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
+        >
           {({ canSubmit, isSubmitting }) => (
             <Button type="submit" disabled={!canSubmit || isSubmitting}>
               {isSubmitting ? "Creating..." : "Create Event"}

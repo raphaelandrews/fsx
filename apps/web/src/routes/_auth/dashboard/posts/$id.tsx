@@ -8,11 +8,13 @@ import { Textarea } from "@fsx/ui/components/textarea";
 import { toast } from "sonner";
 import z from "zod";
 
+import { ImageUpload } from "@/components/image-upload";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/$id")({
   head: () => ({ meta: [{ title: "Edit Post - Admin - FSX" }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.posts.listAdmin.queryOptions()),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.posts.listAdmin.queryOptions()),
   component: RouteComponent,
 });
 
@@ -43,17 +45,33 @@ function RouteComponent() {
       <div>
         <h1 className="mb-4 font-bold text-2xl">Edit Post</h1>
         <p className="text-muted-foreground">Post not found.</p>
-        <Button variant="outline" className="mt-4" onClick={() => navigate({ to: "/dashboard/posts" })}>Back</Button>
+        <Button
+          variant="outline"
+          className="mt-4"
+          onClick={() => navigate({ to: "/dashboard/posts" })}
+        >
+          Back
+        </Button>
       </div>
     );
   }
 
   const form = useForm({
-    defaultValues: { title: post.title, slug: post.slug, imageUrl: post.imageUrl ?? "", content: post.content, published: post.published },
+    defaultValues: {
+      title: post.title,
+      slug: post.slug,
+      imageUrl: post.imageUrl ?? "",
+      content: post.content,
+      published: post.published,
+    },
     onSubmit: ({ value }) => {
       updateMutation.mutate({
-        id: post.id, title: value.title, slug: value.slug,
-        imageUrl: value.imageUrl || null, content: value.content, published: value.published,
+        id: post.id,
+        title: value.title,
+        slug: value.slug,
+        imageUrl: value.imageUrl || null,
+        content: value.content,
+        published: value.published,
       });
     },
     validators: {
@@ -71,15 +89,110 @@ function RouteComponent() {
     <div className="mx-auto max-w-lg">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-bold text-2xl">Edit Post</h1>
-        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/posts" })}>Back</Button>
+        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/posts" })}>
+          Back
+        </Button>
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
-        <form.Field name="title">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Title</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
-        <form.Field name="slug">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Slug</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
-        <form.Field name="imageUrl">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Image URL</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
-        <form.Field name="content">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Content</Label><Textarea id={f.name} rows={10} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
-        <form.Field name="published">{(f) => (<div className="flex items-center gap-2"><input id={f.name} type="checkbox" checked={f.state.value} onChange={(e) => f.handleChange(e.target.checked)} className="h-4 w-4 rounded border-input" /><Label htmlFor={f.name}>Published</Label></div>)}</form.Field>
-        <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+        className="space-y-4"
+      >
+        <form.Field name="title">
+          {(f) => (
+            <div className="space-y-2">
+              <Label htmlFor={f.name}>Title</Label>
+              <Input
+                id={f.name}
+                value={f.state.value}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
+              {f.state.meta.errors.map((e) => (
+                <p key={e?.message} className="text-destructive text-xs">
+                  {e?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
+        <form.Field name="slug">
+          {(f) => (
+            <div className="space-y-2">
+              <Label htmlFor={f.name}>Slug</Label>
+              <Input
+                id={f.name}
+                value={f.state.value}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
+              {f.state.meta.errors.map((e) => (
+                <p key={e?.message} className="text-destructive text-xs">
+                  {e?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
+        <form.Field name="imageUrl">
+          {(f) => (
+            <div className="space-y-2">
+              <Label>Cover image</Label>
+              <ImageUpload
+                kind="posts"
+                value={f.state.value || null}
+                onChange={(url) => f.handleChange(url ?? "")}
+                aspectRatio={16 / 9}
+                outputWidth={896}
+                title="Crop Cover Image"
+                description="Adjust the crop area to fit a 16:9 aspect ratio."
+              />
+              {f.state.meta.errors.map((e) => (
+                <p key={e?.message} className="text-destructive text-xs">
+                  {e?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
+        <form.Field name="content">
+          {(f) => (
+            <div className="space-y-2">
+              <Label htmlFor={f.name}>Content</Label>
+              <Textarea
+                id={f.name}
+                rows={10}
+                value={f.state.value}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
+              {f.state.meta.errors.map((e) => (
+                <p key={e?.message} className="text-destructive text-xs">
+                  {e?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
+        <form.Field name="published">
+          {(f) => (
+            <div className="flex items-center gap-2">
+              <input
+                id={f.name}
+                type="checkbox"
+                checked={f.state.value}
+                onChange={(e) => f.handleChange(e.target.checked)}
+                className="h-4 w-4 rounded border-input"
+              />
+              <Label htmlFor={f.name}>Published</Label>
+            </div>
+          )}
+        </form.Field>
+        <form.Subscribe
+          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
+        >
           {({ canSubmit, isSubmitting }) => (
             <Button type="submit" disabled={!canSubmit || isSubmitting}>
               {isSubmitting ? "Saving..." : "Save Changes"}
