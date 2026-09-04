@@ -9,6 +9,7 @@ import z from "zod";
 
 import { ImageUpload } from "@/components/image-upload";
 import { MarkdownEditor } from "@/components/markdown-editor";
+import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
 import { sanitizeTitle, slugify } from "@/utils/slugify";
 
@@ -24,18 +25,20 @@ function RouteComponent() {
   const trpc = useTRPC();
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { track: trackImageReplaced, flush: flushImageDeletes } = usePendingImageDeletes();
 
   const { data: posts = [] } = useSuspenseQuery(trpc.posts.listAdmin.queryOptions());
   const post = posts.find((p) => p.id === Number(id));
 
   const updateMutation = useMutation({
     ...trpc.posts.update.mutationOptions(),
-    onSuccess: () => {
+    onSuccess: async () => {
       qc.invalidateQueries(trpc.posts.listAdmin.queryFilter());
       qc.invalidateQueries(trpc.posts.list.queryFilter());
       qc.invalidateQueries(trpc.posts.fresh.queryFilter());
       qc.invalidateQueries(trpc.posts.byPage.queryFilter());
       qc.invalidateQueries(trpc.posts.bySlug.queryFilter());
+      await flushImageDeletes();
       toast.success("Post updated");
     },
     onError: () => toast.error("Failed to update post"),
@@ -87,7 +90,7 @@ function RouteComponent() {
   });
 
   return (
-    <div className="mx-auto max-w-lg">
+    <div className="mx-auto max-w-4xl">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-bold text-2xl">Edit Post</h1>
         <Button variant="outline" onClick={() => navigate({ to: "/dashboard/posts" })}>
@@ -139,6 +142,7 @@ function RouteComponent() {
                 kind="posts"
                 value={f.state.value || null}
                 onChange={(url) => f.handleChange(url ?? "")}
+                onImageReplaced={trackImageReplaced}
                 aspectRatio={16 / 9}
                 outputWidth={896}
                 title="Crop Cover Image"

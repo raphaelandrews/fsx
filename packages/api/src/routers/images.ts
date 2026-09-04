@@ -24,7 +24,7 @@ function base64ToBytes(b64: string): Uint8Array {
 
 // Strip the public path back down to the object key so a stored relative URL
 // (e.g. `/api/media/players/uuid.webp`) can be deleted from R2.
-function urlToKey(url: string): string | null {
+export function urlToKey(url: string): string | null {
   const marker = "/api/media/";
   const idx = url.indexOf(marker);
   const key = idx === -1 ? url : url.slice(idx + marker.length);

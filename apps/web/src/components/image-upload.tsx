@@ -15,6 +15,9 @@ interface ImageUploadProps {
   kind: "players" | "posts";
   value: string | null | undefined;
   onChange: (url: string | null) => void;
+  // Called with the URL that is being replaced/removed so the owning form can
+  // delete it from R2 *after* the record is saved (see usePendingImageDeletes).
+  onImageReplaced?: (url: string) => void;
   aspectRatio?: number;
   outputWidth?: number;
   title?: string;
@@ -49,6 +52,7 @@ export function ImageUpload({
   kind,
   value,
   onChange,
+  onImageReplaced,
   aspectRatio = 1,
   outputWidth = 400,
   title = "Crop Image",
@@ -65,7 +69,6 @@ export function ImageUpload({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const uploadMutation = useMutation(trpc.images.upload.mutationOptions());
-  const deleteMutation = useMutation(trpc.images.delete.mutationOptions());
 
   const selectFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -116,9 +119,10 @@ export function ImageUpload({
           data,
         });
 
-        // Replace the previous object so we don't leak orphaned images.
+        // Defer the old object's deletion until the record is saved; deleting
+        // here would break the current image if the admin cancels the edit.
         if (value && value !== url) {
-          await deleteMutation.mutateAsync({ url: value }).catch(() => {});
+          onImageReplaced?.(value);
         }
 
         onChange(url);
@@ -129,24 +133,15 @@ export function ImageUpload({
         setIsUploading(false);
       }
     },
-    [value, kind, uploadMutation, deleteMutation, onChange],
+    [value, kind, uploadMutation, onChange, onImageReplaced],
   );
 
-  const handleRemove = useCallback(async () => {
+  const handleRemove = useCallback(() => {
     if (!value || disabled) return;
-    setIsUploading(true);
-    try {
-      await deleteMutation.mutateAsync({ url: value });
-      onChange(null);
-      toast.success("Image removed");
-    } catch {
-      // Still clear the value even if the object delete failed.
-      onChange(null);
-      toast.error("Removed from record, but could not delete the object");
-    } finally {
-      setIsUploading(false);
-    }
-  }, [value, disabled, deleteMutation, onChange]);
+    if (value) onImageReplaced?.(value);
+    onChange(null);
+    toast.success("Image removed");
+  }, [value, disabled, onChange, onImageReplaced]);
 
   const handleCropperClose = useCallback((open: boolean) => {
     if (!open) {

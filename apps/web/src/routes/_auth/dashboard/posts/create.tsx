@@ -9,6 +9,7 @@ import z from "zod";
 
 import { ImageUpload } from "@/components/image-upload";
 import { MarkdownEditor } from "@/components/markdown-editor";
+import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
 import { sanitizeTitle, slugify } from "@/utils/slugify";
 
@@ -21,14 +22,16 @@ function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { track: trackImageReplaced, flush: flushImageDeletes } = usePendingImageDeletes();
 
   const createMutation = useMutation({
     ...trpc.posts.create.mutationOptions(),
-    onSuccess: () => {
+    onSuccess: async () => {
       qc.invalidateQueries(trpc.posts.listAdmin.queryFilter());
       qc.invalidateQueries(trpc.posts.list.queryFilter());
       qc.invalidateQueries(trpc.posts.fresh.queryFilter());
       qc.invalidateQueries(trpc.posts.byPage.queryFilter());
+      await flushImageDeletes();
       toast.success("Post created");
       navigate({ to: "/dashboard/posts" });
     },
@@ -58,7 +61,7 @@ function RouteComponent() {
   });
 
   return (
-    <div className="mx-auto max-w-lg">
+    <div className="mx-auto max-w-4xl">
       <h1 className="mb-6 font-bold text-2xl">Create Post</h1>
       <form
         onSubmit={(e) => {
@@ -105,6 +108,7 @@ function RouteComponent() {
                 kind="posts"
                 value={f.state.value || null}
                 onChange={(url) => f.handleChange(url ?? "")}
+                onImageReplaced={trackImageReplaced}
                 aspectRatio={16 / 9}
                 outputWidth={896}
                 title="Crop Cover Image"

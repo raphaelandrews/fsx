@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { ImageUpload } from "@/components/image-upload";
+import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/players/create")({
@@ -19,11 +20,13 @@ function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { track: trackImageReplaced, flush: flushImageDeletes } = usePendingImageDeletes();
 
   const createMutation = useMutation({
     ...trpc.players.create.mutationOptions(),
-    onSuccess: () => {
+    onSuccess: async () => {
       qc.invalidateQueries(trpc.players.list.queryFilter());
+      await flushImageDeletes();
       toast.success("Player created");
       navigate({ to: "/dashboard/players" });
     },
@@ -122,6 +125,7 @@ function RouteComponent() {
                 kind="players"
                 value={f.state.value || null}
                 onChange={(url) => f.handleChange(url ?? "")}
+                onImageReplaced={trackImageReplaced}
                 title="Crop Player Photo"
                 description="Adjust the crop area for a square avatar."
                 outputWidth={120}

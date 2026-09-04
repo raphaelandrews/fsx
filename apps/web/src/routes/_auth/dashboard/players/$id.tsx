@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { ImageUpload } from "@/components/image-upload";
+import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/players/$id")({
@@ -37,6 +38,7 @@ function RouteComponent() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const numId = Number(id);
+  const { track: trackImageReplaced, flush: flushImageDeletes } = usePendingImageDeletes();
 
   const { data: player } = useSuspenseQuery(trpc.players.forEdit.queryOptions({ id: numId }));
   const { data: clubs = [] } = useSuspenseQuery(trpc.clubs.list.queryOptions());
@@ -56,8 +58,9 @@ function RouteComponent() {
 
   const updateMutation = useMutation({
     ...trpc.players.update.mutationOptions(),
-    onSuccess: () => {
+    onSuccess: async () => {
       qc.invalidateQueries(trpc.players.forEdit.queryFilter({ id: numId }));
+      await flushImageDeletes();
       toast.success("Player updated");
     },
     onError: () => toast.error("Failed to update player"),
@@ -223,6 +226,7 @@ function RouteComponent() {
                 kind="players"
                 value={f.state.value || null}
                 onChange={(url) => f.handleChange(url ?? "")}
+                onImageReplaced={trackImageReplaced}
                 title="Crop Player Photo"
                 description="Adjust the crop area for a square avatar."
                 outputWidth={120}
