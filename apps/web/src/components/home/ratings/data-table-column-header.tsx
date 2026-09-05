@@ -22,24 +22,29 @@ interface DataTableColumnHeaderProps<TData, TValue>
 	extends React.HTMLAttributes<HTMLDivElement> {
 	column: Column<TData, TValue>
 	title: string
+	align?: "left" | "center"
 }
 
 export function DataTableColumnHeader<TData, TValue>({
 	column,
 	title,
 	className,
+	align = "left",
 }: DataTableColumnHeaderProps<TData, TValue>) {
 	if (!column.getCanSort()) {
-		return <div className={cn(className)}>{title}</div>
+		return <div className={cn("w-full", align === "center" && "text-center", className)}>{title}</div>
 	}
 
 	return (
-		<div className={cn("flex items-center gap-2", className)}>
+		<div className={cn("flex w-full items-center gap-2", align === "center" && "justify-center", className)}>
 			<DropdownMenu>
 				<DropdownMenuTrigger
 					render={
 						<Button
-							className="-ms-3 h-8 hover:bg-accent/50 data-[state=open]:bg-accent"
+							className={cn(
+								"h-8 hover:bg-accent/50 data-[state=open]:bg-accent",
+								align === "left" && "-ms-3"
+							)}
 							size="sm"
 							variant="ghost"
 						/>

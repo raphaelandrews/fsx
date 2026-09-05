@@ -1,10 +1,13 @@
 import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
+import { check, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
 
 import { clubs, players } from "./index"
 
 export const AGE_GROUPS = ["8", "10", "12", "14", "16", "18"] as const
+
+/** Suffixes that disambiguate multiple teams from the same school in a category. */
+export const TEAM_NAMES = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] as const
 
 export const PLACE_POINTS: Record<number, number> = {
   1: 10,
@@ -41,7 +44,9 @@ export const tvSergipe = sqliteTable(
     clubAgeIdx: index("tv_sergipe_club_age_idx").on(t.clubId, t.ageGroup),
     // NULL-distinct in SQLite means team rows (playerId NULL) and individual rows (teamName NULL) don't collide.
     individualUnique: uniqueIndex("tv_sergipe_individual_unique_idx").on(t.playerId, t.ageGroup, t.sex),
+    // A school can't field two teams with the same suffix in the same category.
     teamUnique: uniqueIndex("tv_sergipe_team_unique_idx").on(t.clubId, t.ageGroup, t.sex, t.teamName),
+    teamNameCheck: check("tv_sergipe_team_name_check", sql`"team_name" IS NULL OR "team_name" IN ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J')`),
   })
 )
 

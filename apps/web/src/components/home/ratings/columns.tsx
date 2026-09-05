@@ -63,10 +63,10 @@ export const columnsClassic: ColumnDef<TopPlayer>[] = [
 	{
 		accessorKey: "classic",
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Clássico" />
+			<DataTableColumnHeader align="center" column={column} title="Clássico" />
 		),
 		cell: ({ row }) => {
-			return <div className="font-mono font-medium tabular-nums">{row.original.classic}</div>
+			return <div className="text-center font-mono font-medium tabular-nums">{row.original.classic}</div>
 		},
 		enableSorting: false,
 		enableHiding: false,
@@ -120,10 +120,10 @@ export const columnsRapid: ColumnDef<TopPlayer>[] = [
 	{
 		accessorKey: "rapid",
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Rápido" />
+			<DataTableColumnHeader align="center" column={column} title="Rápido" />
 		),
 		cell: ({ row }) => {
-			return <div className="font-mono font-medium tabular-nums">{row.original.rapid}</div>
+			return <div className="text-center font-mono font-medium tabular-nums">{row.original.rapid}</div>
 		},
 		enableSorting: false,
 		enableHiding: false,
@@ -177,10 +177,10 @@ export const columnsBlitz: ColumnDef<TopPlayer>[] = [
 	{
 		accessorKey: "blitz",
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title="Blitz" />
+			<DataTableColumnHeader align="center" column={column} title="Blitz" />
 		),
 		cell: ({ row }) => {
-			return <div className="font-mono font-medium tabular-nums">{row.original.blitz}</div>
+			return <div className="text-center font-mono font-medium tabular-nums">{row.original.blitz}</div>
 		},
 		enableSorting: false,
 		enableHiding: false,

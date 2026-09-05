@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { eq, desc, and, count } from "drizzle-orm";
 
+import { env } from "@fsx/env/server";
 import { posts, insertPostSchema } from "@fsx/db/schema/posts";
 import { adminProcedure, publicProcedure, router } from "../index";
+import { urlToKey } from "./images";
 
 export const postsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -84,7 +86,18 @@ export const postsRouter = router({
     ),
   delete: adminProcedure
     .input(z.object({ id: z.number() }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.delete(posts).where(eq(posts.id, input.id))
-    ),
+    .mutation(async ({ ctx, input }) => {
+      // Cascade: remove the post's cover image from R2 so deleting a post
+      // doesn't leave an orphaned object. Best-effort; the DB delete proceeds
+      // even if the object is already gone.
+      const existing = await ctx.db.query.posts.findFirst({
+        where: eq(posts.id, input.id),
+        columns: { imageUrl: true },
+      });
+      if (existing?.imageUrl) {
+        const key = urlToKey(existing.imageUrl);
+        if (key) await env.IMAGES.delete(key).catch(() => {});
+      }
+      await ctx.db.delete(posts).where(eq(posts.id, input.id));
+    }),
 });

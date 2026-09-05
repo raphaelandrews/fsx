@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ThemeProvider } from "next-themes";
 
 import Loader from "./components/loader";
+import { NotFound } from "./components/not-found";
 import { routeTree } from "./routeTree.gen";
 import { TRPCProvider } from "./utils/trpc";
 
@@ -87,7 +88,7 @@ export const getRouter = () => {
     defaultPreload: "intent",
     context: { trpc, queryClient },
     defaultPendingComponent: () => <Loader />,
-    defaultNotFoundComponent: () => <div>Not Found</div>,
+    defaultNotFoundComponent: () => <NotFound />,
     Wrap: ({ children }) => (
       <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="light" storageKey="fsx-theme" disableTransitionOnChange>

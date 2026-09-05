@@ -7,7 +7,7 @@ import { Button } from "@fsx/ui/components/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@fsx/ui/components/popover";
 
 import { PlayerSheetById } from "@/components/sheets/player/player-sheet-by-id";
-import { getGradient } from "@/lib/gradients";
+import { avatarGradient } from "@/components/avatar-gradient";
 
 function formatDefendingChampions(championship: string) {
   const cmp = championship;
@@ -81,7 +81,6 @@ interface Props {
 
 export const Actions = ({ id, name, nickname, image, shortName, defendingChampions }: Props) => {
   const [open, setOpen] = useState(false);
-  const gradient = getGradient(id);
 
   return (
     <div className="flex items-center gap-3">
@@ -97,7 +96,7 @@ export const Actions = ({ id, name, nickname, image, shortName, defendingChampio
           >
             <Avatar className="size-8 rounded-md">
               <AvatarImage alt={name} src={image ?? undefined} />
-              <AvatarFallback style={gradient} />
+              <AvatarFallback className={avatarGradient(id)} />
             </Avatar>
             <div className="whitespace-nowrap font-medium">
               {shortName && <span className="text-highlight">{shortName}</span>} {nickname ?? name}

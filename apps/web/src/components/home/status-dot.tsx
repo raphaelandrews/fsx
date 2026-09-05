@@ -15,9 +15,22 @@ export function StatusDot({ date }: { date: Date | string }) {
 
   if (!currentDate) return null;
 
-  const dateObj = typeof date === "string" ? new Date(date) : date;
-  const timeDifference = dateObj.getTime() - currentDate.getTime();
-  const daysDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+  // date is a date-only "YYYY-MM-DD" string (no time). Compare by calendar
+  // day, not by time-of-day, so the dot doesn't flip a day early/late.
+  // "today" is resolved in America/Sao_Paulo to match the site's audience.
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(currentDate);
+
+  const eventDateStr = typeof date === "string" ? date.slice(0, 10) : date.toISOString().slice(0, 10);
+  const daysDifference = Math.round(
+    (new Date(eventDateStr + "T00:00:00Z").getTime() -
+      new Date(today + "T00:00:00Z").getTime()) /
+      (1000 * 60 * 60 * 24),
+  );
 
   if (daysDifference < 0) {
     return (

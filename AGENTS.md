@@ -2,23 +2,13 @@
 
 This project was migrated from Next.js + Supabase + PostgreSQL to Better-T-Stack (TanStack Start, tRPC, Better Auth, SQLite/D1). See `REWRITING.md` for architecture decisions and best practices. The `source-project/` directory contains the old codebase as reference.
 
-## Database Migration (Supabase → D1)
+## Database
 
-Data is migrated from the old Supabase Postgres into D1 via `packages/db/src/migrate.ts`:
+The Supabase→D1 data migration is complete and `packages/db/src/migrate.ts` has been removed.
 
-- **Remote**: `bun run db:migrate` reads Postgres (`DATABASE_URL` in `packages/db/.env`), applies
-  all `DB.md` transforms, and writes `packages/db/migration-data.sql` (idempotent — wipes then
-  inserts). Apply with `bunx wrangler d1 execute <DATABASE_ID> --remote --file=./packages/db/migration-data.sql`.
-- **Local**: `bun run db:migrate:local` does the same into the local Miniflare D1
-  (`.alchemy/miniflare/v3`). **Stop `alchemy dev` first** (`pkill -f alchemy.run.ts`) — a running dev
-  server holds a stale in-memory D1 connection and will not see the migrated data.
-
-Migration gotchas:
-- `@fsx/db`'s `miniflare` version must match alchemy's (`4.20260424.0`); otherwise seed/migrate
-  write to a different SQLite file than `alchemy dev` reads.
-- D1 caps each SQL statement at 100 KB — the migration batches INSERTs accordingly.
-- The migration preserves `id`s (required for FKs) except `posts.id` (UUID → fresh autoincrement),
-  and preserves `created_at`/`updated_at` for `players` and `posts`.
+Local Dev D1 gotchas:
+- `@fsx/db`'s `miniflare` version must match alchemy's (`4.20260424.0`); otherwise seed writes to a
+  different SQLite file than `alchemy dev` reads.
 - New Drizzle schema migrations (e.g. `0002_peaceful_masked_marvel.sql`) must go through `alchemy dev`'s
   migration tracker — do NOT apply them manually via raw `sqlite3` against `.alchemy/miniflare/v3/d1/…sqlite`.
   A raw apply creates the table but never records it in `d1_migrations`, so the next `alchemy dev` startup

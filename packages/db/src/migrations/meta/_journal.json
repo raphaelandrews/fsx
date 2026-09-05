@@ -57,6 +57,41 @@
       "when": 1787905196495,
       "tag": "0007_stale_jocasta",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1787967393241,
+      "tag": "0008_faithful_orphan",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1787979965929,
+      "tag": "0009_romantic_karnak",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1788391005783,
+      "tag": "0010_narrow_ikaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1788392020103,
+      "tag": "0011_deep_colonel_america",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1788393277791,
+      "tag": "0012_true_malcolm_colcord",
+      "breakpoints": true
     }
   ]
 }

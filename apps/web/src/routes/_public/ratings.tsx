@@ -16,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@fsx/ui/components/table";
-import { Avatar, AvatarImage } from "@fsx/ui/components/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 
 import { DataTableFacetedFilter } from "@/components/data-table/data-table-faceted-filter";
@@ -31,6 +30,8 @@ import {
   ratingTitles,
 } from "@/components/ratings/data-options";
 import { useTRPC } from "@/utils/trpc";
+import { cn } from "@fsx/ui/lib/utils";
+import { avatarGradientFor } from "@/components/avatar-gradient";
 
 const sortByEnum = z.enum(["classic", "rapid", "blitz"]);
 type SortBy = z.infer<typeof sortByEnum>;
@@ -274,14 +275,14 @@ function RouteComponent() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     {player.location?.flagUrl ? (
-                      <Avatar className="size-4 rounded object-contain">
-                        <AvatarImage
+                      <span className="relative flex shrink-0 size-4 overflow-hidden rounded object-contain">
+                        <img
                           alt={player.location.name ?? ""}
-                          className="object-contain"
+                          className="aspect-square size-4 rounded object-contain"
                           src={player.location.flagUrl}
                           title={player.location.name ?? ""}
                         />
-                      </Avatar>
+                      </span>
                     ) : null}
                     <span className="text-muted-foreground">{player.location?.name ?? "—"}</span>
                   </div>
@@ -289,13 +290,15 @@ function RouteComponent() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     {player.club?.logoUrl ? (
-                      <Avatar className="size-5 rounded-sm">
-                        <AvatarImage
-                          alt={player.club.name ?? ""}
-                          className="object-contain"
+                      <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded">
+                        <img
+                          alt={player.club?.name ?? ""}
+                          className="aspect-square size-full object-contain"
                           src={player.club.logoUrl}
                         />
-                      </Avatar>
+                      </span>
+                    ) : player.club?.name ? (
+                      <span className={cn("relative flex shrink-0 h-5 w-5 overflow-hidden rounded", avatarGradientFor(player.club.name))} />
                     ) : null}
                     <span className="text-muted-foreground">{player.club?.name ?? "—"}</span>
                   </div>

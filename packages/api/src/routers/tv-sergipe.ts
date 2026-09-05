@@ -6,6 +6,7 @@ import {
   INDIVIDUAL_MEDAL_WEIGHT,
   PLACE_POINTS,
   TEAM_MEDAL_WEIGHT,
+  TEAM_NAMES,
   tvSergipe,
 } from "@fsx/db/schema/tvSergipe";
 import { clubs } from "@fsx/db/schema/clubs";
@@ -14,23 +15,24 @@ import { adminProcedure, publicProcedure, router } from "../index";
 const ageGroupEnum = z.enum(AGE_GROUPS);
 const sexEnum = z.enum(["male", "female"]);
 const modalityEnum = z.enum(["individual", "team"]);
+const teamNameEnum = z.enum(TEAM_NAMES);
 
 const resultInput = z
   .object({
     clubId: z.number(),
     playerId: z.number().nullable().optional(),
-    teamName: z.string().nullable().optional(),
+    teamName: teamNameEnum.nullable().optional(),
     ageGroup: ageGroupEnum,
     sex: sexEnum,
     modality: modalityEnum,
     place: z.number().int().min(1).max(8),
   })
   .superRefine((val, ctx) => {
-    if (val.modality === "team" && !val.teamName) {
-      ctx.addIssue({ code: "custom", message: "Nome da equipe é obrigatório para equipes", path: ["teamName"] });
-    }
     if (val.modality === "individual" && !val.playerId) {
       ctx.addIssue({ code: "custom", message: "Jogador é obrigatório para individual", path: ["playerId"] });
+    }
+    if (val.modality === "team" && !val.teamName) {
+      ctx.addIssue({ code: "custom", message: "Equipe (A–J) é obrigatória para equipes", path: ["teamName"] });
     }
   });
 
@@ -78,7 +80,7 @@ export const tvSergipeRouter = router({
         .innerJoin(clubs, eq(tvSergipe.clubId, clubs.id))
         .where(conditions.length ? and(...conditions) : undefined)
         .groupBy(tvSergipe.clubId, clubs.name, clubs.logoUrl)
-        .orderBy(desc(sql`points`))
+        .orderBy(desc(sql`sum(${tvSergipe.points})`))
     }),
   create: adminProcedure
     .input(resultInput)

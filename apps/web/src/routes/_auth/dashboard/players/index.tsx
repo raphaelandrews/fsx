@@ -1,95 +1,109 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
+
 import { Button } from "@fsx/ui/components/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@fsx/ui/components/table";
-import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 
 export const Route = createFileRoute("/_auth/dashboard/players/")({
   head: () => ({ meta: [{ title: "Players - Admin - FSX" }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.players.list.queryOptions()),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.players.list.queryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const qc = useQueryClient();
 
-  const { data: players = [] } = useSuspenseQuery(trpc.players.list.queryOptions());
+  const { data = [] } = useSuspenseQuery(trpc.players.list.queryOptions());
 
-  const deleteMutation = useMutation({
-    ...trpc.players.update.mutationOptions(),
-    onSuccess: () => {
-      qc.invalidateQueries(trpc.players.list.queryFilter());
-      toast.success("Player deleted");
+  const columns: ColumnDef<(typeof data)[number]>[] = [
+    {
+      accessorKey: "name",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
     },
-    onError: () => toast.error("Failed to delete player"),
-  });
+    {
+      accessorKey: "nickname",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Nickname" />,
+      cell: ({ row }) => <span>{row.getValue("nickname") ?? "—"}</span>,
+    },
+    {
+      accessorKey: "blitz",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Blitz" />,
+      cell: ({ row }) => (
+        <span className="text-right tabular-nums">{row.getValue("blitz") ?? "—"}</span>
+      ),
+    },
+    {
+      accessorKey: "rapid",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Rapid" />,
+      cell: ({ row }) => (
+        <span className="text-right tabular-nums">{row.getValue("rapid") ?? "—"}</span>
+      ),
+    },
+    {
+      accessorKey: "classic",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Classic" />,
+      cell: ({ row }) => (
+        <span className="text-right tabular-nums">{row.getValue("classic") ?? "—"}</span>
+      ),
+    },
+    {
+      accessorKey: "club",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Club" />,
+      cell: ({ row }) => <span>{row.original.club?.name ?? "—"}</span>,
+    },
+    {
+      accessorKey: "location",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Location" />,
+      cell: ({ row }) => <span>{row.original.location?.name ?? "—"}</span>,
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">Actions</span>,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-1">
+          <Link to="/dashboard/players/titles" search={{ playerId: row.original.id }}>
+            <Button size="sm" variant="outline">
+              Titles
+            </Button>
+          </Link>
+          <Link to="/dashboard/players/$id" params={{ id: String(row.original.id) }}>
+            <Button size="sm" variant="outline">
+              Edit
+            </Button>
+          </Link>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">Players</h1>
-        <Link to="/dashboard/players/create">
-          <Button>Create Player</Button>
-        </Link>
-      </div>
-      <div className="overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Nickname</TableHead>
-              <TableHead className="text-right">Blitz</TableHead>
-              <TableHead className="text-right">Rapid</TableHead>
-              <TableHead className="text-right">Classic</TableHead>
-              <TableHead className="text-center">Sex</TableHead>
-              <TableHead>Club</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {players.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>{p.name}</TableCell>
-                <TableCell>{p.nickname}</TableCell>
-                <TableCell className="text-right tabular-nums">{p.blitz}</TableCell>
-                <TableCell className="text-right tabular-nums">{p.rapid}</TableCell>
-                <TableCell className="text-right tabular-nums">{p.classic}</TableCell>
-                <TableCell className="text-center">{p.sex === "female" ? "F" : "M"}</TableCell>
-                <TableCell>{p.club?.name}</TableCell>
-                <TableCell>{p.location?.name}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Link to="/dashboard/players/$id" params={{ id: String(p.id) }}>
-                      <Button size="sm" variant="outline">Edit</Button>
-                    </Link>
-                    <Link to="/dashboard/players/titles" search={{ playerId: p.id }}>
-                      <Button size="sm" variant="outline">Titles</Button>
-                    </Link>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => deleteMutation.mutate({ id: p.id, active: false })}
-                    >
-                      Deactivate
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <AdminPageHeader
+        title="Players"
+        description="Manage the state's players."
+        actions={
+          <Link to="/dashboard/players/create">
+            <Button>New player</Button>
+          </Link>
+        }
+      />
+      <DataTable
+        columns={columns}
+        data={data}
+        toolbar={(table) => (
+          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search player..." />
+        )}
+        pagination={(table) => <DataTablePagination table={table} />}
+      />
     </div>
   );
 }

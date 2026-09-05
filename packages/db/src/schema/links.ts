@@ -6,7 +6,9 @@ import { linkGroups } from "./index"
 
 export const links = sqliteTable("links", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
-	href: text("href").notNull(),
+	// Null = link announced but the URL isn't available yet ("em breve"),
+	// e.g. a regulation that will be published before the event.
+	href: text("href"),
 	label: text("label").notNull(),
 	icon: text("icon").notNull(),
 	sortOrder: integer("sort_order").notNull(),

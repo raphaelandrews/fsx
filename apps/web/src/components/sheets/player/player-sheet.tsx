@@ -18,7 +18,7 @@ export const PlayerSheet = ({
     return (
       <SheetContent className="!w-[400px] sm:!w-[540px] !max-w-[90%] sm:!max-w-[480px] gap-0 overflow-y-auto overflow-x-hidden p-4 [&>button#close-sheet]:top-2.5 [&>button#close-sheet]:right-2.5">
         <div className="flex h-full flex-col items-center gap-6">
-          <Skeleton className="h-24 w-24 rounded-[20px]" />
+          <Skeleton className="h-24 w-24 rounded-2xl" />
           <div className="flex w-full flex-col items-center gap-2">
             <Skeleton className="h-6 w-40" />
             <Skeleton className="h-4 w-24" />

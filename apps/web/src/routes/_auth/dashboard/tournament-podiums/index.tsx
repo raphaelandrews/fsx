@@ -1,20 +1,20 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@fsx/ui/components/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@fsx/ui/components/table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 
+import { Button } from "@fsx/ui/components/button";
+
 import { useTRPC } from "@/utils/trpc";
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 
 export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/")({
-  head: () => ({ meta: [{ title: "Tournament Podiums - Admin - FSX" }] }),
+  head: () => ({ meta: [{ title: "Podiums - Admin - FSX" }] }),
   loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.tournamentPodiums.list.queryOptions()),
   component: RouteComponent,
 });
@@ -22,47 +22,67 @@ export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/")({
 function RouteComponent() {
   const trpc = useTRPC();
   const qc = useQueryClient();
-  const { data: podiums = [] } = useSuspenseQuery(trpc.tournamentPodiums.list.queryOptions());
+
+  const { data = [] } = useSuspenseQuery(trpc.tournamentPodiums.list.queryOptions());
 
   const deleteMutation = useMutation({
     ...trpc.tournamentPodiums.delete.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.tournamentPodiums.list.queryFilter()); toast.success("Podium deleted"); },
+    onSuccess: () => {
+      qc.invalidateQueries(trpc.tournamentPodiums.list.queryFilter());
+      toast.success("Podium deleted");
+    },
     onError: () => toast.error("Failed to delete podium"),
   });
 
+  const columns: ColumnDef<(typeof data)[number]>[] = [
+    {
+      accessorKey: "place",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Place" />,
+      cell: ({ row }) => <span className="tabular-nums font-medium">{row.original.place}º</span>,
+    },
+    {
+      accessorKey: "player",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Player" />,
+      cell: ({ row }) => <span>{row.original.player?.name ?? "—"}</span>,
+    },
+    {
+      accessorKey: "tournament",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Tournament" />,
+      cell: ({ row }) => <span>{row.original.tournament?.name ?? "—"}</span>,
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">Actions</span>,
+      cell: ({ row }) => (
+        <DataTableRowActions
+          id={row.original.id}
+          editTo="/dashboard/tournament-podiums/$id"
+          onDelete={() => deleteMutation.mutate({ id: row.original.id })}
+          displayName={row.original.player?.name}
+        />
+      ),
+    },
+  ];
+
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">Tournament Podiums</h1>
-        <Link to="/dashboard/tournament-podiums/create"><Button>Create Podium</Button></Link>
-      </div>
-      <div className="overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Player</TableHead>
-              <TableHead>Tournament</TableHead>
-              <TableHead className="text-right">Place</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {podiums.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>{p.player?.name ?? `#${p.playerId}`}</TableCell>
-                <TableCell className="text-muted-foreground">{p.tournament?.name ?? `#${p.tournamentId}`}</TableCell>
-                <TableCell className="text-right tabular-nums">{p.place}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Link to="/dashboard/tournament-podiums/$id" params={{ id: String(p.id) }}><Button size="sm" variant="outline">Edit</Button></Link>
-                    <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate({ id: p.id })}>Delete</Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <AdminPageHeader
+        title="Podiums"
+        description="Manage tournament podiums."
+        actions={
+          <Link to="/dashboard/tournament-podiums/create">
+            <Button>New podium</Button>
+          </Link>
+        }
+      />
+      <DataTable
+        columns={columns}
+        data={data}
+        toolbar={(table) => (
+          <DataTableToolbar table={table} searchPlaceholder="Search player..." />
+        )}
+        pagination={(table) => <DataTablePagination table={table} />}
+      />
     </div>
   );
 }

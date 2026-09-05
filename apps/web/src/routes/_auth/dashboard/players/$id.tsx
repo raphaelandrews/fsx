@@ -4,9 +4,18 @@ import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@fsx/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@fsx/ui/components/select";
 import { toast } from "sonner";
+import z from "zod";
 
+import { ImageUpload } from "@/components/image-upload";
+import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/players/$id")({
@@ -29,6 +38,7 @@ function RouteComponent() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const numId = Number(id);
+  const { track: trackImageReplaced, flush: flushImageDeletes } = usePendingImageDeletes();
 
   const { data: player } = useSuspenseQuery(trpc.players.forEdit.queryOptions({ id: numId }));
   const { data: clubs = [] } = useSuspenseQuery(trpc.clubs.list.queryOptions());
@@ -36,14 +46,21 @@ function RouteComponent() {
   const { data: titles = [] } = useSuspenseQuery(trpc.titles.list.queryOptions());
   const { data: roles = [] } = useSuspenseQuery(trpc.roles.list.queryOptions());
   const { data: insignias = [] } = useSuspenseQuery(trpc.insignias.list.queryOptions());
-  const { data: playerTitles = [] } = useSuspenseQuery(trpc.playersToTitles.listByPlayer.queryOptions({ playerId: numId }));
-  const { data: playerRoles = [] } = useSuspenseQuery(trpc.playersToRoles.listByPlayer.queryOptions({ playerId: numId }));
-  const { data: playerInsignias = [] } = useSuspenseQuery(trpc.playersToInsignias.listByPlayer.queryOptions({ playerId: numId }));
+  const { data: playerTitles = [] } = useSuspenseQuery(
+    trpc.playersToTitles.listByPlayer.queryOptions({ playerId: numId }),
+  );
+  const { data: playerRoles = [] } = useSuspenseQuery(
+    trpc.playersToRoles.listByPlayer.queryOptions({ playerId: numId }),
+  );
+  const { data: playerInsignias = [] } = useSuspenseQuery(
+    trpc.playersToInsignias.listByPlayer.queryOptions({ playerId: numId }),
+  );
 
   const updateMutation = useMutation({
     ...trpc.players.update.mutationOptions(),
-    onSuccess: () => {
+    onSuccess: async () => {
       qc.invalidateQueries(trpc.players.forEdit.queryFilter({ id: numId }));
+      await flushImageDeletes();
       toast.success("Player updated");
     },
     onError: () => toast.error("Failed to update player"),
@@ -119,6 +136,22 @@ function RouteComponent() {
       clubId: player.clubId,
       locationId: player.locationId,
       active: player.active,
+      imageUrl: player.imageUrl ?? "",
+    },
+    validators: {
+      onSubmit: z.object({
+        name: z.string().min(1, "Name is required"),
+        nickname: z.string(),
+        blitz: z.number(),
+        rapid: z.number(),
+        classic: z.number(),
+        birthDate: z.string(),
+        sex: z.enum(["male", "female"]),
+        clubId: z.number().nullable(),
+        locationId: z.number().nullable(),
+        active: z.boolean(),
+        imageUrl: z.string(),
+      }),
     },
     onSubmit: ({ value }) => {
       updateMutation.mutate({
@@ -133,6 +166,7 @@ function RouteComponent() {
         clubId: value.clubId,
         locationId: value.locationId,
         active: value.active,
+        imageUrl: value.imageUrl || null,
       });
     },
   });
@@ -141,15 +175,33 @@ function RouteComponent() {
     <div className="mx-auto max-w-2xl">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-bold text-2xl">Edit Player: {player.name}</h1>
-        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/players" })}>Back</Button>
+        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/players" })}>
+          Back
+        </Button>
       </div>
 
-      <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+        className="space-y-4"
+      >
         <form.Field name="name">
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Name</Label>
-              <Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
+              <Input
+                id={f.name}
+                value={f.state.value}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
+              {f.state.meta.errors.map((e) => (
+                <p key={e?.message} className="text-destructive text-xs">
+                  {e?.message}
+                </p>
+              ))}
             </div>
           )}
         </form.Field>
@@ -157,7 +209,28 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Nickname</Label>
-              <Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
+              <Input
+                id={f.name}
+                value={f.state.value}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
+            </div>
+          )}
+        </form.Field>
+        <form.Field name="imageUrl">
+          {(f) => (
+            <div className="space-y-2">
+              <Label>Photo</Label>
+              <ImageUpload
+                kind="players"
+                value={f.state.value || null}
+                onChange={(url) => f.handleChange(url ?? "")}
+                onImageReplaced={trackImageReplaced}
+                title="Crop Player Photo"
+                description="Adjust the crop area for a square avatar."
+                outputWidth={120}
+              />
             </div>
           )}
         </form.Field>
@@ -166,7 +239,13 @@ function RouteComponent() {
             {(f) => (
               <div className="space-y-2">
                 <Label htmlFor={f.name}>Blitz</Label>
-                <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
+                <Input
+                  id={f.name}
+                  type="number"
+                  value={String(f.state.value)}
+                  onBlur={f.handleBlur}
+                  onChange={(e) => f.handleChange(Number(e.target.value))}
+                />
               </div>
             )}
           </form.Field>
@@ -174,7 +253,13 @@ function RouteComponent() {
             {(f) => (
               <div className="space-y-2">
                 <Label htmlFor={f.name}>Rapid</Label>
-                <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
+                <Input
+                  id={f.name}
+                  type="number"
+                  value={String(f.state.value)}
+                  onBlur={f.handleBlur}
+                  onChange={(e) => f.handleChange(Number(e.target.value))}
+                />
               </div>
             )}
           </form.Field>
@@ -182,7 +267,13 @@ function RouteComponent() {
             {(f) => (
               <div className="space-y-2">
                 <Label htmlFor={f.name}>Classic</Label>
-                <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
+                <Input
+                  id={f.name}
+                  type="number"
+                  value={String(f.state.value)}
+                  onBlur={f.handleBlur}
+                  onChange={(e) => f.handleChange(Number(e.target.value))}
+                />
               </div>
             )}
           </form.Field>
@@ -191,7 +282,12 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Birth</Label>
-              <Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
+              <Input
+                id={f.name}
+                value={f.state.value}
+                onBlur={f.handleBlur}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
             </div>
           )}
         </form.Field>
@@ -215,7 +311,13 @@ function RouteComponent() {
           <form.Field name="active">
             {(f) => (
               <div className="flex items-center gap-2">
-                <input id={f.name} type="checkbox" checked={f.state.value} onChange={(e) => f.handleChange(e.target.checked)} className="h-4 w-4 rounded border-input" />
+                <input
+                  id={f.name}
+                  type="checkbox"
+                  checked={f.state.value}
+                  onChange={(e) => f.handleChange(e.target.checked)}
+                  className="h-4 w-4 rounded border-input"
+                />
                 <Label htmlFor={f.name}>Active</Label>
               </div>
             )}
@@ -225,10 +327,19 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label>Club</Label>
-              <Select value={f.state.value?.toString() ?? ""} onValueChange={(v) => f.handleChange(v ? Number(v) : null)}>
-                <SelectTrigger><SelectValue placeholder="Select club" /></SelectTrigger>
+              <Select
+                value={f.state.value?.toString() ?? ""}
+                onValueChange={(v) => f.handleChange(v ? Number(v) : null)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select club" />
+                </SelectTrigger>
                 <SelectContent>
-                  {clubs.map((c) => <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>)}
+                  {clubs.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -238,16 +349,27 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label>Location</Label>
-              <Select value={f.state.value?.toString() ?? ""} onValueChange={(v) => f.handleChange(v ? Number(v) : null)}>
-                <SelectTrigger><SelectValue placeholder="Select location" /></SelectTrigger>
+              <Select
+                value={f.state.value?.toString() ?? ""}
+                onValueChange={(v) => f.handleChange(v ? Number(v) : null)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
                 <SelectContent>
-                  {locations.map((l) => <SelectItem key={l.id} value={String(l.id)}>{l.name}</SelectItem>)}
+                  {locations.map((l) => (
+                    <SelectItem key={l.id} value={String(l.id)}>
+                      {l.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           )}
         </form.Field>
-        <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
+        <form.Subscribe
+          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
+        >
           {({ canSubmit, isSubmitting }) => (
             <Button type="submit" disabled={!canSubmit || isSubmitting}>
               {isSubmitting ? "Saving..." : "Save Changes"}
@@ -261,7 +383,10 @@ function RouteComponent() {
           <h2 className="mb-2 font-semibold text-lg">Titles</h2>
           <div className="flex flex-wrap gap-2 mb-3">
             {playerTitles.map((pt) => (
-              <span key={pt.id} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs">
+              <span
+                key={pt.id}
+                className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs"
+              >
                 {pt.title?.name}
                 <button
                   type="button"
@@ -274,10 +399,20 @@ function RouteComponent() {
             ))}
           </div>
           <div className="flex gap-2">
-            <Select onValueChange={(v) => { if (v) linkTitleMutation.mutate({ playerId: numId, titleId: Number(v) }); }}>
-              <SelectTrigger className="w-48"><SelectValue placeholder="Add title" /></SelectTrigger>
+            <Select
+              onValueChange={(v) => {
+                if (v) linkTitleMutation.mutate({ playerId: numId, titleId: Number(v) });
+              }}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Add title" />
+              </SelectTrigger>
               <SelectContent>
-                {titles.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>)}
+                {titles.map((t) => (
+                  <SelectItem key={t.id} value={String(t.id)}>
+                    {t.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -287,7 +422,10 @@ function RouteComponent() {
           <h2 className="mb-2 font-semibold text-lg">Roles</h2>
           <div className="flex flex-wrap gap-2 mb-3">
             {playerRoles.map((pr) => (
-              <span key={pr.id} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs">
+              <span
+                key={pr.id}
+                className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs"
+              >
                 {pr.role?.name}
                 <button
                   type="button"
@@ -300,10 +438,20 @@ function RouteComponent() {
             ))}
           </div>
           <div className="flex gap-2">
-            <Select onValueChange={(v) => { if (v) linkRoleMutation.mutate({ playerId: numId, roleId: Number(v) }); }}>
-              <SelectTrigger className="w-48"><SelectValue placeholder="Add role" /></SelectTrigger>
+            <Select
+              onValueChange={(v) => {
+                if (v) linkRoleMutation.mutate({ playerId: numId, roleId: Number(v) });
+              }}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Add role" />
+              </SelectTrigger>
               <SelectContent>
-                {roles.map((r) => <SelectItem key={r.id} value={String(r.id)}>{r.name}</SelectItem>)}
+                {roles.map((r) => (
+                  <SelectItem key={r.id} value={String(r.id)}>
+                    {r.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -313,7 +461,10 @@ function RouteComponent() {
           <h2 className="mb-2 font-semibold text-lg">Insignias</h2>
           <div className="flex flex-wrap gap-2 mb-3">
             {playerInsignias.map((pi) => (
-              <span key={pi.id} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs">
+              <span
+                key={pi.id}
+                className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs"
+              >
                 {pi.insignia?.name}
                 <button
                   type="button"
@@ -326,10 +477,20 @@ function RouteComponent() {
             ))}
           </div>
           <div className="flex gap-2">
-            <Select onValueChange={(v) => { if (v) linkInsigniaMutation.mutate({ playerId: numId, insigniaId: Number(v) }); }}>
-              <SelectTrigger className="w-48"><SelectValue placeholder="Add insignia" /></SelectTrigger>
+            <Select
+              onValueChange={(v) => {
+                if (v) linkInsigniaMutation.mutate({ playerId: numId, insigniaId: Number(v) });
+              }}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Add insignia" />
+              </SelectTrigger>
               <SelectContent>
-                {insignias.map((i) => <SelectItem key={i.id} value={String(i.id)}>{i.name}</SelectItem>)}
+                {insignias.map((i) => (
+                  <SelectItem key={i.id} value={String(i.id)}>
+                    {i.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

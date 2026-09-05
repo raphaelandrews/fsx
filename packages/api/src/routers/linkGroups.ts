@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
 
 import { linkGroups, insertLinkGroupSchema } from "@fsx/db/schema/linkGroups";
 import { links, insertLinkSchema } from "@fsx/db/schema/links";
@@ -9,6 +9,9 @@ export const linkGroupsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
     ctx.db.query.linkGroups.findMany({
       columns: { id: true, label: true },
+      // Only the "directory" groups. Event-owned groups are shown on the
+      // event page/card, not here.
+      where: isNull(linkGroups.eventId),
       with: {
         links: {
           columns: { id: true, href: true, label: true, icon: true, sortOrder: true },
@@ -26,20 +29,21 @@ export const linkGroupsRouter = router({
   createLink: adminProcedure
     .input(insertLinkSchema.omit({ id: true }))
     .mutation(({ ctx, input }) =>
-      ctx.db.insert(links).values(input).returning()
+      ctx.db.insert(links).values({ ...input, href: input.href || null }).returning()
     ),
   updateLink: adminProcedure
     .input(z.object({
       id: z.number(),
-      href: z.string().optional(),
+      href: z.string().nullable().optional(),
       label: z.string().optional(),
       icon: z.string().optional(),
       sortOrder: z.number().optional(),
       linkGroupId: z.number().optional(),
     }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.update(links).set(input).where(eq(links.id, input.id)).returning()
-    ),
+    .mutation(({ ctx, input }) => {
+      const patch = { ...input, href: input.href === undefined ? undefined : input.href || null };
+      return ctx.db.update(links).set(patch).where(eq(links.id, input.id)).returning();
+    }),
   deleteLink: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ ctx, input }) =>

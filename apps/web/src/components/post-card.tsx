@@ -23,6 +23,7 @@ export function PostCard({
 }: PostCardProps & { className?: string }) {
   return (
     <Link
+      aria-label={title}
       className={cn(
         "group flex w-full cursor-pointer flex-col gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         className,
@@ -31,10 +32,10 @@ export function PostCard({
       params={{ slug: slug ?? "" }}
       onMouseEnter={onMouseEnter}
     >
-      <div className="relative aspect-video w-full overflow-hidden rounded-md bg-muted select-none">
+      <div aria-hidden className="relative aspect-video w-full overflow-hidden rounded-md bg-muted select-none">
         {imageUrl ? (
           <img
-            alt={title}
+            alt=""
             className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
             decoding="async"
             loading="lazy"

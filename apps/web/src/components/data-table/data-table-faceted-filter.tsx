@@ -113,8 +113,8 @@ export function DataTableFacetedFilter({
           </>
         ) : null}
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[200px] p-0">
-        <Command>
+      <PopoverContent align="start" className="w-72 overflow-hidden p-0">
+        <Command className="rounded-none! p-0">
           <CommandInput placeholder={title} />
           <CommandList>
             <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
@@ -143,19 +143,22 @@ export function DataTableFacetedFilter({
                   >
                     <div
                       className={cn(
-                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-md [&_svg]:!text-current",
                         isSelected
-                          ? "bg-primary text-primary-foreground"
-                          : "opacity-50 [&_svg]:invisible"
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-muted ring-1 ring-inset ring-border"
                       )}
                     >
-                      <HugeiconsIcon
-                        className="size-4"
-                        icon={Tick02Icon}
-                      />
+                      {isSelected ? (
+                        <HugeiconsIcon
+                          className="size-4"
+                          icon={Tick02Icon}
+                          strokeWidth={2.5}
+                        />
+                      ) : null}
                     </div>
                     {Icon ? <Icon className="mr-2 size-4 text-muted-foreground" /> : null}
-                    <span>{option.label}</span>
+                    <span className="truncate whitespace-nowrap">{option.label}</span>
                   </CommandItem>
                 )
               })}

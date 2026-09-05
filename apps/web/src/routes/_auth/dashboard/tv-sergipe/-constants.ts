@@ -10,6 +10,8 @@ export const MODALITY_OPTIONS = [
   { value: "team", label: "Equipe" },
 ] as const;
 
+export const TEAM_NAMES = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] as const;
+
 export const SEX_LABELS: Record<"male" | "female", string> = {
   male: "Masculino",
   female: "Feminino",

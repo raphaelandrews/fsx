@@ -1,21 +1,32 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { inferRouterOutputs } from "@trpc/server";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
   Medal01Icon,
   MedalFirstPlaceIcon,
   MedalSecondPlaceIcon,
   MedalThirdPlaceIcon,
 } from "@hugeicons/core-free-icons";
+import {
+  type ExpandedState,
+  flexRender,
+  getCoreRowModel,
+  getExpandedRowModel,
+  getPaginationRowModel,
+  type Row,
+  useReactTable,
+} from "@tanstack/react-table";
 
 import type { AppRouter } from "@fsx/api/routers/index";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
 import { Badge } from "@fsx/ui/components/badge";
 import { Button } from "@fsx/ui/components/button";
 import { EmptyTableRow } from "@/components/data-table/empty-table-row";
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import {
   Select,
   SelectContent,
@@ -33,7 +44,8 @@ import {
 } from "@fsx/ui/components/table";
 import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 
-import { getGradient } from "@/lib/gradients";
+import { cn } from "@fsx/ui/lib/utils";
+import { avatarGradientFor } from "@/components/avatar-gradient";
 import { useTRPC } from "@/utils/trpc";
 import {
   AGE_GROUPS,
@@ -44,23 +56,26 @@ import {
   SEX_LABEL,
   SUB_SCOPE_TABS,
   TEAM_MEDAL_WEIGHT,
-  subScopeToFilters,
   type AgeGroup,
   type Modality,
   type Sex,
   type SubScopeId,
 } from "./constants";
+import {
+  resolveTvSergipeFilters,
+  tvSergipeLeaderboardOptions,
+  tvSergipeListOptions,
+} from "./queries";
 
 type LeaderboardRow = inferRouterOutputs<AppRouter>["tvSergipe"]["leaderboard"][number];
 type SchoolResult = inferRouterOutputs<AppRouter>["tvSergipe"]["list"][number];
+type ResultScope = "todos" | "individual" | "team";
 
 const AGE_SELECT_OPTIONS: { id: string; label: string }[] = [
   { id: "geral", label: "Geral" },
   ...AGE_GROUPS.map((age) => ({ id: age, label: AGE_LABEL[age] })),
 ];
 
-// Base UI needs an `items` prop so `SelectValue` renders the label instead of the
-// raw value (e.g. `male-individual`) on the trigger.
 const AGE_SELECT_ITEMS = AGE_SELECT_OPTIONS.map((o) => ({ value: o.id, label: o.label }));
 const SUB_SCOPE_ITEMS = SUB_SCOPE_TABS.map((s) => ({ value: s.id, label: s.label }));
 
@@ -69,54 +84,90 @@ export function TvSergipeView() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/_public/tv-sergipe" });
 
-  const filters = search.idade ? subScopeToFilters((search.escopo ?? "geral") as SubScopeId) : {};
+  const filters = resolveTvSergipeFilters({ idade: search.idade, escopo: search.escopo });
 
   const { data: leaderboard = [] } = useSuspenseQuery(
-    trpc.tvSergipe.leaderboard.queryOptions({
-      ageGroup: search.idade,
-      sex: filters.sex,
-      modality: filters.modality,
-    }),
+    tvSergipeLeaderboardOptions(trpc, filters),
   );
-  const { data: allResults = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
+  const { data: allResults = [] } = useSuspenseQuery(tvSergipeListOptions(trpc));
 
-  const selectedEscola = search.escola ?? null;
-  const selectedSchool = useMemo(
-    () =>
-      leaderboard.find((row) => row.clubId === selectedEscola) ??
-      allResults.find((r) => r.club.id === selectedEscola)?.club ??
-      null,
-    [leaderboard, allResults, selectedEscola],
-  );
-
-  // Medal view: client-side sort by gold→silver→bronze (server returns points desc).
   const orderedRows = useMemo(() => {
-    if (search.view !== "medals") return leaderboard;
-    return [...leaderboard].sort((a, b) => {
-      if (b.gold !== a.gold) return b.gold - a.gold;
-      if (b.silver !== a.silver) return b.silver - a.silver;
-      if (b.bronze !== a.bronze) return b.bronze - a.bronze;
-      return b.points - a.points;
-    });
+    if (search.view === "medals") {
+      return [...leaderboard].sort((a, b) => {
+        if (b.gold !== a.gold) return b.gold - a.gold;
+        if (b.silver !== a.silver) return b.silver - a.silver;
+        if (b.bronze !== a.bronze) return b.bronze - a.bronze;
+        return b.points - a.points;
+      });
+    }
+    // Points view: strictly descending by total points.
+    return [...leaderboard].sort((a, b) => b.points - a.points);
   }, [leaderboard, search.view]);
-
-  // Drilldown data: filter cached list by current scope + selected club.
-  const clubResults = useMemo(() => {
-    if (selectedEscola === null) return [];
-    return allResults.filter((r) => {
-      if (r.club.id !== selectedEscola) return false;
-      if (search.idade && r.ageGroup !== search.idade) return false;
-      if (filters.sex && r.sex !== filters.sex) return false;
-      if (filters.modality && r.modality !== filters.modality) return false;
-      return true;
-    });
-  }, [allResults, selectedEscola, search.idade, filters.sex, filters.modality]);
 
   const isMedalView = search.view === "medals";
 
+  const [expanded, setExpanded] = useState<ExpandedState>({});
+  const [resultScope, setResultScope] = useState<ResultScope>("todos");
+
+  // Applies the current age/sex/modality scope + the row's school.
+  const resultsForClub = (clubId: number, scope: ResultScope) =>
+    allResults
+      .filter((r) => {
+        if (r.club.id !== clubId) return false;
+        if (search.idade && r.ageGroup !== search.idade) return false;
+        if (filters.sex && r.sex !== filters.sex) return false;
+        if (filters.modality && r.modality !== filters.modality) return false;
+        if (scope !== "todos" && r.modality !== scope) return false;
+        return true;
+      })
+      .sort((a, b) => b.points - a.points);
+
+  const table = useReactTable({
+    data: orderedRows,
+    columns: [
+      {
+        id: "expander",
+        header: () => <span className="sr-only">Expandir</span>,
+        cell: ({ row }: { row: Row<LeaderboardRow> }) =>
+          row.getCanExpand() ? (
+            <Button
+              aria-label={row.getIsExpanded() ? "Recolher" : "Expandir"}
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+              onClick={row.getToggleExpandedHandler()}
+              size="icon-sm"
+              variant="ghost"
+            >
+              <HugeiconsIcon
+                className="size-4"
+                icon={row.getIsExpanded() ? ArrowDown01Icon : ArrowRight01Icon}
+                strokeWidth={2}
+              />
+            </Button>
+          ) : (
+            <span className="block h-8 w-8" />
+          ),
+      },
+      { id: "position", header: () => "#" },
+      { id: "name", header: () => "Escola" },
+      ...(isMedalView
+        ? [
+            { id: "gold", header: () => <MedalHead icon={MedalFirstPlaceIcon} label="Ouro" color="text-amber-500" />, meta: { className: "w-24" } },
+            { id: "silver", header: () => <MedalHead icon={MedalSecondPlaceIcon} label="Prata" color="text-zinc-400" />, meta: { className: "w-24" } },
+            { id: "bronze", header: () => <MedalHead icon={MedalThirdPlaceIcon} label="Bronze" color="text-amber-700" />, meta: { className: "w-24" } },
+          ]
+        : [{ id: "points", header: () => <span className="text-center">Pontos</span>, meta: { className: "w-24" } }]),
+    ] as const,
+    state: { expanded },
+    onExpandedChange: setExpanded,
+    getRowCanExpand: () => true,
+    getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: { pagination: { pageSize: 20 } },
+  });
+
   return (
     <>
-      {/* Filters — age group + sub-scope (left), view toggle 'Medalhas / Pontos' (right) */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <Select
@@ -127,7 +178,6 @@ export function TvSergipeView() {
                 search: {
                   ...search,
                   idade: value === "geral" ? undefined : (value as AgeGroup),
-                  // Reset to "Geral" sub-scope whenever the age changes.
                   escopo: undefined,
                 },
               })
@@ -191,191 +241,233 @@ export function TvSergipeView() {
         </Tabs>
       </div>
 
-      {/* Leaderboard table */}
-      <div className="overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-10">#</TableHead>
-              <TableHead>Escola</TableHead>
-              {isMedalView ? (
-                <>
-                  <TableHead className="w-24 text-right">
-                    <span className="inline-flex items-center justify-end gap-1.5">
-                      <HugeiconsIcon
-                        className="size-4 text-amber-500"
-                        icon={MedalFirstPlaceIcon}
-                        strokeWidth={2}
-                      />
-                      Ouro
-                    </span>
-                  </TableHead>
-                  <TableHead className="w-24 text-right">
-                    <span className="inline-flex items-center justify-end gap-1.5">
-                      <HugeiconsIcon
-                        className="size-4 text-zinc-400"
-                        icon={MedalSecondPlaceIcon}
-                        strokeWidth={2}
-                      />
-                      Prata
-                    </span>
-                  </TableHead>
-                  <TableHead className="w-24 text-right">
-                    <span className="inline-flex items-center justify-end gap-1.5">
-                      <HugeiconsIcon
-                        className="size-4 text-amber-700"
-                        icon={MedalThirdPlaceIcon}
-                        strokeWidth={2}
-                      />
-                      Bronze
-                    </span>
-                  </TableHead>
-                </>
-              ) : (
-                <TableHead className="w-24 text-right">Pontos</TableHead>
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orderedRows.length === 0 ? (
-              <EmptyTableRow colSpan={isMedalView ? 5 : 3} className="text-center">
-                Nenhuma escola pontuou neste recorte.
-              </EmptyTableRow>
-            ) : (
-              orderedRows.map((row, index) => (
-                <LeaderboardRow
-                  key={row.clubId}
-                  onOpen={() =>
-                    navigate({ to: "/tv-sergipe", search: { ...search, escola: row.clubId } })
-                  }
-                  position={index + 1}
-                  row={row}
-                  showMedals={isMedalView}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* School drilldown subview — follows the circuitos URL-driven pattern */}
-      {selectedSchool && (
-        <section className="mt-6">
-          <div className="mb-4 flex items-start justify-between gap-3">
-            <div>
-              <h2 className="font-semibold text-lg">{selectedSchool.name}</h2>
-              <p className="text-muted-foreground text-sm">
-                Resultados neste recorte
-                {search.idade ? ` — ${AGE_LABEL[search.idade]}` : " — Geral"}
-                {filters.sex ? ` · ${SEX_LABEL[filters.sex]}` : ""}
-                {filters.modality ? ` · ${MODALITY_LABEL[filters.modality]}` : ""}
-              </p>
-            </div>
-            <Button
-              onClick={() => navigate({ to: "/tv-sergipe", search: { ...search, escola: undefined } })}
-              variant="ghost"
-            >
-              Fechar
-            </Button>
-          </div>
-
-          {clubResults.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Nenhum resultado neste recorte.</p>
-          ) : (
-            <ul className="divide-y rounded-md border">
-              {clubResults.map((result) => (
-                <ResultRow key={result.id} result={result} />
+      <div className="flex flex-col">
+        <div className="overflow-hidden">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      className={
+                        header.column.id === "expander"
+                          ? "w-10"
+                          : header.column.id === "position"
+                            ? "w-10"
+                            : header.column.id === "name"
+                              ? "w-full"
+                              : (header.column.columnDef.meta as { className?: string } | undefined)?.className
+                      }
+                      key={header.id}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
               ))}
-            </ul>
-          )}
-        </section>
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <SchoolRows
+                    key={row.id}
+                    row={row}
+                    position={row.index + 1}
+                    resultScope={resultScope}
+                    onSelectScope={setResultScope}
+                    resultsForClub={resultsForClub}
+                  />
+                ))
+              ) : (
+                <EmptyTableRow colSpan={isMedalView ? 6 : 4} className="text-center">
+                  Nenhuma escola pontuou neste recorte.
+                </EmptyTableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="p-4">
+          <DataTablePagination table={table} pageSizeOptions={[10, 20, 30, 40, 50]} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function SchoolRows({
+  row,
+  position,
+  resultScope,
+  onSelectScope,
+  resultsForClub,
+}: {
+  row: Row<LeaderboardRow>;
+  position: number;
+  resultScope: ResultScope;
+  onSelectScope: (scope: ResultScope) => void;
+  resultsForClub: (clubId: number, scope: ResultScope) => SchoolResult[];
+}) {
+  const school = row.original;
+
+  return (
+    <>
+      <TableRow data-state={row.getIsExpanded() && "selected"}>
+        {row.getVisibleCells().map((cell) => {
+          if (cell.column.id === "expander") {
+            return (
+              <TableCell key={cell.id}>
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </TableCell>
+            );
+          }
+          if (cell.column.id === "position") {
+            return (
+              <TableCell className="text-muted-foreground tabular-nums" key={cell.id}>
+                {position}º
+              </TableCell>
+            );
+          }
+          if (cell.column.id === "name") {
+            return (
+              <TableCell key={cell.id}>
+                <div className="flex items-center gap-3">
+                  <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded">
+                    {school.logoUrl ? (
+                      <img
+                        alt={school.name}
+                        className="aspect-square size-full object-contain"
+                        src={school.logoUrl}
+                      />
+                    ) : (
+                      <span className={cn("relative flex shrink-0 h-5 w-5 overflow-hidden rounded", avatarGradientFor(school.name))} />
+                    )}
+                  </span>
+                  <span className="font-medium whitespace-nowrap">{school.name}</span>
+                </div>
+              </TableCell>
+            );
+          }
+          const value =
+            cell.column.id === "gold"
+              ? school.gold
+              : cell.column.id === "silver"
+                ? school.silver
+                : cell.column.id === "bronze"
+                  ? school.bronze
+                  : school.points;
+          return (
+            <TableCell className="text-center font-semibold tabular-nums" key={cell.id}>
+              {value}
+            </TableCell>
+          );
+        })}
+      </TableRow>
+      {row.getIsExpanded() && (
+        <TableRow className="hover:bg-transparent odd:bg-background even:bg-background">
+          <TableCell className="bg-muted/30 p-0" colSpan={row.getVisibleCells().length + 1}>
+            <SchoolDetail
+              name={school.name}
+              scope={resultScope}
+              onSelectScope={onSelectScope}
+              results={resultsForClub(school.clubId, resultScope)}
+            />
+          </TableCell>
+        </TableRow>
       )}
     </>
   );
 }
 
-function LeaderboardRow({
-  row,
-  position,
-  onOpen,
-  showMedals,
+function SchoolDetail({
+  name,
+  scope,
+  onSelectScope,
+  results,
 }: {
-  row: LeaderboardRow;
-  position: number;
-  onOpen: () => void;
-  showMedals: boolean;
+  name: string;
+  scope: ResultScope;
+  onSelectScope: (scope: ResultScope) => void;
+  results: SchoolResult[];
 }) {
-  const gradient = getGradient(row.clubId);
-  const initials = row.name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-
   return (
-    <TableRow>
-      <TableCell className="text-muted-foreground tabular-nums">{position}º</TableCell>
-      <TableCell>
-        <Button
-          aria-label={`Ver resultados de ${row.name}`}
-          className="flex h-auto items-center gap-3 rounded-md p-0 hover:bg-transparent hover:underline dark:hover:bg-transparent"
-          onClick={onOpen}
-          variant="ghost"
-        >
-          <Avatar className="size-8 rounded-md">
-            <AvatarImage alt={row.name} className="object-contain" src={row.logoUrl ?? undefined} />
-            <AvatarFallback style={gradient}>
-              {initials ? (
-                <span className="font-bold text-foreground text-xs uppercase">{initials}</span>
-              ) : null}
-            </AvatarFallback>
-          </Avatar>
-          <span className="font-medium whitespace-nowrap">{row.name}</span>
-        </Button>
-      </TableCell>
-      {showMedals ? (
-        <>
-          <TableCell className="text-right font-semibold tabular-nums">{row.gold}</TableCell>
-          <TableCell className="text-right font-semibold tabular-nums">{row.silver}</TableCell>
-          <TableCell className="text-right font-semibold tabular-nums">{row.bronze}</TableCell>
-        </>
+    <div className="space-y-3 px-4 py-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm font-medium">{name}</p>
+        <Tabs className="w-fit" onValueChange={(value) => onSelectScope(value as ResultScope)} value={scope}>
+          <TabsList>
+            <TabsTrigger value="todos">Todos</TabsTrigger>
+            <TabsTrigger value="individual">Atletas</TabsTrigger>
+            <TabsTrigger value="team">Equipes</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {results.length === 0 ? (
+        <p className="text-muted-foreground text-sm">Nenhum resultado neste recorte.</p>
       ) : (
-        <TableCell className="text-right font-semibold tabular-nums">{row.points}</TableCell>
+        <div className="overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-left">Categoria</TableHead>
+                <TableHead className="text-left">Resultado</TableHead>
+                <TableHead className="w-24 text-center">Lugar</TableHead>
+                <TableHead className="w-24 text-center">Pontos</TableHead>
+                <TableHead className="w-28 text-right">Medalha</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {results.map((result) => (
+                <ResultRow key={result.id} result={result} />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
-    </TableRow>
+    </div>
+  );
+}
+
+function MedalHead({ icon, label, color }: { icon: (typeof MedalFirstPlaceIcon); label: string; color: string }) {
+  return (
+    <span className="inline-flex items-center justify-center gap-1.5">
+      <HugeiconsIcon className={`size-4 ${color}`} icon={icon} strokeWidth={2} />
+      {label}
+    </span>
   );
 }
 
 function ResultRow({ result }: { result: SchoolResult }) {
-  const place = result.place as 1 | 2 | 3;
-  const medalLabel = MEDAL_LABEL[place];
+  const place = result.place as number;
+  const medalLabel = MEDAL_LABEL[place as 1 | 2 | 3];
   const medalCount = result.modality === "team" ? TEAM_MEDAL_WEIGHT : INDIVIDUAL_MEDAL_WEIGHT;
-
   const medalVariant = place === 1 ? "default" : place === 2 ? "secondary" : "outline";
 
   return (
-    <li className="flex flex-col gap-1 px-4 py-3">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-medium">
-          {AGE_LABEL[result.ageGroup as AgeGroup]} · {SEX_LABEL[result.sex as Sex]} ·{" "}
-          {MODALITY_LABEL[result.modality as Modality]}
-        </span>
-        <Badge variant={medalVariant}>
-          {medalLabel}
-          {medalCount > 1 ? ` ×${medalCount}` : ""}
-        </Badge>
-      </div>
-      <div className="flex items-center justify-between gap-3 text-muted-foreground text-sm">
-        <span>
-          {result.modality === "team"
-            ? (result.teamName ?? "Equipe")
-            : (result.player?.name ?? "—")}
-        </span>
-        <span className="tabular-nums">
-          {result.place}º · {result.points} pts
-        </span>
-      </div>
-    </li>
+    <TableRow>
+      <TableCell className="text-left text-sm">
+        {AGE_LABEL[result.ageGroup as AgeGroup]} · {SEX_LABEL[result.sex as Sex]} ·{" "}
+        {MODALITY_LABEL[result.modality as Modality]}
+      </TableCell>
+      <TableCell className="text-left text-sm font-medium">
+        {result.modality === "team"
+          ? `${result.club.name}${result.teamName ? ` ${result.teamName}` : ""}`
+          : (result.player?.name ?? "—")}
+      </TableCell>
+      <TableCell className="text-center text-sm tabular-nums">{result.place}º</TableCell>
+      <TableCell className="text-center text-sm tabular-nums">{result.points}</TableCell>
+      <TableCell className="text-right">
+        {medalLabel ? (
+          <Badge variant={medalVariant}>
+            {medalLabel}
+            {medalCount > 1 ? ` ×${medalCount}` : ""}
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
+      </TableCell>
+    </TableRow>
   );
 }

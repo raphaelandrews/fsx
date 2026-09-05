@@ -1,6 +1,8 @@
 
 import { HugeiconsIcon } from "@hugeicons/react"
-import { IdVerifiedIcon } from "@hugeicons/core-free-icons"
+import { CheckmarkBadge01Icon } from "@hugeicons/core-free-icons"
+
+import { cn } from "@fsx/ui/lib/utils"
 
 import { buttonVariants } from "@fsx/ui/components/button"
 import {
@@ -32,25 +34,25 @@ const TIER_CONFIG: Record<
 > = {
   admin: {
     iconClass:
-      "!fill-bulbasaur mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+      "!fill-bulbasaur stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
     label: "Diretoria",
     description: "Este jogador faz parte da diretoria da federação.",
   },
   management: {
     iconClass:
-      "!fill-highlight mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+      "!fill-highlight stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
     label: "Diretoria",
     description: "Este jogador faz parte da diretoria da federação.",
   },
   referee: {
     iconClass:
-      "!fill-slate-500 mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+      "!fill-slate-500 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
     label: "Árbitro Oficial",
     description: "Este jogador é um árbitro oficial da federação.",
   },
   verified: {
     iconClass:
-      "!fill-sky-400 mt-1 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+      "!fill-sky-400 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
     label: "Perfil verificado",
     description: "Esse perfil teve seus dados confirmados pela federação.",
   },
@@ -76,9 +78,9 @@ export function VerifiedBadge({
     <Popover>
       <PopoverTrigger className="cursor-pointer">
         <HugeiconsIcon
-          icon={IdVerifiedIcon}
+          icon={CheckmarkBadge01Icon}
           aria-label={label}
-          className={iconClass}
+          className={cn("size-5", iconClass)}
         />
       </PopoverTrigger>
       <PopoverContent className="w-80 p-4">
@@ -99,7 +101,7 @@ export function VerifiedBadge({
           {verified && (
             <a
               className={buttonVariants({
-                variant: "outline",
+                variant: "default",
                 className: "w-full",
               })}
               href="https://forms.gle/Nv8nowesZ8pKxgNQ8"

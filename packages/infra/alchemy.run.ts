@@ -1,6 +1,6 @@
 import alchemy from "alchemy";
 import { TanStackStart } from "alchemy/cloudflare";
-import { D1Database } from "alchemy/cloudflare";
+import { D1Database, R2Bucket } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
 // Shared secrets for both envs — single source of truth.
@@ -18,6 +18,15 @@ const db = await D1Database("database", {
   adopt: true,
 });
 
+// R2 bucket for player and post images. Objects are served to clients through
+// the /api/media/* route (apps/web/src/routes/api/media/$.ts), so the bucket
+// does not need a public custom domain. `adopt: true` lets re-deploys pick up
+// the existing bucket instead of failing if it was created earlier.
+const images = await R2Bucket("images", {
+  name: "fsx-images",
+  adopt: true,
+});
+
 export const web = await TanStackStart("web", {
   cwd: "../../apps/web",
   // Adopt the existing remote worker (fsx-web-raphael) if it already exists
@@ -25,6 +34,7 @@ export const web = await TanStackStart("web", {
   adopt: true,
   bindings: {
     DB: db,
+    IMAGES: images,
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
     BETTER_AUTH_SECRET: alchemy.secret.env.BETTER_AUTH_SECRET!,
     BETTER_AUTH_URL: alchemy.env.BETTER_AUTH_URL!,
