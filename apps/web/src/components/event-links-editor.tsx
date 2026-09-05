@@ -5,10 +5,15 @@ import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 
+import { LinkIconSelect } from "@/components/link-icon-select";
+import { DEFAULT_LINK_ICON } from "@/lib/link-icons";
+
 export interface EventLinkDraft {
   id?: number;
   label: string;
   href: string;
+  icon: string;
+  sortOrder: number;
 }
 
 interface EventLinksEditorProps {
@@ -26,7 +31,10 @@ export function EventLinksEditor({ value, onChange }: EventLinksEditorProps) {
   };
 
   const add = () => {
-    onChange([...value, { label: "", href: "" }]);
+    onChange([
+      ...value,
+      { label: "", href: "", icon: DEFAULT_LINK_ICON, sortOrder: value.length },
+    ]);
   };
 
   return (
@@ -41,21 +49,37 @@ export function EventLinksEditor({ value, onChange }: EventLinksEditorProps) {
         </p>
       )}
       {value.map((link, i) => (
-        <div key={i} className="grid grid-cols-[1fr_2fr_auto] items-center gap-2">
-          <Input
-            aria-label="Rótulo do link"
-            placeholder="Rótulo (ex: Regulamento)"
-            value={link.label}
-            onChange={(e) => update(i, { label: e.target.value })}
-          />
-          <Input
-            aria-label="URL do link"
-            type="url"
-            placeholder="https://... (opcional)"
-            value={link.href}
-            onChange={(e) => update(i, { href: e.target.value })}
-          />
-          <Button type="button" size="icon-sm" variant="ghost" onClick={() => remove(i)}>
+        <div key={i} className="flex flex-wrap items-end gap-2 rounded-lg border p-3">
+          <div className="flex min-w-[140px] flex-1 flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">Rótulo</Label>
+            <Input
+              placeholder="Rótulo (ex: Regulamento)"
+              value={link.label}
+              onChange={(e) => update(i, { label: e.target.value })}
+            />
+          </div>
+          <div className="flex min-w-[200px] flex-[1.6] flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">URL</Label>
+            <Input
+              type="url"
+              placeholder="https://... (opcional)"
+              value={link.href}
+              onChange={(e) => update(i, { href: e.target.value })}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">Ícone</Label>
+            <LinkIconSelect value={link.icon} onChange={(svg) => update(i, { icon: svg })} />
+          </div>
+          <div className="flex w-20 flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">Ordem</Label>
+            <Input
+              type="number"
+              value={String(link.sortOrder)}
+              onChange={(e) => update(i, { sortOrder: Number(e.target.value) })}
+            />
+          </div>
+          <Button type="button" variant="ghost" size="icon-sm" onClick={() => remove(i)}>
             <HugeiconsIcon
               className="size-4 text-destructive"
               icon={Delete03Icon}

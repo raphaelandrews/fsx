@@ -33,7 +33,13 @@ function RouteComponent() {
 
   const [links, setLinks] = useState<EventLinkDraft[]>(
     () =>
-      event?.linkGroup?.links.map((l) => ({ id: l.id, label: l.label, href: l.href ?? "" })) ?? [],
+      event?.linkGroup?.links.map((l) => ({
+        id: l.id,
+        label: l.label,
+        href: l.href ?? "",
+        icon: l.icon,
+        sortOrder: l.sortOrder,
+      })) ?? [],
   );
 
   if (!event) {
@@ -57,11 +63,12 @@ function RouteComponent() {
         });
         await setLinksMutation.mutateAsync({
           eventId: numId,
-          links: links.map((l, i) => ({
+          links: links.map((l) => ({
             id: l.id,
             label: l.label,
             href: l.href,
-            sortOrder: i + 1,
+            icon: l.icon,
+            sortOrder: l.sortOrder,
           })),
         });
         qc.invalidateQueries(trpc.events.list.queryFilter());

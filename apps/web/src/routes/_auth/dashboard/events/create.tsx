@@ -36,7 +36,7 @@ function RouteComponent() {
         if (links.length > 0) {
           await setLinksMutation.mutateAsync({
             eventId: created.id,
-            links: links.map((l, i) => ({ ...l, sortOrder: i + 1 })),
+            links,
           });
         }
         qc.invalidateQueries(trpc.events.list.queryFilter());

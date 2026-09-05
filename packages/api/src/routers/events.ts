@@ -44,7 +44,7 @@ export const eventsRouter = router({
           columns: { id: true },
           with: {
             links: {
-              columns: { id: true, href: true, label: true, sortOrder: true },
+              columns: { id: true, href: true, label: true, icon: true, sortOrder: true },
               orderBy: (l, { asc }) => asc(l.sortOrder),
             },
           },
@@ -89,6 +89,7 @@ export const eventsRouter = router({
         // Empty/null means "announced but not available yet".
         href: z.string().nullable().optional(),
         label: z.string().min(1),
+        icon: z.string().optional(),
         sortOrder: z.number().optional(),
       })),
     }))
@@ -116,7 +117,12 @@ export const eventsRouter = router({
           desiredIds.add(item.id);
           await ctx.db
             .update(links)
-            .set({ href: item.href || null, label: item.label, sortOrder })
+            .set({
+              href: item.href || null,
+              label: item.label,
+              icon: item.icon ?? iconForLinkLabel(item.label),
+              sortOrder,
+            })
             .where(eq(links.id, item.id));
         } else {
           const [row] = await ctx.db
@@ -124,7 +130,7 @@ export const eventsRouter = router({
             .values({
               href: item.href || null,
               label: item.label,
-              icon: iconForLinkLabel(item.label),
+              icon: item.icon ?? iconForLinkLabel(item.label),
               sortOrder,
               linkGroupId: group.id,
             })
