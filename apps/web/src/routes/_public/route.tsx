@@ -2,9 +2,11 @@ import { Outlet, createFileRoute } from "@tanstack/react-router";
 
 import { Header } from "@/components/header/header";
 import { Footer } from "@/components/footer";
+import { ErrorFallback } from "@/components/not-found";
 
 export const Route = createFileRoute("/_public")({
   component: PublicLayout,
+  errorComponent: () => <ErrorFallback homeHref="/" homeLabel="Voltar ao início" />,
 });
 
 function PublicLayout() {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { linkGroups, insertLinkGroupSchema } from "@fsx/db/schema/linkGroups";
 import { links, insertLinkSchema } from "@fsx/db/schema/links";
@@ -8,11 +8,11 @@ import { adminProcedure, publicProcedure, router } from "../index";
 export const linkGroupsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
     ctx.db.query.linkGroups.findMany({
-      columns: { id: true, label: true },
-      // Only the "directory" groups. Event-owned groups are shown on the
-      // event page/card, not here.
-      where: isNull(linkGroups.eventId),
+      columns: { id: true, label: true, eventId: true },
+      // Event-owned groups are included so their links also surface on the
+      // public /links page; the event name is exposed for the group label.
       with: {
+        event: { columns: { name: true } },
         links: {
           columns: { id: true, href: true, label: true, icon: true, sortOrder: true },
           orderBy: (l, { asc }) => asc(l.sortOrder),

@@ -85,20 +85,26 @@ function RouteComponent() {
               <Logo className="h-5 text-foreground" />
             </div>
 
-            {linkGroups.map((item) => (
-              <section className="mb-0" key={item.id}>
-                <Announcement icon={FoldersIcon} label={item.label} className="text-sm" />
-                <div className="flex flex-col">
-                  {item.links?.map((link) => (
-                    <Fragment key={link.id}>
-                      <div className="m-1">
-                        <LinkItem href={link.href} icon={link.icon} label={link.label} />
-                      </div>
-                    </Fragment>
-                  ))}
-                </div>
-              </section>
-            ))}
+            {linkGroups
+              .filter((item) => (item.links?.length ?? 0) > 0)
+              .map((item) => (
+                <section className="mb-0" key={item.id}>
+                  <Announcement
+                    icon={FoldersIcon}
+                    label={item.event?.name ?? item.label}
+                    className="text-sm"
+                  />
+                  <div className="flex flex-col">
+                    {item.links?.map((link) => (
+                      <Fragment key={link.id}>
+                        <div className="m-1">
+                          <LinkItem href={link.href} icon={link.icon} label={link.label} />
+                        </div>
+                      </Fragment>
+                    ))}
+                  </div>
+                </section>
+              ))}
           </div>
         </section>
       </main>

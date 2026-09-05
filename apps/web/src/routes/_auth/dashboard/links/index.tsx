@@ -51,7 +51,9 @@ function RouteComponent() {
           <Button>Create Group</Button>
         </Link>
       </div>
-      {groups.map((group) => (
+      {groups
+        .filter((group) => group.eventId == null)
+        .map((group) => (
         <div key={group.id} className="mb-4 rounded-md border p-4">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="font-semibold">{group.label}</h2>

@@ -23,13 +23,19 @@ export function NotFound() {
   );
 }
 
-export function ErrorFallback() {
+export function ErrorFallback({
+  homeHref = "/",
+  homeLabel = "Voltar ao início",
+}: {
+  homeHref?: string;
+  homeLabel?: string;
+}) {
   return (
     <CenteredState>
       <h1 className="font-bold text-4xl">500</h1>
       <p className="text-muted-foreground">Algo deu errado. Tente novamente mais tarde.</p>
-      <a href="/" className="mt-2">
-        <Button>Voltar ao início</Button>
+      <a href={homeHref} className="mt-2">
+        <Button>{homeLabel}</Button>
       </a>
     </CenteredState>
   );
