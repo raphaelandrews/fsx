@@ -1,8 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Calendar01Icon, Clock01Icon, Trophy } from "@hugeicons/core-free-icons";
+import { Calendar01Icon, Trophy } from "@hugeicons/core-free-icons";
 
 import { Button } from "@fsx/ui/components/button";
-import { Separator } from "@fsx/ui/components/separator";
 
 import { Section } from "./section";
 import { StatusDot } from "./status-dot";
@@ -62,31 +61,23 @@ function EventCard({
   startDate: string | Date;
   links: EventLink[];
 }) {
-  const dateObj = typeof startDate === "string" ? new Date(startDate) : startDate;
+  // startDate is a date-only "YYYY-MM-DD" string. new Date("YYYY-MM-DD")
+  // parses as UTC midnight; formatting that in America/Sao_Paulo (UTC-3)
+  // shifts it back a day (17 -> 16). Parse as UTC and format in UTC so the
+  // stored calendar date renders exactly, with identical server/client output.
+  const dateObj = typeof startDate === "string" ? new Date(startDate + "T00:00:00Z") : startDate;
 
-  // Format in a fixed timezone so server (UTC) and client render identical
-  // output and avoid a hydration mismatch.
   const formattedDate = new Intl.DateTimeFormat("pt-BR", {
     day: "numeric",
     month: "short",
     year: "numeric",
-    timeZone: "America/Sao_Paulo",
+    timeZone: "UTC",
   })
     .format(dateObj)
     .replace(/de\s/g, "")
     .replace(".", "")
     .replace(/^\d+\s(\w)/, (match, p1) => match.replace(p1, p1.toUpperCase()))
     .replace(/^1\s/, "1º ");
-
-  const formattedTime = new Intl.DateTimeFormat("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: "America/Sao_Paulo",
-  })
-    .format(dateObj)
-    .replace(":00", "h")
-    .replace(":", "h");
 
   return (
     <div>
@@ -99,8 +90,6 @@ function EventCard({
             </div>
             <div className="flex items-center gap-1 text-muted-foreground select-none text-xs font-medium">
               <HugeiconsIcon icon={Calendar01Icon} size={14} /> <span>{formattedDate}</span>
-              <Separator orientation="vertical" className="h-4 mx-1.5" />
-              <HugeiconsIcon icon={Clock01Icon} size={14} /> <span>{formattedTime}</span>
             </div>
             {links.length > 0 ? (
               <div className="flex flex-wrap gap-2 mt-1">
