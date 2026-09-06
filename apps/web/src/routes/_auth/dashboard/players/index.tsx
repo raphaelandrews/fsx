@@ -1,89 +1,60 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { useState, type FormEvent } from "react";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
+import z from "zod";
 
 import { Button } from "@fsx/ui/components/button";
+import { Input } from "@fsx/ui/components/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@fsx/ui/components/table";
 
 import { useTRPC } from "@/utils/trpc";
 import { AdminPageHeader } from "@/components/admin/page-header";
-import { DataTable } from "@/components/data-table/data-table";
-import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { DataTablePagination } from "@/components/data-table/data-table-pagination";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+
+const PER_PAGE = 20;
+
+const searchSchema = z.object({
+  page: z.coerce.number().catch(1).optional(),
+  name: z.string().optional(),
+});
 
 export const Route = createFileRoute("/_auth/dashboard/players/")({
   head: () => ({ meta: [{ title: "Players - Admin - FSX" }] }),
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(context.trpc.players.list.queryOptions()),
+  validateSearch: searchSchema,
+  loaderDeps: ({ search }) => ({ page: search.page ?? 1, name: search.name }),
+  loader: ({ context, deps }) =>
+    context.queryClient.ensureQueryData(
+      context.trpc.players.page.queryOptions({ page: deps.page, limit: PER_PAGE, name: deps.name }),
+    ),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const trpc = useTRPC();
+  const navigate = useNavigate();
+  const { page = 1, name } = Route.useSearch();
 
-  const { data = [] } = useSuspenseQuery(trpc.players.list.queryOptions());
+  const { data } = useSuspenseQuery(
+    trpc.players.page.queryOptions({ page, limit: PER_PAGE, name }),
+  );
+  const players = data.players;
+  const pagination = data.pagination;
 
-  const columns: ColumnDef<(typeof data)[number]>[] = [
-    {
-      accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
-      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-    },
-    {
-      accessorKey: "nickname",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nickname" />,
-      cell: ({ row }) => <span>{row.getValue("nickname") ?? "—"}</span>,
-    },
-    {
-      accessorKey: "blitz",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Blitz" />,
-      cell: ({ row }) => (
-        <span className="text-right tabular-nums">{row.getValue("blitz") ?? "—"}</span>
-      ),
-    },
-    {
-      accessorKey: "rapid",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Rapid" />,
-      cell: ({ row }) => (
-        <span className="text-right tabular-nums">{row.getValue("rapid") ?? "—"}</span>
-      ),
-    },
-    {
-      accessorKey: "classic",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Classic" />,
-      cell: ({ row }) => (
-        <span className="text-right tabular-nums">{row.getValue("classic") ?? "—"}</span>
-      ),
-    },
-    {
-      accessorKey: "club",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Club" />,
-      cell: ({ row }) => <span>{row.original.club?.name ?? "—"}</span>,
-    },
-    {
-      accessorKey: "location",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Location" />,
-      cell: ({ row }) => <span>{row.original.location?.name ?? "—"}</span>,
-    },
-    {
-      id: "actions",
-      header: () => <span className="sr-only">Actions</span>,
-      cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-1">
-          <Link to="/dashboard/players/titles" search={{ playerId: row.original.id }}>
-            <Button size="sm" variant="outline">
-              Titles
-            </Button>
-          </Link>
-          <Link to="/dashboard/players/$id" params={{ id: String(row.original.id) }}>
-            <Button size="sm" variant="outline">
-              Edit
-            </Button>
-          </Link>
-        </div>
-      ),
-    },
-  ];
+  const [searchInput, setSearchInput] = useState(name ?? "");
+
+  const submitSearch = (e: FormEvent) => {
+    e.preventDefault();
+    navigate({
+      to: "/dashboard/players",
+      search: { page: 1, name: searchInput.trim() || undefined },
+    });
+  };
 
   return (
     <div>
@@ -96,14 +67,105 @@ function RouteComponent() {
           </Link>
         }
       />
-      <DataTable
-        columns={columns}
-        data={data}
-        toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search player..." />
-        )}
-        pagination={(table) => <DataTablePagination table={table} />}
-      />
+
+      <form onSubmit={submitSearch} className="mb-4 flex items-center gap-2">
+        <Input
+          placeholder="Search player..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          className="max-w-xs"
+        />
+        <Button type="submit" variant="outline" size="sm">
+          Search
+        </Button>
+      </form>
+
+      <div className="overflow-hidden rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Nickname</TableHead>
+              <TableHead className="text-right">Blitz</TableHead>
+              <TableHead className="text-right">Rapid</TableHead>
+              <TableHead className="text-right">Classic</TableHead>
+              <TableHead>Club</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {players.length ? (
+              players.map((player) => (
+                <TableRow key={player.id}>
+                  <TableCell className="font-medium">{player.name}</TableCell>
+                  <TableCell>{player.nickname ?? "—"}</TableCell>
+                  <TableCell className="text-right tabular-nums">{player.blitz ?? "—"}</TableCell>
+                  <TableCell className="text-right tabular-nums">{player.rapid ?? "—"}</TableCell>
+                  <TableCell className="text-right tabular-nums">{player.classic ?? "—"}</TableCell>
+                  <TableCell>{player.club?.name ?? "—"}</TableCell>
+                  <TableCell>{player.location?.name ?? "—"}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Link to="/dashboard/players/titles" search={{ playerId: player.id }}>
+                        <Button size="sm" variant="outline">
+                          Titles
+                        </Button>
+                      </Link>
+                      <Link to="/dashboard/players/$id" params={{ id: String(player.id) }}>
+                        <Button size="sm" variant="outline">
+                          Edit
+                        </Button>
+                      </Link>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell className="h-24 text-center text-muted-foreground" colSpan={8}>
+                  No players found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <PaginationBar page={pagination.currentPage} totalPages={pagination.totalPages} name={name} />
+    </div>
+  );
+}
+
+function PaginationBar({
+  page,
+  totalPages,
+  name,
+}: {
+  page: number;
+  totalPages: number;
+  name?: string;
+}) {
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+  const search = (p: number) => ({ page: p, name });
+
+  return (
+    <div className="mt-4 flex items-center justify-between">
+      <p className="text-sm text-muted-foreground">
+        Página {safePage} de {totalPages}
+      </p>
+      <div className="flex items-center gap-2">
+        <Link to="/dashboard/players" search={search(Math.max(safePage - 1, 1))}>
+          <Button variant="outline" size="sm" disabled={safePage <= 1}>
+            Anterior
+          </Button>
+        </Link>
+        <Link to="/dashboard/players" search={search(Math.min(safePage + 1, totalPages))}>
+          <Button variant="outline" size="sm" disabled={safePage >= totalPages}>
+            Próxima
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }

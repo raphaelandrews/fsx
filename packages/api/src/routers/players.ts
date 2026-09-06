@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, desc, and, inArray, gte, lte, or, sql, count } from "drizzle-orm";
+import { eq, desc, and, inArray, gte, lte, or, sql, count, exists } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 
 import { players as playersTable, insertPlayerSchema } from "@fsx/db/schema/players";
@@ -124,6 +124,48 @@ export const playersRouter = router({
       },
     })
   ),
+
+  page: adminProcedure
+    .input(z.object({
+      page: z.number().default(1),
+      limit: z.number().default(20),
+      name: z.string().optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const limit = input.limit;
+      const offset = (input.page - 1) * limit;
+      const where = input.name
+        ? sql`${normalizeNameSql(playersTable.name)} LIKE ${`%${normalizeText(input.name)}%`}`
+        : undefined;
+
+      const countResult = await ctx.db.select({ value: count() }).from(playersTable).where(where);
+      const totalItems = countResult[0]?.value ?? 0;
+      const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+
+      const players = await ctx.db.query.players.findMany({
+        columns: { id: true, name: true, nickname: true, blitz: true, rapid: true, classic: true, imageUrl: true },
+        with: {
+          club: { columns: { name: true } },
+          location: { columns: { name: true } },
+        },
+        where,
+        orderBy: (p, { asc }) => asc(p.name),
+        limit,
+        offset,
+      });
+
+      return {
+        players,
+        pagination: {
+          currentPage: input.page,
+          totalPages,
+          totalItems,
+          itemsPerPage: limit,
+          hasNextPage: input.page < totalPages,
+          hasPreviousPage: input.page > 1,
+        },
+      };
+    }),
 
   byId: publicProcedure
     .input(z.object({ id: z.number() }))
@@ -279,7 +321,7 @@ export const playersRouter = router({
     .query(async ({ ctx, input }) => {
       const { page = 1, limit = 20, sex, titles: titleFilters = [], clubs: clubFilters = [], groups: groupFilters = [], locations: locationFilters = [], sortBy = "rapid", name } = input;
 
-      const whereConditions = [eq(playersTable.active, true)];
+      const whereConditions: SQL[] = [eq(playersTable.active, true)];
 
       if (name) {
         const normalizedQuery = normalizeText(name);
@@ -290,11 +332,29 @@ export const playersRouter = router({
       if (sex) {
         whereConditions.push(eq(playersTable.sex, sex));
       }
+      // Use EXISTS instead of LEFT JOINs for the many-side filters so the
+      // COUNT/ORDER BY operate on the players table alone (no row
+      // multiplication) and can use the rating index.
       if (titleFilters.length) {
-        whereConditions.push(inArray(titles.shortName, titleFilters));
+        whereConditions.push(
+          exists(
+            ctx.db
+              .select()
+              .from(playersToTitles)
+              .innerJoin(titles, eq(playersToTitles.titleId, titles.id))
+              .where(and(eq(playersToTitles.playerId, playersTable.id), inArray(titles.shortName, titleFilters)))
+          )
+        );
       }
       if (clubFilters.length) {
-        whereConditions.push(inArray(clubs.name, clubFilters));
+        whereConditions.push(
+          exists(
+            ctx.db
+              .select()
+              .from(clubs)
+              .where(and(eq(clubs.id, playersTable.clubId), inArray(clubs.name, clubFilters)))
+          )
+        );
       }
       if (groupFilters.length) {
         const groupConditions: ReturnType<typeof and>[] = [];
@@ -310,41 +370,38 @@ export const playersRouter = router({
         }
       }
       if (locationFilters.length) {
-        whereConditions.push(inArray(locations.name, locationFilters));
+        whereConditions.push(
+          exists(
+            ctx.db
+              .select()
+              .from(locations)
+              .where(and(eq(locations.id, playersTable.locationId), inArray(locations.name, locationFilters)))
+          )
+        );
       }
 
-      const countResult = await ctx.db
-        .select({ count: count() })
-        .from(playersTable)
-        .leftJoin(playersToTitles, eq(playersTable.id, playersToTitles.playerId))
-        .leftJoin(titles, eq(playersToTitles.titleId, titles.id))
-        .leftJoin(clubs, eq(playersTable.clubId, clubs.id))
-        .leftJoin(locations, eq(playersTable.locationId, locations.id))
-        .where(and(...whereConditions))
-        .groupBy(playersTable.id);
+      const where = and(...whereConditions);
 
-      const uniquePlayerCount = countResult.length;
-      const totalPages = Math.max(1, Math.ceil(uniquePlayerCount / limit));
+      const countResult = await ctx.db
+        .select({ value: count() })
+        .from(playersTable)
+        .where(where);
+      const totalItems = countResult[0]?.value ?? 0;
+      const totalPages = Math.max(1, Math.ceil(totalItems / limit));
       const offset = (page - 1) * limit;
 
       const sortColumn = playersTable[sortBy];
 
-      const subquery = ctx.db
-        .select({
-          id: playersTable.id,
-          sortValue: sortColumn,
-        })
+      // Page of matching player ids ordered by rating; the rating index drives
+      // the ORDER BY + LIMIT/OFFSET without a full table sort.
+      const pageSubquery = ctx.db
+        .select({ id: playersTable.id })
         .from(playersTable)
-        .leftJoin(playersToTitles, eq(playersTable.id, playersToTitles.playerId))
-        .leftJoin(titles, eq(playersToTitles.titleId, titles.id))
-        .leftJoin(clubs, eq(playersTable.clubId, clubs.id))
-        .leftJoin(locations, eq(playersTable.locationId, locations.id))
-        .where(and(...whereConditions))
-        .groupBy(playersTable.id)
+        .where(where)
         .orderBy(desc(sortColumn))
         .limit(limit)
         .offset(offset)
-        .as("subq");
+        .as("page");
 
       const rows = await ctx.db
         .select({
@@ -368,13 +425,13 @@ export const playersRouter = router({
           titleShortName: titles.shortName,
         })
         .from(playersTable)
-        .leftJoin(playersToTitles, eq(playersTable.id, playersToTitles.playerId))
-        .leftJoin(defendingChampions, eq(playersTable.id, defendingChampions.playerId))
-        .leftJoin(championships, eq(defendingChampions.championshipId, championships.id))
-        .leftJoin(titles, eq(playersToTitles.titleId, titles.id))
+        .innerJoin(pageSubquery, eq(playersTable.id, pageSubquery.id))
         .leftJoin(clubs, eq(playersTable.clubId, clubs.id))
         .leftJoin(locations, eq(playersTable.locationId, locations.id))
-        .innerJoin(subquery, eq(playersTable.id, subquery.id))
+        .leftJoin(playersToTitles, eq(playersTable.id, playersToTitles.playerId))
+        .leftJoin(titles, eq(playersToTitles.titleId, titles.id))
+        .leftJoin(defendingChampions, eq(playersTable.id, defendingChampions.playerId))
+        .leftJoin(championships, eq(defendingChampions.championshipId, championships.id))
         .orderBy(desc(sortColumn));
 
       const playersMap = new Map<number, {
@@ -440,7 +497,7 @@ export const playersRouter = router({
         pagination: {
           currentPage: page,
           totalPages,
-          totalItems: uniquePlayerCount,
+          totalItems,
           itemsPerPage: limit,
           hasNextPage: page < totalPages,
           hasPreviousPage: page > 1,

@@ -14,7 +14,6 @@ const baseConfig = {
     imageUrl: true,
   },
   with: {
-    location: { columns: { name: true, flagUrl: true } },
     defendingChampions: {
       columns: {},
       with: { championship: { columns: { name: true } } },

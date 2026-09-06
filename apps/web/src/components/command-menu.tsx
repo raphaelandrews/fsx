@@ -76,7 +76,10 @@ const CommandResults = React.memo(
   }) => {
     const trpc = useTRPC()
     const { data: players = [], isLoading, error } = useQuery(
-      trpc.players.search.queryOptions({ query: searchTerm })
+      trpc.players.search.queryOptions(
+        { query: searchTerm },
+        { enabled: searchTerm.trim().length > 0, staleTime: 30_000 },
+      )
     )
 
     const playersWithGradients = React.useMemo(() => {
@@ -85,6 +88,10 @@ const CommandResults = React.memo(
         gradient: getGradient(player.id),
       }))
     }, [players])
+
+    if (!searchTerm.trim()) {
+      return <CommandEmpty>Digite o nome de um jogador para buscar.</CommandEmpty>
+    }
 
     if (isLoading) {
       return <LoadingSkeleton />
@@ -141,7 +148,7 @@ export function CommandMenu() {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchValue)
       setIsTyping(false)
-    }, 300)
+    }, 600)
     return () => clearTimeout(timer)
   }, [searchValue, debouncedSearch])
 

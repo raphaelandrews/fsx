@@ -1,18 +1,16 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Delete03Icon } from "@hugeicons/core-free-icons";
 
+import { EVENT_LINK_TYPES, type EventLinkType } from "@fsx/api/event-link-types";
+
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 
-import { LinkIconSelect } from "@/components/link-icon-select";
-import { DEFAULT_LINK_ICON } from "@/lib/link-icons";
-
 export interface EventLinkDraft {
   id?: number;
-  label: string;
+  type: EventLinkType;
   href: string;
-  icon: string;
   sortOrder: number;
 }
 
@@ -33,7 +31,7 @@ export function EventLinksEditor({ value, onChange }: EventLinksEditorProps) {
   const add = () => {
     onChange([
       ...value,
-      { label: "", href: "", icon: DEFAULT_LINK_ICON, sortOrder: value.length },
+      { type: "regulation", href: "", sortOrder: value.length },
     ]);
   };
 
@@ -50,13 +48,19 @@ export function EventLinksEditor({ value, onChange }: EventLinksEditorProps) {
       )}
       {value.map((link, i) => (
         <div key={i} className="flex flex-wrap items-end gap-2 rounded-lg border p-3">
-          <div className="flex min-w-[140px] flex-1 flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">Rótulo</Label>
-            <Input
-              placeholder="Rótulo (ex: Regulamento)"
-              value={link.label}
-              onChange={(e) => update(i, { label: e.target.value })}
-            />
+          <div className="flex flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">Tipo</Label>
+            <select
+              value={link.type}
+              onChange={(e) => update(i, { type: e.target.value as EventLinkType })}
+              className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            >
+              {EVENT_LINK_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="flex min-w-[200px] flex-[1.6] flex-col gap-1">
             <Label className="text-xs text-muted-foreground">URL</Label>
@@ -66,10 +70,6 @@ export function EventLinksEditor({ value, onChange }: EventLinksEditorProps) {
               value={link.href}
               onChange={(e) => update(i, { href: e.target.value })}
             />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">Ícone</Label>
-            <LinkIconSelect value={link.icon} onChange={(svg) => update(i, { icon: svg })} />
           </div>
           <div className="flex w-20 flex-col gap-1">
             <Label className="text-xs text-muted-foreground">Ordem</Label>

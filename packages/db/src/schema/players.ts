@@ -32,6 +32,13 @@ export const players = sqliteTable(
 		index("players_sex_idx").on(table.sex),
 		index("players_club_idx").on(table.clubId),
 		index("players_location_idx").on(table.locationId),
+		// Rating sorts (top-players, /ratings, /titulados) scan the whole table
+		// without these; the index lets ORDER BY + LIMIT avoid a full scan.
+		index("players_classic_idx").on(table.classic),
+		index("players_rapid_idx").on(table.rapid),
+		index("players_blitz_idx").on(table.blitz),
+		// Admin players list orders by name for pagination.
+		index("players_name_idx").on(table.name),
 	],
 )
 

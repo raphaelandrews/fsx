@@ -10,6 +10,7 @@ import z from "zod";
 
 import { EventLinksEditor, type EventLinkDraft } from "@/components/event-links-editor";
 import { useTRPC } from "@/utils/trpc";
+import { resolveEventLinkType } from "@fsx/api/event-link-types";
 
 export const Route = createFileRoute("/_auth/dashboard/events/$id")({
   head: () => ({ meta: [{ title: "Edit Event - Admin - FSX" }] }),
@@ -35,9 +36,8 @@ function RouteComponent() {
     () =>
       event?.linkGroup?.links.map((l) => ({
         id: l.id,
-        label: l.label,
+        type: resolveEventLinkType(l.type, l.label),
         href: l.href ?? "",
-        icon: l.icon,
         sortOrder: l.sortOrder,
       })) ?? [],
   );
@@ -65,9 +65,8 @@ function RouteComponent() {
           eventId: numId,
           links: links.map((l) => ({
             id: l.id,
-            label: l.label,
+            type: l.type,
             href: l.href,
-            icon: l.icon,
             sortOrder: l.sortOrder,
           })),
         });

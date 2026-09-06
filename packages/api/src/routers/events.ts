@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { events, insertEventSchema } from "@fsx/db/schema/events";
 import { linkGroups } from "@fsx/db/schema/linkGroups";
 import { links } from "@fsx/db/schema/links";
+import { EVENT_LINK_TYPES } from "../event-link-types";
 import { adminProcedure, publicProcedure, router } from "../index";
 
 const LINK_SVG = (paths: string) =>
@@ -44,7 +45,7 @@ export const eventsRouter = router({
           columns: { id: true },
           with: {
             links: {
-              columns: { id: true, href: true, label: true, icon: true, sortOrder: true },
+              columns: { id: true, href: true, label: true, icon: true, type: true, sortOrder: true },
               orderBy: (l, { asc }) => asc(l.sortOrder),
             },
           },
@@ -88,8 +89,7 @@ export const eventsRouter = router({
         id: z.number().optional(),
         // Empty/null means "announced but not available yet".
         href: z.string().nullable().optional(),
-        label: z.string().min(1),
-        icon: z.string().optional(),
+        type: z.enum(["regulation", "form", "results"]),
         sortOrder: z.number().optional(),
       })),
     }))
@@ -113,14 +113,18 @@ export const eventsRouter = router({
 
       for (const item of input.links) {
         const sortOrder = item.sortOrder ?? ++counter;
+        const meta = EVENT_LINK_TYPES.find((t) => t.value === item.type)!;
+        const label = meta.label;
+        const icon = iconForLinkLabel(label);
         if (item.id) {
           desiredIds.add(item.id);
           await ctx.db
             .update(links)
             .set({
               href: item.href || null,
-              label: item.label,
-              icon: item.icon ?? iconForLinkLabel(item.label),
+              label,
+              icon,
+              type: item.type,
               sortOrder,
             })
             .where(eq(links.id, item.id));
@@ -129,8 +133,9 @@ export const eventsRouter = router({
             .insert(links)
             .values({
               href: item.href || null,
-              label: item.label,
-              icon: item.icon ?? iconForLinkLabel(item.label),
+              label,
+              icon,
+              type: item.type,
               sortOrder,
               linkGroupId: group.id,
             })

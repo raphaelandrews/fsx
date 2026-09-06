@@ -19,6 +19,7 @@ import { postsRouter } from "./posts";
 import { rolesRouter } from "./roles";
 import { tvSergipeRouter } from "./tv-sergipe";
 import { seedRouter } from "./seed";
+import { statsRouter } from "./stats";
 import { swissManagerRouter } from "./swiss-manager";
 import { titledPlayersRouter } from "./titled-players";
 import { topPlayersRouter } from "./top-players";
@@ -47,6 +48,7 @@ export const appRouter = router({
   roles: rolesRouter,
   tvSergipe: tvSergipeRouter,
   seed: seedRouter,
+  stats: statsRouter,
   swissManager: swissManagerRouter,
   titledPlayers: titledPlayersRouter,
   titles: titlesRouter,

@@ -33,18 +33,8 @@ export const Route = createFileRoute("/_auth/dashboard/")({
       { name: "description", content: "Sergipe Chess Federation admin dashboard" },
     ],
   }),
-  loader: async ({ context }) => {
-    await Promise.all([
-      context.queryClient.ensureQueryData(context.trpc.players.list.queryOptions()),
-      context.queryClient.ensureQueryData(context.trpc.posts.list.queryOptions()),
-      context.queryClient.ensureQueryData(context.trpc.announcements.list.queryOptions()),
-      context.queryClient.ensureQueryData(context.trpc.events.list.queryOptions()),
-      context.queryClient.ensureQueryData(context.trpc.tournaments.list.queryOptions()),
-      context.queryClient.ensureQueryData(context.trpc.circuits.listSimple.queryOptions()),
-      context.queryClient.ensureQueryData(context.trpc.tvSergipe.list.queryOptions()),
-      context.queryClient.ensureQueryData(context.trpc.clubs.list.queryOptions()),
-    ]);
-  },
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.stats.counts.queryOptions()),
   component: RouteComponent,
 });
 
@@ -68,14 +58,7 @@ type BoardColumn = {
 function RouteComponent() {
   const trpc = useTRPC();
 
-  const players = useSuspenseQuery(trpc.players.list.queryOptions());
-  const posts = useSuspenseQuery(trpc.posts.list.queryOptions());
-  const announcements = useSuspenseQuery(trpc.announcements.list.queryOptions());
-  const events = useSuspenseQuery(trpc.events.list.queryOptions());
-  const tournaments = useSuspenseQuery(trpc.tournaments.list.queryOptions());
-  const circuits = useSuspenseQuery(trpc.circuits.listSimple.queryOptions());
-  const tvSergipe = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
-  const clubs = useSuspenseQuery(trpc.clubs.list.queryOptions());
+  const { data: stats } = useSuspenseQuery(trpc.stats.counts.queryOptions());
 
   const columns: BoardColumn[] = [
     {
@@ -83,9 +66,9 @@ function RouteComponent() {
       icon: NewsIcon,
       tone: "text-amber-500",
       items: [
-        { title: "Posts", to: "/dashboard/posts", icon: NewsIcon, description: "Manage site posts.", count: posts.data.length, tag: "Content", statusTone: "text-amber-500" },
-        { title: "Announcements", to: "/dashboard/announcements", icon: Megaphone01Icon, description: "Official announcements.", count: announcements.data.length, tag: "Content", statusTone: "text-amber-500" },
-        { title: "Events", to: "/dashboard/events", icon: Calendar04Icon, description: "Official events.", count: events.data.length, tag: "Content", statusTone: "text-amber-500" },
+        { title: "Posts", to: "/dashboard/posts", icon: NewsIcon, description: "Manage site posts.", count: stats.posts, tag: "Content", statusTone: "text-amber-500" },
+        { title: "Announcements", to: "/dashboard/announcements", icon: Megaphone01Icon, description: "Official announcements.", count: stats.announcements, tag: "Content", statusTone: "text-amber-500" },
+        { title: "Events", to: "/dashboard/events", icon: Calendar04Icon, description: "Official events.", count: stats.events, tag: "Content", statusTone: "text-amber-500" },
       ],
     },
     {
@@ -93,9 +76,9 @@ function RouteComponent() {
       icon: Route01Icon,
       tone: "text-sky-500",
       items: [
-        { title: "Tournaments", to: "/dashboard/tournaments", icon: Medal01Icon, description: "Official tournaments.", count: tournaments.data.length, tag: "Competition", statusTone: "text-sky-500" },
-        { title: "Circuits", to: "/dashboard/circuits", icon: Route01Icon, description: "Chess circuits.", count: circuits.data.length, tag: "Competition", statusTone: "text-sky-500" },
-        { title: "TV Sergipe", to: "/dashboard/tv-sergipe", icon: SchoolIcon, description: "School games results.", count: tvSergipe.data.length, tag: "Competition", statusTone: "text-sky-500" },
+        { title: "Tournaments", to: "/dashboard/tournaments", icon: Medal01Icon, description: "Official tournaments.", count: stats.tournaments, tag: "Competition", statusTone: "text-sky-500" },
+        { title: "Circuits", to: "/dashboard/circuits", icon: Route01Icon, description: "Chess circuits.", count: stats.circuits, tag: "Competition", statusTone: "text-sky-500" },
+        { title: "TV Sergipe", to: "/dashboard/tv-sergipe", icon: SchoolIcon, description: "School games results.", count: stats.tvSergipe, tag: "Competition", statusTone: "text-sky-500" },
       ],
     },
     {
@@ -103,8 +86,8 @@ function RouteComponent() {
       icon: UserGroupIcon,
       tone: "text-emerald-500",
       items: [
-        { title: "Players", to: "/dashboard/players", icon: UserGroupIcon, description: "Manage athletes.", count: players.data.length, tag: "Players", statusTone: "text-emerald-500" },
-        { title: "Clubs", to: "/dashboard/clubs", icon: User02Icon, description: "Member clubs.", count: clubs.data.length, tag: "Players", statusTone: "text-emerald-500" },
+        { title: "Players", to: "/dashboard/players", icon: UserGroupIcon, description: "Manage athletes.", count: stats.players, tag: "Players", statusTone: "text-emerald-500" },
+        { title: "Clubs", to: "/dashboard/clubs", icon: User02Icon, description: "Member clubs.", count: stats.clubs, tag: "Players", statusTone: "text-emerald-500" },
         { title: "Titles", to: "/dashboard/titles", icon: Award01Icon, description: "Chess titles.", tag: "Players", statusTone: "text-emerald-500" },
       ],
     },
