@@ -89,8 +89,11 @@ const CommandResults = React.memo(
       }))
     }, [players])
 
+    // Fill the list's min-height and center the message vertically.
+    const emptyClass = "flex min-h-80 justify-center pt-32"
+
     if (!searchTerm.trim()) {
-      return <CommandEmpty>Digite o nome de um jogador para buscar.</CommandEmpty>
+      return <CommandEmpty className={emptyClass}>Digite o nome de um jogador para buscar.</CommandEmpty>
     }
 
     if (isLoading) {
@@ -98,11 +101,11 @@ const CommandResults = React.memo(
     }
 
     if (error) {
-      return <CommandEmpty>Erro ao buscar jogadores.</CommandEmpty>
+      return <CommandEmpty className={emptyClass}>Erro ao buscar jogadores.</CommandEmpty>
     }
 
     if (playersWithGradients.length === 0 && searchTerm) {
-      return <CommandEmpty>Nenhum jogador encontrado.</CommandEmpty>
+      return <CommandEmpty className={emptyClass}>Nenhum jogador encontrado.</CommandEmpty>
     }
 
     return (

@@ -31,9 +31,11 @@ Local Dev D1 gotchas:
   `route.tsx` (layout with `<Outlet/>`) + `index.tsx` + `$param.tsx` directory structure. A flat
   `foo.tsx` + `foo.$id.tsx` pair makes `$id` a child of the list route, which then needs an
   `<Outlet/>` to render.
-- **Only write comments when strictly necessary to understand the code.** Skip commentary that
-  just restates what the code does; reserve comments for non-obvious "why" decisions, gotchas,
-  or invariants that aren't clear from reading the code itself.
+- **Default to zero comments.** Add a comment only when it explains a non-obvious "why" or a
+  gotcha that a reader could not infer from the code itself. Never restate what the code does,
+  never narrate intent that is obvious, and never leave explanatory/doc-style prose. If a comment
+  merely re-describes the adjacent code, delete it. Reserve comments for invariants, timezone/SSR
+  pitfalls, data-shape constraints, or a decision that contradicts what a reader would assume.
 
 <!-- intent-skills:start -->
 ## Skill Loading

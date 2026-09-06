@@ -24,7 +24,6 @@ export interface Event {
   linkGroup?: { id: number; links: EventLink[] } | null;
 }
 
-// Preference order for the three recurring event link types.
 const PREFERENCE: Record<string, number> = { form: 0, regulation: 1, results: 2 };
 
 export function Events({ events }: { events: Event[] }) {
@@ -124,8 +123,6 @@ function EventCard({
         </div>
       );
     }
-    // Three or more: the form link is the full-width primary CTA, the rest are
-    // side by side (Regulamento on the left, Chess-Results on the right).
     const formLink = ordered.find((link) => link.type === "form");
     const rest = ordered.filter((link) => link.type !== "form");
     return (
