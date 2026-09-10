@@ -1,15 +1,13 @@
 import { NewsIcon } from "@hugeicons/core-free-icons"
+import type { inferRouterOutputs } from "@trpc/server"
+
+import type { AppRouter } from "@fsx/api/routers/index"
 
 import { Section } from "./section"
 import { SectionButton } from "@/components/section-button"
 import { PostCard } from "@/components/post-card"
 
-interface FreshPost {
-  id: number
-  title: string
-  imageUrl: string | null
-  slug: string | null
-}
+type FreshPost = inferRouterOutputs<AppRouter>["posts"]["fresh"][number]
 
 interface PostsSectionProps {
   posts: FreshPost[]

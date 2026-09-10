@@ -1,18 +1,16 @@
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowUpRight01Icon, Megaphone01Icon, ScrollIcon } from "@hugeicons/core-free-icons";
+import type { inferRouterOutputs } from "@trpc/server";
+
+import type { AppRouter } from "@fsx/api/routers/index";
 
 import { Section } from "./section";
 import { AnnouncementsModal } from "@/components/modals/announcements-modal";
 import { SectionButton } from "@/components/section-button";
 import { padNumber } from "@/utils/format";
 
-interface AnnouncementType {
-  id: number;
-  number: number;
-  year: number;
-  content: string;
-}
+type AnnouncementType = inferRouterOutputs<AppRouter>["announcements"]["fresh"][number];
 
 interface AnnouncementsSectionProps {
   announcements: AnnouncementType[];

@@ -1,28 +1,18 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Calendar01Icon, Trophy } from "@hugeicons/core-free-icons";
+import type { inferRouterOutputs } from "@trpc/server";
 
 import { Button, buttonVariants } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
 import { resolveEventLinkType } from "@fsx/api/event-link-types";
+import type { AppRouter } from "@fsx/api/routers/index";
 
 import { Section } from "./section";
 import { StatusDot } from "./status-dot";
 
-export interface EventLink {
-  id: number;
-  href: string | null;
-  label: string;
-  type: string;
-  sortOrder: number;
-}
-
-export interface Event {
-  id: number;
-  name: string;
-  startDate: string;
-  linkGroup?: { id: number; links: EventLink[] } | null;
-}
+type Event = inferRouterOutputs<AppRouter>["events"]["list"][number];
+type EventLink = NonNullable<Event["linkGroup"]>["links"][number];
 
 const PREFERENCE: Record<string, number> = { form: 0, regulation: 1, results: 2 };
 
