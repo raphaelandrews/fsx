@@ -1,23 +1,25 @@
 import { Button } from "@fsx/ui/components/button";
 import { Github01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";
-import Loader from "@/components/loader";
+import { getUser } from "@/functions/get-user";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Login - FSX" }] }),
+  // Resolve the session on the server before rendering, so the form paints
+  // immediately instead of flashing a client-side loading spinner.
+  beforeLoad: async () => {
+    const session = await getUser();
+    if (session) {
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { isPending } = authClient.useSession();
-
-  if (isPending) {
-    return <Loader />;
-  }
-
   return (
     <div className="flex min-h-dvh w-full items-center justify-center p-6">
       <div className="w-full max-w-md">

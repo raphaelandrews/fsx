@@ -6,7 +6,16 @@ import { useMutation } from "@tanstack/react-query";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@fsx/ui/components/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@fsx/ui/components/alert-dialog";
 import { Button } from "@fsx/ui/components/button";
 
 import { useTRPC } from "@/utils/trpc";
@@ -39,6 +48,10 @@ function RatingUpdatePage() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [statusText, setStatusText] = useState("Ready");
   const [animationState, setAnimationState] = useState<AnimationState>("ready");
+  const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
+
+  const successCountRef = useRef(0);
+  const errorCountRef = useRef(0);
 
   const linkMutation = useMutation(trpc.playersTournament.linkWithRating.mutationOptions());
   const createMutation = useMutation(trpc.players.create.mutationOptions());
@@ -60,17 +73,28 @@ function RatingUpdatePage() {
         /* ignore */
       }
     }
+    setHasLoadedInitialData(true);
   }, []);
 
-  const persist = (s: RatingUpdateProps[], e: RatingUpdateProps[]) => {
-    localStorage.setItem("rating-update-log", JSON.stringify({ success: s, errors: e }));
-  };
+  useEffect(() => {
+    if (!hasLoadedInitialData) return;
+    localStorage.setItem(
+      "rating-update-log",
+      JSON.stringify({ success: successLog, errors: errorLog }),
+    );
+  }, [successLog, errorLog, hasLoadedInitialData]);
 
   const validateExcel = (headerMap: Record<string, number>) => {
     const available = Object.keys(headerMap);
-    const hasPlayerData = ["name", "sex", "birth", "locationid", "clubid"].some((c) => c in headerMap);
-    const hasAllTournament = ["tournamentid", "variation", "ratingtype"].every((c) => c in headerMap);
-    const hasPartialTournament = ["tournamentid", "variation", "ratingtype"].some((c) => c in headerMap);
+    const hasPlayerData = ["name", "sex", "birth", "locationid", "clubid"].some(
+      (c) => c in headerMap,
+    );
+    const hasAllTournament = ["tournamentid", "variation", "ratingtype"].every(
+      (c) => c in headerMap,
+    );
+    const hasPartialTournament = ["tournamentid", "variation", "ratingtype"].some(
+      (c) => c in headerMap,
+    );
 
     if (available.length === 1 && available[0] === "id") {
       setMotionGridStatus("Error: Only 'id' column present", "x");
@@ -78,11 +102,15 @@ function RatingUpdatePage() {
     }
     if (hasPartialTournament && !hasAllTournament) {
       setMotionGridStatus("Error: Incomplete tournament columns", "x");
-      throw new Error("If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be included.");
+      throw new Error(
+        "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be included.",
+      );
     }
     if (!hasPlayerData && !hasAllTournament) {
       setMotionGridStatus("Error: No valid data columns found", "x");
-      throw new Error("File must contain either player data columns or complete tournament columns.");
+      throw new Error(
+        "File must contain either player data columns or complete tournament columns.",
+      );
     }
   };
 
@@ -104,11 +132,17 @@ function RatingUpdatePage() {
       const data = new Uint8Array(await file.arrayBuffer());
       const workbook = XLSX.read(data, { type: "array" });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, dateNF: "yyyy-mm-dd" }) as unknown[][];
+      const rows = XLSX.utils.sheet_to_json(worksheet, {
+        header: 1,
+        raw: false,
+        dateNF: "yyyy-mm-dd",
+      }) as unknown[][];
 
       const headers = (rows[0] as string[]).map((h) => h.toLowerCase().trim());
       const headerMap: Record<string, number> = {};
-      headers.forEach((h, i) => { headerMap[h] = i; });
+      headers.forEach((h, i) => {
+        headerMap[h] = i;
+      });
 
       validateExcel(headerMap);
 
@@ -118,7 +152,9 @@ function RatingUpdatePage() {
         return;
       }
 
-      const dataRows = rows.slice(1).filter((r) => r.some((c) => c !== null && c !== undefined && c !== ""));
+      const dataRows = rows
+        .slice(1)
+        .filter((r) => r.some((c) => c !== null && c !== undefined && c !== ""));
       if (dataRows.length === 0) {
         setMotionGridStatus("Error: No valid data rows found", "x");
         toast.error("File contains no data rows or all rows are empty.");
@@ -126,8 +162,17 @@ function RatingUpdatePage() {
       }
       setTotalUpdates(dataRows.length);
 
-      const newSuccess: RatingUpdateProps[] = [];
-      const newErrors: RatingUpdateProps[] = [];
+      successCountRef.current = 0;
+      errorCountRef.current = 0;
+
+      const pushSuccess = (entry: RatingUpdateProps) => {
+        successCountRef.current += 1;
+        setSuccessLog((prev) => [entry, ...prev]);
+      };
+      const pushError = (entry: RatingUpdateProps) => {
+        errorCountRef.current += 1;
+        setErrorLog((prev) => [entry, ...prev]);
+      };
 
       for (let i = 0; i < dataRows.length; i++) {
         if (abortRef.current) break;
@@ -136,16 +181,47 @@ function RatingUpdatePage() {
 
         const row = dataRows[i];
         const id = Number.parseInt(String(row[headerMap["id"]]), 10);
-        const name = headerMap["name"] !== undefined ? String(row[headerMap["name"]] ?? "").trim() : undefined;
-        const birth = headerMap["birth"] !== undefined ? String(row[headerMap["birth"]] ?? "").trim() : undefined;
-        const sexRaw = headerMap["sex"] !== undefined ? String(row[headerMap["sex"]] ?? "").trim().toLowerCase() : undefined;
-        const clubIdRaw = headerMap["clubid"] !== undefined ? String(row[headerMap["clubid"]] ?? "").trim() : undefined;
-        const locationIdRaw = headerMap["locationid"] !== undefined ? String(row[headerMap["locationid"]] ?? "").trim() : undefined;
-        const tournamentIdRaw = headerMap["tournamentid"] !== undefined ? String(row[headerMap["tournamentid"]] ?? "").trim() : undefined;
-        const variationRaw = headerMap["variation"] !== undefined ? String(row[headerMap["variation"]] ?? "").trim() : undefined;
-        const ratingTypeRaw = headerMap["ratingtype"] !== undefined ? String(row[headerMap["ratingtype"]] ?? "").trim().toLowerCase() : undefined;
+        const name =
+          headerMap["name"] !== undefined ? String(row[headerMap["name"]] ?? "").trim() : undefined;
+        const birth =
+          headerMap["birth"] !== undefined
+            ? String(row[headerMap["birth"]] ?? "").trim()
+            : undefined;
+        const sexRaw =
+          headerMap["sex"] !== undefined
+            ? String(row[headerMap["sex"]] ?? "")
+                .trim()
+                .toLowerCase()
+            : undefined;
+        const clubIdRaw =
+          headerMap["clubid"] !== undefined
+            ? String(row[headerMap["clubid"]] ?? "").trim()
+            : undefined;
+        const locationIdRaw =
+          headerMap["locationid"] !== undefined
+            ? String(row[headerMap["locationid"]] ?? "").trim()
+            : undefined;
+        const tournamentIdRaw =
+          headerMap["tournamentid"] !== undefined
+            ? String(row[headerMap["tournamentid"]] ?? "").trim()
+            : undefined;
+        const variationRaw =
+          headerMap["variation"] !== undefined
+            ? String(row[headerMap["variation"]] ?? "").trim()
+            : undefined;
+        const ratingTypeRaw =
+          headerMap["ratingtype"] !== undefined
+            ? String(row[headerMap["ratingtype"]] ?? "")
+                .trim()
+                .toLowerCase()
+            : undefined;
 
-        const sex = sexRaw === "true" || sexRaw === "1" || sexRaw === "t" ? "male" : sexRaw === "false" || sexRaw === "0" || sexRaw === "f" ? "female" : undefined;
+        const sex =
+          sexRaw === "true" || sexRaw === "1" || sexRaw === "t"
+            ? "male"
+            : sexRaw === "false" || sexRaw === "0" || sexRaw === "f"
+              ? "female"
+              : undefined;
         const clubId = clubIdRaw ? Number.parseInt(clubIdRaw, 10) : undefined;
         const locationId = locationIdRaw ? Number.parseInt(locationIdRaw, 10) : undefined;
         const tournamentId = tournamentIdRaw ? Number.parseInt(tournamentIdRaw, 10) : undefined;
@@ -153,58 +229,242 @@ function RatingUpdatePage() {
         const ratingType = ratingTypeRaw;
 
         const validRatingTypes = ["blitz", "rapid", "classic"] as const;
-        const isTournamentUpdate = tournamentId !== undefined || variation !== undefined || ratingType !== undefined;
-        const hasValidTournamentData = tournamentId !== undefined && variation !== undefined && ratingType && validRatingTypes.includes(ratingType as (typeof validRatingTypes)[number]);
+        const isTournamentUpdate =
+          tournamentId !== undefined || variation !== undefined || ratingType !== undefined;
+        const hasValidTournamentData =
+          tournamentId !== undefined &&
+          variation !== undefined &&
+          ratingType &&
+          validRatingTypes.includes(ratingType as (typeof validRatingTypes)[number]);
 
         if (isTournamentUpdate && !hasValidTournamentData) {
-          newErrors.push({ _uuid: crypto.randomUUID(), operation: `Row ${i + 1}`, status: 400, error: { message: "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be valid." } });
+          pushError({
+            _uuid: crypto.randomUUID(),
+            operation: `Row ${i + 1}`,
+            status: 400,
+            error: {
+              message:
+                "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be valid.",
+            },
+          });
+          continue;
+        }
+        if (tournamentId !== undefined && (!Number.isInteger(tournamentId) || tournamentId <= 0)) {
+          pushError({
+            _uuid: crypto.randomUUID(),
+            operation: `Row ${i + 1}`,
+            status: 400,
+            error: {
+              message: `Invalid tournament ID '${tournamentIdRaw}'. Must be a positive integer.`,
+            },
+          });
+          continue;
+        }
+        if (
+          variation !== undefined &&
+          (!Number.isInteger(variation) || variation < -100 || variation > 100)
+        ) {
+          pushError({
+            _uuid: crypto.randomUUID(),
+            operation: `Row ${i + 1}`,
+            status: 400,
+            error: {
+              message: `Invalid variation value '${variationRaw}'. Must be an integer between -100 and 100.`,
+            },
+          });
           continue;
         }
         if (Number.isNaN(id) || id < 0) {
-          newErrors.push({ _uuid: crypto.randomUUID(), operation: `Row ${i + 1}`, status: 400, error: { message: "Invalid or missing 'id'. ID must be 0 or positive." } });
+          pushError({
+            _uuid: crypto.randomUUID(),
+            operation: `Row ${i + 1}`,
+            status: 400,
+            error: { message: "Invalid or missing 'id'. ID must be 0 or positive." },
+          });
           continue;
         }
         if (id === 0 && !name) {
-          newErrors.push({ _uuid: crypto.randomUUID(), operation: `Row ${i + 1}`, status: 400, error: { message: "Missing or empty 'name' for new player." } });
+          pushError({
+            _uuid: crypto.randomUUID(),
+            operation: `Row ${i + 1}`,
+            status: 400,
+            error: { message: "Missing or empty 'name' for new player." },
+          });
           continue;
         }
 
         try {
+          // Simulated processing delay so each row's result streams into the logs
+          // progressively, matching the source project's behaviour.
+          await new Promise((resolve) => setTimeout(resolve, Math.random() * 500 + 100));
+
           if (isTournamentUpdate && id > 0) {
-            await linkMutation.mutateAsync({ playerId: id, tournamentId: tournamentId!, variation: variation!, ratingType: ratingType as "blitz" | "rapid" | "classic" });
+            const linked = await linkMutation.mutateAsync({
+              playerId: id,
+              tournamentId: tournamentId!,
+              variation: variation!,
+              ratingType: ratingType as "blitz" | "rapid" | "classic",
+            });
             if (name || birth || sex || clubId || locationId) {
-              await updateMutation.mutateAsync({ id, name, birthDate: birth || undefined, sex, clubId, locationId });
+              await updateMutation.mutateAsync({
+                id,
+                name,
+                birthDate: birth || undefined,
+                sex,
+                clubId,
+                locationId,
+              });
             }
-            newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name ?? `ID ${id}`} updated (${ratingType}: ${variation! > 0 ? "+" : ""}${variation})`, status: 200, success: { dataFields: { id, name: name ?? "", birth: birth ?? null, sex: sex === "female", clubId: clubId ?? null, locationId: locationId ?? null }, message: "Rating updated" } });
+            pushSuccess({
+              _uuid: crypto.randomUUID(),
+              operation: `${name ?? `ID ${id}`} updated (${ratingType}: ${variation! > 0 ? "+" : ""}${variation})`,
+              status: 200,
+              success: {
+                dataFields: {
+                  player: {
+                    id,
+                    name: name ?? "",
+                    birth: birth ?? null,
+                    sex: sex === "female",
+                    clubId: clubId ?? null,
+                    locationId: locationId ?? null,
+                  },
+                  playerTournament: {
+                    id: linked?.[0]?.id ?? 0,
+                    playerId: id,
+                    tournamentId: tournamentId!,
+                    variation: variation!,
+                    oldRating: linked?.[0]?.oldRating ?? 0,
+                  },
+                },
+                message: "Rating updated",
+              },
+            });
           } else if (isTournamentUpdate && id === 0 && name) {
-            const result = await createMutation.mutateAsync({ name, birthDate: birth || null, sex: sex ?? "male", clubId, locationId, blitz: 1900, rapid: 1900, classic: 1900, active: true, verified: false });
+            const result = await createMutation.mutateAsync({
+              name,
+              birthDate: birth || null,
+              sex: sex ?? "male",
+              clubId,
+              locationId,
+              blitz: 1900,
+              rapid: 1900,
+              classic: 1900,
+              active: true,
+              verified: false,
+            });
             if (result?.[0]) {
-              await linkMutation.mutateAsync({ playerId: result[0].id, tournamentId: tournamentId!, variation: variation!, ratingType: ratingType as "blitz" | "rapid" | "classic" });
-              newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name} created + linked to tournament`, status: 200, success: { dataFields: { id: result[0].id, name, birth: birth ?? null, sex: sex === "female", clubId: clubId ?? null, locationId: locationId ?? null }, message: "Created with rating update" } });
+              const linked = await linkMutation.mutateAsync({
+                playerId: result[0].id,
+                tournamentId: tournamentId!,
+                variation: variation!,
+                ratingType: ratingType as "blitz" | "rapid" | "classic",
+              });
+              pushSuccess({
+                _uuid: crypto.randomUUID(),
+                operation: `${name} created + linked to tournament`,
+                status: 200,
+                success: {
+                  dataFields: {
+                    player: {
+                      id: result[0].id,
+                      name,
+                      birth: birth ?? null,
+                      sex: sex === "female",
+                      clubId: clubId ?? null,
+                      locationId: locationId ?? null,
+                    },
+                    playerTournament: {
+                      id: linked?.[0]?.id ?? 0,
+                      playerId: result[0].id,
+                      tournamentId: tournamentId!,
+                      variation: variation!,
+                      oldRating: linked?.[0]?.oldRating ?? 0,
+                    },
+                  },
+                  message: "Created with rating update",
+                },
+              });
             }
           } else if (id > 0 && (name || birth || sex || clubId || locationId)) {
-            await updateMutation.mutateAsync({ id, name, birthDate: birth || undefined, sex, clubId, locationId });
-            newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name ?? `ID ${id}`} updated`, status: 200, success: { dataFields: { id, name: name ?? "", birth: birth ?? null, sex: sex === "female", clubId: clubId ?? null, locationId: locationId ?? null }, message: "Updated" } });
+            await updateMutation.mutateAsync({
+              id,
+              name,
+              birthDate: birth || undefined,
+              sex,
+              clubId,
+              locationId,
+            });
+            pushSuccess({
+              _uuid: crypto.randomUUID(),
+              operation: `${name ?? `ID ${id}`} updated`,
+              status: 200,
+              success: {
+                dataFields: {
+                  id,
+                  name: name ?? "",
+                  birth: birth ?? null,
+                  sex: sex === "female",
+                  clubId: clubId ?? null,
+                  locationId: locationId ?? null,
+                },
+                message: "Updated",
+              },
+            });
           } else if (id === 0 && name) {
-            const result = await createMutation.mutateAsync({ name, birthDate: birth || null, sex: sex ?? "male", clubId, locationId, blitz: 1900, rapid: 1900, classic: 1900, active: true, verified: false });
+            const result = await createMutation.mutateAsync({
+              name,
+              birthDate: birth || null,
+              sex: sex ?? "male",
+              clubId,
+              locationId,
+              blitz: 1900,
+              rapid: 1900,
+              classic: 1900,
+              active: true,
+              verified: false,
+            });
             if (result?.[0]) {
-              newSuccess.push({ _uuid: crypto.randomUUID(), operation: `${name} created`, status: 200, success: { dataFields: { id: result[0].id, name, birth: birth ?? null, sex: sex === "female", clubId: clubId ?? null, locationId: locationId ?? null }, message: "Created" } });
+              pushSuccess({
+                _uuid: crypto.randomUUID(),
+                operation: `${name} created`,
+                status: 200,
+                success: {
+                  dataFields: {
+                    id: result[0].id,
+                    name,
+                    birth: birth ?? null,
+                    sex: sex === "female",
+                    clubId: clubId ?? null,
+                    locationId: locationId ?? null,
+                  },
+                  message: "Created",
+                },
+              });
             }
           } else {
-            newErrors.push({ _uuid: crypto.randomUUID(), operation: `Row ${i + 1}`, status: 400, error: { message: "Invalid data: no valid operation." } });
+            pushError({
+              _uuid: crypto.randomUUID(),
+              operation: `Row ${i + 1}`,
+              status: 400,
+              error: { message: "Invalid data: no valid operation." },
+            });
           }
         } catch (err) {
           const msg = err instanceof Error ? err.message : "Unknown error";
-          newErrors.push({ _uuid: crypto.randomUUID(), operation: name ?? `ID ${id}`, status: 500, error: { message: msg } });
+          pushError({
+            _uuid: crypto.randomUUID(),
+            operation: name ?? `ID ${id}`,
+            status: 500,
+            error: { message: msg },
+          });
         }
       }
 
-      setSuccessLog(newSuccess);
-      setErrorLog(newErrors);
-      persist(newSuccess, newErrors);
-
       if (!abortRef.current) {
-        toast.success(`Processed: ${newSuccess.length} success, ${newErrors.length} errors`);
+        toast.success(
+          `Processed: ${successCountRef.current} success, ${errorCountRef.current} errors`,
+        );
         setMotionGridStatus("Update process completed successfully", "saving");
       } else {
         toast.info("Process stopped");
@@ -256,7 +516,9 @@ function RatingUpdatePage() {
         <div className="absolute top-[40%] left-1/2 w-full max-w-lg -translate-x-1/2 rounded-xl bg-background p-6 shadow-md">
           <h2 className="mb-2 font-medium">Select Excel File</h2>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => fileRef.current?.click()}>Choose File</Button>
+            <Button variant="outline" onClick={() => fileRef.current?.click()}>
+              Choose File
+            </Button>
             <span className="text-sm text-muted-foreground">{file?.name ?? "No file chosen"}</span>
             <input
               type="file"
@@ -288,16 +550,31 @@ function RatingUpdatePage() {
         <div className="absolute top-[18%] left-1/2 flex -translate-x-1/2 gap-6">
           <div className="flex flex-col items-center gap-3">
             <LogTitle title="Success log" length={successLog.length} success />
-            <RatingUpdateLogs updates={successLog.slice((successPage - 1) * ITEMS_PER_PAGE, successPage * ITEMS_PER_PAGE)} />
+            <RatingUpdateLogs
+              updates={successLog.slice(
+                (successPage - 1) * ITEMS_PER_PAGE,
+                successPage * ITEMS_PER_PAGE,
+              )}
+            />
             {successTotalPages > 1 && (
-              <LogPagination currentPage={successPage} totalPages={successTotalPages} onPageChange={setSuccessPage} />
+              <LogPagination
+                currentPage={successPage}
+                totalPages={successTotalPages}
+                onPageChange={setSuccessPage}
+              />
             )}
           </div>
           <div className="flex flex-col items-center gap-3">
             <LogTitle title="Error log" length={errorLog.length} success={false} />
-            <RatingUpdateLogs updates={errorLog.slice((errorPage - 1) * ITEMS_PER_PAGE, errorPage * ITEMS_PER_PAGE)} />
+            <RatingUpdateLogs
+              updates={errorLog.slice((errorPage - 1) * ITEMS_PER_PAGE, errorPage * ITEMS_PER_PAGE)}
+            />
             {errorTotalPages > 1 && (
-              <LogPagination currentPage={errorPage} totalPages={errorTotalPages} onPageChange={setErrorPage} />
+              <LogPagination
+                currentPage={errorPage}
+                totalPages={errorTotalPages}
+                onPageChange={setErrorPage}
+              />
             )}
           </div>
         </div>
@@ -309,7 +586,11 @@ function RatingUpdatePage() {
         onClearFile={clearFile}
         onClearHistory={() => setShowClearConfirm(true)}
         onRun={handleProcess}
-        onStop={() => { abortRef.current = true; setIsRunning(false); setMotionGridStatus("Stopped", "stop"); }}
+        onStop={() => {
+          abortRef.current = true;
+          setIsRunning(false);
+          setMotionGridStatus("Stopped", "stop");
+        }}
         selectedFileName={file?.name ?? null}
       />
 
@@ -318,7 +599,8 @@ function RatingUpdatePage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your success and error history from local storage.
+              This action cannot be undone. This will permanently delete your success and error
+              history from local storage.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -335,19 +617,45 @@ function LogTitle({ title, length, success }: { title: string; length: number; s
   return (
     <div className="flex w-fit items-center gap-2 rounded-md border px-3 py-2">
       <p className={success ? "font-medium text-green-600" : "font-medium text-red-600"}>{title}</p>
-      <span className={`text-xs rounded-sm px-1.5 py-0.5 ${success ? "bg-[#E8F5E9] text-[#388E3C] dark:bg-[#022C22] dark:text-[#1BC994]" : "bg-[#FFEBEE] text-[#D32F2F] dark:bg-[#4D0217] dark:text-[#FF6982]"}`}>
+      <span
+        className={`text-xs rounded-sm px-1.5 py-0.5 ${success ? "bg-[#E8F5E9] text-[#388E3C] dark:bg-[#022C22] dark:text-[#1BC994]" : "bg-[#FFEBEE] text-[#D32F2F] dark:bg-[#4D0217] dark:text-[#FF6982]"}`}
+      >
         {length}
       </span>
     </div>
   );
 }
 
-function LogPagination({ currentPage, totalPages, onPageChange }: { currentPage: number; totalPages: number; onPageChange: (p: number) => void }) {
+function LogPagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (p: number) => void;
+}) {
   return (
     <div className="mt-2 flex items-center gap-2">
-      <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)}>Previous</Button>
-      <span className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
-      <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)}>Next</Button>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={currentPage === 1}
+        onClick={() => onPageChange(currentPage - 1)}
+      >
+        Previous
+      </Button>
+      <span className="text-sm text-muted-foreground">
+        Page {currentPage} of {totalPages}
+      </span>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={currentPage === totalPages}
+        onClick={() => onPageChange(currentPage + 1)}
+      >
+        Next
+      </Button>
     </div>
   );
 }

@@ -29,6 +29,9 @@ function RouteComponent() {
     ...trpc.announcements.update.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.announcements.list.queryFilter());
+      qc.invalidateQueries(trpc.announcements.fresh.queryFilter());
+      qc.invalidateQueries(trpc.announcements.byPage.queryFilter());
+      qc.invalidateQueries(trpc.announcements.byId.queryFilter());
       toast.success("Announcement updated");
     },
     onError: () => toast.error("Failed to update announcement"),

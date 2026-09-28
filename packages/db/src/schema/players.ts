@@ -10,6 +10,7 @@ export const players = sqliteTable(
 	{
 		id: integer("id").primaryKey({ autoIncrement: true }),
 		name: text("name").notNull(),
+		normalizedName: text("normalized_name"),
 		nickname: text("nickname").unique(),
 		blitz: integer("blitz").notNull().default(1900),
 		rapid: integer("rapid").notNull().default(1900),
@@ -32,6 +33,8 @@ export const players = sqliteTable(
 		index("players_sex_idx").on(table.sex),
 		index("players_club_idx").on(table.clubId),
 		index("players_location_idx").on(table.locationId),
+		// Group/age filters combine `active = true` with a birth_date range.
+		index("players_active_birth_date_idx").on(table.active, table.birthDate),
 		// Rating sorts (top-players, /ratings, /titulados) scan the whole table
 		// without these; the index lets ORDER BY + LIMIT avoid a full scan.
 		index("players_classic_idx").on(table.classic),

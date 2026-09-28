@@ -81,7 +81,7 @@ function ProgressBar({ currentIndex, totalUpdates }: { currentIndex: number; tot
       </div>
       <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
         <div
-          className="bg-primary h-full rounded-full transition-all duration-300"
+          className="bg-primary h-full rounded-full transition-[width] duration-300"
           style={{ width: `${progress}%` }}
         />
       </div>

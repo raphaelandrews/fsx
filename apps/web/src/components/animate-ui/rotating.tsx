@@ -39,7 +39,7 @@ function RotatingText({
 
   return (
     <div className={cn("overflow-hidden py-1", containerClassName)}>
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y }}

@@ -81,7 +81,7 @@ function RouteComponent() {
           {links.map((link, index) => (
             <a
               key={index}
-              className="flex items-center gap-2 p-3 text-sm text-link transition-all hover:underline"
+              className="flex items-center gap-2 p-3 text-sm text-link transition-colors hover:underline"
               href={link.href}
               rel="noreferrer"
               target={
@@ -102,7 +102,7 @@ function RouteComponent() {
 function SobreItem({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <div className="m-1">
-      <div className={`p-3 transition-all hover:bg-muted/50 ${className ?? ""}`}>{children}</div>
+      <div className={`p-3 transition-colors hover:bg-muted/50 ${className ?? ""}`}>{children}</div>
     </div>
   );
 }

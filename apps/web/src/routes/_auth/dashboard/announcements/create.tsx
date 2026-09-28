@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -18,10 +18,14 @@ export const Route = createFileRoute("/_auth/dashboard/announcements/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   const createMutation = useMutation({
     ...trpc.announcements.create.mutationOptions(),
     onSuccess: () => {
+      qc.invalidateQueries(trpc.announcements.list.queryFilter());
+      qc.invalidateQueries(trpc.announcements.fresh.queryFilter());
+      qc.invalidateQueries(trpc.announcements.byPage.queryFilter());
       toast.success("Announcement created");
       navigate({ to: "/dashboard/announcements" });
     },

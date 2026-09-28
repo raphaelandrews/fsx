@@ -32,7 +32,11 @@ export function PostCard({
       params={{ slug: slug ?? "" }}
       onMouseEnter={onMouseEnter}
     >
-      <div aria-hidden className="relative aspect-video w-full overflow-hidden rounded-md bg-muted select-none">
+      <div
+        aria-hidden
+        className="relative aspect-video w-full overflow-hidden rounded-md bg-muted select-none"
+        style={slug ? { viewTransitionName: `post-image-${slug}` } : undefined}
+      >
         {imageUrl ? (
           <img
             alt=""
@@ -50,6 +54,7 @@ export function PostCard({
             "line-clamp-2 font-bold leading-[1.1] text-foreground",
             main ? "text-lg md:text-xl" : "text-[1.1rem]",
           )}
+          style={slug ? { viewTransitionName: `post-title-${slug}` } : undefined}
         >
           {title}
         </h3>

@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { Miniflare } from "miniflare";
 
 import { createDb } from "./index";
+import { normalizeName } from "./normalize";
 import * as schema from "./schema";
 
 const wranglerConfigPath = fileURLToPath(
@@ -101,9 +102,7 @@ async function seed() {
       .onConflictDoNothing();
 
     console.log("  → players");
-    const [andrews, maria, carlos, ana, pedro] = await db
-      .insert(schema.players)
-      .values([
+    const playerSeed = [
         {
           name: "Andrews Souza",
           verified: true,
@@ -156,7 +155,10 @@ async function seed() {
           classic: 1570,
           locationId: itabaiana?.id,
         },
-      ])
+      ];
+    const [andrews, maria, carlos, ana, pedro] = await db
+      .insert(schema.players)
+      .values(playerSeed.map((player) => ({ ...player, normalizedName: normalizeName(player.name) })))
       .onConflictDoNothing()
       .returning();
 

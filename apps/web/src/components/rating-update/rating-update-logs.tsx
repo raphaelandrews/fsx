@@ -73,7 +73,7 @@ function SuccessDetail({ data }: { data: DataFieldsUnion }) {
 export function RatingUpdateLogs({ updates }: { updates: RatingUpdateProps[] }) {
   return (
     <div className="h-auto w-[450px] overflow-hidden p-2">
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence mode="popLayout" initial={false}>
         <div className="space-y-3 relative">
           {updates.map((update, index) => (
             <motion.div

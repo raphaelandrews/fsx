@@ -36,6 +36,11 @@ function RouteComponent() {
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
     {
+      accessorKey: "id",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+      cell: ({ row }) => <span className="tabular-nums">{row.getValue("id")}</span>,
+    },
+    {
       accessorKey: "name",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,

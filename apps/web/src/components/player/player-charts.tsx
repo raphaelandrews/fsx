@@ -18,27 +18,17 @@ interface PlayerById {
 
 const getFillColorVariation = (
   variation: number,
-  isHighest: boolean,
-  isLowest: boolean
+  isHighest: boolean
 ) => {
   if (isHighest && variation > 0) {
     return "var(--chart-5)"
   }
 
-  if (isLowest && variation < 0) {
+  if (variation < 0) {
     return "var(--chart-6)"
   }
 
-  if (variation < -20) {
-    return "var(--chart-3)"
-  }
-  if (variation < 0) {
-    return "var(--chart-4)"
-  }
-  if (variation >= 20) {
-    return "var(--chart-1)"
-  }
-  return "var(--chart-2)"
+  return "var(--chart-1)"
 }
 
 const extractChartData = (player: PlayerById, selectedRatingType: string) => {
@@ -90,9 +80,7 @@ export function VariationChart({
   }
 
   const maxVariation = Math.max(...chartData.map((entry) => entry.variation))
-  const minVariation = Math.min(...chartData.map((entry) => entry.variation))
   const hasPositiveVariations = maxVariation > 0
-  const hasNegativeVariations = minVariation < 0
 
   const variationChart = defineChart({
     marks: [
@@ -102,15 +90,18 @@ export function VariationChart({
         fill: (d) =>
           getFillColorVariation(
             d.variation,
-            hasPositiveVariations && d.variation === maxVariation,
-            hasNegativeVariations && d.variation === minVariation
+            hasPositiveVariations && d.variation === maxVariation
           ),
         radius: 4,
       }),
     ],
-    x: { scale: () => scaleBand().padding(0.2) },
+    x: { scale: () => scaleBand().padding(0.2), axis: false },
     y: { scale: scaleLinear, nice: true, grid: true },
-    tooltip,
+    tooltip: {
+      use: tooltip,
+      format: (point) =>
+        `${point.datum.name}: ${point.datum.variation > 0 ? "+" : ""}${point.datum.variation}`,
+    },
   })
 
   return (
@@ -147,9 +138,12 @@ export function TotalRatingChart({
         points: true,
       }),
     ],
-    x: { scale: () => scaleBand().padding(0.2) },
+    x: { scale: () => scaleBand().padding(0.2), axis: false },
     y: { scale: scaleLinear, nice: true, grid: true },
-    tooltip,
+    tooltip: {
+      use: tooltip,
+      format: (point) => `${point.datum.name}: ${point.datum.totalRating}`,
+    },
   })
 
   return (

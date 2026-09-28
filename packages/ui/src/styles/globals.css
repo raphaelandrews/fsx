@@ -328,10 +328,34 @@
 
   html {
     @apply font-sans scroll-smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     @apply font-sans bg-background text-foreground;
+  }
+
+  /* Headings balance to avoid orphaned words; short body text avoids a lonely
+     last word. Long-form prose is excluded by the browser's own line limits. */
+  :is(h1, h2, h3, h4, h5, h6) {
+    text-wrap: balance;
+  }
+
+  :is(p, li, figcaption, blockquote, dd) {
+    text-wrap: pretty;
+  }
+
+  /* Neutral 1px separator so images read consistently against any surface.
+     Pure black/white at low opacity — never a tinted neutral — and inset so it
+     doesn't affect layout. Avatars already render their own ring. */
+  img:not([data-slot="avatar-image"]) {
+    outline: 1px solid oklch(0 0 0 / 0.1);
+    outline-offset: -1px;
+  }
+
+  .dark img:not([data-slot="avatar-image"]) {
+    outline-color: oklch(1 0 0 / 0.1);
   }
 
   body::-webkit-scrollbar {

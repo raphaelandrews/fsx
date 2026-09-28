@@ -9,8 +9,8 @@ import { getRequest } from "@tanstack/react-start/server";
 import { toast } from "sonner";
 import { ThemeProvider } from "next-themes";
 
-import Loader from "./components/loader";
 import { NotFound } from "./components/not-found";
+import { PageSkeleton } from "./components/skeletons/page-skeleton";
 import { routeTree } from "./routeTree.gen";
 import { TRPCProvider } from "./utils/trpc";
 
@@ -86,8 +86,12 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 60_000,
     defaultPreload: "intent",
+    // Wrap route commits in document.startViewTransition. The global CSS keeps
+    // the root crossfade disabled, so only elements that opt in with a matching
+    // `view-transition-name` morph between pages (shared-element transitions).
+    defaultViewTransition: true,
     context: { trpc, queryClient },
-    defaultPendingComponent: () => <Loader />,
+    defaultPendingComponent: () => <PageSkeleton />,
     defaultNotFoundComponent: () => <NotFound />,
     Wrap: ({ children }) => (
       <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>

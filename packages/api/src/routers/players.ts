@@ -7,66 +7,8 @@ import { clubs } from "@fsx/db/schema/clubs";
 import { locations } from "@fsx/db/schema/locations";
 import { titles } from "@fsx/db/schema/titles";
 import { playersToTitles } from "@fsx/db/schema/playersToTitles";
-import { defendingChampions } from "@fsx/db/schema/defendingChampions";
-import { championships } from "@fsx/db/schema/championships";
+import { normalizeName } from "@fsx/db/normalize";
 import { adminProcedure, publicProcedure, router } from "../index";
-import type { Context } from "../context";
-
-const ACCENT_MAP =
-  "áàâãäéèêëíìîïóòôõöúùûüýÿçñÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÝŸÇÑ";
-const ASCII_MAP =
-  "aaaaaeeeeiiiiooooouuuuyycn" + "aaaaaeeeeiiiiooooouuuuyycn";
-
-// D1 caps bound parameters at 100, so the accent constants are inlined as
-// literals (they are hardcoded, so there is no injection risk) instead of
-// being bound as parameters.
-function replaceChain(expr: SQL, from: number, to: number): SQL {
-  let e: SQL = expr;
-  for (let i = from; i < to; i++) {
-    e = sql`replace(${e}, ${sql.raw(`'${ACCENT_MAP[i]}'`)}, ${sql.raw(`'${ASCII_MAP[i]}'`)})`;
-  }
-  return e;
-}
-
-// SQLite has no translate(); nested replace() at full depth overflows the
-// parser stack, so split into two 27-deep passes wrapped in a scalar subquery.
-function normalizeNameSql(column: typeof playersTable.name): SQL {
-  const half = Math.ceil(ACCENT_MAP.length / 2);
-  return sql`(SELECT LOWER(${replaceChain(sql`c2`, half, ACCENT_MAP.length)}) FROM (SELECT ${replaceChain(sql`${column}`, 0, half)} AS c2))`;
-}
-
-type Db = Context["db"];
-
-function normalizePlayersSubquery(db: Db) {
-  const half = Math.ceil(ACCENT_MAP.length / 2);
-  const inner = db
-    .select({
-      id: playersTable.id,
-      name: playersTable.name,
-      rapid: playersTable.rapid,
-      halfName: sql`${replaceChain(sql`${playersTable.name}`, 0, half)}`.as("half_name"),
-    })
-    .from(playersTable)
-    .as("pn1");
-  return db
-    .select({
-      id: inner.id,
-      name: inner.name,
-      rapid: inner.rapid,
-      normName: sql`LOWER(${replaceChain(sql`${inner.halfName}`, half, ACCENT_MAP.length)})`.as("norm_name"),
-    })
-    .from(inner)
-    .as("pn2");
-}
-
-function normalizeText(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ç/g, "c")
-    .trim();
-}
 
 function getBirthDateRange(group: string): [string, string] | undefined {
   const today = new Date();
@@ -135,7 +77,7 @@ export const playersRouter = router({
       const limit = input.limit;
       const offset = (input.page - 1) * limit;
       const where = input.name
-        ? sql`${normalizeNameSql(playersTable.name)} LIKE ${`%${normalizeText(input.name)}%`}`
+        ? sql`${playersTable.normalizedName} LIKE ${`%${normalizeName(input.name)}%`}`
         : undefined;
 
       const countResult = await ctx.db.select({ value: count() }).from(playersTable).where(where);
@@ -215,39 +157,40 @@ export const playersRouter = router({
   search: publicProcedure
     .input(z.object({ query: z.string() }))
     .query(({ ctx, input }) => {
-      const normalizedQuery = normalizeText(input.query);
+      const normalizedQuery = normalizeName(input.query);
       const words = normalizedQuery.split(/\s+/).filter(Boolean);
 
       if (words.length === 0) {
+        // Default suggestion list for the command menu: top active players by
+        // rapid rating. `players_rapid_idx` drives the ORDER BY + LIMIT.
         return ctx.db
           .select({ id: playersTable.id, name: playersTable.name })
           .from(playersTable)
+          .where(eq(playersTable.active, true))
           .orderBy(desc(playersTable.rapid))
           .limit(10);
       }
 
-      const normPlayers = normalizePlayersSubquery(ctx.db);
-
       const wordConditions = words.map(
-        (word) => sql`${normPlayers.normName} LIKE ${`%${word}%`}`
+        (word) => sql`${playersTable.normalizedName} LIKE ${`%${word}%`}`
       );
 
       const whereClause = sql.join(wordConditions, sql` AND `);
 
       const relevanceScore = sql<number>`
         CASE
-          WHEN ${normPlayers.normName} = ${normalizedQuery} THEN 4
-          WHEN ${normPlayers.normName} LIKE ${`${words[0]}%`} THEN 3
-          WHEN ${normPlayers.normName} LIKE ${`%${normalizedQuery}%`} THEN 2
+          WHEN ${playersTable.normalizedName} = ${normalizedQuery} THEN 4
+          WHEN ${playersTable.normalizedName} LIKE ${`${words[0]}%`} THEN 3
+          WHEN ${playersTable.normalizedName} LIKE ${`%${normalizedQuery}%`} THEN 2
           ELSE 1
         END
       `;
 
       return ctx.db
-        .select({ id: normPlayers.id, name: normPlayers.name })
-        .from(normPlayers)
+        .select({ id: playersTable.id, name: playersTable.name })
+        .from(playersTable)
         .where(whereClause)
-        .orderBy(desc(relevanceScore), desc(normPlayers.rapid), sql`LENGTH(${normPlayers.name})`)
+        .orderBy(desc(relevanceScore), desc(playersTable.rapid), sql`LENGTH(${playersTable.name})`)
         .limit(10);
     }),
 
@@ -278,9 +221,12 @@ export const playersRouter = router({
     ),
 
   create: adminProcedure
-    .input(insertPlayerSchema.omit({ id: true }))
+    .input(insertPlayerSchema.omit({ id: true, normalizedName: true }))
     .mutation(({ ctx, input }) =>
-      ctx.db.insert(playersTable).values(input).returning()
+      ctx.db
+        .insert(playersTable)
+        .values({ ...input, normalizedName: normalizeName(input.name) })
+        .returning()
     ),
 
   update: adminProcedure
@@ -302,9 +248,17 @@ export const playersRouter = router({
       locationId: z.number().nullable().optional(),
       description: z.string().nullable().optional(),
     }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.update(playersTable).set(input).where(eq(playersTable.id, input.id)).returning()
-    ),
+    .mutation(({ ctx, input }) => {
+      const { id, name, ...rest } = input;
+      return ctx.db
+        .update(playersTable)
+        .set({
+          ...rest,
+          ...(name !== undefined ? { normalizedName: normalizeName(name) } : {}),
+        })
+        .where(eq(playersTable.id, id))
+        .returning();
+    }),
 
   withFilters: publicProcedure
     .input(z.object({
@@ -324,9 +278,8 @@ export const playersRouter = router({
       const whereConditions: SQL[] = [eq(playersTable.active, true)];
 
       if (name) {
-        const normalizedQuery = normalizeText(name);
         whereConditions.push(
-          sql`${normalizeNameSql(playersTable.name)} LIKE ${`%${normalizedQuery}%`}`
+          sql`${playersTable.normalizedName} LIKE ${`%${normalizeName(name)}%`}`
         );
       }
       if (sex) {
@@ -392,116 +345,68 @@ export const playersRouter = router({
 
       const sortColumn = playersTable[sortBy];
 
-      // Page of matching player ids ordered by rating; the rating index drives
-      // the ORDER BY + LIMIT/OFFSET without a full table sort.
-      const pageSubquery = ctx.db
+      // 1) Page of matching player ids ordered by rating; the rating index
+      //    drives ORDER BY + LIMIT/OFFSET without a full table sort or scan.
+      const pageIds = await ctx.db
         .select({ id: playersTable.id })
         .from(playersTable)
         .where(where)
         .orderBy(desc(sortColumn))
         .limit(limit)
-        .offset(offset)
-        .as("page");
+        .offset(offset);
 
-      const rows = await ctx.db
-        .select({
-          id: playersTable.id,
-          name: playersTable.name,
-          nickname: playersTable.nickname,
-          classic: playersTable.classic,
-          rapid: playersTable.rapid,
-          blitz: playersTable.blitz,
-          imageUrl: playersTable.imageUrl,
-          birthDate: playersTable.birthDate,
-          sex: playersTable.sex,
-          clubId: clubs.id,
-          clubName: clubs.name,
-          clubLogoUrl: clubs.logoUrl,
-          locationName: locations.name,
-          locationFlagUrl: locations.flagUrl,
-          championshipName: championships.name,
-          titleType: titles.type,
-          titleName: titles.name,
-          titleShortName: titles.shortName,
-        })
-        .from(playersTable)
-        .innerJoin(pageSubquery, eq(playersTable.id, pageSubquery.id))
-        .leftJoin(clubs, eq(playersTable.clubId, clubs.id))
-        .leftJoin(locations, eq(playersTable.locationId, locations.id))
-        .leftJoin(playersToTitles, eq(playersTable.id, playersToTitles.playerId))
-        .leftJoin(titles, eq(playersToTitles.titleId, titles.id))
-        .leftJoin(defendingChampions, eq(playersTable.id, defendingChampions.playerId))
-        .leftJoin(championships, eq(defendingChampions.championshipId, championships.id))
-        .orderBy(desc(sortColumn));
+      const pagination = {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      };
 
-      const playersMap = new Map<number, {
-        id: number;
-        name: string;
-        nickname: string | null;
-        classic: number;
-        rapid: number;
-        blitz: number;
-        imageUrl: string | null;
-        birthDate: string | null;
-        sex: string;
-        club: { id: number; name: string; logoUrl: string };
-        location: { name: string; flagUrl: string };
-        defendingChampions: { championship: { name: string } }[];
-        playersToTitles: { title: { type: string; name: string; shortName: string } }[];
-      }>();
-
-      for (const row of rows) {
-        if (!playersMap.has(row.id)) {
-          playersMap.set(row.id, {
-            id: row.id,
-            name: row.name,
-            nickname: row.nickname,
-            classic: row.classic,
-            rapid: row.rapid,
-            blitz: row.blitz,
-            imageUrl: row.imageUrl,
-            birthDate: row.birthDate,
-            sex: row.sex,
-            club: { id: row.clubId ?? 0, name: row.clubName ?? "", logoUrl: row.clubLogoUrl ?? "" },
-            location: { name: row.locationName ?? "", flagUrl: row.locationFlagUrl ?? "" },
-            defendingChampions: [],
-            playersToTitles: [],
-          });
-        }
-
-        const player = playersMap.get(row.id)!;
-
-        if (row.championshipName) {
-          const exists = player.defendingChampions.some(
-            (c) => c.championship.name === row.championshipName
-          );
-          if (!exists) {
-            player.defendingChampions.push({ championship: { name: row.championshipName } });
-          }
-        }
-
-        if (row.titleShortName) {
-          const exists = player.playersToTitles.some(
-            (t) => t.title.shortName === row.titleShortName && t.title.type === row.titleType
-          );
-          if (!exists) {
-            player.playersToTitles.push({
-              title: { type: row.titleType!, name: row.titleName!, shortName: row.titleShortName },
-            });
-          }
-        }
+      if (pageIds.length === 0) {
+        return { players: [], pagination };
       }
 
-      return {
-        players: Array.from(playersMap.values()),
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalItems,
-          itemsPerPage: limit,
-          hasNextPage: page < totalPages,
-          hasPreviousPage: page > 1,
+      const ids = pageIds.map((row) => row.id);
+
+      // 2) Load the page's players + relations in one relational query. Drizzle
+      //    issues a separate query per relation keyed on the page ids, so a
+      //    player with several titles/championships no longer multiplies rows
+      //    (which previously forced a full players scan + JS de-duplication).
+      const rows = await ctx.db.query.players.findMany({
+        columns: {
+          id: true,
+          name: true,
+          nickname: true,
+          classic: true,
+          rapid: true,
+          blitz: true,
+          imageUrl: true,
+          birthDate: true,
+          sex: true,
         },
-      };
+        where: inArray(playersTable.id, ids),
+        with: {
+          club: { columns: { id: true, name: true, logoUrl: true } },
+          location: { columns: { name: true, flagUrl: true } },
+          defendingChampions: {
+            columns: {},
+            with: { championship: { columns: { name: true } } },
+          },
+          playersToTitles: {
+            columns: {},
+            with: { title: { columns: { type: true, name: true, shortName: true } } },
+          },
+        },
+      });
+
+      // Relational loading doesn't preserve the id order; restore it.
+      const byId = new Map(rows.map((player) => [player.id, player]));
+      const players = ids
+        .map((id) => byId.get(id))
+        .filter((player): player is NonNullable<typeof player> => player !== undefined);
+
+      return { players, pagination };
     }),
 });

@@ -39,7 +39,10 @@ function RouteComponent() {
   return (
     <article className="mx-auto max-w-4xl py-10 md:py-16">
       <header className="mx-auto max-w-2xl text-center">
-        <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+        <h1
+          className="text-balance text-3xl font-semibold tracking-tight text-foreground md:text-4xl"
+          style={{ viewTransitionName: `post-title-${slug}` }}
+        >
           {post.title}
         </h1>
 
@@ -56,6 +59,7 @@ function RouteComponent() {
           className="mt-8 aspect-video w-full rounded-xl border border-border object-cover"
           decoding="async"
           src={post.imageUrl}
+          style={{ viewTransitionName: `post-image-${slug}` }}
         />
       )}
 

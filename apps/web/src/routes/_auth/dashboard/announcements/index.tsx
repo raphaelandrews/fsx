@@ -30,6 +30,9 @@ function RouteComponent() {
     ...trpc.announcements.delete.mutationOptions(),
     onSuccess: () => {
       qc.invalidateQueries(trpc.announcements.list.queryFilter());
+      qc.invalidateQueries(trpc.announcements.fresh.queryFilter());
+      qc.invalidateQueries(trpc.announcements.byPage.queryFilter());
+      qc.invalidateQueries(trpc.announcements.byId.queryFilter());
       toast.success("Announcement deleted");
     },
     onError: () => toast.error("Failed to delete announcement"),

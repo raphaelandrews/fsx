@@ -136,6 +136,7 @@ function RouteComponent() {
       clubId: player.clubId,
       locationId: player.locationId,
       active: player.active,
+      verified: player.verified,
       imageUrl: player.imageUrl ?? "",
     },
     validators: {
@@ -150,6 +151,7 @@ function RouteComponent() {
         clubId: z.number().nullable(),
         locationId: z.number().nullable(),
         active: z.boolean(),
+        verified: z.boolean(),
         imageUrl: z.string(),
       }),
     },
@@ -166,6 +168,7 @@ function RouteComponent() {
         clubId: value.clubId,
         locationId: value.locationId,
         active: value.active,
+        verified: value.verified,
         imageUrl: value.imageUrl || null,
       });
     },
@@ -319,6 +322,20 @@ function RouteComponent() {
                   className="h-4 w-4 rounded border-input"
                 />
                 <Label htmlFor={f.name}>Active</Label>
+              </div>
+            )}
+          </form.Field>
+          <form.Field name="verified">
+            {(f) => (
+              <div className="flex items-center gap-2">
+                <input
+                  id={f.name}
+                  type="checkbox"
+                  checked={f.state.value}
+                  onChange={(e) => f.handleChange(e.target.checked)}
+                  className="h-4 w-4 rounded border-input"
+                />
+                <Label htmlFor={f.name}>Verified</Label>
               </div>
             )}
           </form.Field>

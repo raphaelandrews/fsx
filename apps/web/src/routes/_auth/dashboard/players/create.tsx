@@ -42,6 +42,7 @@ function RouteComponent() {
       classic: 1900,
       birthDate: "",
       sex: "male" as "male" | "female",
+      verified: false,
       clubId: null as number | null,
       locationId: null as number | null,
       imageUrl: "",
@@ -55,6 +56,7 @@ function RouteComponent() {
         classic: value.classic,
         birthDate: value.birthDate || null,
         sex: value.sex,
+        verified: value.verified,
         clubId: value.clubId,
         locationId: value.locationId,
         imageUrl: value.imageUrl || null,
@@ -69,6 +71,7 @@ function RouteComponent() {
         classic: z.number(),
         birthDate: z.string(),
         sex: z.enum(["male", "female"]),
+        verified: z.boolean(),
         clubId: z.number().nullable(),
         locationId: z.number().nullable(),
         imageUrl: z.string(),
@@ -203,6 +206,20 @@ function RouteComponent() {
                 <option value="male">Male</option>
                 <option value="female">Female</option>
               </select>
+            </div>
+          )}
+        </form.Field>
+        <form.Field name="verified">
+          {(f) => (
+            <div className="flex items-center gap-2">
+              <input
+                id={f.name}
+                type="checkbox"
+                checked={f.state.value}
+                onChange={(e) => f.handleChange(e.target.checked)}
+                className="h-4 w-4 rounded border-input"
+              />
+              <Label htmlFor={f.name}>Verified</Label>
             </div>
           )}
         </form.Field>

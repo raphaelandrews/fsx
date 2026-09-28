@@ -1,6 +1,6 @@
 
 import { useRouter } from "@tanstack/react-router"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useHotkeys } from "@tanstack/react-hotkeys"
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -75,10 +75,11 @@ const CommandResults = React.memo(
     onSelect: (playerId: number) => void
   }) => {
     const trpc = useTRPC()
+    const isSearching = searchTerm.trim().length > 0
     const { data: players = [], isLoading, error } = useQuery(
       trpc.players.search.queryOptions(
         { query: searchTerm },
-        { enabled: searchTerm.trim().length > 0, staleTime: 30_000 },
+        { staleTime: 30_000 },
       )
     )
 
@@ -92,10 +93,6 @@ const CommandResults = React.memo(
     // Fill the list's min-height and center the message vertically.
     const emptyClass = "flex min-h-80 justify-center pt-32"
 
-    if (!searchTerm.trim()) {
-      return <CommandEmpty className={emptyClass}>Digite o nome de um jogador para buscar.</CommandEmpty>
-    }
-
     if (isLoading) {
       return <LoadingSkeleton />
     }
@@ -104,8 +101,12 @@ const CommandResults = React.memo(
       return <CommandEmpty className={emptyClass}>Erro ao buscar jogadores.</CommandEmpty>
     }
 
-    if (playersWithGradients.length === 0 && searchTerm) {
-      return <CommandEmpty className={emptyClass}>Nenhum jogador encontrado.</CommandEmpty>
+    if (playersWithGradients.length === 0) {
+      return (
+        <CommandEmpty className={emptyClass}>
+          {isSearching ? "Nenhum jogador encontrado." : "Nenhum jogador cadastrado."}
+        </CommandEmpty>
+      )
     }
 
     return (
@@ -129,11 +130,21 @@ CommandResults.displayName = "SearchResults"
 
 export function CommandMenu() {
   const router = useRouter()
+  const trpc = useTRPC()
+  const queryClient = useQueryClient()
   const [open, setOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
   const [debouncedSearch, setDebouncedSearch] = React.useState("")
   const [isTyping, setIsTyping] = React.useState(false)
   const dialogOpenRef = React.useRef(open)
+
+  // Warm the default top-rated list on hover/focus so the first open renders
+  // instantly. The query key matches the one CommandResults uses.
+  const prefetchDefaults = React.useCallback(() => {
+    queryClient.prefetchQuery(
+      trpc.players.search.queryOptions({ query: "" }, { staleTime: 30_000 }),
+    )
+  }, [queryClient, trpc])
 
   React.useEffect(() => {
     dialogOpenRef.current = open
@@ -181,9 +192,11 @@ export function CommandMenu() {
         render={
           <Button
             className={cn(
-              "relative h-8 w-full justify-start rounded-lg pl-3 shadow-none transition-colors md:w-48 lg:w-40 xl:w-48"
+              "relative h-8 w-full justify-start rounded-lg pl-3 shadow-none md:w-48 lg:w-40 xl:w-48"
             )}
             variant="secondary"
+            onFocus={prefetchDefaults}
+            onMouseEnter={prefetchDefaults}
           />
         }
       >

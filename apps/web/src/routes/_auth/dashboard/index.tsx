@@ -143,7 +143,7 @@ function ModuleCard({ item }: { item: BoardItem }) {
   return (
     <Link to={item.to}>
       <Card
-        className="group transition-all hover:border-foreground/20 hover:shadow-md"
+        className="group transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-md"
       >
         <CardContent className="p-4">
           <div className="flex items-start gap-2">

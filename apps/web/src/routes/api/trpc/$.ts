@@ -16,14 +16,42 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 // posts, events, etc.) reflecting admin edits quickly for every visitor. The
 // Cloudflare Cache API does not reliably honor `max-age` on the `match()` path,
 // so we also store a fetch timestamp and treat an entry as a miss once it is
-// older than CACHE_MAX_AGE — otherwise a hit could be served stale indefinitely
+// older than its TTL — otherwise a hit could be served stale indefinitely
 // (e.g. a new post staying off the hero for hours on other browsers).
-const CACHE_MAX_AGE = 60;
+const CACHE_TTL_DEFAULT_SECONDS = 60;
 const CACHE_FETCHED_AT_HEADER = "x-cache-fetched-at";
 
-function isCachedEntryFresh(cached: Response): boolean {
+// Near-static public reads change only through admin edits. Admins carry a
+// session cookie and therefore bypass the edge cache entirely (see
+// isAuthenticated), so a longer TTL never hides an edit from the editor; it
+// only cuts origin load for anonymous visitors. Search stays short because its
+// result set is ephemeral. A batched request uses the shortest matching TTL.
+const PROCEDURE_TTL_SECONDS: Record<string, number> = {
+  "players.search": 30,
+  "players.byId": 120,
+  "players.withFilters": 120,
+  "players.list": 120,
+  "players.page": 60,
+  "topPlayers.list": 300,
+  "circuits.list": 300,
+  "clubs.list": 300,
+  "locations.list": 300,
+  "titles.list": 300,
+};
+
+function resolveTtlSeconds(request: Request): number {
+  const procedures = new URL(request.url).pathname
+    .replace(/^\/api\/trpc\//, "")
+    .split(",");
+  const explicit = procedures
+    .map((procedure) => PROCEDURE_TTL_SECONDS[procedure])
+    .filter((ttl): ttl is number => ttl !== undefined);
+  return explicit.length > 0 ? Math.min(...explicit) : CACHE_TTL_DEFAULT_SECONDS;
+}
+
+function isCachedEntryFresh(cached: Response, ttlSeconds: number): boolean {
   const fetchedAt = Number(cached.headers.get(CACHE_FETCHED_AT_HEADER) ?? 0);
-  return fetchedAt > 0 && Date.now() - fetchedAt < CACHE_MAX_AGE * 1000;
+  return fetchedAt > 0 && Date.now() - fetchedAt < ttlSeconds * 1000;
 }
 
 // A session cookie means the request is authenticated. Cache API entries are
@@ -57,9 +85,10 @@ async function handler({ request }: { request: Request }) {
   if (method === "GET") {
     const cache = (caches as any).default as Cache | undefined;
     const authenticated = isAuthenticated(request);
+    const ttlSeconds = resolveTtlSeconds(request);
     if (cache && !authenticated) {
       const cached = await cache.match(request);
-      if (cached && isCachedEntryFresh(cached)) return cached;
+      if (cached && isCachedEntryFresh(cached, ttlSeconds)) return cached;
       if (cached) await cache.delete(request).catch(() => {});
     }
 
@@ -78,7 +107,7 @@ async function handler({ request }: { request: Request }) {
         statusText: response.statusText,
         headers: response.headers,
       });
-      toCache.headers.set("Cache-Control", `public, max-age=${CACHE_MAX_AGE}, must-revalidate`);
+      toCache.headers.set("Cache-Control", `public, max-age=${ttlSeconds}, must-revalidate`);
       toCache.headers.set(CACHE_FETCHED_AT_HEADER, String(Date.now()));
       await cache.put(request, toCache);
     }
