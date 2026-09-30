@@ -16,17 +16,10 @@ export function absoluteUrl(path = "/"): string {
   return new URL(path, SITE_URL).toString();
 }
 
-// Open Graph consumers are inconsistent with WebP (Facebook, WhatsApp,
-// LinkedIn often render nothing). Only use the entity image when it is a
-// broadly-supported raster format; otherwise fall back to the branded PNG.
-const OG_SAFE_EXTENSIONS = [".jpg", ".jpeg", ".png"];
-
+// Use the entity image when it exists (any format, including WebP) and only
+// fall back to the branded default when there is no image.
 export function resolveOgImage(image?: string | null): string {
-  if (!image) return absoluteUrl(DEFAULT_OG_IMAGE);
-  const path = image.split(/[?#]/)[0].toLowerCase();
-  return OG_SAFE_EXTENSIONS.some((ext) => path.endsWith(ext))
-    ? absoluteUrl(image)
-    : absoluteUrl(DEFAULT_OG_IMAGE);
+  return image ? absoluteUrl(image) : absoluteUrl(DEFAULT_OG_IMAGE);
 }
 
 /** Append the brand suffix used across page titles. */

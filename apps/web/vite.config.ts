@@ -29,12 +29,20 @@ export default defineConfig({
   },
   plugins: [
     tailwindcss(),
+    // Only truly static pages are prerendered at build time (instant TTFB, never
+    // stale). Data-driven pages render on the server per request so they are
+    // always fresh and never bake stale/empty HTML (which previously left
+    // Suspense boundaries unresolved and triggered React #419).
     tanstackStart({
+      pages: [
+        { path: "/sobre", prerender: { enabled: true } },
+        { path: "/normas-tecnicas", prerender: { enabled: true } },
+      ],
       prerender: {
         enabled: true,
-        crawlLinks: true,
-        failOnError: false,
-        retryCount: 1,
+        crawlLinks: false,
+        autoStaticPathsDiscovery: false,
+        failOnError: true,
       },
     }),
     viteReact(),

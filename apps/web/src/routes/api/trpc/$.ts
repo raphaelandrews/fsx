@@ -11,13 +11,14 @@ import { applySecurityHeaders } from "@fsx/api/security-headers";
 import { createFileRoute } from "@tanstack/react-router";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
-// Short TTL for public GETs. When the server self-fetches these on SSR it goes
-// through the same Cache API, so this is what keeps the home page (hero/fresh
-// posts, events, etc.) reflecting admin edits quickly for every visitor. The
-// Cloudflare Cache API does not reliably honor `max-age` on the `match()` path,
-// so we also store a fetch timestamp and treat an entry as a miss once it is
-// older than its TTL — otherwise a hit could be served stale indefinitely
-// (e.g. a new post staying off the hero for hours on other browsers).
+// Short TTL for public GETs, cached in the Cloudflare Cache API and served to
+// the browser on client-side navigation. SSR does not go through this route —
+// it calls the router in-process (see apps/web/src/router.tsx) — so this cache
+// only affects client fetches, and keeps the home page (hero/fresh posts,
+// events, etc.) reflecting admin edits quickly. The Cache API does not reliably
+// honor `max-age` on the `match()` path, so we also store a fetch timestamp and
+// treat an entry as a miss once it is older than its TTL — otherwise a hit
+// could be served stale indefinitely (e.g. a new post staying off the hero).
 const CACHE_TTL_DEFAULT_SECONDS = 60;
 const CACHE_FETCHED_AT_HEADER = "x-cache-fetched-at";
 

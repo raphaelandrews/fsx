@@ -32,6 +32,11 @@ export const web = await TanStackStart("web", {
   // Adopt the existing remote worker (fsx-web-raphael) if it already exists
   // instead of failing on re-deploy.
   adopt: true,
+  // Prerendered pages use slash-less URLs (e.g. /sobre) to match their
+  // canonical tags; the default auto-trailing-slash would redirect them.
+  assets: {
+    html_handling: "drop-trailing-slash",
+  },
   bindings: {
     DB: db,
     IMAGES: images,
