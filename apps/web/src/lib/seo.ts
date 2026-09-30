@@ -16,6 +16,19 @@ export function absoluteUrl(path = "/"): string {
   return new URL(path, SITE_URL).toString();
 }
 
+// Open Graph consumers are inconsistent with WebP (Facebook, WhatsApp,
+// LinkedIn often render nothing). Only use the entity image when it is a
+// broadly-supported raster format; otherwise fall back to the branded PNG.
+const OG_SAFE_EXTENSIONS = [".jpg", ".jpeg", ".png"];
+
+export function resolveOgImage(image?: string | null): string {
+  if (!image) return absoluteUrl(DEFAULT_OG_IMAGE);
+  const path = image.split(/[?#]/)[0].toLowerCase();
+  return OG_SAFE_EXTENSIONS.some((ext) => path.endsWith(ext))
+    ? absoluteUrl(image)
+    : absoluteUrl(DEFAULT_OG_IMAGE);
+}
+
 /** Append the brand suffix used across page titles. */
 export function withBrand(title: string): string {
   return `${title} | ${SITE_SHORT_NAME}`;
@@ -65,7 +78,7 @@ export function buildSeo(options: SeoOptions) {
   } = options;
 
   const url = absoluteUrl(path);
-  const imageUrl = absoluteUrl(image || DEFAULT_OG_IMAGE);
+  const imageUrl = resolveOgImage(image);
 
   const meta = [
     { title },
@@ -157,7 +170,7 @@ export function articleJsonLd(options: {
   datePublished?: string | null;
   dateModified?: string | null;
 }): Record<string, unknown> {
-  const imageUrl = absoluteUrl(options.image || DEFAULT_OG_IMAGE);
+  const imageUrl = resolveOgImage(options.image);
   return {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
@@ -183,7 +196,7 @@ export function personJsonLd(options: {
     "@type": "Person",
     name: options.name,
     description: options.description,
-    image: options.image ? absoluteUrl(options.image) : undefined,
+    image: resolveOgImage(options.image),
     url: absoluteUrl(options.path),
     memberOf: { "@type": "SportsOrganization", name: SITE_NAME, url: SITE_URL },
   };
