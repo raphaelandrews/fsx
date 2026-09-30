@@ -8,6 +8,7 @@ import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
 import z from "zod";
 
+import { DatePicker } from "@/components/date-picker";
 import { EventLinksEditor, type EventLinkDraft } from "@/components/event-links-editor";
 import { useTRPC } from "@/utils/trpc";
 import { resolveEventLinkType } from "@fsx/api/event-link-types";
@@ -115,12 +116,11 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Start Date</Label>
-              <Input
+              <DatePicker
                 id={f.name}
-                type="date"
                 value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
+                onChange={(value) => f.handleChange(value)}
+                placeholder="Selecione a data"
               />
               {f.state.meta.errors.map((e) => (
                 <p key={e?.message} className="text-destructive text-xs">

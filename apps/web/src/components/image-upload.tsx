@@ -18,6 +18,9 @@ interface ImageUploadProps {
   // Called with the URL that is being replaced/removed so the owning form can
   // delete it from R2 *after* the record is saved (see usePendingImageDeletes).
   onImageReplaced?: (url: string) => void;
+  // Called with every freshly uploaded URL so the owning form can delete it if
+  // the save fails or the form is abandoned (see usePendingImageDeletes).
+  onUploaded?: (url: string) => void;
   aspectRatio?: number;
   outputWidth?: number;
   title?: string;
@@ -53,6 +56,7 @@ export function ImageUpload({
   value,
   onChange,
   onImageReplaced,
+  onUploaded,
   aspectRatio = 1,
   outputWidth = 400,
   title = "Crop Image",
@@ -125,6 +129,7 @@ export function ImageUpload({
           onImageReplaced?.(value);
         }
 
+        onUploaded?.(url);
         onChange(url);
         toast.success("Image uploaded");
       } catch {
@@ -133,7 +138,7 @@ export function ImageUpload({
         setIsUploading(false);
       }
     },
-    [value, kind, uploadMutation, onChange, onImageReplaced],
+    [value, kind, uploadMutation, onChange, onImageReplaced, onUploaded],
   );
 
   const handleRemove = useCallback(() => {

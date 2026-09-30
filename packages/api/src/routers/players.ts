@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, desc, and, inArray, gte, lte, or, sql, count, exists } from "drizzle-orm";
+import { eq, desc, asc, and, inArray, gte, lte, or, sql, count, exists } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 
 import { players as playersTable, insertPlayerSchema } from "@fsx/db/schema/players";
@@ -39,6 +39,15 @@ function getBirthDateRange(group: string): [string, string] | undefined {
 }
 
 export const playersRouter = router({
+  // Lightweight `{ id, name }` list for pickers (e.g. the admin title
+  // assignment select). Avoids loading every relation for all players.
+  options: publicProcedure.query(({ ctx }) =>
+    ctx.db
+      .select({ id: playersTable.id, name: playersTable.name })
+      .from(playersTable)
+      .orderBy(asc(playersTable.name))
+  ),
+
   list: publicProcedure.query(({ ctx }) =>
     ctx.db.query.players.findMany({
       columns: {

@@ -6,6 +6,7 @@ import { Input } from "@fsx/ui/components/input";
 import { toast } from "sonner";
 import z from "zod";
 
+import { DatePicker } from "@/components/date-picker";
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
 
@@ -124,12 +125,11 @@ function RouteComponent() {
         <form.Field name="date">
           {(f) => (
             <FormField label="Date" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
-              <Input
+              <DatePicker
                 id={f.name}
-                type="date"
                 value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
+                onChange={(value) => f.handleChange(value)}
+                placeholder="Selecione a data"
               />
             </FormField>
           )}

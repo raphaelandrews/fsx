@@ -25,7 +25,7 @@ function RouteComponent() {
   const trpc = useTRPC();
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const { track: trackImageReplaced, flush: flushImageDeletes } = usePendingImageDeletes();
+  const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
 
   const { data: posts = [] } = useSuspenseQuery(trpc.posts.listAdmin.queryOptions());
   const post = posts.find((p) => p.id === Number(id));
@@ -38,10 +38,13 @@ function RouteComponent() {
       qc.invalidateQueries(trpc.posts.fresh.queryFilter());
       qc.invalidateQueries(trpc.posts.byPage.queryFilter());
       qc.invalidateQueries(trpc.posts.bySlug.queryFilter());
-      await flushImageDeletes();
+      await commit();
       toast.success("Post updated");
     },
-    onError: () => toast.error("Failed to update post"),
+    onError: (_error, variables) => {
+      void discard(variables.imageUrl);
+      toast.error("Failed to update post");
+    },
   });
 
   if (!post) {
@@ -142,7 +145,8 @@ function RouteComponent() {
                 kind="posts"
                 value={f.state.value || null}
                 onChange={(url) => f.handleChange(url ?? "")}
-                onImageReplaced={trackImageReplaced}
+                onImageReplaced={trackReplaced}
+                onUploaded={trackCreated}
                 aspectRatio={16 / 9}
                 outputWidth={896}
                 title="Crop Cover Image"

@@ -7,6 +7,7 @@ import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
 import z from "zod";
 
+import { DatePicker } from "@/components/date-picker";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/tournaments/create")({
@@ -37,7 +38,7 @@ function RouteComponent() {
       <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
         <form.Field name="name">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Name</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
         <form.Field name="ratingType">{(f) => (<div className="space-y-2"><Label>Rating Type</Label><select value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="blitz">Blitz</option><option value="rapid">Rapid</option><option value="classic">Classic</option></select></div>)}</form.Field>
-        <form.Field name="date">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Date (YYYY-MM-DD)</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
+        <form.Field name="date">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Date</Label><DatePicker id={f.name} value={f.state.value} onChange={(value) => f.handleChange(value)} placeholder="Selecione a data" /></div>)}</form.Field>
         <form.Field name="chessResults">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Chess Results URL</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
         <form.Field name="championshipId">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Championship ID</Label><Input id={f.name} type="number" value={f.state.value?.toString() ?? ""} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)} /></div>)}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>

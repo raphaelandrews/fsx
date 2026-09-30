@@ -69,7 +69,7 @@ function RouteComponent() {
             </div>
           </Tabs>
 
-          {activeCircuit && <CircuitView circuit={activeCircuit} />}
+          {activeCircuit && <CircuitView key={activeCircuit.name} circuit={activeCircuit} />}
         </>
       )}
     </>

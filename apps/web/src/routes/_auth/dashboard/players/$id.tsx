@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import z from "zod";
 
+import { DatePicker } from "@/components/date-picker";
 import { ImageUpload } from "@/components/image-upload";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
@@ -38,7 +39,7 @@ function RouteComponent() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const numId = Number(id);
-  const { track: trackImageReplaced, flush: flushImageDeletes } = usePendingImageDeletes();
+  const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
 
   const { data: player } = useSuspenseQuery(trpc.players.forEdit.queryOptions({ id: numId }));
   const { data: clubs = [] } = useSuspenseQuery(trpc.clubs.list.queryOptions());
@@ -60,10 +61,13 @@ function RouteComponent() {
     ...trpc.players.update.mutationOptions(),
     onSuccess: async () => {
       qc.invalidateQueries(trpc.players.forEdit.queryFilter({ id: numId }));
-      await flushImageDeletes();
+      await commit();
       toast.success("Player updated");
     },
-    onError: () => toast.error("Failed to update player"),
+    onError: (_error, variables) => {
+      void discard(variables.imageUrl);
+      toast.error("Failed to update player");
+    },
   });
 
   const linkTitleMutation = useMutation({
@@ -184,7 +188,11 @@ function RouteComponent() {
     <div className="mx-auto max-w-2xl">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-bold text-2xl">Edit Player: {player.name}</h1>
-        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/players" })}>
+        <Button
+          variant="outline"
+          disabled={updateMutation.isPending}
+          onClick={() => navigate({ to: "/dashboard/players" })}
+        >
           Back
         </Button>
       </div>
@@ -235,7 +243,8 @@ function RouteComponent() {
                 kind="players"
                 value={f.state.value || null}
                 onChange={(url) => f.handleChange(url ?? "")}
-                onImageReplaced={trackImageReplaced}
+                onImageReplaced={trackReplaced}
+                onUploaded={trackCreated}
                 title="Crop Player Photo"
                 description="Adjust the crop area for a square avatar."
                 outputWidth={120}
@@ -291,11 +300,11 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Birth</Label>
-              <Input
+              <DatePicker
                 id={f.name}
                 value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
+                onChange={(value) => f.handleChange(value)}
+                placeholder="Selecione a data de nascimento"
               />
             </div>
           )}

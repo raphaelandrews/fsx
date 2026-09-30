@@ -7,6 +7,7 @@ import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
 import z from "zod";
 
+import { DatePicker } from "@/components/date-picker";
 import { ImageUpload } from "@/components/image-upload";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
@@ -20,17 +21,20 @@ function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { track: trackImageReplaced, flush: flushImageDeletes } = usePendingImageDeletes();
+  const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
 
   const createMutation = useMutation({
     ...trpc.players.create.mutationOptions(),
     onSuccess: async () => {
       qc.invalidateQueries(trpc.players.list.queryFilter());
-      await flushImageDeletes();
+      await commit();
       toast.success("Player created");
       navigate({ to: "/dashboard/players" });
     },
-    onError: (error) => toast.error(error.message ?? "Failed to create player"),
+    onError: (error, variables) => {
+      void discard(variables.imageUrl);
+      toast.error(error.message ?? "Failed to create player");
+    },
   });
 
   const form = useForm({
@@ -128,7 +132,8 @@ function RouteComponent() {
                 kind="players"
                 value={f.state.value || null}
                 onChange={(url) => f.handleChange(url ?? "")}
-                onImageReplaced={trackImageReplaced}
+                onImageReplaced={trackReplaced}
+                onUploaded={trackCreated}
                 title="Crop Player Photo"
                 description="Adjust the crop area for a square avatar."
                 outputWidth={120}
@@ -183,12 +188,12 @@ function RouteComponent() {
         <form.Field name="birthDate">
           {(f) => (
             <div className="space-y-2">
-              <Label htmlFor={f.name}>Birth (YYYY-MM-DD)</Label>
-              <Input
+              <Label htmlFor={f.name}>Birth</Label>
+              <DatePicker
                 id={f.name}
                 value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
+                onChange={(value) => f.handleChange(value)}
+                placeholder="Selecione a data de nascimento"
               />
             </div>
           )}

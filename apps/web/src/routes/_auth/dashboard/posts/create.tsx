@@ -22,7 +22,7 @@ function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { track: trackImageReplaced, flush: flushImageDeletes } = usePendingImageDeletes();
+  const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
 
   const createMutation = useMutation({
     ...trpc.posts.create.mutationOptions(),
@@ -31,11 +31,14 @@ function RouteComponent() {
       qc.invalidateQueries(trpc.posts.list.queryFilter());
       qc.invalidateQueries(trpc.posts.fresh.queryFilter());
       qc.invalidateQueries(trpc.posts.byPage.queryFilter());
-      await flushImageDeletes();
+      await commit();
       toast.success("Post created");
       navigate({ to: "/dashboard/posts" });
     },
-    onError: (error) => toast.error(error.message ?? "Failed to create post"),
+    onError: (error, variables) => {
+      void discard(variables.imageUrl);
+      toast.error(error.message ?? "Failed to create post");
+    },
   });
 
   const form = useForm({
@@ -108,7 +111,8 @@ function RouteComponent() {
                 kind="posts"
                 value={f.state.value || null}
                 onChange={(url) => f.handleChange(url ?? "")}
-                onImageReplaced={trackImageReplaced}
+                onImageReplaced={trackReplaced}
+                onUploaded={trackCreated}
                 aspectRatio={16 / 9}
                 outputWidth={896}
                 title="Crop Cover Image"

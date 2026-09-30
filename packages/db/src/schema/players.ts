@@ -40,6 +40,13 @@ export const players = sqliteTable(
 		index("players_classic_idx").on(table.classic),
 		index("players_rapid_idx").on(table.rapid),
 		index("players_blitz_idx").on(table.blitz),
+		// `WHERE active = true ORDER BY <rating> LIMIT n` is the hot path for the
+		// command-menu default list, top-players and /ratings. The composite lets
+		// the planner walk the index in order and stop at LIMIT instead of
+		// scanning every active row and sorting it in a temp B-tree.
+		index("players_active_classic_idx").on(table.active, table.classic),
+		index("players_active_rapid_idx").on(table.active, table.rapid),
+		index("players_active_blitz_idx").on(table.active, table.blitz),
 		// Admin players list orders by name for pagination.
 		index("players_name_idx").on(table.name),
 	],

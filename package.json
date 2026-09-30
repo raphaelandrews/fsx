@@ -41,6 +41,7 @@
     "dev:web": "vp run --filter web dev",
     "db:generate": "vp run --filter @fsx/db db:generate",
     "db:seed": "vp run --filter @fsx/db db:seed",
+    "db:backup": "bash scripts/d1-backup.sh",
     "deploy": "vp run --filter @fsx/infra deploy",
     "destroy": "vp run --filter @fsx/infra destroy"
   },

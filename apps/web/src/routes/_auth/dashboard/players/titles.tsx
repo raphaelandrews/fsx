@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_auth/dashboard/players/titles")({
   validateSearch: searchSchema,
   loader: async ({ context }) => {
     await Promise.all([
-      context.queryClient.ensureQueryData(context.trpc.players.list.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.players.options.queryOptions()),
       context.queryClient.ensureQueryData(context.trpc.titles.list.queryOptions()),
     ]);
   },
@@ -29,7 +29,7 @@ function RouteComponent() {
   const qc = useQueryClient();
   const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(playerId ?? null);
 
-  const { data: players = [] } = useSuspenseQuery(trpc.players.list.queryOptions());
+  const { data: players = [] } = useSuspenseQuery(trpc.players.options.queryOptions());
   const { data: titles = [] } = useSuspenseQuery(trpc.titles.list.queryOptions());
   const { data: playerTitles = [] } = useSuspenseQuery(
     trpc.playersToTitles.listByPlayer.queryOptions({ playerId: selectedPlayerId ?? 0 }),

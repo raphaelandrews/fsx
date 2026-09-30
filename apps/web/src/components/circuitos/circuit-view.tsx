@@ -21,6 +21,9 @@ export function CircuitView({ circuit }: { circuit: Circuit }) {
   if (circuit.type === "school") {
     return <SchoolView circuit={circuit} phases={phases} />;
   }
+  if (circuit.type === "geral") {
+    return <PlayersTable rows={aggregatePlayers({ ...circuit, circuitPhases: [] })} phases={[]} />;
+  }
   return <PlayersTable rows={aggregatePlayers(circuit)} phases={phases} />;
 }
 

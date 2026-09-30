@@ -15,7 +15,8 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/")({
   head: () => ({ meta: [{ title: "Circuits - Admin - FSX" }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.circuits.listSimple.queryOptions()),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.circuits.listSimple.queryOptions()),
   component: RouteComponent,
 });
 
@@ -28,6 +29,7 @@ function RouteComponent() {
   const deleteMutation = useMutation({
     ...trpc.circuits.delete.mutationOptions(),
     onSuccess: () => {
+      qc.invalidateQueries(trpc.circuits.list.queryFilter());
       qc.invalidateQueries(trpc.circuits.listSimple.queryFilter());
       toast.success("Circuit deleted");
     },

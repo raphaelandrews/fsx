@@ -1,4 +1,4 @@
-import type { Circuit, CircuitPhase, ClubRow, PlayerRow } from "./types";
+import type { Circuit, CircuitPhase, CircuitPlayer, ClubRow, PlayerRow } from "./types";
 
 const CATEGORY_ORDER = ["Master", "Juvenil", "Futuro"];
 
@@ -31,41 +31,55 @@ export function circuitCategories(circuit: Circuit): string[] {
 export function aggregatePlayers(circuit: Circuit, categories?: string[]): PlayerRow[] {
   const map = new Map<number, PlayerRow>();
 
+  const included = (category: string | null) =>
+    !categories || categories.length === 0 || (category != null && categories.includes(category));
+
+  const upsert = (player: CircuitPlayer): PlayerRow => {
+    let row = map.get(player.id);
+    if (!row) {
+      row = {
+        id: player.id,
+        name: player.name,
+        nickname: player.nickname,
+        imageUrl: player.imageUrl,
+        playersToTitles: player.playersToTitles,
+        club: player.club,
+        categories: [],
+        total: 0,
+        pointsByPhase: {},
+      };
+      map.set(player.id, row);
+    }
+    return row;
+  };
+
+  const apply = (
+    player: CircuitPlayer,
+    points: number,
+    category: string | null,
+    phase?: string,
+  ) => {
+    const row = upsert(player);
+    row.total += points;
+    if (phase) {
+      row.pointsByPhase[phase] = (row.pointsByPhase[phase] ?? 0) + points;
+    }
+    if (category && !row.categories.includes(category)) {
+      row.categories.push(category);
+    }
+  };
+
   for (const phase of circuit.circuitPhases) {
     const name = phaseName(phase);
     for (const podium of phase.circuitPodiums) {
-      if (
-        categories &&
-        categories.length > 0 &&
-        (!podium.category || !categories.includes(podium.category))
-      ) {
-        continue;
-      }
-
-      const player = podium.player;
-      let row = map.get(player.id);
-      if (!row) {
-        row = {
-          id: player.id,
-          name: player.name,
-          nickname: player.nickname,
-          imageUrl: player.imageUrl,
-          playersToTitles: player.playersToTitles,
-          club: player.club,
-          categories: [],
-          total: 0,
-          pointsByPhase: {},
-        };
-        map.set(player.id, row);
-      }
-
-      const points = podium.points ?? 0;
-      row.total += points;
-      row.pointsByPhase[name] = (row.pointsByPhase[name] ?? 0) + points;
-      if (podium.category && !row.categories.includes(podium.category)) {
-        row.categories.push(podium.category);
-      }
+      if (!included(podium.category)) continue;
+      apply(podium.player, podium.points ?? 0, podium.category, name);
     }
+  }
+
+  for (const podium of circuit.circuitPodiums) {
+    if (!included(podium.category)) continue;
+    apply(podium.player, podium.points ?? 0, podium.category);
   }
 
   return Array.from(map.values()).sort(

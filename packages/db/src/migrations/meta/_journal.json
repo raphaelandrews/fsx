@@ -120,6 +120,20 @@
       "when": 1790549003609,
       "tag": "0016_wise_korg",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1790775403736,
+      "tag": "0017_real_the_liberteens",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1790787437641,
+      "tag": "0018_optimal_tiger_shark",
+      "breakpoints": true
     }
   ]
 }

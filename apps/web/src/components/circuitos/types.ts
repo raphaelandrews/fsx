@@ -5,6 +5,7 @@ import type { AppRouter } from "@fsx/api/routers/index";
 export type Circuit = inferRouterOutputs<AppRouter>["circuits"]["list"][number];
 export type CircuitPhase = Circuit["circuitPhases"][number];
 export type CircuitPodium = CircuitPhase["circuitPodiums"][number];
+export type CircuitDirectPodium = Circuit["circuitPodiums"][number];
 export type CircuitPlayer = CircuitPodium["player"];
 
 export type CircuitType = Circuit["type"];

@@ -1,31 +1,71 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useTRPCClient } from "@/utils/trpc";
 
-// Tracks image URLs that were replaced/removed in the editor and only deletes
-// them from R2 *after* the record is actually saved. Deleting on replace would
-// break the current image if the admin cancels the edit without saving — the DB
-// row would keep pointing at an already-deleted object. Deferring to save means
-// the new reference is committed first, then the old object is cleaned up.
+// Coordinates R2 object lifecycle with a form's save:
+//
+// - `replaced`: the image(s) the record pointed at before the edit. Deleting on
+//   replace would break the record if the admin cancels, so they are only
+//   removed after a successful save.
+// - `created`: images uploaded during the edit that are not yet referenced by a
+//   saved record. If the save fails (or the form is abandoned), superseded
+//   uploads are deleted — otherwise a failed create leaves them in R2 forever.
+//
+// On failure the upload currently held by the form is *kept* so a retry still
+// references a live object; it is only deleted when it is superseded or the
+// form unmounts without saving.
 export function usePendingImageDeletes() {
   const trpc = useTRPCClient();
-  const pending = useRef<Set<string>>(new Set());
+  const replaced = useRef<Set<string>>(new Set());
+  const created = useRef<Set<string>>(new Set());
 
-  const track = useCallback((url: string | null | undefined) => {
-    if (url) pending.current.add(url);
+  const trackReplaced = useCallback((url: string | null | undefined) => {
+    if (url) replaced.current.add(url);
   }, []);
 
-  const flush = useCallback(async () => {
-    const urls = Array.from(pending.current);
-    if (urls.length === 0) return;
-    const results = await Promise.allSettled(
-      urls.map((url) => trpc.images.delete.mutate({ url })),
-    );
-    // Keep any that failed so a later save can retry; images.delete is idempotent.
-    pending.current = new Set(
-      urls.filter((_, i) => results[i]?.status === "rejected"),
-    );
-  }, [trpc]);
+  const trackCreated = useCallback((url: string | null | undefined) => {
+    if (url) created.current.add(url);
+  }, []);
 
-  return { track, flush };
+  const deleteUrls = useCallback(
+    async (urls: string[]) => {
+      if (urls.length === 0) return;
+      const results = await Promise.allSettled(
+        urls.map((url) => trpc.images.delete.mutate({ url })),
+      );
+      return urls.filter((_, i) => results[i]?.status === "rejected");
+    },
+    [trpc],
+  );
+
+  // Save succeeded: the record now references the new image. Delete the replaced
+  // objects and forget the uploads (they are committed).
+  const commit = useCallback(async () => {
+    const urls = Array.from(replaced.current);
+    replaced.current.clear();
+    created.current.clear();
+    await deleteUrls(urls);
+  }, [deleteUrls]);
+
+  // Save failed or the form was abandoned: delete uploads that are no longer
+  // referenced by the form (`keepUrl` stays for a retry; on unmount there is no
+  // keep). `replaced` is left intact — the record still points at it.
+  const discard = useCallback(
+    async (keepUrl?: string | null) => {
+      const toDelete = Array.from(created.current).filter((url) => url !== keepUrl);
+      for (const url of toDelete) created.current.delete(url);
+      await deleteUrls(toDelete);
+    },
+    [deleteUrls],
+  );
+
+  // Clean up uncommitted uploads when the form unmounts without saving. Safe
+  // after a successful save because `commit` has already emptied the set.
+  useEffect(() => {
+    return () => {
+      void discard();
+    };
+  }, [discard]);
+
+  return { trackReplaced, trackCreated, commit, discard };
 }
