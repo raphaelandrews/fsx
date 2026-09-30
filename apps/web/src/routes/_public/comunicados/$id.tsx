@@ -5,14 +5,9 @@ import { ScrollIcon } from "@hugeicons/core-free-icons";
 
 import { useTRPC } from "@/utils/trpc";
 import { padNumber } from "@/utils/format";
+import { articleJsonLd, breadcrumbJsonLd, buildSeo, truncate, withBrand } from "@/lib/seo";
 
 export const Route = createFileRoute("/_public/comunicados/$id")({
-  head: () => ({
-    meta: [
-      { title: "Comunicado - FSX" },
-      { name: "description", content: "Comunicado oficial da Federação Sergipana de Xadrez" },
-    ],
-  }),
   loader: async ({ context, params }) => {
     try {
       const id = Number(params.id);
@@ -25,6 +20,33 @@ export const Route = createFileRoute("/_public/comunicados/$id")({
       if (error instanceof Response) throw error;
       throw notFound();
     }
+  },
+  head: ({ loaderData }) => {
+    const announcement = loaderData;
+    if (!announcement) {
+      return buildSeo({
+        title: withBrand("Comunicado"),
+        path: "/comunicados",
+        noindex: true,
+      });
+    }
+    const label = `Comunicado ${padNumber(announcement.number)}/${announcement.year}`;
+    const path = `/comunicados/${announcement.id}`;
+    const description = truncate(announcement.content);
+    return buildSeo({
+      title: withBrand(label),
+      description,
+      path,
+      type: "article",
+      jsonLd: [
+        articleJsonLd({ title: label, path, description }),
+        breadcrumbJsonLd([
+          { name: "Início", path: "/" },
+          { name: "Comunicados", path: "/comunicados" },
+          { name: label, path },
+        ]),
+      ],
+    });
   },
   component: RouteComponent,
 });

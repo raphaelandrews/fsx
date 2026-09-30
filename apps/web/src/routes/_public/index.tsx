@@ -7,6 +7,7 @@ import { FAQ } from "@/components/home/faq";
 import { Hero } from "@/components/home/hero";
 import { Posts } from "@/components/home/posts";
 import { TopPlayers } from "@/components/home/ratings/top-players";
+import { DEFAULT_DESCRIPTION, SITE_NAME, buildSeo } from "@/lib/seo";
 import { useTRPC } from "@/utils/trpc";
 
 // Public homepage content is admin-edited, so keep staleness short so a
@@ -16,12 +17,12 @@ import { useTRPC } from "@/utils/trpc";
 const PUBLICATION_STALE_TIME = 60_000;
 
 export const Route = createFileRoute("/_public/")({
-  head: () => ({
-    meta: [
-      { title: "Federação Sergipana de Xadrez" },
-      { name: "description", content: "Site oficial da Federação Sergipana de Xadrez" },
-    ],
-  }),
+  head: () =>
+    buildSeo({
+      title: `${SITE_NAME} (FSX) — Xadrez em Sergipe`,
+      description: DEFAULT_DESCRIPTION,
+      path: "/",
+    }),
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(
       context.trpc.events.list.queryOptions(undefined, { staleTime: 30_000 }),
@@ -30,7 +31,9 @@ export const Route = createFileRoute("/_public/")({
       context.trpc.posts.fresh.queryOptions(undefined, { staleTime: PUBLICATION_STALE_TIME }),
     );
     context.queryClient.ensureQueryData(
-      context.trpc.announcements.fresh.queryOptions(undefined, { staleTime: PUBLICATION_STALE_TIME }),
+      context.trpc.announcements.fresh.queryOptions(undefined, {
+        staleTime: PUBLICATION_STALE_TIME,
+      }),
     );
     context.queryClient.ensureQueryData(context.trpc.topPlayers.list.queryOptions());
   },

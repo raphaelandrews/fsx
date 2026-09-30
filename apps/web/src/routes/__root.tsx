@@ -12,6 +12,18 @@ import { SECURITY_HEADERS } from "@fsx/api/security-headers";
 
 import appCss from "../index.css?url";
 import { ErrorFallback, NotFound } from "@/components/not-found";
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_OG_IMAGE,
+  SITE_LOCALE,
+  SITE_NAME,
+  SITE_SHORT_NAME,
+  SITE_URL,
+  THEME_COLOR,
+  absoluteUrl,
+  organizationJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 export interface RouterAppContext {
   trpc: TRPCOptionsProxy<AppRouter>;
   queryClient: QueryClient;
@@ -21,44 +33,62 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   headers: () => SECURITY_HEADERS,
   head: () => {
     const analyticsToken = (import.meta as { env?: Record<string, string | undefined> }).env
-      ?.VITE_CLOUDFLARE_ANALYTICS_TOKEN
-    const scripts = analyticsToken
-      ? [
-        {
-          src: "https://static.cloudflareinsights.com/beacon.min.js",
-          defer: true,
-          "data-cf-beacon": JSON.stringify({ token: analyticsToken }),
-        },
-      ]
-      : []
+      ?.VITE_CLOUDFLARE_ANALYTICS_TOKEN;
+    const scripts = [
+      ...(analyticsToken
+        ? [
+            {
+              src: "https://static.cloudflareinsights.com/beacon.min.js",
+              defer: true,
+              "data-cf-beacon": JSON.stringify({ token: analyticsToken }),
+            },
+          ]
+        : []),
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(organizationJsonLd()),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(websiteJsonLd()),
+      },
+    ];
     return {
       meta: [
         { charSet: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
-        { title: "Federação Sergipana de Xadrez" },
-        {
-          name: "description",
-          content:
-            "Site oficial da Federação Sergipana de Xadrez. Ratings, torneios, notícias e campeões do xadrez sergipano.",
-        },
-        { property: "og:title", content: "Federação Sergipana de Xadrez" },
-        {
-          property: "og:description",
-          content: "Ratings, torneios, notícias e campeões do xadrez sergipano.",
-        },
-        { property: "og:image", content: "/logo.svg" },
+        { name: "theme-color", content: THEME_COLOR },
+        { title: SITE_NAME },
+        { name: "description", content: DEFAULT_DESCRIPTION },
+        { name: "robots", content: "index, follow" },
+        { name: "application-name", content: SITE_SHORT_NAME },
+        { name: "apple-mobile-web-app-title", content: SITE_SHORT_NAME },
+        { property: "og:title", content: SITE_NAME },
+        { property: "og:description", content: DEFAULT_DESCRIPTION },
         { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary" },
+        { property: "og:url", content: SITE_URL },
+        { property: "og:image", content: absoluteUrl(DEFAULT_OG_IMAGE) },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:site_name", content: SITE_NAME },
+        { property: "og:locale", content: SITE_LOCALE },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: SITE_NAME },
+        { name: "twitter:description", content: DEFAULT_DESCRIPTION },
+        { name: "twitter:image", content: absoluteUrl(DEFAULT_OG_IMAGE) },
         { name: "view-transition", content: "same-origin" },
       ],
       links: [
         { rel: "stylesheet", href: appCss },
-        { rel: "icon", type: "image/svg+xml", href: "/logo.svg" },
-        { rel: "canonical", href: "https://fsx.chess" },
+        { rel: "icon", href: "/favicon.ico", sizes: "any" },
+        { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+        { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+        { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+        { rel: "manifest", href: "/site.webmanifest" },
         { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
       ],
       scripts,
-    }
+    };
   },
   notFoundComponent: () => <NotFound />,
   errorComponent: ({ error }) => {

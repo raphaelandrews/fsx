@@ -13,18 +13,21 @@ import { Announcement } from "@/components/announcement";
 import { PageHeader } from "@/components/page-header";
 import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
 import { getGradient } from "@/lib/gradients";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_public/membros")({
-  head: () => ({
-    meta: [
-      { title: "Membros - FSX" },
-      {
-        name: "description",
-        content: "Diretoria e árbitros da Federação Sergipana de Xadrez.",
-      },
-    ],
-  }),
+  head: () =>
+    buildSeo({
+      title: withBrand("Membros e Árbitros"),
+      description:
+        "Diretoria e árbitros da Federação Sergipana de Xadrez — quem organiza e apita o xadrez em Sergipe.",
+      path: "/membros",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Membros", path: "/membros" },
+      ]),
+    }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.roles.listWithPlayers.queryOptions()),
   pendingComponent: () => <CardGridSkeleton />,

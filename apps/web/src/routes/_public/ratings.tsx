@@ -32,6 +32,7 @@ import {
 import { useTRPC } from "@/utils/trpc";
 import { cn } from "@fsx/ui/lib/utils";
 import { avatarGradientFor } from "@/components/avatar-gradient";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
 const sortByEnum = z.enum(["classic", "rapid", "blitz"]);
 type SortBy = z.infer<typeof sortByEnum>;
@@ -49,12 +50,17 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/_public/ratings")({
   validateSearch: searchSchema,
-  head: () => ({
-    meta: [
-      { title: "Ratings - FSX" },
-      { name: "description", content: "Ranking de ratings dos jogadores da FSX" },
-    ],
-  }),
+  head: () =>
+    buildSeo({
+      title: withBrand("Ratings de Xadrez"),
+      description:
+        "Ranking de ratings (clássico, rápido e blitz) dos jogadores filiados à Federação Sergipana de Xadrez. Filtre por clube, cidade, título e categoria.",
+      path: "/ratings",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Ratings", path: "/ratings" },
+      ]),
+    }),
   loaderDeps: ({ search }) => ({
     page: search.page,
     sortBy: search.ordenar,
@@ -298,7 +304,12 @@ function RouteComponent() {
                         />
                       </span>
                     ) : player.club?.name ? (
-                      <span className={cn("relative flex shrink-0 h-5 w-5 overflow-hidden rounded", avatarGradientFor(player.club.name))} />
+                      <span
+                        className={cn(
+                          "relative flex shrink-0 h-5 w-5 overflow-hidden rounded",
+                          avatarGradientFor(player.club.name),
+                        )}
+                      />
                     ) : null}
                     <span className="text-muted-foreground">{player.club?.name ?? "—"}</span>
                   </div>

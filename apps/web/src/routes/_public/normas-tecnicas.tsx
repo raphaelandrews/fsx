@@ -5,17 +5,20 @@ import { Announcement } from "@/components/announcement";
 import { NormasItem } from "@/components/normas-tecnicas/normas-item";
 import { ratingVariations, titulations } from "@/components/normas-tecnicas/data";
 import { PageHeader } from "@/components/page-header";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
 export const Route = createFileRoute("/_public/normas-tecnicas")({
-  head: () => ({
-    meta: [
-      { title: "Normas Técnicas - FSX" },
-      {
-        name: "description",
-        content: "Normas técnicas da Federação Sergipana de Xadrez.",
-      },
-    ],
-  }),
+  head: () =>
+    buildSeo({
+      title: withBrand("Normas Técnicas"),
+      description:
+        "Regras, titulações e critérios de variação de rating oficiais da Federação Sergipana de Xadrez.",
+      path: "/normas-tecnicas",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Normas Técnicas", path: "/normas-tecnicas" },
+      ]),
+    }),
   component: RouteComponent,
 });
 

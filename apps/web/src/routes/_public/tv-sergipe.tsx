@@ -2,9 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { TvSergipeView } from "@/components/tv-sergipe/tv-sergipe-view";
-import {
-  AGE_GROUPS,
-} from "@/components/tv-sergipe/constants";
+import { AGE_GROUPS } from "@/components/tv-sergipe/constants";
 import {
   resolveTvSergipeFilters,
   tvSergipeLeaderboardOptions,
@@ -12,6 +10,7 @@ import {
 } from "@/components/tv-sergipe/queries";
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
 const searchSchema = z.object({
   view: z.enum(["medals", "points"]).default("medals"),
@@ -32,16 +31,17 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/_public/tv-sergipe")({
   validateSearch: searchSchema,
-  head: () => ({
-    meta: [
-      { title: "Jogos Escolares TV Sergipe - FSX" },
-      {
-        name: "description",
-        content:
-          "Classificação por escola nos Jogos Escolares TV Sergipe — medalhas e pontos por idade, sexo e modalidade.",
-      },
-    ],
-  }),
+  head: () =>
+    buildSeo({
+      title: withBrand("Jogos Escolares TV Sergipe"),
+      description:
+        "Classificação por escola nos Jogos Escolares TV Sergipe — medalhas e pontos por idade, sexo e modalidade.",
+      path: "/tv-sergipe",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "TV Sergipe", path: "/tv-sergipe" },
+      ]),
+    }),
   loaderDeps: ({ search }) => ({
     view: search.view,
     idade: search.idade,
@@ -49,17 +49,13 @@ export const Route = createFileRoute("/_public/tv-sergipe")({
   }),
   loader: ({ context, deps }) => {
     // List is always needed — it's the source of the drilldown data.
-    const listPromise = context.queryClient.ensureQueryData(
-      tvSergipeListOptions(context.trpc),
-    );
+    const listPromise = context.queryClient.ensureQueryData(tvSergipeListOptions(context.trpc));
 
     const filters = resolveTvSergipeFilters({ idade: deps.idade, escopo: deps.escopo });
 
     return Promise.all([
       listPromise,
-      context.queryClient.ensureQueryData(
-        tvSergipeLeaderboardOptions(context.trpc, filters),
-      ),
+      context.queryClient.ensureQueryData(tvSergipeLeaderboardOptions(context.trpc, filters)),
     ]);
   },
   pendingComponent: () => <TableSkeleton />,

@@ -7,6 +7,7 @@ import { Pagination } from "@/components/data-table/pagination";
 import { PageHeader } from "@/components/page-header";
 import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
 import { PostCard } from "@/components/post-card";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/utils/trpc";
 
 const searchSchema = z.object({
@@ -20,17 +21,27 @@ const PUBLICATION_STALE_TIME = 60_000;
 
 export const Route = createFileRoute("/_public/noticias/")({
   validateSearch: searchSchema,
-  head: () => ({
-    meta: [
-      { title: "Notícias - FSX" },
-      { name: "description", content: "Notícias da Federação Sergipana de Xadrez" },
-    ],
-  }),
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(
-      context.trpc.posts.byPage.queryOptions({ page: deps.page }, { staleTime: PUBLICATION_STALE_TIME }),
+      context.trpc.posts.byPage.queryOptions(
+        { page: deps.page },
+        { staleTime: PUBLICATION_STALE_TIME },
+      ),
     ),
+  head: ({ loaderData }) => {
+    const page = loaderData?.pagination.currentPage ?? 1;
+    return buildSeo({
+      title: page > 1 ? withBrand(`Notícias — Página ${page}`) : withBrand("Notícias"),
+      description:
+        "Últimas notícias, torneios e novidades do xadrez em Sergipe, pela Federação Sergipana de Xadrez.",
+      path: page > 1 ? `/noticias?page=${page}` : "/noticias",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Notícias", path: "/noticias" },
+      ]),
+    });
+  },
   pendingComponent: () => <CardGridSkeleton />,
   component: RouteComponent,
 });
@@ -52,12 +63,7 @@ function RouteComponent() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {data.posts.map((post) => (
-            <PostCard
-              key={post.id}
-              title={post.title}
-              imageUrl={post.imageUrl}
-              slug={post.slug}
-            />
+            <PostCard key={post.id} title={post.title} imageUrl={post.imageUrl} slug={post.slug} />
           ))}
         </div>
       )}
@@ -68,9 +74,7 @@ function RouteComponent() {
           hasNextPage={data.pagination.hasNextPage}
           hasPreviousPage={data.pagination.hasPreviousPage}
           totalPages={data.pagination.totalPages}
-          onPageChange={(newPage) =>
-            navigate({ to: "/noticias", search: { page: newPage } })
-          }
+          onPageChange={(newPage) => navigate({ to: "/noticias", search: { page: newPage } })}
         />
       </div>
     </>

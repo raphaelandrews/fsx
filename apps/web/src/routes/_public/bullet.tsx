@@ -1,30 +1,33 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { useSuspenseQuery } from "@tanstack/react-query"
+import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { PageHeader } from "@/components/page-header"
-import { BulletClient } from "@/components/bullet/bullet-client"
-import { useTRPC } from "@/utils/trpc"
+import { PageHeader } from "@/components/page-header";
+import { BulletClient } from "@/components/bullet/bullet-client";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_public/bullet")({
-  head: () => ({
-    meta: [
-      { title: "Sergipano Bullet - FSX" },
-      {
-        name: "description",
-        content: "Campeonato Sergipano Bullet de Xadrez.",
-      },
-    ],
-  }),
+  head: () =>
+    buildSeo({
+      title: withBrand("Sergipano Bullet"),
+      description:
+        "Classificação, resultados e chaveamento do Campeonato Sergipano Bullet de Xadrez.",
+      path: "/bullet",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Bullet", path: "/bullet" },
+      ]),
+    }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.cups.list.queryOptions()),
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
-  const trpc = useTRPC()
-  const { data: cups = [] } = useSuspenseQuery(trpc.cups.list.queryOptions())
+  const trpc = useTRPC();
+  const { data: cups = [] } = useSuspenseQuery(trpc.cups.list.queryOptions());
 
-  const cup = cups.find((c) => c.name.toLowerCase().includes("bullet")) ?? cups[0]
+  const cup = cups.find((c) => c.name.toLowerCase().includes("bullet")) ?? cups[0];
 
   if (!cup) {
     return (
@@ -34,7 +37,7 @@ function RouteComponent() {
           Nenhuma edição do Campeonato Sergipano Bullet disponível.
         </p>
       </>
-    )
+    );
   }
 
   return (
@@ -42,5 +45,5 @@ function RouteComponent() {
       <PageHeader title="Sergipano Bullet" />
       <BulletClient cup={cup} />
     </>
-  )
+  );
 }

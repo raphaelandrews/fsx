@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/page-header";
 import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
 import { useTRPC } from "@/utils/trpc";
 import { padNumber } from "@/utils/format";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
 const searchSchema = z.object({
   page: z.number().int().positive().default(1),
@@ -17,17 +18,23 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/_public/comunicados/")({
   validateSearch: searchSchema,
-  head: () => ({
-    meta: [
-      { title: "Comunicados - FSX" },
-      { name: "description", content: "Comunicados oficiais da Federação Sergipana de Xadrez" },
-    ],
-  }),
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(
       context.trpc.announcements.byPage.queryOptions({ page: deps.page }),
     ),
+  head: ({ loaderData }) => {
+    const page = loaderData?.pagination.currentPage ?? 1;
+    return buildSeo({
+      title: page > 1 ? withBrand(`Comunicados — Página ${page}`) : withBrand("Comunicados"),
+      description: "Comunicados e avisos oficiais da Federação Sergipana de Xadrez.",
+      path: page > 1 ? `/comunicados?page=${page}` : "/comunicados",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Comunicados", path: "/comunicados" },
+      ]),
+    });
+  },
   pendingComponent: () => <CardGridSkeleton />,
   component: RouteComponent,
 });

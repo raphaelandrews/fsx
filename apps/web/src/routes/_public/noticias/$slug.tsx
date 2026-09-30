@@ -1,40 +1,70 @@
-import { createFileRoute, notFound } from "@tanstack/react-router"
-import { useSuspenseQuery } from "@tanstack/react-query"
+import { createFileRoute, notFound } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { Markdown } from "@/components/markdown"
-import { PostTimeAgo } from "@/components/noticias/post-time-ago"
-import { useTRPC } from "@/utils/trpc"
+import { Markdown } from "@/components/markdown";
+import { PostTimeAgo } from "@/components/noticias/post-time-ago";
+import { articleJsonLd, breadcrumbJsonLd, buildSeo, truncate, withBrand } from "@/lib/seo";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_public/noticias/$slug")({
-  head: () => ({
-    meta: [
-      { title: "Notícia - FSX" },
-      { name: "description", content: "Notícia da Federação Sergipana de Xadrez" },
-    ],
-  }),
   loader: async ({ context, params }) => {
     try {
       const post = await context.queryClient.ensureQueryData(
-        context.trpc.posts.bySlug.queryOptions({ slug: params.slug })
-      )
-      if (!post) throw notFound()
-      return post
+        context.trpc.posts.bySlug.queryOptions({ slug: params.slug }),
+      );
+      if (!post) throw notFound();
+      return post;
     } catch (error) {
-      if (error instanceof Response) throw error
-      throw notFound()
+      if (error instanceof Response) throw error;
+      throw notFound();
     }
   },
+  head: ({ loaderData }) => {
+    const post = loaderData;
+    if (!post) {
+      return buildSeo({
+        title: withBrand("Notícia"),
+        description: "Notícia da Federação Sergipana de Xadrez.",
+        path: "/noticias",
+        noindex: true,
+      });
+    }
+    const path = `/noticias/${post.slug}`;
+    const description = truncate(post.content);
+    return buildSeo({
+      title: withBrand(post.title),
+      description,
+      path,
+      image: post.imageUrl,
+      type: "article",
+      publishedTime: post.createdAt,
+      modifiedTime: post.createdAt,
+      jsonLd: [
+        articleJsonLd({
+          title: post.title,
+          path,
+          image: post.imageUrl,
+          description,
+          datePublished: post.createdAt,
+          dateModified: post.createdAt,
+        }),
+        breadcrumbJsonLd([
+          { name: "Início", path: "/" },
+          { name: "Notícias", path: "/noticias" },
+          { name: post.title, path },
+        ]),
+      ],
+    });
+  },
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
-  const trpc = useTRPC()
-  const { slug } = Route.useParams()
-  const { data: post } = useSuspenseQuery(
-    trpc.posts.bySlug.queryOptions({ slug })
-  )
+  const trpc = useTRPC();
+  const { slug } = Route.useParams();
+  const { data: post } = useSuspenseQuery(trpc.posts.bySlug.queryOptions({ slug }));
 
-  if (!post) return null
+  if (!post) return null;
 
   return (
     <article className="mx-auto max-w-4xl py-10 md:py-16">
@@ -69,5 +99,5 @@ function RouteComponent() {
         </div>
       )}
     </article>
-  )
+  );
 }

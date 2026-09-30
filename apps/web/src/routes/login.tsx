@@ -5,9 +5,17 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";
 import { getUser } from "@/functions/get-user";
+import { buildSeo, withBrand } from "@/lib/seo";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Login - FSX" }] }),
+  head: () =>
+    buildSeo({
+      title: withBrand("Entrar"),
+      description: "Acesso restrito à administração da Federação Sergipana de Xadrez.",
+      path: "/login",
+      noindex: true,
+      canonical: false,
+    }),
   // Resolve the session on the server before rendering, so the form paints
   // immediately instead of flashing a client-side loading spinner.
   beforeLoad: async () => {

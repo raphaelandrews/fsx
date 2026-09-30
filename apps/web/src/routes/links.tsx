@@ -8,12 +8,21 @@ import { Announcement } from "@/components/announcement";
 import { FlickeringGrid } from "@/components/flickering-grid";
 import { Footer } from "@/components/footer";
 import { Logo } from "@/components/logo";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/links")({
-  head: () => ({
-    meta: [{ title: "Links - FSX" }, { name: "description", content: "Links úteis." }],
-  }),
+  head: () =>
+    buildSeo({
+      title: withBrand("Links Úteis"),
+      description:
+        "Links úteis e recursos de xadrez selecionados pela Federação Sergipana de Xadrez.",
+      path: "/links",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Links", path: "/links" },
+      ]),
+    }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.links.list.queryOptions()),
   component: RouteComponent,

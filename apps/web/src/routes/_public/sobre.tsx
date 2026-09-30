@@ -3,17 +3,20 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { Announcement } from "@/components/announcement";
 import { PageHeader } from "@/components/page-header";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
 export const Route = createFileRoute("/_public/sobre")({
-  head: () => ({
-    meta: [
-      { title: "Sobre - FSX" },
-      {
-        name: "description",
-        content: "Documentos e história da Federação Sergipana de Xadrez.",
-      },
-    ],
-  }),
+  head: () =>
+    buildSeo({
+      title: withBrand("Sobre a Federação"),
+      description:
+        "História, finalidades e contatos da Federação Sergipana de Xadrez, fundada em 1989 e filiada à Confederação Brasileira de Xadrez (CBX).",
+      path: "/sobre",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Sobre", path: "/sobre" },
+      ]),
+    }),
   component: RouteComponent,
 });
 

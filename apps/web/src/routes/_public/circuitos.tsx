@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { useTRPC } from "@/utils/trpc";
 import { slugify } from "@/utils/slugify";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
 const searchSchema = z.object({
   circuito: z.string().optional(),
@@ -20,12 +21,17 @@ export const Route = createFileRoute("/_public/circuitos")({
     const circuits = (loaderData ?? []) as Array<{ name: string }>;
     const activeSlug = match.search?.circuito;
     const circuit = activeSlug ? circuits.find((c) => slugify(c.name) === activeSlug) : circuits[0];
-    return {
-      meta: [
-        { title: circuit ? `${circuit.name} - Circuitos - FSX` : "Circuitos - FSX" },
-        { name: "description", content: "Circuitos de torneios da Federação Sergipana de Xadrez" },
-      ],
-    };
+    return buildSeo({
+      title: circuit ? withBrand(`${circuit.name} — Circuitos`) : withBrand("Circuitos"),
+      description: circuit
+        ? `Classificação e resultados do ${circuit.name}, circuito de torneios da Federação Sergipana de Xadrez.`
+        : "Classificação e resultados dos circuitos de torneios da Federação Sergipana de Xadrez.",
+      path: "/circuitos",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Circuitos", path: "/circuitos" },
+      ]),
+    });
   },
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.circuits.list.queryOptions()),

@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /api/
 
-Sitemap: https://fsx.chess/sitemap.xml
+Sitemap: https://www.fsx.org.br/sitemap.xml

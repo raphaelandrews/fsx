@@ -1,7 +1,14 @@
 {
   "name": "Federação Sergipana de Xadrez",
   "short_name": "FSX",
+  "description": "Ratings, torneios, notícias e campeões do xadrez em Sergipe.",
   "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "background_color": "#ffffff",
+  "theme_color": "#4873ff",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -12,7 +19,12 @@
       "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ],
-  "display": "standalone"
+  ]
 }
