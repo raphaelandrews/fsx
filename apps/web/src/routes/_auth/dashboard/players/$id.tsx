@@ -135,6 +135,8 @@ function RouteComponent() {
       sex: player.sex as "male" | "female",
       clubId: player.clubId,
       locationId: player.locationId,
+      cbxId: player.cbxId,
+      fideId: player.fideId,
       active: player.active,
       verified: player.verified,
       imageUrl: player.imageUrl ?? "",
@@ -150,6 +152,8 @@ function RouteComponent() {
         sex: z.enum(["male", "female"]),
         clubId: z.number().nullable(),
         locationId: z.number().nullable(),
+        cbxId: z.number().nullable(),
+        fideId: z.number().nullable(),
         active: z.boolean(),
         verified: z.boolean(),
         imageUrl: z.string(),
@@ -167,6 +171,8 @@ function RouteComponent() {
         sex: value.sex,
         clubId: value.clubId,
         locationId: value.locationId,
+        cbxId: value.cbxId,
+        fideId: value.fideId,
         active: value.active,
         verified: value.verified,
         imageUrl: value.imageUrl || null,
@@ -384,6 +390,36 @@ function RouteComponent() {
             </div>
           )}
         </form.Field>
+        <div className="grid grid-cols-2 gap-4">
+          <form.Field name="cbxId">
+            {(f) => (
+              <div className="space-y-2">
+                <Label htmlFor={f.name}>CBX ID</Label>
+                <Input
+                  id={f.name}
+                  type="number"
+                  value={f.state.value?.toString() ?? ""}
+                  onBlur={f.handleBlur}
+                  onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)}
+                />
+              </div>
+            )}
+          </form.Field>
+          <form.Field name="fideId">
+            {(f) => (
+              <div className="space-y-2">
+                <Label htmlFor={f.name}>FIDE ID</Label>
+                <Input
+                  id={f.name}
+                  type="number"
+                  value={f.state.value?.toString() ?? ""}
+                  onBlur={f.handleBlur}
+                  onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)}
+                />
+              </div>
+            )}
+          </form.Field>
+        </div>
         <form.Subscribe
           selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
         >
