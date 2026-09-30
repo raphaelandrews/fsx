@@ -1,11 +1,13 @@
-import type { AppRouter } from "@fsx/api/routers/index";
+import { appRouter, type AppRouter } from "@fsx/api/routers/index";
+import { createContext } from "@fsx/api/context";
 import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
-import { createTRPCClient, httpBatchLink } from "@trpc/client";
-import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
+import type { TRPCLink } from "@trpc/client";
+import { createTRPCClient, httpBatchLink, unstable_localLink } from "@trpc/client";
+import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import { toast } from "sonner";
 import { ThemeProvider } from "next-themes";
 
@@ -37,41 +39,23 @@ function createQueryClient() {
   });
 }
 
-const getSSRRequest = createIsomorphicFn()
-  .client(() => undefined)
-  .server(() => getRequest());
-
-const trpcClient = createTRPCClient<AppRouter>({
-  links: [
-    httpBatchLink({
-      url: "/api/trpc",
-      fetch(url, options) {
-        const request = getSSRRequest();
-        if (request) {
-          // On the server, self-fetch the Worker via its canonical workers.dev
-          // origin. The custom domain (www.fsx.org.br) still resolves through
-          // DNS to the legacy Next.js app, so self-fetching it returns the
-          // wrong app (an HTML 404) instead of this Worker's /api/trpc JSON.
-          // In dev there is no split, so reuse the request origin (localhost).
-          const base = import.meta.env.DEV
-            ? request.url
-            : "https://fsx-web-raphael.hey-02c.workers.dev";
-          url = new URL(url.toString(), base).toString();
-          const cookie = request.headers.get("cookie");
-          if (cookie) {
-            options = {
-              ...options,
-              headers: { ...options?.headers, cookie },
-            };
-          }
-        }
-        return fetch(url, {
-          ...options,
-          credentials: "include",
-        });
+// The browser talks to the Worker over HTTP. On the server, calling tRPC over
+// HTTP to the Worker's own origin is unreliable (self-fetch), so we call the
+// router in-process instead — same procedures, no network hop.
+const trpcLinks = createIsomorphicFn()
+  .client((): TRPCLink<AppRouter>[] => [httpBatchLink({ url: "/api/trpc" })])
+  .server((): TRPCLink<AppRouter>[] => [
+    unstable_localLink({
+      router: appRouter,
+      createContext: () => createContext({ req: getRequest() }),
+      onError: ({ error }) => {
+        console.error("[trpc] server-side procedure failed", error);
       },
     }),
-  ],
+  ]);
+
+const trpcClient = createTRPCClient<AppRouter>({
+  links: trpcLinks(),
 });
 
 export const getRouter = () => {
@@ -95,7 +79,12 @@ export const getRouter = () => {
     defaultNotFoundComponent: () => <NotFound />,
     Wrap: ({ children }) => (
       <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="light" storageKey="fsx-theme" disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          storageKey="fsx-theme"
+          disableTransitionOnChange
+        >
           {children}
         </ThemeProvider>
       </TRPCProvider>

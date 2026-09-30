@@ -11,11 +11,24 @@ export function getClientIp(request: Request): string {
   );
 }
 
+function toOrigin(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
 export function isTrustedRequest(request: Request): boolean {
   const origin = request.headers.get("Origin");
+  // Same-origin and non-browser (no Origin) requests are always trusted.
   if (!origin) return true;
-  const selfOrigin = new URL(request.url).origin;
-  return origin === selfOrigin || origin === env.CORS_ORIGIN;
+  const requestOrigin = toOrigin(origin);
+  if (!requestOrigin) return false;
+  // Normalize both sides to origins so a configured `CORS_ORIGIN` with a
+  // trailing slash (or path) still matches the browser's Origin header.
+  return requestOrigin === new URL(request.url).origin || requestOrigin === toOrigin(env.CORS_ORIGIN);
 }
 
 export interface RateLimitConfig {
