@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
-import { toast } from "sonner";
 import z from "zod";
 
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { fieldError } from "@/lib/errors";
 
 const ROLE_TYPES = ["management", "referee", "teacher"] as const;
 
@@ -24,19 +24,16 @@ export const Route = createFileRoute("/_auth/dashboard/roles/$id")({
 function RouteComponent() {
   const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
 
   const { data: roles = [] } = useSuspenseQuery(trpc.roles.list.queryOptions());
   const role = roles.find((r) => r.id === numId);
 
-  const updateMutation = useMutation({
-    ...trpc.roles.update.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("roles");
-      toast.success("Role updated");
-    },
-    onError: () => toast.error("Failed to update role"),
+  const updateMutation = useAdminMutation(trpc.roles.update.mutationOptions(), {
+    invalidates: "roles",
+    success: "Role updated",
+    failure: "Failed to update role",
+    reloadOnConflict: true,
   });
 
   if (!role) {
@@ -86,7 +83,7 @@ function RouteComponent() {
             <FormField
               label="Role"
               htmlFor={f.name}
-              error={f.state.meta.errors[0]?.message}
+              error={fieldError(f, updateMutation.error)}
               required
             >
               <Input
@@ -100,7 +97,7 @@ function RouteComponent() {
         </form.Field>
         <form.Field name="shortName">
           {(f) => (
-            <FormField label="Short Role" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+            <FormField label="Short Role" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
               <Input
                 id={f.name}
                 value={f.state.value}
@@ -112,7 +109,7 @@ function RouteComponent() {
         </form.Field>
         <form.Field name="type">
           {(f) => (
-            <FormField label="Type" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+            <FormField label="Type" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
               <select
                 id={f.name}
                 value={f.state.value}

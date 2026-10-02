@@ -1,7 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { toast } from "sonner";
 
 import { Button } from "@fsx/ui/components/button";
 
@@ -12,7 +11,8 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
+import { EmptyCollection } from "@/components/admin/empty-collection";
 
 export const Route = createFileRoute("/_auth/dashboard/norms/")({
   head: () => ({ meta: [{ title: "Norms - Admin - FSX" }] }),
@@ -22,17 +22,13 @@ export const Route = createFileRoute("/_auth/dashboard/norms/")({
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
 
   const { data = [] } = useSuspenseQuery(trpc.norms.list.queryOptions());
 
-  const deleteMutation = useMutation({
-    ...trpc.norms.delete.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("norms");
-      toast.success("Norm deleted");
-    },
-    onError: () => toast.error("Failed to delete norm"),
+  const deleteMutation = useAdminMutation(trpc.norms.delete.mutationOptions(), {
+    invalidates: "norms",
+    success: "Norm deleted",
+    failure: "Failed to delete norm",
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
@@ -73,6 +69,7 @@ function RouteComponent() {
         }
       />
       <DataTable
+        emptyState={<EmptyCollection noun="norms" createTo="/dashboard/norms/create" />}
         columns={columns}
         data={data}
         toolbar={(table) => (

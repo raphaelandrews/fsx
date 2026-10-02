@@ -1,0 +1,35 @@
+---
+title: "ADR 0005: Rate Limiting Backends"
+description: Which requests use D1 counters and which use the Workers rate-limit binding.
+---
+
+- Status: Accepted
+- Date: 2026-10-02
+
+## Context
+
+Only tRPC mutations and auth requests were rate-limited, using a D1 `rate_limits`
+counter (one database write per checked request). Anonymous tRPC GETs that miss
+the edge cache — varied search inputs, unregistered procedures, or a forged
+session-cookie name — reached D1 with no limit. Adding D1 counters to that read
+path would double its database writes.
+
+## Decision
+
+- tRPC GETs that are not served from the edge cache use Cloudflare's native
+  rate-limit binding (`PUBLIC_READ_RATE_LIMIT`: 600 requests per 60 seconds per
+  client IP). It adds no D1 write. Its counters are per Cloudflare location and
+  approximate, which is acceptable for abuse protection.
+- The limit applies to cookie-bearing GETs too, because the session-cookie check
+  only inspects the cookie name.
+- Auth requests and tRPC mutations keep the D1 counters. They are low volume and
+  benefit from exact, globally consistent counts.
+- Sitemap data is no longer a tRPC procedure; only `/sitemap.xml` reads it.
+
+## Consequences
+
+The limit value lives in two places (`UNCACHED_READ_LIMIT` in
+`packages/api/src/security.ts` and the binding in `packages/infra/alchemy.run.ts`)
+and must change together. Large shared networks (e.g. a school lab behind one IP)
+share one budget; raise the limit if 429s appear in `[security] rate limit
+exceeded` logs with `scope: "trpc-read"`.

@@ -1,0 +1,92 @@
+---
+title: Incident Response
+description: What to do when production misbehaves, from triage to rollback and data recovery.
+---
+
+## Triage
+
+1. **Confirm.** Open the site anonymously and in the dashboard. Note the time,
+   the URL, and the `cf-ray` header of a failing response.
+2. **Read the signals.**
+   - The `Production health` workflow result: 5xx rate, 429 count, Worker
+     exceptions in the last hour.
+   - Worker logs in the Cloudflare dashboard (Workers → `fsx-web-raphael` →
+     Logs). Search by `requestId` (the `cf-ray`). Useful prefixes:
+     `procedure failed`, `[cost] costly procedure`, `[resource]`,
+     `[security] rate limit exceeded`, `[cache] public query`.
+   - D1 metrics (rows read and written, errors) and the zone analytics.
+3. **Classify** and follow the matching section below.
+
+## Bad deploy
+
+Symptoms start right after `bun run deploy`, or the smoke test failed.
+
+### Roll back a deploy
+
+1. In the Cloudflare dashboard, open Workers → `fsx-web-raphael` → Deployments
+   and roll back to the previous version (or run
+   `bunx wrangler rollback --name fsx-web-raphael`).
+2. Verify with `BASE_URL=https://www.fsx.org.br bash scripts/deploy-smoke-test.sh`.
+3. Fix forward on a branch. The next `bun run deploy` replaces the rolled-back
+   version, so do not deploy again until the fix is merged.
+
+A rollback does **not** undo D1 migrations. If the bad deploy included a
+migration, the previous code must still work with the new schema (additive
+migrations do); otherwise restore data as below.
+
+## Wrong or lost data
+
+Caused by a mistaken edit, a bad import, or a destructive migration.
+
+1. **Stop writes** that would make it worse: avoid further edits to the affected
+   records.
+2. **Scope it.** Query production read-only:
+   `bunx wrangler d1 execute fsx-database-raphael --remote --command "SELECT …"`.
+3. **Small fix:** correct the records in the dashboard. For a wrong rating
+   variation, edit it under the player's **Rating history**; for a whole
+   tournament imported wrongly, use **Revert all** on the tournament's edit page
+   and import the corrected file. Never edit the rating by hand or delete the
+   tournament; see [corrections](/architecture/domain-model#corrections).
+4. **Large fix:** use D1 Time Travel to restore the database to a point before
+   the incident (`bunx wrangler d1 time-travel restore fsx-database-raphael --timestamp <ISO time>`),
+   or rebuild from the latest backup. Rehearse on a copy first with the
+   [restore drill](/operations/runbook#restore-drill); Time Travel discards every
+   write after the timestamp.
+5. **Clear stale public data:** purge the public cache from the dashboard
+   **Cache** page, or wait for the TTL (at most five minutes).
+
+## Leaked or stale cached data
+
+An anonymous visitor sees data they should not, or old data persists past five
+minutes.
+
+1. Purge the cache from the dashboard **Cache** page (all data centers), or in
+   the Cloudflare dashboard under Caching → Purge Everything.
+2. Check the zone setting **Browser Cache TTL → Respect Existing Headers**.
+3. For private data in a public response, find the procedure in
+   `PROCEDURE_CACHE_POLICY`, remove or reclassify it, deploy, and purge again.
+   Treat it as a privacy incident ([Governance and privacy](/operations/governance-and-privacy)).
+
+## Abuse or traffic spike
+
+1. Look at `[security] rate limit exceeded` logs and zone analytics for the
+   source and path.
+2. Uncached reads are already limited per IP (600 per minute) and mutations per
+   IP (300 per minute). For sustained abuse, add a WAF rate-limiting or block
+   rule in the Cloudflare dashboard.
+3. If D1 reads spike from legitimate traffic, compare against the
+   [query cost baseline](/operations/query-cost-baseline) before changing caching.
+
+## Compromised credentials
+
+1. Rotate the affected secret: `BETTER_AUTH_SECRET` (signs out every session),
+   the GitHub OAuth secret, or the Cloudflare API token.
+2. Update `apps/web/.env.common` and redeploy; update GitHub repository secrets
+   for the workflows.
+3. Delete sessions in the `session` table if the owner account may have been
+   used by someone else, and review recent changes in the dashboard.
+
+## After the incident
+
+Record what happened, when, the impact, and the fix. If the cause was a missing
+check, add it: a test, an [invariant](/reference/invariants), or a runbook step.

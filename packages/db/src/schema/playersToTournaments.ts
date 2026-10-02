@@ -7,7 +7,7 @@ import { players, tournaments } from "./index"
 export const playersToTournaments = sqliteTable("players_to_tournaments", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "restrict" }),
-	tournamentId: integer("tournament_id").notNull().references(() => tournaments.id, { onDelete: "cascade" }),
+	tournamentId: integer("tournament_id").notNull().references(() => tournaments.id, { onDelete: "restrict" }),
 	oldRating: integer("old_rating").notNull(),
 	variation: integer("variation").notNull(),
 	ratingType: text("rating_type").notNull().default("rapid"),

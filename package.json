@@ -25,7 +25,7 @@
       "better-auth": "1.6.25",
       "@types/react": "^19.2.17",
       "@types/react-dom": "^19.2.3",
-      "alchemy": "^0.93.12"
+      "alchemy": "0.93.12"
     }
   },
   "type": "module",
@@ -43,9 +43,11 @@
     "db:seed": "vp run --filter @fsx/db db:seed",
     "db:backup": "bash scripts/d1-backup.sh",
     "db:backup:verify": "bash scripts/verify-d1-backup.sh",
+    "db:restore-drill": "bun apps/web/scripts/restore-drill.ts",
     "check:bundle": "node scripts/check-bundle-budgets.mjs",
     "check:seo": "node scripts/check-prerendered-seo.mjs",
     "check:routes": "node scripts/check-route-tree.mjs",
+    "check:runtime": "node scripts/check-runtime-pins.mjs",
     "check:ssr": "bun apps/web/scripts/check-ssr.ts",
     "measure": "bun packages/api/scripts/measure.ts",
     "deploy": "vp run --filter @fsx/infra deploy",

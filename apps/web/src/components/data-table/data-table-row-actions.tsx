@@ -48,7 +48,7 @@ export function DataTableRowActions({
         <DropdownMenuTrigger
           render={
             <Button
-              aria-label="Abrir menu"
+              aria-label="Open menu"
               className="h-8 w-8 p-0 text-muted-foreground hover:bg-muted/50"
               size="icon"
               variant="ghost"
@@ -56,14 +56,14 @@ export function DataTableRowActions({
           }
         >
           <HugeiconsIcon className="size-4" icon={EllipsisIcon} strokeWidth={2} />
-          <span className="sr-only">Abrir menu</span>
+          <span className="sr-only">Open menu</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[150px] p-1">
           <DropdownMenuItem
             render={<Link to={editTo} params={{ id }} />}
           >
             <HugeiconsIcon className="mr-2 size-4" icon={Edit01Icon} strokeWidth={2} />
-            Editar
+            Edit
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -71,7 +71,7 @@ export function DataTableRowActions({
             onClick={() => setShowDeleteDialog(true)}
           >
             <HugeiconsIcon className="mr-2 size-4" icon={Delete03Icon} strokeWidth={2} />
-            Excluir
+            Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -79,14 +79,14 @@ export function DataTableRowActions({
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir este item?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this item?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita.
-              {displayName ? ` Isso excluirá permanentemente "${displayName}".` : ""}
+              This cannot be undone.
+              {displayName ? ` This permanently deletes "${displayName}".` : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               disabled={isDeleting}
               variant="destructive"
@@ -95,7 +95,7 @@ export function DataTableRowActions({
                 setShowDeleteDialog(false);
               }}
             >
-              Excluir
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

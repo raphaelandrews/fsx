@@ -1,0 +1,53 @@
+---
+title: Media
+description: Image upload, R2 storage, URL format, replacement, and cleanup.
+---
+
+Player photos and post images live in the R2 bucket bound as `IMAGES`. Club
+logos and location flags are external `https` URLs entered by hand.
+
+## Upload
+
+1. The admin picks an image; the form crops it in the browser and encodes it as
+   base64.
+2. `images.upload` (admin only) receives `{ kind: "players" | "posts", mime, data }`.
+   It rejects images under the minimum size or over 5 MB, and checks that the
+   file signature matches the declared type (JPEG, PNG, or WebP).
+3. The object is stored under `<kind>/<uuid>.<ext>` with its content type.
+4. The procedure returns the relative URL `/api/media/<kind>/<uuid>.<ext>`, which
+   the form saves in `imageUrl`.
+
+Image fields accept either a media path (`/api/media/...`) or an `http(s)` URL;
+older rows may still hold external URLs.
+
+## Serving
+
+`GET /api/media/<key>` streams the object from R2 with its stored content type,
+an `ETag`, `X-Content-Type-Options: nosniff`, and
+`Cache-Control: public, max-age=31536000, immutable`. A matching `If-None-Match`
+returns `304` without reading the body. Missing keys and keys containing `..`
+return `404`.
+
+Because keys are random and never overwritten, the long `immutable` lifetime is
+safe: a replaced image always gets a new URL.
+
+## Replacement and cleanup
+
+`usePendingImageDeletes` (`apps/web/src/hooks/use-pending-image-deletes.ts`)
+ties the R2 lifecycle to the form's save:
+
+- The image a record pointed at before the edit is deleted only **after** the
+  save succeeds, so cancelling an edit never breaks the record.
+- Uploads made during an edit that end up unused (superseded by another upload,
+  a failed save, or an abandoned form) are deleted.
+- After a failed save, the upload currently in the form is kept so a retry still
+  points at a live object.
+
+`images.delete` accepts a media URL, converts it back to its key, and deletes the
+object. Failed deletes are not retried; see the orphan check in the
+[runbook](/operations/runbook#monitoring-and-media-cleanup).
+
+## Local development
+
+The same route works locally against Miniflare's R2, so no bucket domain is
+needed.

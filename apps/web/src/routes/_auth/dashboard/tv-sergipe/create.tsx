@@ -1,16 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
 import { useForm, useStore } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Label } from "@fsx/ui/components/label";
-import { toast } from "sonner";
 import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
-import { getUserErrorMessage } from "@/lib/errors";
 import { SearchableSelect } from "@/components/searchable-select";
 import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS, TEAM_NAMES } from "./-constants";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
+import { FieldError } from "@/components/form/field-error";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/create")({
   head: () => ({ meta: [{ title: "Create TV Sergipe - Admin - FSX" }] }),
@@ -20,12 +18,12 @@ export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const invalidateAdmin = useInvalidateAdmin();
 
-  const createMutation = useMutation({
-    ...trpc.tvSergipe.create.mutationOptions(),
-    onSuccess: () => { void invalidateAdmin("tvSergipe"); invalidateAdmin("tvSergipe"); toast.success("Result created"); navigate({ to: "/dashboard/tv-sergipe" }); },
-    onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar o resultado.")),
+  const createMutation = useAdminMutation(trpc.tvSergipe.create.mutationOptions(), {
+    invalidates: ["tvSergipe", "tvSergipe"],
+    success: "Result created",
+    failure: "Failed to create result",
+    onSuccess: () => { navigate({ to: "/dashboard/tv-sergipe" }); },
   });
 
   const form = useForm({
@@ -79,7 +77,7 @@ function RouteComponent() {
                 placeholder="Search school..."
                 emptyText="No school found."
               />
-              {f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>
@@ -87,8 +85,8 @@ function RouteComponent() {
           <form.Field name="ageGroup">
             {(f) => (
               <div className="space-y-2">
-                <Label>Category</Label>
-                <select value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                <Label htmlFor={f.name}>Category</Label>
+                <select id={f.name} value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                   {AGE_GROUPS.map((g) => <option key={g} value={g}>{g} anos</option>)}
                 </select>
               </div>
@@ -97,8 +95,8 @@ function RouteComponent() {
           <form.Field name="sex">
             {(f) => (
               <div className="space-y-2">
-                <Label>Sex</Label>
-                <select value={f.state.value} onChange={(e) => f.handleChange(e.target.value as "male" | "female")} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                <Label htmlFor={f.name}>Sex</Label>
+                <select id={f.name} value={f.state.value} onChange={(e) => f.handleChange(e.target.value as "male" | "female")} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                   {SEX_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </div>
@@ -108,8 +106,8 @@ function RouteComponent() {
         <form.Field name="modality">
           {(f) => (
             <div className="space-y-2">
-              <Label>Modality</Label>
-              <select value={f.state.value} onChange={(e) => f.handleChange(e.target.value as "individual" | "team")} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <Label htmlFor={f.name}>Modality</Label>
+              <select id={f.name} value={f.state.value} onChange={(e) => f.handleChange(e.target.value as "individual" | "team")} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 {MODALITY_OPTIONS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
               </select>
             </div>
@@ -139,6 +137,7 @@ function RouteComponent() {
                 <select id={f.name} value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                   {TEAM_NAMES.map((n) => <option key={n} value={n}>Team {n}</option>)}
                 </select>
+                <FieldError field={f} error={createMutation.error} />
               </div>
             )}
           </form.Field>
@@ -153,7 +152,7 @@ function RouteComponent() {
                 ))}
               </select>
               <p className="text-muted-foreground text-xs">Points: {PLACE_POINTS[f.state.value] ?? "—"}</p>
-              {f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>

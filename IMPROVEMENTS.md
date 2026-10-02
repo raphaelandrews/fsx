@@ -64,7 +64,7 @@ displayed name unchanged, so the two drift apart.
 
 - [x] Write `name` together with `normalizedName` in `players.update`.
 - [x] Add a `createCaller` test that renames a player and asserts both columns (`packages/api/src/admin-mutations.integration.test.ts`, real Miniflare D1; fails against the old code).
-- [x] Add an audit query for rows where `normalized_name` no longer matches `name` (`packages/db/src/audits/player-names-and-urls.sql`, documented in `operacoes.mdx`).
+- [x] Add an audit query for rows where `normalized_name` no longer matches `name` (`packages/db/src/audits/player-names-and-urls.sql`, documented in `operations/runbook.mdx`).
 - [x] Run the audit against production D1 (2026-10-02): no players with stale names.
 
 ### 2. Split URL validation into external URLs and media paths — Critical (done)
@@ -177,7 +177,7 @@ performs one D1 write per checked request.
 
 - [x] Remove `sitemap.entries` from the public `appRouter`; `/sitemap.xml` calls the server-only `getSitemapEntries()` (`packages/api/src/sitemap.ts`).
 - [x] Rate-limit every tRPC GET that is not served from the edge cache (600/min per IP), including cookie-bearing GETs, because a forged session-cookie name bypasses the cache.
-- [x] Evaluate the Workers Rate Limiting binding and record the decision (ADR 0005, `adr-rate-limiting.mdx`): the native `PUBLIC_READ_RATE_LIMIT` binding covers the uncached read path with no D1 write; auth and mutations keep exact D1 counters.
+- [x] Evaluate the Workers Rate Limiting binding and record the decision (ADR 0005, `decisions/0005-rate-limiting.mdx`): the native `PUBLIC_READ_RATE_LIMIT` binding covers the uncached read path with no D1 write; auth and mutations keep exact D1 counters.
 - [x] Return 404 instead of 500 for malformed media paths (`packages/api/src/media-handler.ts`).
 - [x] Answer a matching `If-None-Match` on media with `304` through an R2 `etagDoesNotMatch` precondition, without transferring the body.
 - [x] Add fetch-handler tests for each item above with real `Request`/`Response` objects and Miniflare D1/R2 (`fetch-handlers.integration.test.ts`). The tRPC and media handlers moved into `@fsx/api` (`trpc-handler.ts`, `media-handler.ts`) so they are testable; the route files only wire them.
@@ -187,7 +187,7 @@ performs one D1 write per checked request.
 
 ## Phase 2: Input and Data Integrity
 
-### 12. Bound and validate API inputs — Important
+### 12. Bound and validate API inputs — Important (done)
 
 **Why:** Unbounded or loosely typed inputs consume D1 reads and CPU, and malformed
 values silently produce wrong results.
@@ -204,9 +204,9 @@ values silently produce wrong results.
 - [x] Escape `%`, `_`, and `\` in every user-supplied `LIKE` pattern (`escapeLike` + `like(... ESCAPE '\')` in `packages/api/src/sql-like.ts`): `players.search`, `players.page`, `players.withFilters`, `clubs.search`, `tournaments.search`.
 - [x] Validate numeric `$id` params in every dashboard and public route with `params.parse` (`idParams` in `apps/web/src/lib/route-params.ts`); malformed IDs throw `notFound()` instead of reaching the API.
 - [x] Add tests: age-group mapping, ISO dates, `LIKE` escaping, `idParams`, and real-D1 checks that `_`/`%` match literally, `sub-10` filters by birth date, and unknown groups or `DD/MM/YYYY` birth dates are rejected.
-- [x] Add an audit for stored non-ISO dates (`packages/db/src/audits/date-formats.sql`, documented in `operacoes.mdx`).
+- [x] Add an audit for stored non-ISO dates (`packages/db/src/audits/date-formats.sql`, documented in `operations/runbook.mdx`).
 - [x] Run the date audit against production D1 (2026-10-02): no non-ISO dates.
-- [ ] Split `pre-migration-data-checks.sql` (50 terms) and `timestamp-format.sql` (33 terms) into compound SELECTs of at most 5 terms; production D1 rejects larger ones with `too many terms in compound SELECT`.
+- [x] Rewrite `pre-migration-data-checks.sql` (50 terms) and `timestamp-format.sql` (33 terms), which production D1 rejected with `too many terms in compound SELECT`: each is now one statement over a multi-row `VALUES` list of scalar counts (not subject to the limit) that lists only failing checks. `audits.integration.test.ts` runs every audit file on Miniflare D1, so a D1-incompatible audit fails CI.
 
 ### 13. Move rate-limit state into migrations — Important (done)
 
@@ -254,7 +254,7 @@ Finish these before the broad refactors in Phases 4–7 so later changes have re
 - [x] Test auth middleware/admin authorization, rating invariants, event link ownership, and image validation.
 - [x] Test migration application against a clean local D1 database.
 - [x] Keep unit tests deterministic, with no external GitHub, Cloudflare, or network calls.
-- [x] Add a create → read → update → read → delete round-trip for every admin router against real D1, with realistic inputs including media paths (`admin-crud.integration.test.ts`), plus player relations and `events.setLinks`.
+- [x] Add a create → read → update → read → delete round-trip for every admin router against real D1, with realistic inputs including media paths (`admin-crud.integration.test.ts`), plus player relations and `events.setLinks`. **Fixed 2026-10-02:** building the case list read `fixtures` before `beforeAll` set them, so the per-router round-trips were never registered (Bun reported an "unhandled error between tests" while still printing 0 fail); all 21 now run.
 - [x] Test every update/delete/unlink mutation with a missing id (`NOT_FOUND`) and an invalid id (`BAD_REQUEST`): 43 procedures.
 - [x] Test the tRPC fetch handler with real `Request`/`Response` objects: origin checks, cache headers and hits, rate limits, batching (including mixed public/admin batches), signed owner/impostor/forged session cookies over HTTP, and authenticated mutations (`fetch-handlers.integration.test.ts`).
 - [x] Test SSR of the built worker for status codes, titles, canonical URLs, not-found behavior, auth redirects, the sitemap, and absence of stack traces/SQL in HTML (`bun run check:ssr`, `apps/web/scripts/check-ssr.ts`, run in CI after the build).
@@ -272,7 +272,7 @@ Merges the former backend error tasks.
 - [x] Check returned rows for update/delete and throw `NOT_FOUND` across active CRUD mutations.
 - [x] Map unique-constraint failures to `CONFLICT`.
 - [x] Wrap unexpected errors with a generic message, preserve the original as `cause`, and log once with procedure name and request ID.
-- [x] Ensure production responses never include SQL, stack traces, secrets, storage keys, or provider details.
+- [x] Ensure production responses never include SQL, stack traces, secrets, storage keys, or provider details. **Re-fixed 2026-10-02:** the boundary only caught thrown errors, but tRPC v11 `next()` resolves `{ ok: false }`, so unexpected errors reached clients with drizzle's SQL text, unique violations returned 500 instead of `CONFLICT`, and nothing was logged. The middleware now normalizes failed results (cause chain → `CONFLICT`/`BAD_REQUEST`/generic 500), sets `isDev` from Vite instead of tRPC's NODE_ENV default (which emitted stack traces on Workers), logs client errors as `warn` and server faults as `error` (`error-boundary.integration.test.ts`).
 
 ---
 
@@ -299,7 +299,7 @@ Measure before optimizing. Task 16 should exist before query shapes change.
 
 - [x] Keep explicit column projections on public queries (latest: `insignias.list`, `norms.list`, `roles.listWithPlayers`).
 - [x] Add response-size monitoring for the largest procedures.
-- [x] Measure row counts and response sizes on production-like data (`row-counts.sql` → `packages/api/scripts/production-counts.json`, plus `growth-counts.json` at 3×). Results: [Query Cost Baseline](apps/fumadocs/content/docs/query-cost-baseline.mdx).
+- [x] Measure row counts and response sizes on production-like data (`row-counts.sql` → `packages/api/scripts/production-counts.json`, plus `growth-counts.json` at 3×). Results: [Query Cost Baseline](apps/fumadocs/content/docs/operations/query-cost-baseline.mdx).
 - [x] Remove the unused public `players.list` (500 players with nested relations) and `circuits.list` (duplicate of `listSimple`); the circuit summary/detail split already exists as `listSimple` + `byId`.
 - [x] Fix the Swiss Manager export, which Task 7's `PUBLIC_COLLECTION_LIMIT` silently truncated to the 500 highest-rated players.
 - [x] Stop sending every post's content to the dashboard: `posts.listAdmin` projects list columns (≈937 → 55 KB at 300 posts) and the post editor loads one row through `posts.forEdit`; announcement and tournament editors load by id too.
@@ -355,28 +355,30 @@ see old data until the TTL expires.
 - [x] Test batched requests containing a private or unknown procedure.
 - [x] Confirm cookie detection covers every Better Auth cookie variant used in production.
 - [x] Set TanStack Router `defaultPreloadStaleTime` to `0` so React Query is the single client-side freshness authority.
-- [ ] Add a test that every public `query` procedure has an explicit registry entry, so new procedures cannot silently become uncached.
-- [ ] Document that `caches.default` is per-data-center, not globally replicated, and validate the tradeoff with cache-hit and latency measurements.
+- [x] Add a test that every public `query` procedure has an explicit registry entry (`procedure-caller.test.ts`; unregistered queries must reject anonymous callers).
+- [x] Document that `caches.default` is per-data-center (ADR 0003 update).
+- [ ] Validate the per-data-center tradeoff with production `[cache] public query` hit/miss logs after the next deploy.
+- [ ] Set the zone **Browser Cache TTL → Respect Existing Headers** (production cache hits currently tell browsers to cache API responses for 4 hours); code now sends `no-store` to browsers.
 
-### 24. Make the tRPC edge-cache path cheaper — Optional
+### 24. Make the tRPC edge-cache path cheaper — Optional (done)
 
 **Why:** The handler awaits `cache.put`/`cache.delete` before responding, buffers the
 full body of every successful GET even when it cannot be cached, and sends the
 internal `x-cache-fetched-at` header to clients.
 
-- [ ] Run `cache.put` and `cache.delete` through `waitUntil` instead of awaiting them on the response path.
-- [ ] Clone and parse the body only when the response is cacheable or size telemetry needs it.
-- [ ] Keep `x-cache-fetched-at` only on the stored entry, not on the client response.
+- [x] Run `cache.put` and `cache.delete` through `waitUntil` (`edge-cache.ts`).
+- [x] Clone and parse the body only when the response is cacheable.
+- [x] Keep `x-cache-fetched-at` only on the stored entry, not on the client response.
 
-### 25. Decide on caching for SSR public HTML — Important
+### 25. Decide on caching for SSR public HTML — Important (done)
 
 **Why:** SSR calls tRPC in-process, so the edge cache only helps client-side
 navigation. Every anonymous page view (home, ratings, news, players) renders on the
 Worker and queries D1. No task covered this before.
 
-- [ ] Measure D1 queries and CPU time per anonymous SSR page view for the top routes.
-- [ ] Evaluate the options and record the decision: short-TTL Cache API entries for anonymous HTML, routing SSR reads through the same edge-cached procedure results, or accepting the cost.
-- [ ] If HTML is cached, ensure cookie-bearing requests bypass it and `Vary`/cache keys include the search params that change content.
+- [x] Measure D1 queries per anonymous SSR page view (`bun run measure` route rollup: 1–6 queries, ≤2,753 rows) and local render time (`check:ssr`: 11–50 ms warm).
+- [x] Decision: accept the SSR cost; no HTML caching (ADR 0003 update), revisit on D1 quota or CPU pressure.
+- [x] Not applicable while HTML is not cached.
 
 ### 26. Coordinate invalidation with public freshness — Important
 
@@ -386,8 +388,8 @@ Merges the former invalidation and dashboard-freshness tasks.
 - [x] Invalidate only the affected React Query families after successful mutations, including related lists and details visible in multiple dashboard routes.
 - [x] Do not invalidate every query globally after ordinary CRUD edits.
 - [x] Treat the public edge TTL as the normal propagation window.
-- [ ] Add an admin "purge public cache" action for operational recovery only (the `dashboard/cache` route is the place), and a versioned cache key if immediate global freshness becomes a requirement.
-- [ ] Add end-to-end checks for immediate dashboard freshness and eventual anonymous freshness.
+- [x] Add an admin "purge public cache" action (`cache.purgePublic`, zone purge API, confirm dialog, audit log); versioned keys not needed. Requires `CLOUDFLARE_ZONE_ID` + `CLOUDFLARE_CACHE_PURGE_TOKEN`.
+- [x] Add end-to-end checks for immediate dashboard freshness and eventual anonymous freshness (`e2e/freshness.e2e.ts`).
 
 ### 27. Keep prefetching intentional — Optional
 
@@ -395,19 +397,19 @@ Merges the former invalidation and dashboard-freshness tasks.
 - [x] Avoid prefetching large nested queries on every hover or focus.
 - [x] Use route-specific stale times for stable lookup data and frequently edited content.
 - [x] Prefetch the current route's critical data and a few likely next destinations, not every public page.
-- [ ] Verify that preload requests do not duplicate SSR work for the same navigation.
+- [x] Verify that preload requests do not duplicate SSR work (`e2e/requests.e2e.ts`).
 - [ ] Measure cache-hit rate and request volume before widening preload scope.
-- [ ] Prefer prefetching lookup data and the next paginated result over full nested graphs.
-- [ ] Add a per-navigation prefetch request budget (enforced in Task 18).
+- [x] Prefetch the next paginated result on hover/focus of pagination buttons (news, announcements, ratings).
+- [x] Add a per-navigation request budget (`e2e/requests.e2e.ts`, ≤2).
 
 ### 28. Review prerender boundaries and the sitemap — Optional
 
 - [x] Prerender only stable, public, SEO-important pages (`/sobre`, `/normas-tecnicas`).
 - [x] Do not prerender admin pages or frequently changing content.
 - [x] Generate the sitemap dynamically with published news and active player URLs.
-- [ ] Cache `/sitemap.xml` in the Cache API; `s-maxage` alone does not cache Worker-generated responses.
-- [ ] Add a check that every new public route is either in the sitemap or explicitly excluded (extend `check:routes`).
-- [ ] Test prerendered HTML for metadata, canonical URLs, and hydrated data (`check:seo` covers part of this).
+- [x] Cache `/sitemap.xml` in the Cache API for 1 hour; announcements added to the sitemap.
+- [x] `check:routes` fails when a public route is neither in the sitemap nor in `SITEMAP_EXCLUDED`.
+- [x] `check:seo` also checks `og:url`, absence of `noindex`, and that the client entry script is loaded.
 
 ---
 
@@ -415,7 +417,7 @@ Merges the former invalidation and dashboard-freshness tasks.
 
 These depend on the error taxonomy (Task 17) and resource boundaries being stable.
 
-### 29. Frontend error handling and form feedback — Important
+### 29. Frontend error handling and form feedback — Important (done)
 
 Merges the former frontend error-boundary, form-feedback, and duplicated loading-state items.
 
@@ -426,14 +428,14 @@ Merges the former frontend error-boundary, form-feedback, and duplicated loading
 - [x] Show `TOO_MANY_REQUESTS` with a retry-after message and no automatic retry.
 - [x] Reserve global query toasts for unexpected background failures.
 - [x] Add a visible retry action that invalidates the relevant query.
-- [ ] Use `getUserErrorMessage` in every admin mutation `onError` instead of hard-coded strings.
-- [ ] Translate the remaining English admin toasts ("Player updated", "Failed to update player", …) to Portuguese.
-- [ ] Show field-level validation errors next to the relevant form controls.
-- [ ] Show conflict errors with a reload/retry action, especially for rating and concurrent edits.
-- [ ] Disable submit controls and prevent duplicate submissions while mutations are pending.
-- [ ] Preserve entered values when a mutation fails.
-- [ ] Confirm destructive operations consistently, especially bulk deletes.
-- [ ] Add tests for each error category and its rendered message (mapping tests exist; rendered form coverage remains).
+- [x] Route every admin mutation error through `showMutationError` (safe mapped message + fallback).
+- [x] Decision: the admin dashboard is **English**, the public site Portuguese. All admin labels, buttons, toasts, dialogs, placeholders, and server validation messages were translated; `getUserErrorMessage` takes a locale and the global query toast picks it from the path (`isAdminPath`).
+- [x] Show field-level validation errors next to every admin form control: `FieldError` / `fieldError()` show the client message, else the server's Zod message for that field; `FormField` wires `aria-invalid`/`aria-describedby`.
+- [x] Show conflict errors with a "Reload" action on every edit form.
+- [x] Disable submit controls while mutations are pending (link forms were the remaining gaps).
+- [x] Preserve entered values when a mutation fails (verified in e2e).
+- [x] Confirm destructive operations consistently: row deletes, delete buttons, and TV Sergipe "delete all" use confirm dialogs; player title/role/insignia unlinks stay one-click because they are immediately reversible.
+- [x] Add tests for each error category and rendered messages (English/Portuguese mapping tests; e2e for a server field error next to "Logo URL", preserved values, and the duplicate-name conflict message).
 
 ### 30. Fix upload accessibility — Optional (done)
 
@@ -443,39 +445,39 @@ Merges the former frontend error-boundary, form-feedback, and duplicated loading
 - [x] Add accessible status text for reading, cropping, uploading, success, and failure.
 - [x] Connect a visible label or description to the file input.
 
-### 31. Improve navigation and responsive behavior — Optional
+### 31. Improve navigation and responsive behavior — Optional (done)
 
-- [ ] Verify that every icon-only button has an accessible name. Pages covered by `e2e/a11y.e2e.ts` pass; extend the axe page list to the remaining dashboard routes.
-- [ ] Ensure dialogs, sheets, command menus, and dropdowns have visible focus states and predictable Escape behavior.
-- [ ] Test admin tables at 375 px width; provide horizontal scrolling or card layouts where needed.
-- [ ] Announce pagination page changes and preserve focus.
-- [ ] Provide non-hover alternatives for important actions.
-- [ ] Verify WCAG AA color contrast in light and dark themes. Light theme passes on the axe-covered pages after the token change; dark theme is untested (run the axe pages with `colorScheme: "dark"`).
-- [ ] Make controls usable before hydration finishes. The e2e specs must wait for `networkidle` because buttons such as the row-action menu and the `/` command-menu shortcut do nothing until React hydrates; on slow phones real users hit the same dead window.
+- [x] Verify accessible names: axe now covers 16 public pages and 40 dashboard pages (every list and create page plus key edit pages). Fixes: unlabeled selects on four create forms, file input label on rating update, `×` remove buttons.
+- [x] Ensure dialogs, sheets, command menus, and dropdowns close on Escape, return focus to their trigger, and show a visible focus ring (e2e). Scrollable command lists are keyboard-focusable (cmdk forces `tabIndex=-1`, so a focusable wrapper owns the scrolling).
+- [x] Test admin tables at 375 px width: no page-level horizontal overflow (tables scroll inside their container).
+- [x] Announce pagination page changes (`aria-live`) and keep focus in the pagination bar even when the activated control becomes disabled or the bar remounts.
+- [x] Provide non-hover alternatives for important actions (no hover-only revealed actions remain).
+- [x] Verify WCAG AA contrast in light and dark themes (dark-theme axe pass on key pages). `--destructive` darkened (`oklch(0.577→0.52 …)`, red-on-tint 3.99→4.5+:1); inline code on the backup page fixed. The app honors `prefers-reduced-motion` via `MotionConfig reducedMotion="user"`.
+- [x] Make navigation usable before hydration: pagination renders real `<a href>` links (crawlable, clean URLs via `stripSearchParams`, work with JavaScript disabled; e2e). Menus, dialogs, and the `/` shortcut inherently need JavaScript; header navigation was already plain links.
 
-### 32. Improve loading and empty states — Optional
+### 32. Improve loading and empty states — Optional (done)
 
-- [ ] Make route skeletons match final layout dimensions to reduce layout shift (measure CLS).
-- [ ] Give empty admin collections an empty state with the next action.
+- [x] Measure layout shift: CLS ≤ 0.001 on initial load and 0 on client navigation for every public page; an e2e budget keeps it under 0.1.
+- [x] Give empty admin collections an empty state with a "Create the first one" link (`EmptyCollection`, all 13 admin tables); filtered-to-nothing tables say so separately.
 
-### 33. Improve content and SEO quality — Optional
+### 33. Improve content and SEO quality — Optional (done)
 
 - [x] Use `updatedAt` for article modification metadata.
-- [ ] Confirm every public route has a unique title and description (extend `check:seo`).
-- [ ] Strip Markdown syntax before truncating post content into meta descriptions.
-- [ ] Add structured data only where it accurately describes the rendered content.
-- [ ] Verify image dimensions, alt text, and lazy loading on content-heavy pages.
-- [ ] Check canonical URLs for paginated and filtered routes (ratings, news).
+- [x] Confirm every public route has a unique title and a meta description (`check:ssr` fails on missing descriptions or duplicate titles).
+- [x] Strip Markdown syntax before truncating post and announcement content into meta descriptions (`stripMarkdown`).
+- [x] Review structured data: `Person` no longer claims the site's generic OG image when a player has no photo; Organization, WebSite, BreadcrumbList, and NewsArticle match the rendered content.
+- [x] Verify images: table logos/flags beside visible names are decorative (`alt=""`, no double announcement), lazy-loaded with explicit dimensions; the news hero keeps `fetchPriority="high"`. Removed a hard-coded third-party (UploadThing) fallback flag that every profile without a flag requested.
+- [x] Canonical URLs: unfiltered ratings, news, and announcements pages are self-canonical (`/ratings?page=2`); filtered ratings views canonicalize to `/ratings` (`check:ssr`).
 
 ---
 
 ## Phase 7: Maintainability and Operations
 
-### 34. Reduce duplicated mutation and invalidation code — Optional
+### 34. Reduce duplicated mutation and invalidation code — Optional (done)
 
-- [ ] Identify repeated CRUD route patterns and extract only genuinely shared behavior.
-- [ ] Standardize mutation success/error/invalidation handling in admin pages where behavior is identical (build on `invalidateAdminQueries` and Task 29's error mapping).
-- [ ] Keep a mutation → invalidated query families map in one place, covered by a test (see Task 3).
+- [x] Identify the repeated pattern (spread mutation options → invalidate → success toast → optional follow-up → mapped error toast) and extract only that: `useAdminMutation(options, { invalidates, success, failure, reloadOnConflict, onSuccess })`.
+- [x] Convert the 61 admin mutations with that exact shape; special workflows stay explicit (player/post image commit-discard, link-group batch creation that must invalidate last, event `mutateAsync` flows, rating import).
+- [x] Keep the mutation → invalidated query families map in one place, covered by a test (`ADMIN_QUERY_DEPENDENTS`, `admin-mutations.test.ts`).
 
 ### 35. Keep active linting clean — Optional (done)
 
@@ -489,7 +491,7 @@ Merges the former frontend error-boundary, form-feedback, and duplicated loading
 - [x] Document which procedures are public, protected, and administrator-only.
 - [x] Document cache TTLs, invalidation, and the anonymous edge-cache consistency window.
 - [x] Document D1 migration rules and the local Alchemy migration tracker workflow.
-- [x] Record important decisions as ADRs (`apps/fumadocs/content/docs/adr-*.mdx`).
+- [x] Record important decisions as ADRs (`apps/fumadocs/content/docs/decisions/*.mdx`).
 
 ### 37. Add privacy and data-governance rules — Important (done)
 
@@ -508,26 +510,28 @@ Merges the former frontend error-boundary, form-feedback, and duplicated loading
 - [x] Define retention and deletion rules for downloaded backups.
 - [x] Audit backup/export access with administrator, timestamp, procedure, and result.
 - [x] Protect CSV/spreadsheet exports against formula injection.
-- [ ] Verify a production backup restores successfully (`bun run db:backup:verify` against a staging D1).
+- [x] Add a real restore drill (`bun run db:restore-drill <backup.sql>`): restores into a fresh Miniflare D1 in foreign-key order, applies migrations the backup predates, compares row counts, and renders public pages on the restored data; verified on a local dump.
+- [ ] Run the drill once on a production backup (manually, or by adding the `Restore drill` workflow secrets).
 
-### 39. Establish recovery and deployment safeguards — Important
+### 39. Establish recovery and deployment safeguards — Important (done)
 
 - [x] Document the rollback procedure for application and database migrations.
 - [x] Keep migration application and deployment ordering explicit.
 - [x] Document restore verification and add a deploy smoke test (`scripts/deploy-smoke-test.sh`).
 - [x] Schedule rate-limit cleanup and document orphaned R2 object discovery and cleanup.
-- [ ] Run a production restore exercise on a schedule and record the date of the last successful one.
-- [ ] Add alerts for failed deployments, migration failures, elevated 5xx rates, and rate-limit spikes.
+- [x] Schedule the restore exercise: `.github/workflows/restore-drill.yml` runs monthly and on demand (no artifacts uploaded); its run history and job summary record the last successful date. Activates once `CLOUDFLARE_API_TOKEN` (D1 read) and `CLOUDFLARE_ACCOUNT_ID` secrets are added.
+- [x] Alert on failed deployments: `bun run deploy` now runs the smoke test (fixed: it probed the removed `players.options`; now `stats.counts`, plus sitemap, 404 status, and API `no-store`), so a broken deploy or migration fails the command.
+- [x] Alert on elevated 5xx, rate-limit spikes, and Worker/cron exceptions: `scripts/check-production-health.mjs` + hourly `.github/workflows/production-health.yml` (Cloudflare GraphQL Analytics). Activates once `CLOUDFLARE_API_TOKEN` (Analytics read), `CLOUDFLARE_ACCOUNT_ID`, and `CLOUDFLARE_ZONE_ID` secrets are added; the query has not yet run against live analytics.
 
-### 40. CI quality gates and dependency hygiene — Important
+### 40. CI quality gates and dependency hygiene — Important (done)
 
 - [x] Run tests, type checking, linting, and build in CI.
 - [x] Fail CI when generated migrations differ from the schema, and check the generated route tree (`check:routes`).
 - [x] Run `bun audit --audit-level=high`.
 - [x] Enforce bundle-size budgets for the largest client chunks (`check:bundle`: Excel export, rating update, player profile).
-- [ ] Confirm devtools are excluded from production output; `__root.tsx` imports them statically and only gates rendering on `import.meta.env.DEV`. Use a lazy dev-only import and assert their absence in `check:bundle`.
-- [ ] Review transitive packages in the Worker bundle.
-- [ ] Pin Cloudflare runtime, Miniflare, Alchemy, and D1-related versions together, with a documented upgrade procedure (see the Miniflare version gotcha in `AGENTS.md`).
+- [x] Confirm devtools are excluded from production output (Vite drops the `import.meta.env.DEV` branch; only TanStack Form's own event client remains) and fail `check:bundle` if devtools panel code ever ships.
+- [x] Review the Worker bundle: 1.5 MB gzip (limit 3 MB free / 10 MB paid); no unexpected packages (`jsdom` hits are a Base UI export name). SheetJS (`xlsx`) is now loaded on demand in the rating import and Swiss Manager export, so its 159 KB gzip chunk no longer downloads with those pages.
+- [x] Pin the Cloudflare toolchain together: exact `alchemy` and `wrangler`, every `miniflare` pin equal to Alchemy's, an explicit `COMPATIBILITY_DATE` (previously Alchemy's default followed the installed workerd, so a reinstall could silently change production runtime behavior) shared with both test harnesses. `bun run check:runtime` enforces it in CI; the upgrade procedure is in `operations/runbook.mdx`.
 
 ---
 
@@ -540,36 +544,36 @@ otherwise the docs go stale immediately.
 
 Fumadocs content is written in English (rule in `AGENTS.md`).
 
-- [ ] Translate the remaining Portuguese pages to English: `index` (Normas Técnicas), `inicio`, `bullet`, `campeoes`, `circuitos`, `comunicados`, `copas`, `jogadores`, `jogos-escolares`, `membros`, `painel-administrativo`, `rating`, `renderizacao-e-cache`, `sobre`, `titulacoes`, `titulados`, `variacao-rating`. Consider English file slugs at the same time, with redirects if the docs are already linked externally.
-- [ ] Keep a domain guide for federation staff and users.
-- [ ] Add an architecture guide for maintainers.
-- [ ] Add an API and database reference for developers and LLMs.
-- [ ] Add operational runbooks for local development, migrations, backups, deployment, and incident recovery.
-- [ ] Add a glossary of domain terms and abbreviations.
+- [x] Translate the remaining Portuguese pages to English: `index` (Normas Técnicas), `inicio`, `bullet`, `campeoes`, `circuitos`, `comunicados`, `copas`, `jogadores`, `jogos-escolares`, `membros`, `painel-administrativo`, `rating`, `renderizacao-e-cache`, `sobre`, `titulacoes`, `titulados`, `variacao-rating`. Slugs are English now; no redirects, because the docs site is not deployed or linked anywhere.
+- [x] Keep a domain guide for federation staff and users.
+- [x] Add an architecture guide for maintainers.
+- [x] Add an API and database reference for developers and LLMs.
+- [x] Add operational runbooks for local development, migrations, backups, deployment, and incident recovery.
+- [x] Add a glossary of domain terms and abbreviations.
 
 ### 42. Document the domain model — Optional
 
-- [ ] Explain players, clubs, locations, titles, roles, norms, insignias, tournaments, circuits, cups, announcements, and events.
-- [ ] Document relationships and deletion behavior with a schema diagram.
-- [ ] Explain rating types and rating-history invariants.
-- [ ] Explain school leaderboard scoring and medal weighting.
-- [ ] Explain what is public and what is administrative.
+- [x] Explain players, clubs, locations, titles, roles, norms, insignias, tournaments, circuits, cups, announcements, and events.
+- [x] Document relationships and deletion behavior with a schema diagram.
+- [x] Explain rating types and rating-history invariants.
+- [x] Explain school leaderboard scoring and medal weighting.
+- [x] Explain what is public and what is administrative.
 
 ### 43. Document runtime behavior — Optional
 
-- [ ] Explain the request lifecycle from route loader to React Query, tRPC, Drizzle, and D1.
-- [ ] Explain SSR, hydration, route preloading, and prerendering (including the Task 25 decision).
-- [ ] Explain public edge caching versus authenticated requests.
-- [ ] Explain image upload, R2 storage, URL format, replacement, and cleanup.
-- [ ] Explain authentication, the owner identity binding, and future authorization boundaries.
+- [x] Explain the request lifecycle from route loader to React Query, tRPC, Drizzle, and D1.
+- [x] Explain SSR, hydration, route preloading, and prerendering (including the Task 25 decision).
+- [x] Explain public edge caching versus authenticated requests.
+- [x] Explain image upload, R2 storage, URL format, replacement, and cleanup.
+- [x] Explain authentication, the owner identity binding, and future authorization boundaries.
 
 ### 44. Add LLM-friendly references — Optional
 
-- [ ] Create a procedure catalog with purpose, access level, input shape, output shape, cache policy, and common errors.
-- [ ] Create a route catalog with URL, purpose, data dependencies, and SEO behavior.
-- [ ] List invariants and forbidden states explicitly.
-- [ ] Add examples for common tasks: adding a field, a procedure, and a public route.
-- [ ] Keep examples short, deterministic, and synchronized with tests where possible.
+- [x] Create a procedure catalog with purpose, access level, input shape, output shape, cache policy, and common errors.
+- [x] Create a route catalog with URL, purpose, data dependencies, and SEO behavior.
+- [x] List invariants and forbidden states explicitly.
+- [x] Add examples for common tasks: adding a field, a procedure, and a public route.
+- [x] Keep examples short, deterministic, and synchronized with tests where possible.
 
 ---
 
@@ -588,5 +592,5 @@ Run before marking a phase complete.
 - [x] Event link reconciliation cannot cross event boundaries.
 - [x] Upload validation rejects malformed and unsupported files.
 - [x] Player and post create/update round-trips succeed, including uploaded images (Tasks 1–2).
-- [ ] Public routes render correct SSR HTML, status codes, and metadata.
-- [ ] Keyboard-only navigation works for dialogs, command menu, forms, tables, and uploads.
+- [x] Public routes render correct SSR HTML, status codes, and metadata (`check:ssr`: 22 routes, plus `check:seo` for prerendered pages).
+- [x] Keyboard-only navigation works for dialogs, command menu, forms, tables, and uploads (`e2e/navigation.e2e.ts`, `public.e2e.ts`, `admin.e2e.ts`, `a11y.e2e.ts`; Tasks 30–31).

@@ -1,6 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
-import { toast } from "sonner";
 import z from "zod";
 
 import { CIRCUIT_CATEGORIES } from "@fsx/api/circuit-types";
@@ -13,17 +11,18 @@ import { useTRPC } from "@/utils/trpc";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 
 import type { CircuitPodium } from "../types";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
+import { FieldError } from "@/components/form/field-error";
 
 export type PodiumTarget = { circuitId?: number; circuitPhaseId?: number };
 
 const podiumSchema = z.object({
-  playerId: z.string().min(1, "Jogador é obrigatório"),
+  playerId: z.string().min(1, "Player is required"),
   category: z.enum(CIRCUIT_CATEGORIES).or(z.literal("")),
   place: z
     .string()
-    .refine((v) => v.trim() === "" || Number.isInteger(Number(v)), "Colocação inválida"),
-  points: z.string().refine((v) => v.trim() !== "" && !Number.isNaN(Number(v)), "Pontos inválidos"),
+    .refine((v) => v.trim() === "" || Number.isInteger(Number(v)), "Invalid place"),
+  points: z.string().refine((v) => v.trim() !== "" && !Number.isNaN(Number(v)), "Invalid points"),
 });
 
 export function CircuitPodiumForm({
@@ -34,33 +33,24 @@ export function CircuitPodiumForm({
   podium?: CircuitPodium;
 }) {
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
 
-  const createMutation = useMutation({
-    ...trpc.circuits.podiums.create.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("circuits");
-      toast.success("Pódio adicionado");
-    },
-    onError: () => toast.error("Falha ao adicionar pódio"),
+  const createMutation = useAdminMutation(trpc.circuits.podiums.create.mutationOptions(), {
+    invalidates: "circuits",
+    success: "Podium added",
+    failure: "Failed to add podium",
   });
 
-  const updateMutation = useMutation({
-    ...trpc.circuits.podiums.update.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("circuits");
-      toast.success("Pódio atualizado");
-    },
-    onError: () => toast.error("Falha ao atualizar pódio"),
+  const updateMutation = useAdminMutation(trpc.circuits.podiums.update.mutationOptions(), {
+    invalidates: "circuits",
+    success: "Podium updated",
+    failure: "Failed to update podium",
+    reloadOnConflict: true,
   });
 
-  const deleteMutation = useMutation({
-    ...trpc.circuits.podiums.delete.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("circuits");
-      toast.success("Pódio removido");
-    },
-    onError: () => toast.error("Falha ao remover pódio"),
+  const deleteMutation = useAdminMutation(trpc.circuits.podiums.delete.mutationOptions(), {
+    invalidates: "circuits",
+    success: "Podium removed",
+    failure: "Failed to remove podium",
   });
 
   const isPending = podium ? updateMutation.isPending : createMutation.isPending;
@@ -101,20 +91,16 @@ export function CircuitPodiumForm({
       <form.Field name="playerId">
         {(f) => (
           <div className="flex min-w-[200px] flex-1 flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">Jogador</Label>
+            <Label className="text-xs text-muted-foreground">Player</Label>
             <SearchableSelect
               value={f.state.value}
               onChange={(v) => f.handleChange(v)}
               getQueryOptions={(q) => trpc.players.search.queryOptions({ query: q })}
-              placeholder="Buscar jogador..."
-              emptyText="Nenhum jogador encontrado."
+              placeholder="Search player..."
+              emptyText="No player found."
               initialLabel={podium?.player?.name ?? ""}
             />
-            {f.state.meta.errors.map((e) => (
-              <p key={e?.message} className="text-destructive text-xs">
-                {e?.message}
-              </p>
-            ))}
+            <FieldError field={f} error={updateMutation.error} />
           </div>
         )}
       </form.Field>
@@ -122,7 +108,7 @@ export function CircuitPodiumForm({
         {(f) => (
           <div className="flex w-28 flex-col gap-1">
             <Label htmlFor={f.name} className="text-xs text-muted-foreground">
-              Categoria
+              Category
             </Label>
             <select
               id={f.name}
@@ -136,6 +122,7 @@ export function CircuitPodiumForm({
                 <option key={category} value={category}>{category}</option>
               ))}
             </select>
+            <FieldError field={f} error={updateMutation.error} />
           </div>
         )}
       </form.Field>
@@ -143,7 +130,7 @@ export function CircuitPodiumForm({
         {(f) => (
           <div className="flex w-20 flex-col gap-1">
             <Label htmlFor={f.name} className="text-xs text-muted-foreground">
-              Lugar
+              Place
             </Label>
             <Input
               id={f.name}
@@ -152,11 +139,7 @@ export function CircuitPodiumForm({
               onBlur={f.handleBlur}
               onChange={(e) => f.handleChange(e.target.value)}
             />
-            {f.state.meta.errors.map((e) => (
-              <p key={e?.message} className="text-destructive text-xs">
-                {e?.message}
-              </p>
-            ))}
+            <FieldError field={f} error={updateMutation.error} />
           </div>
         )}
       </form.Field>
@@ -164,7 +147,7 @@ export function CircuitPodiumForm({
         {(f) => (
           <div className="flex w-24 flex-col gap-1">
             <Label htmlFor={f.name} className="text-xs text-muted-foreground">
-              Pontos
+              Points
             </Label>
             <Input
               id={f.name}
@@ -174,11 +157,7 @@ export function CircuitPodiumForm({
               onBlur={f.handleBlur}
               onChange={(e) => f.handleChange(e.target.value)}
             />
-            {f.state.meta.errors.map((e) => (
-              <p key={e?.message} className="text-destructive text-xs">
-                {e?.message}
-              </p>
-            ))}
+            <FieldError field={f} error={updateMutation.error} />
           </div>
         )}
       </form.Field>
@@ -186,14 +165,14 @@ export function CircuitPodiumForm({
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit })}>
           {({ canSubmit }) => (
             <Button type="submit" variant="outline" size="sm" disabled={!canSubmit || isPending}>
-              {podium ? "Salvar" : "Adicionar"}
+              {podium ? "Save" : "Add"}
             </Button>
           )}
         </form.Subscribe>
         {podium ? (
           <ConfirmDeleteButton
-            itemName="classificação de jogador"
-            label="Excluir pódio"
+            itemName="player standing"
+            label="Delete podium"
             pending={deleteMutation.isPending}
             onConfirm={() => deleteMutation.mutate({ id: podium.id })}
           />

@@ -1,15 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 import { Textarea } from "@fsx/ui/components/textarea";
-import { toast } from "sonner";
 import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
+import { FieldError } from "@/components/form/field-error";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/create")({
   head: () => ({ meta: [{ title: "Create Announcement - Admin - FSX" }] }),
@@ -19,16 +18,12 @@ export const Route = createFileRoute("/_auth/dashboard/announcements/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const invalidateAdmin = useInvalidateAdmin();
 
-  const createMutation = useMutation({
-    ...trpc.announcements.create.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("announcements");
-      toast.success("Announcement created");
-      navigate({ to: "/dashboard/announcements" });
-    },
-    onError: () => toast.error("Failed to create announcement"),
+  const createMutation = useAdminMutation(trpc.announcements.create.mutationOptions(), {
+    invalidates: "announcements",
+    success: "Announcement created",
+    failure: "Failed to create announcement",
+    onSuccess: () => { navigate({ to: "/dashboard/announcements" }); },
   });
 
   const form = useForm({
@@ -54,7 +49,7 @@ function RouteComponent() {
             <div className="space-y-2">
               <Label htmlFor={f.name}>Year</Label>
               <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
-              {f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>
@@ -63,7 +58,7 @@ function RouteComponent() {
             <div className="space-y-2">
               <Label htmlFor={f.name}>Number</Label>
               <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
-              {f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>
@@ -72,7 +67,7 @@ function RouteComponent() {
             <div className="space-y-2">
               <Label htmlFor={f.name}>Content</Label>
               <Textarea id={f.name} rows={4} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
-              {f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>

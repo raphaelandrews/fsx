@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
-import { toast } from "sonner";
 import z from "zod";
 
 import { CIRCUIT_TYPE_LABELS, CIRCUIT_TYPES, type CircuitType } from "@fsx/api/circuit-types";
@@ -13,9 +12,9 @@ import { CircuitPhaseForm } from "@/components/circuitos/admin/circuit-phase-for
 import { CircuitPodiumForm } from "@/components/circuitos/admin/circuit-podium-form";
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
-import { orNotFound } from "@/lib/errors";
+import { fieldError, orNotFound } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/$id")({
   params: idParams,
@@ -33,20 +32,17 @@ function RouteComponent() {
   const { id: numId } = Route.useParams();
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const invalidateAdmin = useInvalidateAdmin();
 
   const { data: circuit } = useSuspenseQuery(trpc.circuits.byId.queryOptions({ id: numId }));
 
-  const updateMutation = useMutation({
-    ...trpc.circuits.update.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("circuits");
-      toast.success("Circuito atualizado");
-    },
-    onError: () => toast.error("Falha ao atualizar circuito"),
+  const updateMutation = useAdminMutation(trpc.circuits.update.mutationOptions(), {
+    invalidates: "circuits",
+    success: "Circuit updated",
+    failure: "Failed to update circuit",
+    reloadOnConflict: true,
   });
 
-  if (!circuit) return <p>Circuito não encontrado.</p>;
+  if (!circuit) return <p>Circuit not found.</p>;
 
   const form = useForm({
     defaultValues: {
@@ -55,7 +51,7 @@ function RouteComponent() {
     },
     validators: {
       onSubmit: z.object({
-        name: z.string().min(1, "Nome é obrigatório"),
+        name: z.string().min(1, "Name is required"),
         type: z.enum(CIRCUIT_TYPES),
       }),
     },
@@ -73,7 +69,7 @@ function RouteComponent() {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">Editar circuito: {circuit.name}</h1>
+        <h1 className="font-bold text-2xl">Edit circuit: {circuit.name}</h1>
         <Button variant="outline" onClick={() => navigate({ to: "/dashboard/circuits" })}>
           Voltar
         </Button>
@@ -89,9 +85,9 @@ function RouteComponent() {
         <form.Field name="name">
           {(f) => (
             <FormField
-              label="Nome"
+              label="Name"
               htmlFor={f.name}
-              error={f.state.meta.errors[0]?.message}
+              error={fieldError(f, updateMutation.error)}
               required
             >
               <Input
@@ -105,7 +101,7 @@ function RouteComponent() {
         </form.Field>
         <form.Field name="type">
           {(f) => (
-            <FormField label="Tipo" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+            <FormField label="Type" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
               <select
                 id={f.name}
                 value={f.state.value}
@@ -127,7 +123,7 @@ function RouteComponent() {
         >
           {({ canSubmit, isSubmitting }) => (
             <Button type="submit" disabled={!canSubmit || isSubmitting || updateMutation.isPending}>
-              {isSubmitting ? "Salvando..." : "Salvar alterações"}
+              {isSubmitting ? "Saving..." : "Save changes"}
             </Button>
           )}
         </form.Subscribe>
@@ -136,7 +132,7 @@ function RouteComponent() {
       <div className="mt-8">
         {circuit.type === "geral" ? (
           <section className="space-y-2">
-            <h2 className="font-semibold text-lg">Classificação geral</h2>
+            <h2 className="font-semibold text-lg">Overall standings</h2>
             <p className="text-sm text-muted-foreground">
               Circuito sem etapas: a lista abaixo é a classificação final.
             </p>

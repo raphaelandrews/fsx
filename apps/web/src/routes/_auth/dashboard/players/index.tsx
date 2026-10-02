@@ -150,7 +150,7 @@ function PaginationBar({
   const search = (p: number) => ({ page: p, name });
 
   return (
-      <nav aria-label="Paginação de jogadores" className="mt-4 flex items-center justify-between">
+      <nav aria-label="Players pagination" className="mt-4 flex items-center justify-between">
       <p className="text-sm text-muted-foreground" aria-live="polite" aria-atomic="true">
         Página {safePage} de {totalPages}
       </p>

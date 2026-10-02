@@ -1,0 +1,56 @@
+---
+title: Routes
+description: Catalog of site URLs with purpose, data dependencies, and SEO behavior.
+---
+
+Routes live in `apps/web/src/routes` (TanStack file routing). Public pages
+are in Portuguese; the dashboard is in English.
+
+Every public page sets a title, description, canonical URL, Open Graph tags, and
+`robots: index, follow` through `buildSeo` (`apps/web/src/lib/seo.ts`), plus
+breadcrumb JSON-LD. **Sitemap** marks URLs listed in `/sitemap.xml`.
+`bun run check:routes` fails when a public route is missing from the sitemap.
+
+## Public pages
+
+| URL | Purpose | Loader data (tRPC) | Search params | SEO and status |
+| --- | ------- | ------------------ | ------------- | -------------- |
+| `/` | [Home](/guide/home) | `topPlayers.list`, `events.list`, `posts.fresh`, `announcements.fresh` | — | Sitemap |
+| `/ratings` | [Ratings](/guide/ratings) | `players.withFilters`, `clubs.list`, `locations.list` | `page`, `ordenar`, `sexo`, `nome`, `local[]`, `clube[]`, `titulo[]`, `grupo[]`; defaults are stripped from the URL | Sitemap. Unfiltered page *n* is its own canonical; filtered views canonicalize to `/ratings` |
+| `/jogadores/$id` | [Player profile](/guide/players) | `players.byId` | — | Sitemap (active players). Person JSON-LD. Invalid or unknown ID → 404 |
+| `/titulados` | [Titled players](/guide/titled-players) | `titledPlayers.list` | — | Sitemap |
+| `/campeoes` | [Champions](/guide/champions) | `champions.gallery` | — | Sitemap |
+| `/circuitos` | [Circuits](/guide/circuits) | `circuits.listSimple`, `circuits.byId` for the selected circuit | `circuito` | Sitemap; canonical is always `/circuitos` |
+| `/tv-sergipe` | [School Games](/guide/school-games) | `tvSergipe.list`, `tvSergipe.leaderboard` | `view` (`medals` default, stripped), `idade`, `escopo`, `escola` | Sitemap |
+| `/bullet` | [Bullet](/guide/bullet) | `cups.list`, `cups.byId` | — | Sitemap |
+| `/membros` | [Members](/guide/members) | `roles.listWithPlayers` | — | Sitemap |
+| `/noticias` | News list | `posts.byPage` | `page` | Sitemap; page *n* is its own canonical |
+| `/noticias/$slug` | News article | `posts.bySlug` | — | Sitemap (published posts). Article JSON-LD. Unknown or draft slug → 404 |
+| `/comunicados` | [Announcements](/guide/announcements) | `announcements.byPage` | `page` | Sitemap; page *n* is its own canonical |
+| `/comunicados/$id` | One announcement | `announcements.byId` | — | Sitemap. Unknown ID → 404 |
+| `/links` | Link groups | `links.list` | — | Sitemap |
+| `/sobre` | [About](/guide/about) | — | — | Sitemap; **prerendered** |
+| `/normas-tecnicas` | Technical norms | — | — | Sitemap; **prerendered** |
+| any other path | Not found | — | — | `$.tsx` throws `notFound()` → 404, `noindex` |
+
+## Private pages
+
+All are `noindex, nofollow` and are not in the sitemap.
+
+| URL | Purpose | Guard |
+| --- | ------- | ----- |
+| `/login` | GitHub sign-in | Redirects to `/dashboard` when a session exists |
+| `/dashboard` and children | [Admin panel](/guide/admin-panel): list, `create`, and `$id` edit pages per entity, plus `players/titles`, `swiss-manager`, `cache`, `backup`, `user` | `_auth` `beforeLoad` redirects to `/login` without a session; data requires `adminProcedure` |
+| `/rating-update` | Bulk rating import from Excel | same as `/dashboard` |
+
+Dashboard list pages read the matching admin or public list procedure; edit
+pages read `forEdit` (players, posts) or the public `byId`, and 404 on unknown IDs.
+
+## Server endpoints
+
+| URL | Method | Purpose | Caching |
+| --- | ------ | ------- | ------- |
+| `/api/trpc/<procedures>` | GET, POST | tRPC; batched procedure names are comma-separated | Public GETs at the edge per [policy](/reference/procedures); browsers get `no-store` |
+| `/api/auth/*` | GET, POST | Better Auth (GitHub OAuth, session) | `no-store`; rate-limited |
+| `/api/media/<key>` | GET, HEAD | R2 images | `public, max-age=31536000, immutable` |
+| `/sitemap.xml` | GET | Static pages, active players, published posts, announcements | One hour, edge and browser |

@@ -1,7 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
-import { toast } from "sonner";
 import z from "zod";
 
 import { CIRCUIT_TYPE_LABELS, CIRCUIT_TYPES, type CircuitType } from "@fsx/api/circuit-types";
@@ -10,8 +8,8 @@ import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 
 import { useTRPC } from "@/utils/trpc";
-import { getUserErrorMessage } from "@/lib/errors";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
+import { FieldError } from "@/components/form/field-error";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/create")({
   head: () => ({ meta: [{ title: "Create Circuit - Admin - FSX" }] }),
@@ -21,16 +19,12 @@ export const Route = createFileRoute("/_auth/dashboard/circuits/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const invalidateAdmin = useInvalidateAdmin();
 
-  const createMutation = useMutation({
-    ...trpc.circuits.create.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("circuits");
-      toast.success("Circuito criado");
-      navigate({ to: "/dashboard/circuits" });
-    },
-    onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar o circuito.")),
+  const createMutation = useAdminMutation(trpc.circuits.create.mutationOptions(), {
+    invalidates: "circuits",
+    success: "Circuit created",
+    failure: "Failed to create circuit",
+    onSuccess: () => { navigate({ to: "/dashboard/circuits" }); },
   });
 
   const form = useForm({
@@ -40,7 +34,7 @@ function RouteComponent() {
     },
     validators: {
       onSubmit: z.object({
-        name: z.string().min(1, "Nome é obrigatório"),
+        name: z.string().min(1, "Name is required"),
         type: z.enum(CIRCUIT_TYPES),
       }),
     },
@@ -59,25 +53,21 @@ function RouteComponent() {
         <form.Field name="name">
           {(f) => (
             <div className="space-y-2">
-              <Label htmlFor={f.name}>Nome</Label>
+              <Label htmlFor={f.name}>Name</Label>
               <Input
                 id={f.name}
                 value={f.state.value}
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
               />
-              {f.state.meta.errors.map((e) => (
-                <p key={e?.message} className="text-destructive text-xs">
-                  {e?.message}
-                </p>
-              ))}
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>
         <form.Field name="type">
           {(f) => (
             <div className="space-y-2">
-              <Label htmlFor={f.name}>Tipo</Label>
+              <Label htmlFor={f.name}>Type</Label>
               <select
                 id={f.name}
                 value={f.state.value}
@@ -91,6 +81,7 @@ function RouteComponent() {
                   </option>
                 ))}
               </select>
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>
@@ -99,7 +90,7 @@ function RouteComponent() {
         >
           {({ canSubmit, isSubmitting }) => (
             <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>
-              {isSubmitting ? "Criando..." : "Criar circuito"}
+              {isSubmitting ? "Creating..." : "Create circuit"}
             </Button>
           )}
         </form.Subscribe>

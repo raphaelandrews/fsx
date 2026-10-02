@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { toast } from "sonner";
 
 import { Button } from "@fsx/ui/components/button";
 import {
@@ -23,7 +22,8 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
+import { EmptyCollection } from "@/components/admin/empty-collection";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/")({
   head: () => ({ meta: [{ title: "TV Sergipe - Admin - FSX" }] }),
@@ -33,27 +33,20 @@ export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/")({
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
 
   const { data = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
 
-  const deleteMutation = useMutation({
-    ...trpc.tvSergipe.delete.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("tvSergipe");
-      toast.success("Result deleted");
-    },
-    onError: () => toast.error("Failed to delete result"),
+  const deleteMutation = useAdminMutation(trpc.tvSergipe.delete.mutationOptions(), {
+    invalidates: "tvSergipe",
+    success: "Result deleted",
+    failure: "Failed to delete result",
   });
 
-  const deleteAllMutation = useMutation({
-    ...trpc.tvSergipe.deleteAll.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("tvSergipe");
-      toast.success("All results deleted");
-    },
-    onError: () => toast.error("Failed to delete all results"),
+  const deleteAllMutation = useAdminMutation(trpc.tvSergipe.deleteAll.mutationOptions(), {
+    invalidates: "tvSergipe",
+    success: "All results deleted",
+    failure: "Failed to delete all results",
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
@@ -128,6 +121,7 @@ function RouteComponent() {
         }
       />
       <DataTable
+        emptyState={<EmptyCollection noun="TV Sergipe results" createTo="/dashboard/tv-sergipe/create" />}
         columns={columns}
         data={data}
         toolbar={(table) => (

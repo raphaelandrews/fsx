@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "alchemy dev",
-    "deploy": "alchemy deploy ./alchemy.deploy.ts",
+    "deploy": "alchemy deploy ./alchemy.deploy.ts && bash ../../scripts/deploy-smoke-test.sh",
     "destroy": "alchemy destroy"
   },
   "dependencies": {

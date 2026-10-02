@@ -80,7 +80,7 @@ fsx/
 ### Prerequisites
 
 - [bun](https://bun.sh) >= 1.3
-- A Cloudflare account with D1 and Pages
+- A Cloudflare account with Workers, D1, and R2
 
 ### 1. Install dependencies
 
@@ -106,10 +106,12 @@ cp apps/web/.env.example apps/web/.env
 | `GITHUB_USER_ID`       | Numeric GitHub account ID of the owner; only this account can sign in or administer (recommended) |
 | `GITHUB_USERNAME`      | Legacy fallback when `GITHUB_USER_ID` is empty: pre-lock signups to this login (empty = first-signup-wins) |
 | `DISABLE_SIGNUP`       | Hard-disable new signups; set `true` after your account exists (optional) |
-| `CLOUDFLARE_ACCOUNT_ID`| Cloudflare account ID (for D1 migrations via drizzle-kit) |
-| `CLOUDFLARE_DATABASE_ID`| Cloudflare D1 database ID (for migrations) |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API token (for migrations)   |
-| `VITE_CLOUDFLARE_ANALYTICS_TOKEN` | Cloudflare Web Analytics token (optional; leave empty to disable analytics) |
+| `CLOUDFLARE_ACCOUNT_ID`| Cloudflare account ID (Alchemy deploys, Wrangler backups) |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token (Alchemy deploys, Wrangler backups) |
+| `CLOUDFLARE_ZONE_ID`   | Zone ID of `fsx.org.br` (optional; dashboard cache purge) |
+| `CLOUDFLARE_CACHE_PURGE_TOKEN` | Token with Zone → Cache Purge (optional; dashboard cache purge) |
+| `VITE_CLOUDFLARE_ANALYTICS_TOKEN` | Cloudflare Web Analytics site token, read at build time (optional; empty disables the beacon) |
+| `ALCHEMY_PASSWORD`     | In `packages/infra/.env`; encrypts secrets in Alchemy state (keep stable) |
 
 ### 3. Generate database migration
 
@@ -138,15 +140,11 @@ Open [http://localhost:3001](http://localhost:3001).
 
 ## Caching Strategy
 
-This is a read-heavy chess federation website. Caching operates at three layers:
-
-| Layer | Mechanism | TTL | What it does |
-|-------|-----------|-----|--------------|
-| Edge CDN | Cloudflare Cache API | 5min | Caches GET responses at the edge. POST bypasses. |
-| Client | React Query | 5min stale / 10min gc | Prevents redundant fetches. Invalids on mutation. |
-| SSR | `ensureQueryData()` + `<Link preload="intent">` | 60s | Prefetches on hover. Server-renders first visit. |
-
-All tRPC queries use `Cache-Control: public, max-age=300, stale-while-revalidate=3600`.
+Public tRPC GETs are cached per Cloudflare data center for 30–300 seconds
+(`packages/api/src/cache-policy.ts`); authenticated requests bypass it, and
+browsers receive `no-store` because React Query is the client cache. Pages are
+server-rendered per request, except `/sobre` and `/normas-tecnicas`, which are
+prerendered. Details: `apps/fumadocs/content/docs/architecture/rendering-and-caching.mdx`.
 
 ## Available Scripts
 
@@ -173,7 +171,8 @@ bun run --filter fumadocs dev
 
 Opens the documentation site at [http://localhost:4000](http://localhost:4000).
 
-Docs content lives in `apps/fumadocs/content/docs/`.
+Docs content lives in `apps/fumadocs/content/docs/`, in English, grouped by
+audience: `guide/`, `architecture/`, `reference/`, `operations/`, and `decisions/`.
 
 ## Adding UI Components
 
@@ -197,14 +196,16 @@ npx shadcn@latest add some-block -c apps/web
 
 ## Deployment
 
-This project deploys to **Cloudflare Pages** via **Alchemy**, which provisions:
-- Cloudflare Pages (frontend hosting)
-- Cloudflare D1 (SQLite database)
-- Cloudflare Workers (optional API workers — not used in this project)
+This project deploys to **Cloudflare Workers** via **Alchemy**, which provisions
+the web Worker, the D1 database, the R2 image bucket, the read rate limiter, and
+the rate-limit cleanup cron Worker:
 
 ```bash
 bun run deploy
 ```
+
+The deploy runs a smoke test afterwards. Rollback and recovery steps are in
+`apps/fumadocs/content/docs/operations/incident-response.mdx`.
 
 To tear down all infrastructure:
 

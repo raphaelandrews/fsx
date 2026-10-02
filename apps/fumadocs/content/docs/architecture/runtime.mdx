@@ -1,0 +1,84 @@
+---
+title: Runtime
+description: The request lifecycle from route loader to React Query, tRPC, Drizzle, and D1.
+---
+
+## Entry points
+
+Every request reaches the same Worker. TanStack Start routes it by path:
+
+| Path              | Handler | Notes |
+| ----------------- | ------- | ----- |
+| `/api/trpc/*`     | `packages/api/src/trpc-handler.ts` | GET queries (edge-cached when public) and POST mutations. |
+| `/api/auth/*`     | `apps/web/src/routes/api/auth/$.ts` | Better Auth, behind an origin check and D1-backed rate limits. |
+| `/api/media/*`    | `packages/api/src/media-handler.ts` | Images streamed from R2. |
+| `/sitemap.xml`    | `apps/web/src/routes/sitemap[.]xml.ts` | Built from D1, stored in the Cache API for one hour. |
+| everything else   | TanStack Start SSR | Page routes under `apps/web/src/routes`. |
+
+## Page request (first load)
+
+1. The router matches the URL. `params.parse` and `validateSearch` reject
+   malformed IDs and search params before any data is read; an invalid ID
+   throws `notFound()`.
+2. `_auth` routes run `beforeLoad`, which reads the session and redirects to
+   `/login` when it is missing.
+3. The route `loader` calls `queryClient.ensureQueryData(trpc.x.y.queryOptions(...))`
+   for every query the page suspends on. Detail loaders turn a tRPC
+   `NOT_FOUND` into `notFound()`, a 404 page (`orNotFound` in `@/lib/errors`).
+4. On the server, the tRPC client uses `unstable_localLink`: it calls the router
+   **in process** with a context built from the incoming request. There is no
+   HTTP hop and no edge cache on this path.
+5. `createContext` builds a Drizzle client over a metered D1 binding, reads the
+   Better Auth session, and takes the request ID from `cf-ray`.
+6. The procedure middleware runs: `errorBoundary` for every procedure, plus
+   `requireAdmin` for administrative ones (see [Authentication](/architecture/authentication)).
+7. The procedure validates input with Zod, runs Drizzle queries against D1, and
+   returns a projection: only the columns the page renders.
+8. `head` builds the title, description, canonical URL, and JSON-LD from the
+   loader data.
+9. React renders on the server. `@tanstack/react-router-ssr-query` serializes
+   the React Query cache into the HTML, so the browser hydrates without
+   refetching.
+
+## Client navigation
+
+After hydration, links preload on hover or focus (`defaultPreload: "intent"`).
+The loader runs in the browser, and `ensureQueryData` returns cached data or
+calls `/api/trpc` over HTTP with `httpBatchLink`. Batched GETs are answered from
+the edge cache when every procedure in the batch is public. React Query is the
+client cache; the router keeps no separate preload cache (`defaultPreloadStaleTime: 0`).
+
+## Mutations
+
+Admin forms call `useAdminMutation` (`apps/web/src/lib/admin-mutations.ts`).
+It sends a POST, which is origin-checked and rate-limited, then:
+
+- invalidates every query family that embeds the changed rows
+  (`ADMIN_QUERY_DEPENDENTS`), so lists, details, and public views refetch;
+- shows a success toast, or an English error with a **Reload** action when the
+  server reports `CONFLICT`.
+
+## Errors
+
+`errorBoundary` in `packages/api/src/index.ts` normalizes failures before they
+reach the client:
+
+| Cause | Code returned |
+| ----- | ------------- |
+| `TRPCError` thrown by a procedure | unchanged |
+| Zod input validation | `BAD_REQUEST`, with `zodError` field details |
+| SQLite unique or foreign-key violation | `CONFLICT` |
+| SQLite check or not-null violation | `BAD_REQUEST` |
+| anything else | `INTERNAL_SERVER_ERROR` with a generic message |
+
+Raw SQL never reaches the client, and stack traces are stripped outside
+development. Rejections (status below 500) log a warning; failures log an
+error with the procedure path and request ID.
+
+## Observability
+
+Each procedure call is metered: slow calls (100 ms or more) and calls with 8 or
+more D1 queries log `[cost] costly procedure`, and lists that hit the
+`PUBLIC_COLLECTION_LIMIT` (500 rows) log a warning. Public responses over
+512 KB log `[resource] public response size budget exceeded`. Edge cache hits and
+misses log `[cache] public query`. See [Query cost baseline](/operations/query-cost-baseline).

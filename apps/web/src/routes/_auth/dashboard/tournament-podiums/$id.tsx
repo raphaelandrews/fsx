@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
-import { toast } from "sonner";
 import z from "zod";
 
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { fieldError } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/$id")({
   params: idParams,
@@ -22,19 +22,16 @@ export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/$id")(
 function RouteComponent() {
   const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
 
   const { data: podiums = [] } = useSuspenseQuery(trpc.tournamentPodiums.list.queryOptions());
   const podium = podiums.find((p) => p.id === numId);
 
-  const updateMutation = useMutation({
-    ...trpc.tournamentPodiums.update.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("tournamentPodiums");
-      toast.success("Podium updated");
-    },
-    onError: () => toast.error("Failed to update podium"),
+  const updateMutation = useAdminMutation(trpc.tournamentPodiums.update.mutationOptions(), {
+    invalidates: "tournamentPodiums",
+    success: "Podium updated",
+    failure: "Failed to update podium",
+    reloadOnConflict: true,
   });
 
   if (!podium) {
@@ -84,7 +81,7 @@ function RouteComponent() {
             <FormField
               label="Player ID"
               htmlFor={f.name}
-              error={f.state.meta.errors[0]?.message}
+              error={fieldError(f, updateMutation.error)}
               required
             >
               <Input
@@ -102,7 +99,7 @@ function RouteComponent() {
             <FormField
               label="Tournament ID"
               htmlFor={f.name}
-              error={f.state.meta.errors[0]?.message}
+              error={fieldError(f, updateMutation.error)}
               required
             >
               <Input
@@ -120,7 +117,7 @@ function RouteComponent() {
             <FormField
               label="Place"
               htmlFor={f.name}
-              error={f.state.meta.errors[0]?.message}
+              error={fieldError(f, updateMutation.error)}
               required
             >
               <Input

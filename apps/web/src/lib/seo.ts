@@ -188,16 +188,30 @@ export function personJsonLd(options: {
     "@type": "Person",
     name: options.name,
     description: options.description,
-    image: resolveOgImage(options.image),
+    image: options.image ? absoluteUrl(options.image) : undefined,
     url: absoluteUrl(options.path),
     memberOf: { "@type": "SportsOrganization", name: SITE_NAME, url: SITE_URL },
   };
 }
 
+/** Plain text from Markdown, for meta descriptions and other non-rendered contexts. */
+export function stripMarkdown(markdown: string): string {
+  return markdown
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/^\s{0,3}(#{1,6}|>|[-*+]|\d+[.)])\s+/gm, "")
+    .replace(/^\s*\|?\s*:?-{3,}.*$/gm, " ")
+    .replace(/\|/g, " ")
+    .replace(/[*_~`]+/g, "");
+}
+
 /** Truncate text for meta descriptions without cutting mid-word. */
 export function truncate(text: string | null | undefined, max = 155): string {
   if (!text) return DEFAULT_DESCRIPTION;
-  const clean = text.replace(/\s+/g, " ").trim();
+  const clean = stripMarkdown(text).replace(/\s+/g, " ").trim();
+  if (!clean) return DEFAULT_DESCRIPTION;
   if (clean.length <= max) return clean;
   const cut = clean.slice(0, max);
   const lastSpace = cut.lastIndexOf(" ");

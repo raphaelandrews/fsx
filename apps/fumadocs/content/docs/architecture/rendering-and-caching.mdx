@@ -1,0 +1,91 @@
+---
+title: Rendering and Caching
+description: How pages are rendered and which caches sit between a visitor and D1.
+---
+
+## Rendering
+
+- **Data pages** (home, ratings, news, announcements, players, champions,
+  circuits, TV Sergipe, bullet, members, links, and the dashboard) are
+  **server-rendered on every request** by the Worker.
+- **Static pages** (`/sobre` and `/normas-tecnicas`) are **prerendered** at build
+  time and served as files.
+- Prerendering is opt-in per path (`crawlLinks: false`), so new pages are SSR by
+  default.
+
+SSR calls tRPC in process; the browser calls `/api/trpc`. The server serializes
+the React Query cache into the HTML so the client hydrates without refetching
+(see [Runtime](/architecture/runtime)).
+
+### Hydration rules
+
+- Pass an explicit `timeZone` to `Intl.DateTimeFormat` and `toLocaleString`. The
+  Worker runs in UTC and the browser in the visitor's zone, so an implicit zone
+  produces different HTML and a hydration mismatch.
+- A route must prefetch in its `loader` every query its components suspend on.
+  A suspense query missing from the loader renders an unresolved boundary on the
+  server (React error #419).
+- `bun run check:ssr` renders 22 routes with the production build and fails on
+  errors, status codes, or render-time budgets.
+
+### Why not prerender data pages
+
+The site used to prerender every crawlable page. Content froze at build time,
+pages built while data was missing produced empty HTML (React #419), and pages
+outside the crawl, such as `/jogadores/<id>`, needed SSR anyway.
+
+### Why SSR HTML is not cached (Task 25)
+
+A page view costs 1–6 D1 queries and at most about 2,750 rows read (`/ratings`)
+at production volume, and renders in 11–50 ms. That cost is accepted.
+Caching HTML would need a Cloudflare Cache Rule plus a session-cookie bypass
+(Cloudflare ignores `Vary: Cookie`), and a mistake would serve stale pages or
+leak the admin view. Revisit if D1 reads approach the plan limit or Worker CPU
+time becomes visible. Decision: [ADR 0003](/decisions/0003-edge-cache-consistency).
+
+## Cache layers
+
+| Layer | Scope | Lifetime | Source of truth |
+| ----- | ----- | -------- | --------------- |
+| Edge cache for public tRPC GETs | one Cloudflare data center | 30–300 s per procedure | `packages/api/src/cache-policy.ts` |
+| React Query | one browser tab | stale after 5 min by default (60 s for news and announcements, 30 s for events and search), collected after 10 min | `apps/web/src/router.tsx` |
+| Static assets | Cloudflare CDN | hashed file names, long-lived | Vite build |
+| Images | Cloudflare CDN and browser | one year, `immutable` | `media-handler.ts` |
+| Sitemap | one data center | 1 hour | `sitemap[.]xml.ts` |
+
+### Edge cache for tRPC
+
+- Only procedures listed as `public` in `PROCEDURE_CACHE_POLICY` are cached.
+  A batch is cached only when every procedure in it is public, with the
+  smallest TTL. Unknown procedures are never cached.
+- Requests carrying a Better Auth session cookie bypass the cache in both
+  directions. The Cache API is read before tRPC auth runs, so caching an
+  authenticated GET could serve admin data to anonymous visitors.
+- Only `200` responses whose every entry is a tRPC result are stored. Errors,
+  mutations, and partial batches are not.
+- Stored entries carry their fetch time (`x-cache-fetched-at`) and expire by it,
+  because `caches.default` does not reliably honor `max-age` on `match()`.
+- Browsers always receive `Cache-Control: no-store` for API responses. The zone
+  setting **Browser Cache TTL** must be **Respect Existing Headers**; otherwise
+  Cloudflare raises short lifetimes to hours.
+- Uncached reads are rate-limited per IP by the native `RateLimit` binding (600
+  per minute); cache hits are not limited.
+
+### Freshness after an edit
+
+The dashboard refetches every affected query immediately. Anonymous visitors
+are eventually consistent: a data center may serve the previous response until
+that procedure's TTL expires, at most five minutes. A visitor who already has the
+page open sees new data after the React Query stale time or a reload.
+
+The dashboard **Cache** page purges the public cache in every data center when
+`CLOUDFLARE_ZONE_ID` and `CLOUDFLARE_CACHE_PURGE_TOKEN` are set. Purging is for
+recovering from an urgent mistake, not part of normal editing.
+
+## Where to change things
+
+- **Prerendered paths:** `pages` in `tanstackStart()` in `apps/web/vite.config.ts`.
+- **Server vs browser tRPC link:** `apps/web/src/router.tsx`.
+- **Procedure TTLs and classification:** `PROCEDURE_CACHE_POLICY` in `packages/api/src/cache-policy.ts`.
+- **HTML and API security headers:** `apps/web/src/routes/__root.tsx` and `packages/api/src/security-headers.ts`.
+- **Which admin edits refresh which queries:** `ADMIN_QUERY_DEPENDENTS` in `apps/web/src/lib/admin-mutations.ts`.

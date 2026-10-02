@@ -336,7 +336,11 @@ function SchoolRows({
                   <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded">
                     {school.logoUrl ? (
                       <img
-                        alt={school.name}
+                        alt=""
+                        decoding="async"
+                        height={20}
+                        loading="lazy"
+                        width={20}
                         className="aspect-square size-full object-contain"
                         src={school.logoUrl}
                       />

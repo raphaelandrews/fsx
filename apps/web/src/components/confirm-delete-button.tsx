@@ -17,6 +17,9 @@ interface ConfirmDeleteButtonProps {
   pending?: boolean;
   itemName?: string;
   label?: string;
+  title?: string;
+  description?: string;
+  confirmLabel?: string;
   className?: string;
 }
 
@@ -24,7 +27,10 @@ export function ConfirmDeleteButton({
   onConfirm,
   pending = false,
   itemName,
-  label = "Excluir",
+  label = "Delete",
+  title = "Delete this item?",
+  description,
+  confirmLabel = "Delete",
   className,
 }: ConfirmDeleteButtonProps) {
   const [open, setOpen] = useState(false);
@@ -44,14 +50,13 @@ export function ConfirmDeleteButton({
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir este item?</AlertDialogTitle>
+            <AlertDialogTitle>{title}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita.
-              {itemName ? ` O item “${itemName}” será removido permanentemente.` : ""}
+              {description ?? `This cannot be undone.${itemName ? ` “${itemName}” will be permanently deleted.` : ""}`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               variant="destructive"
@@ -60,7 +65,7 @@ export function ConfirmDeleteButton({
                 setOpen(false);
               }}
             >
-              Excluir
+              {confirmLabel}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

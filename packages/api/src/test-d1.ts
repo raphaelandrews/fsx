@@ -25,7 +25,7 @@ export async function createTestD1(
   name: string,
 ): Promise<{ miniflare: Miniflare; binding: D1Database; images: R2Bucket }> {
   const miniflare = new Miniflare({
-    compatibilityDate: "2026-08-06",
+    compatibilityDate: "2026-07-30",
     d1Databases: { DB: name },
     r2Buckets: { IMAGES: `${name}-images` },
     modules: true,

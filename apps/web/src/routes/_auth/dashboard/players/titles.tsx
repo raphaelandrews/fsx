@@ -1,11 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery, useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@fsx/ui/components/select";
-import { toast } from "sonner";
 import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { orNotFound } from "@/lib/errors";
 import { SearchableSelect } from "@/components/searchable-select";
 
@@ -67,29 +66,22 @@ function RouteComponent() {
 
 function PlayerTitles({ playerId }: { playerId: number }) {
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
 
   const { data: titles = [] } = useSuspenseQuery(trpc.titles.list.queryOptions());
   const { data: playerTitles = [] } = useSuspenseQuery(
     trpc.playersToTitles.listByPlayer.queryOptions({ playerId }),
   );
 
-  const linkMutation = useMutation({
-    ...trpc.playersToTitles.link.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("playersToTitles");
-      toast.success("Title assigned");
-    },
-    onError: () => toast.error("Failed to assign title"),
+  const linkMutation = useAdminMutation(trpc.playersToTitles.link.mutationOptions(), {
+    invalidates: "playersToTitles",
+    success: "Title assigned",
+    failure: "Failed to assign title",
   });
 
-  const unlinkMutation = useMutation({
-    ...trpc.playersToTitles.unlink.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("playersToTitles");
-      toast.success("Title removed");
-    },
-    onError: () => toast.error("Failed to remove title"),
+  const unlinkMutation = useAdminMutation(trpc.playersToTitles.unlink.mutationOptions(), {
+    invalidates: "playersToTitles",
+    success: "Title removed",
+    failure: "Failed to remove title",
   });
 
   return (

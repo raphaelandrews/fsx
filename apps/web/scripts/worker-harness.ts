@@ -34,6 +34,8 @@ export async function startWorker(options: {
   port?: number;
   assets?: boolean;
   dataset?: "fixtures" | "production";
+  /** Replaces migrations and the dataset, e.g. to restore a backup dump. */
+  restore?: (db: D1Database) => Promise<void>;
 }) {
   const miniflare = new Miniflare({
     modulesRoot: serverDir,
@@ -66,6 +68,10 @@ export async function startWorker(options: {
   });
 
   const db = (await miniflare.getD1Database("DB")) as unknown as D1Database;
+  if (options.restore) {
+    await options.restore(db);
+    return miniflare;
+  }
   await applyMigrations(db);
   if (options.dataset === "production") await seedSyntheticData(db, productionCounts());
   else await seedFixtureRows(db);

@@ -4,7 +4,7 @@ import { ErrorFallback } from "@/components/not-found";
 
 export const Route = createFileRoute("/_auth/dashboard")({
   component: DashboardLayout,
-  errorComponent: () => <ErrorFallback homeHref="/dashboard" homeLabel="Voltar ao painel" />,
+  errorComponent: () => <ErrorFallback homeHref="/dashboard" homeLabel="Back to dashboard" />,
 });
 
 function DashboardLayout() {

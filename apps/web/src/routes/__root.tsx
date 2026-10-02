@@ -7,6 +7,7 @@ import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
+import { MotionConfig } from "motion/react";
 
 import { SECURITY_HEADERS } from "@fsx/api/security-headers";
 
@@ -105,7 +106,9 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body>
-        <Outlet />
+        <MotionConfig reducedMotion="user">
+          <Outlet />
+        </MotionConfig>
         <Toaster richColors />
         {import.meta.env.DEV && (
           <TanStackDevtools

@@ -1,6 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
-import { toast } from "sonner";
 import z from "zod";
 
 import { Button } from "@fsx/ui/components/button";
@@ -12,10 +10,11 @@ import { useTRPC } from "@/utils/trpc";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 
 import type { CircuitPhase } from "../types";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
+import { FieldError } from "@/components/form/field-error";
 
 const phaseSchema = z.object({
-  tournamentId: z.string().min(1, "Torneio é obrigatório"),
+  tournamentId: z.string().min(1, "Tournament is required"),
   clubId: z.string(),
   sortOrder: z.number().int(),
 });
@@ -30,33 +29,24 @@ export function CircuitPhaseForm({
   nextSortOrder?: number;
 }) {
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
 
-  const createMutation = useMutation({
-    ...trpc.circuits.phases.create.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("circuits");
-      toast.success("Etapa adicionada");
-    },
-    onError: () => toast.error("Falha ao adicionar etapa"),
+  const createMutation = useAdminMutation(trpc.circuits.phases.create.mutationOptions(), {
+    invalidates: "circuits",
+    success: "Phase added",
+    failure: "Failed to add phase",
   });
 
-  const updateMutation = useMutation({
-    ...trpc.circuits.phases.update.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("circuits");
-      toast.success("Etapa atualizada");
-    },
-    onError: () => toast.error("Falha ao atualizar etapa"),
+  const updateMutation = useAdminMutation(trpc.circuits.phases.update.mutationOptions(), {
+    invalidates: "circuits",
+    success: "Phase updated",
+    failure: "Failed to update phase",
+    reloadOnConflict: true,
   });
 
-  const deleteMutation = useMutation({
-    ...trpc.circuits.phases.delete.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("circuits");
-      toast.success("Etapa removida");
-    },
-    onError: () => toast.error("Falha ao remover etapa"),
+  const deleteMutation = useAdminMutation(trpc.circuits.phases.delete.mutationOptions(), {
+    invalidates: "circuits",
+    success: "Phase removed",
+    failure: "Failed to remove phase",
   });
 
   const isPending = phase ? updateMutation.isPending : createMutation.isPending;
@@ -93,33 +83,29 @@ export function CircuitPhaseForm({
       <form.Field name="tournamentId">
         {(f) => (
           <div className="flex min-w-[220px] flex-1 flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">Torneio</Label>
+            <Label className="text-xs text-muted-foreground">Tournament</Label>
             <SearchableSelect
               value={f.state.value}
               onChange={(v) => f.handleChange(v)}
               getQueryOptions={(q) => trpc.tournaments.search.queryOptions({ query: q })}
-              placeholder="Buscar torneio..."
-              emptyText="Nenhum torneio encontrado."
+              placeholder="Search tournament..."
+              emptyText="No tournament found."
               initialLabel={phase?.tournament?.name ?? ""}
             />
-            {f.state.meta.errors.map((e) => (
-              <p key={e?.message} className="text-destructive text-xs">
-                {e?.message}
-              </p>
-            ))}
+            <FieldError field={f} error={updateMutation.error} />
           </div>
         )}
       </form.Field>
       <form.Field name="clubId">
         {(f) => (
           <div className="flex min-w-[180px] flex-1 flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">Clube sede (opcional)</Label>
+            <Label className="text-xs text-muted-foreground">Host club (optional)</Label>
             <SearchableSelect
               value={f.state.value}
               onChange={(v) => f.handleChange(v)}
               getQueryOptions={(q) => trpc.clubs.search.queryOptions({ query: q })}
-              placeholder="Buscar clube..."
-              emptyText="Nenhum clube encontrado."
+              placeholder="Search club..."
+              emptyText="No club found."
               initialLabel={phase?.club?.name ?? ""}
             />
           </div>
@@ -129,7 +115,7 @@ export function CircuitPhaseForm({
         {(f) => (
           <div className="flex w-20 flex-col gap-1">
             <Label htmlFor={f.name} className="text-xs text-muted-foreground">
-              Ordem
+              Order
             </Label>
             <Input
               id={f.name}
@@ -138,6 +124,7 @@ export function CircuitPhaseForm({
               onBlur={f.handleBlur}
               onChange={(e) => f.handleChange(Number(e.target.value))}
             />
+            <FieldError field={f} error={updateMutation.error} />
           </div>
         )}
       </form.Field>
@@ -145,14 +132,14 @@ export function CircuitPhaseForm({
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit })}>
           {({ canSubmit }) => (
             <Button type="submit" variant="outline" size="sm" disabled={!canSubmit || isPending}>
-              {phase ? "Salvar" : "Adicionar etapa"}
+              {phase ? "Save" : "Add phase"}
             </Button>
           )}
         </form.Subscribe>
         {phase ? (
           <ConfirmDeleteButton
             itemName={phase.tournament.name}
-            label="Excluir etapa"
+            label="Delete phase"
             pending={deleteMutation.isPending}
             onConfirm={() => deleteMutation.mutate({ id: phase.id })}
           />

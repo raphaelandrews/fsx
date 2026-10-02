@@ -73,6 +73,6 @@
     "typescript": "catalog:",
     "vite": "^8.1.5",
     "web-vitals": "^6.0.1",
-    "wrangler": "^4.115.0"
+    "wrangler": "4.127.0"
   }
 }

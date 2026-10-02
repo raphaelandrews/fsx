@@ -54,6 +54,15 @@ check("Excel export chunk (gzip)", assets.find((asset) => asset.name.startsWith(
 check("Rating update route chunk (gzip)", assets.find((asset) => asset.name.startsWith("rating-update-"))?.gzipBytes, budgets.ratingUpdateGzipBytes);
 check("Player profile route chunk (gzip)", assets.find((asset) => asset.name.startsWith("player-profile-"))?.gzipBytes, budgets.playerProfileGzipBytes);
 
+// Devtools panels render only when import.meta.env.DEV, so production builds must
+// drop them entirely; these strings exist only inside the panel packages.
+const DEVTOOLS_MARKERS = ["tanstackRouterDevtoolsOpen", "TanStack Router Devtools", "TanStack Query Devtools", "install-devtools"];
+for (const path of files) {
+  const contents = await readFile(path, "utf8");
+  const marker = DEVTOOLS_MARKERS.find((candidate) => contents.includes(candidate));
+  if (marker) failures.push(`Devtools code ("${marker}") shipped in ${relative(clientAssets, path)}`);
+}
+
 console.info(`Client JavaScript: ${assets.length} chunks, ${totalGzipBytes} gzip bytes; largest ${largestChunk.name} (${largestChunk.gzipBytes} bytes).`);
 if (failures.length > 0) {
   console.error(failures.join("\n"));

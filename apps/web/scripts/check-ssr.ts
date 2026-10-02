@@ -26,6 +26,8 @@ const POST = { slug: "noticia-sintetica-1", title: "Notícia sintética 1" };
 const checks: Check[] = [
   { path: "/", status: 200, maxKB: 175, canonical: `${SITE_URL}/`, contains: ["Notícia sintética"] },
   { path: "/ratings", status: 200, maxKB: 210, title: "Ratings de Xadrez", canonical: `${SITE_URL}/ratings`, contains: ["Jogador Sintético"] },
+  { path: "/ratings?page=2", status: 200, maxKB: 210, title: "Página 2", canonical: `${SITE_URL}/ratings?page=2` },
+  { path: "/ratings?clube=%5B%22Clube%203%22%5D", status: 200, maxKB: 210, canonical: `${SITE_URL}/ratings` },
   { path: "/noticias", status: 200, maxKB: 85, canonical: `${SITE_URL}/noticias` },
   { path: `/noticias/${POST.slug}`, status: 200, maxKB: 60, title: POST.title, canonical: `${SITE_URL}/noticias/${POST.slug}` },
   { path: "/noticias/nao-existe", status: 404, maxKB: 15 },
@@ -55,6 +57,7 @@ function attribute(html: string, pattern: RegExp): string | null {
 const miniflare = await startWorker({ origin: "http://localhost", dataset: "production" });
 
 const failures: string[] = [];
+const titles = new Map<string, string>();
 
 try {
   for (const check of checks) {
@@ -79,6 +82,15 @@ try {
     const sizeKB = new TextEncoder().encode(body).byteLength / 1024;
     if (check.maxKB !== undefined && sizeKB > check.maxKB) {
       problems.push(`HTML ${sizeKB.toFixed(1)} KB exceeds the ${check.maxKB} KB budget`);
+    }
+    const isHtml = response.headers.get("content-type")?.includes("text/html");
+    if (response.status === 200 && isHtml) {
+      const description = attribute(body, /<meta name="description" content="([^"]*)"/);
+      if (!description?.trim()) problems.push("missing meta description");
+      const title = attribute(body, /<title>([^<]*)<\/title>/) ?? "";
+      const owner = titles.get(title);
+      if (owner && !check.path.startsWith("/ratings?clube=")) problems.push(`title "${title}" duplicates ${owner}`);
+      else titles.set(title, check.path);
     }
     for (const text of check.contains ?? []) {
       if (!body.includes(text)) problems.push(`body lacks "${text}"`);

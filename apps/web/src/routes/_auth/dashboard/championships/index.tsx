@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Button } from "@fsx/ui/components/button";
 import {
   Table,
@@ -9,11 +9,10 @@ import {
   TableHeader,
   TableRow,
 } from "@fsx/ui/components/table";
-import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 
 const TITLE = "Championships";
 const PATH = "/dashboard/championships";
@@ -27,13 +26,12 @@ export const Route = createFileRoute("/_auth/dashboard/championships/")({
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
   const { data: items = [] } = useSuspenseQuery(trpc[DOMAIN].list.queryOptions());
 
-  const deleteMutation = useMutation({
-    ...trpc[DOMAIN].delete.mutationOptions(),
-    onSuccess: () => { void invalidateAdmin(DOMAIN); toast.success("Deleted"); },
-    onError: () => toast.error("Não foi possível excluir o campeonato."),
+  const deleteMutation = useAdminMutation(trpc[DOMAIN].delete.mutationOptions(), {
+    invalidates: DOMAIN,
+    success: "Championship deleted",
+    failure: "Failed to delete championship",
   });
 
   return (

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Button } from "@fsx/ui/components/button";
 import {
   Table,
@@ -9,11 +9,10 @@ import {
   TableHeader,
   TableRow,
 } from "@fsx/ui/components/table";
-import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/links/")({
   head: () => ({ meta: [{ title: "Links - Admin - FSX" }] }),
@@ -23,26 +22,19 @@ export const Route = createFileRoute("/_auth/dashboard/links/")({
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
 
   const { data: groups = [] } = useSuspenseQuery(trpc.links.list.queryOptions());
 
-  const deleteGroupMutation = useMutation({
-    ...trpc.links.deleteGroup.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("links");
-      toast.success("Group deleted");
-    },
-    onError: () => toast.error("Failed to delete group"),
+  const deleteGroupMutation = useAdminMutation(trpc.links.deleteGroup.mutationOptions(), {
+    invalidates: "links",
+    success: "Group deleted",
+    failure: "Failed to delete group",
   });
 
-  const deleteLinkMutation = useMutation({
-    ...trpc.links.deleteLink.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("links");
-      toast.success("Link deleted");
-    },
-    onError: () => toast.error("Failed to delete link"),
+  const deleteLinkMutation = useAdminMutation(trpc.links.deleteLink.mutationOptions(), {
+    invalidates: "links",
+    success: "Link deleted",
+    failure: "Failed to delete link",
   });
 
   return (

@@ -1,0 +1,32 @@
+---
+title: Rating Variation
+description: The FSX K-factor rules and how rating variation is calculated.
+---
+
+The K-factor sets the maximum rating a player can gain or lose in each game.
+A lower K means a smaller variation.
+
+## K-factors
+
+| K-factor | When it applies |
+|----------|-----------------|
+| **K=1**  | Tournaments where every player is 18 or younger, and the player is rated 2100 or higher. |
+| **K=5**  | Tournaments where every player is 18 or younger. |
+| **K=10** | The player is rated 2300 or higher. |
+| **K=20** | All other cases. |
+
+## Calculation
+
+The variation is the difference between the actual score and the expected
+score (from the Elo formula), multiplied by K.
+
+```
+Variation = K × (Score − Expected score)
+```
+
+Each tournament records the player's rating before the event and the variation
+it produced. Import tournaments in the order they were played: each variation
+is applied to the rating the player has when it is imported, and the history
+shows results in that order. To fix a wrong variation, edit it in the player's **Rating history**
+in the admin panel; the current rating and later tournaments follow
+automatically. See [corrections](/architecture/domain-model#corrections).

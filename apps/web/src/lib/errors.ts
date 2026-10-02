@@ -4,23 +4,45 @@ import { notFound } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 type AppError = TRPCClientErrorLike<AppRouter>;
+export type Locale = "pt" | "en";
 
-const USER_MESSAGES: Record<string, string> = {
-  BAD_REQUEST: "Verifique os dados informados.",
-  UNAUTHORIZED: "Sua sessão expirou. Entre novamente.",
-  FORBIDDEN: "Você não tem permissão para realizar esta ação.",
-  NOT_FOUND: "O registro não foi encontrado. Atualize a página e tente novamente.",
-  CONFLICT: "Os dados foram alterados por outra operação. Atualize a página e tente novamente.",
-  TOO_MANY_REQUESTS: "Muitas tentativas. Aguarde alguns instantes e tente novamente.",
-  INTERNAL_SERVER_ERROR: "Não foi possível concluir a operação. Tente novamente mais tarde.",
+// The public site is Portuguese; the admin dashboard is English.
+const USER_MESSAGES: Record<Locale, Record<string, string>> = {
+  pt: {
+    BAD_REQUEST: "Verifique os dados informados.",
+    UNAUTHORIZED: "Sua sessão expirou. Entre novamente.",
+    FORBIDDEN: "Você não tem permissão para realizar esta ação.",
+    NOT_FOUND: "O registro não foi encontrado. Atualize a página e tente novamente.",
+    CONFLICT: "Os dados foram alterados por outra operação. Atualize a página e tente novamente.",
+    TOO_MANY_REQUESTS: "Muitas tentativas. Aguarde alguns instantes e tente novamente.",
+    INTERNAL_SERVER_ERROR: "Não foi possível concluir a operação. Tente novamente mais tarde.",
+  },
+  en: {
+    BAD_REQUEST: "Check the highlighted fields and try again.",
+    UNAUTHORIZED: "Your session expired. Sign in again.",
+    FORBIDDEN: "You do not have permission to do this.",
+    NOT_FOUND: "This record no longer exists. Reload the page and try again.",
+    CONFLICT: "This conflicts with an existing record or a newer change. Check the data, or reload and try again.",
+    TOO_MANY_REQUESTS: "Too many attempts. Wait a moment and try again.",
+    INTERNAL_SERVER_ERROR: "Something went wrong on the server. Try again later.",
+  },
 };
+
+const DEFAULT_FALLBACK: Record<Locale, string> = {
+  pt: "Não foi possível concluir a operação.",
+  en: "The operation could not be completed.",
+};
+
+export function isAdminPath(pathname: string): boolean {
+  return pathname.startsWith("/dashboard") || pathname.startsWith("/rating-update");
+}
 
 export function getErrorCode(error: unknown): string | undefined {
   return (error as AppError | undefined)?.data?.code;
 }
 
-export function getUserErrorMessage(error: unknown, fallback = "Não foi possível concluir a operação."): string {
-  return USER_MESSAGES[getErrorCode(error) ?? ""] ?? fallback;
+export function getUserErrorMessage(error: unknown, fallback?: string, locale: Locale = "pt"): string {
+  return USER_MESSAGES[locale][getErrorCode(error) ?? ""] ?? fallback ?? DEFAULT_FALLBACK[locale];
 }
 
 export function getFieldError(error: unknown, field: string): string | undefined {
@@ -35,15 +57,27 @@ export function getFieldError(error: unknown, field: string): string | undefined
   return typeof message === "string" ? message : undefined;
 }
 
-export function showMutationError(
-  error: unknown,
-  fallback: string,
-  retryOnConflict?: () => void,
-): void {
-  toast.error(getUserErrorMessage(error, fallback), {
+type FieldLike = { name: string; state: { meta: { errors: unknown[] } } };
+
+/** First client validation message for a form field, else the server's message for it. */
+export function fieldError(field: FieldLike, mutationError: unknown): string | undefined {
+  const client = field.state.meta.errors.find(Boolean) as { message?: string } | string | undefined;
+  if (typeof client === "string") return client;
+  if (client?.message) return client.message;
+  return getFieldError(mutationError, field.name);
+}
+
+/** The server's explanation of a rejected admin request, else the generic English message. */
+export function getAdminErrorMessage(error: unknown, fallback: string): string {
+  return (error as AppError | undefined)?.data?.userMessage ?? getUserErrorMessage(error, fallback, "en");
+}
+
+/** Admin mutation failure toast; offers a reload when the data changed underneath. */
+export function showMutationError(error: unknown, fallback: string, retryOnConflict?: () => void): void {
+  toast.error(getAdminErrorMessage(error, fallback), {
     action:
       getErrorCode(error) === "CONFLICT" && retryOnConflict
-        ? { label: "Recarregar", onClick: retryOnConflict }
+        ? { label: "Reload", onClick: retryOnConflict }
         : undefined,
   });
 }

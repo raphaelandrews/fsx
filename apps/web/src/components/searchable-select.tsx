@@ -25,8 +25,8 @@ export function SearchableSelect({
   value,
   onChange,
   getQueryOptions,
-  placeholder = "Buscar...",
-  emptyText = "Nenhum resultado.",
+  placeholder = "Search...",
+  emptyText = "No results.",
   initialLabel = "",
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false);
@@ -89,7 +89,7 @@ export function SearchableSelect({
         {selectedLabel && value ? (
           <button
             type="button"
-            aria-label="Limpar"
+            aria-label="Clear"
             className="absolute right-2 top-1/2 -translate-y-1/2"
             onClick={clear}
           >

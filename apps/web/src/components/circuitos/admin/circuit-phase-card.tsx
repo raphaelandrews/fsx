@@ -9,7 +9,7 @@ export function CircuitPhaseCard({ circuitId, phase }: { circuitId: number; phas
     <div className="space-y-2">
       <CircuitPhaseForm circuitId={circuitId} phase={phase} />
       <div className="ml-4 space-y-2 border-l pl-4">
-        <p className="text-xs font-medium text-muted-foreground">Pódios da etapa</p>
+        <p className="text-xs font-medium text-muted-foreground">Phase podiums</p>
         {podiums.map((podium) => (
           <CircuitPodiumForm
             key={podium.id}

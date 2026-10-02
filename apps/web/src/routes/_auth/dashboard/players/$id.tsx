@@ -18,9 +18,11 @@ import { DatePicker } from "@/components/date-picker";
 import { ImageUpload } from "@/components/image-upload";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation, useInvalidateAdmin } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
-import { orNotFound } from "@/lib/errors";
+import { orNotFound, showMutationError } from "@/lib/errors";
+import { FieldError } from "@/components/form/field-error";
+import { RatingHistoryEditor } from "@/components/rating-update/rating-history-editor";
 
 export const Route = createFileRoute("/_auth/dashboard/players/$id")({
   params: idParams,
@@ -31,6 +33,7 @@ export const Route = createFileRoute("/_auth/dashboard/players/$id")({
       context.queryClient.ensureQueryData(context.trpc.playersToTitles.listByPlayer.queryOptions({ playerId: params.id })),
       context.queryClient.ensureQueryData(context.trpc.playersToRoles.listByPlayer.queryOptions({ playerId: params.id })),
       context.queryClient.ensureQueryData(context.trpc.playersToInsignias.listByPlayer.queryOptions({ playerId: params.id })),
+      context.queryClient.ensureQueryData(context.trpc.playersTournament.listByPlayer.queryOptions({ playerId: params.id })),
       context.queryClient.ensureQueryData(context.trpc.clubs.list.queryOptions()),
       context.queryClient.ensureQueryData(context.trpc.locations.list.queryOptions()),
       context.queryClient.ensureQueryData(context.trpc.titles.list.queryOptions()),
@@ -71,69 +74,60 @@ function RouteComponent() {
       await commit();
       toast.success("Player updated");
     },
-    onError: (_error, variables) => {
+    onError: (error, variables) => {
       void discard(variables.imageUrl);
-      toast.error("Failed to update player");
+      showMutationError(error, "Failed to update player", () => window.location.reload());
     },
   });
 
-  const linkTitleMutation = useMutation({
-    ...trpc.playersToTitles.link.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("playersToTitles");
-      toast.success("Title assigned");
-    },
-    onError: () => toast.error("Failed to assign title"),
+  const linkTitleMutation = useAdminMutation(trpc.playersToTitles.link.mutationOptions(), {
+    invalidates: "playersToTitles",
+    success: "Title assigned",
+    failure: "Failed to assign title",
   });
 
-  const unlinkTitleMutation = useMutation({
-    ...trpc.playersToTitles.unlink.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("playersToTitles");
-      toast.success("Title removed");
-    },
-    onError: () => toast.error("Failed to remove title"),
+  const unlinkTitleMutation = useAdminMutation(trpc.playersToTitles.unlink.mutationOptions(), {
+    invalidates: "playersToTitles",
+    success: "Title removed",
+    failure: "Failed to remove title",
   });
 
-  const linkRoleMutation = useMutation({
-    ...trpc.playersToRoles.link.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("playersToRoles");
-      toast.success("Role assigned");
-    },
-    onError: () => toast.error("Failed to assign role"),
+  const linkRoleMutation = useAdminMutation(trpc.playersToRoles.link.mutationOptions(), {
+    invalidates: "playersToRoles",
+    success: "Role assigned",
+    failure: "Failed to assign role",
   });
 
-  const unlinkRoleMutation = useMutation({
-    ...trpc.playersToRoles.unlink.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("playersToRoles");
-      toast.success("Role removed");
-    },
-    onError: () => toast.error("Failed to remove role"),
+  const unlinkRoleMutation = useAdminMutation(trpc.playersToRoles.unlink.mutationOptions(), {
+    invalidates: "playersToRoles",
+    success: "Role removed",
+    failure: "Failed to remove role",
   });
 
-  const linkInsigniaMutation = useMutation({
-    ...trpc.playersToInsignias.link.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("playersToInsignias");
-      toast.success("Insignia assigned");
-    },
-    onError: () => toast.error("Failed to assign insignia"),
+  const linkInsigniaMutation = useAdminMutation(trpc.playersToInsignias.link.mutationOptions(), {
+    invalidates: "playersToInsignias",
+    success: "Insignia assigned",
+    failure: "Failed to assign insignia",
   });
 
-  const unlinkInsigniaMutation = useMutation({
-    ...trpc.playersToInsignias.unlink.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("playersToInsignias");
-      toast.success("Insignia removed");
-    },
-    onError: () => toast.error("Failed to remove insignia"),
+  const unlinkInsigniaMutation = useAdminMutation(trpc.playersToInsignias.unlink.mutationOptions(), {
+    invalidates: "playersToInsignias",
+    success: "Insignia removed",
+    failure: "Failed to remove insignia",
   });
 
   if (!player) {
     return <p>Player not found.</p>;
   }
+
+  // Ratings are sent only when edited here: rating-history corrections change
+  // them server-side, and resending the loaded value would undo the correction.
+  const editedRatings = (value: { blitz: number; rapid: number; classic: number }) =>
+    Object.fromEntries(
+      (["blitz", "rapid", "classic"] as const)
+        .filter((ratingType) => form.getFieldMeta(ratingType)?.isDirty)
+        .map((ratingType) => [ratingType, value[ratingType]]),
+    );
 
   const form = useForm({
     defaultValues: {
@@ -175,9 +169,7 @@ function RouteComponent() {
         id: numId,
         name: value.name,
         nickname: value.nickname || null,
-        blitz: value.blitz,
-        rapid: value.rapid,
-        classic: value.classic,
+        ...editedRatings(value),
         birthDate: value.birthDate || null,
         sex: value.sex,
         clubId: value.clubId,
@@ -221,11 +213,7 @@ function RouteComponent() {
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
               />
-              {f.state.meta.errors.map((e) => (
-                <p key={e?.message} className="text-destructive text-xs">
-                  {e?.message}
-                </p>
-              ))}
+              <FieldError field={f} error={updateMutation.error} />
             </div>
           )}
         </form.Field>
@@ -239,6 +227,7 @@ function RouteComponent() {
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
               />
+              <FieldError field={f} error={updateMutation.error} />
             </div>
           )}
         </form.Field>
@@ -271,6 +260,7 @@ function RouteComponent() {
                   onBlur={f.handleBlur}
                   onChange={(e) => f.handleChange(Number(e.target.value))}
                 />
+                <FieldError field={f} error={updateMutation.error} />
               </div>
             )}
           </form.Field>
@@ -285,6 +275,7 @@ function RouteComponent() {
                   onBlur={f.handleBlur}
                   onChange={(e) => f.handleChange(Number(e.target.value))}
                 />
+                <FieldError field={f} error={updateMutation.error} />
               </div>
             )}
           </form.Field>
@@ -299,10 +290,15 @@ function RouteComponent() {
                   onBlur={f.handleBlur}
                   onChange={(e) => f.handleChange(Number(e.target.value))}
                 />
+                <FieldError field={f} error={updateMutation.error} />
               </div>
             )}
           </form.Field>
         </div>
+        <p className="text-muted-foreground text-xs">
+          Editing a rating here is not recorded in the rating history. To fix a tournament result, use Rating
+          history below.
+        </p>
         <form.Field name="birthDate">
           {(f) => (
             <div className="space-y-2">
@@ -311,8 +307,9 @@ function RouteComponent() {
                 id={f.name}
                 value={f.state.value}
                 onChange={(value) => f.handleChange(value)}
-                placeholder="Selecione a data de nascimento"
+                placeholder="Select birth date"
               />
+              <FieldError field={f} error={updateMutation.error} />
             </div>
           )}
         </form.Field>
@@ -331,6 +328,7 @@ function RouteComponent() {
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                 </select>
+                <FieldError field={f} error={updateMutation.error} />
               </div>
             )}
           </form.Field>
@@ -345,6 +343,7 @@ function RouteComponent() {
                   className="h-4 w-4 rounded border-input"
                 />
                 <Label htmlFor={f.name}>Active</Label>
+                <FieldError field={f} error={updateMutation.error} />
               </div>
             )}
           </form.Field>
@@ -359,6 +358,7 @@ function RouteComponent() {
                   className="h-4 w-4 rounded border-input"
                 />
                 <Label htmlFor={f.name}>Verified</Label>
+                <FieldError field={f} error={updateMutation.error} />
               </div>
             )}
           </form.Field>
@@ -419,6 +419,7 @@ function RouteComponent() {
                   onBlur={f.handleBlur}
                   onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)}
                 />
+                <FieldError field={f} error={updateMutation.error} />
               </div>
             )}
           </form.Field>
@@ -433,6 +434,7 @@ function RouteComponent() {
                   onBlur={f.handleBlur}
                   onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)}
                 />
+                <FieldError field={f} error={updateMutation.error} />
               </div>
             )}
           </form.Field>
@@ -565,6 +567,11 @@ function RouteComponent() {
             </Select>
           </div>
         </section>
+
+        <RatingHistoryEditor
+          playerId={numId}
+          onRatingChange={(ratingType, rating) => form.setFieldValue(ratingType, rating, { dontUpdateMeta: true })}
+        />
       </div>
     </div>
   );

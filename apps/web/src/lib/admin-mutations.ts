@@ -1,7 +1,16 @@
 import type { AppRouter } from "@fsx/api/routers/index";
-import { useQueryClient, type QueryClient, type QueryFilters } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+  type QueryFilters,
+  type UseMutationOptions,
+} from "@tanstack/react-query";
 import type { inferRouterInputs } from "@trpc/server";
 
+import { toast } from "sonner";
+
+import { showMutationError } from "@/lib/errors";
 import { useTRPC } from "@/utils/trpc";
 
 type RouterKey = keyof inferRouterInputs<AppRouter>;
@@ -38,7 +47,7 @@ export const ADMIN_QUERY_DEPENDENTS = {
   playersToInsignias: ["playersToInsignias", "players"],
   playersToRoles: ["playersToRoles", "roles", "players"],
   playersToTitles: ["playersToTitles", "titledPlayers", "topPlayers", "players"],
-  playersTournament: ["players", "topPlayers", "titledPlayers", "swissManager"],
+  playersTournament: ["playersTournament", "players", "topPlayers", "titledPlayers", "swissManager"],
   posts: ["posts", "stats"],
   roles: ["roles", "playersToRoles", "players"],
   titles: ["titles", "playersToTitles", "titledPlayers", "topPlayers", "players"],
@@ -64,4 +73,35 @@ export function useInvalidateAdmin() {
       queryClient,
       ADMIN_QUERY_DEPENDENTS[domain].map((key) => trpc[key].pathFilter()),
     );
+}
+
+type AdminMutationConfig<TData, TVariables> = {
+  /** Query families refreshed after success (see ADMIN_QUERY_DEPENDENTS). */
+  invalidates?: AdminDomain | AdminDomain[];
+  /** Wait for the refetch before running onSuccess, e.g. before leaving the page. */
+  awaitInvalidation?: boolean;
+  success?: string;
+  failure: string;
+  /** Offer a reload when the server reports CONFLICT (concurrent edits). */
+  reloadOnConflict?: boolean;
+  onSuccess?: (data: TData, variables: TVariables) => unknown;
+};
+
+/** The standard admin mutation: invalidate, toast, then any route-specific follow-up. */
+export function useAdminMutation<TData, TError, TVariables, TContext>(
+  options: UseMutationOptions<TData, TError, TVariables, TContext>,
+  config: AdminMutationConfig<TData, TVariables>,
+) {
+  const invalidateAdmin = useInvalidateAdmin();
+  return useMutation({
+    ...options,
+    onSuccess: async (data, variables) => {
+      const refreshed = Promise.all([config.invalidates ?? []].flat().map((domain) => invalidateAdmin(domain)));
+      if (config.awaitInvalidation) await refreshed;
+      if (config.success) toast.success(config.success);
+      await config.onSuccess?.(data, variables);
+    },
+    onError: (error) =>
+      showMutationError(error, config.failure, config.reloadOnConflict ? () => window.location.reload() : undefined),
+  });
 }

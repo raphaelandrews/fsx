@@ -1,6 +1,14 @@
 import { describe, expect, test } from "bun:test";
 
-import { getErrorCode, getFieldError, getUserErrorMessage, isExpectedQueryError } from "./errors";
+import {
+  fieldError,
+  getAdminErrorMessage,
+  getErrorCode,
+  getFieldError,
+  getUserErrorMessage,
+  isAdminPath,
+  isExpectedQueryError,
+} from "./errors";
 
 describe("user-facing error mapping", () => {
   test("maps tRPC codes without exposing server messages", () => {
@@ -37,5 +45,37 @@ describe("user-facing error mapping", () => {
     expect(
       getFieldError({ data: { zodError: { fieldErrors: { name: ["Nome obrigatório"] } } } }, "name"),
     ).toBe("Nome obrigatório");
+  });
+
+  test("maps every server category to a safe English message for the dashboard", () => {
+    for (const code of ["BAD_REQUEST", "UNAUTHORIZED", "FORBIDDEN", "NOT_FOUND", "CONFLICT", "TOO_MANY_REQUESTS", "INTERNAL_SERVER_ERROR"]) {
+      const message = getUserErrorMessage({ message: "SQLITE secret", data: { code } }, "fallback", "en");
+      expect(message).not.toContain("SQLITE");
+      expect(message).not.toBe("fallback");
+      expect(message).toMatch(/^[ -~]+$/);
+    }
+    expect(getUserErrorMessage({ data: {} }, "Failed to save club", "en")).toBe("Failed to save club");
+  });
+
+  test("shows the dashboard the server's curated explanation only when one is provided", () => {
+    const blocked = { message: "raw", data: { code: "CONFLICT", userMessage: "Revert the results first." } };
+    expect(getAdminErrorMessage(blocked, "Failed to delete")).toBe("Revert the results first.");
+    const internal = { message: "SQLITE secret", data: { code: "INTERNAL_SERVER_ERROR", userMessage: null } };
+    expect(getAdminErrorMessage(internal, "Failed to delete")).not.toContain("SQLITE");
+  });
+
+  test("detects admin paths for message language", () => {
+    expect(isAdminPath("/dashboard/clubs")).toBe(true);
+    expect(isAdminPath("/rating-update")).toBe(true);
+    expect(isAdminPath("/ratings")).toBe(false);
+  });
+
+  test("prefers the client validation message, then the server field error", () => {
+    const serverError = { data: { zodError: { fieldErrors: { logoUrl: ["Invalid URL"] } } } };
+    const field = (errors: unknown[]) => ({ name: "logoUrl", state: { meta: { errors } } });
+    expect(fieldError(field([{ message: "Name is required" }]), serverError)).toBe("Name is required");
+    expect(fieldError(field(["Too short"]), serverError)).toBe("Too short");
+    expect(fieldError(field([undefined]), serverError)).toBe("Invalid URL");
+    expect(fieldError(field([]), null)).toBeUndefined();
   });
 });

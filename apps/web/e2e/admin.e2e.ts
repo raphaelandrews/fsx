@@ -20,25 +20,25 @@ test("creates, edits, and deletes a club with validation, toasts, and a cancella
   await expect(page).toHaveURL(/\/dashboard\/clubs$/);
 
   const row = page.getByRole("row", { name: /Clube E2E/ });
-  await row.getByRole("button", { name: "Abrir menu" }).click();
-  await page.getByRole("menuitem", { name: "Editar" }).click();
+  await row.getByRole("button", { name: "Open menu" }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
   await page.getByLabel("Name").fill("Clube E2E Editado");
   await page.getByRole("button", { name: /save/i }).click();
   await expect(page.getByText("Club updated")).toBeVisible();
 
   await page.goto("/dashboard/clubs", { waitUntil: "networkidle" });
   const editedRow = page.getByRole("row", { name: /Clube E2E Editado/ });
-  await editedRow.getByRole("button", { name: "Abrir menu" }).click();
-  await page.getByRole("menuitem", { name: "Excluir" }).click();
+  await editedRow.getByRole("button", { name: "Open menu" }).click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
   const confirm = page.getByRole("alertdialog");
   await expect(confirm).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(confirm).toBeHidden();
   await expect(editedRow).toBeVisible();
 
-  await editedRow.getByRole("button", { name: "Abrir menu" }).click();
-  await page.getByRole("menuitem", { name: "Excluir" }).click();
-  await page.getByRole("alertdialog").getByRole("button", { name: "Excluir" }).click();
+  await editedRow.getByRole("button", { name: "Open menu" }).click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Delete" }).click();
   await expect(page.getByText("Club deleted")).toBeVisible();
   await expect(editedRow).toBeHidden();
 });
@@ -79,7 +79,7 @@ function noisePng(size: number): Buffer {
 
 test("uploads a cropped player photo and saves the player", async ({ page }) => {
   await page.goto(`/dashboard/players/${PLAYER.id}`, { waitUntil: "networkidle" });
-  await page.getByLabel("Imagem para envio").setInputFiles({
+  await page.getByLabel("Image to upload").setInputFiles({
     name: "foto.png",
     mimeType: "image/png",
     buffer: noisePng(256),
@@ -87,7 +87,7 @@ test("uploads a cropped player photo and saves the player", async ({ page }) => 
   const cropper = page.getByRole("dialog");
   await expect(cropper).toBeVisible();
   await cropper.getByRole("button", { name: "Apply Crop" }).click();
-  await expect(page.getByText("Imagem enviada com sucesso.")).toBeAttached();
+  await expect(page.getByText("Image uploaded.")).toBeAttached();
 
   await page.getByRole("button", { name: "Save Changes" }).click();
   await expect(page.getByText("Player updated")).toBeVisible();
@@ -102,4 +102,26 @@ test("assigns and removes a title from the title assignment page", async ({ page
   await page.getByRole("option", { name: PLAYER.name }).click();
   await expect(page).toHaveURL(new RegExp(`playerId=${PLAYER.id}`));
   await expect(page.getByText("No titles assigned.")).toBeVisible();
+});
+
+test("shows server validation next to the field, keeps entered values, and explains conflicts", async ({ page }) => {
+  await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
+  await page.getByLabel("Name").fill("Clube Validação");
+  await page.getByLabel("Logo URL").fill("javascript:alert(1)");
+  await page.getByRole("button", { name: "Create Club" }).click();
+
+  await expect(page.getByText("Check the highlighted fields and try again.")).toBeVisible();
+  await expect(page.locator("#logoUrl-error")).toBeVisible();
+  await expect(page.getByLabel("Name")).toHaveValue("Clube Validação");
+  await expect(page.getByLabel("Logo URL")).toHaveValue("javascript:alert(1)");
+
+  await page.getByLabel("Logo URL").fill("");
+  await page.getByRole("button", { name: "Create Club" }).click();
+  await expect(page.getByText("Club created")).toBeVisible();
+
+  await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
+  await page.getByLabel("Name").fill("Clube Validação");
+  await page.getByRole("button", { name: "Create Club" }).click();
+  await expect(page.getByText(/conflicts with an existing record/)).toBeVisible();
+  await expect(page.getByLabel("Name")).toHaveValue("Clube Validação");
 });

@@ -1,0 +1,80 @@
+---
+title: Local Development
+description: Set up, run, seed, and test the FSX project locally.
+---
+
+## Prerequisites
+
+- [Bun](https://bun.sh) 1.3 or newer.
+- A GitHub OAuth app whose callback is `http://localhost:3001/api/auth/callback/github`
+  (only needed to sign in to the dashboard).
+
+## Setup
+
+1. `bun install`
+2. Create the environment files described in `apps/web/.env.example`:
+   - `apps/web/.env`: development URLs (`BETTER_AUTH_URL` and `CORS_ORIGIN`
+     set to `http://localhost:3001`).
+   - `apps/web/.env.common`: secrets shared by development and production
+     (`BETTER_AUTH_SECRET`, GitHub OAuth, `GITHUB_USER_ID`, Cloudflare account).
+   - `packages/infra/.env`: `ALCHEMY_PASSWORD`.
+3. `bun run hooks:setup` installs the Git hooks.
+
+## Run
+
+```bash
+bun dev
+```
+
+Alchemy starts the Worker locally on Miniflare with a local D1 and R2, applies
+pending migrations, and serves the site at `http://localhost:3001`. The docs
+run separately with `bun run --filter fumadocs dev` on port 4000.
+
+## Seed
+
+Stop `bun dev` first (a running dev server keeps a stale D1 connection), then:
+
+```bash
+bun run db:seed
+```
+
+If seeded data does not appear, check that the `miniflare` pin in `@fsx/db`
+matches Alchemy's (`bun run check:runtime`); a mismatch writes to a different
+SQLite file.
+
+## Recover a broken local database
+
+If startup fails with `D1_ERROR: table … already exists`, a migration was
+applied outside the tracker. Stop dev, delete `.alchemy/miniflare/v3/d1`,
+restart `bun dev` (all migrations reapply), and seed again.
+
+## Every query fails locally
+
+If pages error and the dev log shows `procedure failed` for every query (often
+with a `jsgInternalError` from workerd), look for dev servers from earlier
+sessions that are still running:
+
+```bash
+pgrep -af "alchemy.run.ts|vite-plus-core"
+```
+
+An unclean stop can leave them bound to port 3001 and attached to the same local
+D1, so the browser talks to old code with an old view of the schema. Stop every
+process that is not part of the current `bun dev`, then restart `bun dev`.
+
+## Checks
+
+| Command | What it checks |
+| ------- | -------------- |
+| `bun test` | Unit and integration tests, including Miniflare D1/R2 tests in `packages/api` |
+| `bun run check-types` | TypeScript across packages |
+| `bun run lint` | Oxlint |
+| `bun run check:runtime` | Alchemy, Miniflare, workerd, and compatibility-date pins agree |
+| `bun run check:routes` | Every public route is in the sitemap |
+| `bun run build` then `bun run check:ssr` | The production build renders 22 routes with correct status, titles, canonicals, and size budgets |
+| `bun run check:bundle` | Client bundle size budgets; no devtools in production |
+| `bun run check:seo` | Prerendered pages carry SEO tags |
+| `bun run test:e2e` | Playwright public, admin, accessibility (axe), request, freshness, and navigation tests against the built Worker with synthetic data |
+| `bun run measure` | D1 queries and rows per procedure and route on synthetic data |
+
+CI (`.github/workflows/quality.yml`) runs these on pull requests and pushes to `main`.

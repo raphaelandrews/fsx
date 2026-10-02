@@ -46,16 +46,18 @@ const MEDIA = (kind: "players" | "posts") =>
 let db: Context["db"];
 let caller: Caller;
 let dispose: () => Promise<void>;
-let fixtures: {
-  playerId: number;
-  secondPlayerId: number;
-  clubId: number;
-  tournamentId: number;
-  circuitId: number;
-  phaseId: number;
-  titleId: number;
-  roleId: number;
-  insigniaId: number;
+// Placeholder IDs let `cases()` run at registration time for the test names;
+// each test rebuilds the cases after beforeAll has created the real fixtures.
+let fixtures = {
+  playerId: 0,
+  secondPlayerId: 0,
+  clubId: 0,
+  tournamentId: 0,
+  circuitId: 0,
+  phaseId: 0,
+  titleId: 0,
+  roleId: 0,
+  insigniaId: 0,
 };
 
 function idOf(result: unknown): number {

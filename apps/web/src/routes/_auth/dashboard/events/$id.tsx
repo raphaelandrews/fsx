@@ -14,6 +14,7 @@ import { useTRPC } from "@/utils/trpc";
 import { resolveEventLinkType } from "@fsx/api/event-link-types";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { FieldError } from "@/components/form/field-error";
 
 export const Route = createFileRoute("/_auth/dashboard/events/$id")({
   params: idParams,
@@ -106,11 +107,7 @@ function RouteComponent() {
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
               />
-              {f.state.meta.errors.map((e) => (
-                <p key={e?.message} className="text-destructive text-xs">
-                  {e?.message}
-                </p>
-              ))}
+              <FieldError field={f} error={updateMutation.error} />
             </div>
           )}
         </form.Field>
@@ -122,13 +119,9 @@ function RouteComponent() {
                 id={f.name}
                 value={f.state.value}
                 onChange={(value) => f.handleChange(value)}
-                placeholder="Selecione a data"
+                placeholder="Select a date"
               />
-              {f.state.meta.errors.map((e) => (
-                <p key={e?.message} className="text-destructive text-xs">
-                  {e?.message}
-                </p>
-              ))}
+              <FieldError field={f} error={updateMutation.error} />
             </div>
           )}
         </form.Field>

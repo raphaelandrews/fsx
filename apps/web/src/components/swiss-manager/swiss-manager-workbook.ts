@@ -1,4 +1,3 @@
-import * as XLSX from "xlsx";
 
 import type { inferRouterOutputs } from "@trpc/server";
 
@@ -39,12 +38,14 @@ function formatDate(value: string | null): string {
 
 /**
  * Build a Swiss Manager–compatible .xlsx file from the given players, using the
- * selected rating column for `Rtg_Int`. Returns the resulting Blob.
+ * selected rating column for `Rtg_Int`. Returns the resulting Blob. SheetJS is
+ * loaded on demand so it stays out of the Worker and the page's initial chunks.
  */
-export function buildSwissManagerWorkbook(
+export async function buildSwissManagerWorkbook(
   players: SwissManagerPlayer[],
   ratingType: RatingType,
-): Blob {
+): Promise<Blob> {
+  const XLSX = await import("xlsx");
   const data: SwissManagerRow[] = players.map((player) => ({
     ID_No: player.id,
     Name: player.name,

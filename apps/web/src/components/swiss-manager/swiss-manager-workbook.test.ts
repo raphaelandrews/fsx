@@ -18,7 +18,7 @@ describe("Swiss Manager workbook", () => {
       },
     ] as SwissManagerPlayer[];
 
-    const workbookBlob = buildSwissManagerWorkbook(players, "rapid");
+    const workbookBlob = await buildSwissManagerWorkbook(players, "rapid");
     const workbook = XLSX.read(await workbookBlob.arrayBuffer(), { type: "array" });
     const nameCell = workbook.Sheets.Players?.B2;
 

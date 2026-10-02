@@ -56,17 +56,6 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/_public/ratings")({
   validateSearch: searchSchema,
   search: { middlewares: [stripSearchParams({ page: 1, ordenar: "rapid", local: [], clube: [], titulo: [], grupo: [] })] },
-  head: () =>
-    buildSeo({
-      title: withBrand("Ratings de Xadrez"),
-      description:
-        "Ranking de ratings (clássico, rápido e blitz) dos jogadores filiados à Federação Sergipana de Xadrez. Filtre por clube, cidade, título e categoria.",
-      path: "/ratings",
-      jsonLd: breadcrumbJsonLd([
-        { name: "Início", path: "/" },
-        { name: "Ratings", path: "/ratings" },
-      ]),
-    }),
   loaderDeps: ({ search }) => ({
     page: search.page,
     sortBy: search.ordenar,
@@ -98,6 +87,23 @@ export const Route = createFileRoute("/_public/ratings")({
     ]);
   },
   pendingComponent: () => <TableSkeleton cols={5} />,
+  head: ({ match }) => {
+    const { page, ordenar, sexo, nome, local, clube, titulo, grupo } = match.search;
+    const filtered =
+      ordenar !== "rapid" || Boolean(sexo || nome) || [local, clube, titulo, grupo].some((list) => list.length > 0);
+    // Each unfiltered page is its own canonical; filtered views fold into the base list.
+    const ownPage = page > 1 && !filtered;
+    return buildSeo({
+      title: withBrand(ownPage ? `Ratings de Xadrez — Página ${page}` : "Ratings de Xadrez"),
+      description:
+        "Ranking de ratings (clássico, rápido e blitz) dos jogadores filiados à Federação Sergipana de Xadrez. Filtre por clube, cidade, título e categoria.",
+      path: ownPage ? `/ratings?page=${page}` : "/ratings",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Ratings", path: "/ratings" },
+      ]),
+    });
+  },
   component: RouteComponent,
 });
 
@@ -290,10 +296,13 @@ function RouteComponent() {
                     {player.location?.flagUrl ? (
                       <span className="relative flex shrink-0 size-4 overflow-hidden rounded object-contain">
                         <img
-                          alt={player.location.name ?? ""}
+                          alt=""
+                          decoding="async"
+                          height={16}
+                          loading="lazy"
+                          width={16}
                           className="aspect-square size-4 rounded object-contain"
                           src={player.location.flagUrl}
-                          title={player.location.name ?? ""}
                         />
                       </span>
                     ) : null}
@@ -305,7 +314,11 @@ function RouteComponent() {
                     {player.club?.logoUrl ? (
                       <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded">
                         <img
-                          alt={player.club?.name ?? ""}
+                          alt=""
+                          decoding="async"
+                          height={20}
+                          loading="lazy"
+                          width={20}
                           className="aspect-square size-full object-contain"
                           src={player.club.logoUrl}
                         />
@@ -340,6 +353,7 @@ function RouteComponent() {
             })
           }
           onPagePreload={(page) => void router.preloadRoute({ to: "/ratings", search: { ...search, page } })}
+          getPageHref={(page) => router.buildLocation({ to: "/ratings", search: { ...search, page } }).href}
         />
       </div>
     </>

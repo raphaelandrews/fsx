@@ -114,7 +114,7 @@ export function RatingUpdateLogs({ updates }: { updates: RatingUpdateProps[] }) 
                       {update.success ? <SuccessDetail data={update.success.dataFields} /> : null}
                       {update.error ? (
                         <>
-                          <InfoRow icon={InformationCircleIcon} label="Status" value={getUserErrorMessage(update.error)} />
+                          <InfoRow icon={InformationCircleIcon} label="Status" value={getUserErrorMessage(update.error, undefined, "en")} />
                         </>
                       ) : null}
                     </PopoverContent>

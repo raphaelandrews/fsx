@@ -71,6 +71,7 @@ function RouteComponent() {
           hasPreviousPage={data.pagination.hasPreviousPage}
           onPageChange={(newPage) => navigate({ to: "/comunicados", search: { page: newPage } })}
           onPagePreload={(page) => void router.preloadRoute({ to: "/comunicados", search: { page } })}
+          getPageHref={(page) => router.buildLocation({ to: "/comunicados", search: { page } }).href}
           totalPages={data.pagination.totalPages}
         />
       </div>

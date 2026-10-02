@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
-import { toast } from "sonner";
 import z from "zod";
 
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { fieldError } from "@/lib/errors";
 
 const LOCATION_TYPES = ["city", "state", "country"] as const;
 
@@ -24,19 +24,16 @@ export const Route = createFileRoute("/_auth/dashboard/locations/$id")({
 function RouteComponent() {
   const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
 
   const { data: locations = [] } = useSuspenseQuery(trpc.locations.list.queryOptions());
   const location = locations.find((l) => l.id === numId);
 
-  const updateMutation = useMutation({
-    ...trpc.locations.update.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("locations");
-      toast.success("Location updated");
-    },
-    onError: () => toast.error("Failed to update location"),
+  const updateMutation = useAdminMutation(trpc.locations.update.mutationOptions(), {
+    invalidates: "locations",
+    success: "Location updated",
+    failure: "Failed to update location",
+    reloadOnConflict: true,
   });
 
   if (!location) {
@@ -82,7 +79,7 @@ function RouteComponent() {
             <FormField
               label="Name"
               htmlFor={f.name}
-              error={f.state.meta.errors[0]?.message}
+              error={fieldError(f, updateMutation.error)}
               required
             >
               <Input
@@ -99,7 +96,7 @@ function RouteComponent() {
             <FormField
               label="Type"
               htmlFor={f.name}
-              error={f.state.meta.errors[0]?.message}
+              error={fieldError(f, updateMutation.error)}
               required
             >
               <select
@@ -116,7 +113,7 @@ function RouteComponent() {
         </form.Field>
         <form.Field name="flagUrl">
           {(f) => (
-            <FormField label="Flag URL" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+            <FormField label="Flag URL" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
               <Input
                 id={f.name}
                 type="url"

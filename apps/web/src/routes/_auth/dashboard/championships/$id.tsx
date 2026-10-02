@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
-import { toast } from "sonner";
 import z from "zod";
 
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { fieldError } from "@/lib/errors";
 
 const TITLE = "Championship";
 const DOMAIN = "champions" as const;
@@ -26,19 +26,16 @@ export const Route = createFileRoute("/_auth/dashboard/championships/$id")({
 function RouteComponent() {
   const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
 
   const { data: items = [] } = useSuspenseQuery(trpc[DOMAIN].list.queryOptions());
   const item = items.find((i: any) => i.id === numId);
 
-  const updateMutation = useMutation({
-    ...trpc[DOMAIN].update.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin(DOMAIN);
-      toast.success(`${TITLE} updated`);
-    },
-    onError: () => toast.error(`Failed to update ${TITLE.toLowerCase()}`),
+  const updateMutation = useAdminMutation(trpc[DOMAIN].update.mutationOptions(), {
+    invalidates: DOMAIN,
+    success: `${TITLE} updated`,
+    failure: `Failed to update ${TITLE.toLowerCase()}`,
+    reloadOnConflict: true,
   });
 
   if (!item) return <p>{TITLE} not found.</p>;
@@ -73,7 +70,7 @@ function RouteComponent() {
             <FormField
               label="Name"
               htmlFor={f.name}
-              error={f.state.meta.errors[0]?.message}
+              error={fieldError(f, updateMutation.error)}
               required
             >
               <Input

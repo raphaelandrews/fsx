@@ -1,0 +1,42 @@
+---
+title: "ADR 0003: Anonymous Edge Cache Consistency"
+description: Public cache freshness and mutation invalidation behavior.
+---
+
+- Status: Accepted
+- Date: 2026-10-01
+
+## Context
+
+React Query invalidation only reaches the current dashboard session. Workers
+Cache API entries are scoped to locations and cannot be globally purged by that
+client invalidation.
+
+## Decision
+
+Keep the current procedure registry, anonymous-only successful GET caching, and
+short TTLs. Admin mutations invalidate the affected client query families.
+Anonymous visitors may see a prior response until its TTL expires. Do not add
+versioned keys or purge endpoints until a measured stale-content incident
+requires immediate global freshness.
+
+## Consequences
+
+Admin edits are immediately visible in the dashboard; public freshness is
+eventual and bounded by the configured TTL. Monitor edge hit rate and latency
+before changing TTLs or introducing a new cache layer.
+
+## Update 2026-10-02
+
+- `caches.default` is per Cloudflare data center, not globally replicated; each
+  location fills its own copy on first request.
+- Browsers receive `Cache-Control: no-store` on API responses; only the stored edge
+  entry carries `s-maxage`. Production showed the zone's Browser Cache TTL turning
+  `max-age=0` into `max-age=14400` (4 hours) on cache hits. The zone setting must be
+  **Browser Cache TTL → Respect Existing Headers**.
+- Recovery purge: the dashboard Cache page calls the zone purge API when
+  `CLOUDFLARE_ZONE_ID` and `CLOUDFLARE_CACHE_PURGE_TOKEN` are set (`cache.delete()`
+  only clears one data center). Versioned cache keys are still not needed.
+- SSR HTML is not cached: an anonymous page view costs 1–6 D1 queries and at most
+  ~2,750 rows read (`/ratings`) at production volume (Query Cost Baseline).
+  Revisit if D1 reads approach plan limits or SSR CPU time becomes visible.

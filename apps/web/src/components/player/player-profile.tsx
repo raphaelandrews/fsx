@@ -317,7 +317,11 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
                 {player.club.logoUrl ? (
                   <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded">
                     <img
-                      alt={player.club.name as string}
+                      alt=""
+                      decoding="async"
+                      height={20}
+                      loading="lazy"
+                      width={20}
                       className="aspect-square size-full object-contain"
                       src={player.club.logoUrl}
                     />
@@ -333,18 +337,19 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
           {player.location && (
             <InfoItem label="Localização">
               <div className="flex items-center gap-2">
-                <span className="relative flex shrink-0 size-4 overflow-hidden rounded object-contain">
-                  <img
-                    alt={player.location.name as string}
-                    className="aspect-square size-4 rounded object-contain"
-                    src={
-                      (player.location.flagUrl as string)
-                        ? (player.location.flagUrl as string)
-                        : "https://9nkvm1j67x.ufs.sh/f/sYfAN6LQ1AETco3Au5eYS2IjeoXsEn9KCrbdDHA1QgFqau4T"
-                    }
-                    title={player.location.name as string}
-                  />
-                </span>
+                {player.location.flagUrl ? (
+                  <span className="relative flex shrink-0 size-4 overflow-hidden rounded object-contain">
+                    <img
+                      alt=""
+                      className="aspect-square size-4 rounded object-contain"
+                      decoding="async"
+                      height={16}
+                      loading="lazy"
+                      src={player.location.flagUrl}
+                      width={16}
+                    />
+                  </span>
+                ) : null}
                 <span>{player.location.name}</span>
               </div>
             </InfoItem>

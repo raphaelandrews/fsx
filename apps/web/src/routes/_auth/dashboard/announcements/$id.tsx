@@ -1,16 +1,16 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 import { Textarea } from "@fsx/ui/components/textarea";
-import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
 import { orNotFound } from "@/lib/errors";
+import { FieldError } from "@/components/form/field-error";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/$id")({
   params: idParams,
@@ -23,18 +23,15 @@ export const Route = createFileRoute("/_auth/dashboard/announcements/$id")({
 function RouteComponent() {
   const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
 
   const { data: announcement } = useSuspenseQuery(trpc.announcements.byId.queryOptions({ id: numId }));
 
-  const updateMutation = useMutation({
-    ...trpc.announcements.update.mutationOptions(),
-    onSuccess: async () => {
-      await invalidateAdmin("announcements");
-      toast.success("Announcement updated");
-    },
-    onError: () => toast.error("Failed to update announcement"),
+  const updateMutation = useAdminMutation(trpc.announcements.update.mutationOptions(), {
+    invalidates: "announcements",
+    success: "Announcement updated",
+    failure: "Failed to update announcement",
+    reloadOnConflict: true,
   });
 
   if (!announcement) {
@@ -64,6 +61,7 @@ function RouteComponent() {
             <div className="space-y-2">
               <Label htmlFor={f.name}>Year</Label>
               <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
+              <FieldError field={f} error={updateMutation.error} />
             </div>
           )}
         </form.Field>
@@ -72,6 +70,7 @@ function RouteComponent() {
             <div className="space-y-2">
               <Label htmlFor={f.name}>Number</Label>
               <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
+              <FieldError field={f} error={updateMutation.error} />
             </div>
           )}
         </form.Field>
@@ -80,6 +79,7 @@ function RouteComponent() {
             <div className="space-y-2">
               <Label htmlFor={f.name}>Content</Label>
               <Textarea id={f.name} rows={4} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
+              <FieldError field={f} error={updateMutation.error} />
             </div>
           )}
         </form.Field>

@@ -125,7 +125,11 @@ export function buildClubColumns(phases: string[]): ColumnDef<ClubRow>[] {
             <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded">
               {club.clubLogo ? (
                 <img
-                  alt={club.clubName}
+                  alt=""
+                  decoding="async"
+                  height={20}
+                  loading="lazy"
+                  width={20}
                   className="aspect-square size-full object-contain"
                   src={club.clubLogo}
                 />

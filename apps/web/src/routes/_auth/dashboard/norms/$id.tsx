@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
-import { toast } from "sonner";
 import z from "zod";
 
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { fieldError } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/norms/$id")({
   params: idParams,
@@ -22,19 +22,16 @@ export const Route = createFileRoute("/_auth/dashboard/norms/$id")({
 function RouteComponent() {
   const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
 
   const { data: norms = [] } = useSuspenseQuery(trpc.norms.list.queryOptions());
   const norm = norms.find((n) => n.id === numId);
 
-  const updateMutation = useMutation({
-    ...trpc.norms.update.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("norms");
-      toast.success("Norm updated");
-    },
-    onError: () => toast.error("Failed to update norm"),
+  const updateMutation = useAdminMutation(trpc.norms.update.mutationOptions(), {
+    invalidates: "norms",
+    success: "Norm updated",
+    failure: "Failed to update norm",
+    reloadOnConflict: true,
   });
 
   if (!norm) {
@@ -71,7 +68,7 @@ function RouteComponent() {
             <FormField
               label="Norm"
               htmlFor={f.name}
-              error={f.state.meta.errors[0]?.message}
+              error={fieldError(f, updateMutation.error)}
               required
             >
               <Input

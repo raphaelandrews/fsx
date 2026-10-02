@@ -28,10 +28,10 @@ export function SwissManagerExport() {
 
   const { data: players = [] } = useSuspenseQuery(trpc.swissManager.list.queryOptions());
 
-  const handleExport = () => {
+  const handleExport = async () => {
     setIsPending(true);
     try {
-      const blob = buildSwissManagerWorkbook(players, ratingType);
+      const blob = await buildSwissManagerWorkbook(players, ratingType);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

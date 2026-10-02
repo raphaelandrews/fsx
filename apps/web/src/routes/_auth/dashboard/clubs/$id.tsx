@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
-import { toast } from "sonner";
 import z from "zod";
 
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { fieldError } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/clubs/$id")({
   params: idParams,
@@ -22,19 +22,16 @@ export const Route = createFileRoute("/_auth/dashboard/clubs/$id")({
 function RouteComponent() {
   const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
 
   const { data: clubs = [] } = useSuspenseQuery(trpc.clubs.list.queryOptions());
   const club = clubs.find((c) => c.id === numId);
 
-  const updateMutation = useMutation({
-    ...trpc.clubs.update.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("clubs");
-      toast.success("Club updated");
-    },
-    onError: () => toast.error("Failed to update club"),
+  const updateMutation = useAdminMutation(trpc.clubs.update.mutationOptions(), {
+    invalidates: "clubs",
+    success: "Club updated",
+    failure: "Failed to update club",
+    reloadOnConflict: true,
   });
 
   if (!club) {
@@ -71,7 +68,7 @@ function RouteComponent() {
             <FormField
               label="Name"
               htmlFor={f.name}
-              error={f.state.meta.errors[0]?.message}
+              error={fieldError(f, updateMutation.error)}
               required
             >
               <Input
@@ -85,7 +82,7 @@ function RouteComponent() {
         </form.Field>
         <form.Field name="logoUrl">
           {(f) => (
-            <FormField label="Logo URL" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+            <FormField label="Logo URL" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
               <Input
                 id={f.name}
                 type="url"

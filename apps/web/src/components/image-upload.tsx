@@ -69,7 +69,7 @@ export function ImageUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [cropperOpen, setCropperOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
-  const [status, setStatus] = useState("Nenhuma imagem selecionada.");
+  const [status, setStatus] = useState("No image selected.");
 
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
@@ -81,18 +81,18 @@ export function ImageUpload({
   const selectFile = useCallback(async (file: File) => {
     if (!(["image/jpeg", "image/png", "image/webp"] as string[]).includes(file.type)) {
       toast.error("Select a JPEG, PNG, or WebP image");
-      setStatus("Falha ao enviar: tipo de arquivo não suportado.");
+      setStatus("Upload failed: unsupported file type.");
       return;
     }
-    setStatus("Lendo imagem.");
+    setStatus("Reading image.");
     try {
       const dataUrl = await fileToDataUrl(file);
       setImageToCrop(dataUrl);
       setCropperOpen(true);
-      setStatus("Imagem pronta para recorte.");
+      setStatus("Image ready to crop.");
     } catch {
       toast.error("Failed to read image file");
-      setStatus("Falha ao ler a imagem.");
+      setStatus("Could not read the image.");
     }
   }, []);
 
@@ -120,7 +120,7 @@ export function ImageUpload({
     async (croppedBlob: Blob) => {
       setImageToCrop(null);
       setIsUploading(true);
-      setStatus("Enviando imagem.");
+      setStatus("Uploading image.");
       try {
         const data = await blobToBase64(croppedBlob);
         const mime = croppedBlob.type === "image/jpeg" || croppedBlob.type === "image/png" || croppedBlob.type === "image/webp"
@@ -144,10 +144,10 @@ export function ImageUpload({
         onUploaded?.(url);
         onChange(url);
         toast.success("Image uploaded");
-        setStatus("Imagem enviada com sucesso.");
+        setStatus("Image uploaded.");
       } catch {
         toast.error("Failed to upload image");
-        setStatus("Falha ao enviar a imagem.");
+        setStatus("Image upload failed.");
       } finally {
         setIsUploading(false);
       }
@@ -159,14 +159,14 @@ export function ImageUpload({
     if (!value || disabled) return;
     if (value) onImageReplaced?.(value);
     onChange(null);
-    setStatus("Imagem removida.");
+    setStatus("Image removed.");
     toast.success("Image removed");
   }, [value, disabled, onChange, onImageReplaced]);
 
   const handleCropperClose = useCallback((open: boolean) => {
     if (!open) {
       setImageToCrop(null);
-      setStatus("Recorte cancelado.");
+      setStatus("Crop cancelled.");
     }
     setCropperOpen(open);
   }, []);
@@ -178,7 +178,7 @@ export function ImageUpload({
           <div className="aspect-video">
             <img
               src={value}
-              alt="Pré-visualização da imagem enviada"
+              alt="Uploaded image preview"
               className="h-full w-full object-cover"
               decoding="async"
             />
@@ -244,7 +244,7 @@ export function ImageUpload({
                 icon={ImageUploadIcon}
                 strokeWidth={2}
               />
-              <span className="text-sm text-muted-foreground">Arraste uma imagem ou selecione um arquivo</span>
+              <span className="text-sm text-muted-foreground">Drag an image here or choose a file</span>
             </>
           )}
         </label>
@@ -256,7 +256,7 @@ export function ImageUpload({
         type="file"
         accept="image/jpeg,image/png,image/webp"
         onChange={handleInputChange}
-        aria-label="Imagem para envio"
+        aria-label="Image to upload"
         aria-describedby={descriptionId}
         disabled={disabled || isUploading}
         className="sr-only"

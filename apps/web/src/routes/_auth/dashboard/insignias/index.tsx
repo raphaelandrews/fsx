@@ -1,7 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { toast } from "sonner";
 
 import { Button } from "@fsx/ui/components/button";
 
@@ -12,7 +11,8 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
+import { EmptyCollection } from "@/components/admin/empty-collection";
 
 export const Route = createFileRoute("/_auth/dashboard/insignias/")({
   head: () => ({ meta: [{ title: "Insignias - Admin - FSX" }] }),
@@ -22,17 +22,13 @@ export const Route = createFileRoute("/_auth/dashboard/insignias/")({
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
 
   const { data = [] } = useSuspenseQuery(trpc.insignias.list.queryOptions());
 
-  const deleteMutation = useMutation({
-    ...trpc.insignias.delete.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("insignias");
-      toast.success("Insignia deleted");
-    },
-    onError: () => toast.error("Failed to delete insignia"),
+  const deleteMutation = useAdminMutation(trpc.insignias.delete.mutationOptions(), {
+    invalidates: "insignias",
+    success: "Insignia deleted",
+    failure: "Failed to delete insignia",
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
@@ -78,6 +74,7 @@ function RouteComponent() {
         }
       />
       <DataTable
+        emptyState={<EmptyCollection noun="insignias" createTo="/dashboard/insignias/create" />}
         columns={columns}
         data={data}
         toolbar={(table) => (

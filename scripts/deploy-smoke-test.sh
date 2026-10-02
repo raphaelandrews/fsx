@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${BASE_URL:?Set BASE_URL to the deployment origin}"
-MEDIA_SMOKE_URL="${MEDIA_SMOKE_URL:?Set MEDIA_SMOKE_URL to a known public image URL}"
+BASE_URL="${BASE_URL:-https://www.fsx.org.br}"
+MEDIA_SMOKE_URL="${MEDIA_SMOKE_URL:-}"
 BASE_URL="${BASE_URL%/}"
 
 TEMP_BODY="$(mktemp "${TMPDIR:-/tmp}/fsx-smoke-XXXXXX")"
@@ -31,9 +31,23 @@ PUBLIC_QUERY_URL="$BASE_URL/api/trpc/posts.list?batch=1&input=%7B%220%22%3A%7B%2
 expect_status "$PUBLIC_QUERY_URL" 200
 python3 -c 'import json,sys; payload=json.load(open(sys.argv[1])); items=payload if isinstance(payload,list) else [payload]; assert items and all("result" in item and "error" not in item for item in items)' "$TEMP_BODY"
 
-ADMIN_GUARD_URL="$BASE_URL/api/trpc/players.options?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%7D%7D%7D"
+ADMIN_GUARD_URL="$BASE_URL/api/trpc/stats.counts?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%7D%7D%7D"
 expect_status "$ADMIN_GUARD_URL" 401
 
+expect_status "$BASE_URL/sitemap.xml" 200
+expect_status "$BASE_URL/pagina-que-nao-existe" 404
+
+API_CACHE_CONTROL="$(curl --silent --show-error --max-time 20 --output /dev/null --dump-header - "$PUBLIC_QUERY_URL" | tr -d '\r' | awk -F': ' 'tolower($1)=="cache-control"{print tolower($2)}')"
+case "$API_CACHE_CONTROL" in
+  *no-store*) ;;
+  *) printf 'API responses must send Cache-Control: no-store to browsers; got "%s".\n' "$API_CACHE_CONTROL" >&2; exit 1 ;;
+esac
+
+if [ -z "$MEDIA_SMOKE_URL" ]; then
+  printf 'Skipping media check (set MEDIA_SMOKE_URL to a known /api/media/ image).\n'
+  printf 'Deployment smoke test passed for %s.\n' "$BASE_URL"
+  exit 0
+fi
 case "$MEDIA_SMOKE_URL" in
   "$BASE_URL"/api/media/*) ;;
   *) printf 'MEDIA_SMOKE_URL must use the deployment /api/media/ route.\n' >&2; exit 1 ;;

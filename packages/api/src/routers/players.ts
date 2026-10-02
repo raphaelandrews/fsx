@@ -60,8 +60,8 @@ export const playersRouter = router({
 
   byId: publicProcedure
     .input(idInput)
-    .query(async ({ ctx, input }) =>
-      requireFound(await ctx.db.query.players.findFirst({
+    .query(async ({ ctx, input }) => {
+      const player = requireFound(await ctx.db.query.players.findFirst({
         where: eq(playersTable.id, input.id),
         columns: {
           id: true,
@@ -84,8 +84,10 @@ export const playersRouter = router({
             columns: {},
             with: { championship: { columns: { name: true } } },
           },
+          // Newest results in chain (id) order, so the cap drops the oldest.
           playersToTournaments: {
             limit: PUBLIC_NESTED_COLLECTION_LIMIT,
+            orderBy: (history, { desc }) => [desc(history.id)],
             columns: { oldRating: true, variation: true },
             with: { tournament: { columns: { name: true, ratingType: true } } },
           },
@@ -105,8 +107,9 @@ export const playersRouter = router({
             with: { title: { columns: { name: true, shortName: true, type: true } } },
           },
         },
-      }), "Player")
-    ),
+      }), "Player");
+      return { ...player, playersToTournaments: player.playersToTournaments.reverse() };
+    }),
 
   search: publicProcedure
     .input(z.object({ query: searchText }))

@@ -1,0 +1,26 @@
+---
+title: "ADR 0002: D1 Migration Ownership"
+description: Migration generation, application, and local development rules.
+---
+
+- Status: Accepted
+- Date: 2026-10-01
+
+## Context
+
+Alchemy tracks D1 migration application in infrastructure state. Applying SQL
+directly to Miniflare creates schema state without a matching migration record.
+
+## Decision
+
+Drizzle schema changes generate tracked SQL migrations. Alchemy applies them
+during `bun dev` and deployment before the Worker version that needs the schema
+is promoted. Never apply pending migrations with raw `sqlite3` against
+`.alchemy/miniflare`; recovery of a broken disposable local database is to clear
+its local D1 state, restart Alchemy, then reseed.
+
+## Consequences
+
+Migration changes can be reviewed and replayed deterministically. Production
+rollback requires a forward-compatible application rollback or a tested D1
+restore; it does not automatically reverse a migration.

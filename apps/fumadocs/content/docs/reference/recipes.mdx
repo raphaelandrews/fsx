@@ -1,0 +1,127 @@
+---
+title: Recipes
+description: Short, test-backed steps for adding a field, a procedure, and a public route.
+---
+
+Each recipe lists the files to touch in order and the check that proves it
+worked. Run `bun test`, `bun run check-types`, and `bun run lint` at the end of
+every recipe.
+
+## Add a field
+
+Example: add an optional `lichess_username` to players.
+
+1. **Schema.** In `packages/db/src/schema/players.ts`:
+
+   ```ts
+   lichessUsername: text("lichess_username"),
+   ```
+
+   Add a `CHECK` if the value has a fixed format or range, and `.unique()` if it
+   identifies a player.
+2. **Migration.** Run `bun run db:generate`, review the generated SQL, and
+   restart `bun dev` so Alchemy applies it. Never apply it with `sqlite3`
+   ([Database](/reference/database#migrations)).
+3. **API input.** In `routers/players.ts`, add the field to `create` and
+   `update` with an explicit Zod rule:
+
+   ```ts
+   lichessUsername: z.string().trim().max(30).nullable().optional(),
+   ```
+
+4. **API output.** Add it to `forEdit`'s `columns`. Add it to `byId` only if it
+   is public (see [public and administrative data](/architecture/domain-model#public-and-administrative-data)).
+5. **Form.** Add the control to the player form with
+   `<FieldError field="lichessUsername" error={mutation.error} />`. Labels are in
+   English.
+6. **Display.** Render it on the public profile with Portuguese labels.
+7. **Test.** Extend "players persist every edited field" in
+   `packages/api/src/admin-crud.integration.test.ts` so the value round-trips
+   through `create`, `update`, and `forEdit`.
+
+## Add a procedure
+
+Example: a public `tournaments.recent` returning the five latest tournaments.
+
+1. **Procedure.** In `routers/tournaments.ts`:
+
+   ```ts
+   recent: publicProcedure.query(({ ctx }) =>
+     ctx.db.query.tournaments.findMany({
+       columns: { id: true, name: true, date: true, ratingType: true },
+       orderBy: (t, { desc }) => [desc(t.date), desc(t.id)],
+       limit: 5,
+     })
+   ),
+   ```
+
+   - Select explicit `columns`; never return whole rows publicly.
+   - Bound every list with `limit` (`PUBLIC_COLLECTION_LIMIT` at most).
+   - Detail lookups wrap the result in `requireFound(row, "Tournament")`.
+   - Mutations use `adminProcedure`, and `update`/`delete` wrap `.returning()`
+     in `requireMutationRows` so a missing ID returns `NOT_FOUND`.
+2. **Cache policy.** Add the procedure to `PROCEDURE_CACHE_POLICY` in
+   `packages/api/src/cache-policy.ts`:
+
+   ```ts
+   "tournaments.recent": { classification: "public", ttlSeconds: 300 },
+   ```
+
+   An unregistered public query fails `procedure-caller.test.ts` ("every query
+   without a registry entry rejects anonymous callers"). Admin queries stay out
+   of the registry.
+3. **Invalidation.** If a different router's mutations change the rows it
+   returns, add this router to their entry in `ADMIN_QUERY_DEPENDENTS`
+   (`apps/web/src/lib/admin-mutations.ts`). Here `tournaments` already
+   invalidates itself.
+4. **Test.** For a mutation, add a round-trip case to the CRUD table in
+   `admin-crud.integration.test.ts` and a missing-ID case to "admin mutations
+   reject missing and invalid ids".
+5. **Docs.** Add a row to [Procedures](/reference/procedures).
+
+## Add a public route
+
+Example: `/torneios/$id`, a tournament page.
+
+1. **Files.** The URL shares a prefix with a future list, so create
+   `apps/web/src/routes/_public/torneios/route.tsx` (layout with `<Outlet />`),
+   `index.tsx`, and `$id.tsx`. A flat `torneios.tsx` + `torneios.$id.tsx` pair
+   would nest the detail inside the list.
+2. **Route.** In `$id.tsx`:
+
+   ```tsx
+   export const Route = createFileRoute("/_public/torneios/$id")({
+     params: idParams,
+     loader: ({ context, params }) =>
+       orNotFound(
+         context.queryClient.ensureQueryData(
+           context.trpc.tournaments.byId.queryOptions({ id: params.id }),
+         ),
+       ),
+     head: ({ loaderData }) =>
+       buildSeo({
+         title: withBrand(loaderData?.name ?? "Torneio"),
+         path: `/torneios/${loaderData?.id ?? ""}`,
+         noindex: !loaderData,
+       }),
+     component: RouteComponent,
+   });
+   ```
+
+   - `idParams` turns a non-numeric ID into a 404 before any query runs.
+   - Prefetch in the `loader` **every** query the page's components read with
+     `useSuspenseQuery`; search-param inputs go through `validateSearch` and
+     `loaderDeps`.
+   - Put `head` after `loader` so `loaderData` is typed.
+   - Format dates with an explicit `timeZone` (`"UTC"` for stored dates, `"America/Sao_Paulo"` for local times).
+3. **Sitemap.** Add list pages to `STATIC_PATHS` in `apps/web/src/lib/sitemap.ts`;
+   for detail pages, add their IDs in `packages/api/src/sitemap.ts`.
+   `bun run check:routes` fails otherwise.
+4. **SSR check.** Add the path with its expected status, title, and size budget
+   to the route list in `apps/web/scripts/check-ssr.ts`, then run
+   `bun run build && bun run check:ssr`.
+5. **E2E.** Add the path to `publicPages` in `apps/web/e2e/a11y.e2e.ts` for the
+   axe check, and add a case to `apps/web/e2e/public.e2e.ts` if the page has
+   interactions.
+6. **Docs.** Add a row to [Routes](/reference/routes) and, for a visitor-facing
+   page, a page in the [guide](/guide).

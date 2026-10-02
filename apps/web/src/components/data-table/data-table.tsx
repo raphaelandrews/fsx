@@ -31,6 +31,8 @@ interface DataTableProps<TData, TValue> {
   toolbar?: (table: TanStackTable<TData>) => ReactNode;
   /** Rendered below the table; receives the table instance. */
   pagination?: (table: TanStackTable<TData>) => ReactNode;
+  /** Shown when the collection itself is empty, as opposed to filtered to nothing. */
+  emptyState?: ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -38,6 +40,7 @@ export function DataTable<TData, TValue>({
   data,
   toolbar,
   pagination,
+  emptyState,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -93,7 +96,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell className="h-24 text-center text-muted-foreground" colSpan={columns.length}>
-                  Nenhum resultado encontrado. Ajuste os filtros ou a busca.
+                  {data.length === 0 && emptyState ? emptyState : "No results. Adjust the search or filters."}
                 </TableCell>
               </TableRow>
             )}

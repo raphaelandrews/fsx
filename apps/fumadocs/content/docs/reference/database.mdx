@@ -1,0 +1,84 @@
+---
+title: Database
+description: D1 tables, constraints, indexes, and how migrations are made and applied.
+---
+
+The database is Cloudflare D1 (SQLite). The schema is defined with Drizzle in
+`packages/db/src/schema`, one file per table, and exported from
+`schema/index.ts`. What the tables mean is in the
+[domain model](/architecture/domain-model).
+
+## Conventions
+
+- Primary keys are `integer` autoincrement `id`.
+- Timestamps are `text` in SQLite's `CURRENT_TIMESTAMP` format (UTC);
+  `updated_at` is refreshed by Drizzle on update.
+- Dates without time (`birth_date`, `tournaments.date`, `events.start_date`,
+  cup dates) are `YYYY-MM-DD` text.
+- Booleans are `integer` with Drizzle `mode: "boolean"`.
+- Enumerations are `text` with a `CHECK` constraint, mirrored by a Zod enum in
+  the API.
+
+## Constraints
+
+| Table | Unique | Check |
+| ----- | ------ | ----- |
+| `players` | `nickname`, `cbx_id`, `fide_id` | ratings 0–4000; `sex` in `male`, `female` |
+| `players_to_titles`, `_roles`, `_norms`, `_insignias` | `(player, other)` | — |
+| `players_to_tournaments` | `(player_id, tournament_id)` | `old_rating` 0–4000; `variation` −4000–4000; `rating_type` in `blitz`, `rapid`, `classic` |
+| `tournament_podiums` | `(player_id, tournament_id)` | `place` 1–100000 |
+| `defending_champions` | `(player_id, championship_id)` | — |
+| `tournaments`, `cups` | `name` | `rating_type` in `blitz`, `rapid`, `classic`; `prize_pool` ≥ 0 |
+| `circuits` | `name` | `type` in `default`, `categories`, `school`, `geral` |
+| `circuit_podiums` | — | exactly one of `circuit_id`, `circuit_phase_id`; `points` 0–1000000; `place` null or 1–25; `category` null or a known category |
+| `cup_brackets` | — | `bracket_type` in `UB`, `LB`, `GF` |
+| `cup_playoffs` | — | `phase_type` in a fixed list of upper/lower bracket phases and `Grande Final` |
+| `tv_sergipe` | individual `(player, age, sex)`; team `(club, age, sex, team_name)` | age group, sex, modality, team letter `A`–`J`, place 1–8, points 1–10; individual ↔ player, team ↔ team name |
+| `announcements` | `content`; `(year, number)` | `year` 1900–2200; `number` > 0 |
+| `posts` | `slug` | — |
+| `roles` | `name`, `short_name` | `type` in `management`, `referee`, `teacher` |
+| `titles` | `name` | `type` in `internal`, `external` |
+| `locations` | `name` | `type` in `city`, `state`, `country` |
+| `links` | — | `type` in `link`, `regulation`, `form`, `results` |
+| `link_groups` | `event_id` | — |
+| `clubs`, `championships`, `events`, `insignias`, `norms` | `name` | — |
+
+Foreign keys and their `ON DELETE` actions are summarized in
+[deletion behavior](/architecture/domain-model#deletion-behavior).
+
+## Indexes
+
+Indexes follow the public queries:
+
+- `players`: `active`, `sex`, `club_id`, `location_id`, `name`, each rating,
+  `(active, rating)` for each rating, and `(active, birth_date)` for age groups.
+- `circuit_phases (circuit_id, sort_order)`, `circuit_podiums (circuit_phase_id)` and `(circuit_id)`.
+- `tournament_podiums (tournament_id, place)`, `cup_games (cup_match_id, game_number)`.
+- `events (start_date)`, `links (link_group_id)`.
+- `tv_sergipe (age_group, sex, modality)` and `(club_id, age_group)`.
+
+Before adding an index, compare plans on production-sized data
+(`packages/db/src/audits/query-plans.sql`, [Query cost baseline](/operations/query-cost-baseline)).
+
+## Migrations
+
+1. Edit the schema file.
+2. Run `bun run db:generate`. Drizzle writes `packages/db/src/migrations/NNNN_<name>.sql`
+   and updates `meta/`. Commit both.
+3. Restart `bun dev`: Alchemy applies pending migrations to the local D1 and
+   records them in `d1_migrations`.
+4. `bun run deploy` applies them to production the same way.
+
+Never apply a migration with `sqlite3` or `wrangler d1 execute`: the tracker would
+not record it and the next run fails with `table … already exists`
+([ADR 0002](/decisions/0002-d1-migrations)). To change a constraint, SQLite
+rebuilds the table; Drizzle generates `PRAGMA foreign_keys=OFF` around the
+rebuild. Test such migrations with the [restore drill](/operations/runbook#restore-drill)
+against a production backup before deploying.
+
+D1 specifics that shape the code:
+
+- No interactive transactions (`BEGIN` is rejected). Use `db.batch([...])`, which
+  runs atomically.
+- A compound `SELECT` may have at most 5 terms.
+- Bound parameters per statement are limited; batch large inserts.

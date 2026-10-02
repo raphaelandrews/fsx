@@ -32,10 +32,10 @@ const resultInput = z
   })
   .superRefine((val, ctx) => {
     if (val.modality === "individual" && !val.playerId) {
-      ctx.addIssue({ code: "custom", message: "Jogador é obrigatório para individual", path: ["playerId"] });
+      ctx.addIssue({ code: "custom", message: "A player is required for individual results", path: ["playerId"] });
     }
     if (val.modality === "team" && !val.teamName) {
-      ctx.addIssue({ code: "custom", message: "Equipe (A–J) é obrigatória para equipes", path: ["teamName"] });
+      ctx.addIssue({ code: "custom", message: "A team letter (A–J) is required for team results", path: ["teamName"] });
     }
   });
 

@@ -15,21 +15,27 @@ import { NotFound } from "./components/not-found";
 import { PageSkeleton } from "./components/skeletons/page-skeleton";
 import { routeTree } from "./routeTree.gen";
 import { TRPCProvider } from "./utils/trpc";
-import { getUserErrorMessage, isExpectedQueryError } from "./lib/errors";
+import { getUserErrorMessage, isAdminPath, isExpectedQueryError } from "./lib/errors";
 
 function createQueryClient() {
   return new QueryClient({
     queryCache: new QueryCache({
       onError: (error, query) => {
         if (isExpectedQueryError(error)) return;
-        toast.error(getUserErrorMessage(error, "Não foi possível carregar os dados."), {
-          action: {
-            label: "retry",
-            onClick: () => {
-              query.invalidate();
+        const admin = typeof window !== "undefined" && isAdminPath(window.location.pathname);
+        toast.error(
+          admin
+            ? getUserErrorMessage(error, "Could not load the data.", "en")
+            : getUserErrorMessage(error, "Não foi possível carregar os dados."),
+          {
+            action: {
+              label: admin ? "Retry" : "Tentar novamente",
+              onClick: () => {
+                query.invalidate();
+              },
             },
           },
-        });
+        );
       },
     }),
     defaultOptions: {

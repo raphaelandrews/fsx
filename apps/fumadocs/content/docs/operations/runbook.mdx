@@ -1,0 +1,130 @@
+---
+title: Runbook
+description: Backups, restoration, deployment, smoke tests, monitoring, media cleanup, and toolchain upgrades.
+---
+
+## Backup
+
+Run `bun run db:backup` from the repository root. The remote backup is written
+outside the repository under `~/Backups`, with private permissions, a manifest,
+and a checksum when `sha256sum` is available. Backups older than 90 days are
+removed after a successful export; set `BACKUP_RETENTION_DAYS` to a value from
+1 to 3650 to change the retention window. Do not include backup files in
+commits, support tickets, or logs.
+
+## Restoration
+
+Run `bash scripts/verify-d1-backup.sh <backup.sql>` at least quarterly and before
+any destructive migration. It imports the SQL into an isolated SQLite database
+and checks database and foreign-key integrity. For a full D1 recovery exercise,
+restore to a separate staging D1 database, apply compatible migrations, then run
+row-count and smoke checks before promoting that database. Never use a recovery
+exercise as a direct production overwrite.
+
+## Deploy Smoke Test
+
+Set `BASE_URL` and `MEDIA_SMOKE_URL` to the deployment origin and a known public
+media URL, then run `bash scripts/deploy-smoke-test.sh`. The test covers the
+login/session endpoint, a public page, a public tRPC query, the unauthenticated
+admin guard, and media delivery. Run it after each production deployment.
+
+## Deployment Order
+
+1. Validate code, tests, types, lint, build, and migrations.
+2. Apply compatible migrations through Alchemy/D1.
+3. Deploy the Worker that consumes the new schema.
+4. Run smoke tests for login, a public route, a public tRPC query, the admin
+   guard, and media delivery.
+
+Application rollback does not automatically undo a D1 migration. Destructive
+migrations require a restoration plan before deployment.
+
+## Monitoring and Media Cleanup
+
+Keep Worker observability enabled and alert on deployment/migration failures,
+elevated 5xx responses, and rate-limit spikes. Rate-limit logs contain only the
+scope, request ID, and retry window; the scheduled maintenance Worker removes
+expired rate-limit rows every fifteen minutes. Never add IP addresses or request
+payloads to operational logs.
+
+When deleting or replacing player/post images, use the admin workflow so the
+record and R2 object are reconciled. Periodically compare the `players.image_url`
+and `posts.image_url` values with keys listed in the `fsx-images` R2 bucket; only
+delete objects that are absent from both tables and older than the review window.
+Take a backup before bulk cleanup and record the number of objects removed.
+
+For query-plan review, run `packages/db/src/audits/query-plans.sql` against a
+production-like D1 clone and record row counts and response sizes with the plan
+results. Do not add indexes from a small local seed; compare realistic
+cardinality and D1 read/CPU metrics first.
+
+To find player names left stale by the old rename bug and stored URLs that the
+current API validators reject, run `packages/db/src/audits/player-names-and-urls.sql`
+against production D1 (read-only). Re-enter each listed player's name in the
+dashboard; `normalized_name` holds the intended name without accents or casing,
+so do not copy it back. Change any listed URL to an `https://` address or a new
+upload before editing that record.
+
+To find players whose rating no longer matches their rating history, run
+`packages/db/src/audits/rating-history-sync.sql` against production D1
+(read-only). A `gap before result` row means an earlier result was deleted or
+edited outside the history; a `current rating differs` row means the rating was
+edited by hand after the last result. Fix each player from **Rating history**
+(correct or remove the result that is off), or record the intended starting
+rating and reconcile by hand; rerun the audit until it returns no rows.
+
+Before deploying stricter date validation, run `packages/db/src/audits/date-formats.sql`
+against production D1. Rewrite each listed `birth_date`, tournament `date`, or event
+`start_date` as `YYYY-MM-DD`; otherwise the record cannot be saved from the
+dashboard and age-group filters skip it. The rating import converts `DD/MM/YYYY`
+spreadsheet text automatically.
+
+## Upgrading the Cloudflare toolchain
+
+Alchemy, Miniflare, workerd, Wrangler, and the Worker compatibility date move
+together; `bun run check:runtime` (also in CI) fails when they drift.
+
+1. Bump the `alchemy` catalog version in the root `package.json` (exact version).
+2. Set every workspace `miniflare` pin (`packages/api`, `packages/db`, `apps/web`)
+   to the Miniflare version that Alchemy release depends on. A mismatch makes the
+   seed script and tests use a different local SQLite file than `alchemy dev`.
+3. Update the root `workerd` override to a release at least as new as the
+   compatibility date, and pin `wrangler` in `apps/web` exactly.
+4. Change `COMPATIBILITY_DATE` in `packages/infra/alchemy.run.ts` only on purpose,
+   after reading the Workers compatibility-flag changelog; update the test
+   harnesses (`packages/api/src/test-d1.ts`, `apps/web/scripts/worker-harness.ts`)
+   to the same date.
+5. `bun install`, then run `bun run check:runtime`, `bun test`, `bun run build`,
+   `bun run check:ssr`, and `bun run test:e2e` before deploying.
+
+## Restore drill
+
+`bun run db:backup:verify` only proves a dump is valid SQLite. The restore drill
+proves the application runs on it:
+
+```bash
+bun run build
+bun run db:restore-drill ~/Backups/fsx-<stamp>/fsx-<stamp>.sql
+```
+
+It loads the dump into a fresh Miniflare D1 (parents before children, since D1
+rejects `PRAGMA foreign_keys=OFF`), applies any migrations the backup predates,
+compares every table's row count with the dump, and renders public pages,
+including a real player and news post, against the restored data. The
+`Restore drill` GitHub workflow runs this monthly (and on demand) once the
+`CLOUDFLARE_API_TOKEN` (D1 read) and `CLOUDFLARE_ACCOUNT_ID` secrets exist; its
+run history records the date of the last successful drill.
+
+## Deploy verification and alerts
+
+- `bun run deploy` runs `scripts/deploy-smoke-test.sh` after a successful deploy
+  (auth, public pages and API, admin guard, sitemap, 404 status, `no-store` on API
+  responses; set `MEDIA_SMOKE_URL` to also check R2 media). A failed smoke test
+  fails the deploy command; roll back as described in [Incident response](/operations/incident-response#roll-back-a-deploy).
+- The `Production health` workflow runs hourly and fails, which notifies the
+  repository owner, when the last hour shows more than 2% 5xx responses (with at
+  least 50 requests), more than 200 rate-limited responses, or any uncaught Worker
+  exception, including failed `fsx-rate-limit-cleanup` cron runs. It needs
+  `CLOUDFLARE_API_TOKEN` (Account Analytics:Read, Zone Analytics:Read),
+  `CLOUDFLARE_ACCOUNT_ID`, and `CLOUDFLARE_ZONE_ID`. Thresholds are environment
+  variables in `scripts/check-production-health.mjs`.

@@ -18,10 +18,11 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  // Wait for the server's own ready line: polling the URL would hit "/" while
+  // migrations and fixtures are still being applied.
   webServer: {
     command: "bun scripts/e2e-server.ts",
-    url: E2E_ORIGIN,
-    reuseExistingServer: !process.env.CI,
+    wait: { stdout: /e2e server ready/ },
     timeout: 60_000,
   },
 });

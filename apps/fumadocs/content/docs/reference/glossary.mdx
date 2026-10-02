@@ -1,0 +1,85 @@
+---
+title: Glossary
+description: Domain terms, Portuguese labels, and abbreviations used across the FSX site and code.
+---
+
+## Organizations
+
+| Term | Meaning |
+| ---- | ------- |
+| **FSX** | Federação Sergipana de Xadrez, the Sergipe Chess Federation. |
+| **CBX** | Confederação Brasileira de Xadrez, the Brazilian Chess Confederation. |
+| **FIDE** | Fédération Internationale des Échecs, the International Chess Federation. |
+| **TV Sergipe** | Broadcaster that sponsors the School Games; also the table `tv_sergipe` and route `/tv-sergipe`. |
+
+## Titles
+
+| Abbreviation | Title |
+| ------------ | ----- |
+| **GMS** | Grande Mestre Sergipano (Sergipe Grandmaster) |
+| **MSE** | Mestre Sergipano (Sergipe Master) |
+| **CMS** | Candidato a Mestre Sergipano (Sergipe Candidate Master) |
+| **MFS** | Mestre Feminina Sergipana (Sergipe Woman Master) |
+| **MJS** | Mestre Júnior Sergipano (Sergipe Junior Master) |
+| **MMS** | Mestre Mirim Sergipano (Sergipe Youth Master) |
+| **MSHC** | Mestre Sergipano Honoris Causa (Honorary Sergipe Master) |
+| **MN** | Mestre Nacional, a CBX National Master title |
+| **CM** | Candidate Master, a FIDE title |
+
+FSX titles are `internal` in the `titles` table; CBX and FIDE titles are `external`.
+
+## Chess terms
+
+| Term | Meaning |
+| ---- | ------- |
+| **Clássico / Rápido / Blitz / Bullet** | Classical, rapid, blitz, and bullet time controls. The code uses `classic`, `rapid`, and `blitz`. |
+| **Rating** | A player's strength number; the FSX keeps one per time control. |
+| **K-factor** | Maximum rating change per game. See [Rating variation](/guide/rating-variation). |
+| **Variation** | Rating change produced by one tournament. |
+| **Norm** (norma) | A qualifying result toward a title. |
+| **Absoluto** | The open category of a championship, as opposed to women's or age categories. |
+| **Árbitro** | Arbiter: Nacional, Auxiliar, or Estadual (national, assistant, state). |
+| **Chess-Results** | chess-results.com, where tournament results are published; `tournaments.chess_results`. |
+| **Swiss Manager** | Pairing software; the dashboard exports players for it and the rating import reads its Excel output. |
+| **Best of N** | A match decided by the first player to win most of N games; `cup_matches.best_of`. |
+
+## Competitions
+
+| Term | Meaning |
+| ---- | ------- |
+| **Campeonato** | Championship: a recurring competition grouping tournaments and cups (`championships`). |
+| **Torneio** | Tournament: one event (`tournaments`). |
+| **Pódio** | Podium: a player's final place in a tournament or circuit. |
+| **Campeão vigente** | Defending champion (`defending_champions`). |
+| **Circuito / Etapa** | Circuit and stage (`circuits`, `circuit_phases`). |
+| **Copa** | Cup: bracket-and-group competition (`cups`). |
+| **Chave Superior / Inferior** | Upper (`UB`) and lower (`LB`) bracket. |
+| **Grande Final** | Grand final (`GF`). |
+| **Oitavas / Quartas / Semis** | Round of 16, quarterfinals, semifinals. |
+| **Jogos Escolares** | School Games. |
+
+## Categories and groups
+
+| Term | Meaning |
+| ---- | ------- |
+| **Sub 8 … Sub 18** | Under-8 to under-18 age groups. In `tv_sergipe` stored as `8` … `18`; in ratings filters as `sub-8` … `sub-18`. |
+| **Master / Veterano / Sênior** | Adult age groups: 40–50, 51–64, and 65 or older. |
+| **Masculino / Feminino** | Male / female; stored as `male` / `female`. |
+| **Individual / Equipe** | Individual and team modalities; stored as `individual` / `team`. |
+| **Futuro / Juvenil / Master** | Additional circuit categories alongside the Sub categories (`CIRCUIT_CATEGORIES`). |
+
+## Site and code
+
+| Term | Meaning |
+| ---- | ------- |
+| **Comunicado** | Official announcement, numbered per year (`announcements`). |
+| **Notícia** | News post (`posts`). |
+| **Diretoria** | Board of directors; roles of type `management`. |
+| **Insígnia** | Insignia: a badge with a level awarded to players. |
+| **Owner** | The single GitHub account allowed to administer the site. |
+| **Edge cache** | Cloudflare's per-data-center Cache API, used for public tRPC GETs. |
+| **TTL** | Time to live: how long a cached response is served. |
+| **D1** | Cloudflare's SQLite database service. |
+| **R2** | Cloudflare's object storage, holding images. |
+| **Alchemy** | Infrastructure-as-code tool that provisions and deploys the Cloudflare resources. |
+| **Miniflare** | Local simulator of Workers, D1, and R2, used by `bun dev` and tests. |

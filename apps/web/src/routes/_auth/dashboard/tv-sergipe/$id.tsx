@@ -1,16 +1,16 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm, useStore } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
-import { toast } from "sonner";
 import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
 import { SearchableSelect } from "@/components/searchable-select";
 import { FormField } from "@/components/form/form-field";
 import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS, TEAM_NAMES } from "./-constants";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { fieldError } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/$id")({
   params: idParams,
@@ -23,19 +23,16 @@ export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/$id")({
 function RouteComponent() {
   const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
 
   const { data: results = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
   const result = results.find((r) => r.id === numId);
 
-  const updateMutation = useMutation({
-    ...trpc.tvSergipe.update.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("tvSergipe");
-      toast.success("Result updated");
-    },
-    onError: () => toast.error("Failed to update result"),
+  const updateMutation = useAdminMutation(trpc.tvSergipe.update.mutationOptions(), {
+    invalidates: "tvSergipe",
+    success: "Result updated",
+    failure: "Failed to update result",
+    reloadOnConflict: true,
   });
 
   if (!result) return <p>Result not found.</p>;
@@ -95,7 +92,7 @@ function RouteComponent() {
       >
         <form.Field name="clubId">
           {(f) => (
-            <FormField label="School" error={f.state.meta.errors[0]?.message} required>
+            <FormField label="School" error={fieldError(f, updateMutation.error)} required>
               <SearchableSelect
                 value={f.state.value}
                 onChange={(v) => f.handleChange(v)}
@@ -110,7 +107,7 @@ function RouteComponent() {
         <div className="grid grid-cols-2 gap-4">
           <form.Field name="ageGroup">
             {(f) => (
-              <FormField label="Category" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+              <FormField label="Category" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
                 <select
                   id={f.name}
                   value={f.state.value}
@@ -129,7 +126,7 @@ function RouteComponent() {
           </form.Field>
           <form.Field name="sex">
             {(f) => (
-              <FormField label="Sex" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+              <FormField label="Sex" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
                 <select
                   id={f.name}
                   value={f.state.value}
@@ -149,7 +146,7 @@ function RouteComponent() {
         </div>
         <form.Field name="modality">
           {(f) => (
-            <FormField label="Modality" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+            <FormField label="Modality" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
               <select
                 id={f.name}
                 value={f.state.value}
@@ -169,7 +166,7 @@ function RouteComponent() {
         {modality === "individual" && (
           <form.Field name="playerId">
             {(f) => (
-              <FormField label="Player" error={f.state.meta.errors[0]?.message}>
+              <FormField label="Player" error={fieldError(f, updateMutation.error)}>
                 <SearchableSelect
                   value={f.state.value}
                   onChange={(v) => f.handleChange(v)}
@@ -188,7 +185,7 @@ function RouteComponent() {
               <FormField
                 label="Team (A–J)"
                 htmlFor={f.name}
-                error={f.state.meta.errors[0]?.message}
+                error={fieldError(f, updateMutation.error)}
               >
                 <select
                   id={f.name}
@@ -209,7 +206,7 @@ function RouteComponent() {
         )}
         <form.Field name="place">
           {(f) => (
-            <FormField label="Place (1–8)" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+            <FormField label="Place (1–8)" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
               <select
                 id={f.name}
                 value={String(f.state.value)}

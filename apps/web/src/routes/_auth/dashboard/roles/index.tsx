@@ -1,7 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { toast } from "sonner";
 
 import { Button } from "@fsx/ui/components/button";
 
@@ -12,7 +11,8 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
+import { EmptyCollection } from "@/components/admin/empty-collection";
 
 export const Route = createFileRoute("/_auth/dashboard/roles/")({
   head: () => ({ meta: [{ title: "Roles - Admin - FSX" }] }),
@@ -22,17 +22,13 @@ export const Route = createFileRoute("/_auth/dashboard/roles/")({
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
 
   const { data = [] } = useSuspenseQuery(trpc.roles.list.queryOptions());
 
-  const deleteMutation = useMutation({
-    ...trpc.roles.delete.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("roles");
-      toast.success("Role deleted");
-    },
-    onError: () => toast.error("Failed to delete role"),
+  const deleteMutation = useAdminMutation(trpc.roles.delete.mutationOptions(), {
+    invalidates: "roles",
+    success: "Role deleted",
+    failure: "Failed to delete role",
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
@@ -81,6 +77,7 @@ function RouteComponent() {
         }
       />
       <DataTable
+        emptyState={<EmptyCollection noun="roles" createTo="/dashboard/roles/create" />}
         columns={columns}
         data={data}
         toolbar={(table) => (

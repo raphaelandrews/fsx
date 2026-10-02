@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
 
 import { Label } from "@fsx/ui/components/label";
 
@@ -37,7 +37,12 @@ export function FormField({
         {label}
         {required && <span className="ml-0.5 text-destructive">*</span>}
       </Label>
-      {children}
+      {error && htmlFor && isValidElement(children)
+        ? cloneElement(children as ReactElement<Record<string, unknown>>, {
+            "aria-invalid": true,
+            "aria-describedby": `${htmlFor}-error`,
+          })
+        : children}
       {hint && <p id={htmlFor ? `${htmlFor}-hint` : undefined} className="text-xs text-muted-foreground">{hint}</p>}
       {error && <p id={htmlFor ? `${htmlFor}-error` : undefined} className="text-xs text-destructive" role="alert">{error}</p>}
     </div>

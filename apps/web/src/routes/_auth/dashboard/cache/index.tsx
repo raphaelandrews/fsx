@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import {
   AlertDialog,
@@ -15,8 +14,8 @@ import {
 } from "@fsx/ui/components/alert-dialog";
 import { Button } from "@fsx/ui/components/button";
 
-import { getUserErrorMessage } from "@/lib/errors";
 import { useTRPC } from "@/utils/trpc";
+import { useAdminMutation } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/cache/")({
   head: () => ({ meta: [{ title: "Cache - Admin - FSX" }] }),
@@ -33,10 +32,9 @@ function RouteComponent() {
   const { data: rateLimitStats } = useSuspenseQuery(trpc.security.rateLimitStats.queryOptions());
   const { data: cacheStatus } = useSuspenseQuery(trpc.cache.status.queryOptions());
 
-  const purgeMutation = useMutation({
-    ...trpc.cache.purgePublic.mutationOptions(),
-    onSuccess: () => toast.success("Public cache purged in every data center"),
-    onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível limpar o cache.")),
+  const purgeMutation = useAdminMutation(trpc.cache.purgePublic.mutationOptions(), {
+    success: "Public cache purged in every data center",
+    failure: "Failed to purge the cache",
   });
 
   return (
@@ -56,10 +54,10 @@ function RouteComponent() {
       <div className="mb-6 rounded-md border p-4">
         <h2 className="mb-2 font-semibold">Rate-limit storage</h2>
         <p className="text-sm text-muted-foreground">
-          {rateLimitStats.rows.toLocaleString("pt-BR")} janela(s) armazenada(s).
+          {rateLimitStats.rows.toLocaleString("en-US")} stored window(s).
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Janela mais antiga: {formatUtc(rateLimitStats.oldestWindowStart)} · mais recente: {formatUtc(rateLimitStats.newestWindowStart)}
+          Oldest window: {formatUtc(rateLimitStats.oldestWindowStart)} · newest: {formatUtc(rateLimitStats.newestWindowStart)}
         </p>
       </div>
 

@@ -8,13 +8,19 @@ The Supabase→D1 data migration is complete and `packages/db/src/migrate.ts` ha
 
 Local Dev D1 gotchas:
 - `@fsx/db`'s `miniflare` version must match alchemy's (`4.20260424.0`); otherwise seed writes to a
-  different SQLite file than `alchemy dev` reads.
+  different SQLite file than `alchemy dev` reads. `bun run check:runtime` enforces this and the
+  pinned compatibility date; see "Upgrading the Cloudflare toolchain" in `operations/runbook.mdx`.
 - New Drizzle schema migrations (e.g. `0002_peaceful_masked_marvel.sql`) must go through `alchemy dev`'s
   migration tracker — do NOT apply them manually via raw `sqlite3` against `.alchemy/miniflare/v3/d1/…sqlite`.
   A raw apply creates the table but never records it in `d1_migrations`, so the next `alchemy dev` startup
   re-runs migrations and fails with `D1_ERROR: table … already exists`. To recover: stop dev,
   `rm -rf .alchemy/miniflare/v3/d1`, restart `bun dev` (alchemy auto-applies all pending migrations),
   then `bun run db:seed`.
+- Stopping `bun dev` uncleanly can leave `bun --watch … alchemy.run.ts` and Vite processes running,
+  still bound to port 3001 and the same `.alchemy/miniflare` D1. A new `bun dev` then silently loses
+  the port, and the browser keeps hitting old code with a stale D1 schema (every query fails after a
+  table-rebuilding migration). Before starting dev or debugging local D1 errors, check
+  `pgrep -af "alchemy.run.ts|vite-plus-core"` and stop anything not from the current session.
 
 ## Frontend conventions
 
@@ -37,11 +43,36 @@ Local Dev D1 gotchas:
   (e.g. a selected player) belong in a child component rendered only once the choice exists.
 - **Detail procedures throw `NOT_FOUND`** (`requireFound`) instead of returning `undefined`, which
   React Query rejects; loaders turn it into `notFound()` with `orNotFound` (`@/lib/errors`).
+- **UI language:** the public site is Portuguese; the admin dashboard (`/dashboard`, `/rating-update`)
+  is English. Admin mutation errors go through `showMutationError` (English); form fields show
+  `<FieldError field={f} error={mutation.error} />` (or `FormField` with `error={fieldError(f, mutation.error)}`)
+  so server validation appears next to the control.
 - **Default to zero comments.** Add a comment only when it explains a non-obvious "why" or a
   gotcha that a reader could not infer from the code itself. Never restate what the code does,
   never narrate intent that is obvious, and never leave explanatory/doc-style prose. If a comment
   merely re-describes the adjacent code, delete it. Reserve comments for invariants, timezone/SSR
   pitfalls, data-shape constraints, or a decision that contradicts what a reader would assume.
+
+## Making a change
+
+Worked examples live in `apps/fumadocs/content/docs/reference/recipes.mdx`; the rules to keep are in
+`reference/invariants.mdx`. For every feature or fix:
+
+1. **Schema:** edit `packages/db/src/schema`, run `bun run db:generate`, review the SQL, restart
+   `bun dev`. Pick `ON DELETE` deliberately: `restrict` for history or results that must not vanish
+   as a side effect.
+2. **Procedure:** explicit `columns`, bounded `limit`, `requireFound`/`requireMutationRows`; writes
+   use `adminProcedure`. Multi-statement writes go in one `db.batch` (D1 has no `BEGIN`). New
+   public queries need a `PROCEDURE_CACHE_POLICY` entry; admin queries stay out of it.
+3. **Invalidation:** update `ADMIN_QUERY_DEPENDENTS` when a mutation changes rows another router
+   returns.
+4. **Route/UI:** prefetch suspended queries in the `loader`; register new public routes in the
+   sitemap, `check-ssr.ts`, and `e2e/a11y.e2e.ts` (admin pages in its dashboard list).
+5. **Tests:** cover the change against D1 (`packages/api/src/*.integration.test.ts`), including the
+   failure paths (`NOT_FOUND`, `CONFLICT`, `BAD_REQUEST`).
+6. **Docs:** update the procedure/route catalogs and any page or ADR the change contradicts.
+7. **Verify:** `bun test`, `bun run check-types`, `bun run lint`; for routes or rendering also
+   `bun run build && bun run check:ssr` and `bun run test:e2e`.
 
 ## Documentation
 

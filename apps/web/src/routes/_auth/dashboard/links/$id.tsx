@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
-import { toast } from "sonner";
 import z from "zod";
 
 import { Button } from "@fsx/ui/components/button";
@@ -12,8 +11,9 @@ import { LinkIconSelect } from "@/components/link-icon-select";
 import { DEFAULT_LINK_ICON, resolveLinkIcon } from "@fsx/api/link-icons";
 import { useTRPC } from "@/utils/trpc";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation, useInvalidateAdmin } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { FieldError } from "@/components/form/field-error";
 
 type GroupLink = {
   id: number;
@@ -40,22 +40,17 @@ function RouteComponent() {
   const { data: groups = [] } = useSuspenseQuery(trpc.links.list.queryOptions());
   const group = groups.find((g) => g.id === numId);
 
-  const deleteLinkMutation = useMutation({
-    ...trpc.links.deleteLink.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("links");
-      toast.success("Link deleted");
-    },
-    onError: () => toast.error("Failed to delete link"),
+  const deleteLinkMutation = useAdminMutation(trpc.links.deleteLink.mutationOptions(), {
+    invalidates: "links",
+    success: "Link deleted",
+    failure: "Failed to delete link",
   });
 
-  const updateGroupMutation = useMutation({
-    ...trpc.links.updateGroup.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("links");
-      toast.success("Group updated");
-    },
-    onError: () => toast.error("Failed to update group"),
+  const updateGroupMutation = useAdminMutation(trpc.links.updateGroup.mutationOptions(), {
+    invalidates: "links",
+    success: "Group updated",
+    failure: "Failed to update group",
+    reloadOnConflict: true,
   });
 
   const groupLabelForm = useForm({
@@ -98,17 +93,13 @@ function RouteComponent() {
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
               />
-              {f.state.meta.errors.map((e) => (
-                <p key={e?.message} className="text-destructive text-xs">
-                  {e?.message}
-                </p>
-              ))}
+              <FieldError field={f} error={updateGroupMutation.error} />
             </div>
           )}
         </groupLabelForm.Field>
         <groupLabelForm.Subscribe selector={(s) => ({ canSubmit: s.canSubmit })}>
           {({ canSubmit }) => (
-            <Button type="submit" size="sm" disabled={!canSubmit}>
+            <Button type="submit" size="sm" disabled={!canSubmit || updateGroupMutation.isPending}>
               Rename
             </Button>
           )}
@@ -142,15 +133,12 @@ function RouteComponent() {
 
 function LinkEditRow({ link, deleting, onDelete }: { link: GroupLink; deleting: boolean; onDelete: (id: number) => void }) {
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
 
-  const updateLinkMutation = useMutation({
-    ...trpc.links.updateLink.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("links");
-      toast.success("Link updated");
-    },
-    onError: () => toast.error("Failed to update link"),
+  const updateLinkMutation = useAdminMutation(trpc.links.updateLink.mutationOptions(), {
+    invalidates: "links",
+    success: "Link updated",
+    failure: "Failed to update link",
+    reloadOnConflict: true,
   });
 
   const form = useForm({
@@ -195,16 +183,12 @@ function LinkEditRow({ link, deleting, onDelete }: { link: GroupLink; deleting: 
             </Label>
             <Input
               id={f.name}
-              placeholder="Rótulo"
+              placeholder="Label"
               value={f.state.value}
               onBlur={f.handleBlur}
               onChange={(e) => f.handleChange(e.target.value)}
             />
-            {f.state.meta.errors.map((e) => (
-              <p key={e?.message} className="text-destructive text-xs">
-                {e?.message}
-              </p>
-            ))}
+            <FieldError field={f} error={updateLinkMutation.error} />
           </div>
         )}
       </form.Field>
@@ -222,6 +206,7 @@ function LinkEditRow({ link, deleting, onDelete }: { link: GroupLink; deleting: 
               onBlur={f.handleBlur}
               onChange={(e) => f.handleChange(e.target.value)}
             />
+            <FieldError field={f} error={updateLinkMutation.error} />
           </div>
         )}
       </form.Field>
@@ -246,20 +231,21 @@ function LinkEditRow({ link, deleting, onDelete }: { link: GroupLink; deleting: 
               onBlur={f.handleBlur}
               onChange={(e) => f.handleChange(Number(e.target.value))}
             />
+            <FieldError field={f} error={updateLinkMutation.error} />
           </div>
         )}
       </form.Field>
       <div className="flex items-center gap-1">
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit })}>
           {({ canSubmit }) => (
-            <Button type="submit" variant="outline" size="sm" disabled={!canSubmit}>
+            <Button type="submit" variant="outline" size="sm" disabled={!canSubmit || updateLinkMutation.isPending}>
               Save
             </Button>
           )}
         </form.Subscribe>
         <ConfirmDeleteButton
           itemName={link.label}
-          label="Excluir"
+          label="Delete"
           pending={deleting}
           onConfirm={() => onDelete(link.id)}
         />
@@ -271,13 +257,10 @@ function LinkEditRow({ link, deleting, onDelete }: { link: GroupLink; deleting: 
 function NewLinkForm({ groupId, onCreated }: { groupId: number; onCreated: () => void }) {
   const trpc = useTRPC();
 
-  const createLinkMutation = useMutation({
-    ...trpc.links.createLink.mutationOptions(),
-    onSuccess: () => {
-      onCreated();
-      toast.success("Link added");
-    },
-    onError: () => toast.error("Failed to add link"),
+  const createLinkMutation = useAdminMutation(trpc.links.createLink.mutationOptions(), {
+    success: "Link added",
+    failure: "Failed to add link",
+    onSuccess: () => { onCreated(); },
   });
 
   const form = useForm({
@@ -319,16 +302,12 @@ function NewLinkForm({ groupId, onCreated }: { groupId: number; onCreated: () =>
               </Label>
               <Input
                 id={f.name}
-                placeholder="Rótulo"
+                placeholder="Label"
                 value={f.state.value}
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
               />
-              {f.state.meta.errors.map((e) => (
-                <p key={e?.message} className="text-destructive text-xs">
-                  {e?.message}
-                </p>
-              ))}
+              <FieldError field={f} error={createLinkMutation.error} />
             </div>
           )}
         </form.Field>
@@ -346,6 +325,7 @@ function NewLinkForm({ groupId, onCreated }: { groupId: number; onCreated: () =>
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
               />
+              <FieldError field={f} error={createLinkMutation.error} />
             </div>
           )}
         </form.Field>
@@ -370,6 +350,7 @@ function NewLinkForm({ groupId, onCreated }: { groupId: number; onCreated: () =>
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(Number(e.target.value))}
               />
+              <FieldError field={f} error={createLinkMutation.error} />
             </div>
           )}
         </form.Field>
@@ -377,7 +358,7 @@ function NewLinkForm({ groupId, onCreated }: { groupId: number; onCreated: () =>
           selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" size="sm" disabled={!canSubmit || isSubmitting}>
+            <Button type="submit" size="sm" disabled={!canSubmit || isSubmitting || createLinkMutation.isPending}>
               {isSubmitting ? "..." : "Add"}
             </Button>
           )}

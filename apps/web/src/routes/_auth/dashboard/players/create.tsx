@@ -11,8 +11,9 @@ import { DatePicker } from "@/components/date-picker";
 import { ImageUpload } from "@/components/image-upload";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
-import { getUserErrorMessage } from "@/lib/errors";
+import { showMutationError } from "@/lib/errors";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { FieldError } from "@/components/form/field-error";
 
 export const Route = createFileRoute("/_auth/dashboard/players/create")({
   head: () => ({ meta: [{ title: "Create Player - Admin - FSX" }] }),
@@ -35,7 +36,7 @@ function RouteComponent() {
     },
     onError: (error, variables) => {
       void discard(variables.imageUrl);
-      toast.error(getUserErrorMessage(error, "Não foi possível criar o jogador."));
+      showMutationError(error, "Failed to create player");
     },
   });
 
@@ -105,11 +106,7 @@ function RouteComponent() {
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
               />
-              {f.state.meta.errors.map((e) => (
-                <p key={e?.message} className="text-destructive text-xs">
-                  {e?.message}
-                </p>
-              ))}
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>
@@ -123,6 +120,7 @@ function RouteComponent() {
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
               />
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>
@@ -155,6 +153,7 @@ function RouteComponent() {
                   onBlur={f.handleBlur}
                   onChange={(e) => f.handleChange(Number(e.target.value))}
                 />
+                <FieldError field={f} error={createMutation.error} />
               </div>
             )}
           </form.Field>
@@ -169,6 +168,7 @@ function RouteComponent() {
                   onBlur={f.handleBlur}
                   onChange={(e) => f.handleChange(Number(e.target.value))}
                 />
+                <FieldError field={f} error={createMutation.error} />
               </div>
             )}
           </form.Field>
@@ -183,6 +183,7 @@ function RouteComponent() {
                   onBlur={f.handleBlur}
                   onChange={(e) => f.handleChange(Number(e.target.value))}
                 />
+                <FieldError field={f} error={createMutation.error} />
               </div>
             )}
           </form.Field>
@@ -195,8 +196,9 @@ function RouteComponent() {
                 id={f.name}
                 value={f.state.value}
                 onChange={(value) => f.handleChange(value)}
-                placeholder="Selecione a data de nascimento"
+                placeholder="Select birth date"
               />
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>
@@ -214,6 +216,7 @@ function RouteComponent() {
                 <option value="male">Male</option>
                 <option value="female">Female</option>
               </select>
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>
@@ -228,6 +231,7 @@ function RouteComponent() {
                 className="h-4 w-4 rounded border-input"
               />
               <Label htmlFor={f.name}>Verified</Label>
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>
@@ -242,6 +246,7 @@ function RouteComponent() {
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)}
               />
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>
@@ -256,6 +261,7 @@ function RouteComponent() {
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)}
               />
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>

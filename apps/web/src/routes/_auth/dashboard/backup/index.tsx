@@ -31,13 +31,13 @@ function RouteComponent() {
         <h2 className="mb-2 font-semibold">Full backup (SQL + CSV)</h2>
         <p className="mb-3 text-muted-foreground text-sm">
           One command exports the entire remote database into a timestamped folder under{" "}
-          <code className="rounded bg-muted px-1 py-0.5">~/Backups</code>, as a full SQL dump plus
+          <code className="rounded bg-muted px-1 py-0.5 text-foreground">~/Backups</code>, as a full SQL dump plus
           one CSV per table. Nothing is written inside this repository.
         </p>
         <ol className="mb-3 list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
           <li>
             Log in to Cloudflare once, if needed:{" "}
-            <code className="rounded bg-muted px-1 py-0.5">npx wrangler login</code>.
+            <code className="rounded bg-muted px-1 py-0.5 text-foreground">npx wrangler login</code>.
           </li>
           <li>Run it from the project root:</li>
         </ol>
@@ -45,13 +45,13 @@ function RouteComponent() {
         <p className="mt-3 mb-1 text-muted-foreground text-sm">It creates a folder per run:</p>
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
           <li>
-            <code className="rounded bg-muted px-1 py-0.5">
+            <code className="rounded bg-muted px-1 py-0.5 text-foreground">
               ~/Backups/fsx-&lt;timestamp&gt;/fsx-&lt;timestamp&gt;.sql
             </code>{" "}
             — full dump (schema + data)
           </li>
           <li>
-            <code className="rounded bg-muted px-1 py-0.5">
+            <code className="rounded bg-muted px-1 py-0.5 text-foreground">
               ~/Backups/fsx-&lt;timestamp&gt;/csv/&lt;table&gt;.csv
             </code>{" "}
             — one CSV per table
@@ -59,10 +59,10 @@ function RouteComponent() {
         </ul>
         <p className="mt-3 text-muted-foreground text-xs">
           Backups are private to the local account and pruned after 90 days by default. Set{" "}
-          <code className="rounded bg-muted px-1 py-0.5">BACKUP_RETENTION_DAYS</code> to change it.
-          Requires <code className="rounded bg-muted px-1 py-0.5">sqlite3</code> on your PATH. The
+          <code className="rounded bg-muted px-1 py-0.5 text-foreground">BACKUP_RETENTION_DAYS</code> to change it.
+          Requires <code className="rounded bg-muted px-1 py-0.5 text-foreground">sqlite3</code> on your PATH. The
           database is briefly blocked while the export runs. The script lives at{" "}
-          <code className="rounded bg-muted px-1 py-0.5">scripts/d1-backup.sh</code>.
+          <code className="rounded bg-muted px-1 py-0.5 text-foreground">scripts/d1-backup.sh</code>.
         </p>
       </div>
 
@@ -88,7 +88,7 @@ function RouteComponent() {
             in the older UI it is Workers &amp; Pages &rarr; D1).
           </li>
           <li>
-            Select <code className="rounded bg-muted px-1 py-0.5">{DATABASE_NAME}</code>.
+            Select <code className="rounded bg-muted px-1 py-0.5 text-foreground">{DATABASE_NAME}</code>.
           </li>
           <li>
             Use the <span className="text-foreground">Console</span> to run queries and the{" "}

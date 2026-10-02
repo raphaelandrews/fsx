@@ -110,7 +110,7 @@
         "typescript": "catalog:",
         "vite": "^8.1.5",
         "web-vitals": "^6.0.1",
-        "wrangler": "^4.115.0",
+        "wrangler": "4.127.0",
       },
     },
     "packages/api": {
@@ -247,7 +247,7 @@
     "@types/node": "^22.20.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "alchemy": "^0.93.12",
+    "alchemy": "0.93.12",
     "better-auth": "1.6.25",
     "dotenv": "^17.4.2",
     "libsql": "0.5.29",

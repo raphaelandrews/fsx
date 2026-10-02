@@ -1,0 +1,181 @@
+---
+title: Procedures
+description: Catalog of tRPC procedures with access level, input, output, cache policy, and common errors.
+---
+
+Routers are in `packages/api/src/routers` and are mounted in
+`routers/index.ts`. Access levels:
+
+- **public**: `publicProcedure`, anyone.
+- **admin**: `adminProcedure`, the owner only (see [Authentication](/architecture/authentication)).
+
+**Edge TTL** is the edge cache lifetime from `PROCEDURE_CACHE_POLICY`; "—" means
+the response is never cached. Mutations are never cached.
+
+## Common errors
+
+Every procedure can return these codes (see [Runtime](/architecture/runtime#errors)):
+
+| Code | When |
+| ---- | ---- |
+| `BAD_REQUEST` | Zod input validation failed (`data.zodError` lists fields), a check or not-null constraint failed, or a procedure-specific rule was broken. |
+| `UNAUTHORIZED` | Admin procedure without a session. |
+| `FORBIDDEN` | Admin procedure with a session that is not the owner. |
+| `NOT_FOUND` | `byId`, `bySlug`, `forEdit`, `update`, or `delete` matched no row. |
+| `CONFLICT` | A unique or foreign-key constraint failed: a duplicate name, or a delete blocked by references (see [deletion behavior](/architecture/domain-model#deletion-behavior)). |
+| HTTP `429` | Not a tRPC error: the HTTP handler rejects the request before tRPC runs when the per-IP limit for uncached reads or mutations is exceeded. |
+| `INTERNAL_SERVER_ERROR` | Anything else; the message is generic and the details are in the Worker log. |
+
+Every error carries `data.userMessage`: the message of a 4xx rejection, which
+procedure code or `normalizeProcedureError` wrote and is safe to show, or `null`
+for 5xx and validation errors. The dashboard shows it in error toasts; the
+public site shows only its own Portuguese messages.
+
+## Shared input rules
+
+From `packages/api/src/input-schemas.ts`:
+
+| Schema | Rule |
+| ------ | ---- |
+| `positiveInt` | safe integer ≥ 1 (all IDs) |
+| `page` / `limit` | 1–1000, default 1 / 1–100, default 20 |
+| `nameText` | trimmed, 1–160 characters |
+| `searchText` | trimmed, up to 120 characters |
+| `contentText` | up to 500,000 characters (Markdown) |
+| `rating` | integer 0–4000 |
+| `isoDate` | `YYYY-MM-DD` |
+| `httpUrl` | `http` or `https` URL, up to 2,048 characters |
+| `imageUrl` | a media path (`/api/media/...`) or an `httpUrl` |
+| `optionalHttpUrl` | an `httpUrl` or an empty string |
+| `filterArray` | up to 50 strings of 1–80 characters |
+
+Update procedures take `{ id, ...fields }`, where every field is optional and
+`nullable` fields accept `null` to clear them. Create, update, and delete return
+the affected rows (`.returning()`), except where noted.
+
+## Players
+
+| Procedure | Access | Input | Output | Edge TTL |
+| --------- | ------ | ----- | ------ | -------- |
+| `players.byId` | public | `{ id }` | Profile: ratings, photo, IDs, club, location, titles, roles, podiums, rating history, defending championships (nested lists capped at 100) | 120 s |
+| `players.withFilters` | public | `{ page, limit, sortBy: rapid\|blitz\|classic, sex?, titles[], clubs[], locations[], groups[], name? }` | `{ players, pagination }`; active players only, ordered by the chosen rating | 120 s |
+| `players.search` | public | `{ query }` | Up to 10 `{ id, name }`, best match first; an empty query returns the top 10 active players by rapid rating | 30 s |
+| `players.page` | admin | `{ page, limit, name? }` | `{ players, pagination }` for the dashboard list | — |
+| `players.forEdit` | admin | `{ id }` | Every editable column, including birth date and sex | — |
+| `players.create` | admin | Player fields; `name` and `sex` required | Created row | — |
+| `players.update` | admin | `{ id, ...fields }` | Updated row; renaming also updates `normalized_name` | — |
+| `topPlayers.list` | public | — | `{ topClassic, topRapid, topBlitz }`, 10 active players each | 300 s |
+| `titledPlayers.list` | public | — | Players with at least one title, by rapid rating | 300 s |
+| `swissManager.list` | admin | — | Every player with sex, birth date, ratings, and club; logged as a sensitive export | — |
+
+There is no player delete procedure; set `active: false` instead.
+
+### Player links
+
+`playersToTitles`, `playersToRoles`, and `playersToInsignias` share one shape:
+
+| Procedure | Access | Input | Output |
+| --------- | ------ | ----- | ------ |
+| `<router>.listByPlayer` | admin | `{ playerId }` | Linked rows |
+| `<router>.link` | admin | `{ playerId, titleId \| roleId \| insigniaId }` | Created link; `CONFLICT` if already linked |
+| `<router>.unlink` | admin | same as `link` | Deleted link; `NOT_FOUND` if absent |
+
+### Rating update
+
+| Procedure | Access | Input | Output |
+| --------- | ------ | ----- | ------ |
+| `playersTournament.linkWithRating` | admin | `{ playerId, tournamentId, variation (−4000…4000), ratingType }` | `[{ id, oldRating, variation }]` |
+| `playersTournament.listByPlayer` | admin | `{ playerId }` | History rows in chain (`id`) order, with tournament |
+| `playersTournament.listByTournament` | admin | `{ tournamentId }` | The tournament's results, with player |
+| `playersTournament.correctVariation` | admin | `{ id, variation }` | `{ id, oldRating, variation, ratingType, rating }`; `rating` is the player's new current rating |
+| `playersTournament.remove` | admin | `{ id }` | `{ id, ratingType, rating }` |
+| `playersTournament.revertTournament` | admin | `{ tournamentId }` | `{ reverted }`, the number of results removed |
+
+Errors: `NOT_FOUND` (player, tournament, or result), `BAD_REQUEST` (rating type
+differs from the tournament's, or a rating would leave 0–4000), `CONFLICT`
+(`linkWithRating` only: the rating changed concurrently, or this player already
+has history for the tournament). Corrections keep the history chain intact; see
+[corrections](/architecture/domain-model#corrections).
+
+## Competitions
+
+| Procedure | Access | Input | Output | Edge TTL |
+| --------- | ------ | ----- | ------ | -------- |
+| `tournaments.list` | public | — | Tournaments with championship | 300 s |
+| `tournaments.search` | public | `{ query }` | Matching `{ id, name }` for pickers | 30 s |
+| `tournaments.byId` | public | `{ id }` | Tournament with podiums | 120 s |
+| `tournaments.create` / `update` / `delete` | admin | `name`, `ratingType`, `date?`, `chessResults?` (`httpUrl`), `championshipId?` | Rows; `CONFLICT` when deleting, or changing the rating type of, a tournament with rating results | — |
+| `tournamentPodiums.list` | public | — | Podiums with player and tournament | 300 s |
+| `tournamentPodiums.create` / `update` / `delete` | admin | `{ playerId, tournamentId, place (1–100000) }` | Rows; `CONFLICT` for a second podium of the same player in a tournament | — |
+| `champions.list` | public | — | Championships `{ id, name }` | 300 s |
+| `champions.gallery` | public | — | Championships with their tournaments' podiums and players | 300 s |
+| `champions.create` / `update` / `delete` | admin | `{ name }` | Championship rows | — |
+| `circuits.listSimple` | public | — | `{ id, name, type }` for tabs | 300 s |
+| `circuits.byId` | public | `{ id }` | Circuit with phases, tournaments, clubs, and podiums | 300 s |
+| `circuits.create` / `update` / `delete` | admin | `{ name, type }` | Rows; delete cascades to phases and podiums | — |
+| `circuits.phases.create` / `update` / `delete` | admin | `{ circuitId, tournamentId, clubId?, sortOrder }` | Rows | — |
+| `circuits.podiums.create` / `update` / `delete` | admin | `{ playerId, circuitId? XOR circuitPhaseId?, category?, place? (1–25), points }` | Rows; `BAD_REQUEST` unless exactly one target is set | — |
+| `cups.list` | public | — | Cup summaries | 300 s |
+| `cups.byId` | public | `{ id }` | Cup with groups, players, rounds, brackets, playoffs, matches, and games | 120 s |
+| `cups.create` / `update` / `delete` | admin | `name`, `imageUrl`, `startDate`, `endDate`, `prizePool`, `ratingType`, `championshipId?` | Rows; delete cascades to the whole cup tree | — |
+| `tvSergipe.list` | public | — | Every School Games result with school and player | 300 s |
+| `tvSergipe.leaderboard` | public | `{ ageGroup?, sex?, modality? }` | Per school: `{ clubId, name, logoUrl, points, gold, silver, bronze }`, by points | 300 s |
+| `tvSergipe.create` / `update` | admin | `{ clubId, playerId? \| teamName?, ageGroup, sex, modality, place (1–8) }` | Row; points are derived from place | — |
+| `tvSergipe.delete` / `deleteAll` | admin | `{ id }` / — | Deleted rows; a school (club) with results cannot be deleted until they are | — |
+
+## Directory data
+
+| Procedure | Access | Input | Output | Edge TTL |
+| --------- | ------ | ----- | ------ | -------- |
+| `clubs.list` | public | — | `{ id, name, logoUrl }` | 300 s |
+| `clubs.search` | public | `{ query }` | Matching clubs for pickers | 30 s |
+| `locations.list` | public | — | `{ id, name, type, flagUrl }` | 300 s |
+| `titles.list` | public | — | Titles | 300 s |
+| `roles.list` | public | — | Roles | 300 s |
+| `roles.listWithPlayers` | public | — | Roles with their players (members page) | 300 s |
+| `norms.list` | public | — | Norms | 300 s |
+| `insignias.list` | public | — | Insignias | 300 s |
+| `<router>.create` / `update` / `delete` | admin | Entity fields (`name` is unique) | Rows; delete returns `CONFLICT` while referenced | — |
+
+## Publishing
+
+| Procedure | Access | Input | Output | Edge TTL |
+| --------- | ------ | ----- | ------ | -------- |
+| `posts.list` | public | — | Latest 24 published `{ id, title, imageUrl, slug }` | 120 s |
+| `posts.fresh` | public | — | Latest 8 published | 60 s |
+| `posts.byPage` | public | `{ page }` | 12 published posts per page with pagination | 120 s |
+| `posts.bySlug` | public | `{ slug }` | Published post; `NOT_FOUND` for drafts | 120 s |
+| `posts.listAdmin` | admin | — | All posts, including drafts | — |
+| `posts.forEdit` | admin | `{ id }` | Full post | — |
+| `posts.create` / `update` / `delete` | admin | `{ title, slug, content, imageUrl?, published }` | Rows; `CONFLICT` for a duplicate slug | — |
+| `announcements.list` | public | — | Announcements | 120 s |
+| `announcements.fresh` | public | — | Latest announcements for the home page | 60 s |
+| `announcements.byPage` | public | `{ page }` | 12 per page with pagination | 120 s |
+| `announcements.byId` | public | `{ id }` | One announcement | 120 s |
+| `announcements.create` / `update` / `delete` | admin | `{ year (1900–2200), number, content }` | Rows; `CONFLICT` for a duplicate `(year, number)` | — |
+| `events.list` | public | — | Events by start date, with their links | 60 s |
+| `events.create` / `update` / `delete` | admin | `{ name, startDate }` | Rows; delete removes the event's links | — |
+| `events.setLinks` | admin | `{ eventId, links: [{ id?, type: regulation\|form\|results, href? }] }` | Replaces the event's links in one D1 batch; labels and icons are derived from the type | — |
+| `links.list` | public | — | Link groups with links | 300 s |
+| `links.create` / `updateGroup` / `deleteGroup` | admin | `{ label, eventId? }` | Group rows | — |
+| `links.createLink` / `updateLink` / `deleteLink` | admin | `{ linkGroupId, label, href?, icon, type?, sortOrder }` | Link rows; `icon` must be in the allowlist (`link-icons.ts`) | — |
+
+## Media
+
+| Procedure | Access | Input | Output |
+| --------- | ------ | ----- | ------ |
+| `images.upload` | admin | `{ kind: players\|posts, mime: image/jpeg\|png\|webp, data: base64 }` | `{ url: "/api/media/<kind>/<uuid>.<ext>" }` |
+| `images.delete` | admin | `{ url }` | `{ ok: true }`; `BAD_REQUEST` for a URL that is not a media key |
+
+Upload errors: `BAD_REQUEST` for an image under 1 KB, over 5 MB, or whose bytes
+do not match `mime`. See [Media](/architecture/media).
+
+## Operations
+
+| Procedure | Access | Output |
+| --------- | ------ | ------ |
+| `stats.counts` | admin | Row counts of players, posts, announcements, events, tournaments, circuits, School Games results, and clubs |
+| `security.rateLimitStats` | admin | `{ rows, oldestWindowStart, newestWindowStart }` of the `rate_limits` table |
+| `cache.status` | admin | `{ purgeConfigured }` |
+| `cache.purgePublic` | admin | Purges the zone cache; `PRECONDITION_FAILED` when the zone ID or purge token is missing |
+| `seed.run` | admin | No-op kept for compatibility; returns `{ seeded: true }`. Seed locally with `bun run db:seed`. |

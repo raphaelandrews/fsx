@@ -37,7 +37,7 @@ export function AdminHeader() {
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-[1120px] items-center gap-2 px-4 sm:px-6">
-        <Link to="/dashboard" aria-label="Painel administrativo" className="flex shrink-0 items-center gap-2 font-bold">
+        <Link to="/dashboard" aria-label="Admin dashboard" className="flex shrink-0 items-center gap-2 font-bold">
           <Logo className="h-6 w-auto" />
         </Link>
 

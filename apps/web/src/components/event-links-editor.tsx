@@ -83,7 +83,7 @@ export function EventLinksEditor({ value, onChange }: EventLinksEditorProps) {
             type="button"
             variant="ghost"
             size="icon-sm"
-            aria-label={`Remover link ${link.type}`}
+            aria-label={`Remove ${link.type} link`}
             onClick={() => remove(i)}
           >
             <HugeiconsIcon

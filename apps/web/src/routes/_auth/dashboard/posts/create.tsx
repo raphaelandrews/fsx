@@ -11,7 +11,7 @@ import { ImageUpload } from "@/components/image-upload";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
-import { getFieldError, getUserErrorMessage } from "@/lib/errors";
+import { getFieldError, showMutationError } from "@/lib/errors";
 import { sanitizeTitle, slugify } from "@/utils/slugify";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
@@ -36,7 +36,7 @@ function RouteComponent() {
     },
     onError: (error, variables) => {
       void discard(variables.imageUrl);
-      toast.error(getUserErrorMessage(error, "Não foi possível criar a notícia."));
+      showMutationError(error, "Failed to create post");
     },
   });
 

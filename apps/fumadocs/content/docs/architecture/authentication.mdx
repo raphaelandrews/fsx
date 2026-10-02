@@ -1,0 +1,61 @@
+---
+title: Authentication
+description: Sign-in, the owner identity binding, and authorization boundaries.
+---
+
+## Sign-in
+
+The site uses Better Auth with GitHub OAuth only; email and password are
+disabled. Sessions last seven days and refresh daily. The session cookie is
+signed with `BETTER_AUTH_SECRET` and is `Secure` when `BETTER_AUTH_URL` is
+`https`.
+
+`/api/auth/*` rejects cross-origin POSTs and applies D1-backed rate limits per
+IP (20 mutations and 120 queries per minute). A cron Worker
+(`fsx-rate-limit-cleanup`) deletes expired rate-limit windows every 15 minutes.
+
+## The owner binding
+
+The site has one administrator (ADR [0001](/decisions/0001-single-owner-admin)).
+`packages/auth/src/owner.ts` resolves the rule from the environment:
+
+| Configuration | Rule |
+| ------------- | ---- |
+| `GITHUB_USER_ID` set (recommended) | Only the GitHub account with that numeric ID may sign in or administer. |
+| only `GITHUB_USERNAME` set | Legacy: only that login may sign up. Logins can be renamed and reclaimed. |
+| neither | Legacy: the first user to sign up becomes the owner. |
+
+The rule is enforced twice:
+
+1. **At sign-in.** `mapProfileToUser` throws `FORBIDDEN` for any other GitHub
+   ID before Better Auth writes to the database, so no user or session is
+   created. An account hook returning `false` would still create a session,
+   which is why the check lives here.
+2. **On every admin procedure.** `requireAdmin` loads the session's linked
+   GitHub account IDs and checks them against the rule. A session alone is not
+   enough.
+
+`DISABLE_SIGNUP=true` additionally blocks new users once the owner exists.
+
+## Authorization boundaries
+
+| Level | Who | Used by |
+| ----- | --- | ------- |
+| `publicProcedure` | anyone | public reads; may be edge-cached |
+| `protectedProcedure` | any signed-in user | currently unused |
+| `adminProcedure` | the owner | every mutation and every read of private data |
+
+`_auth` routes (`/dashboard`, `/rating-update`) only check that a session
+exists, then rely on `adminProcedure` for data. The route guard is a
+convenience; the procedure check is the security boundary.
+
+Private data includes birth dates (Swiss Manager export, `players.forEdit`),
+unpublished posts (`posts.listAdmin`, `posts.forEdit`), and operational status
+(`stats.counts`, `security.rateLimitStats`, `cache.status`).
+
+### Adding more administrators
+
+Multiple editors would need roles stored per user, a `requireRole` middleware
+replacing `requireAdmin`, and an audit log of who changed what. Until then, keep
+every write behind `adminProcedure` and do not introduce `protectedProcedure`
+writes: any GitHub user who manages to sign in must not be able to change data.

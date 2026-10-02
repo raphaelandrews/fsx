@@ -1,0 +1,67 @@
+---
+title: Invariants
+description: Rules that must always hold and states that must never exist, with where each is enforced.
+---
+
+Each rule names its enforcement point. A rule enforced only by convention is
+marked **convention**; breaking it will not fail a test, so review for it.
+
+## Security and privacy
+
+| Rule | Enforced by |
+| ---- | ----------- |
+| Every mutation is an `adminProcedure`. | **convention**; review new routers |
+| Every query that is not in `PROCEDURE_CACHE_POLICY` rejects anonymous callers. | `procedure-caller.test.ts` ("every query without a registry entry rejects anonymous callers") |
+| Every `PROCEDURE_CACHE_POLICY` entry names an existing query. | `procedure-caller.test.ts` |
+| A request with a session cookie never reads or writes the edge cache. | `trpc-handler.ts`; `fetch-handlers.integration.test.ts` |
+| Only `200` responses whose every batch entry succeeded are cached. | `isSuccessfulTrpcPayload`; `cache-policy.test.ts` |
+| Browsers never receive a cacheable API response (`no-store`). | `trpc-handler.ts`; `fetch-handlers.integration.test.ts` |
+| Only the configured owner can sign in and administer. | `mapProfileToUser`, `requireAdmin`; `owner.test.ts`, `admin-mutations.integration.test.ts`, `fetch-handlers.integration.test.ts` |
+| Public projections never include `birth_date`, `sex`, `description`, drafts, or auth data. | explicit `columns` in each public procedure; **convention** |
+| Raw SQL and stack traces never reach the client in production. | `errorBoundary`, `errorFormatter`; `error-boundary.integration.test.ts` |
+| Logs never contain IP addresses or request payloads. | **convention** |
+
+## Data
+
+| Rule | Enforced by |
+| ---- | ----------- |
+| Ratings are integers in 0–4000. | `CHECK` + Zod `rating` |
+| One rating-history row per `(player, tournament)`; its rating type equals the tournament's. | unique index; `applyRatingUpdate` |
+| A rating-history row exists only if the matching rating update applied. | D1 batch with `changes() = 1` ([ADR 0004](/decisions/0004-d1-rating-batch)) |
+| The history chain holds: each `old_rating` follows the previous row, and the last row ends at the current rating. | corrections in one D1 batch; `rating-history.integration.test.ts`; audit `rating-history-sync.sql` |
+| Rating history is never deleted by deleting a tournament, and a rated tournament keeps its rating type. | `ON DELETE restrict`; `tournaments.update` / `delete` guards; `rating-history.integration.test.ts` |
+| School Games results are never deleted by deleting a club. | `ON DELETE restrict`; `rating-history.integration.test.ts` |
+| `normalized_name` equals `normalizeName(name)`. | `players.create` / `update`; `admin-crud.integration.test.ts` |
+| A circuit podium targets exactly one of a circuit or a phase. | `CHECK` + Zod refine |
+| A School Games result is either individual (player, no team) or team (team letter, no player); points match the place. | `CHECK`; `tvSergipe.create` derives points |
+| Stored URLs are `http(s)` or `/api/media/...`; never `javascript:` or other schemes. | Zod `httpUrl`, `imageUrl`; audit `player-names-and-urls.sql` |
+| Dates without time are `YYYY-MM-DD`. | Zod `isoDate`; audit `date-formats.sql` |
+| Link icons come from the allowlist. | `link-icons.ts`; `link-icons.test.ts` |
+| Public lists are capped (500 rows, nested 100). | `resource-bounds.ts`; `resource-caps.integration.test.ts` |
+| Admin procedures never share an edge-cached batch with public ones. | `getProcedureCachePolicy`; `fetch-handlers.integration.test.ts` |
+| Migrations are applied only through the D1 migration tracker. | **convention** ([ADR 0002](/decisions/0002-d1-migrations)) |
+
+## Rendering
+
+| Rule | Enforced by |
+| ---- | ----------- |
+| Every query a route suspends on is primed in its `loader`. | `check:ssr` (unresolved boundaries fail) |
+| Date formatting passes an explicit `timeZone`. | **convention**; hydration warnings in e2e |
+| Unknown records and paths return HTTP 404, not 200 or 500. | `requireFound`, `idParams`, `notFound()`; `check:ssr` |
+| Every public route is in the sitemap. | `check:routes` |
+| Admin edits refresh every query family that embeds the changed rows. | `ADMIN_QUERY_DEPENDENTS`; `admin-mutations.test.ts` |
+
+## Forbidden states
+
+These must never exist. If one does, treat it as an incident.
+
+- A cached edge response containing data from an admin procedure.
+- A session for a GitHub account other than the owner.
+- A rating-history row without the matching rating change, or two rows for the
+  same player and tournament.
+- A player's current rating changed by an import with no history row.
+- A break in a player's history chain (listed by `rating-history-sync.sql`).
+- A `players.image_url` or `posts.image_url` pointing at a deleted R2 object.
+- A published page whose HTML was rendered with unresolved Suspense boundaries.
+- A migration file present in production's `d1_migrations` but missing from the
+  repository, or the reverse after a deploy.

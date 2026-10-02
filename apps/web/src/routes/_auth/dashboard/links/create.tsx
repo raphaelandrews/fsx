@@ -10,6 +10,8 @@ import { LinkIconSelect } from "@/components/link-icon-select";
 import { DEFAULT_LINK_ICON } from "@fsx/api/link-icons";
 import { useTRPC } from "@/utils/trpc";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { showMutationError } from "@/lib/errors";
+import { FieldError } from "@/components/form/field-error";
 
 export const Route = createFileRoute("/_auth/dashboard/links/create")({
   head: () => ({ meta: [{ title: "Create Link Group - Admin - FSX" }] }),
@@ -21,6 +23,7 @@ function RouteComponent() {
   const navigate = useNavigate();
   const invalidateAdmin = useInvalidateAdmin();
 
+  // Links must exist before the list refreshes, so this flow invalidates last.
   const createGroupMutation = useMutation({
     ...trpc.links.create.mutationOptions(),
     onSuccess: async (data) => {
@@ -43,7 +46,7 @@ function RouteComponent() {
       void invalidateAdmin("links");
       navigate({ to: "/dashboard/links" });
     },
-    onError: () => toast.error("Failed to create group"),
+    onError: (error) => showMutationError(error, "Failed to create group"),
   });
 
   const createLinkMutation = useMutation(trpc.links.createLink.mutationOptions());
@@ -80,6 +83,7 @@ function RouteComponent() {
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
               />
+              <FieldError field={f} error={createGroupMutation.error} />
             </div>
           )}
         </form.Field>
@@ -177,7 +181,7 @@ function RouteComponent() {
           selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+            <Button type="submit" disabled={!canSubmit || isSubmitting || createGroupMutation.isPending || createLinkMutation.isPending}>
               {isSubmitting ? "Creating..." : "Create Group"}
             </Button>
           )}

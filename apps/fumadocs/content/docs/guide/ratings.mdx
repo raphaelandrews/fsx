@@ -1,0 +1,49 @@
+---
+title: Ratings
+description: FSX rating tables, filterable by time control, location, club, title, and age group.
+---
+
+The ratings page (`/ratings`) ranks active FSX players by their rating in one
+of three time controls: classical, rapid, or blitz.
+
+## Time controls
+
+Tabs at the top switch between **Clássico**, **Rápido**, and **Blitz**. The
+rating column shows the selected time control.
+
+## Filters
+
+The list can be filtered by:
+
+- **Local**: the player's city, state, or country
+- **Clubes**: the player's club
+- **Títulos**: FSX or CBX/FIDE title
+- **Grupo**: age group (Under 8 to Under 18, Master, Veteran, and Senior)
+- **Categoria**: male or female
+- **Busca**: player name
+
+**Limpar** clears every filter. Filters are kept in the URL, so a filtered
+table can be shared as a link.
+
+## Age groups
+
+Age groups use the player's birth year relative to the current year:
+
+| Group   | Age in the current year |
+| ------- | ----------------------- |
+| Sub 8   | 8 or younger            |
+| Sub 10  | 9–10                    |
+| Sub 12  | 11–12                   |
+| Sub 14  | 13–14                   |
+| Sub 16  | 15–16                   |
+| Sub 18  | 17–18                   |
+| Master  | 40–50                   |
+| Veterano| 51–64                   |
+| Sênior  | 65 or older             |
+
+## Table
+
+Each row shows the position, the player (avatar and title), the rating in the
+selected time control, the location (with flag), and the club (with logo).
+Clicking a name opens the [player profile](/guide/players). The table is
+paginated.

@@ -68,7 +68,7 @@ test("hovering the next-page button preloads that page so the click needs no req
   await page.goto("/ratings", { waitUntil: "networkidle" });
   const calls = recordTrpc(page);
 
-  const next = page.getByRole("button", { name: "Próxima página" });
+  const next = page.getByRole("link", { name: "Próxima página" });
   const prefetched = page.waitForResponse(
     (response) => response.url().includes("players.withFilters") && response.url().includes("%22page%22%3A2"),
   );

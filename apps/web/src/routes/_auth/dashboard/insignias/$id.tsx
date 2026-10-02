@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
-import { toast } from "sonner";
 import z from "zod";
 
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { fieldError } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/insignias/$id")({
   params: idParams,
@@ -22,19 +22,16 @@ export const Route = createFileRoute("/_auth/dashboard/insignias/$id")({
 function RouteComponent() {
   const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
 
   const { data: insignias = [] } = useSuspenseQuery(trpc.insignias.list.queryOptions());
   const insignia = insignias.find((i) => i.id === numId);
 
-  const updateMutation = useMutation({
-    ...trpc.insignias.update.mutationOptions(),
-    onSuccess: () => {
-      void invalidateAdmin("insignias");
-      toast.success("Insignia updated");
-    },
-    onError: () => toast.error("Failed to update insignia"),
+  const updateMutation = useAdminMutation(trpc.insignias.update.mutationOptions(), {
+    invalidates: "insignias",
+    success: "Insignia updated",
+    failure: "Failed to update insignia",
+    reloadOnConflict: true,
   });
 
   if (!insignia) {
@@ -71,7 +68,7 @@ function RouteComponent() {
             <FormField
               label="Insignia"
               htmlFor={f.name}
-              error={f.state.meta.errors[0]?.message}
+              error={fieldError(f, updateMutation.error)}
               required
             >
               <Input
@@ -85,7 +82,7 @@ function RouteComponent() {
         </form.Field>
         <form.Field name="level">
           {(f) => (
-            <FormField label="Level" htmlFor={f.name} error={f.state.meta.errors[0]?.message}>
+            <FormField label="Level" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
               <Input
                 id={f.name}
                 type="number"

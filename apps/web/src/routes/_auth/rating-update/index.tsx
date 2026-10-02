@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
 import {
@@ -133,8 +132,8 @@ function RatingUpdatePage() {
     setMotionGridStatus("Reading Excel file", "searching");
 
     try {
-      const data = new Uint8Array(await file.arrayBuffer());
-      const workbook = XLSX.read(data, { type: "array" });
+      const [XLSX, buffer] = await Promise.all([import("xlsx"), file.arrayBuffer()]);
+      const workbook = XLSX.read(new Uint8Array(buffer), { type: "array" });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
@@ -455,9 +454,9 @@ function RatingUpdatePage() {
             });
           }
         } catch (err) {
-          const msg = getUserErrorMessage(err, "Não foi possível atualizar este jogador.");
+          const msg = getUserErrorMessage(err, "Could not update this player.", "en");
           if (getErrorCode(err) === "CONFLICT") {
-            showMutationError(err, "Não foi possível atualizar este jogador.", () => window.location.reload());
+            showMutationError(err, "Could not update this player.", () => window.location.reload());
           }
           pushError({
             _uuid: crypto.randomUUID(),
@@ -478,7 +477,7 @@ function RatingUpdatePage() {
         setMotionGridStatus("Process stopped", "stop");
       }
     } catch (err) {
-      toast.error(getUserErrorMessage(err, "Não foi possível processar o arquivo."));
+      toast.error(getUserErrorMessage(err, "Could not process the file.", "en"));
       setMotionGridStatus("Error", "x");
     } finally {
       setIsRunning(false);
@@ -533,6 +532,7 @@ function RatingUpdatePage() {
             <span className="text-sm text-muted-foreground">{file?.name ?? "No file chosen"}</span>
             <input
               type="file"
+              aria-label="Excel file"
               className="sr-only"
               accept=".xls,.xlsx"
               ref={fileRef}

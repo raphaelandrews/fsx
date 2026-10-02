@@ -1,8 +1,11 @@
 import { z } from "zod";
-import { desc, eq, sql } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
+import { and, desc, eq, exists, not, or, sql } from "drizzle-orm";
 
+import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
 import { tournaments, insertTournamentSchema } from "@fsx/db/schema/tournaments";
 import { normalizeName } from "@fsx/db/normalize";
+import type { Context } from "../context";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { httpUrl, isoDate, nameText, positiveInt, searchText } from "../input-schemas";
@@ -10,6 +13,9 @@ import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../reso
 import { escapeLike, like } from "../sql-like";
 
 const ratingTypeEnum = z.enum(["blitz", "rapid", "classic"]);
+
+const RATED_TOURNAMENT_MESSAGE =
+  "This tournament has rating results. Revert them on the tournament's edit page before changing its rating type or deleting it.";
 
 export const tournamentsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -72,18 +78,38 @@ export const tournamentsRouter = router({
       ratingType: ratingTypeEnum.optional(),
       championshipId: positiveInt.nullable().optional(),
     }))
-    .mutation(async ({ ctx, input }) =>
-      requireMutationRows(
-        await ctx.db.update(tournaments).set(input).where(eq(tournaments.id, input.id)).returning(),
-        "Tournament",
-      )
-    ),
+    .mutation(async ({ ctx, input }) => {
+      const hasResults = exists(
+        ctx.db.select({ id: playersToTournaments.id }).from(playersToTournaments).where(eq(playersToTournaments.tournamentId, input.id)),
+      );
+      const rows = await ctx.db
+        .update(tournaments)
+        .set(input)
+        .where(and(
+          eq(tournaments.id, input.id),
+          input.ratingType ? or(eq(tournaments.ratingType, input.ratingType), not(hasResults)) : undefined,
+        ))
+        .returning();
+      if (rows.length === 0 && input.ratingType && await tournamentExists(ctx.db, input.id)) {
+        throw new TRPCError({ code: "CONFLICT", message: RATED_TOURNAMENT_MESSAGE });
+      }
+      return requireMutationRows(rows, "Tournament");
+    }),
   delete: adminProcedure
     .input(z.object({ id: positiveInt }))
-    .mutation(async ({ ctx, input }) =>
-      requireMutationRows(
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.db.query.playersToTournaments.findFirst({
+        where: eq(playersToTournaments.tournamentId, input.id),
+        columns: { id: true },
+      });
+      if (result) throw new TRPCError({ code: "CONFLICT", message: RATED_TOURNAMENT_MESSAGE });
+      return requireMutationRows(
         await ctx.db.delete(tournaments).where(eq(tournaments.id, input.id)).returning({ id: tournaments.id }),
         "Tournament",
-      )
-    ),
+      );
+    }),
 });
+
+async function tournamentExists(db: Context["db"], id: number) {
+  return (await db.query.tournaments.findFirst({ where: eq(tournaments.id, id), columns: { id: true } })) !== undefined;
+}

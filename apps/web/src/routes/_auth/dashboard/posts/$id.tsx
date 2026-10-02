@@ -42,7 +42,7 @@ function RouteComponent() {
     },
     onError: (error, variables) => {
       void discard(variables.imageUrl);
-      showMutationError(error, "Não foi possível atualizar a notícia.", () => window.location.reload());
+      showMutationError(error, "Failed to update post", () => window.location.reload());
     },
   });
 

@@ -8,8 +8,8 @@ import { buildSeo, withBrand } from "@/lib/seo";
 export const Route = createFileRoute("/_auth")({
   head: () =>
     buildSeo({
-      title: withBrand("Painel administrativo"),
-      description: "Área restrita da Federação Sergipana de Xadrez.",
+      title: withBrand("Admin dashboard"),
+      description: "Restricted area of the Federação Sergipana de Xadrez.",
       path: "/dashboard",
       noindex: true,
       canonical: false,

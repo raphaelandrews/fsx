@@ -10,6 +10,10 @@ config({ path: "../../apps/web/.env" });
 
 const app = await alchemy("fsx");
 
+// Pinned so deploys do not inherit whatever date the installed workerd supports;
+// keep in sync with the test harnesses (enforced by `bun run check:runtime`).
+const COMPATIBILITY_DATE = "2026-07-30";
+
 const db = await D1Database("database", {
   migrationsDir: "../../packages/db/src/migrations",
   // Adopt the existing remote D1 database (fsx-database-raphael) if it
@@ -36,6 +40,7 @@ const publicReadRateLimit = RateLimit({
 await Worker("rate-limit-cleanup", {
   name: "fsx-rate-limit-cleanup",
   entrypoint: "./rate-limit-cleanup.ts",
+  compatibilityDate: COMPATIBILITY_DATE,
   bindings: { DB: db },
   crons: ["*/15 * * * *"],
   url: false,
@@ -49,6 +54,7 @@ await Worker("rate-limit-cleanup", {
 
 export const web = await TanStackStart("web", {
   cwd: "../../apps/web",
+  compatibilityDate: COMPATIBILITY_DATE,
   // Adopt the existing remote worker (fsx-web-raphael) if it already exists
   // instead of failing on re-deploy.
   adopt: true,

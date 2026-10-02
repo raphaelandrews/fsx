@@ -94,18 +94,18 @@ function CommandList({
   className,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.List>) {
+  // Scrollable regions must be reachable by keyboard (WCAG 2.1.1), but cmdk forces
+  // tabIndex={-1} on its list, so a focusable wrapper owns the scrolling instead.
   return (
-    // Scrollable regions must be reachable by keyboard (WCAG 2.1.1); results are
-    // otherwise only navigable through the input's arrow keys.
-    <CommandPrimitive.List
-      data-slot="command-list"
+    <div
       tabIndex={0}
       className={cn(
         "no-scrollbar max-h-72 scroll-py-1 overflow-x-hidden overflow-y-auto rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
         className
       )}
-      {...props}
-    />
+    >
+      <CommandPrimitive.List data-slot="command-list" {...props} />
+    </div>
   )
 }
 

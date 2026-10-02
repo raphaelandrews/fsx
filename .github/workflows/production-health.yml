@@ -1,0 +1,22 @@
+name: Production health
+
+# Fails (and GitHub notifies the repository owner) when the last hour shows an
+# elevated 5xx rate, a rate-limit spike, or Worker exceptions, including failed
+# cron cleanups. Needs repository secrets CLOUDFLARE_API_TOKEN (Account
+# Analytics:Read + Zone Analytics:Read), CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_ZONE_ID.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/check-production-health.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}

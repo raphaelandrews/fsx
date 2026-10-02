@@ -202,21 +202,21 @@ export function MarkdownEditor({
   );
 
   const formatTools: { label: string; icon: typeof BoldIcon; command: FormatCommand }[] = [
-    { label: "Negrito", icon: BoldIcon, command: (v, s, e) => wrap(v, s, e, "**", "**", "texto") },
-    { label: "Itálico", icon: ItalicIcon, command: (v, s, e) => wrap(v, s, e, "*", "*", "texto") },
-    { label: "Tachado", icon: StrikethroughIcon, command: (v, s, e) => wrap(v, s, e, "~~", "~~", "texto") },
-    { label: "Título", icon: Heading01Icon, command: (v, s, e) => linePrefix(v, s, e, "# ") },
-    { label: "Subtítulo", icon: Heading02Icon, command: (v, s, e) => linePrefix(v, s, e, "## ") },
-    { label: "Título 3", icon: Heading03Icon, command: (v, s, e) => linePrefix(v, s, e, "### ") },
-    { label: "Lista", icon: BulletIcon, command: (v, s, e) => linePrefix(v, s, e, "- ") },
-    { label: "Lista numerada", icon: LeftToRightListNumberIcon, command: (v, s, e) => linePrefix(v, s, e, "1. ") },
-    { label: "Tarefa", icon: CheckListIcon, command: (v, s, e) => linePrefix(v, s, e, "- [ ] ") },
-    { label: "Citação", icon: LeftToRightBlockQuoteIcon, command: (v, s, e) => linePrefix(v, s, e, "> ") },
-    { label: "Código", icon: CodeIcon, command: (v, s, e) => wrap(v, s, e, "`", "`", "código") },
+    { label: "Bold", icon: BoldIcon, command: (v, s, e) => wrap(v, s, e, "**", "**", "texto") },
+    { label: "Italic", icon: ItalicIcon, command: (v, s, e) => wrap(v, s, e, "*", "*", "texto") },
+    { label: "Strikethrough", icon: StrikethroughIcon, command: (v, s, e) => wrap(v, s, e, "~~", "~~", "texto") },
+    { label: "Heading", icon: Heading01Icon, command: (v, s, e) => linePrefix(v, s, e, "# ") },
+    { label: "Subheading", icon: Heading02Icon, command: (v, s, e) => linePrefix(v, s, e, "## ") },
+    { label: "Heading 3", icon: Heading03Icon, command: (v, s, e) => linePrefix(v, s, e, "### ") },
+    { label: "Bulleted list", icon: BulletIcon, command: (v, s, e) => linePrefix(v, s, e, "- ") },
+    { label: "Numbered list", icon: LeftToRightListNumberIcon, command: (v, s, e) => linePrefix(v, s, e, "1. ") },
+    { label: "Task", icon: CheckListIcon, command: (v, s, e) => linePrefix(v, s, e, "- [ ] ") },
+    { label: "Quote", icon: LeftToRightBlockQuoteIcon, command: (v, s, e) => linePrefix(v, s, e, "> ") },
+    { label: "Code", icon: CodeIcon, command: (v, s, e) => wrap(v, s, e, "`", "`", "código") },
     { label: "Link", icon: Link01Icon, command: link },
-    { label: "Imagem", icon: ImageAddIcon, command: image },
-    { label: "Tabela", icon: LayoutTableIcon, command: (v, s) => table(v, s) },
-    { label: "Linha", icon: DivideIcon, command: (v, s) => horizontalRule(v, s) },
+    { label: "Image", icon: ImageAddIcon, command: image },
+    { label: "Table", icon: LayoutTableIcon, command: (v, s) => table(v, s) },
+    { label: "Divider", icon: DivideIcon, command: (v, s) => horizontalRule(v, s) },
   ];
 
   return (
@@ -228,7 +228,7 @@ export function MarkdownEditor({
           size="sm"
           onClick={undo}
           title="Desfazer (Ctrl+Z)"
-          aria-label="Desfazer"
+          aria-label="Undo"
           className="size-8 px-0 text-muted-foreground hover:text-foreground"
         >
           <HugeiconsIcon className="size-4" icon={UndoIcon} strokeWidth={2} />
@@ -239,7 +239,7 @@ export function MarkdownEditor({
           size="sm"
           onClick={redo}
           title="Refazer (Ctrl+Shift+Z)"
-          aria-label="Refazer"
+          aria-label="Redo"
           className="size-8 px-0 text-muted-foreground hover:text-foreground"
         >
           <HugeiconsIcon className="size-4" icon={RedoIcon} strokeWidth={2} />
@@ -282,7 +282,7 @@ export function MarkdownEditor({
           {value ? (
             <Markdown content={value} />
           ) : (
-            <p className="text-sm text-muted-foreground">A pré-visualização aparecerá aqui…</p>
+            <p className="text-sm text-muted-foreground">The preview appears here…</p>
           )}
         </div>
       </div>

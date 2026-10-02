@@ -12,6 +12,7 @@ import { DatePicker } from "@/components/date-picker";
 import { EventLinksEditor, type EventLinkDraft } from "@/components/event-links-editor";
 import { useTRPC } from "@/utils/trpc";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { FieldError } from "@/components/form/field-error";
 
 export const Route = createFileRoute("/_auth/dashboard/events/create")({
   head: () => ({ meta: [{ title: "Create Event - Admin - FSX" }] }),
@@ -76,11 +77,7 @@ function RouteComponent() {
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
               />
-              {f.state.meta.errors.map((e) => (
-                <p key={e?.message} className="text-destructive text-xs">
-                  {e?.message}
-                </p>
-              ))}
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>
@@ -92,13 +89,9 @@ function RouteComponent() {
                 id={f.name}
                 value={f.state.value}
                 onChange={(value) => f.handleChange(value)}
-                placeholder="Selecione a data"
+                placeholder="Select a date"
               />
-              {f.state.meta.errors.map((e) => (
-                <p key={e?.message} className="text-destructive text-xs">
-                  {e?.message}
-                </p>
-              ))}
+              <FieldError field={f} error={createMutation.error} />
             </div>
           )}
         </form.Field>

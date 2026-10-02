@@ -1,21 +1,65 @@
 import { z } from "zod";
+import { asc, eq } from "drizzle-orm";
+
+import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
 
 import { adminProcedure, router } from "../index";
 import { positiveInt } from "../input-schemas";
 
-import { applyRatingUpdate, RATING_TYPES } from "./rating-update";
+import {
+  applyRatingUpdate,
+  correctRatingVariation,
+  RATING_TYPES,
+  removeRatingResult,
+  revertTournamentRatings,
+} from "./rating-update";
 
 const ratingTypeEnum = z.enum(RATING_TYPES);
+const variation = z.number().int().safe().min(-4000).max(4000);
 
 export const playersTournamentRouter = router({
   linkWithRating: adminProcedure
     .input(z.object({
       playerId: positiveInt,
       tournamentId: positiveInt,
-      variation: z.number().int().safe().min(-4000).max(4000),
+      variation,
       ratingType: ratingTypeEnum,
     }))
     .mutation(async ({ ctx, input }) => {
       return applyRatingUpdate(ctx.db, input);
     }),
+
+  listByPlayer: adminProcedure
+    .input(z.object({ playerId: positiveInt }))
+    .query(({ ctx, input }) =>
+      ctx.db.query.playersToTournaments.findMany({
+        where: eq(playersToTournaments.playerId, input.playerId),
+        columns: { id: true, oldRating: true, variation: true, ratingType: true },
+        with: { tournament: { columns: { id: true, name: true, date: true } } },
+        orderBy: asc(playersToTournaments.id),
+      })
+    ),
+
+  listByTournament: adminProcedure
+    .input(z.object({ tournamentId: positiveInt }))
+    .query(({ ctx, input }) =>
+      ctx.db.query.playersToTournaments.findMany({
+        where: eq(playersToTournaments.tournamentId, input.tournamentId),
+        columns: { id: true, oldRating: true, variation: true },
+        with: { player: { columns: { id: true, name: true } } },
+        orderBy: asc(playersToTournaments.id),
+      })
+    ),
+
+  correctVariation: adminProcedure
+    .input(z.object({ id: positiveInt, variation }))
+    .mutation(({ ctx, input }) => correctRatingVariation(ctx.db, input)),
+
+  remove: adminProcedure
+    .input(z.object({ id: positiveInt }))
+    .mutation(({ ctx, input }) => removeRatingResult(ctx.db, input)),
+
+  revertTournament: adminProcedure
+    .input(z.object({ tournamentId: positiveInt }))
+    .mutation(({ ctx, input }) => revertTournamentRatings(ctx.db, input)),
 });
