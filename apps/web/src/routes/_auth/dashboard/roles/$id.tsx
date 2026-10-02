@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -8,10 +8,13 @@ import z from "zod";
 
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { idParams } from "@/lib/route-params";
 
 const ROLE_TYPES = ["management", "referee", "teacher"] as const;
 
 export const Route = createFileRoute("/_auth/dashboard/roles/$id")({
+  params: idParams,
   head: () => ({ meta: [{ title: "Edit Role - Admin - FSX" }] }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.roles.list.queryOptions()),
@@ -19,11 +22,10 @@ export const Route = createFileRoute("/_auth/dashboard/roles/$id")({
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
+  const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
-  const numId = Number(id);
 
   const { data: roles = [] } = useSuspenseQuery(trpc.roles.list.queryOptions());
   const role = roles.find((r) => r.id === numId);
@@ -31,7 +33,7 @@ function RouteComponent() {
   const updateMutation = useMutation({
     ...trpc.roles.update.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.roles.list.queryFilter());
+      void invalidateAdmin("roles");
       toast.success("Role updated");
     },
     onError: () => toast.error("Failed to update role"),

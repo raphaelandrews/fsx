@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -11,6 +11,7 @@ import { Label } from "@fsx/ui/components/label";
 
 import { useTRPC } from "@/utils/trpc";
 import { getUserErrorMessage } from "@/lib/errors";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/create")({
   head: () => ({ meta: [{ title: "Create Circuit - Admin - FSX" }] }),
@@ -20,13 +21,12 @@ export const Route = createFileRoute("/_auth/dashboard/circuits/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const createMutation = useMutation({
     ...trpc.circuits.create.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.circuits.list.queryFilter());
-      qc.invalidateQueries(trpc.circuits.listSimple.queryFilter());
+      void invalidateAdmin("circuits");
       toast.success("Circuito criado");
       navigate({ to: "/dashboard/circuits" });
     },

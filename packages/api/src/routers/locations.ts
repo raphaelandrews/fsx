@@ -3,7 +3,7 @@ import { eq, asc } from "drizzle-orm";
 
 import { locations, insertLocationSchema } from "@fsx/db/schema/locations";
 import { adminProcedure, publicProcedure, router } from "../index";
-import { nameText, positiveInt, urlText } from "../input-schemas";
+import { httpUrl, nameText, positiveInt } from "../input-schemas";
 import { requireMutationRows } from "../errors";
 import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 
@@ -18,13 +18,13 @@ export const locationsRouter = router({
     .input(insertLocationSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
       name: nameText,
       type: locationTypeEnum,
-      flagUrl: urlText.nullable().optional(),
+      flagUrl: httpUrl.nullable().optional(),
     }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(locations).values(input).returning()
     ),
   update: adminProcedure
-    .input(z.object({ id: positiveInt, name: nameText, type: locationTypeEnum, flagUrl: urlText.nullable().optional() }))
+    .input(z.object({ id: positiveInt, name: nameText, type: locationTypeEnum, flagUrl: httpUrl.nullable().optional() }))
     .mutation(async ({ ctx, input }) =>
       requireMutationRows(
         await ctx.db.update(locations).set(input).where(eq(locations.id, input.id)).returning(),

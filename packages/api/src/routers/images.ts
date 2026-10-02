@@ -4,7 +4,7 @@ import { z } from "zod";
 import { env } from "@fsx/env/server";
 
 import { adminProcedure, router } from "../index";
-import { base64ToBytes, hasImageSignature, IMAGE_MIMES, MAX_BASE64_LENGTH, MAX_IMAGE_BYTES, MIN_IMAGE_BYTES } from "../image-validation";
+import { base64ToBytes, hasImageSignature, IMAGE_MIMES, MAX_BASE64_LENGTH, MEDIA_KEY_PATTERN, MAX_IMAGE_BYTES, MIN_IMAGE_BYTES } from "../image-validation";
 
 
 function mimeToExt(mime: (typeof IMAGE_MIMES)[number]): string {
@@ -19,7 +19,7 @@ export function urlToKey(url: string): string | null {
   const marker = "/api/media/";
   const idx = url.indexOf(marker);
   const key = idx === -1 ? url : url.slice(idx + marker.length);
-  if (!key || key.length > 300 || !/^(players|posts)\/[a-f0-9-]+\.(jpg|png|webp)$/.test(key)) return null;
+  if (!key || key.length > 300 || !MEDIA_KEY_PATTERN.test(key)) return null;
   try {
     return decodeURIComponent(key);
   } catch {

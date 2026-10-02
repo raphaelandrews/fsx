@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -8,12 +8,15 @@ import z from "zod";
 
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { idParams } from "@/lib/route-params";
 
 const TITLE = "Championship";
 const DOMAIN = "champions" as const;
 const PATH = "/dashboard/championships";
 
 export const Route = createFileRoute("/_auth/dashboard/championships/$id")({
+  params: idParams,
   head: () => ({ meta: [{ title: `Edit ${TITLE} - Admin - FSX` }] }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.champions.list.queryOptions()),
@@ -21,11 +24,10 @@ export const Route = createFileRoute("/_auth/dashboard/championships/$id")({
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
+  const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
-  const numId = Number(id);
 
   const { data: items = [] } = useSuspenseQuery(trpc[DOMAIN].list.queryOptions());
   const item = items.find((i: any) => i.id === numId);
@@ -33,7 +35,7 @@ function RouteComponent() {
   const updateMutation = useMutation({
     ...trpc[DOMAIN].update.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc[DOMAIN].list.queryFilter());
+      void invalidateAdmin(DOMAIN);
       toast.success(`${TITLE} updated`);
     },
     onError: () => toast.error(`Failed to update ${TITLE.toLowerCase()}`),

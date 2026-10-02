@@ -1,15 +1,13 @@
-// Curated icon presets for links. `links.icon` stores a raw SVG string (the
-// /links page renders it via dangerouslySetInnerHTML), so the strings below are
-// precomputed from the real hugeicons icons (Link01 / File02 / Clipboard /
-// Trophy / Calendar01 / ExternalLink). Keeping them as literals means no
-// runtime import of the hugeicons package and no per-load serialization.
+// `links.icon` stores a raw SVG string that /links injects as HTML, so only
+// these trusted constants may be written or rendered. Never render a stored
+// icon directly; resolve it through `resolveLinkIcon`.
 export interface LinkIconPreset {
   key: string;
   label: string;
   svg: string;
 }
 
-const ICON_SVG: Record<string, string> = {
+const ICON_SVG = {
   link: '<svg viewBox="0 0 24 24" fill="none"><path d="M9.14339 10.691L9.35031 10.4841C11.329 8.50532 14.5372 8.50532 16.5159 10.4841C18.4947 12.4628 18.4947 15.671 16.5159 17.6497L13.6497 20.5159C11.671 22.4947 8.46279 22.4947 6.48405 20.5159C4.50532 18.5372 4.50532 15.329 6.48405 13.3503L6.9484 12.886" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5"/><path d="M17.0516 11.114L17.5159 10.6497C19.4947 8.67095 19.4947 5.46279 17.5159 3.48405C15.5372 1.50532 12.329 1.50532 10.3503 3.48405L7.48405 6.35031C5.50532 8.32904 5.50532 11.5372 7.48405 13.5159C9.46279 15.4947 12.671 15.4947 14.6497 13.5159L14.8566 13.309" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5"/></svg>',
   document:
     '<svg viewBox="0 0 24 24" fill="none"><path d="M8 17H16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"/><path d="M8 13H12" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"/><path d="M13 2.5V3C13 5.82843 13 7.24264 13.8787 8.12132C14.7574 9 16.1716 9 19 9H19.5M20 10.6569V14C20 17.7712 20 19.6569 18.8284 20.8284C17.6569 22 15.7712 22 12 22C8.22876 22 6.34315 22 5.17157 20.8284C4 19.6569 4 17.7712 4 14V9.45584C4 6.21082 4 4.58831 4.88607 3.48933C5.06508 3.26731 5.26731 3.06508 5.48933 2.88607C6.58831 2 8.21082 2 11.4558 2C12.1614 2 12.5141 2 12.8372 2.11401C12.9044 2.13772 12.9702 2.165 13.0345 2.19575C13.3436 2.34355 13.593 2.593 14.0919 3.09188L18.8284 7.82843C19.4065 8.40649 19.6955 8.69552 19.8478 9.06306C20 9.4306 20 9.83935 20 10.6569Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"/></svg>',
@@ -32,3 +30,49 @@ export const LINK_ICON_PRESETS: LinkIconPreset[] = [
 ];
 
 export const DEFAULT_LINK_ICON = ICON_SVG.link;
+
+const LINK_SVG = (paths: string) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+
+const LINK_ICON_DOCUMENT = LINK_SVG(
+  '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+);
+const LINK_ICON_FORM = LINK_SVG(
+  '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M8 12h8"/><path d="M8 16h5"/>',
+);
+const LINK_ICON_RESULTS = LINK_SVG(
+  '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4"/><path d="M17 6h3a3 3 0 0 1-3 4"/>',
+);
+const LINK_ICON_CALENDAR = LINK_SVG(
+  '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+);
+const EVENT_DEFAULT_LINK_ICON = LINK_SVG(
+  '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+);
+
+// Recurring event links reuse the same icon based on their label.
+export function iconForLinkLabel(label: string): string {
+  const l = label.trim().toLowerCase();
+  if (/regul/.test(l)) return LINK_ICON_DOCUMENT;
+  if (/form|inscr|cadastr/.test(l)) return LINK_ICON_FORM;
+  if (/result|classific/.test(l)) return LINK_ICON_RESULTS;
+  if (/calend|data|agend/.test(l)) return LINK_ICON_CALENDAR;
+  return EVENT_DEFAULT_LINK_ICON;
+}
+
+const KNOWN_LINK_ICONS = new Set<string>([
+  ...LINK_ICON_PRESETS.map((preset) => preset.svg),
+  LINK_ICON_DOCUMENT,
+  LINK_ICON_FORM,
+  LINK_ICON_RESULTS,
+  LINK_ICON_CALENDAR,
+  EVENT_DEFAULT_LINK_ICON,
+]);
+
+export function isKnownLinkIcon(svg: string): boolean {
+  return KNOWN_LINK_ICONS.has(svg);
+}
+
+export function resolveLinkIcon(svg: string): string {
+  return isKnownLinkIcon(svg) ? svg : DEFAULT_LINK_ICON;
+}

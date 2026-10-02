@@ -30,6 +30,7 @@ import {
   ratingTitles,
 } from "@/components/ratings/data-options";
 import { useTRPC } from "@/utils/trpc";
+import { isAgeGroup } from "@fsx/api/age-groups";
 import { cn } from "@fsx/ui/lib/utils";
 import { avatarGradientFor } from "@/components/avatar-gradient";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
@@ -45,7 +46,11 @@ const searchSchema = z.object({
   local: z.array(z.string().max(80)).max(50).default([]),
   clube: z.array(z.string().max(80)).max(50).default([]),
   titulo: z.array(z.string().max(80)).max(50).default([]),
-  grupo: z.array(z.string().max(80)).max(50).default([]),
+  grupo: z
+    .array(z.string().max(80))
+    .max(50)
+    .default([])
+    .transform((groups) => groups.filter(isAgeGroup)),
 });
 
 export const Route = createFileRoute("/_public/ratings")({
@@ -209,7 +214,7 @@ function RouteComponent() {
           }))}
           title="Grupo"
           value={search.grupo}
-          onChange={(v) => updateSearch({ grupo: v })}
+          onChange={(v) => updateSearch({ grupo: v.filter(isAgeGroup) })}
         />
 
         <DataTableFacetedFilter

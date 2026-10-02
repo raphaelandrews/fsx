@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -8,10 +8,13 @@ import z from "zod";
 
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { idParams } from "@/lib/route-params";
 
 const TITLE_TYPES = ["internal", "external"] as const;
 
 export const Route = createFileRoute("/_auth/dashboard/titles/$id")({
+  params: idParams,
   head: () => ({ meta: [{ title: "Edit Title - Admin - FSX" }] }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.titles.list.queryOptions()),
@@ -19,11 +22,10 @@ export const Route = createFileRoute("/_auth/dashboard/titles/$id")({
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
+  const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
-  const numId = Number(id);
 
   const { data: titles = [] } = useSuspenseQuery(trpc.titles.list.queryOptions());
   const title = titles.find((t) => t.id === numId);
@@ -31,7 +33,7 @@ function RouteComponent() {
   const updateMutation = useMutation({
     ...trpc.titles.update.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.titles.list.queryFilter());
+      void invalidateAdmin("titles");
       toast.success("Title updated");
     },
     onError: () => toast.error("Failed to update title"),

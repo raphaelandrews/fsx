@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -7,8 +7,9 @@ import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
 
 import { LinkIconSelect } from "@/components/link-icon-select";
-import { DEFAULT_LINK_ICON } from "@/lib/link-icons";
+import { DEFAULT_LINK_ICON } from "@fsx/api/link-icons";
 import { useTRPC } from "@/utils/trpc";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/links/create")({
   head: () => ({ meta: [{ title: "Create Link Group - Admin - FSX" }] }),
@@ -18,25 +19,28 @@ export const Route = createFileRoute("/_auth/dashboard/links/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const createGroupMutation = useMutation({
     ...trpc.links.create.mutationOptions(),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast.success("Group created");
       const groupId = data[0].id;
-      if (links.length > 0) {
-        links.forEach((link) => {
-          createLinkMutation.mutate({
+      const results = await Promise.allSettled(
+        links.map((link) =>
+          createLinkMutation.mutateAsync({
             href: link.href,
             label: link.label,
             icon: link.icon,
             sortOrder: link.sortOrder,
             linkGroupId: groupId,
-          });
-        });
+          }),
+        ),
+      );
+      if (results.some((result) => result.status === "rejected")) {
+        toast.error("Some links could not be created");
       }
-      qc.invalidateQueries(trpc.links.list.queryFilter());
+      void invalidateAdmin("links");
       navigate({ to: "/dashboard/links" });
     },
     onError: () => toast.error("Failed to create group"),

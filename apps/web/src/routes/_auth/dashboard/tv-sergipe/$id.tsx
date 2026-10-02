@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useForm, useStore } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { toast } from "sonner";
@@ -9,8 +9,11 @@ import { useTRPC } from "@/utils/trpc";
 import { SearchableSelect } from "@/components/searchable-select";
 import { FormField } from "@/components/form/form-field";
 import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS, TEAM_NAMES } from "./-constants";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { idParams } from "@/lib/route-params";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/$id")({
+  params: idParams,
   head: () => ({ meta: [{ title: "Edit TV Sergipe - Admin - FSX" }] }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.tvSergipe.list.queryOptions()),
@@ -18,11 +21,10 @@ export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/$id")({
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
+  const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
-  const numId = Number(id);
 
   const { data: results = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
   const result = results.find((r) => r.id === numId);
@@ -30,8 +32,7 @@ function RouteComponent() {
   const updateMutation = useMutation({
     ...trpc.tvSergipe.update.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.tvSergipe.list.queryFilter());
-      qc.invalidateQueries(trpc.tvSergipe.leaderboard.queryFilter());
+      void invalidateAdmin("tvSergipe");
       toast.success("Result updated");
     },
     onError: () => toast.error("Failed to update result"),

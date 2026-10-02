@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { cups } from "@fsx/db/schema/cups";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireMutationRows } from "../errors";
-import { idInput, nameText, positiveInt, points } from "../input-schemas";
+import { idInput, imageUrl, nameText, positiveInt, points } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
 
 const ratingTypeEnum = z.enum(["blitz", "rapid", "classic"]);
@@ -94,7 +94,7 @@ export const cupsRouter = router({
   create: adminProcedure
     .input(z.object({
       name: nameText,
-      imageUrl: z.string().url().max(2_048),
+      imageUrl: imageUrl,
       startDate: z.string().max(40),
       endDate: z.string().max(40),
       prizePool: points,
@@ -109,7 +109,7 @@ export const cupsRouter = router({
     .input(z.object({
       id: positiveInt,
       name: nameText.optional(),
-      imageUrl: z.string().url().max(2_048).optional(),
+      imageUrl: imageUrl.optional(),
       startDate: z.string().max(40).optional(),
       endDate: z.string().max(40).optional(),
       prizePool: points.optional(),

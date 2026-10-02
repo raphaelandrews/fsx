@@ -12,7 +12,7 @@ import { useTRPC } from "@/utils/trpc";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 
 import type { CircuitPhase } from "../types";
-import { useInvalidateCircuit } from "./use-invalidate-circuit";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 const phaseSchema = z.object({
   tournamentId: z.string().min(1, "Torneio é obrigatório"),
@@ -30,12 +30,12 @@ export function CircuitPhaseForm({
   nextSortOrder?: number;
 }) {
   const trpc = useTRPC();
-  const invalidate = useInvalidateCircuit();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const createMutation = useMutation({
     ...trpc.circuits.phases.create.mutationOptions(),
     onSuccess: () => {
-      invalidate();
+      void invalidateAdmin("circuits");
       toast.success("Etapa adicionada");
     },
     onError: () => toast.error("Falha ao adicionar etapa"),
@@ -44,7 +44,7 @@ export function CircuitPhaseForm({
   const updateMutation = useMutation({
     ...trpc.circuits.phases.update.mutationOptions(),
     onSuccess: () => {
-      invalidate();
+      void invalidateAdmin("circuits");
       toast.success("Etapa atualizada");
     },
     onError: () => toast.error("Falha ao atualizar etapa"),
@@ -53,7 +53,7 @@ export function CircuitPhaseForm({
   const deleteMutation = useMutation({
     ...trpc.circuits.phases.delete.mutationOptions(),
     onSuccess: () => {
-      invalidate();
+      void invalidateAdmin("circuits");
       toast.success("Etapa removida");
     },
     onError: () => toast.error("Falha ao remover etapa"),

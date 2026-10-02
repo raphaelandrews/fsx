@@ -1,5 +1,5 @@
 import alchemy from "alchemy";
-import { D1Database, R2Bucket, TanStackStart, Worker } from "alchemy/cloudflare";
+import { D1Database, R2Bucket, RateLimit, TanStackStart, Worker } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
 // Shared secrets for both envs — single source of truth.
@@ -24,6 +24,13 @@ const db = await D1Database("database", {
 const images = await R2Bucket("images", {
   name: "fsx-images",
   adopt: true,
+});
+
+// Limits tRPC GETs that miss the edge cache; keep in sync with
+// UNCACHED_READ_LIMIT in packages/api/src/security.ts.
+const publicReadRateLimit = RateLimit({
+  namespace_id: 1001,
+  simple: { limit: 600, period: 60 },
 });
 
 await Worker("rate-limit-cleanup", {
@@ -58,11 +65,13 @@ export const web = await TanStackStart("web", {
   bindings: {
     DB: db,
     IMAGES: images,
+    PUBLIC_READ_RATE_LIMIT: publicReadRateLimit,
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
     BETTER_AUTH_SECRET: alchemy.secret.env.BETTER_AUTH_SECRET!,
     BETTER_AUTH_URL: alchemy.env.BETTER_AUTH_URL!,
     GITHUB_CLIENT_ID: alchemy.secret.env.GITHUB_CLIENT_ID!,
     GITHUB_CLIENT_SECRET: alchemy.secret.env.GITHUB_CLIENT_SECRET!,
+    GITHUB_USER_ID: alchemy.env.GITHUB_USER_ID ?? "",
     GITHUB_USERNAME: alchemy.env.GITHUB_USERNAME ?? "",
     DISABLE_SIGNUP: alchemy.env.DISABLE_SIGNUP ?? "",
   },

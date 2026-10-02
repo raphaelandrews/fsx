@@ -10,36 +10,10 @@ import { playersToTitles } from "@fsx/db/schema/playersToTitles";
 import { normalizeName } from "@fsx/db/normalize";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireMutationRows } from "../errors";
-import { contentText, filterArray, idInput, limit, nameText, page, positiveInt, rating, searchText, urlText } from "../input-schemas";
+import { AGE_GROUPS, getBirthDateRange } from "../age-groups";
+import { contentText, filterArray, idInput, imageUrl, isoDate, limit, nameText, page, positiveInt, rating, searchText } from "../input-schemas";
+import { escapeLike, like } from "../sql-like";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
-
-function getBirthDateRange(group: string): [string, string] | undefined {
-  const today = new Date();
-  const year = today.getFullYear();
-
-  switch (group) {
-    case "sub-8":
-      return [`${year - 8}-01-01`, `${year}-12-31`];
-    case "sub-10":
-      return [`${year - 10}-01-01`, `${year - 9}-12-31`];
-    case "sub-12":
-      return [`${year - 12}-01-01`, `${year - 11}-12-31`];
-    case "sub-14":
-      return [`${year - 14}-01-01`, `${year - 13}-12-31`];
-    case "sub-16":
-      return [`${year - 16}-01-01`, `${year - 15}-12-31`];
-    case "sub-18":
-      return [`${year - 18}-01-01`, `${year - 17}-12-31`];
-    case "master":
-      return [`${year - 50}-01-01`, `${year - 40}-12-31`];
-    case "veterano":
-      return [`${year - 64}-01-01`, `${year - 51}-12-31`];
-    case "senior":
-      return [`1900-01-01`, `${year - 65}-12-31`];
-    default:
-      return;
-  }
-}
 
 export const playersRouter = router({
   // Lightweight `{ id, name }` list for pickers (e.g. the admin title
@@ -92,7 +66,7 @@ export const playersRouter = router({
       const limit = input.limit;
       const offset = (input.page - 1) * limit;
       const where = input.name
-        ? sql`${playersTable.normalizedName} LIKE ${`%${normalizeName(input.name)}%`}`
+        ? like(playersTable.normalizedName, `%${escapeLike(normalizeName(input.name))}%`)
         : undefined;
 
       const countResult = await ctx.db.select({ value: count() }).from(playersTable).where(where);
@@ -192,7 +166,7 @@ export const playersRouter = router({
       }
 
       const wordConditions = words.map(
-        (word) => sql`${playersTable.normalizedName} LIKE ${`%${word}%`}`
+        (word) => like(playersTable.normalizedName, `%${escapeLike(word)}%`)
       );
 
       const whereClause = sql.join(wordConditions, sql` AND `);
@@ -200,8 +174,8 @@ export const playersRouter = router({
       const relevanceScore = sql<number>`
         CASE
           WHEN ${playersTable.normalizedName} = ${normalizedQuery} THEN 4
-          WHEN ${playersTable.normalizedName} LIKE ${`${words[0]}%`} THEN 3
-          WHEN ${playersTable.normalizedName} LIKE ${`%${normalizedQuery}%`} THEN 2
+          WHEN ${like(playersTable.normalizedName, `${escapeLike(words[0] ?? "")}%`)} THEN 3
+          WHEN ${like(playersTable.normalizedName, `%${escapeLike(normalizedQuery)}%`)} THEN 2
           ELSE 1
         END
       `;
@@ -247,10 +221,10 @@ export const playersRouter = router({
       blitz: rating,
       rapid: rating,
       classic: rating,
-      imageUrl: urlText.nullable().optional(),
+      imageUrl: imageUrl.nullable().optional(),
       cbxId: positiveInt.nullable().optional(),
       fideId: positiveInt.nullable().optional(),
-      birthDate: z.string().max(40).nullable().optional(),
+      birthDate: isoDate.nullable().optional(),
       sex: z.enum(["male", "female"]),
       clubId: positiveInt.nullable().optional(),
       locationId: positiveInt.nullable().optional(),
@@ -272,24 +246,24 @@ export const playersRouter = router({
       rapid: rating.optional(),
       classic: rating.optional(),
       active: z.boolean().optional(),
-       imageUrl: urlText.nullable().optional(),
+       imageUrl: imageUrl.nullable().optional(),
       cbxId: positiveInt.nullable().optional(),
       fideId: positiveInt.nullable().optional(),
       verified: z.boolean().optional(),
-       birthDate: z.string().max(40).nullable().optional(),
+       birthDate: isoDate.nullable().optional(),
       sex: z.enum(["male", "female"]).optional(),
       clubId: positiveInt.nullable().optional(),
       locationId: positiveInt.nullable().optional(),
        description: contentText.nullable().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { id, name, ...rest } = input;
+      const { id, ...rest } = input;
       return requireMutationRows(
         await ctx.db
           .update(playersTable)
           .set({
             ...rest,
-            ...(name !== undefined ? { normalizedName: normalizeName(name) } : {}),
+            ...(rest.name !== undefined ? { normalizedName: normalizeName(rest.name) } : {}),
           })
           .where(eq(playersTable.id, id))
           .returning(),
@@ -304,7 +278,7 @@ export const playersRouter = router({
       sex: z.enum(["male", "female"]).optional(),
       titles: filterArray.default([]),
       clubs: filterArray.default([]),
-      groups: filterArray.default([]),
+      groups: z.array(z.enum(AGE_GROUPS)).max(AGE_GROUPS.length).default([]),
       locations: filterArray.default([]),
       sortBy: z.enum(["rapid", "blitz", "classic"]).default("rapid"),
       name: searchText.optional(),
@@ -316,7 +290,7 @@ export const playersRouter = router({
 
       if (name) {
         whereConditions.push(
-          sql`${playersTable.normalizedName} LIKE ${`%${normalizeName(name)}%`}`
+          like(playersTable.normalizedName, `%${escapeLike(normalizeName(name))}%`)
         );
       }
       if (sex) {
@@ -347,17 +321,13 @@ export const playersRouter = router({
         );
       }
       if (groupFilters.length) {
-        const groupConditions: ReturnType<typeof and>[] = [];
-        for (const group of groupFilters) {
-          const range = getBirthDateRange(group);
-          if (range) {
-            groupConditions.push(and(gte(playersTable.birthDate, range[0]), lte(playersTable.birthDate, range[1])));
-          }
-        }
-        if (groupConditions.length > 0) {
-          const condition = groupConditions.length === 1 ? groupConditions[0] : or(...groupConditions);
-          if (condition) whereConditions.push(condition);
-        }
+        const year = new Date().getUTCFullYear();
+        const groupConditions = groupFilters.map((group) => {
+          const [from, to] = getBirthDateRange(group, year);
+          return and(gte(playersTable.birthDate, from), lte(playersTable.birthDate, to));
+        });
+        const condition = groupConditions.length === 1 ? groupConditions[0] : or(...groupConditions);
+        if (condition) whereConditions.push(condition);
       }
       if (locationFilters.length) {
         whereConditions.push(

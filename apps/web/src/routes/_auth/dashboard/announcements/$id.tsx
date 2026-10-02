@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -8,20 +8,21 @@ import { Textarea } from "@fsx/ui/components/textarea";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
-import { invalidateAdminQueries } from "@/lib/admin-mutations";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { idParams } from "@/lib/route-params";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/$id")({
+  params: idParams,
   head: () => ({ meta: [{ title: "Edit Announcement - Admin - FSX" }] }),
   loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.announcements.list.queryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
+  const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
-  const numId = Number(id);
 
   const { data: announcements = [] } = useSuspenseQuery(trpc.announcements.list.queryOptions());
   const announcement = announcements.find((a) => a.id === numId);
@@ -29,12 +30,7 @@ function RouteComponent() {
   const updateMutation = useMutation({
     ...trpc.announcements.update.mutationOptions(),
     onSuccess: async () => {
-      await invalidateAdminQueries(qc, [
-        trpc.announcements.list.queryFilter(),
-        trpc.announcements.fresh.queryFilter(),
-        trpc.announcements.byPage.queryFilter(),
-        trpc.announcements.byId.queryFilter(),
-      ]);
+      await invalidateAdmin("announcements");
       toast.success("Announcement updated");
     },
     onError: () => toast.error("Failed to update announcement"),

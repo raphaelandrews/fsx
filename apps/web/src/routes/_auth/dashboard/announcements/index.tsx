@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -13,7 +13,7 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-import { invalidateAdminQueries } from "@/lib/admin-mutations";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/")({
   head: () => ({ meta: [{ title: "Announcements - Admin - FSX" }] }),
@@ -23,19 +23,14 @@ export const Route = createFileRoute("/_auth/dashboard/announcements/")({
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const { data = [] } = useSuspenseQuery(trpc.announcements.list.queryOptions());
 
   const deleteMutation = useMutation({
     ...trpc.announcements.delete.mutationOptions(),
     onSuccess: async () => {
-      await invalidateAdminQueries(qc, [
-        trpc.announcements.list.queryFilter(),
-        trpc.announcements.fresh.queryFilter(),
-        trpc.announcements.byPage.queryFilter(),
-        trpc.announcements.byId.queryFilter(),
-      ]);
+      await invalidateAdmin("announcements");
       toast.success("Announcement deleted");
     },
     onError: () => toast.error("Failed to delete announcement"),

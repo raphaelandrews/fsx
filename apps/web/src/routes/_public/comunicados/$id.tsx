@@ -7,11 +7,12 @@ import { useTRPC } from "@/utils/trpc";
 import { padNumber } from "@/utils/format";
 import { breadcrumbJsonLd, buildSeo, truncate, withBrand } from "@/lib/seo";
 import { getErrorCode } from "@/lib/errors";
+import { idParams } from "@/lib/route-params";
 
 export const Route = createFileRoute("/_public/comunicados/$id")({
+  params: idParams,
   loader: async ({ context, params }) => {
-    const id = Number(params.id);
-    if (!Number.isSafeInteger(id) || id < 1) throw notFound();
+    const { id } = params;
     try {
       const announcement = await context.queryClient.ensureQueryData(
         context.trpc.announcements.byId.queryOptions({ id }),
@@ -55,7 +56,7 @@ function RouteComponent() {
   const trpc = useTRPC();
   const { id } = Route.useParams();
   const { data: announcement } = useSuspenseQuery(
-    trpc.announcements.byId.queryOptions({ id: Number(id) }),
+    trpc.announcements.byId.queryOptions({ id: id }),
   );
 
   if (!announcement) return null;

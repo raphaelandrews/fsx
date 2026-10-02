@@ -59,3 +59,16 @@ For query-plan review, run `packages/db/src/audits/query-plans.sql` against a
 production-like D1 clone and record row counts and response sizes with the plan
 results. Do not add indexes from a small local seed; compare realistic
 cardinality and D1 read/CPU metrics first.
+
+To find player names left stale by the old rename bug and stored URLs that the
+current API validators reject, run `packages/db/src/audits/player-names-and-urls.sql`
+against production D1 (read-only). Re-enter each listed player's name in the
+dashboard; `normalized_name` holds the intended name without accents or casing,
+so do not copy it back. Change any listed URL to an `https://` address or a new
+upload before editing that record.
+
+Before deploying stricter date validation, run `packages/db/src/audits/date-formats.sql`
+against production D1. Rewrite each listed `birth_date`, tournament `date`, or event
+`start_date` as `YYYY-MM-DD`; otherwise the record cannot be saved from the
+dashboard and age-group filters skip it. The rating import converts `DD/MM/YYYY`
+spreadsheet text automatically.

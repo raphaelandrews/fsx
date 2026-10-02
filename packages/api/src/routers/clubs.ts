@@ -4,8 +4,9 @@ import { eq, asc, sql } from "drizzle-orm";
 import { clubs, insertClubSchema } from "@fsx/db/schema/clubs";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireMutationRows } from "../errors";
-import { nameText, positiveInt, searchText, urlText } from "../input-schemas";
+import { httpUrl, nameText, positiveInt, searchText } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
+import { escapeLike, like } from "../sql-like";
 
 function normalizeClubName(name: string): string {
   return name
@@ -28,7 +29,7 @@ export const clubsRouter = router({
       const rows = await ctx.db
         .select({ id: clubs.id, name: clubs.name })
         .from(clubs)
-        .where(words.length ? sql`lower(${clubs.name}) LIKE ${`%${words.join("%")}%`}` : undefined)
+        .where(words.length ? like(sql`lower(${clubs.name})`, `%${words.map(escapeLike).join("%")}%`) : undefined)
         .orderBy(asc(clubs.name), asc(clubs.id))
         .limit(10);
       return rows;
@@ -36,13 +37,13 @@ export const clubsRouter = router({
   create: adminProcedure
     .input(insertClubSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
       name: nameText,
-      logoUrl: urlText.nullable().optional(),
+      logoUrl: httpUrl.nullable().optional(),
     }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(clubs).values(input).returning()
     ),
   update: adminProcedure
-    .input(z.object({ id: positiveInt, name: nameText, logoUrl: urlText.nullable().optional() }))
+    .input(z.object({ id: positiveInt, name: nameText, logoUrl: httpUrl.nullable().optional() }))
     .mutation(async ({ ctx, input }) =>
       requireMutationRows(
         await ctx.db.update(clubs).set(input).where(eq(clubs.id, input.id)).returning(),

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 const LOCATION_TYPES = ["city", "state", "country"] as const;
 
@@ -19,10 +20,12 @@ export const Route = createFileRoute("/_auth/dashboard/locations/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const createMutation = useMutation({
     ...trpc.locations.create.mutationOptions(),
     onSuccess: () => {
+      void invalidateAdmin("locations");
       toast.success("Location created");
       navigate({ to: "/dashboard/locations" });
     },

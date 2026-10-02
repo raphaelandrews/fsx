@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -9,6 +9,7 @@ import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
 import { getUserErrorMessage } from "@/lib/errors";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/norms/create")({
   head: () => ({ meta: [{ title: "Create Norm - Admin - FSX" }] }),
@@ -18,11 +19,11 @@ export const Route = createFileRoute("/_auth/dashboard/norms/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const createMutation = useMutation({
     ...trpc.norms.create.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.norms.list.queryFilter()); toast.success("Norm created"); navigate({ to: "/dashboard/norms" }); },
+    onSuccess: () => { void invalidateAdmin("norms"); toast.success("Norm created"); navigate({ to: "/dashboard/norms" }); },
     onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar a norma.")),
   });
 

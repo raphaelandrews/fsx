@@ -13,7 +13,7 @@ import { useTRPC } from "@/utils/trpc";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 
 import type { CircuitPodium } from "../types";
-import { useInvalidateCircuit } from "./use-invalidate-circuit";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export type PodiumTarget = { circuitId?: number; circuitPhaseId?: number };
 
@@ -34,12 +34,12 @@ export function CircuitPodiumForm({
   podium?: CircuitPodium;
 }) {
   const trpc = useTRPC();
-  const invalidate = useInvalidateCircuit();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const createMutation = useMutation({
     ...trpc.circuits.podiums.create.mutationOptions(),
     onSuccess: () => {
-      invalidate();
+      void invalidateAdmin("circuits");
       toast.success("Pódio adicionado");
     },
     onError: () => toast.error("Falha ao adicionar pódio"),
@@ -48,7 +48,7 @@ export function CircuitPodiumForm({
   const updateMutation = useMutation({
     ...trpc.circuits.podiums.update.mutationOptions(),
     onSuccess: () => {
-      invalidate();
+      void invalidateAdmin("circuits");
       toast.success("Pódio atualizado");
     },
     onError: () => toast.error("Falha ao atualizar pódio"),
@@ -57,7 +57,7 @@ export function CircuitPodiumForm({
   const deleteMutation = useMutation({
     ...trpc.circuits.podiums.delete.mutationOptions(),
     onSuccess: () => {
-      invalidate();
+      void invalidateAdmin("circuits");
       toast.success("Pódio removido");
     },
     onError: () => toast.error("Falha ao remover pódio"),

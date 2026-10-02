@@ -112,7 +112,7 @@ function RouteComponent() {
                           Titles
                         </Button>
                       </Link>
-                      <Link to="/dashboard/players/$id" params={{ id: String(player.id) }}>
+                      <Link to="/dashboard/players/$id" params={{ id: player.id }}>
                         <Button size="sm" variant="outline">
                           Edit
                         </Button>

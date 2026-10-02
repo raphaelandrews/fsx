@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -12,8 +12,11 @@ import { DatePicker } from "@/components/date-picker";
 import { EventLinksEditor, type EventLinkDraft } from "@/components/event-links-editor";
 import { useTRPC } from "@/utils/trpc";
 import { resolveEventLinkType } from "@fsx/api/event-link-types";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { idParams } from "@/lib/route-params";
 
 export const Route = createFileRoute("/_auth/dashboard/events/$id")({
+  params: idParams,
   head: () => ({ meta: [{ title: "Edit Event - Admin - FSX" }] }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.events.list.queryOptions()),
@@ -21,11 +24,10 @@ export const Route = createFileRoute("/_auth/dashboard/events/$id")({
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
+  const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
-  const numId = Number(id);
 
   const { data: events = [] } = useSuspenseQuery(trpc.events.list.queryOptions());
   const event = events.find((e) => e.id === numId);
@@ -71,7 +73,7 @@ function RouteComponent() {
             sortOrder: l.sortOrder,
           })),
         });
-        qc.invalidateQueries(trpc.events.list.queryFilter());
+        void invalidateAdmin("events");
         toast.success("Event updated");
       } catch {
         toast.error("Failed to update event");

@@ -1,16 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { createContext } from "@fsx/api/context";
-import { appRouter } from "@fsx/api/routers/index";
+import { getSitemapEntries } from "@fsx/api/sitemap";
 
 import { renderSitemap } from "@/lib/sitemap";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        const ctx = await createContext({ req: request });
-        const { posts, playerIds } = await appRouter.createCaller(ctx).sitemap.entries();
+      GET: async () => {
+        const { posts, playerIds } = await getSitemapEntries();
 
         return new Response(
           renderSitemap(posts, playerIds),

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -9,6 +9,7 @@ import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
 import { getUserErrorMessage } from "@/lib/errors";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 const ROLE_TYPES = ["management", "referee", "teacher"] as const;
 
@@ -20,11 +21,11 @@ export const Route = createFileRoute("/_auth/dashboard/roles/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const createMutation = useMutation({
     ...trpc.roles.create.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.roles.list.queryFilter()); toast.success("Role created"); navigate({ to: "/dashboard/roles" }); },
+    onSuccess: () => { void invalidateAdmin("roles"); toast.success("Role created"); navigate({ to: "/dashboard/roles" }); },
     onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar a função.")),
   });
 

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm, useStore } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Label } from "@fsx/ui/components/label";
@@ -10,6 +10,7 @@ import { useTRPC } from "@/utils/trpc";
 import { getUserErrorMessage } from "@/lib/errors";
 import { SearchableSelect } from "@/components/searchable-select";
 import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS, TEAM_NAMES } from "./-constants";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/create")({
   head: () => ({ meta: [{ title: "Create TV Sergipe - Admin - FSX" }] }),
@@ -19,11 +20,11 @@ export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const createMutation = useMutation({
     ...trpc.tvSergipe.create.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.tvSergipe.list.queryFilter()); qc.invalidateQueries(trpc.tvSergipe.leaderboard.queryFilter()); toast.success("Result created"); navigate({ to: "/dashboard/tv-sergipe" }); },
+    onSuccess: () => { void invalidateAdmin("tvSergipe"); invalidateAdmin("tvSergipe"); toast.success("Result created"); navigate({ to: "/dashboard/tv-sergipe" }); },
     onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar o resultado.")),
   });
 

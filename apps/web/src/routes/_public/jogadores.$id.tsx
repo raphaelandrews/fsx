@@ -5,11 +5,12 @@ import { PlayerProfile } from "@/components/player/player-profile";
 import { breadcrumbJsonLd, buildSeo, personJsonLd, withBrand } from "@/lib/seo";
 import { getErrorCode } from "@/lib/errors";
 import { useTRPC } from "@/utils/trpc";
+import { idParams } from "@/lib/route-params";
 
 export const Route = createFileRoute("/_public/jogadores/$id")({
+  params: idParams,
   loader: async ({ context, params }) => {
-    const id = Number(params.id);
-    if (!Number.isSafeInteger(id) || id < 1) throw notFound();
+    const { id } = params;
     try {
       const player = await context.queryClient.ensureQueryData(
         context.trpc.players.byId.queryOptions({ id }),
@@ -52,7 +53,7 @@ export const Route = createFileRoute("/_public/jogadores/$id")({
 function RouteComponent() {
   const trpc = useTRPC();
   const { id } = Route.useParams();
-  const { data } = useSuspenseQuery(trpc.players.byId.queryOptions({ id: Number(id) }));
+  const { data } = useSuspenseQuery(trpc.players.byId.queryOptions({ id: id }));
 
   if (!data) return null;
 

@@ -4,6 +4,8 @@ export const MIN_IMAGE_BYTES = 1024;
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export const MAX_BASE64_LENGTH = Math.ceil((MAX_IMAGE_BYTES * 4) / 3) + 4;
 export const IMAGE_MIMES = ["image/jpeg", "image/png", "image/webp"] as const;
+export const MEDIA_KEY_PATTERN = /^(players|posts)\/[a-f0-9-]+\.(jpg|png|webp)$/;
+export const MEDIA_PATH_PATTERN = /^\/api\/media\/(players|posts)\/[a-f0-9-]+\.(jpg|png|webp)$/;
 
 export function base64ToBytes(b64: string): Uint8Array {
   if (b64.length > MAX_BASE64_LENGTH || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(b64)) {

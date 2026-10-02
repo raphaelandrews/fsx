@@ -9,7 +9,8 @@ import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 
 export const insigniaRouter = router({
   list: publicProcedure.query(({ ctx }) =>
-    ctx.db.select().from(insignias).orderBy(asc(insignias.level), asc(insignias.id)).limit(PUBLIC_COLLECTION_LIMIT)
+    ctx.db.select({ id: insignias.id, name: insignias.name, level: insignias.level })
+      .from(insignias).orderBy(asc(insignias.level), asc(insignias.id)).limit(PUBLIC_COLLECTION_LIMIT)
   ),
   create: adminProcedure
     .input(insertInsigniaSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({ name: nameText, level: positiveInt.max(100) }))

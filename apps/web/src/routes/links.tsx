@@ -10,6 +10,7 @@ import { Footer } from "@/components/footer";
 import { Logo } from "@/components/logo";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/utils/trpc";
+import { resolveLinkIcon } from "@fsx/api/link-icons";
 
 export const Route = createFileRoute("/links")({
   head: () =>
@@ -36,7 +37,7 @@ function LinkItem({ href, label, icon }: { href: string | null; label: string; i
           aria-hidden="true"
           className="grid h-8 w-8 place-items-center rounded-md bg-muted text-muted-foreground [&>div>svg]:h-4 [&>div>svg]:w-4"
         >
-          <div dangerouslySetInnerHTML={{ __html: icon }} />
+          <div dangerouslySetInnerHTML={{ __html: resolveLinkIcon(icon) }} />
         </div>
         <span className="text-muted-foreground">{label}</span>
         <span className="text-xs text-muted-foreground">Em breve</span>
@@ -55,7 +56,7 @@ function LinkItem({ href, label, icon }: { href: string | null; label: string; i
         aria-hidden="true"
         className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground [&>div>svg]:h-4 [&>div>svg]:w-4"
       >
-        <div dangerouslySetInnerHTML={{ __html: icon }} />
+        <div dangerouslySetInnerHTML={{ __html: resolveLinkIcon(icon) }} />
       </div>
       <span>{label}</span>
       <div className="grid h-8 w-8 place-items-center">

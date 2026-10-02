@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -12,6 +12,7 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/")({
   head: () => ({ meta: [{ title: "Podiums - Admin - FSX" }] }),
@@ -21,14 +22,14 @@ export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/")({
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const { data = [] } = useSuspenseQuery(trpc.tournamentPodiums.list.queryOptions());
 
   const deleteMutation = useMutation({
     ...trpc.tournamentPodiums.delete.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.tournamentPodiums.list.queryFilter());
+      void invalidateAdmin("tournamentPodiums");
       toast.success("Podium deleted");
     },
     onError: () => toast.error("Failed to delete podium"),

@@ -15,6 +15,7 @@ export const rolesRouter = router({
   ),
   listWithPlayers: publicProcedure.query(({ ctx }) =>
     ctx.db.query.roles.findMany({
+      columns: { id: true, name: true, shortName: true, type: true },
       with: {
           playersToRoles: {
             limit: PUBLIC_NESTED_COLLECTION_LIMIT,

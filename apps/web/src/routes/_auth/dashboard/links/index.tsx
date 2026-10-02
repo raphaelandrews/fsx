@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@fsx/ui/components/button";
 import {
   Table,
@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/links/")({
   head: () => ({ meta: [{ title: "Links - Admin - FSX" }] }),
@@ -22,14 +23,14 @@ export const Route = createFileRoute("/_auth/dashboard/links/")({
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const { data: groups = [] } = useSuspenseQuery(trpc.links.list.queryOptions());
 
   const deleteGroupMutation = useMutation({
     ...trpc.links.deleteGroup.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.links.list.queryFilter());
+      void invalidateAdmin("links");
       toast.success("Group deleted");
     },
     onError: () => toast.error("Failed to delete group"),
@@ -38,7 +39,7 @@ function RouteComponent() {
   const deleteLinkMutation = useMutation({
     ...trpc.links.deleteLink.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.links.list.queryFilter());
+      void invalidateAdmin("links");
       toast.success("Link deleted");
     },
     onError: () => toast.error("Failed to delete link"),
@@ -59,7 +60,7 @@ function RouteComponent() {
           <div className="mb-2 flex items-center justify-between">
             <h2 className="font-semibold">{group.label}</h2>
             <div className="flex gap-1">
-              <Link to="/dashboard/links/$id" params={{ id: String(group.id) }}>
+              <Link to="/dashboard/links/$id" params={{ id: group.id }}>
                 <Button size="sm" variant="outline">Edit</Button>
               </Link>
               <ConfirmDeleteButton

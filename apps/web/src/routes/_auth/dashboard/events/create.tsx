@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -11,6 +11,7 @@ import z from "zod";
 import { DatePicker } from "@/components/date-picker";
 import { EventLinksEditor, type EventLinkDraft } from "@/components/event-links-editor";
 import { useTRPC } from "@/utils/trpc";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/events/create")({
   head: () => ({ meta: [{ title: "Create Event - Admin - FSX" }] }),
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/_auth/dashboard/events/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const [links, setLinks] = useState<EventLinkDraft[]>([]);
 
   const createMutation = useMutation(trpc.events.create.mutationOptions());
@@ -40,7 +41,7 @@ function RouteComponent() {
             links,
           });
         }
-        qc.invalidateQueries(trpc.events.list.queryFilter());
+        void invalidateAdmin("events");
         toast.success("Event created");
         navigate({ to: "/dashboard/events" });
       } catch {

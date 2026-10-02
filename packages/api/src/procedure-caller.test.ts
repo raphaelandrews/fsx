@@ -1,20 +1,10 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { TRPCError } from "@trpc/server";
 
 import type { Context } from "./context";
+import { mockWorkerEnv } from "./test-env";
 
-mock.module("cloudflare:workers", () => ({
-  env: {
-    DB: {},
-    CORS_ORIGIN: "http://localhost:3001",
-    GITHUB_USERNAME: "owner",
-    BETTER_AUTH_SECRET: "test-secret",
-    BETTER_AUTH_URL: "http://localhost:3001",
-    GITHUB_CLIENT_ID: "test-client",
-    GITHUB_CLIENT_SECRET: "test-secret",
-    IMAGES: {},
-  },
-}));
+mockWorkerEnv();
 
 const { appRouter } = await import("./routers/index");
 

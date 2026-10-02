@@ -60,7 +60,7 @@ export function DataTableRowActions({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[150px] p-1">
           <DropdownMenuItem
-            render={<Link to={editTo} params={{ id: String(id) }} />}
+            render={<Link to={editTo} params={{ id }} />}
           >
             <HugeiconsIcon className="mr-2 size-4" icon={Edit01Icon} strokeWidth={2} />
             Editar

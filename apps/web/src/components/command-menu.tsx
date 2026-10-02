@@ -182,7 +182,7 @@ export function CommandMenu() {
 
   const handlePlayerSelect = (playerId: number) => {
     runCommand(() =>
-      router.navigate({ to: "/jogadores/$id", params: { id: String(playerId) } })
+      router.navigate({ to: "/jogadores/$id", params: { id: playerId } })
     )
   }
 

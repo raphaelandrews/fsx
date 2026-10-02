@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -10,6 +10,7 @@ import z from "zod";
 import { DatePicker } from "@/components/date-picker";
 import { useTRPC } from "@/utils/trpc";
 import { getUserErrorMessage } from "@/lib/errors";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 const RATING_TYPES = ["blitz", "rapid", "classic"] as const;
 
@@ -21,11 +22,11 @@ export const Route = createFileRoute("/_auth/dashboard/tournaments/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const createMutation = useMutation({
     ...trpc.tournaments.create.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.tournaments.list.queryFilter()); toast.success("Tournament created"); navigate({ to: "/dashboard/tournaments" }); },
+    onSuccess: () => { void invalidateAdmin("tournaments"); toast.success("Tournament created"); navigate({ to: "/dashboard/tournaments" }); },
     onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar o torneio.")),
   });
 

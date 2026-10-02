@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -12,8 +12,8 @@ import { MarkdownEditor } from "@/components/markdown-editor";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
 import { getFieldError, getUserErrorMessage } from "@/lib/errors";
-import { invalidateAdminQueries } from "@/lib/admin-mutations";
 import { sanitizeTitle, slugify } from "@/utils/slugify";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/create")({
   head: () => ({ meta: [{ title: "Create Post - Admin - FSX" }] }),
@@ -23,18 +23,13 @@ export const Route = createFileRoute("/_auth/dashboard/posts/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
 
   const createMutation = useMutation({
     ...trpc.posts.create.mutationOptions(),
     onSuccess: async () => {
-      await invalidateAdminQueries(qc, [
-        trpc.posts.listAdmin.queryFilter(),
-        trpc.posts.list.queryFilter(),
-        trpc.posts.fresh.queryFilter(),
-        trpc.posts.byPage.queryFilter(),
-      ]);
+      await invalidateAdmin("posts");
       await commit();
       toast.success("Post created");
       navigate({ to: "/dashboard/posts" });

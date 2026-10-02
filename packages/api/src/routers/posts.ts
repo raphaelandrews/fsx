@@ -4,7 +4,7 @@ import { eq, desc, and, count } from "drizzle-orm";
 import { env } from "@fsx/env/server";
 import { posts, insertPostSchema } from "@fsx/db/schema/posts";
 import { adminProcedure, publicProcedure, router } from "../index";
-import { contentText, idInput, nameText, page, positiveInt, searchText, urlText } from "../input-schemas";
+import { contentText, idInput, imageUrl, nameText, page, positiveInt, searchText } from "../input-schemas";
 import { requireMutationRows } from "../errors";
 import { urlToKey } from "./images";
 
@@ -72,7 +72,7 @@ export const postsRouter = router({
   create: adminProcedure
     .input(insertPostSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
       title: nameText,
-      imageUrl: urlText.nullable().optional(),
+      imageUrl: imageUrl.nullable().optional(),
       content: contentText,
       slug: z.string().trim().min(1).max(200),
       published: z.boolean(),
@@ -83,10 +83,10 @@ export const postsRouter = router({
   update: adminProcedure
     .input(z.object({
       id: positiveInt,
-      title: searchText.optional(),
-      imageUrl: urlText.nullable().optional(),
+      title: nameText.optional(),
+      imageUrl: imageUrl.nullable().optional(),
       content: contentText.optional(),
-      slug: searchText.max(200).optional(),
+      slug: z.string().trim().min(1).max(200).optional(),
       published: z.boolean().optional(),
     }))
     .mutation(async ({ ctx, input }) =>

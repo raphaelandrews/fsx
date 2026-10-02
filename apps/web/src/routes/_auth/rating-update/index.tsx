@@ -25,6 +25,8 @@ import { RatingUpdateToolbar } from "@/components/rating-update/rating-update-to
 import type { AnimationState } from "@/components/rating-update/motion-grid-states";
 import type { RatingUpdateProps } from "@/components/rating-update/rating-update-types";
 import { getErrorCode, getUserErrorMessage, showMutationError } from "@/lib/errors";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { toIsoDate } from "@/utils/format";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -35,6 +37,7 @@ export const Route = createFileRoute("/_auth/rating-update/")({
 
 function RatingUpdatePage() {
   const trpc = useTRPC();
+  const invalidateAdmin = useInvalidateAdmin();
   const fileRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef(false);
 
@@ -186,7 +189,7 @@ function RatingUpdatePage() {
           headerMap["name"] !== undefined ? String(row[headerMap["name"]] ?? "").trim() : undefined;
         const birth =
           headerMap["birth"] !== undefined
-            ? String(row[headerMap["birth"]] ?? "").trim()
+            ? toIsoDate(String(row[headerMap["birth"]] ?? ""))
             : undefined;
         const sexRaw =
           headerMap["sex"] !== undefined
@@ -479,6 +482,10 @@ function RatingUpdatePage() {
       setMotionGridStatus("Error", "x");
     } finally {
       setIsRunning(false);
+      if (successCountRef.current > 0) {
+        void invalidateAdmin("players");
+        void invalidateAdmin("playersTournament");
+      }
     }
   };
 

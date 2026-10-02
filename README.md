@@ -103,7 +103,8 @@ cp apps/web/.env.example apps/web/.env
 | `CORS_ORIGIN`          | Allowed CORS origin (same as auth URL)  |
 | `GITHUB_CLIENT_ID`     | GitHub OAuth app client ID              |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth app client secret          |
-| `GITHUB_USERNAME`      | Pre-lock signups to this GitHub username (optional, empty = first-signup-wins) |
+| `GITHUB_USER_ID`       | Numeric GitHub account ID of the owner; only this account can sign in or administer (recommended) |
+| `GITHUB_USERNAME`      | Legacy fallback when `GITHUB_USER_ID` is empty: pre-lock signups to this login (empty = first-signup-wins) |
 | `DISABLE_SIGNUP`       | Hard-disable new signups; set `true` after your account exists (optional) |
 | `CLOUDFLARE_ACCOUNT_ID`| Cloudflare account ID (for D1 migrations via drizzle-kit) |
 | `CLOUDFLARE_DATABASE_ID`| Cloudflare D1 database ID (for migrations) |

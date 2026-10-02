@@ -3,12 +3,13 @@
 //   - titles  → `titles.shortName`  (FSX chess codes)
 //   - clubs  → `clubs.name`
 //   - locations → `locations.name`
-//   - groups  → birth-date range key (handled server-side in
-//     `getBirthDateRange`)
+//   - groups  → `AGE_GROUPS` key (birth-date range in `@fsx/api/age-groups`)
 //
 // Sex options use the new schema values (`male` / `female`) — the new
 // app's backend accepts these strings directly, unlike the legacy source
 // project which used `"true"` / `"false"`.
+
+import type { AgeGroup } from "@fsx/api/age-groups"
 
 export const ratingTitles = [
   { value: "GMS", label: "GMS" },
@@ -37,7 +38,7 @@ export const ratingGroups = [
   { value: "master", label: "Master" },
   { value: "veterano", label: "Veterano" },
   { value: "senior", label: "Sênior" },
-] as const
+] as const satisfies readonly { value: AgeGroup; label: string }[]
 
 export const ratingSortLabels: Record<"classic" | "rapid" | "blitz", string> = {
   classic: "Clássico",

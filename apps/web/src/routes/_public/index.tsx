@@ -23,19 +23,21 @@ export const Route = createFileRoute("/_public/")({
       description: DEFAULT_DESCRIPTION,
       path: "/",
     }),
-  loader: ({ context }) => {
-    context.queryClient.ensureQueryData(
-      context.trpc.events.list.queryOptions(undefined, { staleTime: 30_000 }),
-    );
-    context.queryClient.ensureQueryData(
-      context.trpc.posts.fresh.queryOptions(undefined, { staleTime: PUBLICATION_STALE_TIME }),
-    );
-    context.queryClient.ensureQueryData(
-      context.trpc.announcements.fresh.queryOptions(undefined, {
-        staleTime: PUBLICATION_STALE_TIME,
-      }),
-    );
-    context.queryClient.ensureQueryData(context.trpc.topPlayers.list.queryOptions());
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.queryClient.ensureQueryData(
+        context.trpc.events.list.queryOptions(undefined, { staleTime: 30_000 }),
+      ),
+      context.queryClient.ensureQueryData(
+        context.trpc.posts.fresh.queryOptions(undefined, { staleTime: PUBLICATION_STALE_TIME }),
+      ),
+      context.queryClient.ensureQueryData(
+        context.trpc.announcements.fresh.queryOptions(undefined, {
+          staleTime: PUBLICATION_STALE_TIME,
+        }),
+      ),
+      context.queryClient.ensureQueryData(context.trpc.topPlayers.list.queryOptions()),
+    ]);
   },
   component: RouteComponent,
 });

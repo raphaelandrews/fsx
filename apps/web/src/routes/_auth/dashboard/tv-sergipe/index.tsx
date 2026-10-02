@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -23,6 +23,7 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/")({
   head: () => ({ meta: [{ title: "TV Sergipe - Admin - FSX" }] }),
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/")({
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
 
   const { data = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
@@ -40,8 +41,7 @@ function RouteComponent() {
   const deleteMutation = useMutation({
     ...trpc.tvSergipe.delete.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.tvSergipe.list.queryFilter());
-      qc.invalidateQueries(trpc.tvSergipe.leaderboard.queryFilter());
+      void invalidateAdmin("tvSergipe");
       toast.success("Result deleted");
     },
     onError: () => toast.error("Failed to delete result"),
@@ -50,8 +50,7 @@ function RouteComponent() {
   const deleteAllMutation = useMutation({
     ...trpc.tvSergipe.deleteAll.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.tvSergipe.list.queryFilter());
-      qc.invalidateQueries(trpc.tvSergipe.leaderboard.queryFilter());
+      void invalidateAdmin("tvSergipe");
       toast.success("All results deleted");
     },
     onError: () => toast.error("Failed to delete all results"),

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -12,6 +12,7 @@ import { ImageUpload } from "@/components/image-upload";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
 import { getUserErrorMessage } from "@/lib/errors";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/players/create")({
   head: () => ({ meta: [{ title: "Create Player - Admin - FSX" }] }),
@@ -21,13 +22,13 @@ export const Route = createFileRoute("/_auth/dashboard/players/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
 
   const createMutation = useMutation({
     ...trpc.players.create.mutationOptions(),
     onSuccess: async () => {
-      qc.invalidateQueries(trpc.players.list.queryFilter());
+      void invalidateAdmin("players");
       await commit();
       toast.success("Player created");
       navigate({ to: "/dashboard/players" });

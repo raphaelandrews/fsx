@@ -5,8 +5,9 @@ import { tournaments, insertTournamentSchema } from "@fsx/db/schema/tournaments"
 import { normalizeName } from "@fsx/db/normalize";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireMutationRows } from "../errors";
-import { nameText, positiveInt, searchText, urlText } from "../input-schemas";
+import { httpUrl, isoDate, nameText, positiveInt, searchText } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+import { escapeLike, like } from "../sql-like";
 
 const ratingTypeEnum = z.enum(["blitz", "rapid", "classic"]);
 
@@ -29,7 +30,7 @@ export const tournamentsRouter = router({
       return ctx.db
         .select({ id: tournaments.id, name: tournaments.name })
         .from(tournaments)
-        .where(words.length ? sql`lower(${tournaments.name}) LIKE ${`%${words.join("%")}%`}` : undefined)
+        .where(words.length ? like(sql`lower(${tournaments.name})`, `%${words.map(escapeLike).join("%")}%`) : undefined)
         .orderBy(desc(tournaments.date), desc(tournaments.id))
         .limit(10);
     }),
@@ -54,8 +55,8 @@ export const tournamentsRouter = router({
   create: adminProcedure
     .input(insertTournamentSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
       name: nameText,
-      chessResults: urlText.nullable().optional(),
-      date: z.string().max(40).nullable().optional(),
+      chessResults: httpUrl.nullable().optional(),
+      date: isoDate.nullable().optional(),
       ratingType: ratingTypeEnum,
       championshipId: positiveInt.nullable().optional(),
     }))
@@ -65,9 +66,9 @@ export const tournamentsRouter = router({
   update: adminProcedure
     .input(z.object({
       id: positiveInt,
-      name: searchText.optional(),
-      chessResults: z.string().url().max(2_048).nullable().optional(),
-      date: z.string().max(40).nullable().optional(),
+      name: nameText.optional(),
+      chessResults: httpUrl.nullable().optional(),
+      date: isoDate.nullable().optional(),
       ratingType: ratingTypeEnum.optional(),
       championshipId: positiveInt.nullable().optional(),
     }))

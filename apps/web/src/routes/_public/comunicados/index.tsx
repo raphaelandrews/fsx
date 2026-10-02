@@ -85,7 +85,7 @@ function AnnouncementRow({
       <Link
         className="group flex w-full cursor-pointer items-center justify-between p-3 text-left transition-colors duration-300 select-none hover:bg-muted/50"
         to="/comunicados/$id"
-        params={{ id: String(announcement.id) }}
+        params={{ id: announcement.id }}
       >
         <div className="flex w-full flex-col gap-2">
           <div className="flex items-center justify-between">

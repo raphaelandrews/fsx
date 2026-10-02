@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -9,6 +9,7 @@ import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
 import { getUserErrorMessage } from "@/lib/errors";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 const TITLE = "Championship";
 const DOMAIN = "champions" as const;
@@ -21,11 +22,11 @@ export const Route = createFileRoute("/_auth/dashboard/championships/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const createMutation = useMutation({
     ...trpc[DOMAIN].create.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc[DOMAIN].list.queryFilter()); toast.success(`${TITLE} created`); navigate({ to: "/dashboard/championships" }); },
+    onSuccess: () => { void invalidateAdmin(DOMAIN); toast.success(`${TITLE} created`); navigate({ to: "/dashboard/championships" }); },
     onError: (error) => toast.error(getUserErrorMessage(error, `Não foi possível criar ${TITLE.toLowerCase()}.`)),
   });
 

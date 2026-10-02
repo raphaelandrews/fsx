@@ -41,6 +41,25 @@ export const RATE_LIMITS = {
   trpcMutation: { windowMs: 60_000, max: 300 },
 } as const;
 
+// Mirrors the PUBLIC_READ_RATE_LIMIT binding in packages/infra/alchemy.run.ts.
+export const UNCACHED_READ_LIMIT = { period: 60, limit: 600 } as const;
+
+// Uncached reads use Cloudflare's native limiter instead of D1 so the hot read
+// path never adds a database write. Its counters are per location and
+// approximate, which is acceptable for abuse protection but not for auth.
+export async function limitUncachedRead(request: Request): Promise<RateLimitResult> {
+  const limiter: RateLimit | undefined = env.PUBLIC_READ_RATE_LIMIT;
+  const { success } = limiter
+    ? await limiter.limit({ key: `trpc-read:${getClientIp(request)}` })
+    : { success: true };
+  return {
+    ok: success,
+    limit: UNCACHED_READ_LIMIT.limit,
+    remaining: 0,
+    retryAfter: UNCACHED_READ_LIMIT.period,
+  };
+}
+
 export async function rateLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
   const db = createDb(env.DB);
   const now = Date.now();

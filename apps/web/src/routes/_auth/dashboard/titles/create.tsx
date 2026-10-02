@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -9,6 +9,7 @@ import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
 import { getUserErrorMessage } from "@/lib/errors";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/titles/create")({
   head: () => ({ meta: [{ title: "Create Title - Admin - FSX" }] }),
@@ -18,11 +19,11 @@ export const Route = createFileRoute("/_auth/dashboard/titles/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const createMutation = useMutation({
     ...trpc.titles.create.mutationOptions(),
-    onSuccess: () => { qc.invalidateQueries(trpc.titles.list.queryFilter()); toast.success("Title created"); navigate({ to: "/dashboard/titles" }); },
+    onSuccess: () => { void invalidateAdmin("titles"); toast.success("Title created"); navigate({ to: "/dashboard/titles" }); },
     onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar o título.")),
   });
 

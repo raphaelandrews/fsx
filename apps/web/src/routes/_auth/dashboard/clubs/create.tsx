@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -9,6 +9,7 @@ import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
 import { getUserErrorMessage } from "@/lib/errors";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/clubs/create")({
   head: () => ({ meta: [{ title: "Create Club - Admin - FSX" }] }),
@@ -18,12 +19,12 @@ export const Route = createFileRoute("/_auth/dashboard/clubs/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const createMutation = useMutation({
     ...trpc.clubs.create.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.clubs.list.queryFilter());
+      void invalidateAdmin("clubs");
       toast.success("Club created");
       navigate({ to: "/dashboard/clubs" });
     },

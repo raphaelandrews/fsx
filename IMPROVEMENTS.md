@@ -7,12 +7,28 @@ SEO, performance, maintainability, and Fumadocs.
 
 The review included how the pieces operate together, not only isolated files.
 
+## How to Use This File
+
+- Tasks are numbered in implementation order. Work top to bottom; a later task may
+  assume the earlier ones are finished.
+- Status lives only in each task's checkboxes. A task is done when every box is
+  checked; its heading then carries **(done)**. Do not keep a second status list.
+- Completed tasks stay listed so the backlog records what has already been done.
+- Every open item must end in a verifiable deliverable (a test, a script, a budget,
+  a document, or a recorded decision). Items that only say "consider" or "do not"
+  belong in *Decisions Already Made* instead.
+
 ## Decisions Already Made
 
 - Do not rename `tournaments.date`.
 - Keep `tv_sergipe` as the table name; it represents a fixed program in this project.
 - Keep the current TanStack Router + React Query + tRPC + Cloudflare cache architecture.
 - Do not replace working caching, prefetching, mutation invalidation, or SSR with a new abstraction without measurements.
+- FSX is single-owner. A multi-admin role model stays deferred until a second administrator is needed.
+- Anonymous public data is eventually consistent within the edge TTL. Do not add cache purging until a stale-content incident justifies it.
+- Keep the two-step ratings query (page of IDs, then relations).
+- Add indexes only to support filtering, ordering, or uniqueness — never because a column is frequently selected.
+- Prefer small domain-specific helpers over a generic CRUD abstraction that hides authorization and validation. Rating updates and event-link reconciliation stay explicit.
 
 ## Priority Guide
 
@@ -20,511 +36,504 @@ The review included how the pieces operate together, not only isolated files.
 - **Important:** correctness, data integrity, operational safety, or a likely production scalability problem.
 - **Optional:** quality, maintainability, UX, accessibility, or optimization with lower immediate risk.
 
-## Implementation Order
+## Overview
 
-The numbered task sections below preserve the review categories and task history.
-Implement them in the following dependency order rather than strictly top-to-bottom.
-Completed tasks remain listed so the backlog records what has already been done.
+| Phase | Tasks | Focus |
+| --- | --- | --- |
+| 0. Urgent fixes | 1–3 | Live bugs found in review |
+| 1. Security and authorization | 4–11 | Trust boundaries |
+| 2. Input and data integrity | 12–15 | Validation and database invariants |
+| 3. Tests and error boundaries | 16–17 | Feedback before broad refactors |
+| 4. Query and resource efficiency | 18–22 | Measure, then optimize |
+| 5. Caching, SSR, and freshness | 23–28 | Explicit, measurable cache boundaries |
+| 6. User experience and discoverability | 29–33 | Forms, accessibility, SEO |
+| 7. Maintainability and operations | 34–40 | Code health, CI, recovery |
+| 8. Documentation and LLM support | 41–44 | Docs after contracts stabilize |
 
-### Phase 0: Completed Safety Foundations
+---
 
-- [x] Tasks 1–3: rating integrity, administrator authorization, and CSRF/session defenses.
-- [x] Tasks 4–6: admin-only reads and event-link ownership/one-to-one integrity.
+## Phase 0: Urgent Fixes
 
-### Phase 1: Test and Error Foundations
+Live bugs found during review. Fix these first; each needs a regression test.
 
-Implement these before broad refactors so later changes have reliable feedback.
+### 1. Fix player rename in `players.update` — Critical (done)
 
-- [ ] Task 15: establish the layered automated test strategy. Unit/resource layers are in place; integration and browser layers remain.
-- [ ] Task 16: add resource and response-size regression coverage. Cache classification coverage is in place; runtime budgets remain.
-- [x] Task 11: standardize tRPC error codes and affected-row handling. The shared boundary and active CRUD checks are in place; structured request-ID logging remains.
-- [ ] Task 12: complete backend and frontend error boundaries. Safe mapping is in place; field-level form rendering and full integration coverage remain.
+**Why:** `const { id, name, ...rest } = input` removes `name`, and `.set()` writes only
+`normalizedName`. Renaming a player updates the search column but leaves the
+displayed name unchanged, so the two drift apart.
 
-### Phase 2: Input, Storage, and Data Integrity
+- [x] Write `name` together with `normalizedName` in `players.update`.
+- [x] Add a `createCaller` test that renames a player and asserts both columns (`packages/api/src/admin-mutations.integration.test.ts`, real Miniflare D1; fails against the old code).
+- [x] Add an audit query for rows where `normalized_name` no longer matches `name` (`packages/db/src/audits/player-names-and-urls.sql`, documented in `operacoes.mdx`).
+- [x] Run the audit against production D1 (2026-10-02): no players with stale names.
 
-These reduce abuse, prevent malformed data, and make later query work safer.
+### 2. Split URL validation into external URLs and media paths — Critical (done)
 
-- [ ] Task 7: bound all API inputs.
-- [x] Task 9: harden image uploads.
-- [ ] Task 10: move rate-limit state into migrations.
-- [ ] Task 13: add database-level domain constraints.
-- [ ] Task 14: make timestamp invariants explicit.
+**Why:** Uploads return the relative path `/api/media/<kind>/<uuid>.<ext>`, but
+`imageUrl` is validated with `urlText = z.string().url()`, which rejects relative
+paths. Saving a player or post with an uploaded image fails with `BAD_REQUEST`.
+The same validator accepts `javascript:` URLs, which end up in `href` attributes.
 
-### Phase 3: Query and Resource Efficiency
+- [x] Add an `httpUrl` validator that accepts only `http:` and `https:` URLs.
+- [x] Add a `mediaPath` validator matching `/api/media/(players|posts)/<uuid>.(jpg|png|webp)`, sharing the pattern with `urlToKey` (`MEDIA_PATH_PATTERN`/`MEDIA_KEY_PATTERN`).
+- [x] Use `imageUrl` (`mediaPath` or `httpUrl`, since older rows may hold external images) for `players`, `posts`, and `cups`; use `httpUrl` for `chessResults`, `logoUrl`, `flagUrl`, and event/link `href`s.
+- [x] Add tests: relative media path accepted, `javascript:`/`data:`/`mailto:` rejected, foreign media keys and traversal rejected, plus a `createCaller` round-trip.
+- [x] Add an audit query for stored URLs the new validators would reject (`player-names-and-urls.sql`).
+- [x] Run the URL audit against production D1 (2026-10-02). Literal `'null'` strings left by the migration in `tournaments.chess_results` were cleared to `NULL`. Only `cups.image_url` id 1 remains: the placeholder `"image"`. Cups have no dashboard editor, so nothing is blocked, but the Bullet page shows a broken image until a real URL is set.
 
-Measure before optimizing. The input and test work from Phases 1–2 should exist
-before changing query shapes or adding resource budgets.
+### 3. Refresh admin views after admin edits — Important (done)
 
-- [ ] Task 8: bound large public query responses.
-- [ ] Task 19: measure query plans and actual procedure costs.
-- [ ] Task 20: optimize high-value query shapes based on those measurements.
-- [x] Task 30: keep active linting clean so warnings do not hide regressions.
+**Why:** After a player update, the edit page invalidated only `players.forEdit`.
+`players.page`, `players.byId`, and `players.withFilters` stayed stale for the default
+5-minute `staleTime`, so the dashboard list showed old data.
 
-### Phase 4: Caching, SSR, and Public Freshness
+- [x] Invalidate the player query families through one shared helper (`useInvalidateAdmin` in `apps/web/src/lib/admin-mutations.ts`, which invalidates whole routers via `pathFilter()`).
+- [x] Audit every dashboard route and admin component and route all mutations through `useInvalidateAdmin`. This fixed missing or partial invalidation in `locations/create`, `players/create`, the rating-update batch, link and insignia relations, and cross-domain views (club/title/location edits now refresh player lists). It also replaced `useInvalidateCircuit`.
+- [x] Add an invalidation contract: `ADMIN_QUERY_DEPENDENTS` maps each mutated domain to the routers that embed it, type-checked against `AppRouter` and covered by `admin-mutations.test.ts`.
+- [x] Create group links before invalidating in `links/create`, so the list no longer refreshes before the links exist.
+
+---
+
+## Phase 1: Security and Authorization
+
+### 4. Make rating updates atomic and concurrency-safe — Critical (done)
+
+**Why:** `playersTournament.linkWithRating` updated the player and inserted the
+tournament history as separate operations. A partial failure could leave the rating
+changed without an audit record, and concurrent updates could calculate from the
+same old rating.
+
+- [x] Wrap the player update and history insert in one D1 batch.
+- [x] Read the current rating on the server; do not trust a client-supplied old rating.
+- [x] Update only when the stored rating still equals the value used for the calculation; otherwise reject with `CONFLICT`.
+- [x] Store the rating type on the player-tournament history row.
+- [x] Add tests for success, failed history insertion, duplicate registration, and concurrent updates.
+
+### 5. Define and enforce the administrator authorization model — Critical
+
+**Why:** `adminProcedure` must prove the session belongs to the owner, not only that a
+session exists. The current check compares `user.name` (the GitHub login) with
+`GITHUB_USERNAME`. GitHub logins can be renamed and later claimed by someone else,
+who would then pass both the account-creation hook and `isAdministrator`.
+
+- [x] Decide whether FSX is single-owner or multi-admin. It is single-owner.
+- [x] Enforce the configured GitHub identity on every protected request, not only during account creation.
+- [x] Return `FORBIDDEN` for authenticated users without the required permission.
+- [x] Add focused authorization tests proving that a non-admin identity is rejected.
+- [x] Bind the owner to the immutable GitHub numeric account ID (`GITHUB_USER_ID`, matched against `account.account_id`) in `requireAdmin`. Sign-in rejects every other GitHub ID inside `mapProfileToUser`, before any user, account, or session row is written; an account-hook `false` would still have created a user and a session. The rules live in `packages/auth/src/owner.ts`; the login and first-user rules remain only as fallbacks when no ID is configured.
+- [x] Run only the lookup the active rule needs: the GitHub account row for the ID rule, nothing for the login rule, and the first-user query only when neither is configured.
+- [x] Add tests for a renamed owner login and for a different account that reuses the old login (`owner.test.ts`, plus real-D1 `requireAdmin` checks in `admin-mutations.integration.test.ts`).
+- [ ] Set `GITHUB_USER_ID` in `apps/web/.env.common` and the production environment, then redeploy. Until it is set, the login fallback stays active.
+
+### 6. Verify CSRF and session-cookie defenses — Critical (done)
+
+**Why:** The API uses cookie-based authentication. Origin checks and cookie
+attributes are a deliberate defense-in-depth boundary for every state-changing request.
+
+- [x] Confirm Better Auth cookies are `HttpOnly`, `Secure` in production, and `SameSite=Lax`; `useSecureCookies` is explicit for HTTPS deployments.
+- [x] Require a trusted `Origin` on tRPC/Auth POST handlers; requests without an `Origin` are accepted only by the explicit optional policy.
+- [x] Verify OAuth callback and redirect URLs cannot be used for open redirects; the callback is the fixed relative `/dashboard`.
+- [x] Test the cross-origin decision with focused origin tests; browser-level endpoint tests are part of deployment verification.
+- [x] Document that sessions must rotate after any future privilege change and be invalidated on account removal.
+
+### 7. Protect admin-only read procedures — Important (done)
+
+- [x] Change `players.forEdit` to `adminProcedure`.
+- [x] Audit procedures named `forEdit`, `options`, `listAdmin`, `backup`, `export`, or similar. `players.options` is admin-only; `swissManager.list` is intentionally public for the public export.
+- [x] Return separate minimal public projections rather than reusing admin shapes.
+- [x] Verify the public/admin boundary through authorization decision tests and procedure declarations.
+
+### 8. Make event link reconciliation safe — Important (done)
+
+- [x] Verify that `eventId` exists.
+- [x] Require every supplied link ID to belong to the event's link group.
+- [x] Scope update/delete predicates by both link ID and link-group ID.
+- [x] Reject duplicate link types where the domain permits only one regulation, form, and result link.
+- [x] Reconcile inserts, updates, and deletes in one transaction.
+- [x] Add tests for cross-event link IDs and duplicate types.
+
+### 9. Enforce one event link group per event — Important (done)
+
+- [x] Add a unique index on `link_groups.event_id` (nullable directory groups remain distinct).
+- [x] Check tracked migrations and seed definitions for duplicates before applying the migration.
+- [x] Make the relation and API behavior reflect the one-to-one rule.
+
+### 10. Harden image uploads — Important (done)
+
+- [x] Restrict uploads to JPEG, PNG, and WebP.
+- [x] Validate magic bytes instead of trusting only the MIME field.
+- [x] Cap the base64 string before decoding and map malformed base64 to `BAD_REQUEST`.
+- [x] Verify the decoded byte length against the limit.
+- [x] Generate object keys exclusively on the server.
+- [x] Add tests for malformed base64, MIME spoofing, SVG, oversized input, and valid images.
+
+### 11. Harden public endpoints against cheap amplification — Important (done)
+
+**Why:** Only POST requests are rate-limited. Anonymous GETs that miss the edge cache
+(unknown procedures, or varied inputs such as `players.search`) reach D1 without any
+limit. `sitemap.entries` is a public tRPC procedure with no cache-registry entry, so
+every call returns up to 10,000 player IDs straight from D1. The rate limiter itself
+performs one D1 write per checked request.
+
+- [x] Remove `sitemap.entries` from the public `appRouter`; `/sitemap.xml` calls the server-only `getSitemapEntries()` (`packages/api/src/sitemap.ts`).
+- [x] Rate-limit every tRPC GET that is not served from the edge cache (600/min per IP), including cookie-bearing GETs, because a forged session-cookie name bypasses the cache.
+- [x] Evaluate the Workers Rate Limiting binding and record the decision (ADR 0005, `adr-rate-limiting.mdx`): the native `PUBLIC_READ_RATE_LIMIT` binding covers the uncached read path with no D1 write; auth and mutations keep exact D1 counters.
+- [x] Return 404 instead of 500 for malformed media paths (`packages/api/src/media-handler.ts`).
+- [x] Answer a matching `If-None-Match` on media with `304` through an R2 `etagDoesNotMatch` precondition, without transferring the body.
+- [x] Add fetch-handler tests for each item above with real `Request`/`Response` objects and Miniflare D1/R2 (`fetch-handlers.integration.test.ts`). The tRPC and media handlers moved into `@fsx/api` (`trpc-handler.ts`, `media-handler.ts`) so they are testable; the route files only wire them.
+- [x] Stop injecting stored `links.icon` SVG into `/links`. The icons now live in one shared allowlist (`packages/api/src/link-icons.ts`), writes of any other markup are rejected, and the page renders through `resolveLinkIcon`. Legacy custom icons render as the default link icon and are replaced with it on the next save.
+
+---
+
+## Phase 2: Input and Data Integrity
+
+### 12. Bound and validate API inputs — Important
+
+**Why:** Unbounded or loosely typed inputs consume D1 reads and CPU, and malformed
+values silently produce wrong results.
+
+- [x] Add positive integer and maximum constraints to `page`, `limit`, IDs, ratings, points, and sort orders.
+- [x] Cap search strings and content fields at domain-appropriate lengths.
+- [x] Cap filter-array sizes for clubs, locations, titles, and groups.
+- [x] Reject invalid pages rather than allowing huge offsets.
+- [x] Apply the same constraints to admin procedures.
+- [x] Add tests for negative values, fractional values, huge limits, and oversized arrays.
+- [x] Reject blank names on update: `tournaments.update.name`, `posts.update.title`, and `posts.update.slug` used search-text rules that allowed empty strings.
+- [x] Validate `groups` filters as an enum of known age groups (`AGE_GROUPS` in `packages/api/src/age-groups.ts`, shared with the ratings page options). `/ratings` drops unknown `grupo` values from the URL instead of sending them to the API.
+- [x] Validate `birthDate` as an ISO `YYYY-MM-DD` date (`isoDate`), along with the date-picker-backed `tournaments.date` and `events.startDate`. The rating import converts `DD/MM/YYYY` spreadsheet text (`toIsoDate`).
+- [x] Escape `%`, `_`, and `\` in every user-supplied `LIKE` pattern (`escapeLike` + `like(... ESCAPE '\')` in `packages/api/src/sql-like.ts`): `players.search`, `players.page`, `players.withFilters`, `clubs.search`, `tournaments.search`.
+- [x] Validate numeric `$id` params in every dashboard and public route with `params.parse` (`idParams` in `apps/web/src/lib/route-params.ts`); malformed IDs throw `notFound()` instead of reaching the API.
+- [x] Add tests: age-group mapping, ISO dates, `LIKE` escaping, `idParams`, and real-D1 checks that `_`/`%` match literally, `sub-10` filters by birth date, and unknown groups or `DD/MM/YYYY` birth dates are rejected.
+- [x] Add an audit for stored non-ISO dates (`packages/db/src/audits/date-formats.sql`, documented in `operacoes.mdx`).
+- [x] Run the date audit against production D1 (2026-10-02): no non-ISO dates.
+- [ ] Split `pre-migration-data-checks.sql` (50 terms) and `timestamp-format.sql` (33 terms) into compound SELECTs of at most 5 terms; production D1 rejects larger ones with `too many terms in compound SELECT`.
+
+### 13. Move rate-limit state into migrations — Important (done)
+
+- [x] Add `rate_limits` to the Drizzle schema and generate the migration through the normal workflow.
+- [x] Apply the migration through the Alchemy/D1 workflow.
+- [x] Remove runtime `CREATE TABLE IF NOT EXISTS` initialization.
+- [x] Clean up expired rows with a scheduled job (`fsx-rate-limit-cleanup`, every 15 minutes).
+- [x] Add metrics for rate-limit failures and table growth.
+
+### 14. Add database-level domain constraints — Important (done)
+
+- [x] Add SQLite `CHECK` constraints for stable finite domains (sex, rating type, event type, location type, role type, bracket type).
+- [x] Keep Zod validation at the API boundary for useful error messages.
+- [x] Add checks for non-negative ratings, points, prize values, and valid placement ranges.
+- [x] Audit existing rows before applying constraints (`packages/db/src/audits/pre-migration-data-checks.sql`).
+
+### 15. Make timestamp invariants explicit — Important (done)
+
+- [x] Make `created_at` and `updated_at` `NOT NULL` in domain tables.
+- [x] Store all timestamps in one documented UTC format.
+- [x] Document that direct SQL writers must set `updated_at`; Drizzle `$onUpdate()` only covers ORM writes.
+- [x] Include `updatedAt` in article queries and use it for SEO `modifiedTime`.
+
+---
+
+## Phase 3: Tests and Error Boundaries
+
+Finish these before the broad refactors in Phases 4–7 so later changes have reliable feedback.
+
+### 16. Complete the layered automated test suite — Important
+
+**Why:** The suite has unit, `createCaller`, and real-Miniflare D1 layers, but only
+~36 tests. Both Phase 0 bugs sat in create/update paths that no test exercised.
+
+- [x] Use `bun:test` for pure functions, schema helpers, normalization, authorization decisions, cache classification, mutation-result checks, and error mapping.
+- [x] Use tRPC `createCaller` with a typed fake context for procedure tests.
+- [x] Use a real Miniflare D1 database for migration and integration tests, applying migrations before each isolated suite.
+- [x] Test critical database workflows against real D1: rating transactions, unique constraints, cascades, and rollback.
+- [x] Test auth middleware/admin authorization, rating invariants, event link ownership, and image validation.
+- [x] Test migration application against a clean local D1 database.
+- [x] Keep unit tests deterministic, with no external GitHub, Cloudflare, or network calls.
+- [ ] Add one create → read → update → read round-trip test per admin router using a realistic input (including uploaded media paths).
+- [ ] Test every update/delete mutation with missing and invalid IDs.
+- [ ] Test the tRPC fetch handler with real `Request`/`Response` objects: auth, origin checks, cache headers, rate limits, and batching. Origin, cache-hit, cache-header, rate-limit, and media cases exist in `fetch-handlers.integration.test.ts`; authenticated and batched requests remain.
+- [ ] Test TanStack Start SSR routes for status codes, metadata, canonical URLs, not-found behavior, and safe error HTML.
+- [ ] Add browser-level tests only where a browser is required: OAuth/session, forms, dialogs, uploads, keyboard access, mutation toasts.
+- [ ] Add an accessibility smoke pass for public navigation, dialogs, forms, and upload controls.
+
+### 17. Standardize the backend error boundary — Important (done)
+
+Merges the former backend error tasks.
+
+- [x] Use `TRPCError` with `NOT_FOUND`, `BAD_REQUEST`, `CONFLICT`, `FORBIDDEN`, and `INTERNAL_SERVER_ERROR` consistently; no plain `Error` in expected paths.
+- [x] Define stable categories: validation, unauthorized, forbidden, not found, conflict, rate limited, unexpected failure.
+- [x] Add an `errorFormatter` that exposes field-level Zod errors without internals.
+- [x] Check returned rows for update/delete and throw `NOT_FOUND` across active CRUD mutations.
+- [x] Map unique-constraint failures to `CONFLICT`.
+- [x] Wrap unexpected errors with a generic message, preserve the original as `cause`, and log once with procedure name and request ID.
+- [x] Ensure production responses never include SQL, stack traces, secrets, storage keys, or provider details.
+
+---
+
+## Phase 4: Query and Resource Efficiency
+
+Measure before optimizing. Task 16 should exist before query shapes change.
+
+### 18. Add resource and response-size regression coverage — Important
+
+- [x] Assert the public cache classification for anonymous GETs and authenticated/mutation exclusions.
+- [x] Log response sizes and slow procedures (≥100 ms), and warn above the 512 KB public response budget.
+- [ ] Assert maximum response sizes for the largest public procedures using production-like fixtures.
+- [ ] Assert that mutations never receive cache headers and that failed queries are not cached (fetch-handler tests, Task 16).
+- [ ] Record query count, D1 rows read, Worker CPU time, response bytes, and cache-hit rate for representative routes.
+- [ ] Add budgets for initial HTML size and API requests per navigation (JS chunk budgets live in Task 40).
+- [ ] Test that prefetching and prerendering do not fetch private, large, or duplicate data.
+
+### 19. Bound large public query responses — Important
+
+**Why:** `players.list`, `swissManager.list`, `roles.listWithPlayers`, and the nested
+`circuits.list` grow with the data set.
+
+- [x] Keep explicit column projections on public queries (latest: `insignias.list`, `norms.list`, `roles.listWithPlayers`).
+- [x] Add response-size monitoring for the largest procedures.
+- [ ] Measure current row counts and response sizes on production-like data.
+- [ ] Paginate or cap public collections that can grow indefinitely (`PUBLIC_COLLECTION_LIMIT` silently truncates today — return a page or a `truncated` flag instead).
+- [ ] Split summary and detail procedures where a route does not need the full nested graph (e.g. circuit summaries).
+
+### 20. Measure query plans and procedure costs — Important
+
+- [ ] Capture the slowest public and admin procedures with timing and row counts from production logs.
+- [ ] Run `EXPLAIN QUERY PLAN` (`packages/db/src/audits/query-plans.sql`) for ratings filters, player search, news pagination, circuit listings, and leaderboards on production-like data.
+- [ ] Confirm composite indexes match actual `WHERE` + `ORDER BY` patterns; record the results.
+- [ ] Recheck write cost and D1 storage after any index change.
+
+### 21. Optimize high-value query shapes — Optional
+
+Depends on Task 20's measurements.
+
+- [ ] Measure the ratings count query separately; if exact totals are not required, use a `hasNextPage` strategy that fetches one extra row.
+- [ ] Use keyset pagination where measurements show deep `OFFSET` cost on players or news.
+- [ ] Give small, slow-changing lookup lists (clubs, locations, titles, roles) longer public TTLs.
+- [ ] Ensure every list procedure has deterministic ordering with a stable ID tie-breaker.
+- [ ] Remove fields from public projections that no route renders.
+
+### 22. Remove data-fetching waterfalls in admin routes — Important
+
+**Why:** `dashboard/players/$id.tsx` calls `useSuspenseQuery` ten times in one
+component, but its loader prefetches only five. `forEdit` and the three
+`listByPlayer` queries therefore suspend and fetch one after another.
+
+- [ ] Prefetch every query a route suspends on in its loader with `Promise.all`, or use `useSuspenseQueries`.
+- [ ] Fix `players/$id.tsx` and `players/titles.tsx`, then audit every dashboard route for the same pattern.
+- [ ] Add a lint rule or review checklist item: more than one `useSuspenseQuery` per component requires loader prefetching.
+
+---
+
+## Phase 5: Caching, SSR, and Public Freshness
 
 Keep the existing architecture, but make its boundaries explicit and measurable.
 
-- [ ] Task 17: centralize cache policy.
-- [ ] Task 18: coordinate client invalidation with anonymous edge freshness.
-- [ ] Task 21: keep prefetching selective and budgeted.
-- [ ] Task 22: review prerender boundaries.
-- [ ] Task 23: verify dashboard mutation freshness versus public TTL behavior.
-
-### Phase 5: User Experience and Discoverability
-
-These tasks depend on the error taxonomy and resource boundaries being stable.
-
-- [ ] Task 24: fix upload accessibility.
-- [ ] Task 25: improve form feedback.
-- [ ] Task 26: improve navigation and responsive behavior.
-- [ ] Task 27: improve loading and empty states.
-- [ ] Task 28: improve content and SEO quality.
-
-### Phase 6: Maintainability and Operations
-
-- [ ] Task 29: reduce duplicated mutation and invalidation logic.
-- [ ] Task 31: document architectural contracts.
-- [ ] Task 32: protect backup and export workflows.
-- [ ] Task 33: establish recovery and deployment safeguards.
-- [ ] Task 34: add privacy and data-governance rules.
-- [ ] Task 35: add CI quality gates and dependency hygiene.
-
-### Phase 7: Documentation and LLM Support
-
-Document the behavior after the architecture and operational contracts have
-stabilized, otherwise the docs will immediately become stale.
-
-- [ ] Task 36: organize Fumadocs by audience.
-- [ ] Task 37: document the domain model.
-- [ ] Task 38: document runtime behavior.
-- [ ] Task 39: add LLM-friendly references.
-
-## Critical
-
-### 1. Make rating updates atomic and concurrency-safe
-
-**Why:** `playersTournament.linkWithRating` updates the player and inserts the
-tournament history as separate operations. A partial failure can leave the rating
-changed without an audit record. Concurrent updates can also calculate from the
-same old rating.
-
-- [x] Wrap the player update and history insert in one D1/Drizzle transaction.
-- [x] Read the current rating on the server; do not trust a client-supplied old rating.
-- [x] Update only when the stored rating still equals the value used for the calculation, or otherwise retry/reject the operation.
-- [x] Store the rating type on the player-tournament history row if the history must distinguish blitz, rapid, and classic changes.
-- [x] Add tests for success, failed history insertion, duplicate registration, and concurrent updates.
-
-### 2. Define and enforce the administrator authorization model
-
-**Why:** `adminProcedure` currently checks that a session exists but does not
-check that the session belongs to an administrator. This is acceptable only while
-the system is explicitly single-owner.
-
-- [x] Decide whether FSX is permanently single-owner or needs multiple administrators. The current implementation keeps the single-owner model.
-- [x] For the single-owner model, enforce the configured GitHub identity on every protected request, not only during account creation.
-- [x] For a multi-admin model, add a role/permission field and a dedicated authorization middleware. This remains deferred because FSX is single-owner.
-- [x] Return `FORBIDDEN` for authenticated users without the required permission.
-- [x] Add focused authorization tests proving that a non-admin identity is rejected before it can use admin procedures.
-
-### 3. Verify CSRF and session-cookie defenses
-
-**Why:** The API uses cookie-based authentication. Origin checks and cookie
-attributes should be treated as a deliberate defense-in-depth boundary for every
-state-changing request.
-
-- [x] Confirm Better Auth cookies are `HttpOnly`, `Secure` in production, and use an appropriate `SameSite` policy; `useSecureCookies` is now explicit for HTTPS deployments and Better Auth supplies the HTTP-only/Lax defaults.
-- [x] Require a trusted `Origin` or equivalent CSRF signal for browser state-changing requests; non-browser requests without an `Origin` are still accepted only by the explicit optional policy, while tRPC/Auth POST handlers require one.
-- [x] Verify OAuth callback and redirect URLs cannot be used for open redirects; the application uses the fixed relative `/dashboard` callback.
-- [x] Test the cross-origin decision used by form/fetch mutation requests with focused origin tests; browser-level endpoint tests remain part of deployment verification.
-- [x] Rotate sessions after any future privilege change and invalidate sessions on account removal; no privilege-changing workflow currently exists, and this invariant is documented for future additions.
-
-## Important
-
-### 4. Protect admin-only read procedures
-
-**Why:** `players.forEdit` is currently public even though it returns edit-oriented
-fields such as FIDE/CBX IDs, descriptions, inactive-player data, and other fields
-not needed by the public site.
-
-- [x] Change `players.forEdit` to `adminProcedure` unless every field is intentionally public.
-- [x] Audit all procedures named `forEdit`, `options`, `listAdmin`, `backup`, `export`, or similar. `players.options` is admin-only; `swissManager.list` is intentionally public for the public export; no other matching admin-read procedure was found.
-- [x] For intentionally public data, return a separate minimal public projection rather than reusing admin shapes.
-- [x] Add an automated audit/test that verifies the public/admin procedure boundary through the admin authorization decision tests and the procedure declarations.
-
-### 5. Make event link reconciliation safe
-
-**Why:** `events.setLinks` updates a supplied link by ID without proving that the
-link belongs to the requested event. It also performs many writes without a
-transaction, so a failure can leave a partial set of links.
-
-- [x] Verify that `eventId` exists.
-- [x] Resolve the event's link group and require every supplied link ID to belong to that group.
-- [x] Scope update/delete predicates by both link ID and link-group ID.
-- [x] Reject duplicate link types when the domain permits only one regulation, form, and result link.
-- [x] Reconcile inserts, updates, and deletes in one transaction.
-- [x] Add focused tests for cross-event link IDs and duplicate types; real-D1 partial-failure coverage remains included in the integration-test suite task.
-
-### 6. Enforce one event link group per event
-
-**Why:** The API assumes one link group per event, but the database does not
-appear to enforce that relationship. Duplicate groups make `findFirst()` select an
-arbitrary group.
-
-- [x] Add a unique index on `link_groups.event_id`; SQLite allows multiple directory groups because nullable values remain distinct.
-- [x] Check tracked migrations and seed definitions for duplicates before applying the migration; production D1 should be checked before deployment because a unique-index migration must not silently choose a row.
-- [x] Make the relation and API behavior reflect the one-to-one event-group rule.
-
-### 7. Bound API inputs
-
-**Why:** Several public procedures accept unbounded numbers, strings, or arrays.
-Large limits, offsets, names, and filter lists can consume unnecessary D1 reads and
-CPU or produce oversized responses.
-
-- [ ] Add positive integer and maximum constraints to `page`, `limit`, IDs, ratings, points, and sort orders.
-- [ ] Cap search strings and content fields at domain-appropriate lengths.
-- [ ] Cap filter-array sizes for clubs, locations, titles, and groups.
-- [ ] Reject invalid pages rather than allowing huge offsets.
-- [ ] Apply the same constraints to admin procedures, not only public procedures.
-- [ ] Add tests for negative values, fractional values, huge limits, and oversized arrays.
-
-### 8. Bound large public query responses
-
-**Why:** Procedures such as `players.list`, `swissManager.list`,
-`roles.listWithPlayers`, and the nested `circuits.list` can grow with the data set.
-
-- [ ] Measure current row counts and response sizes in production-like data.
-- [ ] Paginate or otherwise cap public collections that can grow indefinitely.
-- [ ] Split summary and detail procedures where a route does not need the full nested graph.
-- [ ] Keep explicit column projections on every public query.
-- [ ] Add response-size monitoring for the largest procedures.
-
-### 9. Harden image uploads
-
-**Why:** The server trusts the client MIME value, accepts any `image/*` type, and
-decodes base64 before applying a meaningful encoded-size limit. SVG uploads can
-also be stored with inconsistent extensions/content types.
-
-- [x] Restrict uploads to JPEG, PNG, and WebP unless SVG is explicitly required.
-- [x] Validate magic bytes/signatures instead of trusting only the MIME field.
-- [x] Cap the base64 string before calling `atob`.
-- [x] Convert malformed base64 errors into a controlled `BAD_REQUEST` response.
-- [x] Verify that the decoded byte length matches the declared limit.
-- [x] Keep object keys generated exclusively by the server.
-- [x] Add tests for malformed base64, MIME spoofing, SVG, oversized encoded input, and valid images.
-
-### 10. Move rate-limit schema creation into migrations
-
-**Why:** `security.ts` creates `rate_limits` at runtime. This bypasses the D1
-migration tracker and makes the table invisible to schema review, backup planning,
-and deterministic deployments.
-
-- [x] Add `rate_limits` to the Drizzle schema or migration set.
-- [x] Generate the migration through the normal Drizzle workflow.
-- [ ] Apply the migration through the normal Alchemy/D1 workflow.
-- [x] Remove runtime `CREATE TABLE IF NOT EXISTS` initialization.
-- [ ] Decide whether rate-limit cleanup should use a scheduled job instead of random request sampling.
-- [ ] Add metrics for rate-limit failures and table growth.
-
-### 11. Standardize tRPC errors and affected-row handling
-
-**Why:** Some procedures throw plain `Error`, while others use `TRPCError`. Plain
-errors become generic 500 responses, and mutations can report success when an ID
-does not exist.
-
-- [x] Use `TRPCError` with `NOT_FOUND`, `BAD_REQUEST`, `CONFLICT`, `FORBIDDEN`, and `INTERNAL_SERVER_ERROR` consistently at the shared procedure boundary and active mutation paths.
-- [x] Add a tRPC `errorFormatter` that exposes field-level Zod errors without exposing internals.
-- [x] Check returned rows for update/delete operations and throw `NOT_FOUND` when appropriate across active user-facing CRUD mutations.
-- [x] Wrap unexpected infrastructure errors with a generic user-facing message and preserve the original error as `cause`.
-- [x] Add structured server-side error logging with procedure name, request ID, and safe metadata.
-- [x] Avoid showing raw `error.message` globally in user-facing toasts.
-
-### 12. Complete the backend error boundary
-
-**Current assessment:** Error handling is not fully consistent yet. Some routers
-use `TRPCError`, but `events.setLinks` still throws a plain `Error`, many CRUD
-mutations do not check affected rows, and there is no centralized tRPC error
-formatter or safe error taxonomy.
-
-- [x] Replace every expected plain `Error` in API procedures with a typed `TRPCError`.
-- [x] Define a small stable set of user-facing error categories: validation, unauthorized, forbidden, not found, conflict, rate limited, and unexpected failure.
-- [x] Add an `errorFormatter` that returns field-level Zod errors without exposing database or infrastructure details.
-- [x] Preserve original exceptions as server-side `cause` values and log them with a procedure/request identifier.
-- [x] Ensure production responses never include SQL, stack traces, secrets, storage keys, or provider error details.
-- [x] Map unique-constraint failures to `CONFLICT` where the user can correct the input.
-- [x] Add a global tRPC error boundary that logs unexpected errors once rather than logging the same failure at multiple layers.
-
-**Frontend assessment:** The root error boundary intentionally shows a generic
-500 message, which is good for avoiding leakage, but the client still has several
-unsafe or inconsistent paths. `QueryCache.onError` displays raw `error.message`,
-and many admin mutations display `error.message ?? fallback`. Other mutations use
-different hard-coded English and Portuguese messages. This can expose internal
-errors and gives users no reliable distinction between validation, conflict,
-authorization, and transient failures.
-
-- [x] Add one client error-mapping function that converts tRPC codes and Zod field errors into safe Portuguese user messages.
-- [x] Never display raw server error messages by default; expose them only through safe, explicitly approved error codes/messages.
-- [ ] Show field-level validation errors next to the relevant form controls instead of only using a toast.
-- [ ] Show conflict errors with a reload/retry action, especially for rating and concurrent edits.
-- [x] Show `UNAUTHORIZED` as a sign-in action and `FORBIDDEN` as an access-denied message, not as a generic failure.
-- [x] Show `NOT_FOUND` with a route-appropriate empty/not-found state rather than a generic 500 page through safe mapping and expected-query suppression.
-- [x] Show `TOO_MANY_REQUESTS` with a retry-after message and do not immediately retry automatically.
-- [x] Reserve global query toasts for unexpected background failures; avoid toasting expected 404s, empty results, and handled form errors.
-- [x] Add a visible retry action that calls the relevant query invalidation or router invalidation.
-- [ ] Add tests for every supported backend error category and its rendered user message; mapping tests exist, but browser/rendered form coverage remains.
-
-### 13. Add database-level domain constraints
-
-**Why:** PostgreSQL enums became text fields in D1. Zod protects tRPC inputs, but
-direct SQL, seed scripts, future jobs, or another writer can still insert invalid
-values.
-
-- [ ] Add SQLite `CHECK` constraints for stable finite domains such as sex, rating type, event type, location type, role type, and bracket type.
-- [ ] Keep Zod validation at the API boundary for useful error messages.
-- [ ] Add checks for non-negative ratings, points, prize values, and valid placement ranges where appropriate.
-- [ ] Audit existing rows before applying constraints.
-
-### 14. Make timestamp invariants explicit
-
-- [ ] Make `created_at` and `updated_at` `NOT NULL` in domain tables where timestamps are required.
-- [ ] Confirm that all timestamps are stored in one documented format, preferably UTC ISO 8601.
-- [ ] Decide whether direct SQL writers need database triggers for `updated_at`; Drizzle `$onUpdate()` only covers ORM writes.
-- [x] Include `updatedAt` in article queries and use it for SEO `modifiedTime`.
-
-### 15. Add a focused automated test suite
-
-- [x] Use `bun:test` for pure functions, schema helpers, normalization, authorization decisions, cache classification, mutation-result checks, and error mapping.
-- [ ] Use tRPC `createCaller` with a typed fake context for procedure tests; verify inputs, access control, typed errors, and mutation invalidation contracts.
-- [ ] Use a real Miniflare D1 database for migration and repository/integration tests; apply migrations before each isolated suite.
-- [ ] Test the tRPC fetch handler with real `Request`/`Response` objects for auth, origin checks, cache headers, rate limits, and batching.
-- [ ] Test critical database workflows against real D1 behavior, not only mocked chains: rating transactions, unique constraints, cascades, and rollback.
-- [ ] Test TanStack Start SSR routes for status, metadata, not-found behavior, and safe error HTML.
-- [ ] Add browser-level tests only for workflows that need a browser: OAuth/session behavior, forms, dialogs, uploads, keyboard access, and mutation-toasts.
-- [x] Keep unit tests deterministic and avoid external GitHub, Cloudflare, or network calls; use fixtures and test doubles at the boundary.
-- [ ] Test auth middleware and admin authorization.
-- [ ] Test every critical mutation with invalid and missing IDs.
-- [ ] Test rating update transactions and invariants.
-- [ ] Test event link ownership and reconciliation.
-- [ ] Test image validation and deletion behavior.
-- [ ] Test migration application against a clean local D1 database.
-- [ ] Test public route SSR output for canonical URLs, titles, and not-found responses.
-- [ ] Add a small accessibility smoke-test pass for public navigation, dialogs, forms, and upload controls.
-
-### 16. Test resource boundaries, not only correctness
-
-- [ ] Assert maximum response sizes for the largest public procedures using production-like fixtures.
-- [x] Assert the public cache classification used by anonymous GET responses and authenticated/mutation exclusions.
-- [ ] Assert that mutations never receive cache headers and that failed queries are not cached.
-- [ ] Track query count, D1 reads, Worker CPU time, response bytes, and cache-hit rate for representative routes.
-- [ ] Add regression budgets for initial HTML size, JavaScript transferred, API requests during navigation, and largest route chunks.
-- [ ] Test that prefetching and prerendering do not fetch unnecessary private, large, or duplicate data.
-- [ ] Prefer a measured regression budget over arbitrary micro-optimizations.
-
-## Caching, Revalidation, Prefetching, and Prerendering
-
-### Current assessment
-
-The existing model is good and should be retained:
-
-- Route loaders prefetch data before rendering.
-- `loaderDeps` is used for filter-driven routes such as ratings and news pagination.
-- React Query provides client-side reuse and mutation invalidation.
-- Server-side tRPC calls use an in-process link instead of a self-fetch.
-- Anonymous public GETs use bounded Cloudflare Cache API entries.
-- Authenticated requests bypass the edge cache.
-- Mutations invalidate the relevant client query families.
-- Static prerendering is used for stable pages where it is useful.
-
-The main caveat is that React Query invalidation does not purge an already cached
-anonymous edge response. Anonymous users may see the old response until its edge
-TTL expires. This is acceptable with the current short TTLs, but should be
-documented as eventual consistency.
-
-### 17. Centralize cache policy
-
-- [x] Keep one registry for procedure cache TTLs rather than spreading TTL assumptions across route comments, route options, and API handlers.
-- [x] Make the registry explicitly classify procedures as public-cacheable, private, or never-cache.
+**Current model (keep):** route loaders prefetch before render; `loaderDeps` drives
+filter routes; React Query reuses data and invalidates after mutations; SSR calls tRPC
+in-process; anonymous public GETs use bounded Cache API entries; authenticated
+requests bypass the edge cache; stable pages are prerendered. React Query
+invalidation does not purge cached anonymous edge responses, so anonymous users may
+see old data until the TTL expires.
+
+### 23. Centralize cache policy — Important
+
+- [x] Keep one registry for procedure cache TTLs.
+- [x] Classify procedures as public-cacheable, private, or never-cache.
 - [x] Cache only successful anonymous queries; never cache mutations, errors, or authenticated output.
-- [x] Add tests for batched requests containing a private or unknown procedure.
-- [x] Confirm that the cookie detection remains correct for every Better Auth cookie variant used in production.
-- [x] Consider setting TanStack Router `defaultPreloadStaleTime` to `0` so TanStack Query remains the single client-side freshness authority.
-- [ ] Document that Workers `caches.default` is not a globally replicated cache; validate the tradeoff with cache-hit and latency measurements before changing it.
+- [x] Test batched requests containing a private or unknown procedure.
+- [x] Confirm cookie detection covers every Better Auth cookie variant used in production.
+- [x] Set TanStack Router `defaultPreloadStaleTime` to `0` so React Query is the single client-side freshness authority.
+- [ ] Add a test that every public `query` procedure has an explicit registry entry, so new procedures cannot silently become uncached.
+- [ ] Document that `caches.default` is per-data-center, not globally replicated, and validate the tradeoff with cache-hit and latency measurements.
 
-### 18. Improve cache invalidation coordination
+### 24. Make the tRPC edge-cache path cheaper — Optional
 
-- [x] Document the consistency window for anonymous users after admin mutations.
-- [x] Keep client invalidation after successful mutations, but invalidate only affected query families.
-- [ ] Consider versioned cache keys or a lightweight public-content version when immediate global freshness becomes necessary.
-- [ ] Do not add cache purging complexity until stale-content incidents justify it.
-- [ ] Add a manual admin cache purge only for operational recovery, not as the normal mutation path.
+**Why:** The handler awaits `cache.put`/`cache.delete` before responding, buffers the
+full body of every successful GET even when it cannot be cached, and sends the
+internal `x-cache-fetched-at` header to clients.
 
-### 19. Measure and optimize query plans before changing indexes
+- [ ] Run `cache.put` and `cache.delete` through `waitUntil` instead of awaiting them on the response path.
+- [ ] Clone and parse the body only when the response is cacheable or size telemetry needs it.
+- [ ] Keep `x-cache-fetched-at` only on the stored entry, not on the client response.
 
-- [ ] Capture the slowest public and admin procedures with timing and row-count metrics.
-- [ ] Run `EXPLAIN QUERY PLAN` for ratings filters, player search, news pagination, circuit listings, and leaderboard queries using production-like data.
-- [ ] Confirm composite indexes match actual `WHERE` plus `ORDER BY` patterns.
-- [ ] Avoid adding indexes solely because a column is frequently selected; indexes should support filtering, ordering, or uniqueness.
-- [ ] Recheck write cost and D1 storage after adding indexes.
+### 25. Decide on caching for SSR public HTML — Important
 
-### 20. Optimize high-value query shapes
+**Why:** SSR calls tRPC in-process, so the edge cache only helps client-side
+navigation. Every anonymous page view (home, ratings, news, players) renders on the
+Worker and queries D1. No task covered this before.
 
-- [ ] Keep the two-step ratings query, but measure the count query separately; if exact totals are not required, consider a `hasNextPage` strategy that fetches one extra row.
-- [ ] Consider keyset pagination for large player/news datasets instead of deep `OFFSET` pagination.
-- [ ] Cache small, slow-changing lookup lists such as clubs, locations, titles, and roles with longer public TTLs.
-- [ ] Avoid loading full nested circuit data on routes that need only circuit summaries.
-- [ ] Ensure list procedures have deterministic ordering, including a stable ID tie-breaker after dates or ratings.
-- [ ] Keep public projections minimal and avoid returning fields that are not rendered.
+- [ ] Measure D1 queries and CPU time per anonymous SSR page view for the top routes.
+- [ ] Evaluate the options and record the decision: short-TTL Cache API entries for anonymous HTML, routing SSR reads through the same edge-cached procedure results, or accepting the cost.
+- [ ] If HTML is cached, ensure cookie-bearing requests bypass it and `Vary`/cache keys include the search params that change content.
 
-### 21. Keep prefetching intentional
+### 26. Coordinate invalidation with public freshness — Important
+
+Merges the former invalidation and dashboard-freshness tasks.
+
+- [x] Document the anonymous consistency window after admin mutations.
+- [x] Invalidate only the affected React Query families after successful mutations, including related lists and details visible in multiple dashboard routes.
+- [x] Do not invalidate every query globally after ordinary CRUD edits.
+- [x] Treat the public edge TTL as the normal propagation window.
+- [ ] Add an admin "purge public cache" action for operational recovery only (the `dashboard/cache` route is the place), and a versioned cache key if immediate global freshness becomes a requirement.
+- [ ] Add end-to-end checks for immediate dashboard freshness and eventual anonymous freshness.
+
+### 27. Keep prefetching intentional — Optional
 
 - [x] Retain intent prefetching for likely navigation targets.
 - [x] Avoid prefetching large nested queries on every hover or focus.
 - [x] Use route-specific stale times for stable lookup data and frequently edited content.
-- [ ] Verify that preload requests are not duplicating SSR work for the same navigation.
-- [ ] Measure cache hit rate and request volume before increasing preload scope.
-- [x] Prefetch the current route's critical data and a small number of likely next destinations, not every public page on initial load.
-- [ ] Prefer prefetching lightweight lookup data and the next paginated result over full nested page graphs.
-- [ ] Add a budget for prefetch requests per navigation so mobile users do not pay for unused data.
+- [x] Prefetch the current route's critical data and a few likely next destinations, not every public page.
+- [ ] Verify that preload requests do not duplicate SSR work for the same navigation.
+- [ ] Measure cache-hit rate and request volume before widening preload scope.
+- [ ] Prefer prefetching lookup data and the next paginated result over full nested graphs.
+- [ ] Add a per-navigation prefetch request budget (enforced in Task 18).
 
-### 22. Review prerender boundaries
+### 28. Review prerender boundaries and the sitemap — Optional
 
-- [x] Keep prerendering for stable, public, SEO-important pages.
-- [x] Do not prerender admin pages or pages whose content changes too frequently unless there is a clear deployment-time data model.
-- [ ] Review the static sitemap whenever public routes are added.
-- [ ] Decide whether news detail pages should be dynamically included in the sitemap rather than relying only on a static file.
-- [ ] Test prerendered HTML for correct metadata, canonical URLs, and hydrated data.
+- [x] Prerender only stable, public, SEO-important pages (`/sobre`, `/normas-tecnicas`).
+- [x] Do not prerender admin pages or frequently changing content.
+- [x] Generate the sitemap dynamically with published news and active player URLs.
+- [ ] Cache `/sitemap.xml` in the Cache API; `s-maxage` alone does not cache Worker-generated responses.
+- [ ] Add a check that every new public route is either in the sitemap or explicitly excluded (extend `check:routes`).
+- [ ] Test prerendered HTML for metadata, canonical URLs, and hydrated data (`check:seo` covers part of this).
 
-### 23. Keep dashboard mutations and public freshness separate
+---
 
-**Why:** Dashboard mutations should update the current administrator's view
-immediately, while public edge responses can reasonably remain eventually
-consistent for a short TTL. Trying to synchronously refresh every public cache entry
-after every edit would add complexity without much value for this traffic profile.
+## Phase 6: User Experience and Discoverability
 
-- [x] After a successful mutation, invalidate the affected React Query procedure families in the dashboard.
-- [x] Invalidate related admin lists and detail queries when the same entity is visible in more than one dashboard route.
-- [x] Do not invalidate every query globally after ordinary CRUD edits.
-- [x] Treat the public edge TTL as the normal propagation window.
-- [ ] Use a targeted cache-version or purge mechanism only for urgent corrections or content that must be public immediately.
-- [ ] Add end-to-end checks that verify both immediate dashboard freshness and eventual anonymous freshness.
+These depend on the error taxonomy (Task 17) and resource boundaries being stable.
 
-## UX and UI
+### 29. Frontend error handling and form feedback — Important
 
-### 24. Fix upload accessibility
+Merges the former frontend error-boundary, form-feedback, and duplicated loading-state items.
 
-- [x] Replace the clickable upload `<div>` with a semantic button or a properly labelled file input/drop zone.
-- [x] Make upload, replace, and remove controls keyboard reachable.
-- [x] Do not rely only on hover to reveal actions; expose them on focus and touch.
-- [x] Add accessible status text for reading, cropping, uploading, success, and failure states.
-- [x] Add a visible label or description connected to the file input.
-
-### 25. Improve form feedback
-
-- [ ] Show field-level validation messages from tRPC/Zod responses.
-- [ ] Disable submit controls while mutations are pending.
-- [ ] Prevent duplicate submissions.
+- [x] Add one client error-mapping function that converts tRPC codes and Zod field errors into safe Portuguese messages.
+- [x] Never display raw server error messages by default.
+- [x] Show `UNAUTHORIZED` as a sign-in action and `FORBIDDEN` as access denied.
+- [x] Show `NOT_FOUND` as a route-appropriate not-found state.
+- [x] Show `TOO_MANY_REQUESTS` with a retry-after message and no automatic retry.
+- [x] Reserve global query toasts for unexpected background failures.
+- [x] Add a visible retry action that invalidates the relevant query.
+- [ ] Use `getUserErrorMessage` in every admin mutation `onError` instead of hard-coded strings.
+- [ ] Translate the remaining English admin toasts ("Player updated", "Failed to update player", …) to Portuguese.
+- [ ] Show field-level validation errors next to the relevant form controls.
+- [ ] Show conflict errors with a reload/retry action, especially for rating and concurrent edits.
+- [ ] Disable submit controls and prevent duplicate submissions while mutations are pending.
 - [ ] Preserve entered values when a mutation fails.
-- [ ] Distinguish validation, conflict, authorization, not-found, and server errors in the UI.
 - [ ] Confirm destructive operations consistently, especially bulk deletes.
+- [ ] Add tests for each error category and its rendered message (mapping tests exist; rendered form coverage remains).
 
-### 26. Improve navigation and responsive behavior
+### 30. Fix upload accessibility — Optional (done)
+
+- [x] Replace the clickable upload `<div>` with a semantic, labelled control.
+- [x] Make upload, replace, and remove controls keyboard reachable.
+- [x] Expose actions on focus and touch, not only hover.
+- [x] Add accessible status text for reading, cropping, uploading, success, and failure.
+- [x] Connect a visible label or description to the file input.
+
+### 31. Improve navigation and responsive behavior — Optional
 
 - [ ] Verify that every icon-only button has an accessible name.
 - [ ] Ensure dialogs, sheets, command menus, and dropdowns have visible focus states and predictable Escape behavior.
-- [ ] Test admin tables on narrow screens; provide horizontal scrolling or responsive card layouts where needed.
-- [ ] Ensure pagination announces page changes and preserves focus appropriately.
+- [ ] Test admin tables at 375 px width; provide horizontal scrolling or card layouts where needed.
+- [ ] Announce pagination page changes and preserve focus.
 - [ ] Provide non-hover alternatives for important actions.
-- [ ] Verify color contrast in both light and dark themes.
+- [ ] Verify WCAG AA color contrast in light and dark themes.
 
-### 27. Improve loading and empty states
+### 32. Improve loading and empty states — Optional
 
-- [ ] Keep route-specific skeletons, but ensure they preserve the final layout dimensions to reduce layout shift.
-- [ ] Provide useful empty states with the next action when an admin collection is empty.
-- [ ] Add retry actions that invalidate the relevant loader/query rather than only dismissing an error boundary.
-- [ ] Avoid global error toasts for expected empty, not-found, or background-refresh states.
+- [ ] Make route skeletons match final layout dimensions to reduce layout shift (measure CLS).
+- [ ] Give empty admin collections an empty state with the next action.
 
-### 28. Improve content and SEO quality
+### 33. Improve content and SEO quality — Optional
 
-- [ ] Confirm every public route has a unique title and useful description.
 - [x] Use `updatedAt` for article modification metadata.
+- [ ] Confirm every public route has a unique title and description (extend `check:seo`).
+- [ ] Strip Markdown syntax before truncating post content into meta descriptions.
 - [ ] Add structured data only where it accurately describes the rendered content.
-- [ ] Include dynamic news and player URLs in the sitemap strategy.
-- [ ] Verify image dimensions, alt text, and loading behavior on content-heavy pages.
-- [ ] Check canonical URLs with pagination and filter query parameters.
+- [ ] Verify image dimensions, alt text, and lazy loading on content-heavy pages.
+- [ ] Check canonical URLs for paginated and filtered routes (ratings, news).
 
-## Maintainability and Consistency
+---
 
-### 29. Reduce duplicated mutation and invalidation code
+## Phase 7: Maintainability and Operations
+
+### 34. Reduce duplicated mutation and invalidation code — Optional
 
 - [ ] Identify repeated CRUD route patterns and extract only genuinely shared behavior.
-- [ ] Prefer small domain-specific helpers over a generic CRUD abstraction that hides authorization and validation.
-- [ ] Standardize mutation success/error/invalidation handling in admin pages where the behavior is truly identical.
-- [ ] Keep special workflows such as rating updates and event-link reconciliation explicit.
+- [ ] Standardize mutation success/error/invalidation handling in admin pages where behavior is identical (build on `invalidateAdminQueries` and Task 29's error mapping).
+- [ ] Keep a mutation → invalidated query families map in one place, covered by a test (see Task 3).
 
-### 30. Keep active linting clean
+### 35. Keep active linting clean — Optional (done)
 
-- [x] Remove deleted legacy-tree assumptions from the active lint and documentation workflow.
+- [x] Remove deleted legacy-tree assumptions from the lint and documentation workflow.
 - [x] Remove active warnings such as the unused `z` import in `packages/env/src/web.ts`.
 - [x] Keep warnings in active `apps/` and `packages/` code visible in CI.
 
-### 31. Document architectural contracts
+### 36. Document architectural contracts — Optional (done)
 
 - [x] Document the package dependency direction: web → API → auth → DB → env, with UI as a shared presentation package.
 - [x] Document which procedures are public, protected, and administrator-only.
-- [x] Document cache TTLs, invalidation behavior, and the anonymous edge-cache consistency window.
+- [x] Document cache TTLs, invalidation, and the anonymous edge-cache consistency window.
 - [x] Document D1 migration rules and the local Alchemy migration tracker workflow.
-- [ ] Record important decisions as ADRs instead of leaving them only in migration notes.
+- [x] Record important decisions as ADRs (`apps/fumadocs/content/docs/adr-*.mdx`).
 
-### 32. Protect backup and export workflows
+### 37. Add privacy and data-governance rules — Important (done)
 
-**Why:** Backups, Swiss Manager exports, and administrative data downloads can
-contain more personal or operational data than normal public pages. They deserve a
-separate security and retention policy.
-
-- [ ] Require the strongest administrator authorization for backup and export procedures.
-- [ ] Add `Cache-Control: no-store` to sensitive download responses.
-- [ ] Avoid logging exported data, URLs containing secrets, or full request payloads.
-- [ ] Define retention and deletion rules for downloaded backups.
-- [ ] Audit backup/export access with administrator, timestamp, procedure, and result metadata.
-- [ ] Verify that generated files cannot be used for spreadsheet formula injection if user-controlled text is exported.
-
-### 33. Establish recovery and deployment safeguards
-
-- [x] Document the production rollback procedure for application and database migrations.
-- [ ] Test restoring a D1 backup periodically instead of only creating backups.
-- [x] Keep migration application and application deployment ordering explicit.
-- [ ] Add a deploy smoke test for authentication, a public route, a public tRPC query, an admin guard, and media delivery.
-- [ ] Add alarms or notifications for failed deployments, migration failures, elevated 5xx responses, and rate-limit spikes.
-- [ ] Define how orphaned R2 objects are discovered and cleaned up.
-
-### 34. Add privacy and data-governance rules
-
-- [x] Inventory personal data stored in player profiles, authentication records, logs, backups, and exports.
+- [x] Inventory personal data in player profiles, authentication records, logs, backups, and exports.
 - [x] Document which player fields are public and which are administrative.
-- [ ] Define who can edit or delete identity, rating, and profile data.
-- [ ] Define retention and deletion behavior for Better Auth sessions and stale accounts.
+- [x] Define who can edit or delete identity, rating, and profile data.
+- [x] Define retention and deletion for Better Auth sessions and stale accounts.
 - [x] Ensure error logs and analytics do not include unnecessary personal data.
-- [x] Add a process for correcting inaccurate player data and preserving an audit trail for rating changes.
+- [x] Add a process for correcting inaccurate player data and preserving the rating audit trail.
 
-### 35. Add CI quality gates and dependency hygiene
+### 38. Protect backup and export workflows — Important
 
-- [x] Run type checking, active-code linting, build, and tests in CI; migration validation remains a deployment prerequisite.
-- [ ] Prevent generated route trees and migrations from being changed without the corresponding source change review.
-- [ ] Add dependency vulnerability scanning and review transitive packages used in the Worker bundle.
-- [ ] Track bundle-size budgets for the largest client chunks, especially Excel export, charts, markdown, and admin-only code.
-- [ ] Keep development-only devtools and diagnostics excluded from production output.
-- [ ] Pin or regularly review Cloudflare runtime, Miniflare, Alchemy, and D1-related versions together.
+- [x] Require administrator authorization for backup and export procedures.
+- [x] Add `Cache-Control: no-store` to sensitive download responses.
+- [x] Avoid logging exported data, secret-bearing URLs, or full request payloads.
+- [x] Define retention and deletion rules for downloaded backups.
+- [x] Audit backup/export access with administrator, timestamp, procedure, and result.
+- [x] Protect CSV/spreadsheet exports against formula injection.
+- [ ] Verify a production backup restores successfully (`bun run db:backup:verify` against a staging D1).
 
-## Fumadocs Documentation Plan
+### 39. Establish recovery and deployment safeguards — Important
 
-### 36. Organize documentation by audience
+- [x] Document the rollback procedure for application and database migrations.
+- [x] Keep migration application and deployment ordering explicit.
+- [x] Document restore verification and add a deploy smoke test (`scripts/deploy-smoke-test.sh`).
+- [x] Schedule rate-limit cleanup and document orphaned R2 object discovery and cleanup.
+- [ ] Run a production restore exercise on a schedule and record the date of the last successful one.
+- [ ] Add alerts for failed deployments, migration failures, elevated 5xx rates, and rate-limit spikes.
 
+### 40. CI quality gates and dependency hygiene — Important
+
+- [x] Run tests, type checking, linting, and build in CI.
+- [x] Fail CI when generated migrations differ from the schema, and check the generated route tree (`check:routes`).
+- [x] Run `bun audit --audit-level=high`.
+- [x] Enforce bundle-size budgets for the largest client chunks (`check:bundle`: Excel export, rating update, player profile).
+- [ ] Confirm devtools are excluded from production output; `__root.tsx` imports them statically and only gates rendering on `import.meta.env.DEV`. Use a lazy dev-only import and assert their absence in `check:bundle`.
+- [ ] Review transitive packages in the Worker bundle.
+- [ ] Pin Cloudflare runtime, Miniflare, Alchemy, and D1-related versions together, with a documented upgrade procedure (see the Miniflare version gotcha in `AGENTS.md`).
+
+---
+
+## Phase 8: Documentation and LLM Support
+
+Document behavior after the architecture and operational contracts stabilize;
+otherwise the docs go stale immediately.
+
+### 41. Organize Fumadocs by audience — Optional
+
+Fumadocs content is written in English (rule in `AGENTS.md`).
+
+- [ ] Translate the remaining Portuguese pages to English: `index` (Normas Técnicas), `inicio`, `bullet`, `campeoes`, `circuitos`, `comunicados`, `copas`, `jogadores`, `jogos-escolares`, `membros`, `painel-administrativo`, `rating`, `renderizacao-e-cache`, `sobre`, `titulacoes`, `titulados`, `variacao-rating`. Consider English file slugs at the same time, with redirects if the docs are already linked externally.
 - [ ] Keep a domain guide for federation staff and users.
 - [ ] Add an architecture guide for maintainers.
 - [ ] Add an API and database reference for developers and LLMs.
 - [ ] Add operational runbooks for local development, migrations, backups, deployment, and incident recovery.
-- [ ] Add an explicit glossary of domain terms and abbreviations.
+- [ ] Add a glossary of domain terms and abbreviations.
 
-### 37. Document the domain model
+### 42. Document the domain model — Optional
 
 - [ ] Explain players, clubs, locations, titles, roles, norms, insignias, tournaments, circuits, cups, announcements, and events.
 - [ ] Document relationships and deletion behavior with a schema diagram.
@@ -532,32 +541,38 @@ separate security and retention policy.
 - [ ] Explain school leaderboard scoring and medal weighting.
 - [ ] Explain what is public and what is administrative.
 
-### 38. Document runtime behavior
+### 43. Document runtime behavior — Optional
 
 - [ ] Explain the request lifecycle from route loader to React Query, tRPC, Drizzle, and D1.
-- [ ] Explain SSR, hydration, route preloading, and prerendering.
+- [ ] Explain SSR, hydration, route preloading, and prerendering (including the Task 25 decision).
 - [ ] Explain public edge caching versus authenticated requests.
 - [ ] Explain image upload, R2 storage, URL format, replacement, and cleanup.
-- [ ] Explain authentication, account creation restrictions, and future authorization boundaries.
+- [ ] Explain authentication, the owner identity binding, and future authorization boundaries.
 
-### 39. Add LLM-friendly references
+### 44. Add LLM-friendly references — Optional
 
-- [ ] Create a procedure catalog with purpose, access level, input shape, output shape, and common errors.
+- [ ] Create a procedure catalog with purpose, access level, input shape, output shape, cache policy, and common errors.
 - [ ] Create a route catalog with URL, purpose, data dependencies, and SEO behavior.
 - [ ] List invariants and forbidden states explicitly.
-- [ ] Add examples for common maintenance tasks such as adding a field, adding a procedure, and adding a public route.
+- [ ] Add examples for common tasks: adding a field, a procedure, and a public route.
 - [ ] Keep examples short, deterministic, and synchronized with tests where possible.
+
+---
 
 ## Verification Checklist
 
+Run before marking a phase complete.
+
 - [x] `bun test`
 - [x] `bun run check-types`
-- [x] `bun run lint` (passes with active warning cleanup still pending)
+- [x] `bun run lint`
 - [x] `bun run build`
-- [ ] Database migrations apply cleanly to a fresh local D1 database.
-- [ ] Public routes render correct SSR HTML and metadata.
-- [ ] Admin routes reject unauthenticated and unauthorized requests.
-- [ ] Rating updates remain consistent after simulated failures.
-- [ ] Event link reconciliation cannot cross event boundaries.
-- [ ] Upload validation rejects malformed and unsupported files.
+- [x] `bun run check:bundle`, `check:seo`, `check:routes`
+- [x] Database migrations apply cleanly to a fresh local D1 database.
+- [x] Admin procedures reject unauthenticated and unauthorized callers.
+- [x] Rating updates remain consistent after simulated failures.
+- [x] Event link reconciliation cannot cross event boundaries.
+- [x] Upload validation rejects malformed and unsupported files.
+- [x] Player and post create/update round-trips succeed, including uploaded images (Tasks 1–2).
+- [ ] Public routes render correct SSR HTML, status codes, and metadata.
 - [ ] Keyboard-only navigation works for dialogs, command menu, forms, tables, and uploads.

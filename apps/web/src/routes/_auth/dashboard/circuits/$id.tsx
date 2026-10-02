@@ -11,32 +11,33 @@ import { Input } from "@fsx/ui/components/input";
 import { CircuitPhaseCard } from "@/components/circuitos/admin/circuit-phase-card";
 import { CircuitPhaseForm } from "@/components/circuitos/admin/circuit-phase-form";
 import { CircuitPodiumForm } from "@/components/circuitos/admin/circuit-podium-form";
-import { useInvalidateCircuit } from "@/components/circuitos/admin/use-invalidate-circuit";
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { idParams } from "@/lib/route-params";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/$id")({
+  params: idParams,
   head: () => ({ meta: [{ title: "Edit Circuit - Admin - FSX" }] }),
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(
-      context.trpc.circuits.byId.queryOptions({ id: Number(params.id) }),
+      context.trpc.circuits.byId.queryOptions({ id: params.id }),
     ),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
+  const { id: numId } = Route.useParams();
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const invalidate = useInvalidateCircuit();
-  const numId = Number(id);
+  const invalidateAdmin = useInvalidateAdmin();
 
   const { data: circuit } = useSuspenseQuery(trpc.circuits.byId.queryOptions({ id: numId }));
 
   const updateMutation = useMutation({
     ...trpc.circuits.update.mutationOptions(),
     onSuccess: () => {
-      invalidate();
+      void invalidateAdmin("circuits");
       toast.success("Circuito atualizado");
     },
     onError: () => toast.error("Falha ao atualizar circuito"),

@@ -6,40 +6,12 @@ import { events, insertEventSchema } from "@fsx/db/schema/events";
 import { linkGroups } from "@fsx/db/schema/linkGroups";
 import { links } from "@fsx/db/schema/links";
 import { EVENT_LINK_TYPES } from "../event-link-types";
+import { iconForLinkLabel } from "../link-icons";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireMutationRows } from "../errors";
 import { requireOwnedEventLink, validateEventLinkTypes } from "./event-links";
-import { nameText, positiveInt, sortOrder } from "../input-schemas";
+import { isoDate, nameText, optionalHttpUrl, positiveInt, sortOrder } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
-
-const LINK_SVG = (paths: string) =>
-  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
-
-const LINK_ICON_DOCUMENT = LINK_SVG(
-  '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/>',
-);
-const LINK_ICON_FORM = LINK_SVG(
-  '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M8 12h8"/><path d="M8 16h5"/>',
-);
-const LINK_ICON_RESULTS = LINK_SVG(
-  '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4"/><path d="M17 6h3a3 3 0 0 1-3 4"/>',
-);
-const LINK_ICON_CALENDAR = LINK_SVG(
-  '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
-);
-const DEFAULT_LINK_ICON = LINK_SVG(
-  '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
-);
-
-// Recurring event links reuse the same icon based on their label.
-function iconForLinkLabel(label: string): string {
-  const l = label.trim().toLowerCase();
-  if (/regul/.test(l)) return LINK_ICON_DOCUMENT;
-  if (/form|inscr|cadastr/.test(l)) return LINK_ICON_FORM;
-  if (/result|classific/.test(l)) return LINK_ICON_RESULTS;
-  if (/calend|data|agend/.test(l)) return LINK_ICON_CALENDAR;
-  return DEFAULT_LINK_ICON;
-}
 
 export const eventsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -64,7 +36,7 @@ export const eventsRouter = router({
   create: adminProcedure
     .input(insertEventSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
       name: nameText,
-      startDate: z.string().max(40),
+      startDate: isoDate,
     }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(events).values(input).returning()
@@ -73,7 +45,7 @@ export const eventsRouter = router({
     .input(z.object({
       id: positiveInt,
       name: nameText.optional(),
-      startDate: z.string().max(40).optional(),
+      startDate: isoDate.optional(),
     }))
     .mutation(async ({ ctx, input }) =>
       requireMutationRows(
@@ -103,7 +75,7 @@ export const eventsRouter = router({
       eventId: positiveInt,
       links: z.array(z.object({
         id: positiveInt.optional(),
-        href: z.string().trim().max(2_048).url().or(z.literal("")).nullable().optional(),
+        href: optionalHttpUrl.nullable().optional(),
         type: z.enum(["regulation", "form", "results"]),
         sortOrder: sortOrder.optional(),
       })).max(100),

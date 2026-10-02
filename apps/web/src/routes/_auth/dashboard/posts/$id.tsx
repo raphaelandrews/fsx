@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -13,8 +13,11 @@ import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
 import { getFieldError, showMutationError } from "@/lib/errors";
 import { sanitizeTitle, slugify } from "@/utils/slugify";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { idParams } from "@/lib/route-params";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/$id")({
+  params: idParams,
   head: () => ({ meta: [{ title: "Edit Post - Admin - FSX" }] }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.posts.listAdmin.queryOptions()),
@@ -24,21 +27,17 @@ export const Route = createFileRoute("/_auth/dashboard/posts/$id")({
 function RouteComponent() {
   const { id } = Route.useParams();
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
   const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
 
   const { data: posts = [] } = useSuspenseQuery(trpc.posts.listAdmin.queryOptions());
-  const post = posts.find((p) => p.id === Number(id));
+  const post = posts.find((p) => p.id === id);
 
   const updateMutation = useMutation({
     ...trpc.posts.update.mutationOptions(),
     onSuccess: async () => {
-      qc.invalidateQueries(trpc.posts.listAdmin.queryFilter());
-      qc.invalidateQueries(trpc.posts.list.queryFilter());
-      qc.invalidateQueries(trpc.posts.fresh.queryFilter());
-      qc.invalidateQueries(trpc.posts.byPage.queryFilter());
-      qc.invalidateQueries(trpc.posts.bySlug.queryFilter());
+      void invalidateAdmin("posts");
       await commit();
       toast.success("Post updated");
     },

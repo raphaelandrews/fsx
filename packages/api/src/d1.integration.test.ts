@@ -1,8 +1,4 @@
-import { readdir, readFile } from "node:fs/promises";
-import { fileURLToPath, URL as NodeURL } from "node:url";
-
 import { describe, expect, test } from "bun:test";
-import { Miniflare } from "miniflare";
 import { eq } from "drizzle-orm";
 
 import { createDb } from "@fsx/db";
@@ -13,37 +9,13 @@ import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
 import { tournaments } from "@fsx/db/schema/tournaments";
 
 import { applyRatingUpdate } from "./routers/rating-update";
-
-const migrationsDirectory = new NodeURL("../../db/src/migrations/", import.meta.url);
-
-async function applyMigrations(database: D1Database) {
-  const directoryPath = fileURLToPath(migrationsDirectory);
-  const files = (await readdir(directoryPath))
-    .filter((name) => /^\d+_.*\.sql$/.test(name))
-    .sort();
-
-  for (const file of files) {
-    const migration = await readFile(new NodeURL(file, migrationsDirectory), "utf8");
-    const statements = migration
-      .split("--> statement-breakpoint")
-      .map((statement) => statement.trim().replace(/\s+/g, " "))
-      .filter(Boolean);
-    for (const statement of statements) await database.exec(statement);
-  }
-}
+import { createTestD1 } from "./test-d1";
 
 describe("D1 migration and rating integration", () => {
   test("applies tracked migrations, commits rating history, and rolls back failures", async () => {
-    const miniflare = new Miniflare({
-      compatibilityDate: "2026-08-06",
-      d1Databases: { DB: "fsx-integration" },
-      modules: true,
-      script: "export default { async fetch() { return new Response('ok') } }",
-    });
+    const { miniflare, binding } = await createTestD1("fsx-integration");
 
     try {
-      const binding = await miniflare.getD1Database("DB");
-      await applyMigrations(binding);
 
       const db = createDb(binding);
       await binding.batch([

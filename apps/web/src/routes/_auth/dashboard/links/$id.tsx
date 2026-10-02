@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -9,9 +9,11 @@ import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 
 import { LinkIconSelect } from "@/components/link-icon-select";
-import { DEFAULT_LINK_ICON } from "@/lib/link-icons";
+import { DEFAULT_LINK_ICON, resolveLinkIcon } from "@fsx/api/link-icons";
 import { useTRPC } from "@/utils/trpc";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { idParams } from "@/lib/route-params";
 
 type GroupLink = {
   id: number;
@@ -22,6 +24,7 @@ type GroupLink = {
 };
 
 export const Route = createFileRoute("/_auth/dashboard/links/$id")({
+  params: idParams,
   head: () => ({ meta: [{ title: "Edit Link Group - Admin - FSX" }] }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.links.list.queryOptions()),
@@ -29,11 +32,10 @@ export const Route = createFileRoute("/_auth/dashboard/links/$id")({
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
+  const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
-  const numId = Number(id);
 
   const { data: groups = [] } = useSuspenseQuery(trpc.links.list.queryOptions());
   const group = groups.find((g) => g.id === numId);
@@ -41,7 +43,7 @@ function RouteComponent() {
   const deleteLinkMutation = useMutation({
     ...trpc.links.deleteLink.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.links.list.queryFilter());
+      void invalidateAdmin("links");
       toast.success("Link deleted");
     },
     onError: () => toast.error("Failed to delete link"),
@@ -50,7 +52,7 @@ function RouteComponent() {
   const updateGroupMutation = useMutation({
     ...trpc.links.updateGroup.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.links.list.queryFilter());
+      void invalidateAdmin("links");
       toast.success("Group updated");
     },
     onError: () => toast.error("Failed to update group"),
@@ -132,7 +134,7 @@ function RouteComponent() {
 
       <NewLinkForm
         groupId={numId}
-        onCreated={() => qc.invalidateQueries(trpc.links.list.queryFilter())}
+        onCreated={() => invalidateAdmin("links")}
       />
     </div>
   );
@@ -140,12 +142,12 @@ function RouteComponent() {
 
 function LinkEditRow({ link, deleting, onDelete }: { link: GroupLink; deleting: boolean; onDelete: (id: number) => void }) {
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
 
   const updateLinkMutation = useMutation({
     ...trpc.links.updateLink.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.links.list.queryFilter());
+      void invalidateAdmin("links");
       toast.success("Link updated");
     },
     onError: () => toast.error("Failed to update link"),
@@ -155,7 +157,7 @@ function LinkEditRow({ link, deleting, onDelete }: { link: GroupLink; deleting: 
     defaultValues: {
       label: link.label,
       href: link.href ?? "",
-      icon: link.icon,
+      icon: resolveLinkIcon(link.icon),
       sortOrder: link.sortOrder,
     },
     validators: {

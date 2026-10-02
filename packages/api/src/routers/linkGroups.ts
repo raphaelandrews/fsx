@@ -5,10 +5,13 @@ import { linkGroups, insertLinkGroupSchema } from "@fsx/db/schema/linkGroups";
 import { links, insertLinkSchema } from "@fsx/db/schema/links";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireMutationRows } from "../errors";
-import { nameText, positiveInt, sortOrder } from "../input-schemas";
+import { nameText, optionalHttpUrl, positiveInt, sortOrder } from "../input-schemas";
+import { isKnownLinkIcon } from "../link-icons";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
 
 const linkTypeEnum = z.enum(["link", "regulation", "form", "results"]);
+
+const linkIcon = z.string().max(5_000).refine(isKnownLinkIcon, "Unknown link icon");
 
 export const linkGroupsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -38,9 +41,9 @@ export const linkGroupsRouter = router({
     ),
   createLink: adminProcedure
     .input(insertLinkSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
-      href: z.string().trim().max(2_048).url().or(z.literal("")).nullable().optional(),
+      href: optionalHttpUrl.nullable().optional(),
       label: nameText,
-      icon: z.string().max(5_000),
+      icon: linkIcon,
       type: linkTypeEnum.optional(),
       sortOrder,
       linkGroupId: positiveInt,
@@ -51,9 +54,9 @@ export const linkGroupsRouter = router({
   updateLink: adminProcedure
     .input(z.object({
       id: positiveInt,
-      href: z.string().trim().max(2_048).url().or(z.literal("")).nullable().optional(),
+      href: optionalHttpUrl.nullable().optional(),
       label: nameText.optional(),
-      icon: z.string().max(5_000).optional(),
+      icon: linkIcon.optional(),
       type: linkTypeEnum.optional(),
       sortOrder: sortOrder.optional(),
       linkGroupId: positiveInt.optional(),

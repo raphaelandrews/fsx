@@ -37,6 +37,14 @@ Local Dev D1 gotchas:
   merely re-describes the adjacent code, delete it. Reserve comments for invariants, timezone/SSR
   pitfalls, data-shape constraints, or a decision that contradicts what a reader would assume.
 
+## Documentation
+
+- **Fumadocs content (`apps/fumadocs/content/docs/`) is written in English** — titles,
+  descriptions, and body text, including new pages and ADRs. Portuguese stays only in
+  proper nouns and quoted UI strings or domain terms (e.g. route names like `/ratings`,
+  labels such as "Sub 10", the federation's name). The web app's user-facing UI remains
+  in Portuguese.
+
 <!-- intent-skills:start -->
 ## Skill Loading
 

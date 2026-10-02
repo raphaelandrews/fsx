@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -18,8 +18,11 @@ import { DatePicker } from "@/components/date-picker";
 import { ImageUpload } from "@/components/image-upload";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { idParams } from "@/lib/route-params";
 
 export const Route = createFileRoute("/_auth/dashboard/players/$id")({
+  params: idParams,
   head: () => ({ meta: [{ title: "Edit Player - Admin - FSX" }] }),
   loader: async ({ context }) => {
     await Promise.all([
@@ -34,11 +37,10 @@ export const Route = createFileRoute("/_auth/dashboard/players/$id")({
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
+  const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
-  const numId = Number(id);
   const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
 
   const { data: player } = useSuspenseQuery(trpc.players.forEdit.queryOptions({ id: numId }));
@@ -60,7 +62,7 @@ function RouteComponent() {
   const updateMutation = useMutation({
     ...trpc.players.update.mutationOptions(),
     onSuccess: async () => {
-      qc.invalidateQueries(trpc.players.forEdit.queryFilter({ id: numId }));
+      void invalidateAdmin("players");
       await commit();
       toast.success("Player updated");
     },
@@ -73,7 +75,7 @@ function RouteComponent() {
   const linkTitleMutation = useMutation({
     ...trpc.playersToTitles.link.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.playersToTitles.listByPlayer.queryFilter({ playerId: numId }));
+      void invalidateAdmin("playersToTitles");
       toast.success("Title assigned");
     },
     onError: () => toast.error("Failed to assign title"),
@@ -82,7 +84,7 @@ function RouteComponent() {
   const unlinkTitleMutation = useMutation({
     ...trpc.playersToTitles.unlink.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.playersToTitles.listByPlayer.queryFilter({ playerId: numId }));
+      void invalidateAdmin("playersToTitles");
       toast.success("Title removed");
     },
     onError: () => toast.error("Failed to remove title"),
@@ -91,7 +93,7 @@ function RouteComponent() {
   const linkRoleMutation = useMutation({
     ...trpc.playersToRoles.link.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.playersToRoles.listByPlayer.queryFilter({ playerId: numId }));
+      void invalidateAdmin("playersToRoles");
       toast.success("Role assigned");
     },
     onError: () => toast.error("Failed to assign role"),
@@ -100,7 +102,7 @@ function RouteComponent() {
   const unlinkRoleMutation = useMutation({
     ...trpc.playersToRoles.unlink.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.playersToRoles.listByPlayer.queryFilter({ playerId: numId }));
+      void invalidateAdmin("playersToRoles");
       toast.success("Role removed");
     },
     onError: () => toast.error("Failed to remove role"),
@@ -109,7 +111,7 @@ function RouteComponent() {
   const linkInsigniaMutation = useMutation({
     ...trpc.playersToInsignias.link.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.playersToInsignias.listByPlayer.queryFilter({ playerId: numId }));
+      void invalidateAdmin("playersToInsignias");
       toast.success("Insignia assigned");
     },
     onError: () => toast.error("Failed to assign insignia"),
@@ -118,7 +120,7 @@ function RouteComponent() {
   const unlinkInsigniaMutation = useMutation({
     ...trpc.playersToInsignias.unlink.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.playersToInsignias.listByPlayer.queryFilter({ playerId: numId }));
+      void invalidateAdmin("playersToInsignias");
       toast.success("Insignia removed");
     },
     onError: () => toast.error("Failed to remove insignia"),

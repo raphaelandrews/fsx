@@ -1,14 +1,12 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { ZodError } from "zod";
-import { asc } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 
-import { user } from "@fsx/db/schema/auth";
+import { isAdministrator, resolveAdminRule } from "@fsx/auth/owner";
+import { account, user } from "@fsx/db/schema/auth";
 import { env } from "@fsx/env/server";
 
 import type { Context } from "./context";
-import { isAdministrator } from "./authorization";
-
-export { isAdministrator } from "./authorization";
 
 export const t = initTRPC.context<Context>().create({
   errorFormatter({ shape, error }) {
@@ -97,17 +95,32 @@ const requireAdmin = t.middleware(async ({ ctx, next }) => {
     });
   }
 
-  const firstUser = await ctx.db
-    .select({ id: user.id })
-    .from(user)
-    .orderBy(asc(user.createdAt), asc(user.id))
-    .limit(1);
+  const rule = resolveAdminRule({
+    ownerGithubId: env.GITHUB_USER_ID,
+    configuredUsername: env.GITHUB_USERNAME,
+  });
 
-  if (!isAdministrator({
+  const githubAccountIds = rule.kind === "githubId"
+    ? (await ctx.db
+        .select({ accountId: account.accountId })
+        .from(account)
+        .where(and(eq(account.userId, ctx.session.user.id), eq(account.providerId, "github"))))
+        .map((row) => row.accountId)
+    : undefined;
+
+  const firstUserId = rule.kind === "firstUser"
+    ? (await ctx.db
+        .select({ id: user.id })
+        .from(user)
+        .orderBy(asc(user.createdAt), asc(user.id))
+        .limit(1))[0]?.id
+    : undefined;
+
+  if (!isAdministrator(rule, {
     userId: ctx.session.user.id,
     userName: ctx.session.user.name,
-    configuredUsername: env.GITHUB_USERNAME,
-    firstUserId: firstUser[0]?.id,
+    githubAccountIds,
+    firstUserId,
   })) {
     throw new TRPCError({
       code: "FORBIDDEN",

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
@@ -8,8 +8,11 @@ import z from "zod";
 
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { idParams } from "@/lib/route-params";
 
 export const Route = createFileRoute("/_auth/dashboard/clubs/$id")({
+  params: idParams,
   head: () => ({ meta: [{ title: "Edit Club - Admin - FSX" }] }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.clubs.list.queryOptions()),
@@ -17,11 +20,10 @@ export const Route = createFileRoute("/_auth/dashboard/clubs/$id")({
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
+  const { id: numId } = Route.useParams();
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
-  const numId = Number(id);
 
   const { data: clubs = [] } = useSuspenseQuery(trpc.clubs.list.queryOptions());
   const club = clubs.find((c) => c.id === numId);
@@ -29,7 +31,7 @@ function RouteComponent() {
   const updateMutation = useMutation({
     ...trpc.clubs.update.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.clubs.list.queryFilter());
+      void invalidateAdmin("clubs");
       toast.success("Club updated");
     },
     onError: () => toast.error("Failed to update club"),

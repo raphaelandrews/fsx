@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@fsx/ui/components/select";
 import { toast } from "sonner";
 import { useState } from "react";
 import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
+import { useInvalidateAdmin } from "@/lib/admin-mutations";
 
 const searchSchema = z.object({
   playerId: z.number().optional(),
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/_auth/dashboard/players/titles")({
 function RouteComponent() {
   const { playerId } = Route.useSearch();
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const invalidateAdmin = useInvalidateAdmin();
   const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(playerId ?? null);
 
   const { data: players = [] } = useSuspenseQuery(trpc.players.options.queryOptions());
@@ -38,7 +39,7 @@ function RouteComponent() {
   const linkMutation = useMutation({
     ...trpc.playersToTitles.link.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.playersToTitles.listByPlayer.queryFilter({ playerId: selectedPlayerId ?? 0 }));
+      void invalidateAdmin("playersToTitles");
       toast.success("Title assigned");
     },
     onError: () => toast.error("Failed to assign title"),
@@ -47,7 +48,7 @@ function RouteComponent() {
   const unlinkMutation = useMutation({
     ...trpc.playersToTitles.unlink.mutationOptions(),
     onSuccess: () => {
-      qc.invalidateQueries(trpc.playersToTitles.listByPlayer.queryFilter({ playerId: selectedPlayerId ?? 0 }));
+      void invalidateAdmin("playersToTitles");
       toast.success("Title removed");
     },
     onError: () => toast.error("Failed to remove title"),

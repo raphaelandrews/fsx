@@ -18,8 +18,14 @@ public pages.
 ## Decision
 
 Every administrator procedure checks the configured GitHub identity on every
-request. Swiss Manager export is administrator-only; authenticated and mutation
-tRPC responses are marked `no-store`. Public routes continue to use minimal
+request. The identity is the numeric GitHub account ID (`GITHUB_USER_ID`),
+matched against Better Auth's `account.account_id`, because logins can be
+renamed and reclaimed by another person. Sign-in rejects every other GitHub ID
+before any user, account, or session row is written. `GITHUB_USERNAME` and
+first-user ownership remain only as fallbacks when no ID is configured.
+
+Swiss Manager export is administrator-only; authenticated and mutation tRPC
+responses are marked `no-store`. Public routes continue to use minimal
 public projections. Any future second administrator requires an explicit role
 and permission model plus session invalidation on privilege changes.
 
