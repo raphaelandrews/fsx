@@ -9,53 +9,13 @@ import { titles } from "@fsx/db/schema/titles";
 import { playersToTitles } from "@fsx/db/schema/playersToTitles";
 import { normalizeName } from "@fsx/db/normalize";
 import { adminProcedure, publicProcedure, router } from "../index";
-import { requireMutationRows } from "../errors";
+import { requireFound, requireMutationRows } from "../errors";
 import { AGE_GROUPS, getBirthDateRange } from "../age-groups";
 import { contentText, filterArray, idInput, imageUrl, isoDate, limit, nameText, page, positiveInt, rating, searchText } from "../input-schemas";
 import { escapeLike, like } from "../sql-like";
-import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
 
 export const playersRouter = router({
-  // Lightweight `{ id, name }` list for pickers (e.g. the admin title
-  // assignment select). Avoids loading every relation for all players.
-  options: adminProcedure.query(({ ctx }) =>
-    ctx.db
-      .select({ id: playersTable.id, name: playersTable.name })
-      .from(playersTable)
-      .orderBy(asc(playersTable.name), asc(playersTable.id))
-      .limit(5_000)
-  ),
-
-  list: publicProcedure.query(({ ctx }) =>
-    ctx.db.query.players.findMany({
-      columns: {
-        id: true,
-        name: true,
-        nickname: true,
-        classic: true,
-        rapid: true,
-        blitz: true,
-        imageUrl: true,
-      },
-      with: {
-        club: { columns: { name: true, logoUrl: true } },
-        location: { columns: { name: true, flagUrl: true } },
-        defendingChampions: {
-          limit: PUBLIC_NESTED_COLLECTION_LIMIT,
-          columns: {},
-          with: { championship: { columns: { name: true } } },
-        },
-        playersToTitles: {
-          limit: PUBLIC_NESTED_COLLECTION_LIMIT,
-          columns: { id: true, playerId: true, titleId: true },
-          with: { title: { columns: { id: true, name: true, shortName: true, type: true } } },
-        },
-      },
-      orderBy: (player, { asc }) => [asc(player.name), asc(player.id)],
-      limit: PUBLIC_COLLECTION_LIMIT,
-    })
-  ),
-
   page: adminProcedure
     .input(z.object({
       page,
@@ -100,8 +60,8 @@ export const playersRouter = router({
 
   byId: publicProcedure
     .input(idInput)
-    .query(({ ctx, input }) =>
-      ctx.db.query.players.findFirst({
+    .query(async ({ ctx, input }) =>
+      requireFound(await ctx.db.query.players.findFirst({
         where: eq(playersTable.id, input.id),
         columns: {
           id: true,
@@ -145,7 +105,7 @@ export const playersRouter = router({
             with: { title: { columns: { name: true, shortName: true, type: true } } },
           },
         },
-      })
+      }), "Player")
     ),
 
   search: publicProcedure
@@ -161,7 +121,7 @@ export const playersRouter = router({
           .select({ id: playersTable.id, name: playersTable.name })
           .from(playersTable)
           .where(eq(playersTable.active, true))
-          .orderBy(desc(playersTable.rapid))
+          .orderBy(desc(playersTable.rapid), asc(playersTable.id))
           .limit(10);
       }
 
@@ -184,14 +144,14 @@ export const playersRouter = router({
         .select({ id: playersTable.id, name: playersTable.name })
         .from(playersTable)
         .where(whereClause)
-        .orderBy(desc(relevanceScore), desc(playersTable.rapid), sql`LENGTH(${playersTable.name})`)
+        .orderBy(desc(relevanceScore), desc(playersTable.rapid), sql`LENGTH(${playersTable.name})`, asc(playersTable.id))
         .limit(10);
     }),
 
   forEdit: adminProcedure
     .input(idInput)
-    .query(({ ctx, input }) =>
-      ctx.db.query.players.findFirst({
+    .query(async ({ ctx, input }) =>
+      requireFound(await ctx.db.query.players.findFirst({
         where: eq(playersTable.id, input.id),
         columns: {
           id: true,
@@ -211,7 +171,7 @@ export const playersRouter = router({
           classic: true,
           description: true,
         },
-      })
+      }), "Player")
     ),
 
   create: adminProcedure

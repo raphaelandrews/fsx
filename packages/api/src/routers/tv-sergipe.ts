@@ -57,7 +57,7 @@ export const tvSergipeRouter = router({
         points: true,
       },
       with: {
-        club: { columns: { id: true, name: true, logoUrl: true } },
+        club: { columns: { id: true, name: true } },
         player: { columns: { id: true, name: true } },
       },
        orderBy: [asc(tvSergipe.ageGroup), asc(tvSergipe.sex), asc(tvSergipe.modality), desc(tvSergipe.points), asc(tvSergipe.id)],

@@ -5,7 +5,7 @@ import { Miniflare } from "miniflare";
 
 const migrationsDirectory = new NodeURL("../../db/src/migrations/", import.meta.url);
 
-async function applyMigrations(database: D1Database) {
+export async function applyMigrations(database: D1Database) {
   const directoryPath = fileURLToPath(migrationsDirectory);
   const files = (await readdir(directoryPath))
     .filter((name) => /^\d+_.*\.sql$/.test(name))

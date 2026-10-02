@@ -3,7 +3,7 @@ import { eq, desc, count } from "drizzle-orm";
 
 import { announcements, insertAnnouncementSchema } from "@fsx/db/schema/announcements";
 import { adminProcedure, publicProcedure, router } from "../index";
-import { requireMutationRows } from "../errors";
+import { requireFound, requireMutationRows } from "../errors";
 import { contentText, idInput, page, positiveInt } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 
@@ -17,14 +17,14 @@ export const announcementsRouter = router({
         content: announcements.content,
       })
       .from(announcements)
-      .orderBy(desc(announcements.year), desc(announcements.number))
+      .orderBy(desc(announcements.year), desc(announcements.number), desc(announcements.id))
       .limit(PUBLIC_COLLECTION_LIMIT),
   ),
-  byId: publicProcedure.input(idInput).query(({ ctx, input }) =>
-    ctx.db.query.announcements.findFirst({
+  byId: publicProcedure.input(idInput).query(async ({ ctx, input }) =>
+    requireFound(await ctx.db.query.announcements.findFirst({
       columns: { id: true, year: true, number: true, content: true },
       where: eq(announcements.id, input.id),
-    }),
+    }), "Announcement"),
   ),
   byPage: publicProcedure
     .input(z.object({ page }))
@@ -33,7 +33,7 @@ export const announcementsRouter = router({
       const perPage = 12;
       const data = await ctx.db.query.announcements.findMany({
         columns: { id: true, year: true, number: true, content: true },
-        orderBy: [desc(announcements.year), desc(announcements.number)],
+        orderBy: [desc(announcements.year), desc(announcements.number), desc(announcements.id)],
         limit: perPage,
         offset: (validPage - 1) * perPage,
       });
@@ -61,7 +61,7 @@ export const announcementsRouter = router({
         content: announcements.content,
       })
       .from(announcements)
-      .orderBy(desc(announcements.year), desc(announcements.number))
+      .orderBy(desc(announcements.year), desc(announcements.number), desc(announcements.id))
       .limit(8),
   ),
   create: adminProcedure

@@ -14,8 +14,19 @@ export const testEnv: Record<string, unknown> = {
   IMAGES: {},
 };
 
+const pendingWork: Promise<unknown>[] = [];
+
+export async function flushWaitUntil(): Promise<void> {
+  await Promise.all(pendingWork.splice(0));
+}
+
 // Bun shares module mocks across test files in one process, so every suite
 // installs this one mutable environment and swaps bindings per test.
 export function mockWorkerEnv() {
-  mock.module("cloudflare:workers", () => ({ env: testEnv }));
+  mock.module("cloudflare:workers", () => ({
+    env: testEnv,
+    waitUntil: (promise: Promise<unknown>) => {
+      pendingWork.push(promise);
+    },
+  }));
 }

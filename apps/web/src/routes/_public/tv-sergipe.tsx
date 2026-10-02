@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { TvSergipeView } from "@/components/tv-sergipe/tv-sergipe-view";
@@ -31,6 +31,7 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/_public/tv-sergipe")({
   validateSearch: searchSchema,
+  search: { middlewares: [stripSearchParams({ view: "medals" })] },
   head: () =>
     buildSeo({
       title: withBrand("Jogos Escolares TV Sergipe"),

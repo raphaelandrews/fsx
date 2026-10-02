@@ -109,7 +109,7 @@ same old rating.
 - [x] Store the rating type on the player-tournament history row.
 - [x] Add tests for success, failed history insertion, duplicate registration, and concurrent updates.
 
-### 5. Define and enforce the administrator authorization model — Critical
+### 5. Define and enforce the administrator authorization model — Critical (done)
 
 **Why:** `adminProcedure` must prove the session belongs to the owner, not only that a
 session exists. The current check compares `user.name` (the GitHub login) with
@@ -123,7 +123,7 @@ who would then pass both the account-creation hook and `isAdministrator`.
 - [x] Bind the owner to the immutable GitHub numeric account ID (`GITHUB_USER_ID`, matched against `account.account_id`) in `requireAdmin`. Sign-in rejects every other GitHub ID inside `mapProfileToUser`, before any user, account, or session row is written; an account-hook `false` would still have created a user and a session. The rules live in `packages/auth/src/owner.ts`; the login and first-user rules remain only as fallbacks when no ID is configured.
 - [x] Run only the lookup the active rule needs: the GitHub account row for the ID rule, nothing for the login rule, and the first-user query only when neither is configured.
 - [x] Add tests for a renamed owner login and for a different account that reuses the old login (`owner.test.ts`, plus real-D1 `requireAdmin` checks in `admin-mutations.integration.test.ts`).
-- [ ] Set `GITHUB_USER_ID` in `apps/web/.env.common` and the production environment, then redeploy. Until it is set, the login fallback stays active.
+- [x] Set `GITHUB_USER_ID` in `apps/web/.env.common` (2026-10-02); Alchemy binds it to production on the next deploy.
 
 ### 6. Verify CSRF and session-cookie defenses — Critical (done)
 
@@ -236,10 +236,16 @@ values silently produce wrong results.
 
 Finish these before the broad refactors in Phases 4–7 so later changes have reliable feedback.
 
-### 16. Complete the layered automated test suite — Important
+### 16. Complete the layered automated test suite — Important (done)
 
-**Why:** The suite has unit, `createCaller`, and real-Miniflare D1 layers, but only
+**Why:** The suite had unit, `createCaller`, and real-Miniflare D1 layers, but only
 ~36 tests. Both Phase 0 bugs sat in create/update paths that no test exercised.
+
+**Bugs the new layers found and fixed:**
+- `events.setLinks` used `db.transaction()`, which D1 rejects (`BEGIN` is unsupported), so every dashboard event edit failed in production. It now reads first, then applies all writes in one atomic `db.batch()`.
+- Missing players, posts, announcements, circuits, tournaments, and cups made SSR return 500, because detail procedures returned `undefined`, which React Query rejects. They now throw `NOT_FOUND` (`requireFound`), and loaders render a 404.
+- Unknown URLs rendered the not-found page with status 200; the catch-all route now throws `notFound()` and returns 404.
+- `/ratings` (and the default-page news, announcements, and TV Sergipe lists) 307-redirected to URLs full of default search params; `stripSearchParams` keeps defaults out of the URL.
 
 - [x] Use `bun:test` for pure functions, schema helpers, normalization, authorization decisions, cache classification, mutation-result checks, and error mapping.
 - [x] Use tRPC `createCaller` with a typed fake context for procedure tests.
@@ -248,12 +254,13 @@ Finish these before the broad refactors in Phases 4–7 so later changes have re
 - [x] Test auth middleware/admin authorization, rating invariants, event link ownership, and image validation.
 - [x] Test migration application against a clean local D1 database.
 - [x] Keep unit tests deterministic, with no external GitHub, Cloudflare, or network calls.
-- [ ] Add one create → read → update → read round-trip test per admin router using a realistic input (including uploaded media paths).
-- [ ] Test every update/delete mutation with missing and invalid IDs.
-- [ ] Test the tRPC fetch handler with real `Request`/`Response` objects: auth, origin checks, cache headers, rate limits, and batching. Origin, cache-hit, cache-header, rate-limit, and media cases exist in `fetch-handlers.integration.test.ts`; authenticated and batched requests remain.
-- [ ] Test TanStack Start SSR routes for status codes, metadata, canonical URLs, not-found behavior, and safe error HTML.
-- [ ] Add browser-level tests only where a browser is required: OAuth/session, forms, dialogs, uploads, keyboard access, mutation toasts.
-- [ ] Add an accessibility smoke pass for public navigation, dialogs, forms, and upload controls.
+- [x] Add a create → read → update → read → delete round-trip for every admin router against real D1, with realistic inputs including media paths (`admin-crud.integration.test.ts`), plus player relations and `events.setLinks`.
+- [x] Test every update/delete/unlink mutation with a missing id (`NOT_FOUND`) and an invalid id (`BAD_REQUEST`): 43 procedures.
+- [x] Test the tRPC fetch handler with real `Request`/`Response` objects: origin checks, cache headers and hits, rate limits, batching (including mixed public/admin batches), signed owner/impostor/forged session cookies over HTTP, and authenticated mutations (`fetch-handlers.integration.test.ts`).
+- [x] Test SSR of the built worker for status codes, titles, canonical URLs, not-found behavior, auth redirects, the sitemap, and absence of stack traces/SQL in HTML (`bun run check:ssr`, `apps/web/scripts/check-ssr.ts`, run in CI after the build).
+- [x] Add browser-level tests only where a browser is required (Playwright, `apps/web/e2e/`, `bun run test:e2e`): OAuth redirect to GitHub (intercepted), session-gated dashboard, form validation and success toasts, create/edit/delete with an Escape-cancellable confirm dialog, the keyboard command menu, the player sheet, and a real image upload through the cropper. They run against the built worker plus static assets in Miniflare (`scripts/e2e-server.ts`, shared `scripts/worker-harness.ts`); admin specs use a signed owner session cookie seeded in the local D1, so the app has no test-only login path.
+- [x] Add an accessibility smoke pass with axe (`e2e/a11y.e2e.ts`) on public pages, the command menu dialog, and dashboard list/form/player pages; serious and critical WCAG 2.1 AA violations fail CI. Fixes it required: darker `--primary` (`oklch(0.61→0.57 …)`, white-on-primary 4.06→4.5+:1) and `--link` (`oklch(0.609→0.55 …)`, 3.63→4.5+:1) light-theme tokens, accessible names on both logo links and all 11 select triggers, and a label for the native sex select.
+- [x] Run the browser suite in CI after the build (Chromium installed per run; failure traces uploaded as an artifact).
 
 ### 17. Standardize the backend error boundary — Important (done)
 
@@ -273,53 +280,59 @@ Merges the former backend error tasks.
 
 Measure before optimizing. Task 16 should exist before query shapes change.
 
-### 18. Add resource and response-size regression coverage — Important
+### 18. Add resource and response-size regression coverage — Important (done)
 
 - [x] Assert the public cache classification for anonymous GETs and authenticated/mutation exclusions.
 - [x] Log response sizes and slow procedures (≥100 ms), and warn above the 512 KB public response budget.
-- [ ] Assert maximum response sizes for the largest public procedures using production-like fixtures.
-- [ ] Assert that mutations never receive cache headers and that failed queries are not cached (fetch-handler tests, Task 16).
-- [ ] Record query count, D1 rows read, Worker CPU time, response bytes, and cache-hit rate for representative routes.
-- [ ] Add budgets for initial HTML size and API requests per navigation (JS chunk budgets live in Task 40).
-- [ ] Test that prefetching and prerendering do not fetch private, large, or duplicate data.
+- [x] Assert maximum sizes on production-like data: `check:ssr` now renders every data-heavy public page on synthetic rows matching production counts and fails above per-route HTML budgets (~1.5× the 2026-10-02 size); `bun run measure` reports procedure response sizes against the 512 KB budget.
+- [x] Assert that mutations never receive cache headers and that failed queries are not cached (fetch-handler tests).
+- [x] Record D1 query count per procedure in production logs (`meterD1` in the request context; `[trpc] costly procedure` logs procedures ≥100 ms or ≥8 queries). Worker CPU time comes from Workers observability; cache hit/miss is already logged.
+- [x] Add `bun run measure` (`packages/api/scripts/measure.ts`): seeds deterministic synthetic data (`synthetic-data.ts`) and reports D1 queries, replayed `rows_read`, response KB, duration, and real-table scans for 31 representative public and admin procedures.
+- [x] Add an API-requests-per-navigation budget (`e2e/requests.e2e.ts`).
+- [x] Add initial HTML size budgets to `check:ssr` (largest today: `/tv-sergipe` 164 KB, `/circuitos` 150 KB, `/ratings` 139 KB uncompressed).
+- [x] Test that SSR hydration does not refetch, hover prefetch is reused on click, navigations stay within 2 API requests, and public pages never call admin procedures (`e2e/requests.e2e.ts`).
 
-### 19. Bound large public query responses — Important
+### 19. Bound large public query responses — Important (done)
 
 **Why:** `players.list`, `swissManager.list`, `roles.listWithPlayers`, and the nested
 `circuits.list` grow with the data set.
 
 - [x] Keep explicit column projections on public queries (latest: `insignias.list`, `norms.list`, `roles.listWithPlayers`).
 - [x] Add response-size monitoring for the largest procedures.
-- [ ] Measure current row counts and response sizes on production-like data.
-- [ ] Paginate or cap public collections that can grow indefinitely (`PUBLIC_COLLECTION_LIMIT` silently truncates today — return a page or a `truncated` flag instead).
-- [ ] Split summary and detail procedures where a route does not need the full nested graph (e.g. circuit summaries).
+- [x] Measure row counts and response sizes on production-like data (`row-counts.sql` → `packages/api/scripts/production-counts.json`, plus `growth-counts.json` at 3×). Results: [Query Cost Baseline](apps/fumadocs/content/docs/query-cost-baseline.mdx).
+- [x] Remove the unused public `players.list` (500 players with nested relations) and `circuits.list` (duplicate of `listSimple`); the circuit summary/detail split already exists as `listSimple` + `byId`.
+- [x] Fix the Swiss Manager export, which Task 7's `PUBLIC_COLLECTION_LIMIT` silently truncated to the 500 highest-rated players.
+- [x] Stop sending every post's content to the dashboard: `posts.listAdmin` projects list columns (≈937 → 55 KB at 300 posts) and the post editor loads one row through `posts.forEdit`; announcement and tournament editors load by id too.
+- [x] Make truncation visible instead of silent: the procedure middleware logs `[resource] collection reached its row cap` whenever a list returns `PUBLIC_COLLECTION_LIMIT` rows. No public collection is near the cap today (largest: 182 clubs); pagination is not needed yet.
+- [x] Replace the admin player picker (`players.options`, 218 KB, truncated at 5,000 of 5,384 players) with server-side search through `SearchableSelect`.
+- [x] Split summary and detail procedures where a route does not need the full nested graph (circuits already use `listSimple` + `byId`; the duplicate `circuits.list` was removed).
 
-### 20. Measure query plans and procedure costs — Important
+### 20. Measure query plans and procedure costs — Important (done)
 
-- [ ] Capture the slowest public and admin procedures with timing and row counts from production logs.
-- [ ] Run `EXPLAIN QUERY PLAN` (`packages/db/src/audits/query-plans.sql`) for ratings filters, player search, news pagination, circuit listings, and leaderboards on production-like data.
-- [ ] Confirm composite indexes match actual `WHERE` + `ORDER BY` patterns; record the results.
-- [ ] Recheck write cost and D1 storage after any index change.
+- [x] Capture the slowest and most query-heavy procedures in production logs (`[trpc] costly procedure` with duration and D1 query count).
+- [x] Run `EXPLAIN QUERY PLAN` on every statement of 30 representative procedures at production volume (`bun run measure`); only small tables (`posts`, `roles`, `tournaments`) and infix-`LIKE` player search scan.
+- [x] Confirm composite indexes match the `WHERE` + `ORDER BY` patterns and record the results (Query Cost Baseline). `titledPlayers.list` was rewritten from `EXISTS` to `IN (subquery)`: 6,128 → 1,042 rows read.
+- [x] Recheck write cost and D1 storage after any index change: no index was added or removed.
 
-### 21. Optimize high-value query shapes — Optional
+### 21. Optimize high-value query shapes — Optional (done)
 
 Depends on Task 20's measurements.
 
-- [ ] Measure the ratings count query separately; if exact totals are not required, use a `hasNextPage` strategy that fetches one extra row.
-- [ ] Use keyset pagination where measurements show deep `OFFSET` cost on players or news.
-- [ ] Give small, slow-changing lookup lists (clubs, locations, titles, roles) longer public TTLs.
-- [ ] Ensure every list procedure has deterministic ordering with a stable ID tie-breaker.
-- [ ] Remove fields from public projections that no route renders.
+- [x] Measure the ratings count query: ~2,400 rows per uncached request; kept, because the pagination UI shows exact totals and responses are edge-cached.
+- [x] Evaluate keyset pagination: page 50 reads ~4,450 rows vs ~2,500 for page 1; offset kept at this volume.
+- [x] Evaluate longer TTLs for lookup lists: they read 11–182 rows, so a longer TTL saves little and lengthens anonymous staleness; kept at 300 s per ADR 0003.
+- [x] Ensure every list procedure has deterministic ordering with a stable ID tie-breaker (announcements, player search, circuit podiums, event/link-group links, admin posts; circuit phases had no order at all).
+- [x] Remove fields from public projections that no route renders (`tvSergipe.list` no longer ships club logo URLs; `posts.listAdmin` no longer ships post bodies).
 
-### 22. Remove data-fetching waterfalls in admin routes — Important
+### 22. Remove data-fetching waterfalls in admin routes — Important (done)
 
 **Why:** `dashboard/players/$id.tsx` calls `useSuspenseQuery` ten times in one
 component, but its loader prefetches only five. `forEdit` and the three
 `listByPlayer` queries therefore suspend and fetch one after another.
 
-- [ ] Prefetch every query a route suspends on in its loader with `Promise.all`, or use `useSuspenseQueries`.
-- [ ] Fix `players/$id.tsx` and `players/titles.tsx`, then audit every dashboard route for the same pattern.
-- [ ] Add a lint rule or review checklist item: more than one `useSuspenseQuery` per component requires loader prefetching.
+- [x] Prefetch every query a route suspends on in its loader with `Promise.all`.
+- [x] Fix `players/$id.tsx` and `players/titles.tsx` (which also crashed with `BAD_REQUEST` when opened without `?playerId`; the selection now lives in the URL), then audit every route: all others prefetch what they suspend on.
+- [x] Record the rule as a convention in `AGENTS.md` (a lint rule cannot match loader prefetches to queries in shared components).
 
 ---
 
@@ -432,12 +445,13 @@ Merges the former frontend error-boundary, form-feedback, and duplicated loading
 
 ### 31. Improve navigation and responsive behavior — Optional
 
-- [ ] Verify that every icon-only button has an accessible name.
+- [ ] Verify that every icon-only button has an accessible name. Pages covered by `e2e/a11y.e2e.ts` pass; extend the axe page list to the remaining dashboard routes.
 - [ ] Ensure dialogs, sheets, command menus, and dropdowns have visible focus states and predictable Escape behavior.
 - [ ] Test admin tables at 375 px width; provide horizontal scrolling or card layouts where needed.
 - [ ] Announce pagination page changes and preserve focus.
 - [ ] Provide non-hover alternatives for important actions.
-- [ ] Verify WCAG AA color contrast in light and dark themes.
+- [ ] Verify WCAG AA color contrast in light and dark themes. Light theme passes on the axe-covered pages after the token change; dark theme is untested (run the axe pages with `colorScheme: "dark"`).
+- [ ] Make controls usable before hydration finishes. The e2e specs must wait for `networkidle` because buttons such as the row-action menu and the `/` command-menu shortcut do nothing until React hydrates; on slow phones real users hit the same dead window.
 
 ### 32. Improve loading and empty states — Optional
 

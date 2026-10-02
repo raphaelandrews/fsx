@@ -4,7 +4,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { tournaments, insertTournamentSchema } from "@fsx/db/schema/tournaments";
 import { normalizeName } from "@fsx/db/normalize";
 import { adminProcedure, publicProcedure, router } from "../index";
-import { requireMutationRows } from "../errors";
+import { requireFound, requireMutationRows } from "../errors";
 import { httpUrl, isoDate, nameText, positiveInt, searchText } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
 import { escapeLike, like } from "../sql-like";
@@ -36,8 +36,8 @@ export const tournamentsRouter = router({
     }),
   byId: publicProcedure
     .input(z.object({ id: positiveInt }))
-    .query(({ ctx, input }) =>
-      ctx.db.query.tournaments.findFirst({
+    .query(async ({ ctx, input }) =>
+      requireFound(await ctx.db.query.tournaments.findFirst({
         where: eq(tournaments.id, input.id),
         columns: { id: true, name: true, chessResults: true, date: true, ratingType: true, championshipId: true },
         with: {
@@ -50,7 +50,7 @@ export const tournamentsRouter = router({
             },
           },
         },
-      })
+      }), "Tournament")
     ),
   create: adminProcedure
     .input(insertTournamentSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({

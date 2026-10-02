@@ -31,6 +31,12 @@ Local Dev D1 gotchas:
   `route.tsx` (layout with `<Outlet/>`) + `index.tsx` + `$param.tsx` directory structure. A flat
   `foo.tsx` + `foo.$id.tsx` pair makes `$id` a child of the list route, which then needs an
   `<Outlet/>` to render.
+- **Prefetch what a route suspends on.** Every `useSuspenseQuery` reachable on first render must be
+  primed in the route `loader` (`Promise.all` of `ensureQueryData`, keyed by `loaderDeps` for search
+  params); otherwise each one suspends and fetches in sequence. Queries that depend on a user choice
+  (e.g. a selected player) belong in a child component rendered only once the choice exists.
+- **Detail procedures throw `NOT_FOUND`** (`requireFound`) instead of returning `undefined`, which
+  React Query rejects; loaders turn it into `notFound()` with `orNotFound` (`@/lib/errors`).
 - **Default to zero comments.** Add a comment only when it explains a non-obvious "why" or a
   gotcha that a reader could not infer from the code itself. Never restate what the code does,
   never narrate intent that is obvious, and never leave explanatory/doc-style prose. If a comment

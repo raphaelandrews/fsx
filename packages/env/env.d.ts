@@ -13,4 +13,6 @@ declare module "cloudflare:workers" {
   namespace Cloudflare {
     export interface Env extends CloudflareEnv {}
   }
+  // Provided by workerd; missing from the installed @cloudflare/workers-types.
+  export function waitUntil(promise: Promise<unknown>): void;
 }

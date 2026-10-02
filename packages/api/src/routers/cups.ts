@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 
 import { cups } from "@fsx/db/schema/cups";
 import { adminProcedure, publicProcedure, router } from "../index";
-import { requireMutationRows } from "../errors";
+import { requireFound, requireMutationRows } from "../errors";
 import { idInput, imageUrl, nameText, positiveInt, points } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
 
@@ -30,8 +30,8 @@ export const cupsRouter = router({
 
   byId: publicProcedure
     .input(idInput)
-    .query(({ ctx, input }) =>
-      ctx.db.query.cups.findFirst({
+    .query(async ({ ctx, input }) =>
+      requireFound(await ctx.db.query.cups.findFirst({
         where: eq(cups.id, input.id),
         columns: { id: true, name: true, imageUrl: true, startDate: true, endDate: true, prizePool: true, ratingType: true, championshipId: true },
         with: {
@@ -88,7 +88,7 @@ export const cupsRouter = router({
             },
           },
         },
-      })
+      }), "Cup")
     ),
 
   create: adminProcedure

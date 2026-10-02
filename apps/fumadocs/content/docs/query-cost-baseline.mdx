@@ -1,0 +1,89 @@
+---
+title: Query Cost Baseline
+description: Measured D1 cost and response size of every representative procedure at production data volume, and the decisions taken from it.
+---
+
+# Query Cost Baseline
+
+Measured on 2026-10-02 with `bun run measure packages/api/scripts/production-counts.json`.
+The command seeds a local D1 with deterministic synthetic rows matching the
+production row counts (`packages/db/src/audits/row-counts.sql`, no personal data)
+and reports, per procedure, the D1 statements issued, the rows D1 read (statements
+replayed with `.all()` to get `rows_read`), the JSON response size, and real tables
+scanned without an index. Run it again with `growth-counts.json` (3× rows) to check
+headroom.
+
+## Production volume
+
+5,384 players (2,368 active), 182 clubs, 173 tournaments, 8,511 rating-history rows
+(at most 78 per player), 546 circuit podiums, 182 TV Sergipe results, 50 posts.
+
+| Procedure | D1 queries | Rows read | Response KB | Full table scans |
+| --- | --- | --- | --- | --- |
+| topPlayers.list | 3 | 66 | 4.9 | — |
+| events.list | 1 | 51 | 2.6 | — |
+| posts.fresh | 1 | 95 | 0.7 | posts |
+| announcements.fresh | 1 | 8 | 1.7 | — |
+| players.withFilters (default) | 3 | 2492 | 5.3 | — |
+| players.withFilters (page 50) | 3 | 4454 | 5.3 | — |
+| players.withFilters (filters) | 2 | 1175 | 0.1 | — |
+| players.withFilters (name) | 3 | 2957 | 5.3 | — |
+| players.search (empty) | 1 | 21 | 0.4 | — |
+| players.search (words) | 1 | 5483 | 0.4 | players |
+| players.byId | 1 | 172 | 7.5 | — |
+| titledPlayers.list | 1 | 1042 | 22.8 | — |
+| roles.listWithPlayers | 1 | 443 | 6.8 | roles |
+| champions.gallery | 1 | 331 | 0 | — |
+| circuits.listSimple | 1 | 3 | 0.1 | — |
+| circuits.byId | 1 | 574 | 30.2 | — |
+| posts.byPage (1) | 2 | 145 | 2.1 | posts |
+| posts.byPage (5) | 2 | 145 | 0.1 | posts |
+| posts.bySlug | 1 | 1 | 1 | — |
+| announcements.byPage (1) | 2 | 94 | 2.7 | — |
+| tvSergipe.list | 1 | 728 | 38.2 | — |
+| tvSergipe.leaderboard | 1 | 728 | 16 | — |
+| links.list | 1 | 51 | 2.1 | — |
+| clubs.list | 1 | 182 | 7.8 | — |
+| locations.list | 1 | 79 | 4.5 | — |
+| sitemap entries (server-only) | 2 | 2463 | 13.6 | posts |
+| players.page (admin) | 3 | 5445 | 3.6 | — |
+| posts.listAdmin (admin) | 2 | 101 | 9 | posts |
+| tournaments.list (admin page) | 1 | 389 | 23.7 | tournaments |
+| swissManager.list (admin export) | 2 | 16153 | 841 | — |
+
+## Findings and decisions
+
+- **All public responses are far below the 512 KB budget.** The largest is
+  `tvSergipe.list` (38 KB; 114 KB at 3× growth). No public collection needs
+  pagination yet.
+- **Full scans are on small tables or unavoidable.** `posts` (50 rows), `roles`
+  (11), and the admin `tournaments` list scan cheaply. `players.search` reads
+  every player because `LIKE '%word%'` cannot use an index; at ~5,500 rows this is
+  fine. Revisit with SQLite FTS5 only if search latency becomes visible.
+- **Ratings count query is kept.** `players.withFilters` reads ~2,400 rows per
+  uncached request, mostly the exact `COUNT(*)` over active players, which the
+  pagination UI needs for its page total. Responses are edge-cached for 120 s.
+- **Offset pagination is kept.** Page 50 of the ratings reads ~4,450 rows versus
+  ~2,500 for page 1; keyset pagination is not worth the complexity at this volume.
+- **Lookup-list TTLs stay at 300 s.** `clubs`, `locations`, `titles`, and `roles`
+  read 11–182 rows; a longer TTL would save little and lengthen the anonymous
+  staleness window (ADR 0003).
+- **Indexes match the query shapes.** The rating, `active`+rating, and
+  `active`+`birth_date` composites serve the ratings filters and ordering; no index
+  was added or removed.
+- **Fixed from this baseline:** `titledPlayers.list` now filters with
+  `id IN (SELECT player_id FROM players_to_titles)` (6,128 → 1,042 rows read); the
+  admin player picker searches instead of loading all players (it truncated at
+  5,000 of 5,384); the Swiss Manager export no longer stops at 500 players; the
+  admin posts list no longer ships post bodies.
+
+## Guardrails
+
+- Production logs `[trpc] costly procedure` for any procedure taking ≥100 ms or
+  issuing ≥8 D1 queries, and `[resource] collection reached its row cap` when a
+  list returns exactly `PUBLIC_COLLECTION_LIMIT` rows (`clubs.list` would reach it
+  at ~2.7× today's clubs).
+- `bun run check:ssr` renders public pages on the same synthetic volume and fails
+  when HTML exceeds its per-route budget.
+- `e2e/requests.e2e.ts` fails if hydration refetches SSR data, a navigation needs
+  more than two API requests, or a public page calls an admin procedure.

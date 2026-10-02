@@ -1,5 +1,6 @@
 import type { AppRouter } from "@fsx/api/routers/index";
 import type { TRPCClientErrorLike } from "@trpc/client";
+import { notFound } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 type AppError = TRPCClientErrorLike<AppRouter>;
@@ -49,4 +50,13 @@ export function showMutationError(
 
 export function isExpectedQueryError(error: unknown): boolean {
   return ["UNAUTHORIZED", "FORBIDDEN", "NOT_FOUND"].includes(getErrorCode(error) ?? "");
+}
+
+export async function orNotFound<T>(load: Promise<T>): Promise<T> {
+  try {
+    return await load;
+  } catch (error) {
+    if (getErrorCode(error) === "NOT_FOUND") throw notFound();
+    throw error;
+  }
 }

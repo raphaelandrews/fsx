@@ -7,6 +7,7 @@ import {
   shouldCachePublicQuery,
 } from "./cache-policy";
 import { createContext } from "./context";
+import { dropFromEdge, edgeCache, isCachedEntryFresh, storeAtEdge, toClientResponse } from "./edge-cache";
 import { measureResponseBytes, PUBLIC_RESPONSE_SIZE_BUDGET_BYTES } from "./resource-bounds";
 import { appRouter } from "./routers/index";
 import {
@@ -19,25 +20,10 @@ import {
 } from "./security";
 import { applySecurityHeaders } from "./security-headers";
 
-// Short TTL for public GETs, cached in the Cloudflare Cache API and served to
-// the browser on client-side navigation. SSR does not go through this route —
-// it calls the router in-process (see apps/web/src/router.tsx) — so this cache
-// only affects client fetches, and keeps the home page (hero/fresh posts,
-// events, etc.) reflecting admin edits quickly. The Cache API does not reliably
-// honor `max-age` on the `match()` path, so we also store a fetch timestamp and
-// treat an entry as a miss once it is older than its TTL — otherwise a hit
-// could be served stale indefinitely (e.g. a new post staying off the hero).
-const CACHE_FETCHED_AT_HEADER = "x-cache-fetched-at";
-
-// Near-static public reads change only through admin edits. Admins carry a
-// session cookie and therefore bypass the edge cache entirely (see
-// isAuthenticated), so a longer TTL never hides an edit from the editor; it
-// only cuts origin load for anonymous visitors. Search stays short because its
-// result set is ephemeral. A batched request uses the shortest matching TTL.
-function isCachedEntryFresh(cached: Response, ttlSeconds: number): boolean {
-  const fetchedAt = Number(cached.headers.get(CACHE_FETCHED_AT_HEADER) ?? 0);
-  return fetchedAt > 0 && Date.now() - fetchedAt < ttlSeconds * 1000;
-}
+// Browsers must not keep API responses: React Query is the client-side cache,
+// and the zone's Browser Cache TTL raises any shorter max-age (it turned
+// max-age=0 into 4 hours). Only the stored edge entry carries s-maxage.
+const CLIENT_CACHE_CONTROL = "no-store";
 
 // A session cookie means the request is authenticated. Cache API entries are
 // keyed by URL + method only, so caching authenticated GETs would both serve
@@ -96,7 +82,9 @@ export async function handleTrpcRequest(request: Request): Promise<Response> {
     return response;
   }
 
-  const cache = (globalThis as { caches?: { default?: Cache } }).caches?.default;
+  // SSR calls the router in-process, so this cache only serves client-side
+  // navigation. Admins carry a session cookie and always bypass it.
+  const cache = edgeCache();
   const authenticated = isAuthenticated(request);
   const pathname = new URL(request.url).pathname;
   const procedure = pathname.replace("/api/trpc/", "");
@@ -111,9 +99,9 @@ export async function handleTrpcRequest(request: Request): Promise<Response> {
         procedure,
         requestId: request.headers.get("cf-ray") ?? "unknown",
       });
-      return cached;
+      return toClientResponse(cached, CLIENT_CACHE_CONTROL);
     }
-    if (cached) await cache.delete(request).catch(() => {});
+    if (cached) dropFromEdge(cache, request);
   }
 
   // Applies to cookie-bearing GETs too: the cookie check only looks at the
@@ -132,63 +120,34 @@ export async function handleTrpcRequest(request: Request): Promise<Response> {
 
   const response = await handleWithRouter(request);
   applySecurityHeaders(response.headers);
+  response.headers.set("Cache-Control", CLIENT_CACHE_CONTROL);
+  if (!cacheable || response.status !== 200) return response;
 
-  let successfulPayload = false;
-  let responseText = "";
-  if (response.status === 200) {
-    try {
-      responseText = await response.clone().text();
-      successfulPayload = isSuccessfulTrpcPayload(JSON.parse(responseText));
-    } catch {
-      successfulPayload = false;
-    }
-  }
+  const responseText = await response.clone().text();
+  const requestId = request.headers.get("cf-ray") ?? "unknown";
   const responseBytes = measureResponseBytes(responseText);
-  if (cacheable && response.status === 200) {
-    const requestId = request.headers.get("cf-ray") ?? "unknown";
-    console.info("[resource] public tRPC response", {
+  console.info("[resource] public tRPC response", { procedure, requestId, responseBytes });
+  if (responseBytes > PUBLIC_RESPONSE_SIZE_BUDGET_BYTES) {
+    console.warn("[resource] public response size budget exceeded", {
       procedure,
       requestId,
       responseBytes,
+      budgetBytes: PUBLIC_RESPONSE_SIZE_BUDGET_BYTES,
     });
-    if (responseBytes > PUBLIC_RESPONSE_SIZE_BUDGET_BYTES) {
-      console.warn("[resource] public response size budget exceeded", {
-        procedure,
-        requestId,
-        responseBytes,
-        budgetBytes: PUBLIC_RESPONSE_SIZE_BUDGET_BYTES,
-      });
-    }
-    if (cache && !authenticated) {
-      console.info("[cache] public query", {
-        outcome: "miss",
-        procedure,
-        requestId,
-      });
-    }
-  }
-  const mayCache =
-    shouldCachePublicQuery({ method, status: response.status, authenticated, cacheable }) &&
-    successfulPayload;
-
-  if (mayCache) {
-    response.headers.set(
-      "Cache-Control",
-      `public, max-age=0, s-maxage=${ttlSeconds}, stale-while-revalidate=${ttlSeconds}`,
-    );
-  } else {
-    response.headers.set("Cache-Control", "no-store");
   }
 
-  if (mayCache && cache) {
-    const toCache = new Response(response.clone().body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-    });
-    toCache.headers.set(CACHE_FETCHED_AT_HEADER, String(Date.now()));
-    await cache.put(request, toCache);
+  if (!cache || !shouldCachePublicQuery({ method, status: response.status, authenticated, cacheable })) {
+    return response;
   }
+  let successfulPayload = false;
+  try {
+    successfulPayload = isSuccessfulTrpcPayload(JSON.parse(responseText));
+  } catch {
+    successfulPayload = false;
+  }
+  if (!successfulPayload) return response;
 
+  console.info("[cache] public query", { outcome: "miss", procedure, requestId });
+  storeAtEdge(cache, request, responseText, response, ttlSeconds);
   return response;
 }

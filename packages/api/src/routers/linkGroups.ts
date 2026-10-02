@@ -24,7 +24,7 @@ export const linkGroupsRouter = router({
         links: {
           limit: PUBLIC_NESTED_COLLECTION_LIMIT,
           columns: { id: true, href: true, label: true, icon: true, sortOrder: true },
-          orderBy: (l, { asc }) => asc(l.sortOrder),
+          orderBy: (l, { asc }) => [asc(l.sortOrder), asc(l.id)],
         },
       },
       orderBy: (lg, { asc }) => asc(lg.id),

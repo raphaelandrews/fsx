@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
@@ -55,6 +55,7 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/_public/ratings")({
   validateSearch: searchSchema,
+  search: { middlewares: [stripSearchParams({ page: 1, ordenar: "rapid", local: [], clube: [], titulo: [], grupo: [] })] },
   head: () =>
     buildSeo({
       title: withBrand("Ratings de Xadrez"),
@@ -103,6 +104,7 @@ export const Route = createFileRoute("/_public/ratings")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
+  const router = useRouter();
   const search = Route.useSearch();
 
   const { data } = useSuspenseQuery(
@@ -337,6 +339,7 @@ function RouteComponent() {
               search: { ...search, page: newPage },
             })
           }
+          onPagePreload={(page) => void router.preloadRoute({ to: "/ratings", search: { ...search, page } })}
         />
       </div>
     </>

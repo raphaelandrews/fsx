@@ -11,7 +11,7 @@ import { ImageUpload } from "@/components/image-upload";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
-import { getFieldError, showMutationError } from "@/lib/errors";
+import { getFieldError, orNotFound, showMutationError } from "@/lib/errors";
 import { sanitizeTitle, slugify } from "@/utils/slugify";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
@@ -19,8 +19,8 @@ import { idParams } from "@/lib/route-params";
 export const Route = createFileRoute("/_auth/dashboard/posts/$id")({
   params: idParams,
   head: () => ({ meta: [{ title: "Edit Post - Admin - FSX" }] }),
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(context.trpc.posts.listAdmin.queryOptions()),
+  loader: ({ context, params }) =>
+    orNotFound(context.queryClient.ensureQueryData(context.trpc.posts.forEdit.queryOptions({ id: params.id }))),
   component: RouteComponent,
 });
 
@@ -31,8 +31,7 @@ function RouteComponent() {
   const navigate = useNavigate();
   const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
 
-  const { data: posts = [] } = useSuspenseQuery(trpc.posts.listAdmin.queryOptions());
-  const post = posts.find((p) => p.id === id);
+  const { data: post } = useSuspenseQuery(trpc.posts.forEdit.queryOptions({ id }));
 
   const updateMutation = useMutation({
     ...trpc.posts.update.mutationOptions(),

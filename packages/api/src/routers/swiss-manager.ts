@@ -1,5 +1,8 @@
 import { adminProcedure, router } from "../index";
-import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
+
+// The export must contain every player Swiss Manager may pair; the cap only
+// guards against a runaway query and is far above the federation's roster.
+const SWISS_MANAGER_EXPORT_LIMIT = 20_000;
 
 export const swissManagerRouter = router({
   list: adminProcedure.query(async ({ ctx }) => {
@@ -9,8 +12,14 @@ export const swissManagerRouter = router({
         columns: { id: true, name: true, sex: true, birthDate: true, classic: true, rapid: true, blitz: true },
         with: { club: { columns: { id: true, name: true } } },
         orderBy: (players, { desc, asc }) => [desc(players.rapid), asc(players.id)],
-        limit: PUBLIC_COLLECTION_LIMIT,
+        limit: SWISS_MANAGER_EXPORT_LIMIT,
       });
+      if (rows.length >= SWISS_MANAGER_EXPORT_LIMIT) {
+        console.warn("[resource] swiss manager export hit its row cap", {
+          requestId: ctx.requestId,
+          limit: SWISS_MANAGER_EXPORT_LIMIT,
+        });
+      }
       console.info("[audit] sensitive export", {
         actorId: ctx.session.user.id,
         procedure: "swissManager.list",

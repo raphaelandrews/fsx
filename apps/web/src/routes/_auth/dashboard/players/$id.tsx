@@ -20,12 +20,17 @@ import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { orNotFound } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/players/$id")({
   params: idParams,
   head: () => ({ meta: [{ title: "Edit Player - Admin - FSX" }] }),
-  loader: async ({ context }) => {
+  loader: async ({ context, params }) => {
     await Promise.all([
+      orNotFound(context.queryClient.ensureQueryData(context.trpc.players.forEdit.queryOptions({ id: params.id }))),
+      context.queryClient.ensureQueryData(context.trpc.playersToTitles.listByPlayer.queryOptions({ playerId: params.id })),
+      context.queryClient.ensureQueryData(context.trpc.playersToRoles.listByPlayer.queryOptions({ playerId: params.id })),
+      context.queryClient.ensureQueryData(context.trpc.playersToInsignias.listByPlayer.queryOptions({ playerId: params.id })),
       context.queryClient.ensureQueryData(context.trpc.clubs.list.queryOptions()),
       context.queryClient.ensureQueryData(context.trpc.locations.list.queryOptions()),
       context.queryClient.ensureQueryData(context.trpc.titles.list.queryOptions()),
@@ -315,8 +320,9 @@ function RouteComponent() {
           <form.Field name="sex">
             {(f) => (
               <div className="space-y-2">
-                <Label>Sex</Label>
+                <Label htmlFor={f.name}>Sex</Label>
                 <select
+                  id={f.name}
                   value={f.state.value}
                   onChange={(e) => f.handleChange(e.target.value as "male" | "female")}
                   onBlur={f.handleBlur}
@@ -365,7 +371,7 @@ function RouteComponent() {
                 value={f.state.value?.toString() ?? ""}
                 onValueChange={(v) => f.handleChange(v ? Number(v) : null)}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Club">
                   <SelectValue placeholder="Select club" />
                 </SelectTrigger>
                 <SelectContent>
@@ -387,7 +393,7 @@ function RouteComponent() {
                 value={f.state.value?.toString() ?? ""}
                 onValueChange={(v) => f.handleChange(v ? Number(v) : null)}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Location">
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
                 <SelectContent>
@@ -468,7 +474,7 @@ function RouteComponent() {
                 if (v) linkTitleMutation.mutate({ playerId: numId, titleId: Number(v) });
               }}
             >
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-48" aria-label="Add title">
                 <SelectValue placeholder="Add title" />
               </SelectTrigger>
               <SelectContent>
@@ -507,7 +513,7 @@ function RouteComponent() {
                 if (v) linkRoleMutation.mutate({ playerId: numId, roleId: Number(v) });
               }}
             >
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-48" aria-label="Add role">
                 <SelectValue placeholder="Add role" />
               </SelectTrigger>
               <SelectContent>
@@ -546,7 +552,7 @@ function RouteComponent() {
                 if (v) linkInsigniaMutation.mutate({ playerId: numId, insigniaId: Number(v) });
               }}
             >
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-48" aria-label="Add insignia">
                 <SelectValue placeholder="Add insignia" />
               </SelectTrigger>
               <SelectContent>

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 import { events, insertEventSchema } from "@fsx/db/schema/events";
@@ -24,7 +24,7 @@ export const eventsRouter = router({
             links: {
               limit: PUBLIC_NESTED_COLLECTION_LIMIT,
               columns: { id: true, href: true, label: true, icon: true, type: true, sortOrder: true },
-              orderBy: (l, { asc }) => asc(l.sortOrder),
+              orderBy: (l, { asc }) => [asc(l.sortOrder), asc(l.id)],
             },
           },
         },
@@ -83,78 +83,69 @@ export const eventsRouter = router({
     .mutation(async ({ ctx, input }) => {
       validateEventLinkTypes(input.links.map((item) => item.type));
 
-      return ctx.db.transaction(async (tx) => {
-        const event = await tx.query.events.findFirst({
-          where: eq(events.id, input.eventId),
-          columns: { id: true },
-        });
-        if (!event) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" });
-        }
-
-        const existingGroup = await tx.query.linkGroups.findFirst({
-          where: eq(linkGroups.eventId, input.eventId),
-        });
-        const group = existingGroup ??
-          (await tx
-            .insert(linkGroups)
-            .values({ label: "Links", eventId: input.eventId })
-            .returning())[0];
-
-        if (!group) {
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Unable to create event links" });
-        }
-
-        const existing = await tx.query.links.findMany({
-          where: eq(links.linkGroupId, group.id),
-        });
-        const existingIds = new Set(existing.map((link) => link.id));
-        const desiredIds = new Set<number>();
-        let counter = 0;
-
-        for (const item of input.links) {
-          const sortOrder = item.sortOrder ?? ++counter;
-          const meta = EVENT_LINK_TYPES.find((t) => t.value === item.type);
-          if (!meta) {
-            throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid event link type" });
-          }
-          const label = meta.label;
-          const icon = iconForLinkLabel(label);
-          if (item.id !== undefined) {
-            requireOwnedEventLink(existingIds, item.id);
-            desiredIds.add(item.id);
-            await tx
-              .update(links)
-              .set({ href: item.href || null, label, icon, type: item.type, sortOrder })
-              .where(and(eq(links.id, item.id), eq(links.linkGroupId, group.id)));
-          } else {
-            const [row] = await tx
-              .insert(links)
-              .values({
-                href: item.href || null,
-                label,
-                icon,
-                type: item.type,
-                sortOrder,
-                linkGroupId: group.id,
-              })
-              .returning();
-            if (row) desiredIds.add(row.id);
-          }
-        }
-
-        for (const existingLink of existing) {
-          if (!desiredIds.has(existingLink.id)) {
-            await tx
-              .delete(links)
-              .where(and(eq(links.id, existingLink.id), eq(links.linkGroupId, group.id)));
-          }
-        }
-
-        return tx.query.links.findMany({
-          where: eq(links.linkGroupId, group.id),
-          orderBy: (l, { asc }) => asc(l.sortOrder),
-        });
+      // D1 rejects BEGIN, so interactive transactions fail at runtime. Ownership
+      // is checked on the reads below; every write then runs in one atomic batch.
+      const event = await ctx.db.query.events.findFirst({
+        where: eq(events.id, input.eventId),
+        columns: { id: true },
       });
+      if (!event) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" });
+      }
+
+      const existingGroup = await ctx.db.query.linkGroups.findFirst({
+        where: eq(linkGroups.eventId, input.eventId),
+        columns: { id: true },
+      });
+      const existing = existingGroup
+        ? await ctx.db.query.links.findMany({
+            where: eq(links.linkGroupId, existingGroup.id),
+            columns: { id: true },
+          })
+        : [];
+      const existingIds = new Set(existing.map((link) => link.id));
+      for (const item of input.links) {
+        if (item.id !== undefined) requireOwnedEventLink(existingIds, item.id);
+      }
+
+      const groupId = sql<number>`(SELECT ${linkGroups.id} FROM ${linkGroups} WHERE ${linkGroups.eventId} = ${input.eventId})`;
+      const keptIds = new Set(input.links.flatMap((item) => (item.id === undefined ? [] : [item.id])));
+      let counter = 0;
+
+      const writes = input.links.map((item) => {
+        const sortOrder = item.sortOrder ?? ++counter;
+        const label = EVENT_LINK_TYPES.find((t) => t.value === item.type)!.label;
+        const values = {
+          href: item.href || null,
+          label,
+          icon: iconForLinkLabel(label),
+          type: item.type,
+          sortOrder,
+        };
+        return item.id === undefined
+          ? ctx.db.insert(links).values({ ...values, linkGroupId: groupId })
+          : ctx.db
+              .update(links)
+              .set(values)
+              .where(and(eq(links.id, item.id), eq(links.linkGroupId, groupId)));
+      });
+      const deletes = [...existingIds]
+        .filter((id) => !keptIds.has(id))
+        .map((id) => ctx.db.delete(links).where(and(eq(links.id, id), eq(links.linkGroupId, groupId))));
+
+      const results = await ctx.db.batch([
+        ctx.db
+          .insert(linkGroups)
+          .values({ label: "Links", eventId: input.eventId })
+          .onConflictDoNothing({ target: linkGroups.eventId }),
+        ...writes,
+        ...deletes,
+        ctx.db
+          .select()
+          .from(links)
+          .where(eq(links.linkGroupId, groupId))
+          .orderBy(asc(links.sortOrder), asc(links.id)),
+      ]);
+      return results[results.length - 1] as (typeof links.$inferSelect)[];
     }),
 });

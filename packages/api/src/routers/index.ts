@@ -1,5 +1,6 @@
 import { router } from "../index";
 import { announcementsRouter } from "./announcements";
+import { cacheRouter } from "./cache";
 import { championsRouter } from "./champions";
 import { circuitsRouter } from "./circuits";
 import { clubsRouter } from "./clubs";
@@ -30,6 +31,7 @@ import { titlesRouter } from "./titles";
 
 export const appRouter = router({
   announcements: announcementsRouter,
+  cache: cacheRouter,
   champions: championsRouter,
   circuits: circuitsRouter,
   clubs: clubsRouter,

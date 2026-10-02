@@ -5,7 +5,7 @@ import { env } from "@fsx/env/server";
 import { posts, insertPostSchema } from "@fsx/db/schema/posts";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { contentText, idInput, imageUrl, nameText, page, positiveInt, searchText } from "../input-schemas";
-import { requireMutationRows } from "../errors";
+import { requireFound, requireMutationRows } from "../errors";
 import { urlToKey } from "./images";
 
 export const postsRouter = router({
@@ -19,17 +19,30 @@ export const postsRouter = router({
   ),
   listAdmin: adminProcedure.query(({ ctx }) =>
     ctx.db
-      .select()
+      .select({
+        id: posts.id,
+        title: posts.title,
+        slug: posts.slug,
+        imageUrl: posts.imageUrl,
+        published: posts.published,
+        createdAt: posts.createdAt,
+        updatedAt: posts.updatedAt,
+      })
       .from(posts)
-      .orderBy(desc(posts.createdAt))
+      .orderBy(desc(posts.createdAt), desc(posts.id))
   ),
+  forEdit: adminProcedure
+    .input(idInput)
+    .query(async ({ ctx, input }) =>
+      requireFound(await ctx.db.query.posts.findFirst({ where: eq(posts.id, input.id) }), "Post")
+    ),
   bySlug: publicProcedure
     .input(z.object({ slug: searchText.max(200) }))
-    .query(({ ctx, input }) =>
-      ctx.db.query.posts.findFirst({
+    .query(async ({ ctx, input }) =>
+      requireFound(await ctx.db.query.posts.findFirst({
         where: and(eq(posts.slug, input.slug), eq(posts.published, true)),
         columns: { id: true, title: true, imageUrl: true, content: true, slug: true, createdAt: true, updatedAt: true },
-      })
+      }), "Post")
     ),
   byPage: publicProcedure
     .input(z.object({ page }))

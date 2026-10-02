@@ -10,11 +10,13 @@ import { toast } from "sonner";
 import { useTRPC } from "@/utils/trpc";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { orNotFound } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/$id")({
   params: idParams,
   head: () => ({ meta: [{ title: "Edit Announcement - Admin - FSX" }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.announcements.list.queryOptions()),
+  loader: ({ context, params }) =>
+    orNotFound(context.queryClient.ensureQueryData(context.trpc.announcements.byId.queryOptions({ id: params.id }))),
   component: RouteComponent,
 });
 
@@ -24,8 +26,7 @@ function RouteComponent() {
   const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
 
-  const { data: announcements = [] } = useSuspenseQuery(trpc.announcements.list.queryOptions());
-  const announcement = announcements.find((a) => a.id === numId);
+  const { data: announcement } = useSuspenseQuery(trpc.announcements.byId.queryOptions({ id: numId }));
 
   const updateMutation = useMutation({
     ...trpc.announcements.update.mutationOptions(),

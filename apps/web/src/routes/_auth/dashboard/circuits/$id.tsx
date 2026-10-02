@@ -15,13 +15,16 @@ import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { orNotFound } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/$id")({
   params: idParams,
   head: () => ({ meta: [{ title: "Edit Circuit - Admin - FSX" }] }),
   loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(
-      context.trpc.circuits.byId.queryOptions({ id: params.id }),
+    orNotFound(
+      context.queryClient.ensureQueryData(
+        context.trpc.circuits.byId.queryOptions({ id: params.id }),
+      ),
     ),
   component: RouteComponent,
 });

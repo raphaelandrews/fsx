@@ -7,6 +7,7 @@ import { account, user } from "@fsx/db/schema/auth";
 import { env } from "@fsx/env/server";
 
 import type { Context } from "./context";
+import { PUBLIC_COLLECTION_LIMIT } from "./resource-bounds";
 
 export const t = initTRPC.context<Context>().create({
   errorFormatter({ shape, error }) {
@@ -42,16 +43,29 @@ function normalizeProcedureError(error: unknown): never {
   });
 }
 
+const SLOW_PROCEDURE_MS = 100;
+const QUERY_HEAVY_PROCEDURE = 8;
+
 const errorBoundary = t.middleware(async ({ next, path, ctx }) => {
   const startedAt = Date.now();
+  const queriesBefore = ctx.d1?.queries ?? 0;
   try {
     const result = await next();
     const durationMs = Date.now() - startedAt;
-    if (durationMs >= 100) {
-      console.info("[trpc] slow procedure", {
+    const d1Queries = (ctx.d1?.queries ?? 0) - queriesBefore;
+    if (result.ok && Array.isArray(result.data) && result.data.length >= PUBLIC_COLLECTION_LIMIT) {
+      console.warn("[resource] collection reached its row cap", {
+        path,
+        requestId: ctx.requestId,
+        limit: PUBLIC_COLLECTION_LIMIT,
+      });
+    }
+    if (durationMs >= SLOW_PROCEDURE_MS || d1Queries >= QUERY_HEAVY_PROCEDURE) {
+      console.info("[trpc] costly procedure", {
         path,
         requestId: ctx.requestId,
         durationMs,
+        d1Queries,
         result: "success",
       });
     }

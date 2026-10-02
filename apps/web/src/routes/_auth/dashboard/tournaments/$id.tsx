@@ -11,14 +11,15 @@ import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
+import { orNotFound } from "@/lib/errors";
 
 const RATING_TYPES = ["blitz", "rapid", "classic"] as const;
 
 export const Route = createFileRoute("/_auth/dashboard/tournaments/$id")({
   params: idParams,
   head: () => ({ meta: [{ title: "Edit Tournament - Admin - FSX" }] }),
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(context.trpc.tournaments.list.queryOptions()),
+  loader: ({ context, params }) =>
+    orNotFound(context.queryClient.ensureQueryData(context.trpc.tournaments.byId.queryOptions({ id: params.id }))),
   component: RouteComponent,
 });
 
@@ -28,8 +29,7 @@ function RouteComponent() {
   const invalidateAdmin = useInvalidateAdmin();
   const navigate = useNavigate();
 
-  const { data: tournaments = [] } = useSuspenseQuery(trpc.tournaments.list.queryOptions());
-  const tournament = tournaments.find((t) => t.id === numId);
+  const { data: tournament } = useSuspenseQuery(trpc.tournaments.byId.queryOptions({ id: numId }));
 
   const updateMutation = useMutation({
     ...trpc.tournaments.update.mutationOptions(),

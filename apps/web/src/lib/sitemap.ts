@@ -38,13 +38,20 @@ function urlEntry(path: string, lastModified?: string): string {
   ].join("\n");
 }
 
-export function renderSitemap(posts: SitemapPost[], playerIds: number[]): string {
+export interface SitemapEntries {
+  posts: SitemapPost[];
+  playerIds: number[];
+  announcementIds: number[];
+}
+
+export function renderSitemap({ posts, playerIds, announcementIds }: SitemapEntries): string {
   const entries = [
     ...STATIC_PATHS.map((path) => urlEntry(path)),
     ...posts.map((post) =>
       urlEntry(`/noticias/${encodeURIComponent(post.slug)}`, formatLastModified(post.updatedAt)),
     ),
     ...playerIds.map((id) => urlEntry(`/jogadores/${id}`)),
+    ...announcementIds.map((id) => urlEntry(`/comunicados/${id}`)),
   ];
 
   return [

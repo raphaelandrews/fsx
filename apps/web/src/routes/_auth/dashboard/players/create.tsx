@@ -203,8 +203,9 @@ function RouteComponent() {
         <form.Field name="sex">
           {(f) => (
             <div className="space-y-2">
-              <Label>Sex</Label>
+              <Label htmlFor={f.name}>Sex</Label>
               <select
+                id={f.name}
                 value={f.state.value}
                 onChange={(e) => f.handleChange(e.target.value as "male" | "female")}
                 onBlur={f.handleBlur}

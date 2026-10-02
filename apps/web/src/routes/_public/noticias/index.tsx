@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
@@ -21,6 +21,7 @@ const PUBLICATION_STALE_TIME = 60_000;
 
 export const Route = createFileRoute("/_public/noticias/")({
   validateSearch: searchSchema,
+  search: { middlewares: [stripSearchParams({ page: 1 })] },
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(
@@ -49,6 +50,7 @@ export const Route = createFileRoute("/_public/noticias/")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
+  const router = useRouter();
   const { page } = Route.useSearch();
   const { data } = useSuspenseQuery(
     trpc.posts.byPage.queryOptions({ page }, { staleTime: PUBLICATION_STALE_TIME }),
@@ -75,6 +77,7 @@ function RouteComponent() {
           hasPreviousPage={data.pagination.hasPreviousPage}
           totalPages={data.pagination.totalPages}
           onPageChange={(newPage) => navigate({ to: "/noticias", search: { page: newPage } })}
+          onPagePreload={(page) => void router.preloadRoute({ to: "/noticias", search: { page } })}
         />
       </div>
     </>

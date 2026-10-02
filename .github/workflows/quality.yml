@@ -12,7 +12,7 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -33,3 +33,14 @@ jobs:
       - run: bun run check:bundle
       - run: bun run check:seo
       - run: bun run check:routes
+      - run: bun run check:ssr
+      - name: Install Playwright Chromium
+        working-directory: apps/web
+        run: node node_modules/.bin/playwright install --with-deps chromium
+      - run: bun run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: apps/web/test-results
+          retention-days: 7

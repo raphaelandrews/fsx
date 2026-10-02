@@ -184,7 +184,7 @@ export function TvSergipeView() {
             }
             value={search.idade ?? "geral"}
           >
-            <SelectTrigger className="min-w-48">
+            <SelectTrigger className="min-w-48" aria-label="Faixa etária">
               <SelectValue placeholder="Faixa etária" />
             </SelectTrigger>
             <SelectContent>
@@ -207,7 +207,7 @@ export function TvSergipeView() {
               }
               value={(search.escopo as SubScopeId) ?? "geral"}
             >
-              <SelectTrigger className="min-w-48">
+              <SelectTrigger className="min-w-48" aria-label="Recorte">
                 <SelectValue placeholder="Recorte" />
               </SelectTrigger>
               <SelectContent>

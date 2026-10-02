@@ -37,3 +37,46 @@ if (missing.length || stale.length) {
 } else {
   console.info(`Generated route tree matches ${sourceRoutes.length} source routes.`);
 }
+
+// Every public page route must be listed in the sitemap or excluded on purpose.
+const SITEMAP_EXCLUDED = new Map([
+  ["/login", "admin sign-in"],
+  ["/$", "catch-all not-found page"],
+]);
+
+function urlPathOf(file) {
+  const relativePath = relative(routesDirectory, file).replaceAll("\\", "/");
+  if (relativePath.startsWith("_auth/") || relativePath.startsWith("api/") || relativePath.startsWith("sitemap")) {
+    return null;
+  }
+  const withoutExtension = relativePath.slice(0, -extname(relativePath).length);
+  if (withoutExtension === "__root" || withoutExtension.endsWith("route")) return null;
+  const segments = withoutExtension
+    .split("/")
+    .flatMap((segment) => segment.split("."))
+    .filter((segment) => !segment.startsWith("_") && segment !== "index");
+  return `/${segments.join("/")}`;
+}
+
+const sitemapSource = await readFile(join(root, "lib/sitemap.ts"), "utf8");
+const staticBlock = sitemapSource.match(/STATIC_PATHS = \[([\s\S]*?)\]/)?.[1] ?? "";
+const staticPaths = new Set([...staticBlock.matchAll(/"([^"]+)"/g)].map(([, path]) => path));
+const dynamicPrefixes = new Set([...sitemapSource.matchAll(/urlEntry\(`(\/[a-z-]+)\/\$\{/g)].map(([, prefix]) => prefix));
+
+const uncovered = sourceRoutes
+  .map(urlPathOf)
+  .filter((path) => path !== null)
+  .filter((path) => {
+    if (SITEMAP_EXCLUDED.has(path)) return false;
+    const dynamic = path.match(/^(.*)\/\$[a-zA-Z]+$/);
+    return dynamic ? !dynamicPrefixes.has(dynamic[1]) : !staticPaths.has(path);
+  });
+
+if (uncovered.length) {
+  console.error(
+    `Public routes missing from the sitemap (add them to lib/sitemap.ts or SITEMAP_EXCLUDED):\n${[...new Set(uncovered)].join("\n")}`,
+  );
+  process.exitCode = 1;
+} else {
+  console.info("Every public route is in the sitemap or explicitly excluded.");
+}

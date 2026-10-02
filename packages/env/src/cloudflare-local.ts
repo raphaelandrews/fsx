@@ -16,3 +16,7 @@ export const env = new Proxy({} as Env, {
     return runtimeEnv[prop];
   },
 });
+
+export function waitUntil(promise: Promise<unknown>): void {
+  void promise.catch(() => {});
+}

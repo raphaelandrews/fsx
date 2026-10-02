@@ -19,7 +19,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
 
-  --primary: oklch(0.61 0.22 267);
+  --primary: oklch(0.57 0.22 267);
   --primary-foreground: oklch(1 0 0);
 
   --secondary: oklch(0.97 0 0);
@@ -58,7 +58,7 @@
   --selection: oklch(0.6 0.21 267);
   --selection-foreground: oklch(1 0 0);
 
-  --link: oklch(0.609 0.175 241.254); /* sky-600 */
+  --link: oklch(0.55 0.175 241.254);
 
   --highlight: oklch(0.795 0.184 86.047);
 

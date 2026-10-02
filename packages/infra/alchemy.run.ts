@@ -71,6 +71,10 @@ export const web = await TanStackStart("web", {
     BETTER_AUTH_URL: alchemy.env.BETTER_AUTH_URL!,
     GITHUB_CLIENT_ID: alchemy.secret.env.GITHUB_CLIENT_ID!,
     GITHUB_CLIENT_SECRET: alchemy.secret.env.GITHUB_CLIENT_SECRET!,
+    CLOUDFLARE_ZONE_ID: alchemy.env.CLOUDFLARE_ZONE_ID ?? "",
+    ...(process.env.CLOUDFLARE_CACHE_PURGE_TOKEN
+      ? { CLOUDFLARE_CACHE_PURGE_TOKEN: alchemy.secret(process.env.CLOUDFLARE_CACHE_PURGE_TOKEN) }
+      : {}),
     GITHUB_USER_ID: alchemy.env.GITHUB_USER_ID ?? "",
     GITHUB_USERNAME: alchemy.env.GITHUB_USERNAME ?? "",
     DISABLE_SIGNUP: alchemy.env.DISABLE_SIGNUP ?? "",

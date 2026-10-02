@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ScrollIcon, ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
@@ -18,6 +18,7 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/_public/comunicados/")({
   validateSearch: searchSchema,
+  search: { middlewares: [stripSearchParams({ page: 1 })] },
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(
@@ -42,6 +43,7 @@ export const Route = createFileRoute("/_public/comunicados/")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
+  const router = useRouter();
   const { page } = Route.useSearch();
   const { data } = useSuspenseQuery(trpc.announcements.byPage.queryOptions({ page }));
 
@@ -68,6 +70,7 @@ function RouteComponent() {
           hasNextPage={data.pagination.hasNextPage}
           hasPreviousPage={data.pagination.hasPreviousPage}
           onPageChange={(newPage) => navigate({ to: "/comunicados", search: { page: newPage } })}
+          onPagePreload={(page) => void router.preloadRoute({ to: "/comunicados", search: { page } })}
           totalPages={data.pagination.totalPages}
         />
       </div>

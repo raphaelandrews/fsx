@@ -1,5 +1,3 @@
-import { sql } from "drizzle-orm";
-
 import { playersToTitles } from "@fsx/db/schema/playersToTitles";
 import { publicProcedure, router } from "../index";
 import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
@@ -16,13 +14,10 @@ export const titledPlayersRouter = router({
           },
         },
       },
-      where: (players, { exists }) =>
-        exists(
-          ctx.db
-            .select()
-            .from(playersToTitles)
-            .where(sql`${playersToTitles.playerId} = ${players.id}`)
-        ),
+      // IN (subquery) starts from the few title links and looks players up by
+      // primary key; EXISTS walked every player in rating order.
+      where: (players, { inArray }) =>
+        inArray(players.id, ctx.db.select({ id: playersToTitles.playerId }).from(playersToTitles)),
       orderBy: (players, { desc, asc }) => [desc(players.rapid), asc(players.id)],
       limit: PUBLIC_COLLECTION_LIMIT,
     })

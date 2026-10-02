@@ -414,7 +414,7 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
               onValueChange={(value) => value && setSelectedRatingType(value)}
               value={selectedRatingType}
             >
-              <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectTrigger className="w-[140px] h-8 text-xs" aria-label="Tipo de rating">
                 <SelectValue placeholder="Rating">
                   {(value) => ratingTypeLabels[value as string] ?? value}
                 </SelectValue>

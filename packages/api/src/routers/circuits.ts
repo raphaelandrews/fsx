@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { asc, desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { circuitPhases } from "@fsx/db/schema/circuitPhases";
 import { circuitPodiums } from "@fsx/db/schema/circuitPodiums";
 import { circuits } from "@fsx/db/schema/circuits";
 import { CIRCUIT_CATEGORIES, CIRCUIT_TYPES } from "../circuit-types";
 import { adminProcedure, publicProcedure, router } from "../index";
-import { requireMutationRows } from "../errors";
+import { requireFound, requireMutationRows } from "../errors";
 import { idInput, nameText, points, positiveInt, sortOrder } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
 
@@ -33,65 +33,57 @@ const hasSinglePodiumTarget = (value: {
   circuitPhaseId?: number | null;
 }) => (value.circuitId != null) !== (value.circuitPhaseId != null);
 
-const circuitDetailRelations = {
-  circuitPhases: {
-    limit: PUBLIC_NESTED_COLLECTION_LIMIT,
-    columns: { id: true, sortOrder: true, tournamentId: true, clubId: true },
-    with: {
-      tournament: { columns: { id: true, name: true } },
-      club: { columns: { id: true, name: true } },
-      circuitPodiums: {
-        limit: PUBLIC_NESTED_COLLECTION_LIMIT,
-        columns: { id: true, category: true, place: true, points: true, playerId: true },
-        orderBy: desc(circuitPodiums.points),
-        with: {
-          player: {
-            columns: { id: true, name: true, nickname: true, imageUrl: true },
-            with: {
-              club: { columns: { id: true, name: true, logoUrl: true } },
-              playersToTitles: {
-                columns: {},
-                with: { title: { columns: { shortName: true, type: true } } },
+export const circuitsRouter = router({
+  byId: publicProcedure.input(idInput).query(async ({ ctx, input }) =>
+    requireFound(await ctx.db.query.circuits.findFirst({
+      where: eq(circuits.id, input.id),
+      columns: { id: true, name: true, type: true },
+      with: {
+        circuitPhases: {
+          limit: PUBLIC_NESTED_COLLECTION_LIMIT,
+          columns: { id: true, sortOrder: true, tournamentId: true, clubId: true },
+          orderBy: (phase, { asc }) => [asc(phase.sortOrder), asc(phase.id)],
+          with: {
+            tournament: { columns: { id: true, name: true } },
+            club: { columns: { id: true, name: true } },
+            circuitPodiums: {
+              limit: PUBLIC_NESTED_COLLECTION_LIMIT,
+              columns: { id: true, category: true, place: true, points: true, playerId: true },
+              orderBy: (podium, { asc, desc }) => [desc(podium.points), asc(podium.id)],
+              with: {
+                player: {
+                  columns: { id: true, name: true, nickname: true, imageUrl: true },
+                  with: {
+                    club: { columns: { id: true, name: true, logoUrl: true } },
+                    playersToTitles: {
+                      columns: {},
+                      with: { title: { columns: { shortName: true, type: true } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        circuitPodiums: {
+          limit: PUBLIC_NESTED_COLLECTION_LIMIT,
+          columns: { id: true, category: true, place: true, points: true, playerId: true },
+          orderBy: (podium, { asc, desc }) => [desc(podium.points), asc(podium.id)],
+          with: {
+            player: {
+              columns: { id: true, name: true, nickname: true, imageUrl: true },
+              with: {
+                club: { columns: { id: true, name: true, logoUrl: true } },
+                playersToTitles: {
+                  columns: {},
+                  with: { title: { columns: { shortName: true, type: true } } },
+                },
               },
             },
           },
         },
       },
-    },
-  },
-  circuitPodiums: {
-    limit: PUBLIC_NESTED_COLLECTION_LIMIT,
-    columns: { id: true, category: true, place: true, points: true, playerId: true },
-    orderBy: desc(circuitPodiums.points),
-    with: {
-      player: {
-        columns: { id: true, name: true, nickname: true, imageUrl: true },
-        with: {
-          club: { columns: { id: true, name: true, logoUrl: true } },
-          playersToTitles: {
-            columns: {},
-            with: { title: { columns: { shortName: true, type: true } } },
-          },
-        },
-      },
-    },
-  },
-} as const;
-
-export const circuitsRouter = router({
-  list: publicProcedure.query(({ ctx }) =>
-    ctx.db.query.circuits.findMany({
-      columns: { id: true, name: true, type: true },
-      orderBy: [asc(circuits.name), asc(circuits.id)],
-      limit: PUBLIC_COLLECTION_LIMIT,
-    }),
-  ),
-  byId: publicProcedure.input(idInput).query(({ ctx, input }) =>
-    ctx.db.query.circuits.findFirst({
-      where: eq(circuits.id, input.id),
-      columns: { id: true, name: true, type: true },
-      with: circuitDetailRelations,
-    }),
+    }), "Circuit"),
   ),
   listSimple: publicProcedure.query(({ ctx }) =>
     ctx.db.select({ id: circuits.id, name: circuits.name, type: circuits.type })

@@ -1,11 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
 import { createDb } from "@fsx/db";
-import { account, user } from "@fsx/db/schema/auth";
+import { user } from "@fsx/db/schema/auth";
 
 import type { Context } from "./context";
 import { DEFAULT_LINK_ICON } from "./link-icons";
 import { createTestD1 } from "./test-d1";
+import { callerAs, insertGithubUser, ownerCaller } from "./test-admin";
 import { mockWorkerEnv, TEST_OWNER_GITHUB_ID } from "./test-env";
 
 mockWorkerEnv();
@@ -14,29 +15,8 @@ const { appRouter } = await import("./routers/index");
 
 const MEDIA_PATH = "/api/media/players/0b1c2d3e-4f50-6172-8394-a5b6c7d8e9f0.webp";
 
-function callerAs(db: Context["db"], sessionUser: { id: string; name: string }) {
-  const ctx = {
-    db,
-    session: { user: sessionUser },
-    requestId: "test-request",
-  } as unknown as Context;
-  return appRouter.createCaller(ctx);
-}
-
-async function insertGithubUser(db: Context["db"], id: string, name: string, githubId: string) {
-  await db.insert(user).values({ id, name, email: `${id}@example.com` });
-  await db.insert(account).values({
-    id: `${id}-github`,
-    accountId: githubId,
-    providerId: "github",
-    userId: id,
-  });
-}
-
-async function adminCaller(db: Context["db"]) {
-  await insertGithubUser(db, "owner-id", "owner", TEST_OWNER_GITHUB_ID);
-  return callerAs(db, { id: "owner-id", name: "owner" });
-}
+const createCaller = appRouter.createCaller;
+const adminCaller = (db: Context["db"]) => ownerCaller(createCaller, db);
 
 describe("admin create/update round-trips", () => {
   test("persists player renames and media paths, and rejects unsafe URLs, icons, and blank names", async () => {
@@ -132,11 +112,11 @@ describe("admin create/update round-trips", () => {
       await insertGithubUser(db, "impostor-id", "owner", "2002");
       await db.insert(user).values({ id: "no-account-id", name: "owner", email: "x@example.com" });
 
-      await expect(callerAs(db, { id: "owner-id", name: "renamed-owner" }).stats.counts())
+      await expect(callerAs(createCaller, db, { id: "owner-id", name: "renamed-owner" }).stats.counts())
         .resolves.toBeDefined();
-      await expect(callerAs(db, { id: "impostor-id", name: "owner" }).stats.counts())
+      await expect(callerAs(createCaller, db, { id: "impostor-id", name: "owner" }).stats.counts())
         .rejects.toMatchObject({ code: "FORBIDDEN" });
-      await expect(callerAs(db, { id: "no-account-id", name: "owner" }).stats.counts())
+      await expect(callerAs(createCaller, db, { id: "no-account-id", name: "owner" }).stats.counts())
         .rejects.toMatchObject({ code: "FORBIDDEN" });
     } finally {
       await miniflare.dispose();

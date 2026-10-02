@@ -95,10 +95,13 @@ function CommandList({
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.List>) {
   return (
+    // Scrollable regions must be reachable by keyboard (WCAG 2.1.1); results are
+    // otherwise only navigable through the input's arrow keys.
     <CommandPrimitive.List
       data-slot="command-list"
+      tabIndex={0}
       className={cn(
-        "no-scrollbar max-h-72 scroll-py-1 overflow-x-hidden overflow-y-auto outline-none",
+        "no-scrollbar max-h-72 scroll-py-1 overflow-x-hidden overflow-y-auto rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
         className
       )}
       {...props}

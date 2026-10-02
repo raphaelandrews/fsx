@@ -30,7 +30,7 @@ export function MainNav() {
           </LogoContextMenu>
         </div>
       ) : (
-        <Link to="/" className="mr-4 flex items-center space-x-2">
+        <Link to="/" aria-label="Federação Sergipana de Xadrez — início" className="mr-4 flex items-center space-x-2">
           <LogoContextMenu>
             <Logo className="h-4 text-foreground hover:text-primary transition-colors" />
           </LogoContextMenu>

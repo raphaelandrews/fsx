@@ -12,3 +12,10 @@ export function requireAffectedRows(rowsAffected: number, resource: string): voi
     throw new TRPCError({ code: "NOT_FOUND", message: `${resource} not found` });
   }
 }
+
+export function requireFound<T>(row: T | undefined, resource: string): T {
+  if (row === undefined) {
+    throw new TRPCError({ code: "NOT_FOUND", message: `${resource} not found` });
+  }
+  return row;
+}

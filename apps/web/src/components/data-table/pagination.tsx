@@ -16,6 +16,8 @@ interface PaginationProps {
   hasPreviousPage: boolean;
   hasNextPage: boolean;
   onPageChange: (page: number) => void;
+  /** Warm the target page's loader on hover/focus, like intent preloading on links. */
+  onPagePreload?: (page: number) => void;
   showLabel?: boolean;
   showEdges?: boolean;
   siblingCount?: number;
@@ -78,17 +80,25 @@ function buildPageItems(currentPage: number, totalPages: number, siblingCount: n
   return items;
 }
 
+function preloadHandlers(page: number, onPagePreload?: (page: number) => void) {
+  if (!onPagePreload) return {};
+  return { onMouseEnter: () => onPagePreload(page), onFocus: () => onPagePreload(page) };
+}
+
 function PageButton({
   page,
   isCurrent,
   onPageChange,
+  onPagePreload,
 }: {
   page: number;
   isCurrent: boolean;
   onPageChange: (page: number) => void;
+  onPagePreload?: (page: number) => void;
 }) {
   return (
     <Button
+      {...(isCurrent ? {} : preloadHandlers(page, onPagePreload))}
       aria-current={isCurrent ? "page" : undefined}
       aria-label={`Ir para a página ${page}`}
       className={cn("h-8 w-8 p-0 text-sm", isCurrent && "pointer-events-none")}
@@ -120,6 +130,7 @@ export function Pagination({
   hasPreviousPage,
   hasNextPage,
   onPageChange,
+  onPagePreload,
   showLabel = false,
   showEdges = true,
   siblingCount = 1,
@@ -152,6 +163,7 @@ export function Pagination({
         ) : null}
 
         <Button
+          {...(hasPreviousPage ? preloadHandlers(currentPage - 1, onPagePreload) : {})}
           aria-label="Página anterior"
           className="gap-1.5 px-2.5"
           disabled={!hasPreviousPage}
@@ -173,12 +185,14 @@ export function Pagination({
                 isCurrent={item.isCurrent}
                 page={item.page}
                 onPageChange={onPageChange}
+                onPagePreload={onPagePreload}
               />
             ),
           )}
         </div>
 
         <Button
+          {...(hasNextPage ? preloadHandlers(currentPage + 1, onPagePreload) : {})}
           aria-label="Próxima página"
           className="gap-1.5 px-2.5"
           disabled={!hasNextPage}

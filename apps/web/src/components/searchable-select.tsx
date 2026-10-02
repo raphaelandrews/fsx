@@ -77,6 +77,7 @@ export function SearchableSelect({
           className="w-full rounded-md border border-input bg-background py-2 pr-8 pl-8 text-sm outline-hidden focus-visible:border-ring"
           value={open ? (query || selectedLabel) : selectedLabel}
           placeholder={placeholder}
+          aria-label={placeholder}
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
