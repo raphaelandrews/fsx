@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
+import { getUserErrorMessage } from "@/lib/errors";
 import { SearchableSelect } from "@/components/searchable-select";
 import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS, TEAM_NAMES } from "./-constants";
 
@@ -23,7 +24,7 @@ function RouteComponent() {
   const createMutation = useMutation({
     ...trpc.tvSergipe.create.mutationOptions(),
     onSuccess: () => { qc.invalidateQueries(trpc.tvSergipe.list.queryFilter()); qc.invalidateQueries(trpc.tvSergipe.leaderboard.queryFilter()); toast.success("Result created"); navigate({ to: "/dashboard/tv-sergipe" }); },
-    onError: (error) => toast.error(error.message ?? "Failed to create result"),
+    onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar o resultado.")),
   });
 
   const form = useForm({
@@ -156,7 +157,7 @@ function RouteComponent() {
           )}
         </form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
-          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "Creating..." : "Create Result"}</Button>}
+          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>{isSubmitting || createMutation.isPending ? "Creating..." : "Create Result"}</Button>}
         </form.Subscribe>
       </form>
     </div>

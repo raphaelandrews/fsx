@@ -9,10 +9,14 @@ import { locations } from "@fsx/db/schema/locations";
 import { playersToTitles } from "@fsx/db/schema/playersToTitles";
 import { titles } from "@fsx/db/schema/titles";
 import { adminProcedure, publicProcedure, router } from "../index";
+import { requireMutationRows } from "../errors";
+import { nameText, positiveInt } from "../input-schemas";
+import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 
 export const championsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
-    ctx.db.select().from(championships).orderBy(asc(championships.name))
+    ctx.db.select({ id: championships.id, name: championships.name })
+      .from(championships).orderBy(asc(championships.name), asc(championships.id)).limit(PUBLIC_COLLECTION_LIMIT)
   ),
   gallery: publicProcedure.query(async ({ ctx }) => {
     const rawData = await ctx.db
@@ -39,8 +43,12 @@ export const championsRouter = router({
       .orderBy(
         asc(championships.name),
         asc(tournaments.date),
-        asc(tournamentPodiums.place)
-      );
+        asc(tournaments.id),
+        asc(tournamentPodiums.place),
+        asc(tournamentPodiums.id),
+        asc(players.id),
+      )
+      .limit(PUBLIC_COLLECTION_LIMIT * 20);
 
     return rawData.reduce<
       Array<{
@@ -107,18 +115,24 @@ export const championsRouter = router({
       }));
   }),
   create: adminProcedure
-    .input(insertChampionshipSchema.omit({ id: true }))
-    .mutation(({ ctx, input }) =>
+    .input(insertChampionshipSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({ name: nameText }))
+    .mutation(async ({ ctx, input }) =>
       ctx.db.insert(championships).values(input).returning()
     ),
   update: adminProcedure
-    .input(z.object({ id: z.number(), name: z.string().min(1).max(80) }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.update(championships).set({ name: input.name }).where(eq(championships.id, input.id)).returning()
+    .input(z.object({ id: positiveInt, name: nameText }))
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.update(championships).set({ name: input.name }).where(eq(championships.id, input.id)).returning(),
+        "Championship",
+      )
     ),
   delete: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.delete(championships).where(eq(championships.id, input.id))
+    .input(z.object({ id: positiveInt }))
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.delete(championships).where(eq(championships.id, input.id)).returning({ id: championships.id }),
+        "Championship",
+      )
     ),
 });

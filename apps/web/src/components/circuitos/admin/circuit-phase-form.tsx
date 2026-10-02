@@ -1,5 +1,3 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete03Icon } from "@hugeicons/core-free-icons";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
@@ -11,6 +9,7 @@ import { Label } from "@fsx/ui/components/label";
 
 import { SearchableSelect } from "@/components/searchable-select";
 import { useTRPC } from "@/utils/trpc";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 
 import type { CircuitPhase } from "../types";
 import { useInvalidateCircuit } from "./use-invalidate-circuit";
@@ -151,20 +150,12 @@ export function CircuitPhaseForm({
           )}
         </form.Subscribe>
         {phase ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Excluir etapa"
-            disabled={deleteMutation.isPending}
-            onClick={() => deleteMutation.mutate({ id: phase.id })}
-          >
-            <HugeiconsIcon
-              className="size-4 text-destructive"
-              icon={Delete03Icon}
-              strokeWidth={2}
-            />
-          </Button>
+          <ConfirmDeleteButton
+            itemName={phase.tournament.name}
+            label="Excluir etapa"
+            pending={deleteMutation.isPending}
+            onConfirm={() => deleteMutation.mutate({ id: phase.id })}
+          />
         ) : null}
       </div>
     </form>

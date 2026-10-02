@@ -4,6 +4,11 @@ import { eq } from "drizzle-orm";
 import { linkGroups, insertLinkGroupSchema } from "@fsx/db/schema/linkGroups";
 import { links, insertLinkSchema } from "@fsx/db/schema/links";
 import { adminProcedure, publicProcedure, router } from "../index";
+import { requireMutationRows } from "../errors";
+import { nameText, positiveInt, sortOrder } from "../input-schemas";
+import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+
+const linkTypeEnum = z.enum(["link", "regulation", "form", "results"]);
 
 export const linkGroupsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -14,50 +19,75 @@ export const linkGroupsRouter = router({
       with: {
         event: { columns: { name: true } },
         links: {
+          limit: PUBLIC_NESTED_COLLECTION_LIMIT,
           columns: { id: true, href: true, label: true, icon: true, sortOrder: true },
           orderBy: (l, { asc }) => asc(l.sortOrder),
         },
       },
       orderBy: (lg, { asc }) => asc(lg.id),
+      limit: PUBLIC_COLLECTION_LIMIT,
     })
   ),
   create: adminProcedure
-    .input(insertLinkGroupSchema.omit({ id: true }))
+    .input(insertLinkGroupSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
+      label: nameText,
+      eventId: positiveInt.nullable().optional(),
+    }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(linkGroups).values(input).returning()
     ),
   createLink: adminProcedure
-    .input(insertLinkSchema.omit({ id: true }))
+    .input(insertLinkSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
+      href: z.string().trim().max(2_048).url().or(z.literal("")).nullable().optional(),
+      label: nameText,
+      icon: z.string().max(5_000),
+      type: linkTypeEnum.optional(),
+      sortOrder,
+      linkGroupId: positiveInt,
+    }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(links).values({ ...input, href: input.href || null }).returning()
     ),
   updateLink: adminProcedure
     .input(z.object({
-      id: z.number(),
-      href: z.string().nullable().optional(),
-      label: z.string().optional(),
-      icon: z.string().optional(),
-      sortOrder: z.number().optional(),
-      linkGroupId: z.number().optional(),
+      id: positiveInt,
+      href: z.string().trim().max(2_048).url().or(z.literal("")).nullable().optional(),
+      label: nameText.optional(),
+      icon: z.string().max(5_000).optional(),
+      type: linkTypeEnum.optional(),
+      sortOrder: sortOrder.optional(),
+      linkGroupId: positiveInt.optional(),
     }))
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const patch = { ...input, href: input.href === undefined ? undefined : input.href || null };
-      return ctx.db.update(links).set(patch).where(eq(links.id, input.id)).returning();
+      return requireMutationRows(
+        await ctx.db.update(links).set(patch).where(eq(links.id, input.id)).returning(),
+        "Link",
+      );
     }),
   deleteLink: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.delete(links).where(eq(links.id, input.id))
+    .input(z.object({ id: positiveInt }))
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.delete(links).where(eq(links.id, input.id)).returning({ id: links.id }),
+        "Link",
+      )
     ),
   deleteGroup: adminProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: positiveInt }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db.delete(links).where(eq(links.linkGroupId, input.id));
-      return ctx.db.delete(linkGroups).where(eq(linkGroups.id, input.id));
+      return requireMutationRows(
+        await ctx.db.delete(linkGroups).where(eq(linkGroups.id, input.id)).returning({ id: linkGroups.id }),
+        "Link group",
+      );
     }),
   updateGroup: adminProcedure
-    .input(z.object({ id: z.number(), label: z.string().min(1) }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.update(linkGroups).set({ label: input.label }).where(eq(linkGroups.id, input.id)).returning()
+    .input(z.object({ id: positiveInt, label: nameText }))
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.update(linkGroups).set({ label: input.label }).where(eq(linkGroups.id, input.id)).returning(),
+        "Link group",
+      )
     ),
 });

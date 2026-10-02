@@ -11,7 +11,8 @@
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",
-    "db:seed": "bun run src/seed.ts"
+    "db:seed": "bun run src/seed.ts",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@libsql/client": "catalog:",

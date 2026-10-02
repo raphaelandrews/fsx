@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
+import { getUserErrorMessage } from "@/lib/errors";
 
 const TITLE = "Championship";
 const DOMAIN = "champions" as const;
@@ -25,7 +26,7 @@ function RouteComponent() {
   const createMutation = useMutation({
     ...trpc[DOMAIN].create.mutationOptions(),
     onSuccess: () => { qc.invalidateQueries(trpc[DOMAIN].list.queryFilter()); toast.success(`${TITLE} created`); navigate({ to: "/dashboard/championships" }); },
-    onError: (error) => toast.error(error.message ?? `Failed to create ${TITLE.toLowerCase()}`),
+    onError: (error) => toast.error(getUserErrorMessage(error, `Não foi possível criar ${TITLE.toLowerCase()}.`)),
   });
 
   const form = useForm({
@@ -40,7 +41,7 @@ function RouteComponent() {
       <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
         <form.Field name="name">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Name</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
-          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "Creating..." : `Create ${TITLE}`}</Button>}
+          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>{isSubmitting || createMutation.isPending ? "Creating..." : `Create ${TITLE}`}</Button>}
         </form.Subscribe>
       </form>
     </div>

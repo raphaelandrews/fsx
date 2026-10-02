@@ -76,7 +76,7 @@ export function VerifiedBadge({
 
   return (
     <Popover>
-      <PopoverTrigger className="cursor-pointer">
+      <PopoverTrigger aria-label={label} className="cursor-pointer">
         <HugeiconsIcon
           icon={CheckmarkBadge01Icon}
           aria-label={label}

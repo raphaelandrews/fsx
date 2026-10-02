@@ -8,8 +8,8 @@ export const playersToTitles = sqliteTable("players_to_titles", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
 	titleId: integer("title_id").notNull().references(() => titles.id, { onDelete: "cascade" }),
-	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 }, (t) => [uniqueIndex("player_title").on(t.playerId, t.titleId)])
 
 export const playersToTitlesRelations = relations(playersToTitles, ({ one }) => ({

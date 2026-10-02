@@ -3,19 +3,23 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { PlayerProfile } from "@/components/player/player-profile";
 import { breadcrumbJsonLd, buildSeo, personJsonLd, withBrand } from "@/lib/seo";
+import { getErrorCode } from "@/lib/errors";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_public/jogadores/$id")({
   loader: async ({ context, params }) => {
+    const id = Number(params.id);
+    if (!Number.isSafeInteger(id) || id < 1) throw notFound();
     try {
       const player = await context.queryClient.ensureQueryData(
-        context.trpc.players.byId.queryOptions({ id: Number(params.id) }),
+        context.trpc.players.byId.queryOptions({ id }),
       );
       if (!player) throw notFound();
       return player;
     } catch (error) {
       if (error instanceof Response) throw error;
-      throw notFound();
+      if (getErrorCode(error) === "NOT_FOUND") throw notFound();
+      throw error;
     }
   },
   head: ({ loaderData }) => {

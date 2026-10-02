@@ -4,7 +4,7 @@ import type { inferRouterOutputs } from "@trpc/server";
 
 import type { AppRouter } from "@fsx/api/routers/index";
 
-type SwissManagerPlayer = inferRouterOutputs<AppRouter>["swissManager"]["list"][number];
+export type SwissManagerPlayer = inferRouterOutputs<AppRouter>["swissManager"]["list"][number];
 export type RatingType = "classic" | "rapid" | "blitz";
 
 export const RATING_TYPE_LABELS: Record<RatingType, string> = {

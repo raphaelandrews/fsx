@@ -1,16 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 DATABASE="${1:-${D1_DATABASE:-fsx-database-raphael}}"
+[[ "$DATABASE" =~ ^[A-Za-z0-9_-]+$ ]] || {
+  echo "Invalid D1 database name." >&2
+  exit 1
+}
 BACKUP_ROOT="${BACKUP_ROOT:-$HOME/Backups}"
+RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-90}"
+[[ "$RETENTION_DAYS" =~ ^[0-9]+$ ]] && [ "$RETENTION_DAYS" -ge 1 ] && [ "$RETENTION_DAYS" -le 3650 ] || {
+  echo "BACKUP_RETENTION_DAYS must be between 1 and 3650." >&2
+  exit 1
+}
 STAMP="$(date +%F-%H%M%S)"
 OUT_DIR="$BACKUP_ROOT/fsx-$STAMP"
 SQL_FILE="$OUT_DIR/fsx-$STAMP.sql"
 SQLITE_FILE="$OUT_DIR/.fsx-$STAMP.tmp.sqlite"
 CSV_DIR="$OUT_DIR/csv"
+
+cleanup() {
+  rm -f "$SQLITE_FILE"
+}
+trap cleanup EXIT
 
 WRANGLER_BIN="${WRANGLER_BIN:-$REPO_ROOT/apps/web/node_modules/.bin/wrangler}"
 if [ -x "$WRANGLER_BIN" ]; then
@@ -28,6 +43,10 @@ command -v sqlite3 >/dev/null 2>&1 || {
   echo "sqlite3 is required but was not found on PATH." >&2
   exit 1
 }
+command -v python3 >/dev/null 2>&1 || {
+  echo "python3 is required to safely export CSV files." >&2
+  exit 1
+}
 
 mkdir -p "$OUT_DIR" "$CSV_DIR"
 
@@ -41,17 +60,35 @@ sqlite3 \
   -cmd "PRAGMA journal_mode=MEMORY;" \
   -cmd "PRAGMA synchronous=OFF;" \
   "$SQLITE_FILE" < "$SQL_FILE" > /dev/null
+INTEGRITY_RESULT="$(sqlite3 "$SQLITE_FILE" "PRAGMA integrity_check;")"
+[ "$INTEGRITY_RESULT" = "ok" ] || {
+  echo "Backup integrity check failed." >&2
+  exit 1
+}
 
 echo "→ Writing one CSV per table to $CSV_DIR"
-table_count=0
-while IFS= read -r table; do
-  [ -n "$table" ] || continue
-  sqlite3 -header -csv "$SQLITE_FILE" "SELECT * FROM \"$table\";" > "$CSV_DIR/$table.csv"
-  rows="$(sqlite3 "$SQLITE_FILE" "SELECT count(*) FROM \"$table\";")"
-  table_count=$((table_count + 1))
-  echo "   • $table.csv ($rows rows)"
-done < <(sqlite3 "$SQLITE_FILE" "SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%' AND name != 'd1_migrations' ORDER BY name;")
+python3 "$SCRIPT_DIR/export_d1_csv.py" "$SQLITE_FILE" "$CSV_DIR"
 
-rm -f "$SQLITE_FILE"
+if command -v sha256sum >/dev/null 2>&1; then
+  sha256sum "$SQL_FILE" > "$OUT_DIR/SHA256SUMS"
+fi
 
-echo "✅ Backup complete: $OUT_DIR ($table_count tables)"
+cat > "$OUT_DIR/manifest.txt" <<EOF
+database=$DATABASE
+created_at=$(date --iso-8601=seconds)
+sql_file=$(basename "$SQL_FILE")
+retention_days=$RETENTION_DAYS
+EOF
+
+RETENTION_CUTOFF="$(date -d "$RETENTION_DAYS days ago" +%s)"
+for candidate in "$BACKUP_ROOT"/fsx-*; do
+  [ -d "$candidate" ] || continue
+  candidate_name="${candidate##*/}"
+  [[ "$candidate_name" =~ ^fsx-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{6}$ ]] || continue
+  candidate_mtime="$(stat -c %Y "$candidate")"
+  if [ "$candidate_mtime" -lt "$RETENTION_CUTOFF" ]; then
+    rm -rf -- "$candidate"
+  fi
+done
+
+echo "✅ Backup complete: $OUT_DIR ($RETENTION_DAYS-day retention)"

@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 
 export const Route = createFileRoute("/_auth/dashboard/links/")({
   head: () => ({ meta: [{ title: "Links - Admin - FSX" }] }),
@@ -61,9 +62,12 @@ function RouteComponent() {
               <Link to="/dashboard/links/$id" params={{ id: String(group.id) }}>
                 <Button size="sm" variant="outline">Edit</Button>
               </Link>
-              <Button size="sm" variant="destructive" onClick={() => deleteGroupMutation.mutate({ id: group.id })}>
-                Delete
-              </Button>
+              <ConfirmDeleteButton
+                itemName={group.label}
+                pending={deleteGroupMutation.isPending}
+                label="Delete"
+                onConfirm={() => deleteGroupMutation.mutate({ id: group.id })}
+              />
             </div>
           </div>
           <Table className="border">
@@ -84,9 +88,12 @@ function RouteComponent() {
                   <TableCell>{link.icon}</TableCell>
                   <TableCell>{link.sortOrder}</TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="destructive" onClick={() => deleteLinkMutation.mutate({ id: link.id })}>
-                      Delete
-                    </Button>
+                    <ConfirmDeleteButton
+                      itemName={link.label}
+                      pending={deleteLinkMutation.isPending}
+                      label="Delete"
+                      onConfirm={() => deleteLinkMutation.mutate({ id: link.id })}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

@@ -1,6 +1,6 @@
 import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { check, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { linkGroups } from "./index"
 
@@ -19,10 +19,13 @@ export const links = sqliteTable(
 		type: text("type").notNull().default("link"),
 		sortOrder: integer("sort_order").notNull(),
 		linkGroupId: integer("link_group_id").references(() => linkGroups.id, { onDelete: "cascade" }).notNull(),
-		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 	},
-	(table) => [index("links_link_group_id_idx").on(table.linkGroupId)],
+	(table) => [
+		index("links_link_group_id_idx").on(table.linkGroupId),
+		check("links_type_check", sql`${table.type} IN ('link', 'regulation', 'form', 'results')`),
+	],
 )
 
 export const linksRelations = relations(links, ({ one }) => ({

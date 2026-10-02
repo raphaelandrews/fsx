@@ -205,10 +205,14 @@ export function Pagination({
       </div>
 
       {showLabel ? (
-        <p className="text-xs text-muted-foreground">
+        <p aria-live="polite" aria-atomic="true" className="text-xs text-muted-foreground">
           Página {currentPage} de {totalPages}
         </p>
-      ) : null}
+      ) : (
+        <span className="sr-only" aria-live="polite" aria-atomic="true">
+          Página {currentPage} de {totalPages}
+        </span>
+      )}
     </nav>
   );
 }

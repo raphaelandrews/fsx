@@ -104,6 +104,7 @@ function RouteComponent() {
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
+          isDeleting={deleteMutation.isPending}
           editTo="/dashboard/tv-sergipe/$id"
           onDelete={() => deleteMutation.mutate({ id: row.original.id })}
         />
@@ -118,7 +119,7 @@ function RouteComponent() {
         description="Jogos Schoolres TV Sergipe results."
         actions={
           <div className="flex gap-2">
-            <Button variant="destructive" onClick={() => setConfirmDeleteAll(true)}>
+            <Button disabled={deleteAllMutation.isPending} variant="destructive" onClick={() => setConfirmDeleteAll(true)}>
               Delete all
             </Button>
             <Link to="/dashboard/tv-sergipe/create">
@@ -143,8 +144,8 @@ function RouteComponent() {
             <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => deleteAllMutation.mutate()}>
+            <AlertDialogCancel disabled={deleteAllMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction disabled={deleteAllMutation.isPending} variant="destructive" onClick={() => deleteAllMutation.mutate()}>
               Delete all
             </AlertDialogAction>
           </AlertDialogFooter>

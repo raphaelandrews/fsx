@@ -1,6 +1,6 @@
 import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { check, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { championships, cupBrackets, cupGroups } from "./index"
 
@@ -13,9 +13,12 @@ export const cups = sqliteTable("cups", {
 	prizePool: integer("prize_pool").notNull(),
 	ratingType: text("rating_type").notNull(),
 	championshipId: integer("championship_id").references(() => championships.id),
-	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-})
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+}, (t) => [
+    check("cups_prize_pool_non_negative_check", sql`${t.prizePool} >= 0`),
+    check("cups_rating_type_check", sql`${t.ratingType} IN ('blitz', 'rapid', 'classic')`),
+])
 
 export const cupsRelations = relations(cups, ({ one, many }) => ({
 	championship: one(championships, { fields: [cups.championshipId], references: [championships.id] }),

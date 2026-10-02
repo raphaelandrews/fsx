@@ -1,4 +1,5 @@
 import { Button } from "@fsx/ui/components/button";
+import { useRouter } from "@tanstack/react-router";
 
 function CenteredState({ children }: { children: React.ReactNode }) {
   return (
@@ -30,13 +31,21 @@ export function ErrorFallback({
   homeHref?: string;
   homeLabel?: string;
 }) {
+  const router = useRouter();
+
   return (
     <CenteredState>
       <h1 className="font-bold text-4xl">500</h1>
       <p className="text-muted-foreground">Algo deu errado. Tente novamente mais tarde.</p>
-      <a href={homeHref} className="mt-2">
-        <Button>{homeLabel}</Button>
-      </a>
+      <div className="mt-2 flex flex-wrap justify-center gap-2">
+        <Button onClick={() => void router.invalidate()}>Tentar novamente</Button>
+        <a
+          href={homeHref}
+          className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium outline-offset-2 transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-ring"
+        >
+          {homeLabel}
+        </a>
+      </div>
     </CenteredState>
   );
 }

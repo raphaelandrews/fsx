@@ -7,8 +7,8 @@ import { cups, defendingChampions, tournaments } from "./index"
 export const championships = sqliteTable("championships", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	name: text("name").notNull().unique(),
-	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const championshipsRelations = relations(championships, ({ many }) => ({

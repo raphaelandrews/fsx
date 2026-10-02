@@ -64,7 +64,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {toolbar?.(table)}
-      <div className="overflow-hidden">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -93,7 +93,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell className="h-24 text-center text-muted-foreground" colSpan={columns.length}>
-                  No results.
+                  Nenhum resultado encontrado. Ajuste os filtros ou a busca.
                 </TableCell>
               </TableRow>
             )}

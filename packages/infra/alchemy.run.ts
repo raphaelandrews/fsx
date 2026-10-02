@@ -1,6 +1,5 @@
 import alchemy from "alchemy";
-import { TanStackStart } from "alchemy/cloudflare";
-import { D1Database, R2Bucket } from "alchemy/cloudflare";
+import { D1Database, R2Bucket, TanStackStart, Worker } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
 // Shared secrets for both envs — single source of truth.
@@ -27,11 +26,30 @@ const images = await R2Bucket("images", {
   adopt: true,
 });
 
+await Worker("rate-limit-cleanup", {
+  name: "fsx-rate-limit-cleanup",
+  entrypoint: "./rate-limit-cleanup.ts",
+  bindings: { DB: db },
+  crons: ["*/15 * * * *"],
+  url: false,
+  adopt: true,
+  observability: {
+    enabled: true,
+    headSamplingRate: 1,
+    logs: { enabled: true, headSamplingRate: 1 },
+  },
+});
+
 export const web = await TanStackStart("web", {
   cwd: "../../apps/web",
   // Adopt the existing remote worker (fsx-web-raphael) if it already exists
   // instead of failing on re-deploy.
   adopt: true,
+  observability: {
+    enabled: true,
+    headSamplingRate: 1,
+    logs: { enabled: true, headSamplingRate: 1 },
+  },
   // Prerendered pages use slash-less URLs (e.g. /sobre) to match their
   // canonical tags; the default auto-trailing-slash would redirect them.
   assets: {

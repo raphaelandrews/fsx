@@ -9,7 +9,9 @@
       "default": "./src/*.ts"
     }
   },
-  "scripts": {},
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
   "dependencies": {
     "@fsx/auth": "workspace:*",
     "@fsx/db": "workspace:*",
@@ -22,6 +24,7 @@
   },
   "devDependencies": {
     "@fsx/config": "workspace:*",
+    "miniflare": "4.20260424.0",
     "typescript": "catalog:"
   }
 }

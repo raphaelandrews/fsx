@@ -11,7 +11,7 @@ import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/utils/trpc";
 
 const searchSchema = z.object({
-  page: z.number().int().positive().default(1),
+  page: z.number().int().positive().max(1_000).default(1),
 });
 
 // Keep content short-lived so admin edits appear fast on revisit; matches the

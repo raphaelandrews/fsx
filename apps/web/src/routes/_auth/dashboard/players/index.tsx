@@ -20,8 +20,8 @@ import { AdminPageHeader } from "@/components/admin/page-header";
 const PER_PAGE = 20;
 
 const searchSchema = z.object({
-  page: z.coerce.number().catch(1).optional(),
-  name: z.string().optional(),
+  page: z.coerce.number().int().min(1).max(1_000).catch(1).optional(),
+  name: z.string().trim().max(120).optional(),
 });
 
 export const Route = createFileRoute("/_auth/dashboard/players/")({
@@ -80,7 +80,7 @@ function RouteComponent() {
         </Button>
       </form>
 
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -150,22 +150,30 @@ function PaginationBar({
   const search = (p: number) => ({ page: p, name });
 
   return (
-    <div className="mt-4 flex items-center justify-between">
-      <p className="text-sm text-muted-foreground">
+      <nav aria-label="Paginação de jogadores" className="mt-4 flex items-center justify-between">
+      <p className="text-sm text-muted-foreground" aria-live="polite" aria-atomic="true">
         Página {safePage} de {totalPages}
       </p>
       <div className="flex items-center gap-2">
-        <Link to="/dashboard/players" search={search(Math.max(safePage - 1, 1))}>
-          <Button variant="outline" size="sm" disabled={safePage <= 1}>
+        {safePage > 1 ? (
+          <Button render={<Link to="/dashboard/players" search={search(safePage - 1)} />} variant="outline" size="sm">
             Anterior
           </Button>
-        </Link>
-        <Link to="/dashboard/players" search={search(Math.min(safePage + 1, totalPages))}>
-          <Button variant="outline" size="sm" disabled={safePage >= totalPages}>
+        ) : (
+          <Button variant="outline" size="sm" disabled>
+            Anterior
+          </Button>
+        )}
+        {safePage < totalPages ? (
+          <Button render={<Link to="/dashboard/players" search={search(safePage + 1)} />} variant="outline" size="sm">
             Próxima
           </Button>
-        </Link>
+        ) : (
+          <Button variant="outline" size="sm" disabled>
+            Próxima
+          </Button>
+        )}
       </div>
-    </div>
+    </nav>
   );
 }

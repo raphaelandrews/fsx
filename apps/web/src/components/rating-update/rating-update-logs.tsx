@@ -3,7 +3,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AddCircleIcon,
   CakeIcon,
-  CodeIcon,
   InformationCircleIcon,
   MapPinIcon,
   Medal01Icon,
@@ -17,6 +16,7 @@ import {
   PopoverTrigger,
 } from "@fsx/ui/components/popover";
 import { cn } from "@fsx/ui/lib/utils";
+import { getUserErrorMessage } from "@/lib/errors";
 
 import type { PlayerDataFields, PlayerTournamentDataFields, RatingUpdateProps } from "./rating-update-types";
 
@@ -114,8 +114,7 @@ export function RatingUpdateLogs({ updates }: { updates: RatingUpdateProps[] }) 
                       {update.success ? <SuccessDetail data={update.success.dataFields} /> : null}
                       {update.error ? (
                         <>
-                          <InfoRow icon={InformationCircleIcon} label="Status" value={update.error.message} />
-                          {update.error.stack ? <InfoRow icon={CodeIcon} label="Stack" value={update.error.stack} /> : null}
+                          <InfoRow icon={InformationCircleIcon} label="Status" value={getUserErrorMessage(update.error)} />
                         </>
                       ) : null}
                     </PopoverContent>

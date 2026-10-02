@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
+import { getUserErrorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/insignias/create")({
   head: () => ({ meta: [{ title: "Create Insignia - Admin - FSX" }] }),
@@ -22,7 +23,7 @@ function RouteComponent() {
   const createMutation = useMutation({
     ...trpc.insignias.create.mutationOptions(),
     onSuccess: () => { qc.invalidateQueries(trpc.insignias.list.queryFilter()); toast.success("Insignia created"); navigate({ to: "/dashboard/insignias" }); },
-    onError: (error) => toast.error(error.message ?? "Failed to create insignia"),
+    onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar a insígnia.")),
   });
 
   const form = useForm({
@@ -38,7 +39,7 @@ function RouteComponent() {
         <form.Field name="name">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Insignia</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
         <form.Field name="level">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Level</Label><Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} /></div>)}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
-          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "Creating..." : "Create Insignia"}</Button>}
+          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>{isSubmitting || createMutation.isPending ? "Creating..." : "Create Insignia"}</Button>}
         </form.Subscribe>
       </form>
     </div>

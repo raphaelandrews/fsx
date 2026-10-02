@@ -12,8 +12,8 @@ export const cupGames = sqliteTable(
 		cupMatchId: integer("cup_match_id").notNull().references(() => cupMatches.id, { onDelete: "cascade" }),
 		gameNumber: integer("game_number").notNull(),
 		link: text("link"),
-		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 	},
 	(table) => [index("cup_games_match_game_idx").on(table.cupMatchId, table.gameNumber)],
 )

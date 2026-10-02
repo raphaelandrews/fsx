@@ -36,8 +36,8 @@ export const tvSergipe = sqliteTable(
     modality: text("modality").notNull(),
     place: integer("place").notNull(),
     points: integer("points").notNull(),
-    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
   },
   (t) => ({
     ageSexModalityIdx: index("tv_sergipe_age_sex_modality_idx").on(t.ageGroup, t.sex, t.modality),
@@ -47,6 +47,11 @@ export const tvSergipe = sqliteTable(
     // A school can't field two teams with the same suffix in the same category.
     teamUnique: uniqueIndex("tv_sergipe_team_unique_idx").on(t.clubId, t.ageGroup, t.sex, t.teamName),
     teamNameCheck: check("tv_sergipe_team_name_check", sql`"team_name" IS NULL OR "team_name" IN ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J')`),
+    ageGroupCheck: check("tv_sergipe_age_group_check", sql`${t.ageGroup} IN ('8', '10', '12', '14', '16', '18')`),
+    sexCheck: check("tv_sergipe_sex_check", sql`${t.sex} IN ('male', 'female')`),
+    modalityCheck: check("tv_sergipe_modality_check", sql`${t.modality} IN ('individual', 'team')`),
+    placePointsCheck: check("tv_sergipe_place_points_check", sql`${t.place} BETWEEN 1 AND 8 AND ${t.points} BETWEEN 1 AND 10`),
+    participantCheck: check("tv_sergipe_participant_check", sql`(${t.modality} = 'individual' AND ${t.playerId} IS NOT NULL AND ${t.teamName} IS NULL) OR (${t.modality} = 'team' AND ${t.playerId} IS NULL AND ${t.teamName} IS NOT NULL)`),
   })
 )
 

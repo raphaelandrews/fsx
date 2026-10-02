@@ -9,6 +9,9 @@ import { titles } from "@fsx/db/schema/titles";
 import { playersToTitles } from "@fsx/db/schema/playersToTitles";
 import { normalizeName } from "@fsx/db/normalize";
 import { adminProcedure, publicProcedure, router } from "../index";
+import { requireMutationRows } from "../errors";
+import { contentText, filterArray, idInput, limit, nameText, page, positiveInt, rating, searchText, urlText } from "../input-schemas";
+import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
 
 function getBirthDateRange(group: string): [string, string] | undefined {
   const today = new Date();
@@ -41,11 +44,12 @@ function getBirthDateRange(group: string): [string, string] | undefined {
 export const playersRouter = router({
   // Lightweight `{ id, name }` list for pickers (e.g. the admin title
   // assignment select). Avoids loading every relation for all players.
-  options: publicProcedure.query(({ ctx }) =>
+  options: adminProcedure.query(({ ctx }) =>
     ctx.db
       .select({ id: playersTable.id, name: playersTable.name })
       .from(playersTable)
-      .orderBy(asc(playersTable.name))
+      .orderBy(asc(playersTable.name), asc(playersTable.id))
+      .limit(5_000)
   ),
 
   list: publicProcedure.query(({ ctx }) =>
@@ -58,29 +62,31 @@ export const playersRouter = router({
         rapid: true,
         blitz: true,
         imageUrl: true,
-        birthDate: true,
-        sex: true,
       },
       with: {
         club: { columns: { name: true, logoUrl: true } },
         location: { columns: { name: true, flagUrl: true } },
         defendingChampions: {
+          limit: PUBLIC_NESTED_COLLECTION_LIMIT,
           columns: {},
           with: { championship: { columns: { name: true } } },
         },
         playersToTitles: {
+          limit: PUBLIC_NESTED_COLLECTION_LIMIT,
           columns: { id: true, playerId: true, titleId: true },
           with: { title: { columns: { id: true, name: true, shortName: true, type: true } } },
         },
       },
+      orderBy: (player, { asc }) => [asc(player.name), asc(player.id)],
+      limit: PUBLIC_COLLECTION_LIMIT,
     })
   ),
 
   page: adminProcedure
     .input(z.object({
-      page: z.number().default(1),
-      limit: z.number().default(20),
-      name: z.string().optional(),
+      page,
+      limit,
+      name: searchText.optional(),
     }))
     .query(async ({ ctx, input }) => {
       const limit = input.limit;
@@ -100,7 +106,7 @@ export const playersRouter = router({
           location: { columns: { name: true } },
         },
         where,
-        orderBy: (p, { asc }) => asc(p.name),
+         orderBy: (p, { asc }) => [asc(p.name), asc(p.id)],
         limit,
         offset,
       });
@@ -119,7 +125,7 @@ export const playersRouter = router({
     }),
 
   byId: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(idInput)
     .query(({ ctx, input }) =>
       ctx.db.query.players.findFirst({
         where: eq(playersTable.id, input.id),
@@ -140,22 +146,27 @@ export const playersRouter = router({
           club: { columns: { name: true, logoUrl: true } },
           location: { columns: { name: true, flagUrl: true } },
           defendingChampions: {
+            limit: PUBLIC_NESTED_COLLECTION_LIMIT,
             columns: {},
             with: { championship: { columns: { name: true } } },
           },
           playersToTournaments: {
+            limit: PUBLIC_NESTED_COLLECTION_LIMIT,
             columns: { oldRating: true, variation: true },
             with: { tournament: { columns: { name: true, ratingType: true } } },
           },
           playersToRoles: {
+            limit: PUBLIC_NESTED_COLLECTION_LIMIT,
             columns: {},
             with: { role: { columns: { name: true, shortName: true, type: true } } },
           },
           tournamentPodiums: {
+            limit: PUBLIC_NESTED_COLLECTION_LIMIT,
             columns: { place: true },
             with: { tournament: { columns: { name: true, date: true, championshipId: true } } },
           },
           playersToTitles: {
+            limit: PUBLIC_NESTED_COLLECTION_LIMIT,
             columns: {},
             with: { title: { columns: { name: true, shortName: true, type: true } } },
           },
@@ -164,7 +175,7 @@ export const playersRouter = router({
     ),
 
   search: publicProcedure
-    .input(z.object({ query: z.string() }))
+    .input(z.object({ query: searchText }))
     .query(({ ctx, input }) => {
       const normalizedQuery = normalizeName(input.query);
       const words = normalizedQuery.split(/\s+/).filter(Boolean);
@@ -203,8 +214,8 @@ export const playersRouter = router({
         .limit(10);
     }),
 
-  forEdit: publicProcedure
-    .input(z.object({ id: z.number() }))
+  forEdit: adminProcedure
+    .input(idInput)
     .query(({ ctx, input }) =>
       ctx.db.query.players.findFirst({
         where: eq(playersTable.id, input.id),
@@ -230,7 +241,21 @@ export const playersRouter = router({
     ),
 
   create: adminProcedure
-    .input(insertPlayerSchema.omit({ id: true, normalizedName: true }))
+    .input(insertPlayerSchema.omit({ id: true, normalizedName: true, createdAt: true, updatedAt: true }).extend({
+      name: nameText,
+      nickname: z.string().trim().max(160).nullable().optional(),
+      blitz: rating,
+      rapid: rating,
+      classic: rating,
+      imageUrl: urlText.nullable().optional(),
+      cbxId: positiveInt.nullable().optional(),
+      fideId: positiveInt.nullable().optional(),
+      birthDate: z.string().max(40).nullable().optional(),
+      sex: z.enum(["male", "female"]),
+      clubId: positiveInt.nullable().optional(),
+      locationId: positiveInt.nullable().optional(),
+      description: contentText.nullable().optional(),
+    }))
     .mutation(({ ctx, input }) =>
       ctx.db
         .insert(playersTable)
@@ -240,46 +265,49 @@ export const playersRouter = router({
 
   update: adminProcedure
     .input(z.object({
-      id: z.number(),
-      name: z.string().optional(),
-      nickname: z.string().nullable().optional(),
-      blitz: z.number().optional(),
-      rapid: z.number().optional(),
-      classic: z.number().optional(),
+      id: positiveInt,
+      name: nameText.optional(),
+       nickname: z.string().trim().max(160).nullable().optional(),
+      blitz: rating.optional(),
+      rapid: rating.optional(),
+      classic: rating.optional(),
       active: z.boolean().optional(),
-      imageUrl: z.string().nullable().optional(),
-      cbxId: z.number().nullable().optional(),
-      fideId: z.number().nullable().optional(),
+       imageUrl: urlText.nullable().optional(),
+      cbxId: positiveInt.nullable().optional(),
+      fideId: positiveInt.nullable().optional(),
       verified: z.boolean().optional(),
-      birthDate: z.string().nullable().optional(),
+       birthDate: z.string().max(40).nullable().optional(),
       sex: z.enum(["male", "female"]).optional(),
-      clubId: z.number().nullable().optional(),
-      locationId: z.number().nullable().optional(),
-      description: z.string().nullable().optional(),
+      clubId: positiveInt.nullable().optional(),
+      locationId: positiveInt.nullable().optional(),
+       description: contentText.nullable().optional(),
     }))
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { id, name, ...rest } = input;
-      return ctx.db
-        .update(playersTable)
-        .set({
-          ...rest,
-          ...(name !== undefined ? { normalizedName: normalizeName(name) } : {}),
-        })
-        .where(eq(playersTable.id, id))
-        .returning();
+      return requireMutationRows(
+        await ctx.db
+          .update(playersTable)
+          .set({
+            ...rest,
+            ...(name !== undefined ? { normalizedName: normalizeName(name) } : {}),
+          })
+          .where(eq(playersTable.id, id))
+          .returning(),
+        "Player",
+      );
     }),
 
   withFilters: publicProcedure
     .input(z.object({
-      page: z.number().default(1),
-      limit: z.number().default(20),
+      page,
+      limit,
       sex: z.enum(["male", "female"]).optional(),
-      titles: z.array(z.string()).default([]),
-      clubs: z.array(z.string()).default([]),
-      groups: z.array(z.string()).default([]),
-      locations: z.array(z.string()).default([]),
+      titles: filterArray.default([]),
+      clubs: filterArray.default([]),
+      groups: filterArray.default([]),
+      locations: filterArray.default([]),
       sortBy: z.enum(["rapid", "blitz", "classic"]).default("rapid"),
-      name: z.string().optional(),
+      name: searchText.optional(),
     }))
     .query(async ({ ctx, input }) => {
       const { page = 1, limit = 20, sex, titles: titleFilters = [], clubs: clubFilters = [], groups: groupFilters = [], locations: locationFilters = [], sortBy = "rapid", name } = input;
@@ -360,7 +388,7 @@ export const playersRouter = router({
         .select({ id: playersTable.id })
         .from(playersTable)
         .where(where)
-        .orderBy(desc(sortColumn))
+        .orderBy(desc(sortColumn), asc(playersTable.id))
         .limit(limit)
         .offset(offset);
 
@@ -392,18 +420,18 @@ export const playersRouter = router({
           rapid: true,
           blitz: true,
           imageUrl: true,
-          birthDate: true,
-          sex: true,
         },
         where: inArray(playersTable.id, ids),
         with: {
           club: { columns: { id: true, name: true, logoUrl: true } },
           location: { columns: { name: true, flagUrl: true } },
           defendingChampions: {
+            limit: PUBLIC_NESTED_COLLECTION_LIMIT,
             columns: {},
             with: { championship: { columns: { name: true } } },
           },
           playersToTitles: {
+            limit: PUBLIC_NESTED_COLLECTION_LIMIT,
             columns: {},
             with: { title: { columns: { type: true, name: true, shortName: true } } },
           },

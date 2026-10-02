@@ -1,8 +1,11 @@
 import { z } from "zod";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, sql } from "drizzle-orm";
 
 import { clubs, insertClubSchema } from "@fsx/db/schema/clubs";
 import { adminProcedure, publicProcedure, router } from "../index";
+import { requireMutationRows } from "../errors";
+import { nameText, positiveInt, searchText, urlText } from "../input-schemas";
+import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 
 function normalizeClubName(name: string): string {
   return name
@@ -15,35 +18,43 @@ function normalizeClubName(name: string): string {
 export const clubsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
     ctx.db.select({ id: clubs.id, name: clubs.name, logoUrl: clubs.logoUrl })
-      .from(clubs).orderBy(asc(clubs.name))
+      .from(clubs).orderBy(asc(clubs.name), asc(clubs.id)).limit(PUBLIC_COLLECTION_LIMIT)
   ),
   search: publicProcedure
-    .input(z.object({ query: z.string() }))
+    .input(z.object({ query: searchText }))
     .query(async ({ ctx, input }) => {
-      const all = await ctx.db
+      const q = normalizeClubName(input.query);
+      const words = q.split(/\s+/).filter(Boolean);
+      const rows = await ctx.db
         .select({ id: clubs.id, name: clubs.name })
         .from(clubs)
-        .orderBy(asc(clubs.name));
-      const q = normalizeClubName(input.query);
-      if (!q) return all.slice(0, 10);
-      const words = q.split(/\s+/).filter(Boolean);
-      return all
-        .filter((c) => words.every((w) => normalizeClubName(c.name).includes(w)))
-        .slice(0, 10);
+        .where(words.length ? sql`lower(${clubs.name}) LIKE ${`%${words.join("%")}%`}` : undefined)
+        .orderBy(asc(clubs.name), asc(clubs.id))
+        .limit(10);
+      return rows;
     }),
   create: adminProcedure
-    .input(insertClubSchema.omit({ id: true }))
+    .input(insertClubSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
+      name: nameText,
+      logoUrl: urlText.nullable().optional(),
+    }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(clubs).values(input).returning()
     ),
   update: adminProcedure
-    .input(z.object({ id: z.number(), name: z.string().max(80), logoUrl: z.string().nullable().optional() }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.update(clubs).set(input).where(eq(clubs.id, input.id)).returning()
+    .input(z.object({ id: positiveInt, name: nameText, logoUrl: urlText.nullable().optional() }))
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.update(clubs).set(input).where(eq(clubs.id, input.id)).returning(),
+        "Club",
+      )
     ),
   delete: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.delete(clubs).where(eq(clubs.id, input.id))
+    .input(z.object({ id: positiveInt }))
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.delete(clubs).where(eq(clubs.id, input.id)).returning({ id: clubs.id }),
+        "Club",
+      )
     ),
 });

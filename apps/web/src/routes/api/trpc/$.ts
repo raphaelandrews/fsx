@@ -8,8 +8,15 @@ import {
   rateLimitedResponse,
 } from "@fsx/api/security";
 import { applySecurityHeaders } from "@fsx/api/security-headers";
+import {
+  getProcedureCachePolicy,
+  hasSessionCookie,
+  isSuccessfulTrpcPayload,
+  shouldCachePublicQuery,
+} from "@fsx/api/cache-policy";
 import { createFileRoute } from "@tanstack/react-router";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { measureResponseBytes, PUBLIC_RESPONSE_SIZE_BUDGET_BYTES } from "@fsx/api/resource-bounds";
 
 // Short TTL for public GETs, cached in the Cloudflare Cache API and served to
 // the browser on client-side navigation. SSR does not go through this route —
@@ -19,7 +26,6 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 // honor `max-age` on the `match()` path, so we also store a fetch timestamp and
 // treat an entry as a miss once it is older than its TTL — otherwise a hit
 // could be served stale indefinitely (e.g. a new post staying off the hero).
-const CACHE_TTL_DEFAULT_SECONDS = 60;
 const CACHE_FETCHED_AT_HEADER = "x-cache-fetched-at";
 
 // Near-static public reads change only through admin edits. Admins carry a
@@ -27,29 +33,6 @@ const CACHE_FETCHED_AT_HEADER = "x-cache-fetched-at";
 // isAuthenticated), so a longer TTL never hides an edit from the editor; it
 // only cuts origin load for anonymous visitors. Search stays short because its
 // result set is ephemeral. A batched request uses the shortest matching TTL.
-const PROCEDURE_TTL_SECONDS: Record<string, number> = {
-  "players.search": 30,
-  "players.byId": 120,
-  "players.withFilters": 120,
-  "players.list": 120,
-  "players.page": 60,
-  "topPlayers.list": 300,
-  "circuits.list": 300,
-  "clubs.list": 300,
-  "locations.list": 300,
-  "titles.list": 300,
-};
-
-function resolveTtlSeconds(request: Request): number {
-  const procedures = new URL(request.url).pathname
-    .replace(/^\/api\/trpc\//, "")
-    .split(",");
-  const explicit = procedures
-    .map((procedure) => PROCEDURE_TTL_SECONDS[procedure])
-    .filter((ttl): ttl is number => ttl !== undefined);
-  return explicit.length > 0 ? Math.min(...explicit) : CACHE_TTL_DEFAULT_SECONDS;
-}
-
 function isCachedEntryFresh(cached: Response, ttlSeconds: number): boolean {
   const fetchedAt = Number(cached.headers.get(CACHE_FETCHED_AT_HEADER) ?? 0);
   return fetchedAt > 0 && Date.now() - fetchedAt < ttlSeconds * 1000;
@@ -61,22 +44,27 @@ function isCachedEntryFresh(cached: Response, ttlSeconds: number): boolean {
 // unauthenticated callers (the cache is read before tRPC auth middleware runs).
 // Skip the edge cache entirely for cookie-bearing requests; they go to origin.
 function isAuthenticated(request: Request): boolean {
-  return (request.headers.get("cookie") ?? "").includes("session_token");
+  return hasSessionCookie(request.headers.get("cookie") ?? "");
 }
 
 async function handler({ request }: { request: Request }) {
   const method = request.method;
 
-  if (!isTrustedRequest(request)) {
+  if (!isTrustedRequest(request, { requireOrigin: method === "POST" })) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
     });
   }
 
   if (method === "POST") {
     const result = await rateLimit(`trpc:${getClientIp(request)}`, RATE_LIMITS.trpcMutation);
     if (!result.ok) {
+      console.warn("[security] rate limit exceeded", {
+        scope: "trpc-mutation",
+        requestId: request.headers.get("cf-ray") ?? crypto.randomUUID(),
+        retryAfter: result.retryAfter,
+      });
       const response = rateLimitedResponse(result);
       applySecurityHeaders(response.headers);
       return response;
@@ -86,10 +74,19 @@ async function handler({ request }: { request: Request }) {
   if (method === "GET") {
     const cache = (caches as any).default as Cache | undefined;
     const authenticated = isAuthenticated(request);
-    const ttlSeconds = resolveTtlSeconds(request);
-    if (cache && !authenticated) {
+    const cachePolicy = getProcedureCachePolicy(new URL(request.url).pathname);
+    const ttlSeconds = cachePolicy.ttlSeconds;
+    const cacheable = cachePolicy.classification === "public";
+    if (cache && cacheable && !authenticated) {
       const cached = await cache.match(request);
-      if (cached && isCachedEntryFresh(cached, ttlSeconds)) return cached;
+      if (cached && isCachedEntryFresh(cached, ttlSeconds)) {
+        console.info("[cache] public query", {
+          outcome: "hit",
+          procedure: new URL(request.url).pathname.replace("/api/trpc/", ""),
+          requestId: request.headers.get("cf-ray") ?? "unknown",
+        });
+        return cached;
+      }
       if (cached) await cache.delete(request).catch(() => {});
     }
 
@@ -102,13 +99,60 @@ async function handler({ request }: { request: Request }) {
 
     applySecurityHeaders(response.headers);
 
-    if (response.status === 200 && cache && !authenticated) {
+    let successfulPayload = false;
+    let responseText = "";
+    if (response.status === 200) {
+      try {
+        responseText = await response.clone().text();
+        successfulPayload = isSuccessfulTrpcPayload(JSON.parse(responseText));
+      } catch {
+        successfulPayload = false;
+      }
+    }
+    const responseBytes = measureResponseBytes(responseText);
+    if (cacheable && response.status === 200) {
+      const procedure = new URL(request.url).pathname.replace("/api/trpc/", "");
+      const requestId = request.headers.get("cf-ray") ?? "unknown";
+      console.info("[resource] public tRPC response", {
+        procedure,
+        requestId,
+        responseBytes,
+      });
+      if (responseBytes > PUBLIC_RESPONSE_SIZE_BUDGET_BYTES) {
+        console.warn("[resource] public response size budget exceeded", {
+          procedure,
+          requestId,
+          responseBytes,
+          budgetBytes: PUBLIC_RESPONSE_SIZE_BUDGET_BYTES,
+        });
+      }
+      if (cache && !authenticated) {
+        console.info("[cache] public query", {
+          outcome: "miss",
+          procedure,
+          requestId,
+        });
+      }
+    }
+    const mayCache =
+      shouldCachePublicQuery({ method, status: response.status, authenticated, cacheable }) &&
+      successfulPayload;
+
+    if (mayCache) {
+      response.headers.set(
+        "Cache-Control",
+        `public, max-age=0, s-maxage=${ttlSeconds}, stale-while-revalidate=${ttlSeconds}`,
+      );
+    } else {
+      response.headers.set("Cache-Control", "no-store");
+    }
+
+    if (mayCache && cache) {
       const toCache = new Response(response.clone().body, {
         status: response.status,
         statusText: response.statusText,
         headers: response.headers,
       });
-      toCache.headers.set("Cache-Control", `public, max-age=${ttlSeconds}, must-revalidate`);
       toCache.headers.set(CACHE_FETCHED_AT_HEADER, String(Date.now()));
       await cache.put(request, toCache);
     }
@@ -123,6 +167,7 @@ async function handler({ request }: { request: Request }) {
     endpoint: "/api/trpc",
   });
 
+  response.headers.set("Cache-Control", "no-store");
   applySecurityHeaders(response.headers);
   return response;
 }

@@ -5,12 +5,14 @@ import { ScrollIcon } from "@hugeicons/core-free-icons";
 
 import { useTRPC } from "@/utils/trpc";
 import { padNumber } from "@/utils/format";
-import { articleJsonLd, breadcrumbJsonLd, buildSeo, truncate, withBrand } from "@/lib/seo";
+import { breadcrumbJsonLd, buildSeo, truncate, withBrand } from "@/lib/seo";
+import { getErrorCode } from "@/lib/errors";
 
 export const Route = createFileRoute("/_public/comunicados/$id")({
   loader: async ({ context, params }) => {
+    const id = Number(params.id);
+    if (!Number.isSafeInteger(id) || id < 1) throw notFound();
     try {
-      const id = Number(params.id);
       const announcement = await context.queryClient.ensureQueryData(
         context.trpc.announcements.byId.queryOptions({ id }),
       );
@@ -18,7 +20,8 @@ export const Route = createFileRoute("/_public/comunicados/$id")({
       return announcement;
     } catch (error) {
       if (error instanceof Response) throw error;
-      throw notFound();
+      if (getErrorCode(error) === "NOT_FOUND") throw notFound();
+      throw error;
     }
   },
   head: ({ loaderData }) => {
@@ -38,14 +41,11 @@ export const Route = createFileRoute("/_public/comunicados/$id")({
       description,
       path,
       type: "article",
-      jsonLd: [
-        articleJsonLd({ title: label, path, description }),
-        breadcrumbJsonLd([
-          { name: "Início", path: "/" },
-          { name: "Comunicados", path: "/comunicados" },
-          { name: label, path },
-        ]),
-      ],
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Comunicados", path: "/comunicados" },
+        { name: label, path },
+      ]),
     });
   },
   component: RouteComponent,

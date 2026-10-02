@@ -11,6 +11,9 @@ import {
 } from "@fsx/db/schema/tvSergipe";
 import { clubs } from "@fsx/db/schema/clubs";
 import { adminProcedure, publicProcedure, router } from "../index";
+import { requireMutationRows } from "../errors";
+import { idInput, positiveInt } from "../input-schemas";
+import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 
 const ageGroupEnum = z.enum(AGE_GROUPS);
 const sexEnum = z.enum(["male", "female"]);
@@ -19,8 +22,8 @@ const teamNameEnum = z.enum(TEAM_NAMES);
 
 const resultInput = z
   .object({
-    clubId: z.number(),
-    playerId: z.number().nullable().optional(),
+    clubId: positiveInt,
+    playerId: positiveInt.nullable().optional(),
     teamName: teamNameEnum.nullable().optional(),
     ageGroup: ageGroupEnum,
     sex: sexEnum,
@@ -42,11 +45,23 @@ const medalColumn = (place: number) =>
 export const tvSergipeRouter = router({
   list: publicProcedure.query(({ ctx }) =>
     ctx.db.query.tvSergipe.findMany({
+      columns: {
+        id: true,
+        clubId: true,
+        playerId: true,
+        teamName: true,
+        ageGroup: true,
+        sex: true,
+        modality: true,
+        place: true,
+        points: true,
+      },
       with: {
         club: { columns: { id: true, name: true, logoUrl: true } },
         player: { columns: { id: true, name: true } },
       },
-      orderBy: [asc(tvSergipe.ageGroup), asc(tvSergipe.sex), asc(tvSergipe.modality), desc(tvSergipe.points)],
+       orderBy: [asc(tvSergipe.ageGroup), asc(tvSergipe.sex), asc(tvSergipe.modality), desc(tvSergipe.points), asc(tvSergipe.id)],
+       limit: PUBLIC_COLLECTION_LIMIT,
     })
   ),
   leaderboard: publicProcedure
@@ -80,11 +95,12 @@ export const tvSergipeRouter = router({
         .innerJoin(clubs, eq(tvSergipe.clubId, clubs.id))
         .where(conditions.length ? and(...conditions) : undefined)
         .groupBy(tvSergipe.clubId, clubs.name, clubs.logoUrl)
-        .orderBy(desc(sql`sum(${tvSergipe.points})`))
+        .orderBy(desc(sql`sum(${tvSergipe.points})`), asc(clubs.id))
+        .limit(PUBLIC_COLLECTION_LIMIT)
     }),
   create: adminProcedure
     .input(resultInput)
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const points = PLACE_POINTS[input.place]!;
       return ctx.db
         .insert(tvSergipe)
@@ -101,12 +117,13 @@ export const tvSergipeRouter = router({
         .returning();
     }),
   update: adminProcedure
-    .input(resultInput.extend({ id: z.number() }))
-    .mutation(({ ctx, input }) => {
+    .input(resultInput.extend({ id: positiveInt }))
+    .mutation(async ({ ctx, input }) => {
       const { id, ...rest } = input;
-      return ctx.db
-        .update(tvSergipe)
-        .set({
+      return requireMutationRows(
+        await ctx.db
+          .update(tvSergipe)
+          .set({
           clubId: rest.clubId,
           playerId: rest.modality === "individual" ? rest.playerId : null,
           teamName: rest.modality === "team" ? rest.teamName : null,
@@ -117,10 +134,17 @@ export const tvSergipeRouter = router({
           points: PLACE_POINTS[rest.place]!,
         })
         .where(eq(tvSergipe.id, id))
-        .returning();
+          .returning(),
+        "School result",
+      );
     }),
   delete: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(({ ctx, input }) => ctx.db.delete(tvSergipe).where(eq(tvSergipe.id, input.id))),
+    .input(idInput)
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.delete(tvSergipe).where(eq(tvSergipe.id, input.id)).returning({ id: tvSergipe.id }),
+        "School result",
+      )
+    ),
   deleteAll: adminProcedure.mutation(({ ctx }) => ctx.db.delete(tvSergipe)),
 });

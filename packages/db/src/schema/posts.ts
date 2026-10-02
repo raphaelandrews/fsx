@@ -9,8 +9,8 @@ export const posts = sqliteTable("posts", {
 	content: text("content").notNull(),
 	slug: text("slug").unique().notNull(),
 	published: integer("published", { mode: "boolean" }).default(false).notNull(),
-	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const insertPostSchema = createInsertSchema(posts)

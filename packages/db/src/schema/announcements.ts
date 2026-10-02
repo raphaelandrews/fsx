@@ -1,6 +1,6 @@
 import { createInsertSchema } from "drizzle-zod"
 import { sql } from "drizzle-orm"
-import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
+import { check, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
 
 export const announcements = sqliteTable(
 	"announcements",
@@ -9,10 +9,14 @@ export const announcements = sqliteTable(
 		year: integer("year").notNull(),
 		number: integer("number").notNull(),
 		content: text("content").notNull().unique(),
-		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 	},
-	(t) => [uniqueIndex("year_number").on(t.year, t.number)],
+    (t) => [
+        uniqueIndex("year_number").on(t.year, t.number),
+        check("announcements_year_check", sql`${t.year} BETWEEN 1900 AND 2200`),
+        check("announcements_number_check", sql`${t.number} > 0`),
+    ],
 )
 
 export const insertAnnouncementSchema = createInsertSchema(announcements)

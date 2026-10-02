@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -69,22 +69,30 @@ export function ImageUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [cropperOpen, setCropperOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [status, setStatus] = useState("Nenhuma imagem selecionada.");
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const inputId = useId();
+  const descriptionId = `${inputId}-description`;
+  const statusId = `${inputId}-status`;
 
   const uploadMutation = useMutation(trpc.images.upload.mutationOptions());
 
   const selectFile = useCallback(async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
+    if (!(["image/jpeg", "image/png", "image/webp"] as string[]).includes(file.type)) {
+      toast.error("Select a JPEG, PNG, or WebP image");
+      setStatus("Falha ao enviar: tipo de arquivo não suportado.");
       return;
     }
+    setStatus("Lendo imagem.");
     try {
       const dataUrl = await fileToDataUrl(file);
       setImageToCrop(dataUrl);
       setCropperOpen(true);
+      setStatus("Imagem pronta para recorte.");
     } catch {
       toast.error("Failed to read image file");
+      setStatus("Falha ao ler a imagem.");
     }
   }, []);
 
@@ -112,14 +120,18 @@ export function ImageUpload({
     async (croppedBlob: Blob) => {
       setImageToCrop(null);
       setIsUploading(true);
+      setStatus("Enviando imagem.");
       try {
         const data = await blobToBase64(croppedBlob);
+        const mime = croppedBlob.type === "image/jpeg" || croppedBlob.type === "image/png" || croppedBlob.type === "image/webp"
+          ? croppedBlob.type
+          : "image/webp";
         const { url } = await uploadMutation.mutateAsync({
           kind,
           // The crop step outputs WebP; fall back to the blob's actual type
           // (some older browsers can't encode WebP) so the stored
           // content-type + extension stay accurate.
-          mime: croppedBlob.type || "image/webp",
+          mime,
           data,
         });
 
@@ -132,8 +144,10 @@ export function ImageUpload({
         onUploaded?.(url);
         onChange(url);
         toast.success("Image uploaded");
+        setStatus("Imagem enviada com sucesso.");
       } catch {
         toast.error("Failed to upload image");
+        setStatus("Falha ao enviar a imagem.");
       } finally {
         setIsUploading(false);
       }
@@ -145,12 +159,14 @@ export function ImageUpload({
     if (!value || disabled) return;
     if (value) onImageReplaced?.(value);
     onChange(null);
+    setStatus("Imagem removida.");
     toast.success("Image removed");
   }, [value, disabled, onChange, onImageReplaced]);
 
   const handleCropperClose = useCallback((open: boolean) => {
     if (!open) {
       setImageToCrop(null);
+      setStatus("Recorte cancelado.");
     }
     setCropperOpen(open);
   }, []);
@@ -158,11 +174,16 @@ export function ImageUpload({
   return (
     <div className={className}>
       {value ? (
-        <div className="relative overflow-hidden rounded-lg border">
+        <div className="overflow-hidden rounded-lg border">
           <div className="aspect-video">
-            <img src={value} alt="Uploaded image preview" className="h-full w-full object-cover" />
+            <img
+              src={value}
+              alt="Pré-visualização da imagem enviada"
+              className="h-full w-full object-cover"
+              decoding="async"
+            />
           </div>
-          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity hover:opacity-100">
+          <div className="flex flex-wrap items-center gap-2 border-t bg-background p-2">
             <Button
               type="button"
               size="sm"
@@ -188,22 +209,27 @@ export function ImageUpload({
               onClick={handleRemove}
             >
               <HugeiconsIcon className="size-4" icon={Delete03Icon} strokeWidth={2} />
+              Remover
             </Button>
           </div>
         </div>
       ) : (
-        <div
+        <label
+          htmlFor={inputId}
+          aria-describedby={descriptionId}
           className={cn(
-            "flex aspect-video cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed transition-colors",
+            "flex aspect-video flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring",
             isDragging
               ? "border-primary bg-primary/5"
               : "border-muted-foreground/25 hover:border-primary/50",
-            disabled && "cursor-not-allowed opacity-50",
+            (disabled || isUploading) && "pointer-events-none opacity-50",
           )}
           onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
           onDragLeave={() => setIsDragging(false)}
-          onClick={() => !disabled && inputRef.current?.click()}
         >
           {isUploading ? (
             <HugeiconsIcon
@@ -218,19 +244,31 @@ export function ImageUpload({
                 icon={ImageUploadIcon}
                 strokeWidth={2}
               />
-              <p className="text-sm text-muted-foreground">Drag & drop or click to upload</p>
+              <span className="text-sm text-muted-foreground">Arraste uma imagem ou selecione um arquivo</span>
             </>
           )}
-        </div>
+        </label>
       )}
 
       <input
         ref={inputRef}
+        id={inputId}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp"
         onChange={handleInputChange}
-        className="hidden"
+        aria-label="Imagem para envio"
+        aria-describedby={descriptionId}
+        disabled={disabled || isUploading}
+        className="sr-only"
       />
+
+      <p id={descriptionId} className="mt-1.5 text-xs text-muted-foreground">
+        JPEG, PNG ou WebP. A imagem será recortada antes do envio.
+      </p>
+
+      <p id={statusId} className="sr-only" aria-live="polite">
+        {status}
+      </p>
 
       {imageToCrop && (
         <ImageCropper

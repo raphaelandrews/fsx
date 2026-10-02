@@ -3,6 +3,9 @@ import { eq, desc, count } from "drizzle-orm";
 
 import { announcements, insertAnnouncementSchema } from "@fsx/db/schema/announcements";
 import { adminProcedure, publicProcedure, router } from "../index";
+import { requireMutationRows } from "../errors";
+import { contentText, idInput, page, positiveInt } from "../input-schemas";
+import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 
 export const announcementsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -14,16 +17,17 @@ export const announcementsRouter = router({
         content: announcements.content,
       })
       .from(announcements)
-      .orderBy(desc(announcements.year), desc(announcements.number)),
+      .orderBy(desc(announcements.year), desc(announcements.number))
+      .limit(PUBLIC_COLLECTION_LIMIT),
   ),
-  byId: publicProcedure.input(z.object({ id: z.number() })).query(({ ctx, input }) =>
+  byId: publicProcedure.input(idInput).query(({ ctx, input }) =>
     ctx.db.query.announcements.findFirst({
       columns: { id: true, year: true, number: true, content: true },
       where: eq(announcements.id, input.id),
     }),
   ),
   byPage: publicProcedure
-    .input(z.object({ page: z.number().default(1) }))
+    .input(z.object({ page }))
     .query(async ({ ctx, input }) => {
       const validPage = Math.max(1, input.page);
       const perPage = 12;
@@ -61,23 +65,33 @@ export const announcementsRouter = router({
       .limit(8),
   ),
   create: adminProcedure
-    .input(insertAnnouncementSchema.omit({ id: true }))
+    .input(insertAnnouncementSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
+      year: z.number().int().min(1900).max(2200),
+      number: positiveInt.max(100_000),
+      content: contentText,
+    }))
     .mutation(({ ctx, input }) => ctx.db.insert(announcements).values(input).returning()),
   update: adminProcedure
     .input(
       z.object({
-        id: z.number(),
-        year: z.number().optional(),
-        number: z.number().optional(),
-        content: z.string().optional(),
+        id: positiveInt,
+        year: z.number().int().min(1900).max(2200).optional(),
+        number: positiveInt.max(100_000).optional(),
+        content: contentText.optional(),
       }),
     )
-    .mutation(({ ctx, input }) =>
-      ctx.db.update(announcements).set(input).where(eq(announcements.id, input.id)).returning(),
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.update(announcements).set(input).where(eq(announcements.id, input.id)).returning(),
+        "Announcement",
+      )
     ),
   delete: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.delete(announcements).where(eq(announcements.id, input.id)),
+    .input(idInput)
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.delete(announcements).where(eq(announcements.id, input.id)).returning({ id: announcements.id }),
+        "Announcement",
+      )
     ),
 });

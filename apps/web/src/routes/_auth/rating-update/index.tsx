@@ -24,6 +24,7 @@ import { RatingUpdateMonitor } from "@/components/rating-update/rating-update-mo
 import { RatingUpdateToolbar } from "@/components/rating-update/rating-update-toolbar";
 import type { AnimationState } from "@/components/rating-update/motion-grid-states";
 import type { RatingUpdateProps } from "@/components/rating-update/rating-update-types";
+import { getErrorCode, getUserErrorMessage, showMutationError } from "@/lib/errors";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -451,7 +452,10 @@ function RatingUpdatePage() {
             });
           }
         } catch (err) {
-          const msg = err instanceof Error ? err.message : "Unknown error";
+          const msg = getUserErrorMessage(err, "Não foi possível atualizar este jogador.");
+          if (getErrorCode(err) === "CONFLICT") {
+            showMutationError(err, "Não foi possível atualizar este jogador.", () => window.location.reload());
+          }
           pushError({
             _uuid: crypto.randomUUID(),
             operation: name ?? `ID ${id}`,
@@ -471,7 +475,7 @@ function RatingUpdatePage() {
         setMotionGridStatus("Process stopped", "stop");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to process file");
+      toast.error(getUserErrorMessage(err, "Não foi possível processar o arquivo."));
       setMotionGridStatus("Error", "x");
     } finally {
       setIsRunning(false);

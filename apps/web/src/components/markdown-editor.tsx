@@ -27,6 +27,8 @@ import { Markdown } from "@/components/markdown";
 
 interface MarkdownEditorProps {
   id?: string;
+  "aria-invalid"?: React.ComponentProps<typeof Textarea>["aria-invalid"];
+  "aria-describedby"?: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -95,6 +97,8 @@ function horizontalRule(value: string, start: number): SelectionResult {
 
 export function MarkdownEditor({
   id,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
   value,
   onChange,
   placeholder,
@@ -264,6 +268,8 @@ export function MarkdownEditor({
         <Textarea
           ref={textareaRef}
           id={id}
+          aria-invalid={ariaInvalid}
+          aria-describedby={ariaDescribedBy}
           rows={rows}
           value={value}
           onChange={(e) => commit(e.target.value)}

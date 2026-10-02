@@ -76,7 +76,7 @@ function formatDefendingChampions(championship: string) {
   if (championship === "Absoluto") {
     return (
       <Popover>
-        <PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
+        <PopoverTrigger aria-label="Atual campeão Sergipano Absoluto" className="rounded-md bg-accent p-2 text-accent-foreground">
           <HugeiconsIcon icon={TrainIcon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Absoluto</PopoverContent>
@@ -87,7 +87,7 @@ function formatDefendingChampions(championship: string) {
   if (championship === "Rápido") {
     return (
       <Popover>
-        <PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
+        <PopoverTrigger aria-label="Atual campeão Sergipano Rápido" className="rounded-md bg-accent p-2 text-accent-foreground">
           <HugeiconsIcon icon={TrainIcon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Rápido</PopoverContent>
@@ -98,7 +98,7 @@ function formatDefendingChampions(championship: string) {
   if (championship === "Blitz") {
     return (
       <Popover>
-        <PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
+        <PopoverTrigger aria-label="Atual campeão Sergipano Blitz" className="rounded-md bg-accent p-2 text-accent-foreground">
           <HugeiconsIcon icon={ZapIcon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Blitz</PopoverContent>
@@ -109,7 +109,7 @@ function formatDefendingChampions(championship: string) {
   if (championship === "Feminino") {
     return (
       <Popover>
-        <PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
+        <PopoverTrigger aria-label="Atual campeã Sergipana Feminino" className="rounded-md bg-accent p-2 text-accent-foreground">
           <HugeiconsIcon icon={CrownIcon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeã Sergipana Feminino</PopoverContent>
@@ -120,7 +120,7 @@ function formatDefendingChampions(championship: string) {
   if (championship === "Equipes") {
     return (
       <Popover>
-        <PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
+        <PopoverTrigger aria-label="Atual campeão Sergipano Equipes" className="rounded-md bg-accent p-2 text-accent-foreground">
           <HugeiconsIcon icon={ZapIcon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Equipes</PopoverContent>
@@ -281,7 +281,10 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
                 <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                   {orderPodiums.map((podium) => (
                     <Popover key={podium.place + podium.tournament.name}>
-                      <PopoverTrigger className="rounded-md bg-muted p-2 text-xs font-medium transition-colors">
+                      <PopoverTrigger
+                        aria-label={`${FormatPodiumTitle(podium.place) ?? "Colocação"}: ${podium.tournament.name}`}
+                        className="rounded-md bg-muted p-2 text-xs font-medium transition-colors"
+                      >
                         {FormatPodium(podium.place, podium.tournament.championshipId ?? 0)}
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-2 text-xs font-medium">

@@ -2,7 +2,7 @@ import type { inferRouterOutputs } from "@trpc/server";
 
 import type { AppRouter } from "@fsx/api/routers/index";
 
-export type Circuit = inferRouterOutputs<AppRouter>["circuits"]["list"][number];
+export type Circuit = NonNullable<inferRouterOutputs<AppRouter>["circuits"]["byId"]>;
 export type CircuitPhase = Circuit["circuitPhases"][number];
 export type CircuitPodium = CircuitPhase["circuitPodiums"][number];
 export type CircuitDirectPodium = Circuit["circuitPodiums"][number];

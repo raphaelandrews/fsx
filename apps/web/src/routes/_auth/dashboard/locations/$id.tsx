@@ -9,6 +9,8 @@ import z from "zod";
 import { FormField } from "@/components/form/form-field";
 import { useTRPC } from "@/utils/trpc";
 
+const LOCATION_TYPES = ["city", "state", "country"] as const;
+
 export const Route = createFileRoute("/_auth/dashboard/locations/$id")({
   head: () => ({ meta: [{ title: "Edit Location - Admin - FSX" }] }),
   loader: ({ context }) =>
@@ -40,11 +42,11 @@ function RouteComponent() {
   }
 
   const form = useForm({
-    defaultValues: { name: location.name, type: location.type, flagUrl: location.flagUrl ?? "" },
+    defaultValues: { name: location.name, type: location.type as (typeof LOCATION_TYPES)[number], flagUrl: location.flagUrl ?? "" },
     validators: {
       onSubmit: z.object({
         name: z.string().min(1, "Name is required"),
-        type: z.string().min(1, "Type is required"),
+        type: z.enum(LOCATION_TYPES),
         flagUrl: z.string(),
       }),
     },
@@ -98,12 +100,15 @@ function RouteComponent() {
               error={f.state.meta.errors[0]?.message}
               required
             >
-              <Input
+              <select
                 id={f.name}
                 value={f.state.value}
                 onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
-              />
+                onChange={(e) => f.handleChange(e.target.value as (typeof LOCATION_TYPES)[number])}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                {LOCATION_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+              </select>
             </FormField>
           )}
         </form.Field>
@@ -125,7 +130,7 @@ function RouteComponent() {
           selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+            <Button type="submit" disabled={!canSubmit || isSubmitting || updateMutation.isPending}>
               {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           )}

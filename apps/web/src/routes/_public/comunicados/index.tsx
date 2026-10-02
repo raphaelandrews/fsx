@@ -13,7 +13,7 @@ import { padNumber } from "@/utils/format";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
 const searchSchema = z.object({
-  page: z.number().int().positive().default(1),
+  page: z.number().int().positive().max(1_000).default(1),
 });
 
 export const Route = createFileRoute("/_public/comunicados/")({

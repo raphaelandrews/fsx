@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 
 const TITLE = "Championships";
 const PATH = "/dashboard/championships";
@@ -31,7 +32,7 @@ function RouteComponent() {
   const deleteMutation = useMutation({
     ...trpc[DOMAIN].delete.mutationOptions(),
     onSuccess: () => { qc.invalidateQueries(trpc[DOMAIN].list.queryFilter()); toast.success("Deleted"); },
-    onError: () => toast.error("Failed to delete"),
+    onError: () => toast.error("Não foi possível excluir o campeonato."),
   });
 
   return (
@@ -40,7 +41,7 @@ function RouteComponent() {
         <h1 className="font-bold text-2xl">{TITLE}</h1>
         <Link to={`${PATH}/create`}><Button>Create</Button></Link>
       </div>
-      <div className="overflow-hidden">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -50,18 +51,29 @@ function RouteComponent() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.map((item: any) => (
+            {items.length ? items.map((item: { id: number; name: string }) => (
               <TableRow key={item.id}>
                 <TableCell className="tabular-nums">{item.id}</TableCell>
                 <TableCell>{item.name}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <Link to={`${PATH}/$id`} params={{ id: String(item.id) }}><Button size="sm" variant="outline">Edit</Button></Link>
-                    <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate({ id: item.id })}>Delete</Button>
+                    <ConfirmDeleteButton
+                      itemName={item.name}
+                      label="Delete"
+                      pending={deleteMutation.isPending}
+                      onConfirm={() => deleteMutation.mutate({ id: item.id })}
+                    />
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+            )) : (
+              <TableRow>
+                <TableCell className="h-24 text-center text-muted-foreground" colSpan={3}>
+                  No championships yet. Create one to start recording title holders.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

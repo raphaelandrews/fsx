@@ -8,12 +8,10 @@ import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete03Icon } from "@hugeicons/core-free-icons";
-
 import { LinkIconSelect } from "@/components/link-icon-select";
 import { DEFAULT_LINK_ICON } from "@/lib/link-icons";
 import { useTRPC } from "@/utils/trpc";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 
 type GroupLink = {
   id: number;
@@ -125,6 +123,7 @@ function RouteComponent() {
             <LinkEditRow
               key={link.id}
               link={link as GroupLink}
+              deleting={deleteLinkMutation.isPending}
               onDelete={(linkId) => deleteLinkMutation.mutate({ id: linkId })}
             />
           ))}
@@ -139,7 +138,7 @@ function RouteComponent() {
   );
 }
 
-function LinkEditRow({ link, onDelete }: { link: GroupLink; onDelete: (id: number) => void }) {
+function LinkEditRow({ link, deleting, onDelete }: { link: GroupLink; deleting: boolean; onDelete: (id: number) => void }) {
   const trpc = useTRPC();
   const qc = useQueryClient();
 
@@ -256,15 +255,12 @@ function LinkEditRow({ link, onDelete }: { link: GroupLink; onDelete: (id: numbe
             </Button>
           )}
         </form.Subscribe>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => onDelete(link.id)}
-          aria-label="Excluir link"
-        >
-          <HugeiconsIcon className="size-4 text-destructive" icon={Delete03Icon} strokeWidth={2} />
-        </Button>
+        <ConfirmDeleteButton
+          itemName={link.label}
+          label="Excluir"
+          pending={deleting}
+          onConfirm={() => onDelete(link.id)}
+        />
       </div>
     </form>
   );

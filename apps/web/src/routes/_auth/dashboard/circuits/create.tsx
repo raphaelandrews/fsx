@@ -10,6 +10,7 @@ import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 
 import { useTRPC } from "@/utils/trpc";
+import { getUserErrorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/create")({
   head: () => ({ meta: [{ title: "Create Circuit - Admin - FSX" }] }),
@@ -29,7 +30,7 @@ function RouteComponent() {
       toast.success("Circuito criado");
       navigate({ to: "/dashboard/circuits" });
     },
-    onError: (error) => toast.error(error.message ?? "Falha ao criar circuito"),
+    onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar o circuito.")),
   });
 
   const form = useForm({
@@ -97,7 +98,7 @@ function RouteComponent() {
           selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+            <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>
               {isSubmitting ? "Criando..." : "Criar circuito"}
             </Button>
           )}

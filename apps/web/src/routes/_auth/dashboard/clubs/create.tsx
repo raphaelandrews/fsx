@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
+import { getUserErrorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/clubs/create")({
   head: () => ({ meta: [{ title: "Create Club - Admin - FSX" }] }),
@@ -26,7 +27,7 @@ function RouteComponent() {
       toast.success("Club created");
       navigate({ to: "/dashboard/clubs" });
     },
-    onError: (error) => toast.error(error.message ?? "Failed to create club"),
+    onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar o clube.")),
   });
 
   const form = useForm({
@@ -47,7 +48,7 @@ function RouteComponent() {
         <form.Field name="logoUrl">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Logo URL</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+            <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>
               {isSubmitting ? "Creating..." : "Create Club"}
             </Button>
           )}

@@ -11,6 +11,8 @@ import { ImageUpload } from "@/components/image-upload";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
+import { getFieldError, getUserErrorMessage } from "@/lib/errors";
+import { invalidateAdminQueries } from "@/lib/admin-mutations";
 import { sanitizeTitle, slugify } from "@/utils/slugify";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/create")({
@@ -27,17 +29,19 @@ function RouteComponent() {
   const createMutation = useMutation({
     ...trpc.posts.create.mutationOptions(),
     onSuccess: async () => {
-      qc.invalidateQueries(trpc.posts.listAdmin.queryFilter());
-      qc.invalidateQueries(trpc.posts.list.queryFilter());
-      qc.invalidateQueries(trpc.posts.fresh.queryFilter());
-      qc.invalidateQueries(trpc.posts.byPage.queryFilter());
+      await invalidateAdminQueries(qc, [
+        trpc.posts.listAdmin.queryFilter(),
+        trpc.posts.list.queryFilter(),
+        trpc.posts.fresh.queryFilter(),
+        trpc.posts.byPage.queryFilter(),
+      ]);
       await commit();
       toast.success("Post created");
       navigate({ to: "/dashboard/posts" });
     },
     onError: (error, variables) => {
       void discard(variables.imageUrl);
-      toast.error(error.message ?? "Failed to create post");
+      toast.error(getUserErrorMessage(error, "Não foi possível criar a notícia."));
     },
   });
 
@@ -79,6 +83,8 @@ function RouteComponent() {
               <Label htmlFor={f.name}>Title</Label>
               <Input
                 id={f.name}
+                aria-invalid={Boolean(f.state.meta.errors.length || getFieldError(createMutation.error, "title"))}
+                aria-describedby={getFieldError(createMutation.error, "title") ? `${f.name}-server-error` : undefined}
                 value={f.state.value}
                 onBlur={f.handleBlur}
                 onChange={(e) => {
@@ -92,6 +98,11 @@ function RouteComponent() {
                   {e?.message}
                 </p>
               ))}
+              {getFieldError(createMutation.error, "title") && (
+                <p id={`${f.name}-server-error`} role="alert" className="text-destructive text-xs">
+                  {getFieldError(createMutation.error, "title")}
+                </p>
+              )}
             </div>
           )}
         </form.Field>
@@ -99,7 +110,18 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Slug</Label>
-              <Input id={f.name} value={f.state.value} disabled />
+              <Input
+                id={f.name}
+                value={f.state.value}
+                disabled
+                aria-invalid={Boolean(getFieldError(createMutation.error, "slug"))}
+                aria-describedby={getFieldError(createMutation.error, "slug") ? `${f.name}-server-error` : undefined}
+              />
+              {getFieldError(createMutation.error, "slug") && (
+                <p id={`${f.name}-server-error`} role="alert" className="text-destructive text-xs">
+                  {getFieldError(createMutation.error, "slug")}
+                </p>
+              )}
             </div>
           )}
         </form.Field>
@@ -125,9 +147,16 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Content</Label>
+              {getFieldError(createMutation.error, "content") && (
+                <p id={`${f.name}-server-error`} role="alert" className="text-destructive text-xs">
+                  {getFieldError(createMutation.error, "content")}
+                </p>
+              )}
               <MarkdownEditor
                 id={f.name}
                 rows={8}
+                aria-invalid={Boolean(f.state.meta.errors.length || getFieldError(createMutation.error, "content"))}
+                aria-describedby={getFieldError(createMutation.error, "content") ? `${f.name}-server-error` : undefined}
                 value={f.state.value}
                 onChange={(v) => f.handleChange(v)}
               />
@@ -157,7 +186,7 @@ function RouteComponent() {
           selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+            <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>
               {isSubmitting ? "Creating..." : "Create Post"}
             </Button>
           )}

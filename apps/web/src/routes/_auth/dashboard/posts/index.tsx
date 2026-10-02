@@ -61,6 +61,7 @@ function RouteComponent() {
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
+          isDeleting={deleteMutation.isPending}
           editTo="/dashboard/posts/$id"
           onDelete={() => deleteMutation.mutate({ id: row.original.id })}
           displayName={row.original.title}

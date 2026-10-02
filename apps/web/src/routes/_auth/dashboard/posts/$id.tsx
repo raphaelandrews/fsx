@@ -11,6 +11,7 @@ import { ImageUpload } from "@/components/image-upload";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
+import { getFieldError, showMutationError } from "@/lib/errors";
 import { sanitizeTitle, slugify } from "@/utils/slugify";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/$id")({
@@ -41,9 +42,9 @@ function RouteComponent() {
       await commit();
       toast.success("Post updated");
     },
-    onError: (_error, variables) => {
+    onError: (error, variables) => {
       void discard(variables.imageUrl);
-      toast.error("Failed to update post");
+      showMutationError(error, "Não foi possível atualizar a notícia.", () => window.location.reload());
     },
   });
 
@@ -114,6 +115,8 @@ function RouteComponent() {
               <Input
                 id={f.name}
                 value={f.state.value}
+                aria-invalid={Boolean(f.state.meta.errors.length || getFieldError(updateMutation.error, "title"))}
+                aria-describedby={getFieldError(updateMutation.error, "title") ? `${f.name}-server-error` : undefined}
                 onBlur={f.handleBlur}
                 onChange={(e) => {
                   const value = sanitizeTitle(e.target.value);
@@ -126,6 +129,11 @@ function RouteComponent() {
                   {e?.message}
                 </p>
               ))}
+              {getFieldError(updateMutation.error, "title") && (
+                <p id={`${f.name}-server-error`} role="alert" className="text-destructive text-xs">
+                  {getFieldError(updateMutation.error, "title")}
+                </p>
+              )}
             </div>
           )}
         </form.Field>
@@ -133,7 +141,18 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Slug</Label>
-              <Input id={f.name} value={f.state.value} disabled />
+              <Input
+                id={f.name}
+                value={f.state.value}
+                disabled
+                aria-invalid={Boolean(getFieldError(updateMutation.error, "slug"))}
+                aria-describedby={getFieldError(updateMutation.error, "slug") ? `${f.name}-server-error` : undefined}
+              />
+              {getFieldError(updateMutation.error, "slug") && (
+                <p id={`${f.name}-server-error`} role="alert" className="text-destructive text-xs">
+                  {getFieldError(updateMutation.error, "slug")}
+                </p>
+              )}
             </div>
           )}
         </form.Field>
@@ -164,9 +183,16 @@ function RouteComponent() {
           {(f) => (
             <div className="space-y-2">
               <Label htmlFor={f.name}>Content</Label>
+              {getFieldError(updateMutation.error, "content") && (
+                <p id={`${f.name}-server-error`} role="alert" className="text-destructive text-xs">
+                  {getFieldError(updateMutation.error, "content")}
+                </p>
+              )}
               <MarkdownEditor
                 id={f.name}
                 rows={10}
+                aria-invalid={Boolean(f.state.meta.errors.length || getFieldError(updateMutation.error, "content"))}
+                aria-describedby={getFieldError(updateMutation.error, "content") ? `${f.name}-server-error` : undefined}
                 value={f.state.value}
                 onChange={(v) => f.handleChange(v)}
               />
@@ -196,7 +222,7 @@ function RouteComponent() {
           selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+            <Button type="submit" disabled={!canSubmit || isSubmitting || updateMutation.isPending}>
               {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           )}

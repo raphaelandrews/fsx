@@ -3,63 +3,33 @@ import { eq } from "drizzle-orm";
 
 import { cups } from "@fsx/db/schema/cups";
 import { adminProcedure, publicProcedure, router } from "../index";
+import { requireMutationRows } from "../errors";
+import { idInput, nameText, positiveInt, points } from "../input-schemas";
+import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+
+const ratingTypeEnum = z.enum(["blitz", "rapid", "classic"]);
 
 export const cupsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
     ctx.db.query.cups.findMany({
-      columns: { id: true, name: true, imageUrl: true, startDate: true, endDate: true, prizePool: true, ratingType: true, championshipId: true },
-      with: {
-        championship: { columns: { id: true, name: true } },
-        cupBrackets: {
-          columns: { id: true, bracketType: true },
-          with: {
-            cupPlayoffs: {
-              columns: { id: true, phaseType: true, sortOrder: true },
-              with: {
-                cupMatches: {
-                  columns: { id: true, bestOf: true, sortOrder: true, date: true },
-                  with: {
-                    playerOne: { columns: { id: true, name: true, imageUrl: true } },
-                    playerTwo: { columns: { id: true, name: true, imageUrl: true } },
-                    winner: { columns: { id: true, name: true } },
-                    cupGames: { columns: { id: true, gameNumber: true, link: true, winnerId: true } },
-                  },
-                },
-              },
-            },
-          },
-        },
-        cupGroups: {
-          columns: { id: true, name: true, sortOrder: true },
-          with: {
-            cupPlayers: {
-              columns: { id: true, nickname: true, position: true },
-              with: {
-                player: { columns: { id: true, name: true, imageUrl: true } },
-              },
-            },
-            cupRounds: {
-              columns: { id: true, sortOrder: true },
-              with: {
-                cupMatches: {
-                  columns: { id: true, bestOf: true, sortOrder: true, date: true, cupPlayoffId: true },
-                  with: {
-                    playerOne: { columns: { id: true, name: true, imageUrl: true } },
-                    playerTwo: { columns: { id: true, name: true, imageUrl: true } },
-                    winner: { columns: { id: true, name: true } },
-                    cupGames: { columns: { id: true, gameNumber: true, link: true, winnerId: true } },
-                  },
-                },
-              },
-            },
-          },
-        },
+      columns: {
+        id: true,
+        name: true,
+        imageUrl: true,
+        startDate: true,
+        endDate: true,
+        prizePool: true,
+        ratingType: true,
+        championshipId: true,
       },
+      with: { championship: { columns: { id: true, name: true } } },
+      orderBy: (cup, { desc, asc }) => [desc(cup.startDate), asc(cup.id)],
+      limit: PUBLIC_COLLECTION_LIMIT,
     })
   ),
 
   byId: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(idInput)
     .query(({ ctx, input }) =>
       ctx.db.query.cups.findFirst({
         where: eq(cups.id, input.id),
@@ -67,18 +37,21 @@ export const cupsRouter = router({
         with: {
           championship: { columns: { id: true, name: true } },
           cupBrackets: {
+            limit: PUBLIC_NESTED_COLLECTION_LIMIT,
             columns: { id: true, bracketType: true },
             with: {
               cupPlayoffs: {
+                limit: PUBLIC_NESTED_COLLECTION_LIMIT,
                 columns: { id: true, phaseType: true, sortOrder: true },
                 with: {
                   cupMatches: {
+                    limit: PUBLIC_NESTED_COLLECTION_LIMIT,
                     columns: { id: true, bestOf: true, sortOrder: true, date: true },
                     with: {
                       playerOne: { columns: { id: true, name: true, imageUrl: true } },
                       playerTwo: { columns: { id: true, name: true, imageUrl: true } },
                       winner: { columns: { id: true, name: true } },
-                      cupGames: { columns: { id: true, gameNumber: true, link: true, winnerId: true } },
+                      cupGames: { limit: 3, columns: { id: true, gameNumber: true, link: true, winnerId: true } },
                     },
                   },
                 },
@@ -86,24 +59,28 @@ export const cupsRouter = router({
             },
           },
           cupGroups: {
+            limit: PUBLIC_NESTED_COLLECTION_LIMIT,
             columns: { id: true, name: true, sortOrder: true },
             with: {
               cupPlayers: {
+                limit: PUBLIC_NESTED_COLLECTION_LIMIT,
                 columns: { id: true, nickname: true, position: true },
                 with: {
                   player: { columns: { id: true, name: true, imageUrl: true } },
                 },
               },
               cupRounds: {
+                limit: PUBLIC_NESTED_COLLECTION_LIMIT,
                 columns: { id: true, sortOrder: true },
                 with: {
                   cupMatches: {
+                    limit: PUBLIC_NESTED_COLLECTION_LIMIT,
                     columns: { id: true, bestOf: true, sortOrder: true, date: true, cupPlayoffId: true },
                     with: {
                       playerOne: { columns: { id: true, name: true, imageUrl: true } },
                       playerTwo: { columns: { id: true, name: true, imageUrl: true } },
                       winner: { columns: { id: true, name: true } },
-                      cupGames: { columns: { id: true, gameNumber: true, link: true, winnerId: true } },
+                      cupGames: { limit: 3, columns: { id: true, gameNumber: true, link: true, winnerId: true } },
                     },
                   },
                 },
@@ -116,13 +93,13 @@ export const cupsRouter = router({
 
   create: adminProcedure
     .input(z.object({
-      name: z.string(),
-      imageUrl: z.string(),
-      startDate: z.string(),
-      endDate: z.string(),
-      prizePool: z.number(),
-      ratingType: z.string(),
-      championshipId: z.number().nullable().optional(),
+      name: nameText,
+      imageUrl: z.string().url().max(2_048),
+      startDate: z.string().max(40),
+      endDate: z.string().max(40),
+      prizePool: points,
+       ratingType: ratingTypeEnum,
+      championshipId: positiveInt.nullable().optional(),
     }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(cups).values(input).returning()
@@ -130,22 +107,28 @@ export const cupsRouter = router({
 
   update: adminProcedure
     .input(z.object({
-      id: z.number(),
-      name: z.string().optional(),
-      imageUrl: z.string().optional(),
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
-      prizePool: z.number().optional(),
-      ratingType: z.string().optional(),
-      championshipId: z.number().nullable().optional(),
+      id: positiveInt,
+      name: nameText.optional(),
+      imageUrl: z.string().url().max(2_048).optional(),
+      startDate: z.string().max(40).optional(),
+      endDate: z.string().max(40).optional(),
+      prizePool: points.optional(),
+       ratingType: ratingTypeEnum.optional(),
+      championshipId: positiveInt.nullable().optional(),
     }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.update(cups).set(input).where(eq(cups.id, input.id)).returning()
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.update(cups).set(input).where(eq(cups.id, input.id)).returning(),
+        "Cup",
+      )
     ),
 
   delete: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.delete(cups).where(eq(cups.id, input.id))
+    .input(idInput)
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.delete(cups).where(eq(cups.id, input.id)).returning({ id: cups.id }),
+        "Cup",
+      )
     ),
 });

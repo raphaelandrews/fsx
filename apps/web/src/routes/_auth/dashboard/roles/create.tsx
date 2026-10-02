@@ -8,6 +8,9 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
+import { getUserErrorMessage } from "@/lib/errors";
+
+const ROLE_TYPES = ["management", "referee", "teacher"] as const;
 
 export const Route = createFileRoute("/_auth/dashboard/roles/create")({
   head: () => ({ meta: [{ title: "Create Role - Admin - FSX" }] }),
@@ -22,13 +25,13 @@ function RouteComponent() {
   const createMutation = useMutation({
     ...trpc.roles.create.mutationOptions(),
     onSuccess: () => { qc.invalidateQueries(trpc.roles.list.queryFilter()); toast.success("Role created"); navigate({ to: "/dashboard/roles" }); },
-    onError: (error) => toast.error(error.message ?? "Failed to create role"),
+    onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar a função.")),
   });
 
   const form = useForm({
-    defaultValues: { name: "", shortName: "", type: "management" },
+    defaultValues: { name: "", shortName: "", type: "management" as (typeof ROLE_TYPES)[number] },
     onSubmit: ({ value }) => { createMutation.mutate({ name: value.name, shortName: value.shortName, type: value.type }); },
-    validators: { onSubmit: z.object({ name: z.string().min(1, "Role is required"), shortName: z.string(), type: z.enum(["management", "referee", "teacher"]) }) },
+    validators: { onSubmit: z.object({ name: z.string().min(1, "Role is required"), shortName: z.string(), type: z.enum(ROLE_TYPES) }) },
   });
 
   return (
@@ -37,9 +40,9 @@ function RouteComponent() {
       <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
         <form.Field name="name">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Role</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
         <form.Field name="shortName">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Short Role</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /></div>)}</form.Field>
-        <form.Field name="type">{(f) => (<div className="space-y-2"><Label>Type</Label><select value={f.state.value} onChange={(e) => f.handleChange(e.target.value)} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="management">Management</option><option value="referee">Referee</option><option value="teacher">Teacher</option></select></div>)}</form.Field>
+        <form.Field name="type">{(f) => (<div className="space-y-2"><Label>Type</Label><select value={f.state.value} onChange={(e) => f.handleChange(e.target.value as (typeof ROLE_TYPES)[number])} onBlur={f.handleBlur} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="management">Management</option><option value="referee">Referee</option><option value="teacher">Teacher</option></select></div>)}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
-          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "Creating..." : "Create Role"}</Button>}
+          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>{isSubmitting || createMutation.isPending ? "Creating..." : "Create Role"}</Button>}
         </form.Subscribe>
       </form>
     </div>

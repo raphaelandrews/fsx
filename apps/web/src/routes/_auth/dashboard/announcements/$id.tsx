@@ -8,6 +8,7 @@ import { Textarea } from "@fsx/ui/components/textarea";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
+import { invalidateAdminQueries } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/$id")({
   head: () => ({ meta: [{ title: "Edit Announcement - Admin - FSX" }] }),
@@ -27,11 +28,13 @@ function RouteComponent() {
 
   const updateMutation = useMutation({
     ...trpc.announcements.update.mutationOptions(),
-    onSuccess: () => {
-      qc.invalidateQueries(trpc.announcements.list.queryFilter());
-      qc.invalidateQueries(trpc.announcements.fresh.queryFilter());
-      qc.invalidateQueries(trpc.announcements.byPage.queryFilter());
-      qc.invalidateQueries(trpc.announcements.byId.queryFilter());
+    onSuccess: async () => {
+      await invalidateAdminQueries(qc, [
+        trpc.announcements.list.queryFilter(),
+        trpc.announcements.fresh.queryFilter(),
+        trpc.announcements.byPage.queryFilter(),
+        trpc.announcements.byId.queryFilter(),
+      ]);
       toast.success("Announcement updated");
     },
     onError: () => toast.error("Failed to update announcement"),
@@ -85,7 +88,7 @@ function RouteComponent() {
         </form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+            <Button type="submit" disabled={!canSubmit || isSubmitting || updateMutation.isPending}>
               {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           )}

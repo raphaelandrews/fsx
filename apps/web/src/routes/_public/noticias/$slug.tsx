@@ -4,6 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Markdown } from "@/components/markdown";
 import { PostTimeAgo } from "@/components/noticias/post-time-ago";
 import { articleJsonLd, breadcrumbJsonLd, buildSeo, truncate, withBrand } from "@/lib/seo";
+import { getErrorCode } from "@/lib/errors";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_public/noticias/$slug")({
@@ -16,7 +17,8 @@ export const Route = createFileRoute("/_public/noticias/$slug")({
       return post;
     } catch (error) {
       if (error instanceof Response) throw error;
-      throw notFound();
+      if (getErrorCode(error) === "NOT_FOUND") throw notFound();
+      throw error;
     }
   },
   head: ({ loaderData }) => {
@@ -38,7 +40,7 @@ export const Route = createFileRoute("/_public/noticias/$slug")({
       image: post.imageUrl,
       type: "article",
       publishedTime: post.createdAt,
-      modifiedTime: post.createdAt,
+      modifiedTime: post.updatedAt ?? post.createdAt,
       jsonLd: [
         articleJsonLd({
           title: post.title,
@@ -46,7 +48,7 @@ export const Route = createFileRoute("/_public/noticias/$slug")({
           image: post.imageUrl,
           description,
           datePublished: post.createdAt,
-          dateModified: post.createdAt,
+          dateModified: post.updatedAt ?? post.createdAt,
         }),
         breadcrumbJsonLd([
           { name: "Início", path: "/" },
@@ -88,8 +90,11 @@ function RouteComponent() {
           alt={post.title}
           className="mt-8 aspect-video w-full rounded-xl border border-border object-cover"
           decoding="async"
+          fetchPriority="high"
+          height={675}
           src={post.imageUrl}
           style={{ viewTransitionName: `post-image-${slug}` }}
+          width={1200}
         />
       )}
 

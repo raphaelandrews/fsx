@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { useTRPC } from "@/utils/trpc";
+import { getUserErrorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/create")({
   head: () => ({ meta: [{ title: "Create Podium - Admin - FSX" }] }),
@@ -22,7 +23,7 @@ function RouteComponent() {
   const createMutation = useMutation({
     ...trpc.tournamentPodiums.create.mutationOptions(),
     onSuccess: () => { qc.invalidateQueries(trpc.tournamentPodiums.list.queryFilter()); toast.success("Podium created"); navigate({ to: "/dashboard/tournament-podiums" }); },
-    onError: (error) => toast.error(error.message ?? "Failed to create podium"),
+    onError: (error) => toast.error(getUserErrorMessage(error, "Não foi possível criar o pódio.")),
   });
 
   const form = useForm({
@@ -39,7 +40,7 @@ function RouteComponent() {
         <form.Field name="tournamentId">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Tournament ID</Label><Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />{f.state.meta.errors.map((e) => <p key={e?.message} className="text-destructive text-xs">{e?.message}</p>)}</div>)}</form.Field>
         <form.Field name="place">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Place</Label><Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} /></div>)}</form.Field>
         <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
-          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting}>{isSubmitting ? "Creating..." : "Create Podium"}</Button>}
+          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>{isSubmitting || createMutation.isPending ? "Creating..." : "Create Podium"}</Button>}
         </form.Subscribe>
       </form>
     </div>

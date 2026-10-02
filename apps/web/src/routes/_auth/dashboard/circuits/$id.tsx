@@ -17,8 +17,10 @@ import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/$id")({
   head: () => ({ meta: [{ title: "Edit Circuit - Admin - FSX" }] }),
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(context.trpc.circuits.list.queryOptions()),
+  loader: ({ context, params }) =>
+    context.queryClient.ensureQueryData(
+      context.trpc.circuits.byId.queryOptions({ id: Number(params.id) }),
+    ),
   component: RouteComponent,
 });
 
@@ -29,8 +31,7 @@ function RouteComponent() {
   const invalidate = useInvalidateCircuit();
   const numId = Number(id);
 
-  const { data: circuits = [] } = useSuspenseQuery(trpc.circuits.list.queryOptions());
-  const circuit = circuits.find((c) => c.id === numId);
+  const { data: circuit } = useSuspenseQuery(trpc.circuits.byId.queryOptions({ id: numId }));
 
   const updateMutation = useMutation({
     ...trpc.circuits.update.mutationOptions(),
@@ -121,7 +122,7 @@ function RouteComponent() {
           selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+            <Button type="submit" disabled={!canSubmit || isSubmitting || updateMutation.isPending}>
               {isSubmitting ? "Salvando..." : "Salvar alterações"}
             </Button>
           )}

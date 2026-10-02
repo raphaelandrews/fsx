@@ -1,8 +1,8 @@
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, URL as NodeURL } from "node:url";
 
 import { config } from "dotenv";
 
-config({ path: fileURLToPath(new URL("../../../.env", import.meta.url)) });
+config({ path: fileURLToPath(new NodeURL("../../../.env", import.meta.url)) });
 config();
 
 const runtimeEnv = typeof process === "undefined" ? {} : process.env;

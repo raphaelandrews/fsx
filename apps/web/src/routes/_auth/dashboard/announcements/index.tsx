@@ -13,6 +13,7 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { invalidateAdminQueries } from "@/lib/admin-mutations";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/")({
   head: () => ({ meta: [{ title: "Announcements - Admin - FSX" }] }),
@@ -28,11 +29,13 @@ function RouteComponent() {
 
   const deleteMutation = useMutation({
     ...trpc.announcements.delete.mutationOptions(),
-    onSuccess: () => {
-      qc.invalidateQueries(trpc.announcements.list.queryFilter());
-      qc.invalidateQueries(trpc.announcements.fresh.queryFilter());
-      qc.invalidateQueries(trpc.announcements.byPage.queryFilter());
-      qc.invalidateQueries(trpc.announcements.byId.queryFilter());
+    onSuccess: async () => {
+      await invalidateAdminQueries(qc, [
+        trpc.announcements.list.queryFilter(),
+        trpc.announcements.fresh.queryFilter(),
+        trpc.announcements.byPage.queryFilter(),
+        trpc.announcements.byId.queryFilter(),
+      ]);
       toast.success("Announcement deleted");
     },
     onError: () => toast.error("Failed to delete announcement"),
@@ -65,6 +68,7 @@ function RouteComponent() {
       cell: ({ row }) => (
         <DataTableRowActions
           id={row.original.id}
+          isDeleting={deleteMutation.isPending}
           editTo="/dashboard/announcements/$id"
           onDelete={() => deleteMutation.mutate({ id: row.original.id })}
           displayName={row.original.content}

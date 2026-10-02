@@ -14,7 +14,7 @@ function formatDefendingChampions(championship: string) {
   if (cmp === "Absoluto") {
     return (
       <Popover>
-        <PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
+        <PopoverTrigger aria-label="Atual campeão Sergipano Absoluto" className="rounded-md bg-accent p-2 text-accent-foreground">
           <HugeiconsIcon icon={TrainIcon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Absoluto</PopoverContent>
@@ -24,7 +24,7 @@ function formatDefendingChampions(championship: string) {
   if (cmp === "Rápido") {
     return (
       <Popover>
-        <PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
+        <PopoverTrigger aria-label="Atual campeão Sergipano Rápido" className="rounded-md bg-accent p-2 text-accent-foreground">
           <HugeiconsIcon icon={TrainIcon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Rápido</PopoverContent>
@@ -34,7 +34,7 @@ function formatDefendingChampions(championship: string) {
   if (cmp === "Blitz") {
     return (
       <Popover>
-        <PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
+        <PopoverTrigger aria-label="Atual campeão Sergipano Blitz" className="rounded-md bg-accent p-2 text-accent-foreground">
           <HugeiconsIcon icon={ZapIcon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Blitz</PopoverContent>
@@ -44,7 +44,7 @@ function formatDefendingChampions(championship: string) {
   if (cmp === "Feminino") {
     return (
       <Popover>
-        <PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
+        <PopoverTrigger aria-label="Atual campeã Sergipana Feminino" className="rounded-md bg-accent p-2 text-accent-foreground">
           <HugeiconsIcon icon={CrownIcon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeã Sergipana Feminino</PopoverContent>
@@ -54,7 +54,7 @@ function formatDefendingChampions(championship: string) {
   if (cmp === "Equipes") {
     return (
       <Popover>
-        <PopoverTrigger className="rounded-md bg-accent p-2 text-accent-foreground">
+        <PopoverTrigger aria-label="Atual campeão Sergipano Equipes" className="rounded-md bg-accent p-2 text-accent-foreground">
           <HugeiconsIcon icon={ZapIcon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Equipes</PopoverContent>

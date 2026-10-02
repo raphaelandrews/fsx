@@ -38,8 +38,8 @@ export function FormField({
         {required && <span className="ml-0.5 text-destructive">*</span>}
       </Label>
       {children}
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {hint && <p id={htmlFor ? `${htmlFor}-hint` : undefined} className="text-xs text-muted-foreground">{hint}</p>}
+      {error && <p id={htmlFor ? `${htmlFor}-error` : undefined} className="text-xs text-destructive" role="alert">{error}</p>}
     </div>
   );
 }

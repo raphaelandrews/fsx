@@ -1,0 +1,35 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+      - run: bash -n scripts/d1-backup.sh scripts/verify-d1-backup.sh scripts/deploy-smoke-test.sh
+      - run: python3 scripts/test-export-d1-csv.py
+      - run: bun audit --audit-level=high
+      - name: Validate generated database migrations
+        run: |
+          bun run db:generate
+          git diff --exit-code -- packages/db/src/migrations
+      - run: bun test
+      - run: bun run check-types
+      - run: bun run lint
+      - run: bun run build
+      - run: bun run check:bundle
+      - run: bun run check:seo
+      - run: bun run check:routes

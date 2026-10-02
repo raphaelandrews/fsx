@@ -79,7 +79,13 @@ export function EventLinksEditor({ value, onChange }: EventLinksEditorProps) {
               onChange={(e) => update(i, { sortOrder: Number(e.target.value) })}
             />
           </div>
-          <Button type="button" variant="ghost" size="icon-sm" onClick={() => remove(i)}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Remover link ${link.type}`}
+            onClick={() => remove(i)}
+          >
             <HugeiconsIcon
               className="size-4 text-destructive"
               icon={Delete03Icon}

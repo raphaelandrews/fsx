@@ -23,13 +23,18 @@ Worker para ele mesmo). No navegador, o tRPC continua usando `/api/trpc`.
 
 ## Camadas de cache
 
-- **Cache de borda do tRPC** — respostas `GET` públicas são cacheadas na Cache
-  API do Cloudflare, com TTL por procedimento (30–300 s). Requisições
-  autenticadas ignoram o cache.
+- **Cache de borda do tRPC** — apenas procedimentos públicos registrados em
+  `PROCEDURE_CACHE_POLICY` são cacheados na Cache API do Cloudflare, com TTL por
+  procedimento (30–300 s). Requisições autenticadas, mutações, procedimentos
+  desconhecidos e respostas com erros ignoram o cache.
+- A `caches.default` dos Workers é uma cache local da região/ponto de presença,
+  não uma cache globalmente replicada. O TTL curto é mantido até que métricas de
+  latência e cache-hit justifiquem outra estratégia.
 - **React Query (navegador)** — `staleTime` de 5 minutos por padrão e 60
   segundos para publicações (notícias e comunicados).
 - **Prefetch de rota** — `defaultPreload: "intent"` pré-carrega o código e os
-  dados da rota ao passar o mouse ou focar um link.
+  dados da rota ao passar o mouse ou focar um link. O Router não mantém uma
+  janela própria de preload; o React Query é a autoridade de frescor no cliente.
 - **CDN** — JS, CSS, imagens e fontes são servidos pela camada de assets e
   cacheados pelo Cloudflare.
 
@@ -37,6 +42,12 @@ Worker para ele mesmo). No navegador, o tRPC continua usando `/api/trpc`.
 > do prefetch e do cache do React Query. A pré-renderização afeta apenas o
 > **primeiro carregamento** de um documento (visita inicial, recarregar, digitar
 > a URL ou rastreadores).
+
+Após uma mutação administrativa, as queries afetadas são invalidadas
+imediatamente no painel. A resposta de borda para visitantes anônimos permanece
+eventualmente consistente: ela pode continuar visível até o TTL do procedimento
+expirar, no máximo cinco minutos. A purga manual é somente para recuperação
+operacional, não faz parte do fluxo normal de edição.
 
 ## Opções
 
@@ -149,5 +160,5 @@ tanstackStart({
   `unstable_localLink` no servidor e `httpBatchLink` no navegador.
 - **Cabeçalhos/cache** — `apps/web/src/routes/__root.tsx` (`headers`) e
   `packages/api/src/security-headers.ts`.
-- **TTLs do cache de borda do tRPC** — `apps/web/src/routes/api/trpc/$.ts`
-  (`PROCEDURE_TTL_SECONDS`).
+- **Política e TTLs do cache de borda do tRPC** — `packages/api/src/cache-policy.ts`
+  (`PROCEDURE_CACHE_POLICY`).

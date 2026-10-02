@@ -1,6 +1,6 @@
 import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { check, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { circuitPodiums, cupPlayers, clubs, defendingChampions, locations, playersToRoles, playersToTournaments, playersToNorms, tournamentPodiums, cupMatches, cupGames, playersToInsignias, tvSergipe } from "./index"
 import { playersToTitles } from "./playersToTitles"
@@ -16,8 +16,8 @@ export const players = sqliteTable(
 		rapid: integer("rapid").notNull().default(1900),
 		classic: integer("classic").notNull().default(1900),
 		active: integer("active", { mode: "boolean" }).default(false).notNull(),
-		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+		updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 		description: text("description"),
 		imageUrl: text("image_url"),
 		cbxId: integer("cbx_id").unique(),
@@ -48,7 +48,9 @@ export const players = sqliteTable(
 		index("players_active_rapid_idx").on(table.active, table.rapid),
 		index("players_active_blitz_idx").on(table.active, table.blitz),
 		// Admin players list orders by name for pagination.
-		index("players_name_idx").on(table.name),
+        index("players_name_idx").on(table.name),
+        check("players_rating_range_check", sql`${table.blitz} BETWEEN 0 AND 4000 AND ${table.rapid} BETWEEN 0 AND 4000 AND ${table.classic} BETWEEN 0 AND 4000`),
+        check("players_sex_check", sql`${table.sex} IN ('male', 'female')`),
 	],
 )
 

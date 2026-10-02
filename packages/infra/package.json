@@ -8,6 +8,7 @@
     "destroy": "alchemy destroy"
   },
   "dependencies": {
+    "@fsx/db": "workspace:*",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },

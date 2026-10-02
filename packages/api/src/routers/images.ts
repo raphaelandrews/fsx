@@ -4,22 +4,13 @@ import { z } from "zod";
 import { env } from "@fsx/env/server";
 
 import { adminProcedure, router } from "../index";
+import { base64ToBytes, hasImageSignature, IMAGE_MIMES, MAX_BASE64_LENGTH, MAX_IMAGE_BYTES, MIN_IMAGE_BYTES } from "../image-validation";
 
-const MIN_IMAGE_BYTES = 1024;
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
-function mimeToExt(mime: string): string {
-  if (mime === "image/jpeg" || mime === "image/jpg") return "jpg";
+function mimeToExt(mime: (typeof IMAGE_MIMES)[number]): string {
+  if (mime === "image/jpeg") return "jpg";
   if (mime === "image/png") return "png";
-  if (mime === "image/gif") return "gif";
   return "webp";
-}
-
-function base64ToBytes(b64: string): Uint8Array {
-  const bin = atob(b64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return bytes;
 }
 
 // Strip the public path back down to the object key so a stored relative URL
@@ -28,7 +19,12 @@ export function urlToKey(url: string): string | null {
   const marker = "/api/media/";
   const idx = url.indexOf(marker);
   const key = idx === -1 ? url : url.slice(idx + marker.length);
-  return key ? decodeURIComponent(key) : null;
+  if (!key || key.length > 300 || !/^(players|posts)\/[a-f0-9-]+\.(jpg|png|webp)$/.test(key)) return null;
+  try {
+    return decodeURIComponent(key);
+  } catch {
+    return null;
+  }
 }
 
 export const imagesRouter = router({
@@ -36,9 +32,9 @@ export const imagesRouter = router({
     .input(
       z.object({
         kind: z.enum(["players", "posts"]),
-        mime: z.string().refine((v) => v.startsWith("image/"), "Expected an image mime type"),
+        mime: z.enum(IMAGE_MIMES),
         // Base64-encoded image payload (cropped client-side, ~KB range).
-        data: z.string().min(16),
+        data: z.string().min(16).max(MAX_BASE64_LENGTH),
       }),
     )
     .mutation(async ({ input }) => {
@@ -49,6 +45,9 @@ export const imagesRouter = router({
       if (bytes.byteLength > MAX_IMAGE_BYTES) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Image is too large (max 5MB)" });
       }
+      if (!hasImageSignature(bytes, input.mime)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Image content does not match its type" });
+      }
 
       const key = `${input.kind}/${crypto.randomUUID()}.${mimeToExt(input.mime)}`;
       await env.IMAGES.put(key, bytes, {
@@ -58,7 +57,7 @@ export const imagesRouter = router({
       return { url: `/api/media/${key}` };
     }),
 
-  delete: adminProcedure.input(z.object({ url: z.string() })).mutation(async ({ input }) => {
+  delete: adminProcedure.input(z.object({ url: z.string().max(2_048) })).mutation(async ({ input }) => {
     const key = urlToKey(input.url);
     if (!key) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid image URL" });

@@ -11,6 +11,7 @@ import { DatePicker } from "@/components/date-picker";
 import { ImageUpload } from "@/components/image-upload";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useTRPC } from "@/utils/trpc";
+import { getUserErrorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/_auth/dashboard/players/create")({
   head: () => ({ meta: [{ title: "Create Player - Admin - FSX" }] }),
@@ -33,7 +34,7 @@ function RouteComponent() {
     },
     onError: (error, variables) => {
       void discard(variables.imageUrl);
-      toast.error(error.message ?? "Failed to create player");
+      toast.error(getUserErrorMessage(error, "Não foi possível criar o jogador."));
     },
   });
 
@@ -260,7 +261,7 @@ function RouteComponent() {
           selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+            <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>
               {isSubmitting ? "Creating..." : "Create Player"}
             </Button>
           )}

@@ -12,6 +12,9 @@
     "dotenv": "catalog:",
     "zod": "catalog:"
   },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
   "devDependencies": {
     "@fsx/config": "workspace:*",
     "@fsx/infra": "workspace:*",

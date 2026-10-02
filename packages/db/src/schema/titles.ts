@@ -1,6 +1,6 @@
 import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { check, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { playersToTitles } from "./playersToTitles"
 
@@ -9,9 +9,11 @@ export const titles = sqliteTable("titles", {
 	name: text("name").notNull().unique(),
 	shortName: text("short_name").notNull(),
 	type: text("type").notNull(),
-	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-})
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+}, (table) => [
+	check("titles_type_check", sql`${table.type} IN ('internal', 'external')`),
+])
 
 export const titlesRelations = relations(titles, ({ many }) => ({
 	playersToTitles: many(playersToTitles),

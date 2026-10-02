@@ -8,7 +8,11 @@ export async function createContext({ req }: { req: Request }) {
   const session = await auth.api.getSession({
     headers: req.headers,
   });
-  return { db, session };
+  return {
+    db,
+    session,
+    requestId: req.headers.get("cf-ray") ?? crypto.randomUUID(),
+  };
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;

@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 
 import { playersToTitles } from "@fsx/db/schema/playersToTitles";
 import { publicProcedure, router } from "../index";
+import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 
 export const titledPlayersRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -22,7 +23,8 @@ export const titledPlayersRouter = router({
             .from(playersToTitles)
             .where(sql`${playersToTitles.playerId} = ${players.id}`)
         ),
-      orderBy: (players, { desc }) => [desc(players.rapid)],
+      orderBy: (players, { desc, asc }) => [desc(players.rapid), asc(players.id)],
+      limit: PUBLIC_COLLECTION_LIMIT,
     })
   ),
 });

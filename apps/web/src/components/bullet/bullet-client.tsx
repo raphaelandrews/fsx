@@ -102,7 +102,10 @@ function playerWins(match: CupMatch, playerId: number) {
 function MatchGamesPopover({ match }: { match: CupMatch }) {
   return (
     <Popover>
-      <PopoverTrigger className="absolute top-1/2 right-6 -translate-y-1/2 translate-x-1/2 rounded-full [&>svg]:fill-background">
+      <PopoverTrigger
+        aria-label={`Ver partidas de ${match.playerOne.name} e ${match.playerTwo.name}`}
+        className="absolute top-1/2 right-6 -translate-y-1/2 translate-x-1/2 rounded-full [&>svg]:fill-background"
+      >
         <HugeiconsIcon className="size-3.5" icon={InformationCircleIcon} />
       </PopoverTrigger>
       <PopoverContent className="p-0">

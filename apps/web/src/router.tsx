@@ -15,12 +15,14 @@ import { NotFound } from "./components/not-found";
 import { PageSkeleton } from "./components/skeletons/page-skeleton";
 import { routeTree } from "./routeTree.gen";
 import { TRPCProvider } from "./utils/trpc";
+import { getUserErrorMessage, isExpectedQueryError } from "./lib/errors";
 
 function createQueryClient() {
   return new QueryClient({
     queryCache: new QueryCache({
       onError: (error, query) => {
-        toast.error(error.message, {
+        if (isExpectedQueryError(error)) return;
+        toast.error(getUserErrorMessage(error, "Não foi possível carregar os dados."), {
           action: {
             label: "retry",
             onClick: () => {
@@ -48,9 +50,6 @@ const trpcLinks = createIsomorphicFn()
     unstable_localLink({
       router: appRouter,
       createContext: () => createContext({ req: getRequest() }),
-      onError: ({ error }) => {
-        console.error("[trpc] server-side procedure failed", error);
-      },
     }),
   ]);
 
@@ -68,7 +67,9 @@ export const getRouter = () => {
   const router = createTanStackRouter({
     routeTree,
     scrollRestoration: true,
-    defaultPreloadStaleTime: 60_000,
+    // React Query is the client-side freshness authority; avoid a second
+    // Router preload cache hiding invalidated data.
+    defaultPreloadStaleTime: 0,
     defaultPreload: "intent",
     // Wrap route commits in document.startViewTransition. The global CSS keeps
     // the root crossfade disabled, so only elements that opt in with a matching

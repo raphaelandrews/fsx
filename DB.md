@@ -52,7 +52,14 @@ The target schema standardizes column names. Apply these renames during migratio
 - Boolean columns intentionally have **no** `is` prefix (`active`, `verified`, `published`).
 - `posts.title` is kept as `title` (content entity, idiomatic for articles).
 - `auth.*` tables keep Better Auth's own column names (library-owned schema).
-- Every domain table's `updated_at` auto-updates on writes (`$onUpdate`), in addition to the `CURRENT_TIMESTAMP` default.
+- Domain tables require non-null `created_at` and `updated_at` values. Their
+  SQLite `CURRENT_TIMESTAMP` defaults are UTC text in the canonical
+  `YYYY-MM-DD HH:MM:SS` format; Better Auth-owned timestamp columns are integer
+  Unix milliseconds and are not converted to this format.
+- `updated_at` auto-updates on Drizzle writes via `$onUpdate`. Maintenance or
+  future non-ORM writers to domain rows must set it explicitly; there are no
+  such application writers today, so database triggers are intentionally not
+  installed.
 
 ---
 

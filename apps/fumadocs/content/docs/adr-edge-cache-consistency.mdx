@@ -1,0 +1,29 @@
+---
+title: "ADR 0003: Anonymous Edge Cache Consistency"
+description: Public cache freshness and mutation invalidation behavior.
+---
+
+# ADR 0003: Anonymous Edge Cache Consistency
+
+- Status: Accepted
+- Date: 2026-10-01
+
+## Context
+
+React Query invalidation only reaches the current dashboard session. Workers
+Cache API entries are scoped to locations and cannot be globally purged by that
+client invalidation.
+
+## Decision
+
+Keep the current procedure registry, anonymous-only successful GET caching, and
+short TTLs. Admin mutations invalidate the affected client query families.
+Anonymous visitors may see a prior response until its TTL expires. Do not add
+versioned keys or purge endpoints until a measured stale-content incident
+requires immediate global freshness.
+
+## Consequences
+
+Admin edits are immediately visible in the dashboard; public freshness is
+eventual and bounded by the configured TTL. Monitor edge hit rate and latency
+before changing TTLs or introducing a new cache layer.

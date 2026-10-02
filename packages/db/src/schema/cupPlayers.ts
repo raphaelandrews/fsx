@@ -10,8 +10,8 @@ export const cupPlayers = sqliteTable("cup_players", {
 	cupGroupId: integer("cup_group_id").notNull().references(() => cupGroups.id, { onDelete: "cascade" }),
 	nickname: text("nickname"),
 	position: integer("position"),
-	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const cupPlayersRelations = relations(cupPlayers, ({ one }) => ({

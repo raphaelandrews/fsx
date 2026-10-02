@@ -1,16 +1,16 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete03Icon } from "@hugeicons/core-free-icons";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import z from "zod";
 
+import { CIRCUIT_CATEGORIES } from "@fsx/api/circuit-types";
 import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 
 import { SearchableSelect } from "@/components/searchable-select";
 import { useTRPC } from "@/utils/trpc";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 
 import type { CircuitPodium } from "../types";
 import { useInvalidateCircuit } from "./use-invalidate-circuit";
@@ -19,7 +19,7 @@ export type PodiumTarget = { circuitId?: number; circuitPhaseId?: number };
 
 const podiumSchema = z.object({
   playerId: z.string().min(1, "Jogador é obrigatório"),
-  category: z.string(),
+  category: z.enum(CIRCUIT_CATEGORIES).or(z.literal("")),
   place: z
     .string()
     .refine((v) => v.trim() === "" || Number.isInteger(Number(v)), "Colocação inválida"),
@@ -68,7 +68,7 @@ export function CircuitPodiumForm({
   const form = useForm({
     defaultValues: {
       playerId: podium ? String(podium.playerId) : "",
-      category: podium?.category ?? "",
+      category: (podium?.category ?? "") as (typeof CIRCUIT_CATEGORIES)[number] | "",
       place: podium?.place != null ? String(podium.place) : "",
       points: podium ? String(podium.points) : "",
     },
@@ -78,7 +78,7 @@ export function CircuitPodiumForm({
         playerId: Number(value.playerId),
         circuitId: target.circuitId ?? null,
         circuitPhaseId: target.circuitPhaseId ?? null,
-        category: value.category.trim() || null,
+        category: value.category === "" ? null : value.category as (typeof CIRCUIT_CATEGORIES)[number],
         place: value.place.trim() ? Number(value.place) : null,
         points: Number(value.points),
       };
@@ -124,12 +124,18 @@ export function CircuitPodiumForm({
             <Label htmlFor={f.name} className="text-xs text-muted-foreground">
               Categoria
             </Label>
-            <Input
+            <select
               id={f.name}
               value={f.state.value}
               onBlur={f.handleBlur}
-              onChange={(e) => f.handleChange(e.target.value)}
-            />
+              onChange={(e) => f.handleChange(e.target.value as (typeof CIRCUIT_CATEGORIES)[number] | "")}
+              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+            >
+              <option value="">Sem categoria</option>
+              {CIRCUIT_CATEGORIES.map((category) => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
           </div>
         )}
       </form.Field>
@@ -185,20 +191,12 @@ export function CircuitPodiumForm({
           )}
         </form.Subscribe>
         {podium ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Excluir pódio"
-            disabled={deleteMutation.isPending}
-            onClick={() => deleteMutation.mutate({ id: podium.id })}
-          >
-            <HugeiconsIcon
-              className="size-4 text-destructive"
-              icon={Delete03Icon}
-              strokeWidth={2}
-            />
-          </Button>
+          <ConfirmDeleteButton
+            itemName="classificação de jogador"
+            label="Excluir pódio"
+            pending={deleteMutation.isPending}
+            onConfirm={() => deleteMutation.mutate({ id: podium.id })}
+          />
         ) : null}
       </div>
     </form>

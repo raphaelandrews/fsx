@@ -14,8 +14,8 @@ export const cupMatches = sqliteTable("cup_matches", {
 	bestOf: integer("best_of").notNull(),
 	sortOrder: integer("sort_order").notNull(),
 	date: text("date").notNull(),
-	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const cupMatchesRelations = relations(cupMatches, ({ one, many }) => ({

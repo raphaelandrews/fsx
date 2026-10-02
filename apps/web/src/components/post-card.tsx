@@ -42,8 +42,10 @@ export function PostCard({
             alt=""
             className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
             decoding="async"
+            height={675}
             loading="lazy"
             src={imageUrl}
+            width={1200}
           />
         ) : null}
       </div>

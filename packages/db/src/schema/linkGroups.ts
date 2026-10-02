@@ -1,6 +1,6 @@
 import { createInsertSchema } from "drizzle-zod";
 import { relations, sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 import { events, links } from "./index";
 
@@ -12,12 +12,13 @@ export const linkGroups = sqliteTable(
     // When set, this group holds the links for an event (regulation, form,
     // results, ...). Null means it's a "directory" group shown on /links.
     eventId: integer("event_id").references(() => events.id, { onDelete: "cascade" }),
-    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
     updatedAt: text("updated_at")
       .default(sql`(CURRENT_TIMESTAMP)`)
+      .notNull()
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
   },
-  (table) => [index("link_groups_event_id_idx").on(table.eventId)],
+  (table) => [uniqueIndex("link_groups_event_id_unique").on(table.eventId)],
 );
 
 export const linkGroupsRelations = relations(linkGroups, ({ many, one }) => ({

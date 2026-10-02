@@ -1,6 +1,9 @@
-import { createDb } from "@fsx/db";
 import { env } from "@fsx/env/server";
 import { sql } from "drizzle-orm";
+
+import { createDb } from "@fsx/db";
+
+import { isTrustedOrigin } from "./request-origin";
 
 export function getClientIp(request: Request): string {
   return (
@@ -11,24 +14,13 @@ export function getClientIp(request: Request): string {
   );
 }
 
-function toOrigin(value: string | null | undefined): string | null {
-  if (!value) return null;
-  try {
-    return new URL(value).origin;
-  } catch {
-    return null;
-  }
-}
-
-export function isTrustedRequest(request: Request): boolean {
-  const origin = request.headers.get("Origin");
-  // Same-origin and non-browser (no Origin) requests are always trusted.
-  if (!origin) return true;
-  const requestOrigin = toOrigin(origin);
-  if (!requestOrigin) return false;
-  // Normalize both sides to origins so a configured `CORS_ORIGIN` with a
-  // trailing slash (or path) still matches the browser's Origin header.
-  return requestOrigin === new URL(request.url).origin || requestOrigin === toOrigin(env.CORS_ORIGIN);
+export function isTrustedRequest(request: Request, options?: { requireOrigin?: boolean }): boolean {
+  return isTrustedOrigin({
+    origin: request.headers.get("Origin"),
+    requestUrl: request.url,
+    configuredOrigin: env.CORS_ORIGIN,
+    requireOrigin: options?.requireOrigin,
+  });
 }
 
 export interface RateLimitConfig {
@@ -49,27 +41,7 @@ export const RATE_LIMITS = {
   trpcMutation: { windowMs: 60_000, max: 300 },
 } as const;
 
-let tableReady: Promise<void> | null = null;
-
-function ensureRateLimitTable(): Promise<void> {
-  if (!tableReady) {
-    tableReady = createDb(env.DB)
-      .run(sql`
-        CREATE TABLE IF NOT EXISTS rate_limits (
-          key TEXT NOT NULL,
-          window_start INTEGER NOT NULL,
-          count INTEGER NOT NULL DEFAULT 0,
-          PRIMARY KEY (key, window_start)
-        )
-      `)
-      .then(() => undefined);
-  }
-  return tableReady;
-}
-
 export async function rateLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
-  await ensureRateLimitTable();
-
   const db = createDb(env.DB);
   const now = Date.now();
   const windowStart = Math.floor(now / config.windowMs) * config.windowMs;
@@ -89,10 +61,6 @@ export async function rateLimit(key: string, config: RateLimitConfig): Promise<R
   const ok = count <= config.max;
   const retryAfter = Math.max(1, Math.ceil((resetAt - now) / 1000));
 
-  if (Math.random() < 0.02) {
-    void db.run(sql`DELETE FROM rate_limits WHERE window_start < ${now - 600_000}`).catch(() => {});
-  }
-
   return { ok, limit: config.max, remaining, retryAfter };
 }
 
@@ -103,6 +71,7 @@ export function rateLimitedResponse(result: RateLimitResult): Response {
       status: 429,
       headers: {
         "Content-Type": "application/json",
+        "Cache-Control": "no-store",
         "Retry-After": String(result.retryAfter),
         "X-RateLimit-Limit": String(result.limit),
         "X-RateLimit-Remaining": String(result.remaining),

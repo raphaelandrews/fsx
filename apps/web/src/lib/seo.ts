@@ -125,7 +125,6 @@ export function organizationJsonLd(): Record<string, unknown> {
     foundingDate: SITE_FOUNDED,
     areaServed: { "@type": "State", name: "Sergipe" },
     sport: "Chess",
-    sameAs: [SITE_URL],
   };
 }
 

@@ -17,6 +17,10 @@ export function createAuth() {
     emailAndPassword: {
       enabled: false,
     },
+    session: {
+      expiresIn: 60 * 60 * 24 * 7,
+      updateAge: 60 * 60 * 24,
+    },
     socialProviders: {
       github: {
         clientId: env.GITHUB_CLIENT_ID!,
@@ -27,6 +31,9 @@ export function createAuth() {
     },
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
+    advanced: {
+      useSecureCookies: env.BETTER_AUTH_URL.startsWith("https://"),
+    },
     databaseHooks: {
       user: {
         create: {

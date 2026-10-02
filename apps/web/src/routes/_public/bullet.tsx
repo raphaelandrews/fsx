@@ -18,8 +18,13 @@ export const Route = createFileRoute("/_public/bullet")({
         { name: "Bullet", path: "/bullet" },
       ]),
     }),
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(context.trpc.cups.list.queryOptions()),
+  loader: async ({ context }) => {
+    const cups = await context.queryClient.ensureQueryData(context.trpc.cups.list.queryOptions());
+    const cup = cups.find((item) => item.name.toLowerCase().includes("bullet")) ?? cups[0];
+    if (!cup) return { cupId: null };
+    await context.queryClient.ensureQueryData(context.trpc.cups.byId.queryOptions({ id: cup.id }));
+    return { cupId: cup.id };
+  },
   component: RouteComponent,
 });
 
@@ -27,7 +32,7 @@ function RouteComponent() {
   const trpc = useTRPC();
   const { data: cups = [] } = useSuspenseQuery(trpc.cups.list.queryOptions());
 
-  const cup = cups.find((c) => c.name.toLowerCase().includes("bullet")) ?? cups[0];
+  const cup = cups.find((c) => c.id === Route.useLoaderData().cupId);
 
   if (!cup) {
     return (
@@ -39,6 +44,14 @@ function RouteComponent() {
       </>
     );
   }
+
+  return <BulletCup id={cup.id} />;
+}
+
+function BulletCup({ id }: { id: number }) {
+  const trpc = useTRPC();
+  const { data: cup } = useSuspenseQuery(trpc.cups.byId.queryOptions({ id }));
+  if (!cup) return null;
 
   return (
     <>

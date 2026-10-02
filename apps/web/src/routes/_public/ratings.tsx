@@ -38,14 +38,14 @@ const sortByEnum = z.enum(["classic", "rapid", "blitz"]);
 type SortBy = z.infer<typeof sortByEnum>;
 
 const searchSchema = z.object({
-  page: z.number().int().positive().default(1),
+  page: z.number().int().positive().max(1_000).default(1),
   ordenar: sortByEnum.default("rapid"),
   sexo: z.enum(["male", "female"]).optional(),
-  nome: z.string().optional(),
-  local: z.array(z.string()).default([]),
-  clube: z.array(z.string()).default([]),
-  titulo: z.array(z.string()).default([]),
-  grupo: z.array(z.string()).default([]),
+  nome: z.string().trim().max(120).optional(),
+  local: z.array(z.string().max(80)).max(50).default([]),
+  clube: z.array(z.string().max(80)).max(50).default([]),
+  titulo: z.array(z.string().max(80)).max(50).default([]),
+  grupo: z.array(z.string().max(80)).max(50).default([]),
 });
 
 export const Route = createFileRoute("/_public/ratings")({

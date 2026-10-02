@@ -28,21 +28,21 @@ const baseConfig = {
 export const topPlayersRouter = router({
   list: publicProcedure.query(async ({ ctx }) => {
     const topClassic = await ctx.db.query.players.findMany({
-      orderBy: (players, { desc: d }) => [d(players.classic)],
+      orderBy: (players, { desc: d, asc }) => [d(players.classic), asc(players.id)],
       limit: 10,
       where: eq(players.active, true),
       columns: baseConfig.columns,
       with: baseConfig.with,
     });
     const topRapid = await ctx.db.query.players.findMany({
-      orderBy: (players, { desc: d }) => [d(players.rapid)],
+      orderBy: (players, { desc: d, asc }) => [d(players.rapid), asc(players.id)],
       limit: 10,
       where: eq(players.active, true),
       columns: baseConfig.columns,
       with: baseConfig.with,
     });
     const topBlitz = await ctx.db.query.players.findMany({
-      orderBy: (players, { desc: d }) => [d(players.blitz)],
+      orderBy: (players, { desc: d, asc }) => [d(players.blitz), asc(players.id)],
       limit: 10,
       where: eq(players.active, true),
       columns: baseConfig.columns,

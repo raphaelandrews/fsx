@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, URL as NodeURL } from "node:url";
 
 import { Miniflare } from "miniflare";
 
@@ -8,10 +8,10 @@ import { normalizeName } from "./normalize";
 import * as schema from "./schema";
 
 const wranglerConfigPath = fileURLToPath(
-  new URL("../../../apps/web/.alchemy/local/wrangler.jsonc", import.meta.url),
+  new NodeURL("../../../apps/web/.alchemy/local/wrangler.jsonc", import.meta.url),
 );
 const d1PersistRoot = fileURLToPath(
-  new URL("../../../.alchemy/miniflare/v3", import.meta.url),
+  new NodeURL("../../../.alchemy/miniflare/v3", import.meta.url),
 );
 
 function readJsonc(path: string): any {

@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "vp build",
+    "check-types": "tsc --noEmit",
     "serve": "vp preview",
     "dev:bare": "vp dev",
     "vite": "vp"
@@ -50,7 +51,7 @@
     "sonner": "catalog:",
     "tailwindcss": "catalog:",
     "web": "^0.0.2",
-    "xlsx": "^0.18.5",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "catalog:"
   },
   "devDependencies": {

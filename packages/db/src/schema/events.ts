@@ -10,9 +10,10 @@ export const events = sqliteTable(
     id: integer("id").primaryKey({ autoIncrement: true }),
     name: text("name").notNull().unique(),
     startDate: text("start_date").notNull(),
-    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
     updatedAt: text("updated_at")
       .default(sql`(CURRENT_TIMESTAMP)`)
+      .notNull()
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => [index("events_start_date_idx").on(table.startDate)],

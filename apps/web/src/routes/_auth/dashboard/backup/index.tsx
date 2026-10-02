@@ -7,8 +7,12 @@ export const Route = createFileRoute("/_auth/dashboard/backup/")({
 
 const DATABASE_NAME = "fsx-database-raphael";
 const BACKUP_CMD = "bun run db:backup";
-const RESTORE_CMD = `cd apps/web
-npx wrangler d1 execute ${DATABASE_NAME} --remote --file="$HOME/Backups/fsx-2026-09-30-153045/fsx-2026-09-30-153045.sql"`;
+const BACKUP_PATH = `"$HOME/Backups/fsx-<timestamp>/fsx-<timestamp>.sql"`;
+const VERIFY_CMD = `BACKUP_SQL=${BACKUP_PATH}
+bun run db:backup:verify -- "$BACKUP_SQL"`;
+const RESTORE_CMD = `STAGING_D1_DATABASE=fsx-staging
+BACKUP_SQL=${BACKUP_PATH}
+bunx wrangler d1 execute "$STAGING_D1_DATABASE" --remote --file="$BACKUP_SQL"`;
 
 function Code({ children }: { children: string }) {
   return (
@@ -42,18 +46,20 @@ function RouteComponent() {
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
           <li>
             <code className="rounded bg-muted px-1 py-0.5">
-              ~/Backups/fsx-2026-09-30-153045/fsx-2026-09-30-153045.sql
+              ~/Backups/fsx-&lt;timestamp&gt;/fsx-&lt;timestamp&gt;.sql
             </code>{" "}
             — full dump (schema + data)
           </li>
           <li>
             <code className="rounded bg-muted px-1 py-0.5">
-              ~/Backups/fsx-2026-09-30-153045/csv/&lt;table&gt;.csv
+              ~/Backups/fsx-&lt;timestamp&gt;/csv/&lt;table&gt;.csv
             </code>{" "}
             — one CSV per table
           </li>
         </ul>
         <p className="mt-3 text-muted-foreground text-xs">
+          Backups are private to the local account and pruned after 90 days by default. Set{" "}
+          <code className="rounded bg-muted px-1 py-0.5">BACKUP_RETENTION_DAYS</code> to change it.
           Requires <code className="rounded bg-muted px-1 py-0.5">sqlite3</code> on your PATH. The
           database is briefly blocked while the export runs. The script lives at{" "}
           <code className="rounded bg-muted px-1 py-0.5">scripts/d1-backup.sh</code>.
@@ -61,11 +67,12 @@ function RouteComponent() {
       </div>
 
       <div className="mb-6 rounded-md border p-4">
-        <h2 className="mb-2 font-semibold">Restore a backup</h2>
+        <h2 className="mb-2 font-semibold">Verify and restore to staging</h2>
         <p className="mb-3 text-muted-foreground text-sm">
-          Import a previously exported <code className="rounded bg-muted px-1 py-0.5">.sql</code>{" "}
-          file back into the remote database (replace the path with your actual backup):
+          Validate the dump locally, then restore it to a dedicated staging D1 database for recovery
+          exercises. Never test recovery by overwriting production.
         </p>
+        <Code>{VERIFY_CMD}</Code>
         <Code>{RESTORE_CMD}</Code>
       </div>
 
