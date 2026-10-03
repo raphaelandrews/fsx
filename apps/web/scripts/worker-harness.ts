@@ -88,6 +88,25 @@ async function seedFixtureRows(db: D1Database) {
       "INSERT INTO posts (id, title, slug, content, published) VALUES (1, ?, ?, 'Conteúdo da notícia.', 1)",
     ).bind(POST.title, POST.slug),
     db.prepare("INSERT INTO announcements (id, year, number, content) VALUES (1, 2026, 1, 'Comunicado de teste')"),
+    // One record per admin edit page, so accessibility checks render real forms and tables.
+    db.prepare("INSERT INTO clubs (id, name) VALUES (1, 'Clube Fixture')"),
+    db.prepare("INSERT INTO tournaments (id, name, rating_type, date) VALUES (1, 'Aberto Fixture', 'rapid', '2026-03-01')"),
+    db.prepare(
+      "INSERT INTO players_to_tournaments (player_id, tournament_id, old_rating, variation, rating_type) VALUES (?, 1, 1790, 10, 'rapid')",
+    ).bind(PLAYER.id),
+    db.prepare("INSERT INTO circuits (id, name, type) VALUES (1, 'Circuito Fixture', 'default')"),
+    db.prepare("INSERT INTO circuit_phases (id, circuit_id, tournament_id, club_id, sort_order) VALUES (1, 1, 1, 1, 1)"),
+    db.prepare(
+      "INSERT INTO circuit_podiums (player_id, circuit_phase_id, category, place, points) VALUES (?, 1, 'Sub 18 Feminino', 1, 10)",
+    ).bind(PLAYER.id),
+    db.prepare("INSERT INTO events (id, name, start_date) VALUES (1, 'Evento Fixture', '2099-01-01')"),
+    db.prepare("INSERT INTO link_groups (id, label, event_id) VALUES (1, 'Links úteis', NULL)"),
+    db.prepare(
+      "INSERT INTO links (label, href, icon, type, sort_order, link_group_id) VALUES ('CBX', 'https://www.cbx.org.br', 'link', 'link', 0, 1)",
+    ),
+    db.prepare(
+      "INSERT INTO tv_sergipe (id, club_id, player_id, age_group, sex, modality, place, points) VALUES (1, 1, ?, '14', 'female', 'individual', 1, 10)",
+    ).bind(PLAYER.id),
     // A second ratings page (20 per page) for pagination tests; rated below the fixture player.
     db.prepare(
       `INSERT INTO players (name, normalized_name, sex, active, rapid, blitz, classic)

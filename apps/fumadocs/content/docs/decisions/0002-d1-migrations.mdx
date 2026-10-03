@@ -24,3 +24,24 @@ its local D1 state, restart Alchemy, then reseed.
 Migration changes can be reviewed and replayed deterministically. Production
 rollback requires a forward-compatible application rollback or a tested D1
 restore; it does not automatically reverse a migration.
+
+## Update 2026-10-02
+
+A production deploy stopped at migration `0021`: `rate_limits` already existed
+(the Worker used to create it at runtime). Testing the pending migrations on
+production-shaped data showed a worse problem: D1 applies each migration file as
+one transaction with foreign keys enforced, so Drizzle's `PRAGMA
+foreign_keys=OFF` table rebuilds either failed on `RESTRICT` or, with `PRAGMA
+defer_foreign_keys = on`, silently cascade-deleted child rows such as title
+assignments.
+
+- `0021` now rebuilds every domain table from the `0020` schema straight to the
+  final schema with a backup → drop children-first → recreate parents-first
+  sequence; `0022`–`0025` are kept as no-ops so existing migration trackers stay
+  in sync. Databases that had already applied the old files have the same final
+  schema.
+- Rebuilding a referenced table must follow that pattern; rebuilding a leaf
+  table may use Drizzle's generated SQL. `migrations.integration.test.ts`
+  enforces this and proves no row is lost.
+- Tests, the worker harness, and the restore drill now apply migrations one
+  transaction per file, as production does.

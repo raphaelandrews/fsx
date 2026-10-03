@@ -29,9 +29,8 @@ check; authenticated/mutation tRPC responses use `Cache-Control: no-store`.
 Backups are stored outside the repository with owner-only filesystem permissions
 and a 90-day default retention window. The Swiss Manager export audit log records
 administrator ID, procedure, request ID, timestamp, result, and row count only.
-Rate-limit records contain the client IP as the limiter key. A scheduled Worker
-removes windows older than ten minutes every fifteen minutes; access to aggregate
-row counts and window ranges is administrator-only.
+Rate limiting keys Cloudflare's native limiter by client IP; the application
+stores no rate-limit records.
 The rating-import screen stores its local result history (player name/ID and safe
 error category) in browser `localStorage`; the administrator can clear it from
 that screen. Server request/error logs do not store this history.

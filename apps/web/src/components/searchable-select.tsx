@@ -19,6 +19,7 @@ interface SearchableSelectProps {
   placeholder?: string;
   emptyText?: string;
   initialLabel?: string;
+  id?: string;
 }
 
 export function SearchableSelect({
@@ -28,6 +29,7 @@ export function SearchableSelect({
   placeholder = "Search...",
   emptyText = "No results.",
   initialLabel = "",
+  id,
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -76,8 +78,9 @@ export function SearchableSelect({
         <input
           className="w-full rounded-md border border-input bg-background py-2 pr-8 pl-8 text-sm outline-hidden focus-visible:border-ring"
           value={open ? (query || selectedLabel) : selectedLabel}
+          id={id}
           placeholder={placeholder}
-          aria-label={placeholder}
+          aria-label={id ? undefined : placeholder}
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);

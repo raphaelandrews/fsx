@@ -1,31 +1,33 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useForm } from "@tanstack/react-form";
-import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
-import z from "zod";
 
-import { FormField } from "@/components/form/form-field";
-import { useTRPC } from "@/utils/trpc";
+import { EntityForm } from "@/components/admin/entity-form";
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
+import { tournamentPodiumSections } from "@/lib/admin-forms";
 import { idParams } from "@/lib/route-params";
-import { fieldError } from "@/lib/errors";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/$id")({
   params: idParams,
-  head: () => ({ meta: [{ title: "Edit Podium - Admin - FSX" }] }),
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(context.trpc.tournamentPodiums.list.queryOptions()),
+  head: () => ({ meta: [{ title: "Edit podium - Admin - FSX" }] }),
+  loader: async ({ context, params }) => {
+    const podiums = await context.queryClient.ensureQueryData(
+      context.trpc.tournamentPodiums.list.queryOptions(),
+    );
+    if (!podiums.some((podium) => podium.id === params.id)) throw notFound();
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { id: numId } = Route.useParams();
+  const { id } = Route.useParams();
   const trpc = useTRPC();
   const navigate = useNavigate();
 
-  const { data: podiums = [] } = useSuspenseQuery(trpc.tournamentPodiums.list.queryOptions());
-  const podium = podiums.find((p) => p.id === numId);
+  const { data: podiums } = useSuspenseQuery(trpc.tournamentPodiums.list.queryOptions());
+  const podium = podiums.find((candidate) => candidate.id === id);
 
   const updateMutation = useAdminMutation(trpc.tournamentPodiums.update.mutationOptions(), {
     invalidates: "tournamentPodiums",
@@ -33,113 +35,56 @@ function RouteComponent() {
     failure: "Failed to update podium",
     reloadOnConflict: true,
   });
-
-  if (!podium) {
-    return <p>Podium not found.</p>;
-  }
-
-  const form = useForm({
-    defaultValues: {
-      playerId: podium.playerId,
-      tournamentId: podium.tournamentId,
-      place: podium.place,
-    },
-    validators: {
-      onSubmit: z.object({
-        playerId: z.number().min(1, "Player is required"),
-        tournamentId: z.number().min(1, "Tournament is required"),
-        place: z.number().min(1, "Place is required"),
-      }),
-    },
-    onSubmit: ({ value }) => {
-      updateMutation.mutate({
-        id: numId,
-        playerId: value.playerId,
-        tournamentId: value.tournamentId,
-        place: value.place,
-      });
-    },
+  const deleteMutation = useAdminMutation(trpc.tournamentPodiums.delete.mutationOptions(), {
+    invalidates: "tournamentPodiums",
+    success: "Podium deleted",
+    failure: "Failed to delete podium",
+    onSuccess: () => navigate({ to: "/dashboard/tournament-podiums" }),
   });
 
+  if (!podium) return null;
+  const summary = `${podium.player?.name ?? "Player"} · ${podium.place}º in ${podium.tournament?.name ?? "tournament"}`;
+
   return (
-    <div className="mx-auto max-w-lg">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">Edit Podium</h1>
-        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/tournament-podiums" })}>
-          Back
-        </Button>
-      </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
+    <>
+      <AdminPageHeader
+        backTo="/dashboard/tournament-podiums"
+        backLabel="Tournament podiums"
+        title={summary}
+        description="Edit the podium."
+        actions={
+          <ConfirmDeleteButton
+            label="Delete podium"
+            title="Delete this podium?"
+            itemName={summary}
+            pending={deleteMutation.isPending}
+            onConfirm={() => deleteMutation.mutate({ id })}
+          />
+        }
+      />
+      <EntityForm
+        sections={tournamentPodiumSections(trpc, {
+          player: podium.player?.name,
+          tournament: podium.tournament?.name,
+        })}
+        defaultValues={{
+          tournamentId: String(podium.tournamentId),
+          playerId: String(podium.playerId),
+          place: String(podium.place),
         }}
-        className="space-y-4"
-      >
-        <form.Field name="playerId">
-          {(f) => (
-            <FormField
-              label="Player ID"
-              htmlFor={f.name}
-              error={fieldError(f, updateMutation.error)}
-              required
-            >
-              <Input
-                id={f.name}
-                type="number"
-                value={String(f.state.value)}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(Number(e.target.value))}
-              />
-            </FormField>
-          )}
-        </form.Field>
-        <form.Field name="tournamentId">
-          {(f) => (
-            <FormField
-              label="Tournament ID"
-              htmlFor={f.name}
-              error={fieldError(f, updateMutation.error)}
-              required
-            >
-              <Input
-                id={f.name}
-                type="number"
-                value={String(f.state.value)}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(Number(e.target.value))}
-              />
-            </FormField>
-          )}
-        </form.Field>
-        <form.Field name="place">
-          {(f) => (
-            <FormField
-              label="Place"
-              htmlFor={f.name}
-              error={fieldError(f, updateMutation.error)}
-              required
-            >
-              <Input
-                id={f.name}
-                type="number"
-                value={String(f.state.value)}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(Number(e.target.value))}
-              />
-            </FormField>
-          )}
-        </form.Field>
-        <form.Subscribe
-          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting || updateMutation.isPending}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </Button>
-          )}
-        </form.Subscribe>
-      </form>
-    </div>
+        onSubmit={(values) =>
+          updateMutation.mutate({
+            id,
+            tournamentId: Number(values.tournamentId),
+            playerId: Number(values.playerId),
+            place: Number(values.place),
+          })
+        }
+        error={updateMutation.error}
+        pending={updateMutation.isPending}
+        submitLabel="Save changes"
+        cancelTo="/dashboard/tournament-podiums"
+      />
+    </>
   );
 }

@@ -10,6 +10,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { RowLink } from "@/components/data-table/row-link";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
@@ -35,7 +36,7 @@ function RouteComponent() {
     {
       accessorKey: "place",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Place" />,
-      cell: ({ row }) => <span className="tabular-nums font-medium">{row.original.place}º</span>,
+      cell: ({ row }) => <RowLink to="/dashboard/tournament-podiums/$id" id={row.original.id}><span className="tabular-nums">{row.original.place}º</span></RowLink>,
     },
     {
       accessorKey: "player",
@@ -55,6 +56,7 @@ function RouteComponent() {
           id={row.original.id}
           isDeleting={deleteMutation.isPending}
           editTo="/dashboard/tournament-podiums/$id"
+          noun="podium"
           onDelete={() => deleteMutation.mutate({ id: row.original.id })}
           displayName={row.original.player?.name}
         />
@@ -65,7 +67,7 @@ function RouteComponent() {
   return (
     <div>
       <AdminPageHeader
-        title="Podiums"
+        title="Tournament podiums"
         description="Manage tournament podiums."
         actions={
           <Link to="/dashboard/tournament-podiums/create">

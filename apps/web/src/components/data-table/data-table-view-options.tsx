@@ -11,13 +11,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@fsx/ui/components/dropdown-menu";
+} from "@fsx/ui/components/dropdown-menu"
+
+import { useTableText } from "@/lib/table-text";
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>;
 }
 
 export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
+  const text = useTableText()
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -29,11 +32,11 @@ export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps
         }
       >
         <HugeiconsIcon className="mr-2 size-4" icon={SlidersHorizontalIcon} strokeWidth={2} />
-        View
+        {text.view}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[180px]">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Alternar colunas</DropdownMenuLabel>
+          <DropdownMenuLabel>{text.toggleColumns}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {table
             .getAllColumns()

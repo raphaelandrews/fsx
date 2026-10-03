@@ -34,7 +34,7 @@ marked **convention**; breaking it will not fail a test, so review for it.
 | `normalized_name` equals `normalizeName(name)`. | `players.create` / `update`; `admin-crud.integration.test.ts` |
 | A circuit podium targets exactly one of a circuit or a phase. | `CHECK` + Zod refine |
 | A School Games result is either individual (player, no team) or team (team letter, no player); points match the place. | `CHECK`; `tvSergipe.create` derives points |
-| Stored URLs are `http(s)` or `/api/media/...`; never `javascript:` or other schemes. | Zod `httpUrl`, `imageUrl`; audit `player-names-and-urls.sql` |
+| Stored URLs are `http(s)` or `/api/media/...` of the field's own kind; never `javascript:` or other schemes. Uploaded SVGs are static drawings and served with a sandbox CSP. | Zod `httpUrl`, `imageUrl`; audit `player-names-and-urls.sql` |
 | Dates without time are `YYYY-MM-DD`. | Zod `isoDate`; audit `date-formats.sql` |
 | Link icons come from the allowlist. | `link-icons.ts`; `link-icons.test.ts` |
 | Public lists are capped (500 rows, nested 100). | `resource-bounds.ts`; `resource-caps.integration.test.ts` |

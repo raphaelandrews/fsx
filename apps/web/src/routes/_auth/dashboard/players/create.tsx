@@ -1,22 +1,18 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
-import { useForm } from "@tanstack/react-form";
-import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
-import { Label } from "@fsx/ui/components/label";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import z from "zod";
 
-import { DatePicker } from "@/components/date-picker";
-import { ImageUpload } from "@/components/image-upload";
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { PlayerForm } from "@/components/admin/player-form";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
-import { useTRPC } from "@/utils/trpc";
-import { showMutationError } from "@/lib/errors";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
-import { FieldError } from "@/components/form/field-error";
+import { showMutationError } from "@/lib/errors";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/players/create")({
-  head: () => ({ meta: [{ title: "Create Player - Admin - FSX" }] }),
+  head: () => ({ meta: [{ title: "New player - Admin - FSX" }] }),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.locations.list.queryOptions()),
   component: RouteComponent,
 });
 
@@ -25,6 +21,7 @@ function RouteComponent() {
   const navigate = useNavigate();
   const invalidateAdmin = useInvalidateAdmin();
   const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
+  const { data: locations } = useSuspenseQuery(trpc.locations.list.queryOptions());
 
   const createMutation = useMutation({
     ...trpc.players.create.mutationOptions(),
@@ -32,7 +29,7 @@ function RouteComponent() {
       void invalidateAdmin("players");
       await commit();
       toast.success("Player created");
-      navigate({ to: "/dashboard/players" });
+      await navigate({ to: "/dashboard/players" });
     },
     onError: (error, variables) => {
       void discard(variables.imageUrl);
@@ -40,241 +37,47 @@ function RouteComponent() {
     },
   });
 
-  const form = useForm({
-    defaultValues: {
-      name: "",
-      nickname: "",
-      blitz: 1900,
-      rapid: 1900,
-      classic: 1900,
-      birthDate: "",
-      sex: "male" as "male" | "female",
-      verified: false,
-      clubId: null as number | null,
-      locationId: null as number | null,
-      imageUrl: "",
-    },
-    onSubmit: ({ value }) => {
-      createMutation.mutate({
-        name: value.name,
-        nickname: value.nickname || null,
-        blitz: value.blitz,
-        rapid: value.rapid,
-        classic: value.classic,
-        birthDate: value.birthDate || null,
-        sex: value.sex,
-        verified: value.verified,
-        clubId: value.clubId,
-        locationId: value.locationId,
-        imageUrl: value.imageUrl || null,
-      });
-    },
-    validators: {
-      onSubmit: z.object({
-        name: z.string().min(1, "Name is required"),
-        nickname: z.string(),
-        blitz: z.number(),
-        rapid: z.number(),
-        classic: z.number(),
-        birthDate: z.string(),
-        sex: z.enum(["male", "female"]),
-        verified: z.boolean(),
-        clubId: z.number().nullable(),
-        locationId: z.number().nullable(),
-        imageUrl: z.string(),
-      }),
-    },
-  });
-
   return (
-    <div className="mx-auto max-w-lg">
-      <h1 className="mb-6 font-bold text-2xl">Create Player</h1>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
+    <>
+      <AdminPageHeader
+        backTo="/dashboard/players"
+        backLabel="Players"
+        title="New player"
+        description="Register a player with the federation."
+      />
+      <PlayerForm
+        defaultValues={{
+          name: "",
+          nickname: "",
+          birthDate: "",
+          sex: "male",
+          imageUrl: "",
+          clubId: null,
+          locationId: null,
+          classic: 1900,
+          rapid: 1900,
+          blitz: 1900,
+          cbxId: null,
+          fideId: null,
+          active: true,
+          verified: false,
         }}
-        className="space-y-4"
-      >
-        <form.Field name="name">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Name</Label>
-              <Input
-                id={f.name}
-                value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
-              />
-              <FieldError field={f} error={createMutation.error} />
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="nickname">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Nickname</Label>
-              <Input
-                id={f.name}
-                value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
-              />
-              <FieldError field={f} error={createMutation.error} />
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="imageUrl">
-          {(f) => (
-            <div className="space-y-2">
-              <Label>Photo</Label>
-              <ImageUpload
-                kind="players"
-                value={f.state.value || null}
-                onChange={(url) => f.handleChange(url ?? "")}
-                onImageReplaced={trackReplaced}
-                onUploaded={trackCreated}
-                title="Crop Player Photo"
-                description="Adjust the crop area for a square avatar."
-                outputWidth={120}
-              />
-            </div>
-          )}
-        </form.Field>
-        <div className="grid grid-cols-3 gap-4">
-          <form.Field name="blitz">
-            {(f) => (
-              <div className="space-y-2">
-                <Label htmlFor={f.name}>Blitz</Label>
-                <Input
-                  id={f.name}
-                  type="number"
-                  value={String(f.state.value)}
-                  onBlur={f.handleBlur}
-                  onChange={(e) => f.handleChange(Number(e.target.value))}
-                />
-                <FieldError field={f} error={createMutation.error} />
-              </div>
-            )}
-          </form.Field>
-          <form.Field name="rapid">
-            {(f) => (
-              <div className="space-y-2">
-                <Label htmlFor={f.name}>Rapid</Label>
-                <Input
-                  id={f.name}
-                  type="number"
-                  value={String(f.state.value)}
-                  onBlur={f.handleBlur}
-                  onChange={(e) => f.handleChange(Number(e.target.value))}
-                />
-                <FieldError field={f} error={createMutation.error} />
-              </div>
-            )}
-          </form.Field>
-          <form.Field name="classic">
-            {(f) => (
-              <div className="space-y-2">
-                <Label htmlFor={f.name}>Classic</Label>
-                <Input
-                  id={f.name}
-                  type="number"
-                  value={String(f.state.value)}
-                  onBlur={f.handleBlur}
-                  onChange={(e) => f.handleChange(Number(e.target.value))}
-                />
-                <FieldError field={f} error={createMutation.error} />
-              </div>
-            )}
-          </form.Field>
-        </div>
-        <form.Field name="birthDate">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Birth</Label>
-              <DatePicker
-                id={f.name}
-                value={f.state.value}
-                onChange={(value) => f.handleChange(value)}
-                placeholder="Select birth date"
-              />
-              <FieldError field={f} error={createMutation.error} />
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="sex">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Sex</Label>
-              <select
-                id={f.name}
-                value={f.state.value}
-                onChange={(e) => f.handleChange(e.target.value as "male" | "female")}
-                onBlur={f.handleBlur}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
-              <FieldError field={f} error={createMutation.error} />
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="verified">
-          {(f) => (
-            <div className="flex items-center gap-2">
-              <input
-                id={f.name}
-                type="checkbox"
-                checked={f.state.value}
-                onChange={(e) => f.handleChange(e.target.checked)}
-                className="h-4 w-4 rounded border-input"
-              />
-              <Label htmlFor={f.name}>Verified</Label>
-              <FieldError field={f} error={createMutation.error} />
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="clubId">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Club ID</Label>
-              <Input
-                id={f.name}
-                type="number"
-                value={f.state.value?.toString() ?? ""}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)}
-              />
-              <FieldError field={f} error={createMutation.error} />
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="locationId">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Location ID</Label>
-              <Input
-                id={f.name}
-                type="number"
-                value={f.state.value?.toString() ?? ""}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)}
-              />
-              <FieldError field={f} error={createMutation.error} />
-            </div>
-          )}
-        </form.Field>
-        <form.Subscribe
-          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>
-              {isSubmitting ? "Creating..." : "Create Player"}
-            </Button>
-          )}
-        </form.Subscribe>
-      </form>
-    </div>
+        onSubmit={(values) =>
+          createMutation.mutate({
+            ...values,
+            nickname: values.nickname || null,
+            birthDate: values.birthDate || null,
+            imageUrl: values.imageUrl || null,
+          })
+        }
+        error={createMutation.error}
+        pending={createMutation.isPending}
+        submitLabel="Create player"
+        cancelTo="/dashboard/players"
+        locations={locations}
+        onImageReplaced={trackReplaced}
+        onImageUploaded={trackCreated}
+      />
+    </>
   );
 }

@@ -1,33 +1,33 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useForm } from "@tanstack/react-form";
-import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
-import z from "zod";
 
-import { FormField } from "@/components/form/form-field";
-import { useTRPC } from "@/utils/trpc";
+import { EntityForm } from "@/components/admin/entity-form";
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
+import { ROLE_SECTIONS } from "@/lib/admin-forms";
 import { idParams } from "@/lib/route-params";
-import { fieldError } from "@/lib/errors";
-
-const ROLE_TYPES = ["management", "referee", "teacher"] as const;
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/roles/$id")({
   params: idParams,
-  head: () => ({ meta: [{ title: "Edit Role - Admin - FSX" }] }),
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(context.trpc.roles.list.queryOptions()),
+  head: () => ({ meta: [{ title: "Edit role - Admin - FSX" }] }),
+  loader: async ({ context, params }) => {
+    const records = await context.queryClient.ensureQueryData(
+      context.trpc.roles.list.queryOptions(),
+    );
+    if (!records.some((record) => record.id === params.id)) throw notFound();
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { id: numId } = Route.useParams();
+  const { id } = Route.useParams();
   const trpc = useTRPC();
   const navigate = useNavigate();
 
-  const { data: roles = [] } = useSuspenseQuery(trpc.roles.list.queryOptions());
-  const role = roles.find((r) => r.id === numId);
+  const { data: records } = useSuspenseQuery(trpc.roles.list.queryOptions());
+  const record = records.find((candidate) => candidate.id === id);
 
   const updateMutation = useAdminMutation(trpc.roles.update.mutationOptions(), {
     invalidates: "roles",
@@ -35,107 +35,48 @@ function RouteComponent() {
     failure: "Failed to update role",
     reloadOnConflict: true,
   });
-
-  if (!role) {
-    return <p>Role not found.</p>;
-  }
-
-  const form = useForm({
-    defaultValues: {
-      name: role.name,
-      shortName: role.shortName,
-      type: role.type as (typeof ROLE_TYPES)[number],
-    },
-    validators: {
-      onSubmit: z.object({
-        name: z.string().min(1, "Role is required"),
-        shortName: z.string(),
-        type: z.enum(ROLE_TYPES),
-      }),
-    },
-    onSubmit: ({ value }) => {
-      updateMutation.mutate({
-        id: numId,
-        name: value.name,
-        shortName: value.shortName,
-        type: value.type,
-      });
-    },
+  const deleteMutation = useAdminMutation(trpc.roles.delete.mutationOptions(), {
+    invalidates: "roles",
+    success: "Role deleted",
+    failure: "Failed to delete role",
+    onSuccess: () => navigate({ to: "/dashboard/roles" }),
   });
 
+  if (!record) return null;
+
   return (
-    <div className="mx-auto max-w-lg">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">Edit Role</h1>
-        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/roles" })}>
-          Back
-        </Button>
-      </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-        className="space-y-4"
-      >
-        <form.Field name="name">
-          {(f) => (
-            <FormField
-              label="Role"
-              htmlFor={f.name}
-              error={fieldError(f, updateMutation.error)}
-              required
-            >
-              <Input
-                id={f.name}
-                value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
-              />
-            </FormField>
-          )}
-        </form.Field>
-        <form.Field name="shortName">
-          {(f) => (
-            <FormField label="Short Role" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
-              <Input
-                id={f.name}
-                value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
-              />
-            </FormField>
-          )}
-        </form.Field>
-        <form.Field name="type">
-          {(f) => (
-            <FormField label="Type" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
-              <select
-                id={f.name}
-                value={f.state.value}
-                onChange={(e) => f.handleChange(e.target.value as (typeof ROLE_TYPES)[number])}
-                onBlur={f.handleBlur}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                {ROLE_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-          )}
-        </form.Field>
-        <form.Subscribe
-          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting || updateMutation.isPending}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </Button>
-          )}
-        </form.Subscribe>
-      </form>
-    </div>
+    <>
+      <AdminPageHeader
+        backTo="/dashboard/roles"
+        backLabel="Roles"
+        title={record.name}
+        description="Edit the role's details."
+        actions={
+          <ConfirmDeleteButton
+            label="Delete role"
+            title="Delete this role?"
+            itemName={record.name}
+            pending={deleteMutation.isPending}
+            onConfirm={() => deleteMutation.mutate({ id })}
+          />
+        }
+      />
+      <EntityForm
+        sections={ROLE_SECTIONS}
+        defaultValues={{ name: record.name, shortName: record.shortName, type: record.type }}
+        onSubmit={(values) =>
+          updateMutation.mutate({
+            id,
+            name: values.name!,
+            shortName: values.shortName!,
+            type: values.type as "management" | "referee" | "teacher",
+          })
+        }
+        error={updateMutation.error}
+        pending={updateMutation.isPending}
+        submitLabel="Save changes"
+        cancelTo="/dashboard/roles"
+      />
+    </>
   );
 }

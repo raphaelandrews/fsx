@@ -11,6 +11,8 @@ import {
 import { Button, buttonVariants } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
+import { useTableText } from "@/lib/table-text";
+
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -153,6 +155,7 @@ function PageControl({
 }
 
 function Ellipsis({ keyId }: { keyId: "start" | "end" }) {
+  const text = useTableText();
   return (
     <span
       aria-hidden
@@ -160,7 +163,7 @@ function Ellipsis({ keyId }: { keyId: "start" | "end" }) {
       data-ellipsis={keyId}
     >
       <HugeiconsIcon className="size-4" icon={MoreHorizontalCircle01Icon} strokeWidth={2} />
-      <span className="sr-only">Mais páginas</span>
+      <span className="sr-only">{text.morePages}</span>
     </span>
   );
 }
@@ -178,6 +181,7 @@ export function Pagination({
   siblingCount = 1,
   className,
 }: PaginationProps) {
+  const text = useTableText();
   const navRef = useRef<HTMLElement>(null);
 
   // The control the user activated can disappear or become disabled (e.g. "next"
@@ -207,7 +211,7 @@ export function Pagination({
   return (
     <nav
       ref={navRef}
-      aria-label="Paginação"
+      aria-label={text.pagination}
       className={cn(
         "flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:gap-3",
         className,
@@ -219,7 +223,7 @@ export function Pagination({
             {...shared}
             className="hidden sm:inline-flex"
             disabled={!hasPreviousPage}
-            label="Primeira página"
+            label={text.firstPage}
             page={1}
             style={{ variant: "ghost", size: "icon" }}
           >
@@ -231,12 +235,12 @@ export function Pagination({
           {...shared}
           className="gap-1.5 px-2.5"
           disabled={!hasPreviousPage}
-          label="Página anterior"
+          label={text.previousPage}
           page={Math.max(1, currentPage - 1)}
           style={{ variant: "outline", size: "default" }}
         >
           <HugeiconsIcon className="size-4" icon={ArrowLeft01Icon} strokeWidth={2} />
-          <span className="hidden sm:inline">Anterior</span>
+          <span className="hidden sm:inline">{text.previous}</span>
         </PageControl>
 
         <div className="hidden items-center gap-1 sm:flex">
@@ -263,11 +267,11 @@ export function Pagination({
           {...shared}
           className="gap-1.5 px-2.5"
           disabled={!hasNextPage}
-          label="Próxima página"
+          label={text.nextPage}
           page={Math.min(totalPages, currentPage + 1)}
           style={{ variant: "outline", size: "default" }}
         >
-          <span className="hidden sm:inline">Próxima</span>
+          <span className="hidden sm:inline">{text.next}</span>
           <HugeiconsIcon className="size-4" icon={ArrowRight01Icon} strokeWidth={2} />
         </PageControl>
 
@@ -276,7 +280,7 @@ export function Pagination({
             {...shared}
             className="hidden sm:inline-flex"
             disabled={!hasNextPage}
-            label="Última página"
+            label={text.lastPage}
             page={totalPages}
             style={{ variant: "ghost", size: "icon" }}
           >
@@ -287,11 +291,11 @@ export function Pagination({
 
       {showLabel ? (
         <p aria-live="polite" aria-atomic="true" className="text-xs text-muted-foreground">
-          Página {currentPage} de {totalPages}
+          {text.pageOf(currentPage, totalPages)}
         </p>
       ) : (
         <span className="sr-only" aria-live="polite" aria-atomic="true">
-          Página {currentPage} de {totalPages}
+          {text.pageOf(currentPage, totalPages)}
         </span>
       )}
     </nav>

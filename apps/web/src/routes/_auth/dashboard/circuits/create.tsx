@@ -1,18 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useForm } from "@tanstack/react-form";
-import z from "zod";
 
-import { CIRCUIT_TYPE_LABELS, CIRCUIT_TYPES, type CircuitType } from "@fsx/api/circuit-types";
-import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
-import { Label } from "@fsx/ui/components/label";
+import type { CircuitType } from "@fsx/api/circuit-types";
 
-import { useTRPC } from "@/utils/trpc";
+import { EntityForm } from "@/components/admin/entity-form";
+import { AdminPageHeader } from "@/components/admin/page-header";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { FieldError } from "@/components/form/field-error";
+import { CIRCUIT_SECTIONS } from "@/lib/admin-forms";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/create")({
-  head: () => ({ meta: [{ title: "Create Circuit - Admin - FSX" }] }),
+  head: () => ({ meta: [{ title: "New circuit - Admin - FSX" }] }),
   component: RouteComponent,
 });
 
@@ -22,79 +19,35 @@ function RouteComponent() {
 
   const createMutation = useAdminMutation(trpc.circuits.create.mutationOptions(), {
     invalidates: "circuits",
-    success: "Circuit created",
+    success: "Circuit created. Add its stages below.",
     failure: "Failed to create circuit",
-    onSuccess: () => { navigate({ to: "/dashboard/circuits" }); },
-  });
-
-  const form = useForm({
-    defaultValues: { name: "", type: "default" as CircuitType },
-    onSubmit: ({ value }) => {
-      createMutation.mutate({ name: value.name, type: value.type });
-    },
-    validators: {
-      onSubmit: z.object({
-        name: z.string().min(1, "Name is required"),
-        type: z.enum(CIRCUIT_TYPES),
-      }),
+    onSuccess: (created) => {
+      const id = created[0]?.id;
+      return id
+        ? navigate({ to: "/dashboard/circuits/$id", params: { id } })
+        : navigate({ to: "/dashboard/circuits" });
     },
   });
 
   return (
-    <div className="mx-auto max-w-lg">
-      <h1 className="mb-6 font-bold text-2xl">Criar circuito</h1>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-        className="space-y-4"
-      >
-        <form.Field name="name">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Name</Label>
-              <Input
-                id={f.name}
-                value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
-              />
-              <FieldError field={f} error={createMutation.error} />
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="type">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Type</Label>
-              <select
-                id={f.name}
-                value={f.state.value}
-                onChange={(e) => f.handleChange(e.target.value as CircuitType)}
-                onBlur={f.handleBlur}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                {CIRCUIT_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {CIRCUIT_TYPE_LABELS[type]}
-                  </option>
-                ))}
-              </select>
-              <FieldError field={f} error={createMutation.error} />
-            </div>
-          )}
-        </form.Field>
-        <form.Subscribe
-          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>
-              {isSubmitting ? "Creating..." : "Create circuit"}
-            </Button>
-          )}
-        </form.Subscribe>
-      </form>
-    </div>
+    <>
+      <AdminPageHeader
+        backTo="/dashboard/circuits"
+        backLabel="Circuits"
+        title="New circuit"
+        description="Name the circuit first; you add its stages and podiums on the next page."
+      />
+      <EntityForm
+        sections={CIRCUIT_SECTIONS}
+        defaultValues={{ name: "", type: "default" }}
+        onSubmit={(values) =>
+          createMutation.mutate({ name: values.name!, type: values.type as CircuitType })
+        }
+        error={createMutation.error}
+        pending={createMutation.isPending}
+        submitLabel="Create circuit"
+        cancelTo="/dashboard/circuits"
+      />
+    </>
   );
 }

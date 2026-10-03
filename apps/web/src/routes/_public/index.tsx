@@ -19,7 +19,7 @@ const PUBLICATION_STALE_TIME = 60_000;
 export const Route = createFileRoute("/_public/")({
   head: () =>
     buildSeo({
-      title: `${SITE_NAME} (FSX) — Xadrez em Sergipe`,
+      title: `${SITE_NAME} - (FSX)`,
       description: DEFAULT_DESCRIPTION,
       path: "/",
     }),

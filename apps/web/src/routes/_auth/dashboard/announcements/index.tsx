@@ -11,6 +11,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { RowLink } from "@/components/data-table/row-link";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
@@ -46,7 +47,11 @@ function RouteComponent() {
     {
       accessorKey: "number",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Number" />,
-      cell: ({ row }) => <span className="tabular-nums">{padNumber(row.original.number)}</span>,
+      cell: ({ row }) => (
+        <RowLink to="/dashboard/announcements/$id" id={row.original.id}>
+          <span className="tabular-nums">{padNumber(row.original.number)}/{row.original.year}</span>
+        </RowLink>
+      ),
     },
     {
       accessorKey: "content",
@@ -61,8 +66,9 @@ function RouteComponent() {
           id={row.original.id}
           isDeleting={deleteMutation.isPending}
           editTo="/dashboard/announcements/$id"
+          noun="announcement"
           onDelete={() => deleteMutation.mutate({ id: row.original.id })}
-          displayName={row.original.content}
+          displayName={`Comunicado ${padNumber(row.original.number)}/${row.original.year}`}
         />
       ),
     },
@@ -71,7 +77,7 @@ function RouteComponent() {
   return (
     <div>
       <AdminPageHeader
-        title="Comunicados"
+        title="Announcements"
         description="Manage the official announcements."
         actions={
           <Link to="/dashboard/announcements/create">

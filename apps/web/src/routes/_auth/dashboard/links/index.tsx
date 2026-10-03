@@ -1,99 +1,99 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Button } from "@fsx/ui/components/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@fsx/ui/components/table";
+import type { ColumnDef } from "@tanstack/react-table";
 
-import { useTRPC } from "@/utils/trpc";
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { buttonVariants } from "@fsx/ui/components/button";
+
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { EmptyCollection } from "@/components/admin/empty-collection";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { RowLink } from "@/components/data-table/row-link";
 import { useAdminMutation } from "@/lib/admin-mutations";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/links/")({
   head: () => ({ meta: [{ title: "Links - Admin - FSX" }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.links.list.queryOptions()),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.links.list.queryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const trpc = useTRPC();
+  const { data } = useSuspenseQuery(trpc.links.list.queryOptions());
+  const groups = data.filter((group) => group.eventId == null);
 
-  const { data: groups = [] } = useSuspenseQuery(trpc.links.list.queryOptions());
-
-  const deleteGroupMutation = useAdminMutation(trpc.links.deleteGroup.mutationOptions(), {
+  const deleteMutation = useAdminMutation(trpc.links.deleteGroup.mutationOptions(), {
     invalidates: "links",
     success: "Group deleted",
     failure: "Failed to delete group",
   });
 
-  const deleteLinkMutation = useAdminMutation(trpc.links.deleteLink.mutationOptions(), {
-    invalidates: "links",
-    success: "Link deleted",
-    failure: "Failed to delete link",
-  });
+  const columns: ColumnDef<(typeof groups)[number]>[] = [
+    {
+      accessorKey: "label",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Group" />,
+      cell: ({ row }) => (
+        <RowLink to="/dashboard/links/$id" id={row.original.id}>
+          {row.original.label}
+        </RowLink>
+      ),
+    },
+    {
+      id: "links",
+      accessorFn: (group) => group.links.length,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Links" />,
+      cell: ({ row }) => <span className="tabular-nums">{row.original.links.length}</span>,
+    },
+    {
+      id: "preview",
+      header: "Contains",
+      cell: ({ row }) => (
+        <span className="line-clamp-1 text-muted-foreground">
+          {row.original.links.map((link) => link.label).join(", ") || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">Actions</span>,
+      cell: ({ row }) => (
+        <DataTableRowActions
+          id={row.original.id}
+          editTo="/dashboard/links/$id"
+          noun="link group"
+          displayName={row.original.label}
+          isDeleting={deleteMutation.isPending}
+          onDelete={() => deleteMutation.mutate({ id: row.original.id })}
+        />
+      ),
+    },
+  ];
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">Links</h1>
-        <Link to="/dashboard/links/create">
-          <Button>Create Group</Button>
-        </Link>
-      </div>
-      {groups
-        .filter((group) => group.eventId == null)
-        .map((group) => (
-        <div key={group.id} className="mb-4 rounded-md border p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-semibold">{group.label}</h2>
-            <div className="flex gap-1">
-              <Link to="/dashboard/links/$id" params={{ id: group.id }}>
-                <Button size="sm" variant="outline">Edit</Button>
-              </Link>
-              <ConfirmDeleteButton
-                itemName={group.label}
-                pending={deleteGroupMutation.isPending}
-                label="Delete"
-                onConfirm={() => deleteGroupMutation.mutate({ id: group.id })}
-              />
-            </div>
-          </div>
-          <Table className="border">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Label</TableHead>
-                <TableHead>URL</TableHead>
-                <TableHead>Icon</TableHead>
-                <TableHead>Order</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {group.links.map((link) => (
-                <TableRow key={link.id}>
-                  <TableCell>{link.label}</TableCell>
-                  <TableCell className="text-muted-foreground">{link.href}</TableCell>
-                  <TableCell>{link.icon}</TableCell>
-                  <TableCell>{link.sortOrder}</TableCell>
-                  <TableCell className="text-right">
-                    <ConfirmDeleteButton
-                      itemName={link.label}
-                      pending={deleteLinkMutation.isPending}
-                      label="Delete"
-                      onConfirm={() => deleteLinkMutation.mutate({ id: link.id })}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      ))}
-    </div>
+    <>
+      <AdminPageHeader
+        title="Links"
+        description="Link groups shown on the public /links page. Event links are edited with their event."
+        actions={
+          <Link to="/dashboard/links/create" className={buttonVariants()}>
+            New group
+          </Link>
+        }
+      />
+      <DataTable
+        columns={columns}
+        data={groups}
+        emptyState={<EmptyCollection noun="link groups" createTo="/dashboard/links/create" />}
+        toolbar={(table) => (
+          <DataTableToolbar table={table} searchKey="label" searchPlaceholder="Search group..." />
+        )}
+        pagination={(table) => <DataTablePagination table={table} />}
+      />
+    </>
   );
 }

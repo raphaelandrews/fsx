@@ -5,7 +5,6 @@ description: How the FSX site is built and where each concern lives, for maintai
 
 The site is a single Cloudflare Worker that renders a TanStack Start app and
 serves a tRPC API backed by a D1 (SQLite) database and an R2 image bucket.
-A second Worker runs a cron cleanup of rate-limit rows.
 
 ## Packages
 
@@ -18,7 +17,7 @@ A second Worker runs a cron cleanup of rate-limit rows.
 | `packages/db`    | Drizzle schema, migrations, seed, and audit queries. |
 | `packages/env`   | Typed access to Worker bindings and environment variables. |
 | `packages/ui`    | Shared shadcn/Base UI components; no domain or database logic. |
-| `packages/infra` | Alchemy resources: Worker, D1, R2, rate limiter, cron Worker. |
+| `packages/infra` | Alchemy resources: Worker, D1, R2, rate limiters. |
 
 Dependencies point one way: `apps/web` → `@fsx/api` → `@fsx/auth`, `@fsx/db`,
 `@fsx/env`. See [Architecture contracts](/architecture/contracts).

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { MEDIA_PATH_PATTERN } from "./image-validation";
+import { mediaPathPatternFor, type MediaKind } from "./media-kinds";
 
 export const positiveInt = z.number().int().safe().min(1);
 export const nonNegativeInt = z.number().int().safe().min(0);
@@ -15,9 +15,11 @@ export const nameText = z.string().trim().min(1).max(160);
 export const isoDate = z.iso.date();
 export const contentText = z.string().max(500_000);
 export const httpUrl = z.string().trim().max(2_048).pipe(z.url({ protocol: /^https?$/ }));
-export const mediaPath = z.string().trim().regex(MEDIA_PATH_PATTERN);
 // Uploaded images are stored as relative media paths; older rows may still hold external URLs.
-export const imageUrl = z.union([mediaPath, httpUrl]);
+export const imageUrl = z.union([z.string().trim().regex(mediaPathPatternFor("players", "posts")), httpUrl]);
+// Club logos and location flags only accept uploads of their own kind.
+export const emblemUrl = (kind: Extract<MediaKind, "clubs" | "locations">) =>
+  z.union([z.string().trim().regex(mediaPathPatternFor(kind)), httpUrl]);
 export const optionalHttpUrl = z.union([httpUrl, z.literal("")]);
 export const filterArray = z.array(z.string().trim().min(1).max(80)).max(50);
 

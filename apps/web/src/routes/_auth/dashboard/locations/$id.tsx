@@ -1,140 +1,87 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useForm } from "@tanstack/react-form";
-import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
-import z from "zod";
 
-import { FormField } from "@/components/form/form-field";
-import { useTRPC } from "@/utils/trpc";
+import { EntityForm, optional } from "@/components/admin/entity-form";
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useAdminMutation } from "@/lib/admin-mutations";
+import { LOCATION_SECTIONS } from "@/lib/admin-forms";
 import { idParams } from "@/lib/route-params";
-import { fieldError } from "@/lib/errors";
-
-const LOCATION_TYPES = ["city", "state", "country"] as const;
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/locations/$id")({
   params: idParams,
-  head: () => ({ meta: [{ title: "Edit Location - Admin - FSX" }] }),
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(context.trpc.locations.list.queryOptions()),
+  head: () => ({ meta: [{ title: "Edit location - Admin - FSX" }] }),
+  loader: async ({ context, params }) => {
+    const records = await context.queryClient.ensureQueryData(
+      context.trpc.locations.list.queryOptions(),
+    );
+    if (!records.some((record) => record.id === params.id)) throw notFound();
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { id: numId } = Route.useParams();
+  const { id } = Route.useParams();
   const trpc = useTRPC();
   const navigate = useNavigate();
 
-  const { data: locations = [] } = useSuspenseQuery(trpc.locations.list.queryOptions());
-  const location = locations.find((l) => l.id === numId);
+  const { data: records } = useSuspenseQuery(trpc.locations.list.queryOptions());
+  const record = records.find((candidate) => candidate.id === id);
+  const { tracking, commit, discard } = usePendingImageDeletes();
 
   const updateMutation = useAdminMutation(trpc.locations.update.mutationOptions(), {
     invalidates: "locations",
     success: "Location updated",
     failure: "Failed to update location",
     reloadOnConflict: true,
+    onSuccess: () => commit(),
+    onError: (_error, variables) => discard(variables.flagUrl),
+  });
+  const deleteMutation = useAdminMutation(trpc.locations.delete.mutationOptions(), {
+    invalidates: "locations",
+    success: "Location deleted",
+    failure: "Failed to delete location",
+    onSuccess: () => navigate({ to: "/dashboard/locations" }),
   });
 
-  if (!location) {
-    return <p>Location not found.</p>;
-  }
-
-  const form = useForm({
-    defaultValues: { name: location.name, type: location.type as (typeof LOCATION_TYPES)[number], flagUrl: location.flagUrl ?? "" },
-    validators: {
-      onSubmit: z.object({
-        name: z.string().min(1, "Name is required"),
-        type: z.enum(LOCATION_TYPES),
-        flagUrl: z.string(),
-      }),
-    },
-    onSubmit: ({ value }) => {
-      updateMutation.mutate({
-        id: numId,
-        name: value.name,
-        type: value.type,
-        flagUrl: value.flagUrl || null,
-      });
-    },
-  });
+  if (!record) return null;
 
   return (
-    <div className="mx-auto max-w-lg">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">Edit Location</h1>
-        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/locations" })}>
-          Back
-        </Button>
-      </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-        className="space-y-4"
-      >
-        <form.Field name="name">
-          {(f) => (
-            <FormField
-              label="Name"
-              htmlFor={f.name}
-              error={fieldError(f, updateMutation.error)}
-              required
-            >
-              <Input
-                id={f.name}
-                value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
-              />
-            </FormField>
-          )}
-        </form.Field>
-        <form.Field name="type">
-          {(f) => (
-            <FormField
-              label="Type"
-              htmlFor={f.name}
-              error={fieldError(f, updateMutation.error)}
-              required
-            >
-              <select
-                id={f.name}
-                value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value as (typeof LOCATION_TYPES)[number])}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                {LOCATION_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
-              </select>
-            </FormField>
-          )}
-        </form.Field>
-        <form.Field name="flagUrl">
-          {(f) => (
-            <FormField label="Flag URL" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
-              <Input
-                id={f.name}
-                type="url"
-                placeholder="https://..."
-                value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
-              />
-            </FormField>
-          )}
-        </form.Field>
-        <form.Subscribe
-          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting || updateMutation.isPending}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </Button>
-          )}
-        </form.Subscribe>
-      </form>
-    </div>
+    <>
+      <AdminPageHeader
+        backTo="/dashboard/locations"
+        backLabel="Locations"
+        title={record.name}
+        description="Edit the location's details."
+        actions={
+          <ConfirmDeleteButton
+            label="Delete location"
+            title="Delete this location?"
+            itemName={record.name}
+            pending={deleteMutation.isPending}
+            onConfirm={() => deleteMutation.mutate({ id })}
+          />
+        }
+      />
+      <EntityForm
+        sections={LOCATION_SECTIONS}
+        defaultValues={{ name: record.name, type: record.type, flagUrl: record.flagUrl ?? "" }}
+        onSubmit={(values) =>
+          updateMutation.mutate({
+            id,
+            name: values.name!,
+            type: values.type as "city" | "state" | "country",
+            flagUrl: optional(values.flagUrl!),
+          })
+        }
+        error={updateMutation.error}
+        pending={updateMutation.isPending}
+        submitLabel="Save changes"
+        cancelTo="/dashboard/locations"
+        images={tracking}
+      />
+    </>
   );
 }

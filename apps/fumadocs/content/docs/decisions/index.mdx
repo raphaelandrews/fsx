@@ -9,7 +9,7 @@ description: Architecture decision records for choices that change security or o
 | [0002](/decisions/0002-d1-migrations) | D1 migrations are applied only through Alchemy's migration tracker |
 | [0003](/decisions/0003-edge-cache-consistency) | Anonymous edge cache with bounded, eventual freshness; SSR HTML is not cached |
 | [0004](/decisions/0004-d1-rating-batch) | Rating updates and their history are written in one guarded D1 batch |
-| [0005](/decisions/0005-rate-limiting) | Native rate limiter for reads, D1 windows for auth and mutations |
+| [0005](/decisions/0005-rate-limiting) | Native rate limiter for every rate-limited request |
 
 Write a new ADR when a change affects security, data integrity, or operations in
 a way a future maintainer could reasonably undo by mistake. Use the next number

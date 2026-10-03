@@ -85,6 +85,7 @@ type AdminMutationConfig<TData, TVariables> = {
   /** Offer a reload when the server reports CONFLICT (concurrent edits). */
   reloadOnConflict?: boolean;
   onSuccess?: (data: TData, variables: TVariables) => unknown;
+  onError?: (error: unknown, variables: TVariables) => unknown;
 };
 
 /** The standard admin mutation: invalidate, toast, then any route-specific follow-up. */
@@ -101,7 +102,9 @@ export function useAdminMutation<TData, TError, TVariables, TContext>(
       if (config.success) toast.success(config.success);
       await config.onSuccess?.(data, variables);
     },
-    onError: (error) =>
-      showMutationError(error, config.failure, config.reloadOnConflict ? () => window.location.reload() : undefined),
+    onError: (error, variables) => {
+      void config.onError?.(error, variables);
+      showMutationError(error, config.failure, config.reloadOnConflict ? () => window.location.reload() : undefined);
+    },
   });
 }

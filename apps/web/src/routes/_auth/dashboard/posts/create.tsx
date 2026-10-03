@@ -1,22 +1,16 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { useForm } from "@tanstack/react-form";
-import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
-import { Label } from "@fsx/ui/components/label";
 import { toast } from "sonner";
-import z from "zod";
 
-import { ImageUpload } from "@/components/image-upload";
-import { MarkdownEditor } from "@/components/markdown-editor";
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { PostForm } from "@/components/admin/post-form";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
-import { useTRPC } from "@/utils/trpc";
-import { getFieldError, showMutationError } from "@/lib/errors";
-import { sanitizeTitle, slugify } from "@/utils/slugify";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
+import { showMutationError } from "@/lib/errors";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/create")({
-  head: () => ({ meta: [{ title: "Create Post - Admin - FSX" }] }),
+  head: () => ({ meta: [{ title: "New post - Admin - FSX" }] }),
   component: RouteComponent,
 });
 
@@ -32,7 +26,7 @@ function RouteComponent() {
       await invalidateAdmin("posts");
       await commit();
       toast.success("Post created");
-      navigate({ to: "/dashboard/posts" });
+      await navigate({ to: "/dashboard/posts" });
     },
     onError: (error, variables) => {
       void discard(variables.imageUrl);
@@ -40,153 +34,26 @@ function RouteComponent() {
     },
   });
 
-  const form = useForm({
-    defaultValues: { title: "", slug: "", imageUrl: "", content: "", published: false },
-    onSubmit: ({ value }) => {
-      createMutation.mutate({
-        title: value.title,
-        slug: value.slug,
-        imageUrl: value.imageUrl || null,
-        content: value.content,
-        published: value.published,
-      });
-    },
-    validators: {
-      onSubmit: z.object({
-        title: z.string().min(1, "Title is required"),
-        slug: z.string().min(1, "Slug is required"),
-        imageUrl: z.string(),
-        content: z.string().min(1, "Content is required"),
-        published: z.boolean(),
-      }),
-    },
-  });
-
   return (
-    <div className="mx-auto max-w-4xl">
-      <h1 className="mb-6 font-bold text-2xl">Create Post</h1>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-        className="space-y-4"
-      >
-        <form.Field name="title">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Title</Label>
-              <Input
-                id={f.name}
-                aria-invalid={Boolean(f.state.meta.errors.length || getFieldError(createMutation.error, "title"))}
-                aria-describedby={getFieldError(createMutation.error, "title") ? `${f.name}-server-error` : undefined}
-                value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => {
-                  const value = sanitizeTitle(e.target.value);
-                  f.handleChange(value);
-                  form.setFieldValue("slug", slugify(value));
-                }}
-              />
-              {f.state.meta.errors.map((e) => (
-                <p key={e?.message} className="text-destructive text-xs">
-                  {e?.message}
-                </p>
-              ))}
-              {getFieldError(createMutation.error, "title") && (
-                <p id={`${f.name}-server-error`} role="alert" className="text-destructive text-xs">
-                  {getFieldError(createMutation.error, "title")}
-                </p>
-              )}
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="slug">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Slug</Label>
-              <Input
-                id={f.name}
-                value={f.state.value}
-                disabled
-                aria-invalid={Boolean(getFieldError(createMutation.error, "slug"))}
-                aria-describedby={getFieldError(createMutation.error, "slug") ? `${f.name}-server-error` : undefined}
-              />
-              {getFieldError(createMutation.error, "slug") && (
-                <p id={`${f.name}-server-error`} role="alert" className="text-destructive text-xs">
-                  {getFieldError(createMutation.error, "slug")}
-                </p>
-              )}
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="imageUrl">
-          {(f) => (
-            <div className="space-y-2">
-              <Label>Cover image</Label>
-              <ImageUpload
-                kind="posts"
-                value={f.state.value || null}
-                onChange={(url) => f.handleChange(url ?? "")}
-                onImageReplaced={trackReplaced}
-                onUploaded={trackCreated}
-                aspectRatio={16 / 9}
-                outputWidth={896}
-                title="Crop Cover Image"
-                description="Adjust the crop area to fit a 16:9 aspect ratio."
-              />
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="content">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Content</Label>
-              {getFieldError(createMutation.error, "content") && (
-                <p id={`${f.name}-server-error`} role="alert" className="text-destructive text-xs">
-                  {getFieldError(createMutation.error, "content")}
-                </p>
-              )}
-              <MarkdownEditor
-                id={f.name}
-                rows={8}
-                aria-invalid={Boolean(f.state.meta.errors.length || getFieldError(createMutation.error, "content"))}
-                aria-describedby={getFieldError(createMutation.error, "content") ? `${f.name}-server-error` : undefined}
-                value={f.state.value}
-                onChange={(v) => f.handleChange(v)}
-              />
-              {f.state.meta.errors.map((e) => (
-                <p key={e?.message} className="text-destructive text-xs">
-                  {e?.message}
-                </p>
-              ))}
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="published">
-          {(f) => (
-            <div className="flex items-center gap-2">
-              <input
-                id={f.name}
-                type="checkbox"
-                checked={f.state.value}
-                onChange={(e) => f.handleChange(e.target.checked)}
-                className="h-4 w-4 rounded border-input"
-              />
-              <Label htmlFor={f.name}>Published</Label>
-            </div>
-          )}
-        </form.Field>
-        <form.Subscribe
-          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>
-              {isSubmitting ? "Creating..." : "Create Post"}
-            </Button>
-          )}
-        </form.Subscribe>
-      </form>
-    </div>
+    <>
+      <AdminPageHeader
+        backTo="/dashboard/posts"
+        backLabel="Posts"
+        title="New post"
+        description="Write a news article."
+      />
+      <PostForm
+        defaultValues={{ title: "", slug: "", imageUrl: "", content: "", published: false }}
+        onSubmit={(values) =>
+          createMutation.mutate({ ...values, imageUrl: values.imageUrl || null })
+        }
+        error={createMutation.error}
+        pending={createMutation.isPending}
+        submitLabel="Create post"
+        cancelTo="/dashboard/posts"
+        onImageReplaced={trackReplaced}
+        onImageUploaded={trackCreated}
+      />
+    </>
   );
 }

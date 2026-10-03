@@ -1,32 +1,32 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useForm, useStore } from "@tanstack/react-form";
-import { Button } from "@fsx/ui/components/button";
-import z from "zod";
 
-import { useTRPC } from "@/utils/trpc";
-import { SearchableSelect } from "@/components/searchable-select";
-import { FormField } from "@/components/form/form-field";
-import { AGE_GROUPS, MODALITY_OPTIONS, PLACE_POINTS, SEX_OPTIONS, TEAM_NAMES } from "./-constants";
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { TvSergipeForm, toTvSergipeInput } from "@/components/admin/tv-sergipe-form";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
-import { fieldError } from "@/lib/errors";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/$id")({
   params: idParams,
-  head: () => ({ meta: [{ title: "Edit TV Sergipe - Admin - FSX" }] }),
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(context.trpc.tvSergipe.list.queryOptions()),
+  head: () => ({ meta: [{ title: "Edit School Games result - Admin - FSX" }] }),
+  loader: async ({ context, params }) => {
+    const results = await context.queryClient.ensureQueryData(
+      context.trpc.tvSergipe.list.queryOptions(),
+    );
+    if (!results.some((result) => result.id === params.id)) throw notFound();
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { id: numId } = Route.useParams();
+  const { id } = Route.useParams();
   const trpc = useTRPC();
   const navigate = useNavigate();
 
-  const { data: results = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
-  const result = results.find((r) => r.id === numId);
+  const { data: results } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
+  const result = results.find((candidate) => candidate.id === id);
 
   const updateMutation = useAdminMutation(trpc.tvSergipe.update.mutationOptions(), {
     invalidates: "tvSergipe",
@@ -34,208 +34,52 @@ function RouteComponent() {
     failure: "Failed to update result",
     reloadOnConflict: true,
   });
-
-  if (!result) return <p>Result not found.</p>;
-
-  const form = useForm({
-    defaultValues: {
-      clubId: String(result.clubId),
-      playerId: result.playerId ? String(result.playerId) : "",
-      teamName: result.teamName ?? "A",
-      ageGroup: result.ageGroup,
-      sex: result.sex as "male" | "female",
-      modality: result.modality as "individual" | "team",
-      place: result.place,
-    },
-    validators: {
-      onSubmit: z.object({
-        clubId: z.string().min(1, "School is required"),
-        playerId: z.string(),
-        teamName: z.enum(TEAM_NAMES),
-        ageGroup: z.enum(AGE_GROUPS),
-        sex: z.enum(["male", "female"]),
-        modality: z.enum(["individual", "team"]),
-        place: z.number().int().min(1, "Place is required").max(8),
-      }),
-    },
-    onSubmit: ({ value }) => {
-      updateMutation.mutate({
-        id: numId,
-        clubId: Number(value.clubId),
-        playerId: value.modality === "individual" ? Number(value.playerId) : null,
-        teamName:
-          value.modality === "team" ? (value.teamName as (typeof TEAM_NAMES)[number]) : null,
-        ageGroup: value.ageGroup as (typeof AGE_GROUPS)[number],
-        sex: value.sex,
-        modality: value.modality,
-        place: value.place,
-      });
-    },
+  const deleteMutation = useAdminMutation(trpc.tvSergipe.delete.mutationOptions(), {
+    invalidates: "tvSergipe",
+    success: "Result deleted",
+    failure: "Failed to delete result",
+    onSuccess: () => navigate({ to: "/dashboard/tv-sergipe" }),
   });
 
-  const modality = useStore(form.store, (s) => s.values.modality);
+  if (!result) return null;
+  const participant =
+    result.modality === "team" ? `Team ${result.teamName}` : (result.player?.name ?? "Player");
+  const summary = `${result.club?.name ?? "School"} · ${participant} · ${result.place}º`;
 
   return (
-    <div className="mx-auto max-w-lg">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">Edit TV Sergipe</h1>
-        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/tv-sergipe" })}>
-          Back
-        </Button>
-      </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
+    <>
+      <AdminPageHeader
+        backTo="/dashboard/tv-sergipe"
+        backLabel="TV Sergipe"
+        title={summary}
+        description={`Under ${result.ageGroup} · ${result.sex === "male" ? "Male" : "Female"} · ${result.modality === "team" ? "Team" : "Individual"}`}
+        actions={
+          <ConfirmDeleteButton
+            label="Delete result"
+            title="Delete this result?"
+            itemName={summary}
+            pending={deleteMutation.isPending}
+            onConfirm={() => deleteMutation.mutate({ id })}
+          />
+        }
+      />
+      <TvSergipeForm
+        defaultValues={{
+          clubId: String(result.clubId),
+          modality: result.modality as "individual" | "team",
+          playerId: result.playerId ? String(result.playerId) : "",
+          teamName: result.teamName ?? "A",
+          ageGroup: result.ageGroup,
+          sex: result.sex as "male" | "female",
+          place: String(result.place),
         }}
-        className="space-y-4"
-      >
-        <form.Field name="clubId">
-          {(f) => (
-            <FormField label="School" error={fieldError(f, updateMutation.error)} required>
-              <SearchableSelect
-                value={f.state.value}
-                onChange={(v) => f.handleChange(v)}
-                getQueryOptions={(q) => trpc.clubs.search.queryOptions({ query: q })}
-                placeholder="Search school..."
-                emptyText="No school found."
-                initialLabel={result.club?.name}
-              />
-            </FormField>
-          )}
-        </form.Field>
-        <div className="grid grid-cols-2 gap-4">
-          <form.Field name="ageGroup">
-            {(f) => (
-              <FormField label="Category" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
-                <select
-                  id={f.name}
-                  value={f.state.value}
-                  onChange={(e) => f.handleChange(e.target.value)}
-                  onBlur={f.handleBlur}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  {AGE_GROUPS.map((g) => (
-                    <option key={g} value={g}>
-                      {g} anos
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-            )}
-          </form.Field>
-          <form.Field name="sex">
-            {(f) => (
-              <FormField label="Sex" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
-                <select
-                  id={f.name}
-                  value={f.state.value}
-                  onChange={(e) => f.handleChange(e.target.value as "male" | "female")}
-                  onBlur={f.handleBlur}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  {SEX_OPTIONS.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-            )}
-          </form.Field>
-        </div>
-        <form.Field name="modality">
-          {(f) => (
-            <FormField label="Modality" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
-              <select
-                id={f.name}
-                value={f.state.value}
-                onChange={(e) => f.handleChange(e.target.value as "individual" | "team")}
-                onBlur={f.handleBlur}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                {MODALITY_OPTIONS.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-          )}
-        </form.Field>
-        {modality === "individual" && (
-          <form.Field name="playerId">
-            {(f) => (
-              <FormField label="Player" error={fieldError(f, updateMutation.error)}>
-                <SearchableSelect
-                  value={f.state.value}
-                  onChange={(v) => f.handleChange(v)}
-                  getQueryOptions={(q) => trpc.players.search.queryOptions({ query: q })}
-                  placeholder="Search player..."
-                  emptyText="No player found."
-                  initialLabel={result.player?.name}
-                />
-              </FormField>
-            )}
-          </form.Field>
-        )}
-        {modality === "team" && (
-          <form.Field name="teamName">
-            {(f) => (
-              <FormField
-                label="Team (A–J)"
-                htmlFor={f.name}
-                error={fieldError(f, updateMutation.error)}
-              >
-                <select
-                  id={f.name}
-                  value={f.state.value}
-                  onChange={(e) => f.handleChange(e.target.value)}
-                  onBlur={f.handleBlur}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  {TEAM_NAMES.map((n) => (
-                    <option key={n} value={n}>
-                      Team {n}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-            )}
-          </form.Field>
-        )}
-        <form.Field name="place">
-          {(f) => (
-            <FormField label="Place (1–8)" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
-              <select
-                id={f.name}
-                value={String(f.state.value)}
-                onChange={(e) => f.handleChange(Number(e.target.value))}
-                onBlur={f.handleBlur}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                {Array.from({ length: 8 }, (_, i) => i + 1).map((p) => (
-                  <option key={p} value={p}>
-                    {p}º
-                  </option>
-                ))}
-              </select>
-              <p className="text-muted-foreground text-xs">
-                Points: {PLACE_POINTS[f.state.value] ?? "—"}
-              </p>
-            </FormField>
-          )}
-        </form.Field>
-        <form.Subscribe
-          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting || updateMutation.isPending}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </Button>
-          )}
-        </form.Subscribe>
-      </form>
-    </div>
+        labels={{ club: result.club?.name, player: result.player?.name }}
+        onSubmit={(values) => updateMutation.mutate({ id, ...toTvSergipeInput(values) })}
+        error={updateMutation.error}
+        pending={updateMutation.isPending}
+        submitLabel="Save changes"
+        cancelTo="/dashboard/tv-sergipe"
+      />
+    </>
   );
 }

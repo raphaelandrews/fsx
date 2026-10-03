@@ -7,6 +7,8 @@ import { Button } from "@fsx/ui/components/button";
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 
+import { NATIVE_SELECT_CLASS } from "@/components/admin/entity-form";
+
 export interface EventLinkDraft {
   id?: number;
   type: EventLinkType;
@@ -19,72 +21,67 @@ interface EventLinksEditorProps {
   onChange: (links: EventLinkDraft[]) => void;
 }
 
+const TYPE_LABELS: Record<EventLinkType, string> = {
+  regulation: "Regulations",
+  form: "Registration form",
+  results: "Chess-Results",
+};
+
+// An event has at most one link of each type; rows are shown in list order.
 export function EventLinksEditor({ value, onChange }: EventLinksEditorProps) {
-  const update = (index: number, patch: Partial<EventLinkDraft>) => {
-    onChange(value.map((link, i) => (i === index ? { ...link, ...patch } : link)));
-  };
-
-  const remove = (index: number) => {
-    onChange(value.filter((_, i) => i !== index));
-  };
-
+  const reorder = (links: EventLinkDraft[]) =>
+    links.map((link, index) => ({ ...link, sortOrder: index }));
+  const update = (index: number, patch: Partial<EventLinkDraft>) =>
+    onChange(reorder(value.map((link, i) => (i === index ? { ...link, ...patch } : link))));
+  const remove = (index: number) => onChange(reorder(value.filter((_, i) => i !== index)));
+  const unused = EVENT_LINK_TYPES.filter((type) => !value.some((link) => link.type === type.value));
   const add = () => {
-    onChange([
-      ...value,
-      { type: "regulation", href: "", sortOrder: value.length },
-    ]);
+    const next = unused[0];
+    if (next)
+      onChange(reorder([...value, { type: next.value, href: "", sortOrder: value.length }]));
   };
 
   return (
     <div className="space-y-3">
-      <Label>Links</Label>
-      <p className="text-xs text-muted-foreground">
-        Deixe a URL em branco para sinalizar que ainda não está disponível ("em breve").
-      </p>
-      {value.length === 0 && (
-        <p className="text-sm text-muted-foreground">
-          Nenhum link. Adicione regulamento, formulário, resultados, etc.
-        </p>
-      )}
-      {value.map((link, i) => (
-        <div key={i} className="flex flex-wrap items-end gap-2 rounded-lg border p-3">
-          <div className="flex flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">Tipo</Label>
+      {value.length === 0 ? <p className="text-muted-foreground text-sm">No links yet.</p> : null}
+      {value.map((link, index) => (
+        <div
+          key={link.id ?? `new-${link.type}`}
+          className="grid gap-3 sm:grid-cols-[12rem_minmax(0,1fr)_auto] sm:items-end"
+        >
+          <div className="space-y-1.5">
+            <Label htmlFor={`event-link-type-${index}`}>Type</Label>
             <select
+              id={`event-link-type-${index}`}
               value={link.type}
-              onChange={(e) => update(i, { type: e.target.value as EventLinkType })}
-              className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+              onChange={(e) => update(index, { type: e.target.value as EventLinkType })}
+              className={NATIVE_SELECT_CLASS}
             >
-              {EVENT_LINK_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
+              {EVENT_LINK_TYPES.filter(
+                (type) => type.value === link.type || unused.includes(type),
+              ).map((type) => (
+                <option key={type.value} value={type.value}>
+                  {TYPE_LABELS[type.value]}
                 </option>
               ))}
             </select>
           </div>
-          <div className="flex min-w-[200px] flex-[1.6] flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">URL</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor={`event-link-url-${index}`}>URL</Label>
             <Input
+              id={`event-link-url-${index}`}
               type="url"
-              placeholder="https://... (opcional)"
+              placeholder="Empty shows “coming soon”"
               value={link.href}
-              onChange={(e) => update(i, { href: e.target.value })}
-            />
-          </div>
-          <div className="flex w-20 flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">Ordem</Label>
-            <Input
-              type="number"
-              value={String(link.sortOrder)}
-              onChange={(e) => update(i, { sortOrder: Number(e.target.value) })}
+              onChange={(e) => update(index, { href: e.target.value })}
             />
           </div>
           <Button
             type="button"
             variant="ghost"
-            size="icon-sm"
-            aria-label={`Remove ${link.type} link`}
-            onClick={() => remove(i)}
+            size="icon"
+            aria-label={`Remove ${TYPE_LABELS[link.type]} link`}
+            onClick={() => remove(index)}
           >
             <HugeiconsIcon
               className="size-4 text-destructive"
@@ -94,10 +91,12 @@ export function EventLinksEditor({ value, onChange }: EventLinksEditorProps) {
           </Button>
         </div>
       ))}
-      <Button type="button" variant="outline" size="sm" onClick={add}>
-        <HugeiconsIcon className="size-4" icon={Add01Icon} strokeWidth={2} />
-        Add link
-      </Button>
+      {unused.length > 0 ? (
+        <Button type="button" variant="outline" size="sm" onClick={add}>
+          <HugeiconsIcon className="size-4" icon={Add01Icon} strokeWidth={2} />
+          Add link
+        </Button>
+      ) : null}
     </div>
   );
 }

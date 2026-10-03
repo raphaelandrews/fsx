@@ -26,8 +26,8 @@ export const CIRCUIT_CATEGORIES = [
 export type CircuitType = (typeof CIRCUIT_TYPES)[number];
 
 export const CIRCUIT_TYPE_LABELS: Record<CircuitType, string> = {
-  default: "Padrão (por etapas)",
-  categories: "Categorias",
-  school: "Escolar (clubes)",
-  geral: "Geral (lista única)",
+  default: "By stage (one ranking, a column per stage)",
+  categories: "By category (one ranking per category)",
+  school: "School (club ranking)",
+  geral: "Overall (single list, no stages)",
 };

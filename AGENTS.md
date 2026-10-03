@@ -16,6 +16,11 @@ Local Dev D1 gotchas:
   re-runs migrations and fails with `D1_ERROR: table … already exists`. To recover: stop dev,
   `rm -rf .alchemy/miniflare/v3/d1`, restart `bun dev` (alchemy auto-applies all pending migrations),
   then `bun run db:seed`.
+- **D1 enforces foreign keys inside every migration** (each file runs as one transaction), so the
+  `PRAGMA foreign_keys=OFF` in Drizzle's table rebuilds does nothing. Rebuilding a table that other
+  tables reference fails or cascade-deletes child rows. Leaf tables are fine; for referenced tables
+  follow `0021_blushing_stature.sql` (backup → drop children-first → recreate parents-first → copy
+  back). `migrations.integration.test.ts` enforces this. Details: `reference/database.mdx`.
 - Stopping `bun dev` uncleanly can leave `bun --watch … alchemy.run.ts` and Vite processes running,
   still bound to port 3001 and the same `.alchemy/miniflare` D1. A new `bun dev` then silently loses
   the port, and the browser keeps hitting old code with a stale D1 schema (every query fails after a
@@ -44,9 +49,17 @@ Local Dev D1 gotchas:
 - **Detail procedures throw `NOT_FOUND`** (`requireFound`) instead of returning `undefined`, which
   React Query rejects; loaders turn it into `notFound()` with `orNotFound` (`@/lib/errors`).
 - **UI language:** the public site is Portuguese; the admin dashboard (`/dashboard`, `/rating-update`)
-  is English. Admin mutation errors go through `showMutationError` (English); form fields show
-  `<FieldError field={f} error={mutation.error} />` (or `FormField` with `error={fieldError(f, mutation.error)}`)
-  so server validation appears next to the control.
+  is English. Admin mutation errors go through `showMutationError` (English). Shared table controls
+  (`DataTablePagination`, `Pagination`, search, filters) pick their language from the route via
+  `useTableText`.
+- **Admin page layout** (`components/admin/`): every page starts with `AdminPageHeader` (create and edit
+  pages pass `backTo`/`backLabel`; edit pages put a `ConfirmDeleteButton` in `actions` when the record can
+  be deleted). Forms use `EntityForm` with field definitions in `lib/admin-forms.ts`, or `AdminForm` +
+  `FormSection` + `FormActions` when a form needs custom controls (players, posts, events, TV Sergipe);
+  field errors use `FormField` with `error={fieldError(f, mutation.error)}`. Every collection is a
+  `DataTable` (borderless, paginated) with `DataTableRowActions` (pass `noun`); records that belong to a
+  parent (links, circuit stages and podiums, rating results) are edited in the parent page with
+  `EntityFormDialog`. Every delete or removal is confirmed in a dialog that names the record.
 - **Default to zero comments.** Add a comment only when it explains a non-obvious "why" or a
   gotcha that a reader could not infer from the code itself. Never restate what the code does,
   never narrate intent that is obvious, and never leave explanatory/doc-style prose. If a comment

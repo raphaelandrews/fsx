@@ -1,5 +1,5 @@
 import alchemy from "alchemy";
-import { D1Database, R2Bucket, RateLimit, TanStackStart, Worker } from "alchemy/cloudflare";
+import { D1Database, R2Bucket, RateLimit, TanStackStart } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
 // Shared secrets for both envs — single source of truth.
@@ -30,26 +30,22 @@ const images = await R2Bucket("images", {
   adopt: true,
 });
 
-// Limits tRPC GETs that miss the edge cache; keep in sync with
-// UNCACHED_READ_LIMIT in packages/api/src/security.ts.
+// Keep each limit in sync with RATE_LIMITS in packages/api/src/security.ts.
 const publicReadRateLimit = RateLimit({
   namespace_id: 1001,
   simple: { limit: 600, period: 60 },
 });
-
-await Worker("rate-limit-cleanup", {
-  name: "fsx-rate-limit-cleanup",
-  entrypoint: "./rate-limit-cleanup.ts",
-  compatibilityDate: COMPATIBILITY_DATE,
-  bindings: { DB: db },
-  crons: ["*/15 * * * *"],
-  url: false,
-  adopt: true,
-  observability: {
-    enabled: true,
-    headSamplingRate: 1,
-    logs: { enabled: true, headSamplingRate: 1 },
-  },
+const authMutationRateLimit = RateLimit({
+  namespace_id: 1002,
+  simple: { limit: 20, period: 60 },
+});
+const authReadRateLimit = RateLimit({
+  namespace_id: 1003,
+  simple: { limit: 120, period: 60 },
+});
+const trpcMutationRateLimit = RateLimit({
+  namespace_id: 1004,
+  simple: { limit: 300, period: 60 },
 });
 
 export const web = await TanStackStart("web", {
@@ -72,6 +68,9 @@ export const web = await TanStackStart("web", {
     DB: db,
     IMAGES: images,
     PUBLIC_READ_RATE_LIMIT: publicReadRateLimit,
+    AUTH_MUTATION_RATE_LIMIT: authMutationRateLimit,
+    AUTH_READ_RATE_LIMIT: authReadRateLimit,
+    TRPC_MUTATION_RATE_LIMIT: trpcMutationRateLimit,
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
     BETTER_AUTH_SECRET: alchemy.secret.env.BETTER_AUTH_SECRET!,
     BETTER_AUTH_URL: alchemy.env.BETTER_AUTH_URL!,

@@ -31,9 +31,11 @@ Example: add an optional `lichess_username` to players.
 
 4. **API output.** Add it to `forEdit`'s `columns`. Add it to `byId` only if it
    is public (see [public and administrative data](/architecture/domain-model#public-and-administrative-data)).
-5. **Form.** Add the control to the player form with
-   `<FieldError field="lichessUsername" error={mutation.error} />`. Labels are in
-   English.
+5. **Form.** Add the field to `PlayerValues` and a `FormField` in the right
+   `FormSection` of `components/admin/player-form.tsx`, with
+   `error={fieldError(f, error)}` so server validation shows next to it. For the
+   simpler entities, add a field definition to `lib/admin-forms.ts` instead; the
+   create and edit pages share it. Labels are in English.
 6. **Display.** Render it on the public profile with Portuguese labels.
 7. **Test.** Extend "players persist every edited field" in
    `packages/api/src/admin-crud.integration.test.ts` so the value round-trips

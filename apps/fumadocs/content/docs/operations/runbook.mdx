@@ -31,9 +31,18 @@ admin guard, and media delivery. Run it after each production deployment.
 ## Deployment Order
 
 1. Validate code, tests, types, lint, build, and migrations.
-2. Apply compatible migrations through Alchemy/D1.
-3. Deploy the Worker that consumes the new schema.
-4. Run smoke tests for login, a public route, a public tRPC query, the admin
+2. If the deploy includes migrations that add constraints or rebuild tables,
+   check production first (read-only, with the repository's pinned Wrangler):
+   ```bash
+   apps/web/node_modules/.bin/wrangler d1 execute fsx-database-raphael --remote \
+     --command "$(grep -v '^--' packages/db/src/audits/pre-migration-data-checks.sql)"
+   ```
+   Every listed check is a row the new constraints would reject; fix the data or
+   the rule first. Then take a backup and run the restore drill on it, which
+   applies the pending migrations to a copy of production data.
+3. Apply compatible migrations through Alchemy/D1.
+4. Deploy the Worker that consumes the new schema.
+5. Run smoke tests for login, a public route, a public tRPC query, the admin
    guard, and media delivery.
 
 Application rollback does not automatically undo a D1 migration. Destructive
@@ -43,9 +52,8 @@ migrations require a restoration plan before deployment.
 
 Keep Worker observability enabled and alert on deployment/migration failures,
 elevated 5xx responses, and rate-limit spikes. Rate-limit logs contain only the
-scope, request ID, and retry window; the scheduled maintenance Worker removes
-expired rate-limit rows every fifteen minutes. Never add IP addresses or request
-payloads to operational logs.
+scope, request ID, and retry window. Never add IP addresses or request payloads
+to operational logs.
 
 When deleting or replacing player/post images, use the admin workflow so the
 record and R2 object are reconciled. Periodically compare the `players.image_url`
@@ -124,7 +132,7 @@ run history records the date of the last successful drill.
 - The `Production health` workflow runs hourly and fails, which notifies the
   repository owner, when the last hour shows more than 2% 5xx responses (with at
   least 50 requests), more than 200 rate-limited responses, or any uncaught Worker
-  exception, including failed `fsx-rate-limit-cleanup` cron runs. It needs
+  exception. It needs
   `CLOUDFLARE_API_TOKEN` (Account Analytics:Read, Zone Analytics:Read),
   `CLOUDFLARE_ACCOUNT_ID`, and `CLOUDFLARE_ZONE_ID`. Thresholds are environment
   variables in `scripts/check-production-health.mjs`.

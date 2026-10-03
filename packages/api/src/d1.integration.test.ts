@@ -2,8 +2,6 @@ import { describe, expect, test } from "bun:test";
 import { eq } from "drizzle-orm";
 
 import { createDb } from "@fsx/db";
-import { cleanupExpiredRateLimits } from "@fsx/db/rate-limit-maintenance";
-import { rateLimits } from "@fsx/db/schema/rateLimits";
 import { players } from "@fsx/db/schema/players";
 import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
 import { tournaments } from "@fsx/db/schema/tournaments";
@@ -18,17 +16,6 @@ describe("D1 migration and rating integration", () => {
     try {
 
       const db = createDb(binding);
-      await binding.batch([
-        binding.prepare("INSERT INTO rate_limits (key, window_start, count) VALUES (?, ?, ?)")
-          .bind("expired", 1_000, 2),
-        binding.prepare("INSERT INTO rate_limits (key, window_start, count) VALUES (?, ?, ?)")
-          .bind("active", 9_000, 3),
-      ]);
-      expect(await cleanupExpiredRateLimits(binding, 5_000)).toBe(1);
-      expect(await db.select().from(rateLimits)).toEqual([
-        { key: "active", windowStart: 9_000, count: 3 },
-      ]);
-
       const [player] = await db
         .insert(players)
         .values({ name: "Integration Player", active: true, rapid: 1600 })

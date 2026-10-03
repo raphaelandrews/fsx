@@ -17,8 +17,8 @@ in English.
 - **Events**: manage chess events and their links (regulations, registration form, results).
 - **Tournaments**: manage tournaments. **Rating results** on the edit page lists the imported results and can revert all of them, for example before re-importing a corrected file.
 - **Championships**: manage championships, which group tournaments and cups.
-- **Clubs**: manage chess clubs.
-- **Locations**: manage cities, states, and countries.
+- **Clubs**: manage chess clubs and upload their logos (SVG, PNG, WebP, or JPEG).
+- **Locations**: manage cities, states, and countries and upload their flags (SVG, PNG, WebP, or JPEG).
 - **Links**: link groups shown on the `/links` page.
 - **Circuits**: manage circuits, their stages, and their podiums.
 - **TV Sergipe**: School Games results by school, category, and modality.
@@ -32,6 +32,20 @@ in English.
 - **Cache**: the public cache freshness window and a purge button (or manual purge steps).
 - **Backup**: instructions for exporting and restoring the D1 database.
 - **User**: the signed-in user's session.
+
+## Working in the panel
+
+- **Lists** are paginated tables. Click a record's name to edit it; the row menu
+  (⋯) also has Edit and Delete.
+- **Create and edit pages** share one layout: a link back to the list, the
+  record's name as the title, fields grouped in sections, and Cancel / Save at
+  the bottom. Edit pages have a Delete button in the header.
+- **Records inside a record** (a group's links, a circuit's stages and podiums,
+  a player's titles, roles, insignias, and rating history) are tables on the
+  parent's edit page, added and edited in a dialog.
+- **Every delete or removal asks for confirmation** and names what will be
+  deleted. A tournament with rating results, or a school with School Games
+  results, cannot be deleted until those are removed.
 
 Changes are visible in the panel immediately. Anonymous visitors may see the
 previous version for up to five minutes; see

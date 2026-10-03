@@ -73,10 +73,11 @@ const miniflare = await startWorker({
     if (applied.size === 0) failures.push("backup has no d1_migrations rows; it cannot be resumed by the migration tracker");
     for (const file of migrationFiles.filter((name) => !applied.has(name))) {
       const sql = await readFile(`${migrationsDir}${file}`, "utf8");
-      for (const statement of sql.split("--> statement-breakpoint").map((part) => part.trim()).filter(Boolean)) {
-        await db.prepare(statement).run();
-      }
-      await db.prepare("INSERT INTO d1_migrations (name) VALUES (?)").bind(file).run();
+      // One transaction per file with foreign keys enforced, as Alchemy applies it to D1.
+      await db.batch([
+        ...sql.split("--> statement-breakpoint").map((part) => part.trim()).filter(Boolean).map((statement) => db.prepare(statement)),
+        db.prepare("INSERT INTO d1_migrations (name) VALUES (?)").bind(file),
+      ]);
       appliedAfterRestore.push(file);
     }
 

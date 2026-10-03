@@ -15,6 +15,8 @@ import {
   InputGroupInput,
 } from "@fsx/ui/components/input-group"
 
+import { useTableText } from "@/lib/table-text"
+
 interface SearchInputProps
   extends Omit<React.ComponentProps<typeof InputGroupInput>, "type"> {
   /** Placeholder shown when empty. */
@@ -29,9 +31,10 @@ export const SearchInput = React.forwardRef<
   React.ComponentRef<typeof InputGroupInput>,
   SearchInputProps
 >(function SearchInput(
-  { placeholder = "Buscar...", widthClass = "w-full sm:w-[250px]", wrapperClassName, ...props },
+  { placeholder, widthClass = "w-full sm:w-[250px]", wrapperClassName, ...props },
   ref
 ) {
+  const text = useTableText()
   return (
     <InputGroup className={`h-8 border-border bg-muted ${widthClass} ${wrapperClassName ?? ""}`.trim()}>
       <InputGroupAddon>
@@ -43,7 +46,7 @@ export const SearchInput = React.forwardRef<
       </InputGroupAddon>
       <InputGroupInput
         ref={ref}
-        placeholder={placeholder}
+        placeholder={placeholder ?? text.search}
         type="search"
         {...props}
       />

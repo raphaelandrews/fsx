@@ -10,7 +10,7 @@ WITH checks(check_name, invalid_rows) AS (
   ('tournament_podiums.place', (SELECT COUNT(*) FROM tournament_podiums WHERE place NOT BETWEEN 1 AND 100000)),
   ('circuit_podiums.domain_values', (SELECT COUNT(*) FROM circuit_podiums
     WHERE points NOT BETWEEN 0 AND 1000000
-       OR (place IS NOT NULL AND place NOT BETWEEN 1 AND 25)
+       OR (place IS NOT NULL AND place NOT BETWEEN 1 AND 1000)
        OR (category IS NOT NULL AND category NOT IN ('Sub 8 Masculino', 'Sub 10 Masculino', 'Sub 12 Masculino', 'Sub 14 Masculino', 'Sub 16 Masculino', 'Sub 18 Masculino', 'Sub 8 Feminino', 'Sub 10 Feminino', 'Sub 12 Feminino', 'Sub 14 Feminino', 'Sub 16 Feminino', 'Sub 18 Feminino', 'Futuro', 'Juvenil', 'Master'))
        OR ((circuit_id IS NULL) = (circuit_phase_id IS NULL)))),
   ('tournaments.rating_type', (SELECT COUNT(*) FROM tournaments WHERE rating_type NOT IN ('blitz', 'rapid', 'classic'))),

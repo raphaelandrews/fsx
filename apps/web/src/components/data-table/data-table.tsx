@@ -33,6 +33,8 @@ interface DataTableProps<TData, TValue> {
   pagination?: (table: TanStackTable<TData>) => ReactNode;
   /** Shown when the collection itself is empty, as opposed to filtered to nothing. */
   emptyState?: ReactNode;
+  /** False when the server already returns a single page (e.g. players). */
+  clientPagination?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -41,6 +43,7 @@ export function DataTable<TData, TValue>({
   toolbar,
   pagination,
   emptyState,
+  clientPagination = true,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -58,7 +61,7 @@ export function DataTable<TData, TValue>({
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    ...(clientPagination ? { getPaginationRowModel: getPaginationRowModel() } : {}),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
@@ -67,7 +70,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {toolbar?.(table)}
-      <div className="overflow-x-auto rounded-md border">
+      <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

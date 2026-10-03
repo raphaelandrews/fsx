@@ -16,20 +16,17 @@ import { Button } from "@fsx/ui/components/button";
 
 import { useTRPC } from "@/utils/trpc";
 import { useAdminMutation } from "@/lib/admin-mutations";
+import { FormSection } from "@/components/admin/form-layout";
+import { AdminPageHeader } from "@/components/admin/page-header";
 
 export const Route = createFileRoute("/_auth/dashboard/cache/")({
   head: () => ({ meta: [{ title: "Cache - Admin - FSX" }] }),
-  loader: ({ context }) =>
-    Promise.all([
-      context.queryClient.ensureQueryData(context.trpc.security.rateLimitStats.queryOptions()),
-      context.queryClient.ensureQueryData(context.trpc.cache.status.queryOptions()),
-    ]),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.cache.status.queryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const { data: rateLimitStats } = useSuspenseQuery(trpc.security.rateLimitStats.queryOptions());
   const { data: cacheStatus } = useSuspenseQuery(trpc.cache.status.queryOptions());
 
   const purgeMutation = useAdminMutation(trpc.cache.purgePublic.mutationOptions(), {
@@ -38,31 +35,20 @@ function RouteComponent() {
   });
 
   return (
-    <div className="mx-auto max-w-lg">
-      <h1 className="mb-6 font-bold text-2xl">Cache</h1>
+    <>
+      <AdminPageHeader title="Cache" description="How public pages are cached and the emergency purge." />
+      <div className="divide-y">
 
-      <div className="mb-6 rounded-md border p-4">
-        <h2 className="mb-2 font-semibold">Edge cache</h2>
+        <FormSection title="Edge cache">
         <ul className="list-disc pl-5 text-muted-foreground text-sm space-y-1">
           <li>Allowlisted public tRPC GET responses are cached by the Worker in each Cloudflare data center</li>
           <li>Each procedure has a TTL between 30 seconds and 5 minutes; after it, the next visitor gets fresh data</li>
           <li>Signed-in requests, mutations, unknown procedures, and errors always bypass the cache</li>
           <li>Browsers are told not to store API responses, so edits never wait on a browser cache</li>
         </ul>
-      </div>
+        </FormSection>
 
-      <div className="mb-6 rounded-md border p-4">
-        <h2 className="mb-2 font-semibold">Rate-limit storage</h2>
-        <p className="text-sm text-muted-foreground">
-          {rateLimitStats.rows.toLocaleString("en-US")} stored window(s).
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Oldest window: {formatUtc(rateLimitStats.oldestWindowStart)} · newest: {formatUtc(rateLimitStats.newestWindowStart)}
-        </p>
-      </div>
-
-      <div className="rounded-md border p-4">
-        <h2 className="mb-2 font-semibold">Purge public cache</h2>
+        <FormSection title="Purge public cache">
         <p className="mb-3 text-muted-foreground text-sm">
           Anonymous visitors may see a previous response until its TTL expires. Purge only to
           recover from an urgent mistake; ordinary edits propagate on their own within minutes.
@@ -96,16 +82,8 @@ function RouteComponent() {
             </li>
           </ol>
         )}
+        </FormSection>
       </div>
-    </div>
+    </>
   );
-}
-
-function formatUtc(value: number | null): string {
-  if (value === null) return "—";
-  return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "UTC",
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(value));
 }

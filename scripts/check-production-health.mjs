@@ -3,7 +3,7 @@
 // workflow run notifies the repository owner) when:
 //   - 5xx responses exceed MAX_5XX_RATIO of at least MIN_REQUESTS requests,
 //   - 429 responses exceed MAX_429 (rate-limit spike),
-//   - either Worker threw uncaught exceptions (including failed cron runs).
+//   - the Worker threw uncaught exceptions.
 // Requires CLOUDFLARE_API_TOKEN (Account Analytics:Read, Zone Analytics:Read),
 // CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_ZONE_ID. Prints counts only.
 const env = process.env;
@@ -11,7 +11,7 @@ const token = env.CLOUDFLARE_API_TOKEN;
 const accountTag = env.CLOUDFLARE_ACCOUNT_ID;
 const zoneTag = env.CLOUDFLARE_ZONE_ID;
 const host = env.HEALTH_HOST ?? "www.fsx.org.br";
-const scripts = (env.HEALTH_SCRIPTS ?? "fsx-web-raphael,fsx-rate-limit-cleanup").split(",");
+const scripts = (env.HEALTH_SCRIPTS ?? "fsx-web-raphael").split(",");
 const windowMinutes = Number(env.HEALTH_WINDOW_MINUTES ?? 60);
 const MAX_5XX_RATIO = Number(env.MAX_5XX_RATIO ?? 0.02);
 const MIN_REQUESTS = Number(env.MIN_REQUESTS ?? 50);

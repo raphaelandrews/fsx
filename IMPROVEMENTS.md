@@ -215,6 +215,7 @@ values silently produce wrong results.
 - [x] Remove runtime `CREATE TABLE IF NOT EXISTS` initialization.
 - [x] Clean up expired rows with a scheduled job (`fsx-rate-limit-cleanup`, every 15 minutes).
 - [x] Add metrics for rate-limit failures and table growth.
+- [x] **Superseded 2026-10-02:** auth and mutation limits moved to native `RateLimit` bindings (ADR 0005); migration `0027` drops `rate_limits`, and the cleanup Worker and `security.rateLimitStats` are removed, so rate limiting no longer spends D1 writes.
 
 ### 14. Add database-level domain constraints — Important (done)
 
@@ -222,6 +223,7 @@ values silently produce wrong results.
 - [x] Keep Zod validation at the API boundary for useful error messages.
 - [x] Add checks for non-negative ratings, points, prize values, and valid placement ranges.
 - [x] Audit existing rows before applying constraints (`packages/db/src/audits/pre-migration-data-checks.sql`).
+- [x] **Fixed 2026-10-02:** the first production deploy of these constraints stopped at `0021` (`rate_limits` already existed), and the table rebuilds in `0021`–`0025` were unsafe on D1, which ignores `PRAGMA foreign_keys=OFF` inside a migration: they failed on `RESTRICT` or cascade-deleted child rows. `0021` now rebuilds every domain table D1-safely (backup → drop children-first → recreate parents-first); `0022`–`0025` are no-ops. The production audit found circuit podium places 26–32 (limit raised to 1,000, `0026`) and cup 1 stored with rating type `3'+2''` (set to `blitz`). `migrations.integration.test.ts` applies every migration as production does to rows in every table.
 
 ### 15. Make timestamp invariants explicit — Important (done)
 

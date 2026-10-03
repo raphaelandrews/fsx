@@ -1,4 +1,7 @@
 import type { ReactNode } from "react";
+import { Link, type LinkProps } from "@tanstack/react-router";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 
 import { Separator } from "@fsx/ui/components/separator";
 import { cn } from "@fsx/ui/lib/utils";
@@ -6,24 +9,43 @@ import { cn } from "@fsx/ui/lib/utils";
 interface AdminPageHeaderProps {
   title: string;
   description?: string;
-  /** Right-aligned actions, e.g. a "Create" link/button. */
+  /** Right-aligned actions, e.g. a "New" link or a delete button. */
   actions?: ReactNode;
+  /** Parent page, shown as a back link above the title on create and edit pages. */
+  backTo?: LinkProps["to"];
+  backLabel?: string;
   className?: string;
 }
 
-export function AdminPageHeader({ title, description, actions, className }: AdminPageHeaderProps) {
+export function AdminPageHeader({
+  title,
+  description,
+  actions,
+  backTo,
+  backLabel,
+  className,
+}: AdminPageHeaderProps) {
   return (
-    <div className={cn("mb-5", className)}>
+    <div className={cn("mb-6", className)}>
+      {backTo ? (
+        <Link
+          to={backTo}
+          className="mb-3 inline-flex items-center gap-1 rounded-sm text-muted-foreground text-sm hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+        >
+          <HugeiconsIcon className="size-4" icon={ArrowLeft01Icon} strokeWidth={2} />
+          {backLabel ?? "Back"}
+        </Link>
+      ) : null}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="font-semibold text-xl tracking-tight sm:text-2xl">{title}</h1>
-          {description ? (
-            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-          ) : null}
+        <div className="min-w-0">
+          <h1 className="truncate font-semibold text-xl tracking-tight sm:text-2xl">{title}</h1>
+          {description ? <p className="mt-1 text-muted-foreground text-sm">{description}</p> : null}
         </div>
-        {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+        {actions ? (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
+        ) : null}
       </div>
-      <Separator className="my-4" />
+      <Separator className="mt-4" />
     </div>
   );
 }

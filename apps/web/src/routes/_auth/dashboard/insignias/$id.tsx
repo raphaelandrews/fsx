@@ -1,31 +1,33 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useForm } from "@tanstack/react-form";
-import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
-import z from "zod";
 
-import { FormField } from "@/components/form/form-field";
-import { useTRPC } from "@/utils/trpc";
+import { EntityForm } from "@/components/admin/entity-form";
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
+import { INSIGNIA_SECTIONS } from "@/lib/admin-forms";
 import { idParams } from "@/lib/route-params";
-import { fieldError } from "@/lib/errors";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/insignias/$id")({
   params: idParams,
-  head: () => ({ meta: [{ title: "Edit Insignia - Admin - FSX" }] }),
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(context.trpc.insignias.list.queryOptions()),
+  head: () => ({ meta: [{ title: "Edit insignia - Admin - FSX" }] }),
+  loader: async ({ context, params }) => {
+    const records = await context.queryClient.ensureQueryData(
+      context.trpc.insignias.list.queryOptions(),
+    );
+    if (!records.some((record) => record.id === params.id)) throw notFound();
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { id: numId } = Route.useParams();
+  const { id } = Route.useParams();
   const trpc = useTRPC();
   const navigate = useNavigate();
 
-  const { data: insignias = [] } = useSuspenseQuery(trpc.insignias.list.queryOptions());
-  const insignia = insignias.find((i) => i.id === numId);
+  const { data: records } = useSuspenseQuery(trpc.insignias.list.queryOptions());
+  const record = records.find((candidate) => candidate.id === id);
 
   const updateMutation = useAdminMutation(trpc.insignias.update.mutationOptions(), {
     invalidates: "insignias",
@@ -33,76 +35,43 @@ function RouteComponent() {
     failure: "Failed to update insignia",
     reloadOnConflict: true,
   });
-
-  if (!insignia) {
-    return <p>Insignia not found.</p>;
-  }
-
-  const form = useForm({
-    defaultValues: { name: insignia.name, level: insignia.level },
-    validators: {
-      onSubmit: z.object({ name: z.string().min(1, "Insignia is required"), level: z.number() }),
-    },
-    onSubmit: ({ value }) => {
-      updateMutation.mutate({ id: numId, name: value.name, level: value.level });
-    },
+  const deleteMutation = useAdminMutation(trpc.insignias.delete.mutationOptions(), {
+    invalidates: "insignias",
+    success: "Insignia deleted",
+    failure: "Failed to delete insignia",
+    onSuccess: () => navigate({ to: "/dashboard/insignias" }),
   });
 
+  if (!record) return null;
+
   return (
-    <div className="mx-auto max-w-lg">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">Edit Insignia</h1>
-        <Button variant="outline" onClick={() => navigate({ to: "/dashboard/insignias" })}>
-          Back
-        </Button>
-      </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-        className="space-y-4"
-      >
-        <form.Field name="name">
-          {(f) => (
-            <FormField
-              label="Insignia"
-              htmlFor={f.name}
-              error={fieldError(f, updateMutation.error)}
-              required
-            >
-              <Input
-                id={f.name}
-                value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
-              />
-            </FormField>
-          )}
-        </form.Field>
-        <form.Field name="level">
-          {(f) => (
-            <FormField label="Level" htmlFor={f.name} error={fieldError(f, updateMutation.error)}>
-              <Input
-                id={f.name}
-                type="number"
-                value={String(f.state.value)}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(Number(e.target.value))}
-              />
-            </FormField>
-          )}
-        </form.Field>
-        <form.Subscribe
-          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting || updateMutation.isPending}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </Button>
-          )}
-        </form.Subscribe>
-      </form>
-    </div>
+    <>
+      <AdminPageHeader
+        backTo="/dashboard/insignias"
+        backLabel="Insignias"
+        title={record.name}
+        description="Edit the insignia's details."
+        actions={
+          <ConfirmDeleteButton
+            label="Delete insignia"
+            title="Delete this insignia?"
+            itemName={record.name}
+            pending={deleteMutation.isPending}
+            onConfirm={() => deleteMutation.mutate({ id })}
+          />
+        }
+      />
+      <EntityForm
+        sections={INSIGNIA_SECTIONS}
+        defaultValues={{ name: record.name, level: String(record.level) }}
+        onSubmit={(values) =>
+          updateMutation.mutate({ id, name: values.name!, level: Number(values.level) })
+        }
+        error={updateMutation.error}
+        pending={updateMutation.isPending}
+        submitLabel="Save changes"
+        cancelTo="/dashboard/insignias"
+      />
+    </>
   );
 }

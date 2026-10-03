@@ -17,10 +17,10 @@ are `snake_case` in SQL and `camelCase` in Drizzle. Every table has an integer
   (unique), `cbx_id` and `fide_id` (unique), `birth_date` (`YYYY-MM-DD`), `sex`
   (`male` or `female`), photo, club, and location. `normalized_name` is the
   name lowercased without accents, used for search; the API keeps it in sync.
-- **Club** (`clubs`): a chess club or school, with an optional logo URL. Schools
+- **Club** (`clubs`): a chess club or school, with an optional logo (uploaded to R2 or an external URL). Schools
   in the School Games are clubs.
 - **Location** (`locations`): a `city`, `state`, or `country`, with an optional
-  flag URL.
+  flag (uploaded to R2 or an external URL).
 
 ### Recognition
 
@@ -56,7 +56,7 @@ are `snake_case` in SQL and `camelCase` in Drizzle. Every table has an integer
     optionally hosted by a club, ordered by `sort_order`.
   - **Circuit podium** (`circuit_podiums`): points for a player, attached to
     **either** a phase **or** directly to the circuit (`geral` circuits), with
-    an optional place (1–25) and category.
+    an optional place (1–1000) and category.
 - **Cup** (`cups`): a bracket-and-group competition with a prize pool and rating
   type. See [Cups](/guide/cups).
   - **Group** → **cup players** and **rounds** → **matches** → **games**.
@@ -84,8 +84,7 @@ are `snake_case` in SQL and `camelCase` in Drizzle. Every table has an integer
 ### System tables
 
 `user`, `session`, `account`, and `verification` belong to Better Auth.
-`rate_limits` stores D1-backed rate-limit windows. `d1_migrations` is the
-migration tracker. None of them is exposed by public procedures.
+`d1_migrations` is the migration tracker. None of them is exposed by public procedures.
 
 ## Relationships
 
@@ -250,7 +249,7 @@ modality:
 | Players | name, nickname, ratings, photo, club, location, titles, roles, podiums, rating history, FSX/CBX/FIDE IDs, `active`, `verified` | `birth_date`, `sex` (used for filters but never returned), `description`, inactive players in rankings |
 | Posts | published posts | drafts |
 | Everything else | yes | — |
-| Auth, rate limits, counts, cache status | — | yes |
+| Auth, counts, cache status | — | yes |
 
 Age-group and sex filters on `/ratings` run in SQL, so birth dates never leave
 the server. The Swiss Manager export is the only bulk output with birth dates,

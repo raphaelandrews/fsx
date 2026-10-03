@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete03Icon, Edit01Icon, EllipsisIcon } from "@hugeicons/core-free-icons";
@@ -25,20 +25,36 @@ import {
 interface DataTableRowActionsProps {
   /** Id of the row, used to build the edit link and send to the delete mutation. */
   id: number;
-  /** Route path pattern for the edit link, e.g. "/dashboard/clubs/$id". */
-  editTo: string;
-  /** Delete current row; while `isDeleting`, the confirm stays disabled. */
-  onDelete: () => void;
+  /** Route path pattern for the edit page, e.g. "/dashboard/clubs/$id". */
+  editTo?: string;
+  /** Edit in place (e.g. a dialog) instead of navigating to `editTo`. */
+  onEdit?: () => void;
+  /** Delete current row; while `isDeleting`, the confirm stays disabled. Omit for records that cannot be deleted. */
+  onDelete?: () => void;
   isDeleting?: boolean;
   displayName?: string;
+  /** What the row is, for the confirmation title, e.g. "club". */
+  noun?: string;
+  /** Extra menu items rendered between Edit and Delete. */
+  extraItems?: ReactNode;
+  editLabel?: string;
+  deleteLabel?: string;
+  /** Replaces the default "will be permanently deleted" confirmation text. */
+  deleteDescription?: string;
 }
 
 export function DataTableRowActions({
   id,
   editTo,
+  onEdit,
   onDelete,
   isDeleting = false,
   displayName,
+  noun = "item",
+  extraItems,
+  editLabel = "Edit",
+  deleteLabel = "Delete",
+  deleteDescription,
 }: DataTableRowActionsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -60,29 +76,36 @@ export function DataTableRowActions({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[150px] p-1">
           <DropdownMenuItem
-            render={<Link to={editTo} params={{ id }} />}
+            {...(onEdit ? { onClick: onEdit } : { render: <Link to={editTo as string} params={{ id }} /> })}
           >
             <HugeiconsIcon className="mr-2 size-4" icon={Edit01Icon} strokeWidth={2} />
-            Edit
+            {editLabel}
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            <HugeiconsIcon className="mr-2 size-4" icon={Delete03Icon} strokeWidth={2} />
-            Delete
-          </DropdownMenuItem>
+          {extraItems}
+          {onDelete ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <HugeiconsIcon className="mr-2 size-4" icon={Delete03Icon} strokeWidth={2} />
+                {deleteLabel}
+              </DropdownMenuItem>
+            </>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this item?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {deleteLabel} this {noun}?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This cannot be undone.
-              {displayName ? ` This permanently deletes "${displayName}".` : ""}
+              {deleteDescription ??
+                `${displayName ? `“${displayName}” will be permanently deleted. ` : ""}This cannot be undone.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -91,11 +114,11 @@ export function DataTableRowActions({
               disabled={isDeleting}
               variant="destructive"
               onClick={() => {
-                onDelete();
+                onDelete?.();
                 setShowDeleteDialog(false);
               }}
             >
-              Delete
+              {deleteLabel}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

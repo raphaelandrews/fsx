@@ -15,9 +15,10 @@ export async function applyMigrations(database: D1Database) {
     const migration = await readFile(new NodeURL(file, migrationsDirectory), "utf8");
     const statements = migration
       .split("--> statement-breakpoint")
-      .map((statement) => statement.trim().replace(/\s+/g, " "))
+      .map((statement) => statement.trim())
       .filter(Boolean);
-    for (const statement of statements) await database.exec(statement);
+    // One transaction per file, as Alchemy applies migrations to D1.
+    await database.batch(statements.map((statement) => database.prepare(statement)));
   }
 }
 

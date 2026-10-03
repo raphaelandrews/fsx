@@ -10,9 +10,9 @@ disabled. Sessions last seven days and refresh daily. The session cookie is
 signed with `BETTER_AUTH_SECRET` and is `Secure` when `BETTER_AUTH_URL` is
 `https`.
 
-`/api/auth/*` rejects cross-origin POSTs and applies D1-backed rate limits per
-IP (20 mutations and 120 queries per minute). A cron Worker
-(`fsx-rate-limit-cleanup`) deletes expired rate-limit windows every 15 minutes.
+`/api/auth/*` rejects cross-origin POSTs and applies per-IP rate limits through
+Cloudflare's native `RateLimit` bindings (20 mutations and 120 queries per
+minute), so auth traffic never writes to D1.
 
 ## The owner binding
 
@@ -51,7 +51,7 @@ convenience; the procedure check is the security boundary.
 
 Private data includes birth dates (Swiss Manager export, `players.forEdit`),
 unpublished posts (`posts.listAdmin`, `posts.forEdit`), and operational status
-(`stats.counts`, `security.rateLimitStats`, `cache.status`).
+(`stats.counts`, `cache.status`).
 
 ### Adding more administrators
 

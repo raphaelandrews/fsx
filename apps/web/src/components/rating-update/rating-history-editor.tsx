@@ -1,18 +1,12 @@
 import { useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
 
-import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@fsx/ui/components/table";
-
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { EntityFormDialog } from "@/components/admin/entity-form";
+import { AdminSection } from "@/components/admin/form-layout";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/utils/trpc";
 
@@ -29,122 +23,138 @@ interface RatingHistoryEditorProps {
   onRatingChange: (ratingType: RatingType, rating: number) => void;
 }
 
+const signed = (value: number) => `${value > 0 ? "+" : ""}${value}`;
+
 export function RatingHistoryEditor({ playerId, onRatingChange }: RatingHistoryEditorProps) {
   const trpc = useTRPC();
-  const { data: history } = useSuspenseQuery(trpc.playersTournament.listByPlayer.queryOptions({ playerId }));
-
-  return (
-    <section>
-      <h2 className="mb-1 font-semibold text-lg">Rating history</h2>
-      <p className="mb-3 text-muted-foreground text-sm">
-        Correcting or removing a result also updates the current rating and the starting rating of every later
-        result of the same type.
-      </p>
-      {history.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No rated tournaments yet.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tournament</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="text-right">Before</TableHead>
-                <TableHead>Variation</TableHead>
-                <TableHead className="text-right">After</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {history.map((result) => (
-                <RatingHistoryRow key={`${result.id}:${result.variation}`} result={result} onRatingChange={onRatingChange} />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-    </section>
+  const { data: history } = useSuspenseQuery(
+    trpc.playersTournament.listByPlayer.queryOptions({ playerId }),
   );
-}
+  const [editing, setEditing] = useState<(typeof history)[number] | null>(null);
 
-interface RatingHistoryRowProps {
-  result: {
-    id: number;
-    oldRating: number;
-    variation: number;
-    ratingType: string;
-    tournament: { name: string; date: string | null } | null;
-  };
-  onRatingChange: RatingHistoryEditorProps["onRatingChange"];
-}
-
-function RatingHistoryRow({ result, onRatingChange }: RatingHistoryRowProps) {
-  const trpc = useTRPC();
-  const [draft, setDraft] = useState(String(result.variation));
-  const variation = Number(draft);
-  const valid = draft.trim() !== "" && Number.isInteger(variation) && Math.abs(variation) <= 4000;
-  const changed = valid && variation !== result.variation;
-  const ratingType = result.ratingType as RatingType;
-
-  const correctMutation = useAdminMutation(trpc.playersTournament.correctVariation.mutationOptions(), {
-    invalidates: "playersTournament",
-    success: "Variation corrected",
-    failure: "Failed to correct the variation",
-    reloadOnConflict: true,
-    onSuccess: (data) => onRatingChange(data.ratingType, data.rating),
-  });
+  const correctMutation = useAdminMutation(
+    trpc.playersTournament.correctVariation.mutationOptions(),
+    {
+      invalidates: "playersTournament",
+      success: "Variation corrected",
+      failure: "Failed to correct the variation",
+      reloadOnConflict: true,
+      onSuccess: (data) => {
+        onRatingChange(data.ratingType, data.rating);
+        setEditing(null);
+      },
+    },
+  );
   const removeMutation = useAdminMutation(trpc.playersTournament.remove.mutationOptions(), {
     invalidates: "playersTournament",
     success: "Result removed and rating reverted",
     failure: "Failed to remove the result",
     onSuccess: (data) => onRatingChange(data.ratingType, data.rating),
   });
-  const pending = correctMutation.isPending || removeMutation.isPending;
-  const tournamentName = result.tournament?.name ?? "Unknown tournament";
+
+  const columns: ColumnDef<(typeof history)[number]>[] = [
+    {
+      id: "tournament",
+      header: "Tournament",
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium">{row.original.tournament?.name ?? "Unknown tournament"}</div>
+          {row.original.tournament?.date ? (
+            <div className="text-muted-foreground text-xs">{row.original.tournament.date}</div>
+          ) : null}
+        </div>
+      ),
+    },
+    {
+      id: "type",
+      header: "Type",
+      cell: ({ row }) =>
+        RATING_TYPE_LABELS[row.original.ratingType as RatingType] ?? row.original.ratingType,
+    },
+    {
+      id: "before",
+      header: () => <span className="block text-right">Before</span>,
+      cell: ({ row }) => (
+        <span className="block text-right tabular-nums">{row.original.oldRating}</span>
+      ),
+    },
+    {
+      id: "variation",
+      header: () => <span className="block text-right">Variation</span>,
+      cell: ({ row }) => (
+        <span className="block text-right tabular-nums">{signed(row.original.variation)}</span>
+      ),
+    },
+    {
+      id: "after",
+      header: () => <span className="block text-right">After</span>,
+      cell: ({ row }) => (
+        <span className="block text-right tabular-nums">
+          {row.original.oldRating + row.original.variation}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">Actions</span>,
+      cell: ({ row }) => {
+        const result = row.original;
+        const name = result.tournament?.name ?? "this tournament";
+        const type = RATING_TYPE_LABELS[result.ratingType as RatingType] ?? result.ratingType;
+        return (
+          <DataTableRowActions
+            id={result.id}
+            noun="result"
+            editLabel="Correct variation"
+            onEdit={() => setEditing(result)}
+            deleteLabel="Remove"
+            deleteDescription={`The ${signed(result.variation)} from “${name}” will be subtracted from the current ${type} rating, and later results will be rebased.`}
+            isDeleting={removeMutation.isPending}
+            onDelete={() => removeMutation.mutate({ id: result.id })}
+          />
+        );
+      },
+    },
+  ];
 
   return (
-    <TableRow>
-      <TableCell>
-        <div className="font-medium">{tournamentName}</div>
-        {result.tournament?.date ? (
-          <div className="text-muted-foreground text-xs">{result.tournament.date}</div>
-        ) : null}
-      </TableCell>
-      <TableCell>{RATING_TYPE_LABELS[ratingType] ?? result.ratingType}</TableCell>
-      <TableCell className="text-right tabular-nums">{result.oldRating}</TableCell>
-      <TableCell>
-        <Input
-          aria-label={`Variation in ${tournamentName}`}
-          aria-invalid={!valid}
-          className="w-24"
-          inputMode="numeric"
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-        />
-      </TableCell>
-      <TableCell className="text-right tabular-nums">
-        {result.oldRating + (valid ? variation : result.variation)}
-      </TableCell>
-      <TableCell>
-        <div className="flex justify-end gap-2">
-          <Button
-            size="sm"
-            type="button"
-            disabled={!changed || pending}
-            onClick={() => correctMutation.mutate({ id: result.id, variation })}
-          >
-            Save
-          </Button>
-          <ConfirmDeleteButton
-            label="Remove"
-            confirmLabel="Remove and revert"
-            title="Remove this result?"
-            description={`The ${result.variation > 0 ? "+" : ""}${result.variation} from “${tournamentName}” will be subtracted from the current ${RATING_TYPE_LABELS[ratingType] ?? ""} rating, and later results will be rebased.`}
-            pending={pending}
-            onConfirm={() => removeMutation.mutate({ id: result.id })}
-          />
-        </div>
-      </TableCell>
-    </TableRow>
+    <AdminSection
+      title="Rating history"
+      description="Correcting or removing a result also updates the current rating and the starting rating of every later result of the same type."
+    >
+      <DataTable
+        columns={columns}
+        data={history}
+        emptyState="No rated tournaments yet."
+        pagination={(table) => <DataTablePagination table={table} />}
+      />
+      <EntityFormDialog
+        open={editing !== null}
+        onOpenChange={(open) => !open && setEditing(null)}
+        title="Correct variation"
+        description={
+          editing
+            ? `${editing.tournament?.name ?? "Tournament"} · started at ${editing.oldRating}`
+            : undefined
+        }
+        fields={[
+          {
+            name: "variation",
+            label: "Variation",
+            kind: "number",
+            required: true,
+            min: -4000,
+            max: 4000,
+          },
+        ]}
+        defaultValues={{ variation: String(editing?.variation ?? 0) }}
+        onSubmit={(values) =>
+          editing && correctMutation.mutate({ id: editing.id, variation: Number(values.variation) })
+        }
+        error={correctMutation.error}
+        pending={correctMutation.isPending}
+        submitLabel="Save variation"
+      />
+    </AdminSection>
   );
 }

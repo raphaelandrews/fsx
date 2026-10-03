@@ -1,97 +1,75 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useForm } from "@tanstack/react-form";
-import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
-import z from "zod";
 
-import { FormField } from "@/components/form/form-field";
-import { useTRPC } from "@/utils/trpc";
+import { EntityForm } from "@/components/admin/entity-form";
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
+import { CHAMPIONSHIP_SECTIONS } from "@/lib/admin-forms";
 import { idParams } from "@/lib/route-params";
-import { fieldError } from "@/lib/errors";
-
-const TITLE = "Championship";
-const DOMAIN = "champions" as const;
-const PATH = "/dashboard/championships";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/championships/$id")({
   params: idParams,
-  head: () => ({ meta: [{ title: `Edit ${TITLE} - Admin - FSX` }] }),
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(context.trpc.champions.list.queryOptions()),
+  head: () => ({ meta: [{ title: "Edit championship - Admin - FSX" }] }),
+  loader: async ({ context, params }) => {
+    const records = await context.queryClient.ensureQueryData(
+      context.trpc.champions.list.queryOptions(),
+    );
+    if (!records.some((record) => record.id === params.id)) throw notFound();
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { id: numId } = Route.useParams();
+  const { id } = Route.useParams();
   const trpc = useTRPC();
   const navigate = useNavigate();
 
-  const { data: items = [] } = useSuspenseQuery(trpc[DOMAIN].list.queryOptions());
-  const item = items.find((i: any) => i.id === numId);
+  const { data: records } = useSuspenseQuery(trpc.champions.list.queryOptions());
+  const record = records.find((candidate) => candidate.id === id);
 
-  const updateMutation = useAdminMutation(trpc[DOMAIN].update.mutationOptions(), {
-    invalidates: DOMAIN,
-    success: `${TITLE} updated`,
-    failure: `Failed to update ${TITLE.toLowerCase()}`,
+  const updateMutation = useAdminMutation(trpc.champions.update.mutationOptions(), {
+    invalidates: "champions",
+    success: "Championship updated",
+    failure: "Failed to update championship",
     reloadOnConflict: true,
   });
-
-  if (!item) return <p>{TITLE} not found.</p>;
-
-  const form = useForm({
-    defaultValues: { name: item.name },
-    validators: {
-      onSubmit: z.object({ name: z.string().min(1, "Name is required") }),
-    },
-    onSubmit: ({ value }) => {
-      updateMutation.mutate({ id: numId, name: value.name });
-    },
+  const deleteMutation = useAdminMutation(trpc.champions.delete.mutationOptions(), {
+    invalidates: "champions",
+    success: "Championship deleted",
+    failure: "Failed to delete championship",
+    onSuccess: () => navigate({ to: "/dashboard/championships" }),
   });
 
+  if (!record) return null;
+
   return (
-    <div className="mx-auto max-w-lg">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">Edit {TITLE}</h1>
-        <Button variant="outline" onClick={() => navigate({ to: PATH })}>
-          Back
-        </Button>
-      </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-        className="space-y-4"
-      >
-        <form.Field name="name">
-          {(f) => (
-            <FormField
-              label="Name"
-              htmlFor={f.name}
-              error={fieldError(f, updateMutation.error)}
-              required
-            >
-              <Input
-                id={f.name}
-                value={f.state.value}
-                onBlur={f.handleBlur}
-                onChange={(e) => f.handleChange(e.target.value)}
-              />
-            </FormField>
-          )}
-        </form.Field>
-        <form.Subscribe
-          selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting || updateMutation.isPending}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </Button>
-          )}
-        </form.Subscribe>
-      </form>
-    </div>
+    <>
+      <AdminPageHeader
+        backTo="/dashboard/championships"
+        backLabel="Championships"
+        title={record.name}
+        description="Edit the championship."
+        actions={
+          <ConfirmDeleteButton
+            label="Delete championship"
+            title="Delete this championship?"
+            itemName={record.name}
+            pending={deleteMutation.isPending}
+            onConfirm={() => deleteMutation.mutate({ id })}
+          />
+        }
+      />
+      <EntityForm
+        sections={CHAMPIONSHIP_SECTIONS}
+        defaultValues={{ name: record.name }}
+        onSubmit={(values) => updateMutation.mutate({ id, name: values.name! })}
+        error={updateMutation.error}
+        pending={updateMutation.isPending}
+        submitLabel="Save changes"
+        cancelTo="/dashboard/championships"
+      />
+    </>
   );
 }

@@ -45,7 +45,8 @@ From `packages/api/src/input-schemas.ts`:
 | `rating` | integer 0–4000 |
 | `isoDate` | `YYYY-MM-DD` |
 | `httpUrl` | `http` or `https` URL, up to 2,048 characters |
-| `imageUrl` | a media path (`/api/media/...`) or an `httpUrl` |
+| `imageUrl` | a `players` or `posts` media path (`/api/media/...`, JPEG/PNG/WebP) or an `httpUrl` |
+| `emblemUrl(kind)` | a media path of that kind (`clubs` or `locations`, SVG allowed) or an `httpUrl`; used by `logoUrl` and `flagUrl` |
 | `optionalHttpUrl` | an `httpUrl` or an empty string |
 | `filterArray` | up to 50 strings of 1–80 characters |
 
@@ -114,7 +115,7 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `circuits.byId` | public | `{ id }` | Circuit with phases, tournaments, clubs, and podiums | 300 s |
 | `circuits.create` / `update` / `delete` | admin | `{ name, type }` | Rows; delete cascades to phases and podiums | — |
 | `circuits.phases.create` / `update` / `delete` | admin | `{ circuitId, tournamentId, clubId?, sortOrder }` | Rows | — |
-| `circuits.podiums.create` / `update` / `delete` | admin | `{ playerId, circuitId? XOR circuitPhaseId?, category?, place? (1–25), points }` | Rows; `BAD_REQUEST` unless exactly one target is set | — |
+| `circuits.podiums.create` / `update` / `delete` | admin | `{ playerId, circuitId? XOR circuitPhaseId?, category?, place? (1–1000), points }` | Rows; `BAD_REQUEST` unless exactly one target is set | — |
 | `cups.list` | public | — | Cup summaries | 300 s |
 | `cups.byId` | public | `{ id }` | Cup with groups, players, rounds, brackets, playoffs, matches, and games | 120 s |
 | `cups.create` / `update` / `delete` | admin | `name`, `imageUrl`, `startDate`, `endDate`, `prizePool`, `ratingType`, `championshipId?` | Rows; delete cascades to the whole cup tree | — |
@@ -136,6 +137,7 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `norms.list` | public | — | Norms | 300 s |
 | `insignias.list` | public | — | Insignias | 300 s |
 | `<router>.create` / `update` / `delete` | admin | Entity fields (`name` is unique) | Rows; delete returns `CONFLICT` while referenced | — |
+| `clubs.create` / `update` / `delete`, `locations.create` / `update` / `delete` | admin | `name`, `logoUrl?` / `flagUrl?` (`emblemUrl`), `type` for locations | Rows; delete returns `{ id }` and also deletes the uploaded image, which is kept when the delete fails with `CONFLICT` | — |
 
 ## Publishing
 
@@ -164,7 +166,7 @@ has history for the tournament). Corrections keep the history chain intact; see
 
 | Procedure | Access | Input | Output |
 | --------- | ------ | ----- | ------ |
-| `images.upload` | admin | `{ kind: players\|posts, mime: image/jpeg\|png\|webp, data: base64 }` | `{ url: "/api/media/<kind>/<uuid>.<ext>" }` |
+| `images.upload` | admin | `{ kind: players\|posts\|clubs\|locations, mime: image/jpeg\|png\|webp\|svg+xml, data: base64 }` | `{ url: "/api/media/<kind>/<uuid>.<ext>" }`; `BAD_REQUEST` for a type the kind does not allow, a size outside its limits, a mismatched signature, or an unsafe SVG ([Media](/architecture/media)) |
 | `images.delete` | admin | `{ url }` | `{ ok: true }`; `BAD_REQUEST` for a URL that is not a media key |
 
 Upload errors: `BAD_REQUEST` for an image under 1 KB, over 5 MB, or whose bytes
@@ -175,7 +177,6 @@ do not match `mime`. See [Media](/architecture/media).
 | Procedure | Access | Output |
 | --------- | ------ | ------ |
 | `stats.counts` | admin | Row counts of players, posts, announcements, events, tournaments, circuits, School Games results, and clubs |
-| `security.rateLimitStats` | admin | `{ rows, oldestWindowStart, newestWindowStart }` of the `rate_limits` table |
 | `cache.status` | admin | `{ purgeConfigured }` |
 | `cache.purgePublic` | admin | Purges the zone cache; `PRECONDITION_FAILED` when the zone ID or purge token is missing |
 | `seed.run` | admin | No-op kept for compatibility; returns `{ seeded: true }`. Seed locally with `bun run db:seed`. |

@@ -10,7 +10,7 @@ Every request reaches the same Worker. TanStack Start routes it by path:
 | Path              | Handler | Notes |
 | ----------------- | ------- | ----- |
 | `/api/trpc/*`     | `packages/api/src/trpc-handler.ts` | GET queries (edge-cached when public) and POST mutations. |
-| `/api/auth/*`     | `apps/web/src/routes/api/auth/$.ts` | Better Auth, behind an origin check and D1-backed rate limits. |
+| `/api/auth/*`     | `apps/web/src/routes/api/auth/$.ts` | Better Auth, behind an origin check and native rate limits. |
 | `/api/media/*`    | `packages/api/src/media-handler.ts` | Images streamed from R2. |
 | `/sitemap.xml`    | `apps/web/src/routes/sitemap[.]xml.ts` | Built from D1, stored in the Cache API for one hour. |
 | everything else   | TanStack Start SSR | Page routes under `apps/web/src/routes`. |

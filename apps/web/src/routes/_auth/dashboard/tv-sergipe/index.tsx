@@ -21,6 +21,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { RowLink } from "@/components/data-table/row-link";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
@@ -53,7 +54,7 @@ function RouteComponent() {
     {
       accessorKey: "club",
       header: ({ column }) => <DataTableColumnHeader column={column} title="School" />,
-      cell: ({ row }) => <span className="font-medium">{row.original.club?.name ?? "—"}</span>,
+      cell: ({ row }) => <RowLink to="/dashboard/tv-sergipe/$id" id={row.original.id}>{row.original.club?.name ?? "—"}</RowLink>,
     },
     {
       accessorKey: "ageGroup",
@@ -98,6 +99,7 @@ function RouteComponent() {
           id={row.original.id}
           isDeleting={deleteMutation.isPending}
           editTo="/dashboard/tv-sergipe/$id"
+          noun="result"
           onDelete={() => deleteMutation.mutate({ id: row.original.id })}
         />
       ),
@@ -108,7 +110,7 @@ function RouteComponent() {
     <div>
       <AdminPageHeader
         title="TV Sergipe"
-        description="Jogos Schoolres TV Sergipe results."
+        description="TV Sergipe School Games results by school, category, and modality."
         actions={
           <div className="flex gap-2">
             <Button disabled={deleteAllMutation.isPending} variant="destructive" onClick={() => setConfirmDeleteAll(true)}>
@@ -133,7 +135,7 @@ function RouteComponent() {
       <AlertDialog open={confirmDeleteAll} onOpenChange={setConfirmDeleteAll}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete all os resultados?</AlertDialogTitle>
+            <AlertDialogTitle>Delete every School Games result?</AlertDialogTitle>
             <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -11,7 +11,10 @@ import {
   ZapIcon,
   CrownIcon,
   Medal01Icon,
+  RabbitIcon,
+  Loading01Icon,
   TrainIcon,
+  SwordsIcon
 } from "@hugeicons/core-free-icons";
 
 import { columns } from "@/components/sheets/player/columns";
@@ -35,11 +38,11 @@ import { avatarGradient, avatarGradientFor } from "@/components/avatar-gradient"
 
 function FormatPodium(place: number | null | undefined, championship_id: number) {
   if (place === 1 && championship_id === 1) {
-    return <HugeiconsIcon icon={TrainIcon} className="size-4" />;
+    return <HugeiconsIcon icon={Loading01Icon} className="size-4" />;
   }
 
   if (place === 1 && championship_id === 2) {
-    return <HugeiconsIcon icon={TrainIcon} className="size-4" />;
+    return <HugeiconsIcon icon={RabbitIcon} className="size-4" />;
   }
 
   if (place === 1 && championship_id === 3) {
@@ -51,7 +54,7 @@ function FormatPodium(place: number | null | undefined, championship_id: number)
   }
 
   if (place === 1 && championship_id === 5) {
-    return <HugeiconsIcon icon={ZapIcon} className="size-4" />;
+    return <HugeiconsIcon icon={SwordsIcon} className="size-4" />;
   }
 
   if (place === 1 && championship_id === 6) {
@@ -77,7 +80,7 @@ function formatDefendingChampions(championship: string) {
     return (
       <Popover>
         <PopoverTrigger aria-label="Atual campeão Sergipano Absoluto" className="rounded-md bg-accent p-2 text-accent-foreground">
-          <HugeiconsIcon icon={TrainIcon} className="size-4" />
+          <HugeiconsIcon icon={Loading01Icon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Absoluto</PopoverContent>
       </Popover>
@@ -88,7 +91,7 @@ function formatDefendingChampions(championship: string) {
     return (
       <Popover>
         <PopoverTrigger aria-label="Atual campeão Sergipano Rápido" className="rounded-md bg-accent p-2 text-accent-foreground">
-          <HugeiconsIcon icon={TrainIcon} className="size-4" />
+          <HugeiconsIcon icon={RabbitIcon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Rápido</PopoverContent>
       </Popover>
@@ -121,7 +124,7 @@ function formatDefendingChampions(championship: string) {
     return (
       <Popover>
         <PopoverTrigger aria-label="Atual campeão Sergipano Equipes" className="rounded-md bg-accent p-2 text-accent-foreground">
-          <HugeiconsIcon icon={ZapIcon} className="size-4" />
+          <HugeiconsIcon icon={SwordsIcon} className="size-4" />
         </PopoverTrigger>
         <PopoverContent>Atual campeão Sergipano Equipes</PopoverContent>
       </Popover>
@@ -167,6 +170,7 @@ export interface PlayerById {
     place: number | null;
     tournament: {
       name: string;
+      date?: string | null;
       championshipId?: number | null;
     };
   }>;
@@ -187,7 +191,9 @@ export interface PlayerById {
 
 export function PlayerProfile({ player }: { player: PlayerById }) {
   const orderPodiums = React.useMemo(() => {
-    return player?.tournamentPodiums ? [...player.tournamentPodiums].reverse() : [];
+    return [...(player?.tournamentPodiums ?? [])].sort((a, b) =>
+      (b.tournament.date ?? "").localeCompare(a.tournament.date ?? ""),
+    );
   }, [player?.tournamentPodiums]);
 
   const tournaments = React.useMemo(() => {

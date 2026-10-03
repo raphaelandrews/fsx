@@ -1,84 +1,60 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useForm } from "@tanstack/react-form";
-import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
-import { Label } from "@fsx/ui/components/label";
-import { Textarea } from "@fsx/ui/components/textarea";
-import z from "zod";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { useTRPC } from "@/utils/trpc";
+import { EntityForm } from "@/components/admin/entity-form";
+import { AdminPageHeader } from "@/components/admin/page-header";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { FieldError } from "@/components/form/field-error";
+import { ANNOUNCEMENT_SECTIONS } from "@/lib/admin-forms";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/create")({
-  head: () => ({ meta: [{ title: "Create Announcement - Admin - FSX" }] }),
+  head: () => ({ meta: [{ title: "New announcement - Admin - FSX" }] }),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.announcements.list.queryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
+  const { data: announcements } = useSuspenseQuery(trpc.announcements.list.queryOptions());
+
+  const year = new Date().getFullYear();
+  const nextNumber =
+    announcements
+      .filter((announcement) => announcement.year === year)
+      .reduce((max, a) => Math.max(max, a.number), 0) + 1;
 
   const createMutation = useAdminMutation(trpc.announcements.create.mutationOptions(), {
     invalidates: "announcements",
     success: "Announcement created",
     failure: "Failed to create announcement",
-    onSuccess: () => { navigate({ to: "/dashboard/announcements" }); },
-  });
-
-  const form = useForm({
-    defaultValues: { year: new Date().getFullYear(), number: 0, content: "" },
-    onSubmit: ({ value }) => {
-      createMutation.mutate({ year: value.year, number: value.number, content: value.content });
-    },
-    validators: {
-      onSubmit: z.object({
-        year: z.number().int().min(2000),
-        number: z.number().int().min(1, "Number is required"),
-        content: z.string().min(1, "Content is required"),
-      }),
-    },
+    onSuccess: () => navigate({ to: "/dashboard/announcements" }),
   });
 
   return (
-    <div className="mx-auto max-w-lg">
-      <h1 className="mb-6 font-bold text-2xl">Create Announcement</h1>
-      <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
-        <form.Field name="year">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Year</Label>
-              <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
-              <FieldError field={f} error={createMutation.error} />
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="number">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Number</Label>
-              <Input id={f.name} type="number" value={String(f.state.value)} onBlur={f.handleBlur} onChange={(e) => f.handleChange(Number(e.target.value))} />
-              <FieldError field={f} error={createMutation.error} />
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="content">
-          {(f) => (
-            <div className="space-y-2">
-              <Label htmlFor={f.name}>Content</Label>
-              <Textarea id={f.name} rows={4} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} />
-              <FieldError field={f} error={createMutation.error} />
-            </div>
-          )}
-        </form.Field>
-        <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>
-              {isSubmitting ? "Creating..." : "Create Announcement"}
-            </Button>
-          )}
-        </form.Subscribe>
-      </form>
-    </div>
+    <>
+      <AdminPageHeader
+        backTo="/dashboard/announcements"
+        backLabel="Announcements"
+        title="New announcement"
+        description="The next number for this year is filled in for you."
+      />
+      <EntityForm
+        sections={ANNOUNCEMENT_SECTIONS}
+        defaultValues={{ year: String(year), number: String(nextNumber), content: "" }}
+        onSubmit={(values) =>
+          createMutation.mutate({
+            year: Number(values.year),
+            number: Number(values.number),
+            content: values.content!,
+          })
+        }
+        error={createMutation.error}
+        pending={createMutation.isPending}
+        submitLabel="Create announcement"
+        cancelTo="/dashboard/announcements"
+      />
+    </>
   );
 }

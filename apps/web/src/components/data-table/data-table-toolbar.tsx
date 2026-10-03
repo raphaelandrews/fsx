@@ -19,9 +19,9 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
   searchKey,
-  searchPlaceholder = "Buscar...",
+  searchPlaceholder = "Search...",
   createTo,
-  createLabel = "Novo",
+  createLabel = "New",
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -40,7 +40,7 @@ export function DataTableToolbar<TData>({
         ) : null}
         {isFiltered ? (
           <Button onClick={() => table.resetColumnFilters()} variant="outline">
-            Limpar
+            Clear
           </Button>
         ) : null}
       </div>

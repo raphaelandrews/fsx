@@ -4,14 +4,18 @@ import { z } from "zod";
 import { env } from "@fsx/env/server";
 
 import { adminProcedure, router } from "../index";
-import { base64ToBytes, hasImageSignature, IMAGE_MIMES, MAX_BASE64_LENGTH, MEDIA_KEY_PATTERN, MAX_IMAGE_BYTES, MIN_IMAGE_BYTES } from "../image-validation";
-
-
-function mimeToExt(mime: (typeof IMAGE_MIMES)[number]): string {
-  if (mime === "image/jpeg") return "jpg";
-  if (mime === "image/png") return "png";
-  return "webp";
-}
+import { base64ToBytes, decodeUtf8, hasImageSignature, MAX_BASE64_LENGTH } from "../image-validation";
+import {
+  formatBytes,
+  MEDIA_EXTENSIONS,
+  MEDIA_KEY_PATTERN,
+  MEDIA_KINDS,
+  MEDIA_MIMES,
+  MEDIA_POLICIES,
+  SVG_MIME,
+  type MediaMime,
+} from "../media-kinds";
+import { ensureSvgViewBox, findSvgProblem } from "../svg-safety";
 
 // Strip the public path back down to the object key so a stored relative URL
 // (e.g. `/api/media/players/uuid.webp`) can be deleted from R2.
@@ -27,30 +31,50 @@ export function urlToKey(url: string): string | null {
   }
 }
 
+/** Best-effort removal of an uploaded image; external URLs and missing objects are ignored. */
+export async function deleteMediaUrl(url: string | null | undefined): Promise<void> {
+  const key = url ? urlToKey(url) : null;
+  if (key) await env.IMAGES.delete(key).catch(() => {});
+}
+
+function badRequest(message: string): never {
+  throw new TRPCError({ code: "BAD_REQUEST", message });
+}
+
+function validatedBody(bytes: Uint8Array, mime: MediaMime): Uint8Array {
+  if (mime !== SVG_MIME) {
+    if (!hasImageSignature(bytes, mime)) badRequest("Image content does not match its type");
+    return bytes;
+  }
+  const source = decodeUtf8(bytes);
+  const problem = findSvgProblem(source);
+  if (problem) badRequest(problem);
+  return new TextEncoder().encode(ensureSvgViewBox(source));
+}
+
 export const imagesRouter = router({
   upload: adminProcedure
     .input(
       z.object({
-        kind: z.enum(["players", "posts"]),
-        mime: z.enum(IMAGE_MIMES),
-        // Base64-encoded image payload (cropped client-side, ~KB range).
+        kind: z.enum(MEDIA_KINDS),
+        mime: z.enum(MEDIA_MIMES),
+        // Base64 payload: cropped or downscaled client-side, or an SVG as-is.
         data: z.string().min(16).max(MAX_BASE64_LENGTH),
       }),
     )
     .mutation(async ({ input }) => {
-      const bytes = base64ToBytes(input.data);
-      if (bytes.byteLength < MIN_IMAGE_BYTES) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Image is too small" });
-      }
-      if (bytes.byteLength > MAX_IMAGE_BYTES) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Image is too large (max 5MB)" });
-      }
-      if (!hasImageSignature(bytes, input.mime)) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Image content does not match its type" });
-      }
+      const policy = MEDIA_POLICIES[input.kind];
+      if (!policy.mimes.includes(input.mime)) badRequest("This image type is not allowed here");
 
-      const key = `${input.kind}/${crypto.randomUUID()}.${mimeToExt(input.mime)}`;
-      await env.IMAGES.put(key, bytes, {
+      const bytes = base64ToBytes(input.data);
+      if (bytes.byteLength < policy.minBytes) badRequest("Image is too small");
+      if (bytes.byteLength > policy.maxBytes) {
+        badRequest(`Image is too large (max ${formatBytes(policy.maxBytes)})`);
+      }
+      const body = validatedBody(bytes, input.mime);
+
+      const key = `${input.kind}/${crypto.randomUUID()}.${MEDIA_EXTENSIONS[input.mime]}`;
+      await env.IMAGES.put(key, body, {
         httpMetadata: { contentType: input.mime },
       });
 

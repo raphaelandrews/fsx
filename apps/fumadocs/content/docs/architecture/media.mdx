@@ -1,29 +1,72 @@
 ---
 title: Media
-description: Image upload, R2 storage, URL format, replacement, and cleanup.
+description: Image upload, R2 storage, SVG safety, URL format, replacement, and cleanup.
 ---
 
-Player photos and post images live in the R2 bucket bound as `IMAGES`. Club
-logos and location flags are external `https` URLs entered by hand.
+Player photos, post images, club logos, and location flags live in the R2
+bucket bound as `IMAGES`. Each upload kind has a policy in
+`packages/api/src/media-kinds.ts`, shared by the upload procedure and the admin
+upload control:
+
+| Kind | Used for | Types | Size | Browser processing |
+| ---- | -------- | ----- | ---- | ------------------ |
+| `players` | `players.imageUrl` | JPEG, PNG, WebP | 1 KB – 5 MB | Cropped to a fixed aspect, encoded as WebP |
+| `posts` | `posts.imageUrl`, `cups.imageUrl` | JPEG, PNG, WebP | 1 KB – 5 MB | Cropped to a fixed aspect, encoded as WebP |
+| `clubs` | `clubs.logoUrl` | SVG, JPEG, PNG, WebP | 64 B – 512 KB | Raster downscaled to fit 256 px (aspect and transparency kept); SVG uploaded as-is |
+| `locations` | `locations.flagUrl` | SVG, JPEG, PNG, WebP | 64 B – 512 KB | Same as `clubs` |
+
+Logos and flags render at 16–20 px, so they are never cropped: a flag keeps its
+own aspect ratio, and a vector file stays a vector.
 
 ## Upload
 
-1. The admin picks an image; the form crops it in the browser and encodes it as
-   base64.
-2. `images.upload` (admin only) receives `{ kind: "players" | "posts", mime, data }`.
-   It rejects images under the minimum size or over 5 MB, and checks that the
-   file signature matches the declared type (JPEG, PNG, or WebP).
-3. The object is stored under `<kind>/<uuid>.<ext>` with its content type.
-4. The procedure returns the relative URL `/api/media/<kind>/<uuid>.<ext>`, which
-   the form saves in `imageUrl`.
+1. The admin picks an image. Photos are cropped in the browser; logo and flag
+   rasters are downscaled; SVGs are checked with the same validator the server
+   uses, so an unsafe file is explained before it is sent.
+2. `images.upload` (admin only) receives `{ kind, mime, data }` with a base64
+   payload. It rejects a type the kind does not allow, sizes outside the kind's
+   limits, and raster content whose file signature does not match the declared
+   type (JPEG, PNG, or WebP).
+3. SVGs must be UTF-8 and pass the SVG check below. If the root `<svg>` has a
+   plain `width`/`height` but no `viewBox`, the server adds one so the drawing
+   scales inside a small `<img>` instead of being cropped.
+4. The object is stored under `<kind>/<uuid>.<ext>` with its content type.
+5. The procedure returns the relative URL `/api/media/<kind>/<uuid>.<ext>`.
 
-Image fields accept either a media path (`/api/media/...`) or an `http(s)` URL;
-older rows may still hold external URLs.
+Each field only accepts paths of its own kind (`imageUrl` takes `players` or
+`posts`; `logoUrl` takes `clubs`; `flagUrl` takes `locations`), plus `http(s)`
+URLs for older rows. A photo field never accepts an `.svg` path.
+
+## SVG safety
+
+SVG is markup and is served from the site's own origin. `<img>` never runs SVG
+scripts, but opening the file URL directly would render it as a document, so
+uploaded SVGs are restricted in two layers:
+
+- **On upload**, `findSvgProblem` (`packages/api/src/svg-safety.ts`) accepts only
+  static drawings. It parses tags with quoted attribute values (so a `>` inside
+  a value cannot hide the attributes after it) and rejects:
+  - elements outside an allowlist of shapes, text, gradients, filters, and
+    `<image>`/`<use>` (so no `<script>`, `<foreignObject>`, `<a>`, or animation
+    elements that can rewrite links);
+  - `on*` event handler attributes;
+  - links (`href`, `xlink:href`) other than `#fragment` or an embedded
+    PNG/JPEG/GIF/WebP `data:` image;
+  - CSS `@import`, `expression()`, `javascript:`, and `url()` that points
+    outside the file;
+  - `DOCTYPE`/`ENTITY` declarations, processing instructions other than the XML
+    declaration, and CDATA outside `<style>`.
+
+  Editor metadata (Inkscape, Illustrator, RDF) is allowed, because it is inert.
+- **On serve**, every `/api/media` response carries
+  `Content-Security-Policy: default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox`.
+  A directly opened SVG gets an opaque origin and cannot run scripts or load
+  anything, even if a file passed the upload check by mistake.
 
 ## Serving
 
 `GET /api/media/<key>` streams the object from R2 with its stored content type,
-an `ETag`, `X-Content-Type-Options: nosniff`, and
+an `ETag`, `X-Content-Type-Options: nosniff`, the sandbox CSP above, and
 `Cache-Control: public, max-age=31536000, immutable`. A matching `If-None-Match`
 returns `304` without reading the body. Missing keys and keys containing `..`
 return `404`.
@@ -34,7 +77,9 @@ safe: a replaced image always gets a new URL.
 ## Replacement and cleanup
 
 `usePendingImageDeletes` (`apps/web/src/hooks/use-pending-image-deletes.ts`)
-ties the R2 lifecycle to the form's save:
+ties the R2 lifecycle to the form's save. Player and post forms use it directly;
+club and location forms pass its `tracking` to `EntityForm`, whose `image` field
+renders the upload control.
 
 - The image a record pointed at before the edit is deleted only **after** the
   save succeeds, so cancelling an edit never breaks the record.
@@ -42,6 +87,10 @@ ties the R2 lifecycle to the form's save:
   a failed save, or an abandoned form) are deleted.
 - After a failed save, the upload currently in the form is kept so a retry still
   points at a live object.
+
+Deleting a post, club, or location also deletes its uploaded image. Clubs and
+locations delete the row first: when a player still references the record, the
+delete fails with `CONFLICT` and the image is kept.
 
 `images.delete` accepts a media URL, converts it back to its key, and deletes the
 object. Failed deletes are not retried; see the orphan check in the

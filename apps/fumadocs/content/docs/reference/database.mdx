@@ -30,7 +30,7 @@ The database is Cloudflare D1 (SQLite). The schema is defined with Drizzle in
 | `defending_champions` | `(player_id, championship_id)` | — |
 | `tournaments`, `cups` | `name` | `rating_type` in `blitz`, `rapid`, `classic`; `prize_pool` ≥ 0 |
 | `circuits` | `name` | `type` in `default`, `categories`, `school`, `geral` |
-| `circuit_podiums` | — | exactly one of `circuit_id`, `circuit_phase_id`; `points` 0–1000000; `place` null or 1–25; `category` null or a known category |
+| `circuit_podiums` | — | exactly one of `circuit_id`, `circuit_phase_id`; `points` 0–1000000; `place` null or 1–1000; `category` null or a known category |
 | `cup_brackets` | — | `bracket_type` in `UB`, `LB`, `GF` |
 | `cup_playoffs` | — | `phase_type` in a fixed list of upper/lower bracket phases and `Grande Final` |
 | `tv_sergipe` | individual `(player, age, sex)`; team `(club, age, sex, team_name)` | age group, sex, modality, team letter `A`–`J`, place 1–8, points 1–10; individual ↔ player, team ↔ team name |
@@ -71,14 +71,38 @@ Before adding an index, compare plans on production-sized data
 
 Never apply a migration with `sqlite3` or `wrangler d1 execute`: the tracker would
 not record it and the next run fails with `table … already exists`
-([ADR 0002](/decisions/0002-d1-migrations)). To change a constraint, SQLite
-rebuilds the table; Drizzle generates `PRAGMA foreign_keys=OFF` around the
-rebuild. Test such migrations with the [restore drill](/operations/runbook#restore-drill)
-against a production backup before deploying.
+([ADR 0002](/decisions/0002-d1-migrations)).
+
+### Rebuilding tables safely on D1
+
+Changing a constraint makes SQLite rebuild the table. Drizzle generates the
+rebuild between `PRAGMA foreign_keys=OFF` and `ON`, but **D1 applies each
+migration as one transaction with foreign keys enforced, so that PRAGMA does
+nothing.** Dropping a table that other tables reference then either fails
+(`RESTRICT`) or silently deletes child rows (`CASCADE`). `PRAGMA
+defer_foreign_keys = on` does not help: cascades still run.
+
+- **Leaf table** (nothing references it, e.g. `circuit_podiums`): Drizzle's
+  generated rebuild is safe as is.
+- **Referenced table** (e.g. `players`, `tournaments`, `clubs`): rewrite the
+  migration like `0021_blushing_stature.sql`: copy every affected table and
+  every table that references it to a plain `__bak_` copy, drop children before
+  parents, recreate parents before children, copy the rows back, recreate the
+  indexes, and drop the backups.
+
+`migrations.integration.test.ts` applies every migration the way production
+does (one transaction per file) to a database with rows in every table, checks
+that no row is lost, and fails if a new migration drops a referenced table.
+Before deploying a migration that rebuilds tables, also run the
+[pre-migration audit](/operations/runbook#deployment-order) and the
+[restore drill](/operations/runbook#restore-drill) against a fresh production
+backup.
 
 D1 specifics that shape the code:
 
 - No interactive transactions (`BEGIN` is rejected). Use `db.batch([...])`, which
   runs atomically.
+- Foreign keys are always enforced; `PRAGMA foreign_keys=OFF` has no effect in a
+  migration or batch.
 - A compound `SELECT` may have at most 5 terms.
 - Bound parameters per statement are limited; batch large inserts.

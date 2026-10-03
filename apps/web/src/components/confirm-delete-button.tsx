@@ -52,7 +52,7 @@ export function ConfirmDeleteButton({
           <AlertDialogHeader>
             <AlertDialogTitle>{title}</AlertDialogTitle>
             <AlertDialogDescription>
-              {description ?? `This cannot be undone.${itemName ? ` “${itemName}” will be permanently deleted.` : ""}`}
+              {description ?? `${itemName ? `“${itemName}” will be permanently deleted. ` : ""}This cannot be undone.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

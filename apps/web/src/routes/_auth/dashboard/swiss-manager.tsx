@@ -16,11 +16,9 @@ function RouteComponent() {
     <div>
       <AdminPageHeader
         title="Swiss Manager"
-        description="Generate Swiss Manager-compatible Excel files."
+        description="Export every player as a Swiss Manager-compatible Excel file. The file includes birth dates; keep it private."
       />
-      <div className="flex justify-center">
-        <SwissManagerExport />
-      </div>
+      <SwissManagerExport />
     </div>
   );
 }

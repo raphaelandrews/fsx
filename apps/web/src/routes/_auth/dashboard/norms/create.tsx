@@ -1,16 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useForm } from "@tanstack/react-form";
-import { Button } from "@fsx/ui/components/button";
-import { Input } from "@fsx/ui/components/input";
-import { Label } from "@fsx/ui/components/label";
-import z from "zod";
 
-import { useTRPC } from "@/utils/trpc";
+import { EntityForm } from "@/components/admin/entity-form";
+import { AdminPageHeader } from "@/components/admin/page-header";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { FieldError } from "@/components/form/field-error";
+import { NORM_SECTIONS } from "@/lib/admin-forms";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/norms/create")({
-  head: () => ({ meta: [{ title: "Create Norm - Admin - FSX" }] }),
+  head: () => ({ meta: [{ title: "New norm - Admin - FSX" }] }),
   component: RouteComponent,
 });
 
@@ -22,24 +19,26 @@ function RouteComponent() {
     invalidates: "norms",
     success: "Norm created",
     failure: "Failed to create norm",
-    onSuccess: () => { navigate({ to: "/dashboard/norms" }); },
-  });
-
-  const form = useForm({
-    defaultValues: { name: "" },
-    onSubmit: ({ value }) => { createMutation.mutate({ name: value.name }); },
-    validators: { onSubmit: z.object({ name: z.string().min(1, "Norm is required") }) },
+    onSuccess: () => navigate({ to: "/dashboard/norms" }),
   });
 
   return (
-    <div className="mx-auto max-w-lg">
-      <h1 className="mb-6 font-bold text-2xl">Create Norm</h1>
-      <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-4">
-        <form.Field name="name">{(f) => (<div className="space-y-2"><Label htmlFor={f.name}>Norm</Label><Input id={f.name} value={f.state.value} onBlur={f.handleBlur} onChange={(e) => f.handleChange(e.target.value)} /><FieldError field={f} error={createMutation.error} /></div>)}</form.Field>
-        <form.Subscribe selector={(s) => ({ canSubmit: s.canSubmit, isSubmitting: s.isSubmitting })}>
-          {({ canSubmit, isSubmitting }) => <Button type="submit" disabled={!canSubmit || isSubmitting || createMutation.isPending}>{isSubmitting || createMutation.isPending ? "Creating..." : "Create Norm"}</Button>}
-        </form.Subscribe>
-      </form>
-    </div>
+    <>
+      <AdminPageHeader
+        backTo="/dashboard/norms"
+        backLabel="Norms"
+        title="New norm"
+        description="Add a norm toward a state title."
+      />
+      <EntityForm
+        sections={NORM_SECTIONS}
+        defaultValues={{ name: "" }}
+        onSubmit={(values) => createMutation.mutate({ name: values.name! })}
+        error={createMutation.error}
+        pending={createMutation.isPending}
+        submitLabel="Create norm"
+        cancelTo="/dashboard/norms"
+      />
+    </>
   );
 }

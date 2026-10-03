@@ -10,6 +10,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { RowLink } from "@/components/data-table/row-link";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
@@ -35,7 +36,7 @@ function RouteComponent() {
     {
       accessorKey: "name",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
-      cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
+      cell: ({ row }) => <RowLink to="/dashboard/locations/$id" id={row.original.id}>{row.getValue("name")}</RowLink>,
     },
     {
       accessorKey: "type",
@@ -49,6 +50,7 @@ function RouteComponent() {
           id={row.original.id}
           isDeleting={deleteMutation.isPending}
           editTo="/dashboard/locations/$id"
+          noun="location"
           onDelete={() => deleteMutation.mutate({ id: row.original.id })}
           displayName={row.original.name}
         />

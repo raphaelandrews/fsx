@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useTRPCClient } from "@/utils/trpc";
 
@@ -67,5 +67,11 @@ export function usePendingImageDeletes() {
     };
   }, [discard]);
 
-  return { trackReplaced, trackCreated, commit, discard };
+  // The shape `EntityForm` takes for its `image` fields.
+  const tracking = useMemo(
+    () => ({ onImageReplaced: trackReplaced, onImageUploaded: trackCreated }),
+    [trackReplaced, trackCreated],
+  );
+
+  return { trackReplaced, trackCreated, tracking, commit, discard };
 }

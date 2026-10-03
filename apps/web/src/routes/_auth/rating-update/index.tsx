@@ -26,6 +26,7 @@ import type { RatingUpdateProps } from "@/components/rating-update/rating-update
 import { getErrorCode, getUserErrorMessage, showMutationError } from "@/lib/errors";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
 import { toIsoDate } from "@/utils/format";
+import { AdminPageHeader } from "@/components/admin/page-header";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -512,115 +513,128 @@ function RatingUpdatePage() {
   const hasLogs = successLog.length > 0 || errorLog.length > 0;
 
   return (
-    <div className="relative h-[calc(100dvh-4rem)] overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(var(--muted),transparent_1px)] [background-size:16px_16px]" />
-
-      <RatingUpdateMonitor
-        animationState={animationState}
-        currentIndex={currentIndex}
-        statusText={statusText}
-        totalUpdates={totalUpdates}
+    <>
+      <AdminPageHeader
+        backTo="/dashboard"
+        backLabel="Dashboard"
+        title="Rating update"
+        description="Apply tournament rating variations from a Swiss Manager Excel export. To fix a result afterwards, use the player's Rating history."
       />
+      <div className="relative h-[calc(100dvh-15rem)] min-h-[34rem] overflow-hidden rounded-xl">
+        <div className="absolute inset-0 bg-[radial-gradient(var(--muted),transparent_1px)] [background-size:16px_16px]" />
 
-      {!isRunning && !hasLogs && (
-        <div className="absolute top-[40%] left-1/2 w-full max-w-lg -translate-x-1/2 rounded-xl bg-background p-6 shadow-md">
-          <h2 className="mb-2 font-medium">Select Excel File</h2>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => fileRef.current?.click()}>
-              Choose File
-            </Button>
-            <span className="text-sm text-muted-foreground">{file?.name ?? "No file chosen"}</span>
-            <input
-              type="file"
-              aria-label="Excel file"
-              className="sr-only"
-              accept=".xls,.xlsx"
-              ref={fileRef}
-              onChange={(e) => {
-                const f = e.target.files?.[0] ?? null;
-                if (f) {
-                  const ext = f.name.substring(f.name.lastIndexOf(".")).toLowerCase();
-                  if (![".xlsx", ".xls"].includes(ext)) {
-                    toast.error("Only Excel files (.xlsx, .xls) are allowed.");
-                    setFile(null);
-                    return;
+        <RatingUpdateMonitor
+          animationState={animationState}
+          currentIndex={currentIndex}
+          statusText={statusText}
+          totalUpdates={totalUpdates}
+        />
+
+        {!isRunning && !hasLogs && (
+          <div className="absolute top-[40%] left-1/2 w-full max-w-lg -translate-x-1/2 rounded-xl bg-background p-6 shadow-md">
+            <h2 className="mb-2 font-medium">Select Excel File</h2>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => fileRef.current?.click()}>
+                Choose File
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {file?.name ?? "No file chosen"}
+              </span>
+              <input
+                type="file"
+                aria-label="Excel file"
+                className="sr-only"
+                accept=".xls,.xlsx"
+                ref={fileRef}
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  if (f) {
+                    const ext = f.name.substring(f.name.lastIndexOf(".")).toLowerCase();
+                    if (![".xlsx", ".xls"].includes(ext)) {
+                      toast.error("Only Excel files (.xlsx, .xls) are allowed.");
+                      setFile(null);
+                      return;
+                    }
                   }
-                }
-                setFile(f);
-                setMotionGridStatus(f ? `File loaded: ${f.name}` : "File input cleared", "add");
-              }}
-            />
+                  setFile(f);
+                  setMotionGridStatus(f ? `File loaded: ${f.name}` : "File input cleared", "add");
+                }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Columns: id, name, birth, sex, clubId, locationId, tournamentId, variation, ratingType
+            </p>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Columns: id, name, birth, sex, clubId, locationId, tournamentId, variation, ratingType
-          </p>
-        </div>
-      )}
+        )}
 
-      {hasLogs && (
-        <div className="absolute top-[18%] left-1/2 flex -translate-x-1/2 gap-6">
-          <div className="flex flex-col items-center gap-3">
-            <LogTitle title="Success log" length={successLog.length} success />
-            <RatingUpdateLogs
-              updates={successLog.slice(
-                (successPage - 1) * ITEMS_PER_PAGE,
-                successPage * ITEMS_PER_PAGE,
+        {hasLogs && (
+          <div className="absolute top-[18%] left-1/2 flex -translate-x-1/2 gap-6">
+            <div className="flex flex-col items-center gap-3">
+              <LogTitle title="Success log" length={successLog.length} success />
+              <RatingUpdateLogs
+                updates={successLog.slice(
+                  (successPage - 1) * ITEMS_PER_PAGE,
+                  successPage * ITEMS_PER_PAGE,
+                )}
+              />
+              {successTotalPages > 1 && (
+                <LogPagination
+                  currentPage={successPage}
+                  totalPages={successTotalPages}
+                  onPageChange={setSuccessPage}
+                />
               )}
-            />
-            {successTotalPages > 1 && (
-              <LogPagination
-                currentPage={successPage}
-                totalPages={successTotalPages}
-                onPageChange={setSuccessPage}
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <LogTitle title="Error log" length={errorLog.length} success={false} />
+              <RatingUpdateLogs
+                updates={errorLog.slice(
+                  (errorPage - 1) * ITEMS_PER_PAGE,
+                  errorPage * ITEMS_PER_PAGE,
+                )}
               />
-            )}
+              {errorTotalPages > 1 && (
+                <LogPagination
+                  currentPage={errorPage}
+                  totalPages={errorTotalPages}
+                  onPageChange={setErrorPage}
+                />
+              )}
+            </div>
           </div>
-          <div className="flex flex-col items-center gap-3">
-            <LogTitle title="Error log" length={errorLog.length} success={false} />
-            <RatingUpdateLogs
-              updates={errorLog.slice((errorPage - 1) * ITEMS_PER_PAGE, errorPage * ITEMS_PER_PAGE)}
-            />
-            {errorTotalPages > 1 && (
-              <LogPagination
-                currentPage={errorPage}
-                totalPages={errorTotalPages}
-                onPageChange={setErrorPage}
-              />
-            )}
-          </div>
-        </div>
-      )}
+        )}
 
-      <RatingUpdateToolbar
-        hasLogs={hasLogs}
-        isRunning={isRunning}
-        onClearFile={clearFile}
-        onClearHistory={() => setShowClearConfirm(true)}
-        onRun={handleProcess}
-        onStop={() => {
-          abortRef.current = true;
-          setIsRunning(false);
-          setMotionGridStatus("Stopped", "stop");
-        }}
-        selectedFileName={file?.name ?? null}
-      />
+        <RatingUpdateToolbar
+          hasLogs={hasLogs}
+          isRunning={isRunning}
+          onClearFile={clearFile}
+          onClearHistory={() => setShowClearConfirm(true)}
+          onRun={handleProcess}
+          onStop={() => {
+            abortRef.current = true;
+            setIsRunning(false);
+            setMotionGridStatus("Stopped", "stop");
+          }}
+          selectedFileName={file?.name ?? null}
+        />
 
-      <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your success and error
-              history from local storage.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={clearHistory}>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your success and error
+                history from local storage.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={clearHistory}>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </>
   );
 }
 

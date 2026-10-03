@@ -1,7 +1,4 @@
 import { env } from "@fsx/env/server";
-import { sql } from "drizzle-orm";
-
-import { createDb } from "@fsx/db";
 
 import { isTrustedOrigin } from "./request-origin";
 
@@ -24,8 +21,9 @@ export function isTrustedRequest(request: Request, options?: { requireOrigin?: b
 }
 
 export interface RateLimitConfig {
-  windowMs: number;
-  max: number;
+  binding: "PUBLIC_READ_RATE_LIMIT" | "AUTH_MUTATION_RATE_LIMIT" | "AUTH_READ_RATE_LIMIT" | "TRPC_MUTATION_RATE_LIMIT";
+  limit: number;
+  period: number;
 }
 
 export interface RateLimitResult {
@@ -35,52 +33,30 @@ export interface RateLimitResult {
   retryAfter: number;
 }
 
+// Each entry mirrors a RateLimit binding in packages/infra/alchemy.run.ts.
 export const RATE_LIMITS = {
-  authMutation: { windowMs: 60_000, max: 20 },
-  authQuery: { windowMs: 60_000, max: 120 },
-  trpcMutation: { windowMs: 60_000, max: 300 },
-} as const;
+  uncachedRead: { binding: "PUBLIC_READ_RATE_LIMIT", limit: 600, period: 60 },
+  authMutation: { binding: "AUTH_MUTATION_RATE_LIMIT", limit: 20, period: 60 },
+  authQuery: { binding: "AUTH_READ_RATE_LIMIT", limit: 120, period: 60 },
+  trpcMutation: { binding: "TRPC_MUTATION_RATE_LIMIT", limit: 300, period: 60 },
+} as const satisfies Record<string, RateLimitConfig>;
 
-// Mirrors the PUBLIC_READ_RATE_LIMIT binding in packages/infra/alchemy.run.ts.
-export const UNCACHED_READ_LIMIT = { period: 60, limit: 600 } as const;
-
-// Uncached reads use Cloudflare's native limiter instead of D1 so the hot read
-// path never adds a database write. Its counters are per location and
-// approximate, which is acceptable for abuse protection but not for auth.
-export async function limitUncachedRead(request: Request): Promise<RateLimitResult> {
-  const limiter: RateLimit | undefined = env.PUBLIC_READ_RATE_LIMIT;
-  const { success } = limiter
-    ? await limiter.limit({ key: `trpc-read:${getClientIp(request)}` })
-    : { success: true };
+// Cloudflare's native limiter keeps request checks off D1, whose daily write
+// quota is reserved for admin edits. Counters are per location and approximate,
+// which still stops a single client hammering an endpoint.
+export async function rateLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
+  const limiter: RateLimit | undefined = env[config.binding];
+  const { success } = limiter ? await limiter.limit({ key }) : { success: true };
   return {
     ok: success,
-    limit: UNCACHED_READ_LIMIT.limit,
+    limit: config.limit,
     remaining: 0,
-    retryAfter: UNCACHED_READ_LIMIT.period,
+    retryAfter: config.period,
   };
 }
 
-export async function rateLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
-  const db = createDb(env.DB);
-  const now = Date.now();
-  const windowStart = Math.floor(now / config.windowMs) * config.windowMs;
-  const resetAt = windowStart + config.windowMs;
-
-  const row = await db.get(
-    sql`
-      INSERT INTO rate_limits (key, window_start, count)
-      VALUES (${key}, ${windowStart}, 1)
-      ON CONFLICT(key, window_start) DO UPDATE SET count = count + 1
-      RETURNING count
-    `,
-  );
-
-  const count = (row as { count?: number } | undefined)?.count ?? 1;
-  const remaining = Math.max(0, config.max - count);
-  const ok = count <= config.max;
-  const retryAfter = Math.max(1, Math.ceil((resetAt - now) / 1000));
-
-  return { ok, limit: config.max, remaining, retryAfter };
+export function limitUncachedRead(request: Request): Promise<RateLimitResult> {
+  return rateLimit(`trpc-read:${getClientIp(request)}`, RATE_LIMITS.uncachedRead);
 }
 
 export function rateLimitedResponse(result: RateLimitResult): Response {

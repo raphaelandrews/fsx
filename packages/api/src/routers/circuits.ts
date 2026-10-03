@@ -24,7 +24,7 @@ const podiumInput = z.object({
   circuitId: positiveInt.nullable().optional(),
   circuitPhaseId: positiveInt.nullable().optional(),
   category: z.enum(CIRCUIT_CATEGORIES).nullable().optional(),
-  place: positiveInt.max(25).nullable().optional(),
+  place: positiveInt.max(1000).nullable().optional(),
   points,
 });
 

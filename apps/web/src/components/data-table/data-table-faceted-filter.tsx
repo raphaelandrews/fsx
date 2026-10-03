@@ -32,6 +32,8 @@ import {
 } from "@fsx/ui/components/popover"
 import { Separator } from "@fsx/ui/components/separator"
 
+import { useTableText } from "@/lib/table-text"
+
 interface DataTableFacetedFilterOption {
   label: string
   value: string
@@ -59,6 +61,7 @@ export function DataTableFacetedFilter({
   singleSelect = false,
   className,
 }: DataTableFacetedFilterProps) {
+  const text = useTableText()
   const selectedValues = new Set(value)
   const selectedCount = selectedValues.size
 
@@ -117,7 +120,7 @@ export function DataTableFacetedFilter({
         <Command className="rounded-none! p-0">
           <CommandInput placeholder={title} />
           <CommandList>
-            <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
+            <CommandEmpty>{text.noResults}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value)
@@ -176,7 +179,7 @@ export function DataTableFacetedFilter({
                       icon={Cancel01Icon}
                       strokeWidth={2}
                     />
-                    Limpar filtros
+                    {text.clearFilters}
                   </CommandItem>
                 </CommandGroup>
               </>

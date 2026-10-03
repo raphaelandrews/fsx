@@ -1,81 +1,94 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Button } from "@fsx/ui/components/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@fsx/ui/components/table";
+import type { ColumnDef } from "@tanstack/react-table";
 
-import { useTRPC } from "@/utils/trpc";
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { buttonVariants } from "@fsx/ui/components/button";
+
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { EmptyCollection } from "@/components/admin/empty-collection";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { RowLink } from "@/components/data-table/row-link";
 import { useAdminMutation } from "@/lib/admin-mutations";
-
-const TITLE = "Championships";
-const PATH = "/dashboard/championships";
-const DOMAIN = "champions";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/championships/")({
-  head: () => ({ meta: [{ title: `${TITLE} - Admin - FSX` }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.champions.list.queryOptions()),
+  head: () => ({ meta: [{ title: "Championships - Admin - FSX" }] }),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.champions.list.queryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const { data: items = [] } = useSuspenseQuery(trpc[DOMAIN].list.queryOptions());
+  const { data } = useSuspenseQuery(trpc.champions.list.queryOptions());
 
-  const deleteMutation = useAdminMutation(trpc[DOMAIN].delete.mutationOptions(), {
-    invalidates: DOMAIN,
+  const deleteMutation = useAdminMutation(trpc.champions.delete.mutationOptions(), {
+    invalidates: "champions",
     success: "Championship deleted",
     failure: "Failed to delete championship",
   });
 
+  const columns: ColumnDef<(typeof data)[number]>[] = [
+    {
+      accessorKey: "id",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+      cell: ({ row }) => <span className="tabular-nums">{row.original.id}</span>,
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+      cell: ({ row }) => (
+        <RowLink to="/dashboard/championships/$id" id={row.original.id}>
+          {row.original.name}
+        </RowLink>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">Actions</span>,
+      cell: ({ row }) => (
+        <DataTableRowActions
+          id={row.original.id}
+          editTo="/dashboard/championships/$id"
+          noun="championship"
+          displayName={row.original.name}
+          isDeleting={deleteMutation.isPending}
+          onDelete={() => deleteMutation.mutate({ id: row.original.id })}
+        />
+      ),
+    },
+  ];
+
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">{TITLE}</h1>
-        <Link to={`${PATH}/create`}><Button>Create</Button></Link>
-      </div>
-      <div className="overflow-x-auto rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.length ? items.map((item: { id: number; name: string }) => (
-              <TableRow key={item.id}>
-                <TableCell className="tabular-nums">{item.id}</TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Link to={`${PATH}/$id`} params={{ id: item.id }}><Button size="sm" variant="outline">Edit</Button></Link>
-                    <ConfirmDeleteButton
-                      itemName={item.name}
-                      label="Delete"
-                      pending={deleteMutation.isPending}
-                      onConfirm={() => deleteMutation.mutate({ id: item.id })}
-                    />
-                  </div>
-                </TableCell>
-              </TableRow>
-            )) : (
-              <TableRow>
-                <TableCell className="h-24 text-center text-muted-foreground" colSpan={3}>
-                  No championships yet. Create one to start recording title holders.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+    <>
+      <AdminPageHeader
+        title="Championships"
+        description="Recurring competitions. Their tournaments' podiums feed the champions gallery."
+        actions={
+          <Link to="/dashboard/championships/create" className={buttonVariants()}>
+            New championship
+          </Link>
+        }
+      />
+      <DataTable
+        columns={columns}
+        data={data}
+        emptyState={
+          <EmptyCollection noun="championships" createTo="/dashboard/championships/create" />
+        }
+        toolbar={(table) => (
+          <DataTableToolbar
+            table={table}
+            searchKey="name"
+            searchPlaceholder="Search championship..."
+          />
+        )}
+        pagination={(table) => <DataTablePagination table={table} />}
+      />
+    </>
   );
 }

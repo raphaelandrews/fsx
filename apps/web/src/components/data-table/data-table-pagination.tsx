@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@fsx/ui/components/select"
 import { cn } from "@fsx/ui/lib/utils"
+import { useTableText } from "@/lib/table-text"
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>
@@ -124,6 +125,7 @@ function PageButton({
 }
 
 function Ellipsis({ keyId }: { keyId: "start" | "end" }) {
+  const text = useTableText()
   return (
     <span
       aria-hidden
@@ -135,7 +137,7 @@ function Ellipsis({ keyId }: { keyId: "start" | "end" }) {
         icon={MoreHorizontalCircle01Icon}
         strokeWidth={2}
       />
-      <span className="sr-only">Mais páginas</span>
+      <span className="sr-only">{text.morePages}</span>
     </span>
   )
 }
@@ -145,6 +147,7 @@ export function DataTablePagination<TData>({
   pageSizeOptions = [10, 20, 30, 40, 50],
   className,
 }: DataTablePaginationProps<TData>) {
+  const text = useTableText()
   const currentPage = table.getState().pagination.pageIndex + 1
   const totalPages = table.getPageCount() || 1
 
@@ -156,7 +159,7 @@ export function DataTablePagination<TData>({
 
   return (
     <nav
-      aria-label="Paginação"
+      aria-label={text.pagination}
       className={cn(
         "flex flex-col items-center gap-3 sm:flex-row sm:justify-between sm:gap-3",
         className
@@ -164,13 +167,13 @@ export function DataTablePagination<TData>({
     >
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <label className="text-xs text-muted-foreground">
-          Linhas por página
+          {text.rowsPerPage}
         </label>
         <Select
           onValueChange={(value) => table.setPageSize(Number(value))}
           value={`${table.getState().pagination.pageSize}`}
         >
-          <SelectTrigger className="h-8 w-[70px]" aria-label="Linhas por página">
+          <SelectTrigger className="h-8 w-[70px]" aria-label={text.rowsPerPage}>
             <SelectValue placeholder={table.getState().pagination.pageSize} />
           </SelectTrigger>
           <SelectContent side="top">
@@ -185,7 +188,7 @@ export function DataTablePagination<TData>({
 
       <div className="flex items-center gap-1">
         <Button
-          aria-label="Primeira página"
+          aria-label={text.firstPage}
           className="hidden sm:inline-flex"
           disabled={!table.getCanPreviousPage()}
           onClick={() => goto(1)}
@@ -200,7 +203,7 @@ export function DataTablePagination<TData>({
         </Button>
 
         <Button
-          aria-label="Página anterior"
+          aria-label={text.previousPage}
           className="gap-1.5 px-2.5"
           disabled={!table.getCanPreviousPage()}
           onClick={() => table.previousPage()}
@@ -212,7 +215,7 @@ export function DataTablePagination<TData>({
             icon={ArrowLeft01Icon}
             strokeWidth={2}
           />
-          <span className="hidden sm:inline">Anterior</span>
+          <span className="hidden sm:inline">{text.previous}</span>
         </Button>
 
         <div className="hidden items-center gap-1 sm:flex">
@@ -231,14 +234,14 @@ export function DataTablePagination<TData>({
         </div>
 
         <Button
-          aria-label="Próxima página"
+          aria-label={text.nextPage}
           className="gap-1.5 px-2.5"
           disabled={!table.getCanNextPage()}
           onClick={() => table.nextPage()}
           size="default"
           variant="outline"
         >
-          <span className="hidden sm:inline">Próxima</span>
+          <span className="hidden sm:inline">{text.next}</span>
           <HugeiconsIcon
             className="size-4"
             icon={ArrowRight01Icon}
@@ -247,7 +250,7 @@ export function DataTablePagination<TData>({
         </Button>
 
         <Button
-          aria-label="Última página"
+          aria-label={text.lastPage}
           className="hidden sm:inline-flex"
           disabled={!table.getCanNextPage()}
           onClick={() => goto(totalPages)}

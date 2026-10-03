@@ -64,12 +64,14 @@ beforeAll(async () => {
       return { ...metadata, body: new Blob([await arrayBuffer.call(object)]).stream() };
     },
   };
-  testEnv.PUBLIC_READ_RATE_LIMIT = {
+  const limiter = {
     limit: async ({ key }: { key: string }) => {
       limiterCalls.push(key);
       return { success: limiterAllows };
     },
   };
+  testEnv.PUBLIC_READ_RATE_LIMIT = limiter;
+  testEnv.TRPC_MUTATION_RATE_LIMIT = limiter;
   dispose = () => miniflare.dispose();
 
   const db = createDb(binding);
@@ -81,6 +83,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   delete testEnv.PUBLIC_READ_RATE_LIMIT;
+  delete testEnv.TRPC_MUTATION_RATE_LIMIT;
   delete (globalThis as { caches?: unknown }).caches;
   await dispose();
 });
@@ -297,6 +300,18 @@ describe("tRPC fetch handler: batching and sessions", () => {
     }));
     expect(anonymous.status).toBe(401);
   });
+
+  test("rejects mutations over the limit before running them", async () => {
+    limiterAllows = false;
+    const response = await handleTrpcRequest(new Request(`${ORIGIN}/api/trpc/norms.create`, {
+      method: "POST",
+      headers: { Origin: ORIGIN, cookie: ownerCookie, "CF-Connecting-IP": "203.0.113.7", "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Norma limitada" }),
+    }));
+    expect(response.status).toBe(429);
+    expect(response.headers.get("Retry-After")).toBe("60");
+    expect(limiterCalls).toEqual(["trpc:203.0.113.7"]);
+  });
 });
 
 describe("media fetch handler", () => {
@@ -311,6 +326,9 @@ describe("media fetch handler", () => {
     const first = await handleMediaRequest(new Request(`${ORIGIN}/api/media/${MEDIA_KEY}`));
     expect(first.status).toBe(200);
     expect(first.headers.get("Content-Type")).toBe("image/webp");
+    // Uploaded SVGs open as sandboxed documents if visited directly.
+    expect(first.headers.get("Content-Security-Policy")).toContain("sandbox");
+    expect(first.headers.get("Content-Security-Policy")).toContain("default-src 'none'");
     const etag = first.headers.get("ETag");
     expect(etag).toBeTruthy();
 

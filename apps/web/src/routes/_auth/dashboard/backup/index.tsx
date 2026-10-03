@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { FormSection } from "@/components/admin/form-layout";
+import { AdminPageHeader } from "@/components/admin/page-header";
 
 export const Route = createFileRoute("/_auth/dashboard/backup/")({
   head: () => ({ meta: [{ title: "Backup - Admin - FSX" }] }),
@@ -24,11 +26,11 @@ function Code({ children }: { children: string }) {
 
 function RouteComponent() {
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="mb-6 font-bold text-2xl">Backup</h1>
+    <>
+      <AdminPageHeader title="Backup" description="Export, verify, and restore the D1 database. Backups run from your machine, not from the dashboard." />
+      <div className="divide-y">
 
-      <div className="mb-6 rounded-md border p-4">
-        <h2 className="mb-2 font-semibold">Full backup (SQL + CSV)</h2>
+        <FormSection title="Full backup (SQL + CSV)">
         <p className="mb-3 text-muted-foreground text-sm">
           One command exports the entire remote database into a timestamped folder under{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-foreground">~/Backups</code>, as a full SQL dump plus
@@ -64,20 +66,18 @@ function RouteComponent() {
           database is briefly blocked while the export runs. The script lives at{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-foreground">scripts/d1-backup.sh</code>.
         </p>
-      </div>
+        </FormSection>
 
-      <div className="mb-6 rounded-md border p-4">
-        <h2 className="mb-2 font-semibold">Verify and restore to staging</h2>
+        <FormSection title="Verify and restore to staging">
         <p className="mb-3 text-muted-foreground text-sm">
           Validate the dump locally, then restore it to a dedicated staging D1 database for recovery
           exercises. Never test recovery by overwriting production.
         </p>
         <Code>{VERIFY_CMD}</Code>
         <Code>{RESTORE_CMD}</Code>
-      </div>
+        </FormSection>
 
-      <div className="rounded-md border p-4">
-        <h2 className="mb-2 font-semibold">Cloudflare Dashboard</h2>
+        <FormSection title="Cloudflare Dashboard">
         <p className="mb-2 text-muted-foreground text-sm">
           The dashboard does not offer a downloadable full backup for production D1 databases. Use
           it to browse the database, not to save a copy:
@@ -107,7 +107,8 @@ function RouteComponent() {
             Import and export data
           </a>
         </p>
+        </FormSection>
       </div>
-    </div>
+    </>
   );
 }

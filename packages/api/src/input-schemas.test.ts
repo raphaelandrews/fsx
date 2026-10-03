@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { filterArray, httpUrl, idInput, imageUrl, isoDate, limit, mediaPath, optionalHttpUrl, page, rating } from "./input-schemas";
+import { emblemUrl, filterArray, httpUrl, idInput, imageUrl, isoDate, limit, optionalHttpUrl, page, rating } from "./input-schemas";
 
 describe("bounded API inputs", () => {
   test("rejects invalid identifiers and fractional pagination", () => {
@@ -31,12 +31,20 @@ describe("URL inputs", () => {
   });
 
   test("accepts uploaded media paths and external URLs for images", () => {
-    expect(mediaPath.safeParse(media).success).toBe(true);
     expect(imageUrl.safeParse(media).success).toBe(true);
     expect(imageUrl.safeParse("https://example.com/a.jpg").success).toBe(true);
     for (const value of ["/api/media/other/abc.png", "/api/media/posts/../x.png", "/api/media/posts/abc.svg", "javascript:alert(1)"]) {
       expect(imageUrl.safeParse(value).success).toBe(false);
     }
+  });
+
+  test("scopes logo and flag paths to their own kind, SVG included", () => {
+    const logo = "/api/media/clubs/0b1c2d3e-4f50-6172-8394-a5b6c7d8e9f0.svg";
+    expect(emblemUrl("clubs").safeParse(logo).success).toBe(true);
+    expect(emblemUrl("clubs").safeParse("https://example.com/logo.svg").success).toBe(true);
+    expect(emblemUrl("locations").safeParse(logo).success).toBe(false);
+    expect(emblemUrl("clubs").safeParse(media).success).toBe(false);
+    expect(imageUrl.safeParse(logo).success).toBe(false);
   });
 });
 
