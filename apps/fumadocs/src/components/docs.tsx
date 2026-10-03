@@ -4,9 +4,12 @@ import type { Root } from "fumadocs-core/page-tree";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { DocsPage, type DocsPageProps } from "fumadocs-ui/layouts/docs/page";
 import { RootProvider } from "fumadocs-ui/provider/astro";
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 
 import SearchDialog from "./search";
+
+// Only the API Reference page loads the OpenAPI UI and its highlighter.
+const ApiReference = lazy(() => import("./api-reference").then((module) => ({ default: module.ApiReference })));
 
 export function Docs({
   tree,
@@ -14,12 +17,14 @@ export function Docs({
   pathname,
   params,
   page,
+  apiReference = false,
 }: {
   tree: Root;
   children: ReactNode;
   pathname: string;
   params: AstroProviderProps["params"];
   page?: DocsPageProps;
+  apiReference?: boolean;
 }) {
   return (
     <RootProvider
@@ -35,10 +40,17 @@ export function Docs({
           enabled: false,
         }}
         nav={{
-          title: "Fumadocs on Astro",
+          title: "FSX Docs",
         }}
       >
-        <DocsPage {...page}>{children}</DocsPage>
+        <DocsPage {...page}>
+          {children}
+          {apiReference ? (
+            <Suspense fallback={null}>
+              <ApiReference />
+            </Suspense>
+          ) : null}
+        </DocsPage>
       </DocsLayout>
     </RootProvider>
   );

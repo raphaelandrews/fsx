@@ -42,6 +42,8 @@ const checks: Check[] = [
   { path: "/circuitos", status: 200, maxKB: 225 },
   { path: "/campeoes", status: 200, maxKB: 75 },
   { path: "/tv-sergipe", status: 200, maxKB: 250 },
+  // The roster loads on click; a large page means birth dates leaked into the HTML.
+  { path: "/swiss-manager", status: 200, maxKB: 60, contains: ["Baixar Excel"] },
   { path: "/pagina-inexistente", status: 404, maxKB: 15 },
   { path: "/dashboard", status: 307, location: "/login" },
   { path: "/dashboard/players/1", status: 307, location: "/login" },

@@ -42,6 +42,7 @@ if (missing.length || stale.length) {
 const SITEMAP_EXCLUDED = new Map([
   ["/login", "admin sign-in"],
   ["/$", "catch-all not-found page"],
+  ["/swiss-manager", "noindex export tool, reached by direct link"],
 ]);
 
 function urlPathOf(file) {

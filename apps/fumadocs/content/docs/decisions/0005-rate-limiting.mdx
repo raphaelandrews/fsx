@@ -24,7 +24,7 @@ Anonymous tRPC GETs that miss the edge cache already used the native binding
 
   | Binding | Scope | Limit |
   | ------- | ----- | ----- |
-  | `PUBLIC_READ_RATE_LIMIT` | tRPC GETs not served from the edge cache | 600 / 60 s |
+  | `PUBLIC_READ_RATE_LIMIT` | tRPC GETs and [public API](/reference/public-api) requests not served from the edge cache (one shared budget) | 600 / 60 s |
   | `AUTH_MUTATION_RATE_LIMIT` | `/api/auth/*` POSTs | 20 / 60 s |
   | `AUTH_READ_RATE_LIMIT` | `/api/auth/*` GETs | 120 / 60 s |
   | `TRPC_MUTATION_RATE_LIMIT` | tRPC POSTs | 300 / 60 s |

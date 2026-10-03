@@ -31,6 +31,7 @@ breadcrumb JSON-LD. **Sitemap** marks URLs listed in `/sitemap.xml`.
 | `/links` | Link groups | `links.list` | — | Sitemap |
 | `/sobre` | [About](/guide/about) | — | — | Sitemap; **prerendered** |
 | `/normas-tecnicas` | Technical norms | — | — | Sitemap; **prerendered** |
+| `/swiss-manager` | Swiss Manager export | `swissManager.list`, fetched on click | — | `noindex`, not in the sitemap; not linked from navigation |
 | any other path | Not found | — | — | `$.tsx` throws `notFound()` → 404, `noindex` |
 
 ## Private pages
@@ -53,4 +54,7 @@ pages read `forEdit` (players, posts) or the public `byId`, and 404 on unknown I
 | `/api/trpc/<procedures>` | GET, POST | tRPC; batched procedure names are comma-separated | Public GETs at the edge per [policy](/reference/procedures); browsers get `no-store` |
 | `/api/auth/*` | GET, POST | Better Auth (GitHub OAuth, session) | `no-store`; rate-limited |
 | `/api/media/<key>` | GET, HEAD | R2 images | `public, max-age=31536000, immutable` |
+| `/api/v1/players` | GET, OPTIONS | [Public API](/reference/public-api): active players' `id`, `name`, and ratings as JSON, CORS `*` | `public, max-age=300`; edge-cached 5 minutes |
+| `/api/v1/openapi.json` | GET, OPTIONS | OpenAPI 3.1 description of `/api/v1` | `public, max-age=300`; static |
+| `/api/v1/players/{id}` | GET, OPTIONS | [Public API](/reference/public-api): one active player; `404` for unknown, inactive, or malformed IDs | `public, max-age=300`; edge-cached 5 minutes, `404` included |
 | `/sitemap.xml` | GET | Static pages, active players, published posts, announcements | One hour, edge and browser |

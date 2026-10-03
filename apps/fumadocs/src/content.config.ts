@@ -7,6 +7,8 @@ const docs = defineCollection({
     title: z.string(),
     description: z.string().optional(),
     icon: z.string().optional(),
+    /** Render the /api/v1 OpenAPI reference after the page body. */
+    openapi: z.boolean().optional(),
   }),
 });
 

@@ -1,5 +1,5 @@
 import alchemy from "alchemy";
-import { D1Database, R2Bucket, RateLimit, TanStackStart } from "alchemy/cloudflare";
+import { Astro, D1Database, R2Bucket, RateLimit, TanStackStart } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
 // Shared secrets for both envs — single source of truth.
@@ -86,6 +86,19 @@ export const web = await TanStackStart("web", {
   },
 });
 
+// Fully static Astro build served as Worker static assets: no bindings, no
+// server code. DOCS_DOMAIN (apps/web/.env.prod) attaches the custom domain; dev
+// has none and serves the docs at http://localhost:4000 alongside the web app.
+export const docs = await Astro("docs", {
+  cwd: "../../apps/fumadocs",
+  output: "static",
+  compatibilityDate: COMPATIBILITY_DATE,
+  adopt: true,
+  dev: { command: "bun run dev" },
+  ...(process.env.DOCS_DOMAIN ? { domains: [process.env.DOCS_DOMAIN] } : {}),
+});
+
 console.log(`Web    -> ${web.url}`);
+console.log(`Docs   -> ${docs.url}`);
 
 await app.finalize();

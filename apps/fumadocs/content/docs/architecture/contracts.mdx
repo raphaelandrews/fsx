@@ -16,8 +16,9 @@ domain or database logic.
 - Protected procedures require an authenticated session.
 - Administrative procedures use the single-owner model and verify the configured
   identity on every request.
-- Swiss Manager export is administrator-only because it combines player identity
-  and birth-date data into a bulk file.
+- The Swiss Manager export (`swissManager.list`) is public by the federation's
+  decision: arbiters need it, birth dates included, to pair tournaments. It is
+  edge-cached and covered by the uncached-read rate limit.
 - Unknown procedures are never included in the edge cache.
 - Authenticated requests, mutations, and failed/uncacheable tRPC responses use
   `Cache-Control: no-store`.

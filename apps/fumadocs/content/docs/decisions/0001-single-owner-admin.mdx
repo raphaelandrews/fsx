@@ -31,3 +31,12 @@ and permission model plus session invalidation on privilege changes.
 
 Authorization remains centralized and straightforward. Administrators share the
 same permissions until a reviewed role model is introduced.
+
+## Update 2026-10-03
+
+The Swiss Manager export is public again at `/swiss-manager`, birth dates
+included, at the federation's request: arbiters download it to pair tournaments
+and Swiss Manager uses birth dates for age categories. The page fetches the
+roster only when the export button is clicked, so page HTML never carries it;
+`swissManager.list` is edge-cached for 300 seconds and no longer logged as an
+administrator export.

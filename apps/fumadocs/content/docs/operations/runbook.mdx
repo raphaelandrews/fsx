@@ -48,6 +48,29 @@ admin guard, and media delivery. Run it after each production deployment.
 Application rollback does not automatically undo a D1 migration. Destructive
 migrations require a restoration plan before deployment.
 
+## Docs site
+
+The docs (`apps/fumadocs`) are a static Astro build deployed by the same
+`bun run deploy` as the web app: `packages/infra/alchemy.run.ts` declares an
+`Astro` resource (`output: "static"`) that runs `astro build` and uploads `dist/`
+as Worker static assets. It has no bindings and no server code.
+
+- **Domain:** `DOCS_DOMAIN` in `apps/web/.env.prod` (`docs.fsx.org.br`) attaches a
+  Cloudflare custom domain; the `fsx.org.br` zone must be on the same account.
+  Alchemy creates the DNS record and certificate on the first deploy. Without
+  `DOCS_DOMAIN`, the site is served at its `workers.dev` URL.
+- **Local:** `bun dev` also starts the docs at `http://localhost:4000`. If Alchemy
+  logs "Another astro dev server is already running" for a process that no longer
+  exists, run `bunx astro dev stop` in `apps/fumadocs` and restart `bun dev`.
+- **Security headers:** `apps/fumadocs/public/_headers` sets CSP, HSTS,
+  `X-Frame-Options`, and nosniff on every response. `connect-src` allows only
+  the site itself and `https://www.fsx.org.br` (the API Reference "Send"); add a
+  host there before the docs fetch from anywhere else. `astro preview` ignores
+  this file; test it with `wrangler dev --assets ./dist`.
+- **Build alone:** `cd apps/fumadocs && bun run build`, then `bunx astro preview`.
+- The API Reference page is generated from `packages/api/src/openapi.ts` at
+  build time; redeploy the docs when the public API changes.
+
 ## Monitoring and Media Cleanup
 
 Keep Worker observability enabled and alert on deployment/migration failures,

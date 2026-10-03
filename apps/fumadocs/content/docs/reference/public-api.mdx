@@ -1,0 +1,211 @@
+---
+title: Public API
+description: Read players' IDs, names, and ratings from another website through stable JSON endpoints.
+---
+
+Other websites (clubs, tournament organizers, rating trackers) can read the
+federation's player ratings as JSON: the whole list, or one player by ID. The
+endpoints need no key, work from a browser or a server, and keep their format
+stable.
+
+**Interactive reference:** [API Reference](/reference/api-reference), with
+examples, code snippets, and a "Send" playground. The machine-readable
+OpenAPI 3.1 description is at
+[`/api/v1/openapi.json`](https://www.fsx.org.br/api/v1/openapi.json); import it
+into Postman or Insomnia, or generate a client from it.
+
+Use these endpoints, not `/api/trpc/*`. The tRPC API serves this site's own pages:
+its URLs and response shapes change with the app, and it rejects requests sent
+from other websites' browsers.
+
+## `GET /api/v1/players`
+
+```
+https://www.fsx.org.br/api/v1/players
+```
+
+Returns every **active** player (the same players listed on `/ratings`), ordered
+by `id`:
+
+```json
+{
+  "updatedAt": "2026-10-03T13:55:28.519Z",
+  "count": 2,
+  "players": [
+    { "id": 1, "name": "Andrews Souza", "classic": 2150, "rapid": 2100, "blitz": 2050 },
+    { "id": 2, "name": "Maria Silva", "classic": 1900, "rapid": 1850, "blitz": 1800 }
+  ]
+}
+```
+
+| Field | Type | Meaning |
+| ----- | ---- | ------- |
+| `updatedAt` | ISO 8601 string (UTC) | When this response was read from the database |
+| `count` | integer | Number of entries in `players` |
+| `players[].id` | integer | Permanent player ID. The profile page is `https://www.fsx.org.br/jogadores/{id}` |
+| `players[].name` | string | Full name |
+| `players[].classic` | integer | Classical rating |
+| `players[].rapid` | integer | Rapid rating |
+| `players[].blitz` | integer | Blitz rating |
+
+The list has no other personal data: no birth year, sex, club, or contact
+details (the single-player endpoint adds birth year, club, and titles). Inactive
+players are left out; a player who becomes active again
+reappears with the same `id`.
+
+There are no query parameters. The whole list fits in one response, so filter
+and sort on your side. Query strings are ignored.
+
+## `GET /api/v1/players/{id}`
+
+```
+https://www.fsx.org.br/api/v1/players/1
+```
+
+Returns one active player: the list fields plus birth year, club, and titles.
+
+```json
+{
+  "updatedAt": "2026-10-03T14:03:29.008Z",
+  "player": {
+    "id": 1,
+    "name": "Andrews Souza",
+    "classic": 2150,
+    "rapid": 2100,
+    "blitz": 2050,
+    "birthYear": 1995,
+    "club": { "id": 1, "name": "Clube de Xadrez de Aracaju" },
+    "titles": [
+      { "name": "Mestre Sergipano", "shortName": "MSE", "type": "internal" },
+      { "name": "Mestre FIDE", "shortName": "MF", "type": "external" }
+    ]
+  }
+}
+```
+
+| Field | Type | Meaning |
+| ----- | ---- | ------- |
+| `player.id`, `name`, `classic`, `rapid`, `blitz` | | Same as in the list |
+| `player.birthYear` | integer or `null` | Birth year. Only the year is published, never the full date; `null` when unknown |
+| `player.club` | `{ id, name }` or `null` | The player's club |
+| `player.titles` | array | Titles, FSX titles first; empty when none |
+| `player.titles[].name` | string | Title name, e.g. "Mestre FIDE" |
+| `player.titles[].shortName` | string | Abbreviation, e.g. `MF` |
+| `player.titles[].type` | `"internal"` or `"external"` | `internal`: an FSX title. `external`: a CBX or FIDE title |
+
+`{id}` is the player's numeric ID: the one in the list, and in profile URLs
+(`/jogadores/{id}`). It must be a positive integer written without leading
+zeros. An unknown ID, an inactive player, or a malformed ID returns:
+
+```json
+{ "error": "Player not found" }
+```
+
+with status `404` (also cached for 5 minutes). Fetch one player when you show a
+few known players, for example a club's members; fetch the list when you need
+many, since one list request is cheaper than many single requests.
+
+## Examples
+
+From a browser (any website):
+
+```js
+const response = await fetch("https://www.fsx.org.br/api/v1/players");
+const { players } = await response.json();
+const top10 = [...players].sort((a, b) => b.rapid - a.rapid).slice(0, 10);
+
+const one = await fetch("https://www.fsx.org.br/api/v1/players/1");
+if (one.ok) {
+  const { player } = await one.json();
+  console.log(`${player.name}: ${player.rapid} (rápido)`);
+} else if (one.status === 404) {
+  console.log("Jogador não encontrado ou inativo");
+}
+```
+
+From a server or the command line:
+
+```bash
+curl -s https://www.fsx.org.br/api/v1/players | jq '.players[] | select(.name | test("Silva"))'
+curl -s https://www.fsx.org.br/api/v1/players/1 | jq '.player.classic'
+```
+
+```python
+import requests
+
+players = requests.get("https://www.fsx.org.br/api/v1/players", timeout=10).json()["players"]
+by_id = {player["id"]: player for player in players}
+```
+
+## Freshness and limits
+
+- **Caching:** responses (including `404`) are cached for **5 minutes**, both at
+  Cloudflare's edge and in the caller's browser (`Cache-Control: public, max-age=300`).
+  Each URL is cached on its own: the list once, and each player ID once. A rating
+  change can take up to 5 minutes to appear. Use `updatedAt` to see how fresh a
+  copy is.
+- **Rate limit:** requests that miss the cache share the site's per-IP read
+  limit (600 per minute). Over the limit, the API answers `429` with a
+  `Retry-After` header in seconds. Cached responses do not count, so polling
+  once every few minutes is always fine.
+- **Size:** about 60 bytes per player; the federation's roster is a few hundred
+  KB uncompressed and much smaller with gzip/brotli.
+
+## CORS
+
+Every response, including `429`, carries `Access-Control-Allow-Origin: *` and
+`Cross-Origin-Resource-Policy: cross-origin`. Browsers can therefore read it from
+any origin, including pages that enable cross-origin isolation. A preflight
+`OPTIONS` request returns `204`. The endpoint sets no cookies and ignores them.
+
+## Stability
+
+The `/api/v1/` endpoints are a contract:
+
+- Existing fields keep their names, types, and meaning.
+- New fields may be **added**; clients should ignore fields they do not know.
+- A breaking change ships as a new path (`/api/v2/...`) while `v1` keeps
+  working.
+
+Please credit the source when you publish the data, for example
+"Fonte: Federação Sergipana de Xadrez (fsx.org.br)".
+
+## OpenAPI and the reference page
+
+- **Spec:** `packages/api/src/openapi.ts` holds the OpenAPI 3.1 document, in
+  English. `GET /api/v1/openapi.json` serves it statically (no D1, no rate
+  limit) with the same CORS headers and a 5-minute cache. Servers are relative
+  (`/`), so imported clients call the host that served the spec.
+  `security: []` declares that no authentication is needed. The spec passes
+  `redocly lint` (the only warning is the missing `license`, which is the
+  federation's decision).
+- **Drift:** `public-api.integration.test.ts` compares the schemas' field lists
+  and documented status codes with real handler responses.
+- **Docs page:** [API Reference](/reference/api-reference) renders the same
+  object with `fumadocs-openapi` (`createOpenAPIPage`, a client component, so it
+  works on Astro without React Server Components). Pages whose frontmatter sets
+  `openapi: true` get the reference after their body
+  (`apps/fumadocs/src/components/api-reference.tsx`). It imports
+  `@fsx/api/openapi` at build time; `public-api-contract.ts` keeps that import
+  free of D1 and Worker modules. The docs copy replaces the relative server with
+  `https://www.fsx.org.br`, so "Send" calls production from the docs domain
+  (allowed by the CORS headers). The component and its highlighter load lazily,
+  only on that page.
+
+When you change an endpoint, update `openapi.ts` in the same change; the tests
+fail until the spec matches, and the docs pick it up on their next build.
+
+## Implementation
+
+The handlers are in `packages/api/src/public-api.ts`, mounted by
+`apps/web/src/routes/api/v1/players/index.ts` and `players/$id.ts`. Both go
+through `servePublicJson`: it reads D1 only on a cache miss, stores one edge
+entry per canonical path without the query string (so cache-busting parameters
+or `007`-style IDs cannot reach D1), caches `404`s, and applies
+`PUBLIC_READ_RATE_LIMIT` to misses ([ADR 0005](/decisions/0005-rate-limiting)). It is not a tRPC
+procedure, so it skips the tRPC origin check. Tests:
+`packages/api/src/public-api.integration.test.ts`.
+
+When you add a field, update the tables above, both languages in `openapi.ts`,
+and the test's exact field lists. Never publish full birth dates or contact
+details here; the birth year is the deliberate limit.

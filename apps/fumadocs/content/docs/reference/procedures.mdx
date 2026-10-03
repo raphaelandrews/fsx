@@ -67,7 +67,7 @@ the affected rows (`.returning()`), except where noted.
 | `players.update` | admin | `{ id, ...fields }` | Updated row; renaming also updates `normalized_name` | — |
 | `topPlayers.list` | public | — | `{ topClassic, topRapid, topBlitz }`, 10 active players each | 300 s |
 | `titledPlayers.list` | public | — | Players with at least one title, by rapid rating | 300 s |
-| `swissManager.list` | admin | — | Every player with sex, birth date, ratings, and club; logged as a sensitive export | — |
+| `swissManager.list` | public | — | Every player with sex, birth date, ratings, and club | 300 s |
 
 There is no player delete procedure; set `active: false` instead.
 

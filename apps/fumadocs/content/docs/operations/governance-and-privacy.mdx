@@ -24,11 +24,14 @@ account only after confirming the owner request and invalidating its sessions.
 
 Logs must use request IDs, procedure names, and safe metadata without payloads,
 tokens, IP addresses, secret URLs, spreadsheet contents, or unnecessary personal
-data. Backups and the Swiss Manager export require the single-owner administrator
-check; authenticated/mutation tRPC responses use `Cache-Control: no-store`.
+data. Backups require the single-owner administrator check;
+authenticated/mutation tRPC responses use `Cache-Control: no-store`. The Swiss
+Manager export, which includes birth dates, is public by the federation's
+decision (see [ADR 0001](/decisions/0001-single-owner-admin)); remove a player's
+birth date in the admin panel to keep it out of the export. The public API
+(`/api/v1/players/{id}`) publishes only the birth year, with the club and titles.
 Backups are stored outside the repository with owner-only filesystem permissions
-and a 90-day default retention window. The Swiss Manager export audit log records
-administrator ID, procedure, request ID, timestamp, result, and row count only.
+and a 90-day default retention window.
 Rate limiting keys Cloudflare's native limiter by client IP; the application
 stores no rate-limit records.
 The rating-import screen stores its local result history (player name/ID and safe

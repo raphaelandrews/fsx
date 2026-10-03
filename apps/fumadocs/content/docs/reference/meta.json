@@ -1,4 +1,14 @@
 {
   "title": "Reference",
-  "pages": ["index", "procedures", "routes", "database", "invariants", "recipes", "glossary"]
+  "pages": [
+    "index",
+    "procedures",
+    "routes",
+    "public-api",
+    "api-reference",
+    "database",
+    "invariants",
+    "recipes",
+    "glossary"
+  ]
 }
