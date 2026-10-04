@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { ChampionIcon, ChartUpIcon, CrownIcon } from "@hugeicons/core-free-icons";
 
+import { Announcement } from "@/components/announcement";
 import { PageHeader } from "@/components/page-header";
 import { RecordCard } from "@/components/recordes/record-card";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
@@ -38,42 +40,53 @@ function RouteComponent() {
         description="Os maiores feitos registrados pela FSX, de todos os jogadores, ativos ou não."
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <RecordCard title="Maior rating · Clássico" entries={records.peaks.classic} format={rating} />
-        <RecordCard title="Maior rating · Rápido" entries={records.peaks.rapid} format={rating} />
-        <RecordCard title="Maior rating · Blitz" entries={records.peaks.blitz} format={rating} />
-        <RecordCard title="Mais títulos" entries={records.wins} format={(v) => plural(v, "título", "títulos")} />
-        <RecordCard title="Mais pódios" entries={records.podiums} format={(v) => plural(v, "pódio", "pódios")} />
-        <RecordCard title="Maior ganho em um torneio" entries={records.gains} format={(v) => `+${v}`} />
-        <RecordCard
-          title="Maior sequência subindo"
-          entries={records.streaks}
-          format={(v) => plural(v, "torneio", "torneios")}
-        />
-        <RecordCard
-          title={`Mais ativos em ${records.year}`}
-          entries={records.activeThisYear}
-          format={(v) => plural(v, "torneio", "torneios")}
-        />
-        <RecordCard title="Maiores níveis" entries={records.levels} format={(v) => `Nível ${v}`} />
-      </div>
-
-      {records.championships.length > 0 && (
-        <>
-          <h2 className="mt-10 mb-4 font-semibold text-lg">Maiores campeões por campeonato</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {records.championships.map((championship) => (
-              <RecordCard
-                key={championship.championshipId}
-                title={championship.name}
-                entries={championship.holders}
-                format={(v) => plural(v, "título", "títulos")}
-                detail={(entry) => entry.detail}
-              />
-            ))}
+      <div className="flex flex-col gap-8 pb-12">
+        <section aria-label="Rating">
+          <Announcement icon={ChartUpIcon} label="Rating" className="px-0 text-sm" />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <RecordCard title="Maior rating · Clássico" entries={records.peaks.classic} format={rating} />
+            <RecordCard title="Maior rating · Rápido" entries={records.peaks.rapid} format={rating} />
+            <RecordCard title="Maior rating · Blitz" entries={records.peaks.blitz} format={rating} />
+            <RecordCard title="Maior ganho em um torneio" entries={records.gains} format={(v) => `+${v}`} />
+            <RecordCard
+              title="Maior sequência subindo"
+              entries={records.streaks}
+              format={(v) => plural(v, "torneio", "torneios")}
+            />
           </div>
-        </>
-      )}
+        </section>
+
+        <section aria-label="Títulos e atividade">
+          <Announcement icon={ChampionIcon} label="Títulos e atividade" className="px-0 text-sm" />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <RecordCard title="Mais títulos" entries={records.wins} format={(v) => plural(v, "título", "títulos")} />
+            <RecordCard title="Mais pódios" entries={records.podiums} format={(v) => plural(v, "pódio", "pódios")} />
+            <RecordCard
+              title={`Mais ativos em ${records.year}`}
+              entries={records.activeThisYear}
+              format={(v) => plural(v, "torneio", "torneios")}
+            />
+            <RecordCard title="Maiores níveis" entries={records.levels} format={(v) => `Nível ${v}`} />
+          </div>
+        </section>
+
+        {records.championships.length > 0 && (
+          <section aria-label="Maiores campeões por campeonato">
+            <Announcement icon={CrownIcon} label="Maiores campeões por campeonato" className="px-0 text-sm" />
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {records.championships.map((championship) => (
+                <RecordCard
+                  key={championship.championshipId}
+                  title={championship.name}
+                  entries={championship.holders}
+                  format={(v) => plural(v, "título", "títulos")}
+                  detail={(entry) => entry.detail}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
     </>
   );
 }

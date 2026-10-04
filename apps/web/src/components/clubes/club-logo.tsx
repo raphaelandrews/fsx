@@ -10,7 +10,7 @@ export function ClubLogo({ name, logoUrl, className }: { name: string; logoUrl: 
       loading="lazy"
       height={20}
       width={20}
-      className={cn("size-5 shrink-0 rounded object-contain", className)}
+      className={cn("size-5 shrink-0 rounded object-contain outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10", className)}
       src={logoUrl}
     />
   ) : (

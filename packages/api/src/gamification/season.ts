@@ -52,8 +52,7 @@ export function playerSeason(input: CareerInput, year: number) {
   ) as Record<RatingType, number | null>;
   const best = results.filter((result) => result.variation > 0).sort((a, b) => b.variation - a.variation)[0];
 
-  const months = Array.from({ length: 12 }, () => 0);
-  for (const { date } of stats.played) if (inYear(date)) months[Number(date!.slice(5, 7)) - 1]!++;
+  const days = stats.played.flatMap(({ date }) => (inYear(date) ? [date!] : []));
 
   const end = levelAt(input, `${year}-12-31`);
   const start = levelAt(input, `${year - 1}-12-31`);
@@ -62,7 +61,7 @@ export function playerSeason(input: CareerInput, year: number) {
     year,
     seasons: stats.seasons,
     tournamentsPlayed: stats.tournamentsByYear[year] ?? 0,
-    months,
+    days,
     ratingChange,
     bestGain: best ? { variation: best.variation, tournamentId: best.tournament.id, date: best.tournament.date } : null,
     podiums: [

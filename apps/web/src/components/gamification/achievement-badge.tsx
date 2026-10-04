@@ -15,7 +15,7 @@ import { cn } from "@fsx/ui/lib/utils";
 
 import { TIER_CLASSES, TIER_LABELS, formatIsoDate } from "./tier";
 
-const ICONS: Record<BadgeIcon, typeof StarIcon> = {
+export const BADGE_ICONS: Record<BadgeIcon, typeof StarIcon> = {
   rating: ChartUpIcon,
   tournaments: ChessPawnIcon,
   streak: FireIcon,
@@ -36,17 +36,30 @@ export function AchievementBadge({ achievement, locked = false }: { achievement:
       <PopoverTrigger
         aria-label={`${achievement.label}${locked ? " (bloqueada)" : ""}`}
         className={cn(
-          "inline-flex size-10 items-center justify-center rounded-full transition-opacity focus-visible:outline-2 focus-visible:outline-ring",
-          locked ? "bg-muted text-muted-foreground" : TIER_CLASSES[achievement.tier],
+          "inline-flex size-11 items-center justify-center rounded-full outline-offset-2 transition-[scale,box-shadow] duration-150 ease-out focus-visible:outline-2 focus-visible:outline-ring active:scale-[0.96]",
+          locked
+            ? "border border-border border-dashed text-muted-foreground hover:bg-muted"
+            : cn(TIER_CLASSES[achievement.tier], "shadow-[inset_0_0_0_1px_oklch(0_0_0/0.06)] hover:shadow-[inset_0_0_0_1px_currentColor] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/0.08)]"),
         )}
       >
-        <HugeiconsIcon icon={locked ? LockIcon : ICONS[achievement.icon]} className="size-5" aria-hidden />
+        <HugeiconsIcon icon={locked ? LockIcon : BADGE_ICONS[achievement.icon]} className="size-5" strokeWidth={1.75} aria-hidden />
       </PopoverTrigger>
-      <PopoverContent className="w-64 space-y-1 p-3 text-sm">
-        <p className="font-medium">{achievement.label}</p>
-        <p className="text-muted-foreground">{achievement.description}</p>
+      <PopoverContent className="w-64 gap-2 p-3 text-sm">
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "inline-flex size-7 shrink-0 items-center justify-center rounded-full",
+              locked ? "bg-muted text-muted-foreground" : TIER_CLASSES[achievement.tier],
+            )}
+            aria-hidden
+          >
+            <HugeiconsIcon icon={BADGE_ICONS[achievement.icon]} className="size-4" strokeWidth={1.75} />
+          </span>
+          <p className="font-medium leading-tight">{achievement.label}</p>
+        </div>
+        <p className="text-pretty text-muted-foreground">{achievement.description}</p>
         <p className="text-muted-foreground text-xs">
-          {locked ? "Ainda não conquistada" : `${TIER_LABELS[achievement.tier]} · ${earnedText(achievement)}`}
+          {locked ? "Próxima conquista · ainda não alcançada" : `${TIER_LABELS[achievement.tier]} · ${earnedText(achievement)}`}
         </p>
       </PopoverContent>
     </Popover>

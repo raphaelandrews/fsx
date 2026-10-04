@@ -40,10 +40,10 @@ describe("playerSeason", () => {
   ];
   const input = career({ results, ratings: { classic: 1900, rapid: 2015, blitz: 1900 } });
 
-  test("keeps only that year's tournaments, months, rating change, and best gain", () => {
+  test("keeps only that year's tournaments, days played, rating change, and best gain", () => {
     const season = playerSeason(input, 2024);
     expect(season.tournamentsPlayed).toBe(2);
-    expect(season.months).toEqual([0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0]);
+    expect(season.days).toEqual(["2024-03-10", "2024-08-02"]);
     expect(season.ratingChange).toEqual({ classic: null, rapid: 16, blitz: null });
     expect(season.bestGain).toEqual({ variation: 20, tournamentId: 1, date: "2024-03-10" });
   });

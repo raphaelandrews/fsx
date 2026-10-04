@@ -2,22 +2,25 @@ import type { ReactNode } from "react";
 
 import { cn } from "@fsx/ui/lib/utils";
 
+// Same surface as the profile's rating and ID boxes, so stats read as one family.
 export function StatTile({
   label,
   value,
   hint,
   className,
+  valueClassName,
 }: {
   label: string;
   value: ReactNode;
   hint?: ReactNode;
   className?: string;
+  valueClassName?: string;
 }) {
   return (
-    <div className={cn("rounded-lg border bg-card p-3 text-card-foreground", className)}>
-      <p className="text-muted-foreground text-xs">{label}</p>
-      <p className="mt-1 font-semibold text-xl tabular-nums">{value}</p>
-      {hint && <p className="mt-0.5 text-muted-foreground text-xs">{hint}</p>}
+    <div className={cn("flex h-full min-w-0 flex-col items-center justify-center gap-1 rounded-2xl bg-muted p-3 text-center sm:p-4", className)}>
+      <span className="font-medium text-foreground/70 text-xs sm:text-sm">{label}</span>
+      <span className={cn("font-mono font-semibold text-base tabular-nums sm:text-lg", valueClassName)}>{value}</span>
+      {hint && <span className="line-clamp-2 text-pretty text-[11px] text-foreground/70">{hint}</span>}
     </div>
   );
 }

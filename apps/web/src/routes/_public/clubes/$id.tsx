@@ -1,8 +1,11 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
+import { UserGroupIcon } from "@hugeicons/core-free-icons";
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fsx/ui/components/table";
 
+import { Announcement } from "@/components/announcement";
 import { ClubLogo } from "@/components/clubes/club-logo";
 import { Medal } from "@/components/gamification/medal";
 import { StatTile } from "@/components/gamification/stat-tile";
@@ -46,10 +49,10 @@ function RouteComponent() {
   const { club, standing, members } = data;
 
   return (
-    <div className="mx-auto max-w-[720px] py-8">
-      <header className="mb-6 flex flex-col items-center gap-3 text-center">
-        <ClubLogo name={club.name} logoUrl={club.logoUrl} className="size-16 rounded-xl" />
-        <h1 className="font-semibold text-2xl tracking-tight">{club.name}</h1>
+    <div className="mx-auto max-w-[720px] pb-12">
+      <header className="flex flex-col items-center gap-3 pt-8 pb-6 text-center sm:pt-12 sm:pb-8">
+        <ClubLogo name={club.name} logoUrl={club.logoUrl} className="size-20 rounded-2xl" />
+        <h1 className="text-balance font-semibold text-3xl tracking-tight sm:text-4xl">{club.name}</h1>
         {standing && (
           <span className="flex gap-1">
             {standing.medals.gold > 0 && <Medal place={1} count={standing.medals.gold} />}
@@ -59,7 +62,7 @@ function RouteComponent() {
         )}
       </header>
 
-      <div className="mb-8 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 px-2 sm:grid-cols-4 sm:gap-4 sm:px-4">
         <StatTile label="Jogadores ativos" value={standing?.activeMembers ?? 0} hint={`${standing?.members ?? 0} no total`} />
         {FORMATS.map(([format, label]) => (
           <StatTile
@@ -71,40 +74,42 @@ function RouteComponent() {
         ))}
       </div>
 
-      <h2 className="mb-2 font-semibold text-sm">Jogadores</h2>
-      {members.length === 0 ? (
-        <p className="text-muted-foreground text-sm">Nenhum jogador cadastrado neste clube.</p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Jogador</TableHead>
-              {FORMATS.map(([format, label]) => (
-                <TableHead key={format} className="text-center">
-                  {label}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {members.map((member) => (
-              <TableRow key={member.id}>
-                <TableCell>
-                  <Link to="/jogadores/$id" params={{ id: member.id }} className="font-medium hover:underline">
-                    {member.nickname || member.name}
-                  </Link>
-                  {!member.active && <span className="ml-1.5 text-muted-foreground text-xs">inativo</span>}
-                </TableCell>
-                {FORMATS.map(([format]) => (
-                  <TableCell key={format} className="text-center tabular-nums">
-                    {member[format]}
-                  </TableCell>
+      <section aria-label="Jogadores" className="mt-6">
+        <Announcement icon={UserGroupIcon} label="Jogadores" className="text-sm" />
+        {members.length === 0 ? (
+          <p className="px-3 text-muted-foreground text-sm">Nenhum jogador cadastrado neste clube.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Jogador</TableHead>
+                {FORMATS.map(([format, label]) => (
+                  <TableHead key={format} className="text-center">
+                    {label}
+                  </TableHead>
                 ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+            </TableHeader>
+            <TableBody>
+              {members.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell>
+                    <Link to="/jogadores/$id" params={{ id: member.id }} className="font-medium hover:underline">
+                      {member.nickname || member.name}
+                    </Link>
+                    {!member.active && <span className="ml-1.5 text-muted-foreground text-xs">inativo</span>}
+                  </TableCell>
+                  {FORMATS.map(([format]) => (
+                    <TableCell key={format} className="text-center tabular-nums">
+                      {member[format]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </section>
     </div>
   );
 }

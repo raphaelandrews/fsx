@@ -55,6 +55,9 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
+  /* Brand burple for activity graphs, in both themes (primary is green in dark). */
+  --activity: oklch(0.57 0.22 267);
+
   /* Achievement tiers: background tint + text/icon color, ≥ 4.5:1 apart. */
   --tier-bronze: oklch(0.95 0.035 60);
   --tier-bronze-foreground: oklch(0.43 0.1 50);
@@ -181,6 +184,8 @@
   --sidebar-border: oklch(27.4% 0.006 286.033);
   --sidebar-ring: oklch(44.2% 0.017 285.786);
 
+  --activity: oklch(0.66 0.19 267);
+
   --tier-bronze: oklch(0.29 0.05 55);
   --tier-bronze-foreground: oklch(0.86 0.09 65);
   --tier-silver: oklch(0.29 0.01 260);
@@ -263,6 +268,7 @@
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
   --color-chart-6: var(--chart-6);
+  --color-activity: var(--activity);
   --color-tier-bronze: var(--tier-bronze);
   --color-tier-bronze-foreground: var(--tier-bronze-foreground);
   --color-tier-silver: var(--tier-silver);

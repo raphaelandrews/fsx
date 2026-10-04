@@ -42,8 +42,8 @@ import { TotalRatingChart, VariationChart } from "@/components/player/player-cha
 import { cn } from "@fsx/ui/lib/utils";
 import { avatarGradient, avatarGradientFor } from "@/components/avatar-gradient";
 import { PlayerLevel } from "@/components/gamification/player-level";
-import { TIER_CLASSES } from "@/components/gamification/tier";
-import { AchievementGrid, TrophyCabinet } from "@/components/player/player-achievements";
+import { TIER_CLASSES, formatIsoDate } from "@/components/gamification/tier";
+import { AchievementGrid, Subheading, TrophyCabinet } from "@/components/player/player-achievements";
 import { PlayerAnnouncements } from "@/components/player/player-announcements";
 import { PlayerCircuits } from "@/components/player/player-circuits";
 import { PlayerStats } from "@/components/player/player-stats";
@@ -53,39 +53,39 @@ import { Movement } from "@/components/gamification/movement";
 
 function FormatPodium(place: number | null | undefined, championship_id: number) {
   if (place === 1 && championship_id === 1) {
-    return <HugeiconsIcon icon={Loading01Icon} className="size-4" />;
+    return <HugeiconsIcon icon={Loading01Icon} className="size-5" strokeWidth={1.75} aria-hidden />;
   }
 
   if (place === 1 && championship_id === 2) {
-    return <HugeiconsIcon icon={RabbitIcon} className="size-4" />;
+    return <HugeiconsIcon icon={RabbitIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
   }
 
   if (place === 1 && championship_id === 3) {
-    return <HugeiconsIcon icon={ZapIcon} className="size-4" />;
+    return <HugeiconsIcon icon={ZapIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
   }
 
   if (place === 1 && championship_id === 4) {
-    return <HugeiconsIcon icon={CrownIcon} className="size-4" />;
+    return <HugeiconsIcon icon={CrownIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
   }
 
   if (place === 1 && championship_id === 5) {
-    return <HugeiconsIcon icon={SwordsIcon} className="size-4" />;
+    return <HugeiconsIcon icon={SwordsIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
   }
 
   if (place === 1 && championship_id === 6) {
-    return <HugeiconsIcon icon={TrainIcon} className="size-4" />;
+    return <HugeiconsIcon icon={TrainIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
   }
 
   if (place === 1) {
-    return <HugeiconsIcon icon={MedalFirstPlaceIcon} className="size-4" />;
+    return <HugeiconsIcon icon={MedalFirstPlaceIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
   }
 
   if (place === 2) {
-    return <HugeiconsIcon icon={Medal01Icon} className="size-4" />;
+    return <HugeiconsIcon icon={Medal01Icon} className="size-5" strokeWidth={1.75} aria-hidden />;
   }
 
   if (place === 3) {
-    return <HugeiconsIcon icon={MedalThirdPlaceIcon} className="size-4" />;
+    return <HugeiconsIcon icon={MedalThirdPlaceIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
   }
 }
 
@@ -104,62 +104,18 @@ function FormatPodiumTitle(place: number | null | undefined) {
   }
 }
 
-function formatDefendingChampions(championship: string) {
-  if (championship === "Absoluto") {
-    return (
-      <Popover>
-        <PopoverTrigger aria-label="Atual campeão Sergipano Absoluto" className="rounded-md bg-accent p-2 text-accent-foreground">
-          <HugeiconsIcon icon={Loading01Icon} className="size-4" />
-        </PopoverTrigger>
-        <PopoverContent>Atual campeão Sergipano Absoluto</PopoverContent>
-      </Popover>
-    );
-  }
+const DEFENDING_CHAMPIONS: Record<string, { icon: typeof CrownIcon; label: string }> = {
+  Absoluto: { icon: Loading01Icon, label: "Atual campeão Sergipano Absoluto" },
+  Rápido: { icon: RabbitIcon, label: "Atual campeão Sergipano Rápido" },
+  Blitz: { icon: ZapIcon, label: "Atual campeão Sergipano Blitz" },
+  Feminino: { icon: CrownIcon, label: "Atual campeã Sergipana Feminino" },
+  Equipes: { icon: SwordsIcon, label: "Atual campeão Sergipano Equipes" },
+};
 
-  if (championship === "Rápido") {
-    return (
-      <Popover>
-        <PopoverTrigger aria-label="Atual campeão Sergipano Rápido" className="rounded-md bg-accent p-2 text-accent-foreground">
-          <HugeiconsIcon icon={RabbitIcon} className="size-4" />
-        </PopoverTrigger>
-        <PopoverContent>Atual campeão Sergipano Rápido</PopoverContent>
-      </Popover>
-    );
-  }
+const PLACE_TIERS = { 1: "gold", 2: "silver", 3: "bronze" } as const;
 
-  if (championship === "Blitz") {
-    return (
-      <Popover>
-        <PopoverTrigger aria-label="Atual campeão Sergipano Blitz" className="rounded-md bg-accent p-2 text-accent-foreground">
-          <HugeiconsIcon icon={ZapIcon} className="size-4" />
-        </PopoverTrigger>
-        <PopoverContent>Atual campeão Sergipano Blitz</PopoverContent>
-      </Popover>
-    );
-  }
-
-  if (championship === "Feminino") {
-    return (
-      <Popover>
-        <PopoverTrigger aria-label="Atual campeã Sergipana Feminino" className="rounded-md bg-accent p-2 text-accent-foreground">
-          <HugeiconsIcon icon={CrownIcon} className="size-4" />
-        </PopoverTrigger>
-        <PopoverContent>Atual campeã Sergipana Feminino</PopoverContent>
-      </Popover>
-    );
-  }
-
-  if (championship === "Equipes") {
-    return (
-      <Popover>
-        <PopoverTrigger aria-label="Atual campeão Sergipano Equipes" className="rounded-md bg-accent p-2 text-accent-foreground">
-          <HugeiconsIcon icon={SwordsIcon} className="size-4" />
-        </PopoverTrigger>
-        <PopoverContent>Atual campeão Sergipano Equipes</PopoverContent>
-      </Popover>
-    );
-  }
-}
+const medalButton =
+  "inline-flex size-11 items-center justify-center rounded-xl outline-offset-2 transition-[scale,box-shadow] duration-150 ease-out hover:shadow-[inset_0_0_0_1px_currentColor] focus-visible:outline-2 focus-visible:outline-ring active:scale-[0.96]";
 
 export interface PlayerById {
   id: number;
@@ -356,42 +312,73 @@ export function PlayerProfile({
         (player.defendingChampions && player.defendingChampions?.length > 0)) && (
           <section className="mb-0">
             <Announcement icon={Target01Icon} label="Conquistas" className="text-sm" />
-            <div className="p-3 grid gap-4">
+            <div className="grid gap-6 px-3 pt-1 pb-4">
               <TrophyCabinet medals={stats.stats.medals} />
               <AchievementGrid achievements={stats.achievements} upcoming={stats.upcoming} />
-              {player.defendingChampions && player.defendingChampions?.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                  {player.defendingChampions?.map((championship) => (
-                    <div key={championship.championship.name}>
-                      {formatDefendingChampions(championship.championship.name)}
-                    </div>
+              {player.defendingChampions && player.defendingChampions.length > 0 && (
+                <section aria-labelledby="player-defending">
+                  <Subheading id="player-defending">Atual campeão</Subheading>
+                  <ul className="flex flex-wrap gap-2">
+                    {player.defendingChampions.map(({ championship }) => {
+                      const defending = DEFENDING_CHAMPIONS[championship.name];
+                      if (!defending) return null;
+                      return (
+                        <li key={championship.name}>
+                          <Popover>
+                            <PopoverTrigger aria-label={defending.label} className={cn(medalButton, TIER_CLASSES.gold)}>
+                              <HugeiconsIcon icon={defending.icon} className="size-5" strokeWidth={1.75} aria-hidden />
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-2 text-xs font-medium">{defending.label}</PopoverContent>
+                          </Popover>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              )}
+
+              {podiumGroups.length > 0 && (
+                <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3">
+                  {podiumGroups.map((group) => (
+                    <section
+                      key={group.name}
+                      aria-label={`Pódios · ${group.name}`}
+                      className={cn(group.podiums.length > 4 && "col-span-full")}
+                    >
+                      <Subheading aside={group.titles > 0 ? `${group.titles} título${group.titles === 1 ? "" : "s"}` : undefined}>
+                        {group.name}
+                      </Subheading>
+                      <ul className="flex flex-wrap gap-2">
+                        {group.podiums.map((podium) => (
+                          <li key={`${podium.place}-${podium.category ?? ""}-${podium.tournament.name}`}>
+                            <Popover>
+                              <PopoverTrigger
+                                aria-label={`${FormatPodiumTitle(podium.place) ?? "Colocação"}: ${podiumLabel(podium)}`}
+                                className={cn(
+                                  medalButton,
+                                  podium.place && podium.place <= 3
+                                    ? TIER_CLASSES[PLACE_TIERS[podium.place as 1 | 2 | 3]]
+                                    : "bg-muted text-muted-foreground",
+                                )}
+                              >
+                                {FormatPodium(podium.place, podium.category ? 0 : (podium.tournament.championshipId ?? 0))}
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto max-w-64 gap-0.5 p-2 text-xs">
+                                <p className="font-medium">
+                                  {FormatPodiumTitle(podium.place)} · {podiumLabel(podium)}
+                                </p>
+                                {podium.tournament.date && (
+                                  <p className="text-muted-foreground tabular-nums">{formatIsoDate(podium.tournament.date)}</p>
+                                )}
+                              </PopoverContent>
+                            </Popover>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
                   ))}
                 </div>
               )}
-
-              {podiumGroups.map((group) => (
-                <div key={group.name} className="grid gap-2">
-                  <h3 className="text-muted-foreground text-xs font-medium">
-                    {group.name}
-                    {group.titles > 1 ? ` · ${group.titles} títulos` : ""}
-                  </h3>
-                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                  {group.podiums.map((podium) => (
-                    <Popover key={`${podium.place}-${podium.category ?? ""}-${podium.tournament.name}`}>
-                      <PopoverTrigger
-                        aria-label={`${FormatPodiumTitle(podium.place) ?? "Colocação"}: ${podiumLabel(podium)}`}
-                        className="rounded-md bg-muted p-2 text-xs font-medium transition-colors"
-                      >
-                        {FormatPodium(podium.place, podium.category ? 0 : (podium.tournament.championshipId ?? 0))}
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-2 text-xs font-medium">
-                        {FormatPodiumTitle(podium.place)} {podiumLabel(podium)}
-                      </PopoverContent>
-                    </Popover>
-                  ))}
-                </div>
-                </div>
-              ))}
             </div>
           </section>
         )}
