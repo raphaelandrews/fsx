@@ -87,7 +87,9 @@ async function seedFixtureRows(db: D1Database) {
     db.prepare(
       "INSERT INTO posts (id, title, slug, content, published) VALUES (1, ?, ?, 'Conteúdo da notícia.', 1)",
     ).bind(POST.title, POST.slug),
-    db.prepare("INSERT INTO announcements (id, year, number, content) VALUES (1, 2026, 1, 'Comunicado de teste')"),
+    // Linked to the player and stamped now, so the home "Novidades" feed and the
+    // profile's announcements render in the accessibility checks.
+    db.prepare("INSERT INTO announcements (id, year, number, content, player_id) VALUES (1, 2026, 1, 'Comunicado de teste', ?)").bind(PLAYER.id),
     // One record per admin edit page, so accessibility checks render real forms and tables.
     db.prepare("INSERT INTO clubs (id, name) VALUES (1, 'Clube Fixture')"),
     db.prepare("INSERT INTO tournaments (id, name, rating_type, date) VALUES (1, 'Aberto Fixture', 'rapid', '2026-03-01')"),

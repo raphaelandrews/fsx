@@ -65,8 +65,9 @@ describe("recent feed", () => {
     expect(items.find((item) => item.kind === "announcement")?.announcementId).toBe(announcementId);
   });
 
-  test("is empty through the API until the launch date is set", async () => {
-    expect(await caller.records.recent()).toEqual([]);
+  test("is served through the API once the launch date is set", async () => {
+    const items = await caller.records.recent();
+    expect(items.map((item) => [item.player.name, item.label])).toContainEqual(["Ana Feed", "2000 no rápido"]);
   });
 });
 

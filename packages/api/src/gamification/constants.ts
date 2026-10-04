@@ -9,9 +9,10 @@ export const RATING_THRESHOLDS = [2000, 2100, 2200, 2300, 2400] as const;
 export const TOURNAMENTS_PLAYED_STEPS = [10, 25, 50, 100] as const;
 export const POSITIVE_STREAK_STEPS = [3, 5, 10] as const;
 
-// The "Novidades" feed lists only achievements recorded after this date, so
-// launch does not publish decades of history as news. Null keeps it empty.
-export const GAMIFICATION_LAUNCH_DATE: string | null = null;
+// The "Novidades" feed shows only items dated on or after this day (and within
+// the last 60 days), so launch does not publish decades of history as news.
+// Achievements are dated by their tournament; null turns the feed off.
+export const GAMIFICATION_LAUNCH_DATE: string | null = "2026-09-01";
 
 // Stats load a player's whole career in one query; the largest today is 78
 // results (gamification-readiness.sql: max_results_per_player).
