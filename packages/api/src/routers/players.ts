@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { eq, desc, asc, and, inArray, gte, lte, or, sql, count, exists } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 
@@ -11,9 +12,13 @@ import { normalizeName } from "@fsx/db/normalize";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { AGE_GROUPS, getBirthDateRange } from "../age-groups";
-import { contentText, filterArray, idInput, imageUrl, isoDate, limit, nameText, page, positiveInt, rating, searchText } from "../input-schemas";
+import { contentText, filterArray, idInput, imageUrl, isoDate, limit, nameText, page, positiveInt, rating, searchText, seasonYear } from "../input-schemas";
 import { escapeLike, like } from "../sql-like";
 import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+import { loadPlayerCircuits } from "../gamification/circuits";
+import { loadPlayerCareer, loadPlayerStats } from "../gamification/load";
+import { playerSeason } from "../gamification/season";
+import { loadPlayerRanking, movementsFor } from "../gamification/ranking";
 
 export const playersRouter = router({
   page: adminProcedure
@@ -77,7 +82,7 @@ export const playersRouter = router({
           verified: true,
         },
         with: {
-          club: { columns: { name: true, logoUrl: true } },
+          club: { columns: { id: true, name: true, logoUrl: true } },
           location: { columns: { name: true, flagUrl: true } },
           defendingChampions: {
             limit: PUBLIC_NESTED_COLLECTION_LIMIT,
@@ -98,18 +103,47 @@ export const playersRouter = router({
           },
           tournamentPodiums: {
             limit: PUBLIC_NESTED_COLLECTION_LIMIT,
-            columns: { place: true },
-            with: { tournament: { columns: { name: true, date: true, championshipId: true } } },
+            columns: { place: true, category: true },
+            with: {
+              tournament: {
+                columns: { name: true, date: true, championshipId: true },
+                with: { championship: { columns: { name: true } } },
+              },
+            },
           },
           playersToTitles: {
             limit: PUBLIC_NESTED_COLLECTION_LIMIT,
             columns: {},
-            with: { title: { columns: { name: true, shortName: true, type: true } } },
+            with: { title: { columns: { name: true, shortName: true, type: true, tier: true } } },
           },
         },
       }), "Player");
       return { ...player, playersToTournaments: player.playersToTournaments.reverse() };
     }),
+
+  stats: publicProcedure
+    .input(idInput)
+    .query(async ({ ctx, input }) => requireFound(await loadPlayerStats(ctx.db, input.id), "Player")),
+
+  season: publicProcedure
+    .input(z.object({ id: positiveInt, year: seasonYear }))
+    .query(async ({ ctx, input }) => {
+      const career = requireFound(await loadPlayerCareer(ctx.db, input.id), "Player");
+      const season = playerSeason(career.input, input.year);
+      if (season.tournamentsPlayed === 0 && season.podiums.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "No activity recorded for this player in that year" });
+      }
+      const { id, name, nickname } = career.player;
+      return { player: { id, name, nickname }, tournaments: career.tournaments, ...season };
+    }),
+
+  ranking: publicProcedure
+    .input(idInput)
+    .query(async ({ ctx, input }) => requireFound(await loadPlayerRanking(ctx.db, input.id), "Player")),
+
+  circuitSeasons: publicProcedure
+    .input(idInput)
+    .query(async ({ ctx, input }) => requireFound(await loadPlayerCircuits(ctx.db, input.id), "Player")),
 
   search: publicProcedure
     .input(z.object({ query: searchText }))
@@ -344,7 +378,7 @@ export const playersRouter = router({
       //    issues a separate query per relation keyed on the page ids, so a
       //    player with several titles/championships no longer multiplies rows
       //    (which previously forced a full players scan + JS de-duplication).
-      const rows = await ctx.db.query.players.findMany({
+      const [rows, movements] = await Promise.all([ctx.db.query.players.findMany({
         columns: {
           id: true,
           name: true,
@@ -369,13 +403,14 @@ export const playersRouter = router({
             with: { title: { columns: { type: true, name: true, shortName: true } } },
           },
         },
-      });
+      }), movementsFor(ctx.db, sortBy, ids)]);
 
       // Relational loading doesn't preserve the id order; restore it.
       const byId = new Map(rows.map((player) => [player.id, player]));
       const players = ids
         .map((id) => byId.get(id))
-        .filter((player): player is NonNullable<typeof player> => player !== undefined);
+        .filter((player): player is NonNullable<typeof player> => player !== undefined)
+        .map((player) => ({ ...player, movement: movements.get(player.id) ?? null }));
 
       return { players, pagination };
     }),

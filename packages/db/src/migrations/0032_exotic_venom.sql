@@ -1,0 +1,1 @@
+CREATE INDEX `ranking_snapshots_type_at_idx` ON `ranking_snapshots` (`rating_type`,`snapshot_at`);

@@ -54,16 +54,16 @@ export function AdminHeader() {
                         {item.items.map((sub) => (
                           <li key={sub.label}>
                             <NavigationMenuLink
-                              className="group w-full justify-start gap-1.5 rounded-[6px] bg-muted p-2 text-muted-foreground transition-colors duration-200 select-none hover:bg-primary"
+                              className="group w-full justify-start gap-1.5 rounded-[6px] bg-muted p-2 text-muted-foreground transition-colors duration-200 select-none hover:bg-primary focus:bg-primary data-active:bg-primary/10 data-active:hover:bg-primary data-active:focus:bg-primary"
                               data-active={isActive(pathname, sub.to) || undefined}
                               render={
                                 <Link to={sub.to}>
                                   <HugeiconsIcon
-                                    className="size-4 text-muted-foreground transition-colors group-hover:text-primary-foreground"
+                                    className="size-4 text-muted-foreground transition-colors group-hover:text-primary-foreground group-focus:text-primary-foreground group-data-active:text-primary group-data-active:group-hover:text-primary-foreground group-data-active:group-focus:text-primary-foreground"
                                     icon={sub.icon}
                                     strokeWidth={2}
                                   />
-                                  <span className="text-sm font-medium text-foreground transition-colors group-hover:text-primary-foreground">
+                                  <span className="text-sm font-medium text-foreground transition-colors group-hover:text-primary-foreground group-focus:text-primary-foreground">
                                     {sub.label}
                                   </span>
                                 </Link>

@@ -10,16 +10,54 @@ champions, and titled-players tables.
 
 ## Profile details
 
-The profile shows the player's name (or nickname), photo, FSX and CBX/FIDE
-titles, club, location, and activity status. Classical, rapid, and blitz
-ratings are highlighted, and the FSX, CBX, and FIDE IDs link to the official
-profiles.
+The profile shows the player's name (or nickname), photo, club (with its
+[club ranking](/guide/clubs) position), location, and activity status. Under the name, the player's **level** and a bar toward the
+next one; it opens how the XP was earned. XP comes from the recorded history:
+15 per tournament, podiums weighted by the event's tier (half for a category
+podium), circuit podiums, 30 per rating step from 2000 to 2400, and the
+player's highest title by tier. Reaching level *n* takes 25 × n × (n − 1) XP in total. Titles appear as emblems under the name, highest tier first,
+colored by tier (bronze, silver, gold, platinum). Classical, rapid, and blitz
+ratings are highlighted, each with the player's position among active players
+("#3") and its movement with the last rating update (▲/▼), and the peak ("Pico")
+when it is above the current rating, and the FSX, CBX, and FIDE IDs link to the official profiles.
 
 ## Achievements
 
-The **Conquistas** (achievements) section lists the championships the player
-currently holds and the podium finishes they earned, with place and
-tournament.
+The **Conquistas** (achievements) section shows:
+
+- **Medal counts** for tournaments, category podiums, finished circuit seasons,
+  and circuit stages, kept apart so the many stage medals do not hide titles.
+- **Badges**: rating steps of the title ladder (2000 … 2400 per time control),
+  10/25/50/100 tournaments, streaks of tournaments with rating gains, firsts
+  (tournament, rating gain, podium), and repeated titles ("Bicampeão(ã)",
+  consecutive years). Each badge opens a note with its date, "Conquista anterior
+  aos registros da FSX" when it predates the records, or "Data desconhecida".
+  Locked badges show the next tournaments milestone and the next rating step.
+- **Podiums** grouped by championship, with the number of titles, then other
+  tournaments; category podiums name their category.
+- The championships the player currently holds.
+
+Achievements are computed from the recorded history, so they include the
+whole career and change when the history is corrected
+([ADR 0006](/decisions/0006-derived-achievements)).
+
+## Statistics and circuits
+
+**Estatísticas** shows tournaments played (and in how many seasons), the first
+year, the best single rating gain, and the longest streak of rating gains, and
+a calendar of tournaments per month for every year played. Each year opens the
+player's **season recap** (`/jogadores/<id>/temporada/<ano>`): tournaments,
+rating change per time control, best performance, XP gained, podiums, and the
+achievements earned that year. A year without activity, or a future one, is a
+404. **Circuitos** lists every circuit season the player took
+part in, with stages played and points, the current position per category
+while the season is in progress, and the final podiums once it is finished.
+
+## Announcements
+
+**Comunicados** lists the official announcements about the player (titles,
+norms, decisions), newest first, linking to each one. The announcement page
+links back to the player.
 
 ## Performance and history
 

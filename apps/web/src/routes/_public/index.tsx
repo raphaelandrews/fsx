@@ -5,6 +5,7 @@ import { Announcements } from "@/components/home/announcements";
 import { Events } from "@/components/home/events";
 import { FAQ } from "@/components/home/faq";
 import { Hero } from "@/components/home/hero";
+import { NewsFeed } from "@/components/home/news-feed";
 import { Posts } from "@/components/home/posts";
 import { TopPlayers } from "@/components/home/ratings/top-players";
 import { DEFAULT_DESCRIPTION, SITE_NAME, buildSeo } from "@/lib/seo";
@@ -37,6 +38,7 @@ export const Route = createFileRoute("/_public/")({
         }),
       ),
       context.queryClient.ensureQueryData(context.trpc.topPlayers.list.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.records.recent.queryOptions()),
     ]);
   },
   component: RouteComponent,
@@ -54,6 +56,7 @@ function RouteComponent() {
     trpc.announcements.fresh.queryOptions(undefined, { staleTime: PUBLICATION_STALE_TIME }),
   );
   const { data: topPlayers } = useSuspenseQuery(trpc.topPlayers.list.queryOptions());
+  const { data: feed } = useSuspenseQuery(trpc.records.recent.queryOptions());
 
   return (
     <>
@@ -61,6 +64,7 @@ function RouteComponent() {
       {events.length > 0 && <Events events={events} />}
       <Posts posts={posts} />
       <TopPlayers topPlayers={topPlayers} />
+      {feed.length > 0 && <NewsFeed items={feed} />}
       <Announcements announcements={announcements} />
       <FAQ />
     </>

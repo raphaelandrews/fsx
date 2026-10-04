@@ -1,10 +1,12 @@
 import { z } from "zod";
-import { eq, asc, sql } from "drizzle-orm";
+import { eq, asc, desc, sql } from "drizzle-orm";
 
 import { clubs, insertClubSchema } from "@fsx/db/schema/clubs";
+import { players } from "@fsx/db/schema/players";
+import { loadClubStandings } from "../gamification/clubs";
 import { adminProcedure, publicProcedure, router } from "../index";
-import { requireMutationRows } from "../errors";
-import { emblemUrl, nameText, positiveInt, searchText } from "../input-schemas";
+import { requireFound, requireMutationRows } from "../errors";
+import { emblemUrl, idInput, nameText, positiveInt, searchText } from "../input-schemas";
 import { deleteMediaUrl } from "./images";
 import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 import { escapeLike, like } from "../sql-like";
@@ -22,6 +24,32 @@ export const clubsRouter = router({
     ctx.db.select({ id: clubs.id, name: clubs.name, logoUrl: clubs.logoUrl })
       .from(clubs).orderBy(asc(clubs.name), asc(clubs.id)).limit(PUBLIC_COLLECTION_LIMIT)
   ),
+  leaderboard: publicProcedure.query(({ ctx }) => loadClubStandings(ctx.db)),
+  byId: publicProcedure.input(idInput).query(async ({ ctx, input }) => {
+    const [standings, members] = await Promise.all([
+      loadClubStandings(ctx.db),
+      ctx.db
+        .select({
+          id: players.id,
+          name: players.name,
+          nickname: players.nickname,
+          imageUrl: players.imageUrl,
+          active: players.active,
+          classic: players.classic,
+          rapid: players.rapid,
+          blitz: players.blitz,
+        })
+        .from(players)
+        .where(eq(players.clubId, input.id))
+        .orderBy(desc(players.active), desc(players.rapid), asc(players.name))
+        .limit(PUBLIC_COLLECTION_LIMIT),
+    ]);
+    const club = requireFound(
+      await ctx.db.query.clubs.findFirst({ where: eq(clubs.id, input.id), columns: { id: true, name: true, logoUrl: true } }),
+      "Club",
+    );
+    return { club, standing: standings.find((standing) => standing.club.id === club.id) ?? null, members };
+  }),
   search: publicProcedure
     .input(z.object({ query: searchText }))
     .query(async ({ ctx, input }) => {

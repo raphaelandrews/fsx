@@ -23,6 +23,7 @@ import { SearchInput } from "@/components/data-table/search-input";
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { PlayerActions } from "@/components/campeoes/actions";
+import { Movement } from "@/components/gamification/movement";
 import {
   ratingGroups,
   ratingSexes,
@@ -277,7 +278,10 @@ function RouteComponent() {
             {players.map((player, index) => (
               <TableRow key={player.id}>
                 <TableCell className="text-muted-foreground tabular-nums">
-                  {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
+                  <span className="inline-flex items-baseline gap-1">
+                    {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
+                    <Movement value={player.movement} />
+                  </span>
                 </TableCell>
                 <TableCell>
                   <PlayerActions

@@ -1,3 +1,11 @@
+export {
+  COMPETITION_CATEGORIES,
+  COMPETITION_TIER_LABELS,
+  COMPETITION_TIERS,
+  type CompetitionCategory,
+  type CompetitionTier,
+} from "@fsx/db/competition";
+
 // Circuit presentation/editing modes. The stored `circuits.type` is a free
 // string validated against this list in the API layer.
 // - "default": one ranking with a column per phase (etapa)
@@ -5,23 +13,6 @@
 // - "school": club ranking with a players breakdown, category filter
 // - "geral": no phases; a single overall player ranking
 export const CIRCUIT_TYPES = ["default", "categories", "school", "geral"] as const;
-export const CIRCUIT_CATEGORIES = [
-  "Sub 8 Masculino",
-  "Sub 10 Masculino",
-  "Sub 12 Masculino",
-  "Sub 14 Masculino",
-  "Sub 16 Masculino",
-  "Sub 18 Masculino",
-  "Sub 8 Feminino",
-  "Sub 10 Feminino",
-  "Sub 12 Feminino",
-  "Sub 14 Feminino",
-  "Sub 16 Feminino",
-  "Sub 18 Feminino",
-  "Futuro",
-  "Juvenil",
-  "Master",
-] as const;
 
 export type CircuitType = (typeof CIRCUIT_TYPES)[number];
 
@@ -31,3 +22,7 @@ export const CIRCUIT_TYPE_LABELS: Record<CircuitType, string> = {
   school: "School (club ranking)",
   geral: "Overall (single list, no stages)",
 };
+
+// Layouts that rank each category separately, so each category has its own
+// champion; the others rank every row together.
+export const CIRCUIT_TYPES_BY_CATEGORY: readonly CircuitType[] = ["categories", "school"];

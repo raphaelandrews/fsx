@@ -17,6 +17,7 @@ type RouterKey = keyof inferRouterInputs<AppRouter>;
 
 const PLAYER_VIEWS = [
   "players",
+  "announcements",
   "topPlayers",
   "titledPlayers",
   "champions",
@@ -27,15 +28,17 @@ const PLAYER_VIEWS = [
   "cups",
   "tvSergipe",
   "swissManager",
+  "records",
+  "clubs",
 ] as const satisfies readonly RouterKey[];
 
 // Every router whose queries embed the mutated domain's rows. Admin mutations
 // invalidate whole routers here, so a nested name/image edit refreshes every
 // list, detail, and public view that renders it.
 export const ADMIN_QUERY_DEPENDENTS = {
-  announcements: ["announcements", "stats"],
-  champions: ["champions", "tournaments", "players", "topPlayers"],
-  circuits: ["circuits", "stats"],
+  announcements: ["announcements", "records", "stats"],
+  champions: ["champions", "tournaments", "circuits", "players", "topPlayers", "records"],
+  circuits: ["circuits", "players", "records", "clubs", "stats"],
   clubs: ["clubs", "players", "circuits", "tvSergipe", "swissManager"],
   cups: ["cups"],
   events: ["events", "links", "stats"],
@@ -46,13 +49,13 @@ export const ADMIN_QUERY_DEPENDENTS = {
   players: [...PLAYER_VIEWS, "stats"],
   playersToInsignias: ["playersToInsignias", "players"],
   playersToRoles: ["playersToRoles", "roles", "players"],
-  playersToTitles: ["playersToTitles", "titledPlayers", "topPlayers", "players"],
-  playersTournament: ["playersTournament", "players", "topPlayers", "titledPlayers", "swissManager"],
+  playersToTitles: ["playersToTitles", "titledPlayers", "topPlayers", "players", "records"],
+  playersTournament: ["playersTournament", "players", "playersToTitles", "topPlayers", "titledPlayers", "swissManager", "records", "clubs"],
   posts: ["posts", "stats"],
   roles: ["roles", "playersToRoles", "players"],
-  titles: ["titles", "playersToTitles", "titledPlayers", "topPlayers", "players"],
-  tournamentPodiums: ["tournamentPodiums", "tournaments", "champions", "players"],
-  tournaments: ["tournaments", "tournamentPodiums", "champions", "players", "stats"],
+  titles: ["titles", "playersToTitles", "titledPlayers", "topPlayers", "players", "records"],
+  tournamentPodiums: ["tournamentPodiums", "tournaments", "champions", "players", "records", "clubs"],
+  tournaments: ["tournaments", "tournamentPodiums", "champions", "circuits", "players", "records", "stats"],
   tvSergipe: ["tvSergipe", "stats"],
 } as const satisfies Partial<Record<RouterKey, readonly RouterKey[]>>;
 

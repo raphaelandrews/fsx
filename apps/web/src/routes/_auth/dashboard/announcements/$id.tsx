@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { EntityForm } from "@/components/admin/entity-form";
+import { EntityForm, optionalNumber } from "@/components/admin/entity-form";
+import { SuggestedPlayers } from "@/components/admin/suggested-players";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { ANNOUNCEMENT_SECTIONS } from "@/lib/admin-forms";
+import { announcementSections } from "@/lib/admin-forms";
 import { orNotFound } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
 import { useTRPC } from "@/utils/trpc";
@@ -63,11 +64,13 @@ function RouteComponent() {
         }
       />
       <EntityForm
-        sections={ANNOUNCEMENT_SECTIONS}
+        key={announcement.playerId ?? "no-player"}
+        sections={announcementSections(trpc, announcement.player?.name)}
         defaultValues={{
           year: String(announcement.year),
           number: String(announcement.number),
           content: announcement.content,
+          playerId: announcement.playerId ? String(announcement.playerId) : "",
         }}
         onSubmit={(values) =>
           updateMutation.mutate({
@@ -75,6 +78,7 @@ function RouteComponent() {
             year: Number(values.year),
             number: Number(values.number),
             content: values.content!,
+            playerId: optionalNumber(values.playerId!),
           })
         }
         error={updateMutation.error}
@@ -82,6 +86,13 @@ function RouteComponent() {
         submitLabel="Save changes"
         cancelTo="/dashboard/announcements"
       />
+      {announcement.playerId === null && (
+        <SuggestedPlayers
+          content={announcement.content}
+          pending={updateMutation.isPending}
+          onLink={(playerId) => updateMutation.mutate({ id, playerId })}
+        />
+      )}
     </>
   );
 }

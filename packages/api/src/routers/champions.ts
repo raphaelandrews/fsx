@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, asc } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 
 import { championships, insertChampionshipSchema } from "@fsx/db/schema/championships";
 import { tournaments } from "@fsx/db/schema/tournaments";
@@ -35,7 +35,10 @@ export const championsRouter = router({
       })
       .from(championships)
       .innerJoin(tournaments, eq(tournaments.championshipId, championships.id))
-      .innerJoin(tournamentPodiums, eq(tournamentPodiums.tournamentId, tournaments.id))
+      .innerJoin(
+        tournamentPodiums,
+        and(eq(tournamentPodiums.tournamentId, tournaments.id), isNull(tournamentPodiums.category)),
+      )
       .innerJoin(players, eq(players.id, tournamentPodiums.playerId))
       .leftJoin(locations, eq(locations.id, players.locationId))
       .leftJoin(playersToTitles, eq(playersToTitles.playerId, players.id))

@@ -6,6 +6,8 @@ const STATIC_PATHS = [
   "/ratings",
   "/campeoes",
   "/circuitos",
+  "/recordes",
+  "/clubes",
   "/comunicados",
   "/titulados",
   "/tv-sergipe",
@@ -42,9 +44,10 @@ export interface SitemapEntries {
   posts: SitemapPost[];
   playerIds: number[];
   announcementIds: number[];
+  clubIds: number[];
 }
 
-export function renderSitemap({ posts, playerIds, announcementIds }: SitemapEntries): string {
+export function renderSitemap({ posts, playerIds, announcementIds, clubIds }: SitemapEntries): string {
   const entries = [
     ...STATIC_PATHS.map((path) => urlEntry(path)),
     ...posts.map((post) =>
@@ -52,6 +55,7 @@ export function renderSitemap({ posts, playerIds, announcementIds }: SitemapEntr
     ),
     ...playerIds.map((id) => urlEntry(`/jogadores/${id}`)),
     ...announcementIds.map((id) => urlEntry(`/comunicados/${id}`)),
+    ...clubIds.map((id) => urlEntry(`/clubes/${id}`)),
   ];
 
   return [

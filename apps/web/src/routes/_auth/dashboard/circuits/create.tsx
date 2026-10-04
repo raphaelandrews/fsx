@@ -1,21 +1,24 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-import type { CircuitType } from "@fsx/api/circuit-types";
+import type { CircuitType, CompetitionTier } from "@fsx/api/circuit-types";
 
-import { EntityForm } from "@/components/admin/entity-form";
+import { EntityForm, optionalNumber } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { CIRCUIT_SECTIONS } from "@/lib/admin-forms";
+import { circuitSections } from "@/lib/admin-forms";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/create")({
   head: () => ({ meta: [{ title: "New circuit - Admin - FSX" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.champions.list.queryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
+  const { data: championships } = useSuspenseQuery(trpc.champions.list.queryOptions());
 
   const createMutation = useAdminMutation(trpc.circuits.create.mutationOptions(), {
     invalidates: "circuits",
@@ -35,13 +38,25 @@ function RouteComponent() {
         backTo="/dashboard/circuits"
         backLabel="Circuits"
         title="New circuit"
-        description="Name the circuit first; you add its stages and podiums on the next page."
+        description="Create one circuit per season; you add its stages and points on the next page."
       />
       <EntityForm
-        sections={CIRCUIT_SECTIONS}
-        defaultValues={{ name: "", type: "default" }}
+        sections={circuitSections(championships)}
+        defaultValues={{
+          name: "",
+          year: String(new Date().getFullYear()),
+          type: "default",
+          tier: "B",
+          championshipId: "",
+        }}
         onSubmit={(values) =>
-          createMutation.mutate({ name: values.name!, type: values.type as CircuitType })
+          createMutation.mutate({
+            name: values.name!,
+            year: Number(values.year),
+            type: values.type as CircuitType,
+            tier: values.tier as CompetitionTier,
+            championshipId: optionalNumber(values.championshipId!),
+          })
         }
         error={createMutation.error}
         pending={createMutation.isPending}

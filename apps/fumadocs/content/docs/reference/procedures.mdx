@@ -59,7 +59,15 @@ the affected rows (`.returning()`), except where noted.
 | Procedure | Access | Input | Output | Edge TTL |
 | --------- | ------ | ----- | ------ | -------- |
 | `players.byId` | public | `{ id }` | Profile: ratings, photo, IDs, club, location, titles, roles, podiums, rating history, defending championships (nested lists capped at 100) | 120 s |
-| `players.withFilters` | public | `{ page, limit, sortBy: rapid\|blitz\|classic, sex?, titles[], clubs[], locations[], groups[], name? }` | `{ players, pagination }`; active players only, ordered by the chosen rating | 120 s |
+| `players.stats` | public | `{ id }` | `{ stats, level, achievements, upcoming, tournaments }` (level with XP and its breakdown; locked next steps; names of the tournaments achievements point at) derived from the whole career (up to 500 results) by `gamification/` ([ADR 0006](/decisions/0006-derived-achievements)); `NOT_FOUND` for an unknown player | 120 s |
+| `players.season` | public | `{ id, year }` | One year of the career: tournaments, months, rating change per type, best gain, podiums, achievements, XP gained (career up to the end of the year minus up to the end of the previous one), level, and the years played; `NOT_FOUND` for an unknown player or a year without dated activity | 300 s |
+| `players.ranking` | public | `{ id }` | Per rating type `{ position, players, movement }` among active players (live position; movement between the two latest snapshots), `null` per type for an inactive player; `NOT_FOUND` for an unknown player | 120 s |
+| `records.all` | public | — | `{ year, peaks, wins, podiums, championships, streaks, gains, activeThisYear, levels }`: top 10 per record (top 3 per championship), equal values sharing a place, computed from every career with the profile's stats module | 300 s |
+| `records.recent` | public | — | The "Novidades" feed: up to 20 achievements, titles, and player announcements from the last 60 days and after `GAMIFICATION_LAUNCH_DATE` (empty while it is `null`), newest first; stored like the records | 300 s |
+| `clubs.leaderboard` | public | — | Per club with members: members, active members, strength and rank per rating type (average of the top 5 active members; `null` below 5), medals of current members | 300 s |
+| `clubs.byId` | public | `{ id }` | `{ club, standing, members }`; `NOT_FOUND` for an unknown club | 300 s |
+| `players.circuitSeasons` | public | `{ id }` | The player's circuit seasons: stages played, points, live position per category while in progress, final podiums once finished; `NOT_FOUND` for an unknown player | 120 s |
+| `players.withFilters` | public | `{ page, limit, sortBy: rapid\|blitz\|classic, sex?, titles[], clubs[], locations[], groups[], name? }` | `{ players, pagination }`; active players only, ordered by the chosen rating; each player has `movement` in that rating (places since the previous snapshot, `"new"`, or `null`) | 120 s |
 | `players.search` | public | `{ query }` | Up to 10 `{ id, name }`, best match first; an empty query returns the top 10 active players by rapid rating | 30 s |
 | `players.page` | admin | `{ page, limit, name? }` | `{ players, pagination }` for the dashboard list | — |
 | `players.forEdit` | admin | `{ id }` | Every editable column, including birth date and sex | — |
@@ -91,6 +99,7 @@ There is no player delete procedure; set `active: false` instead.
 | `playersTournament.correctVariation` | admin | `{ id, variation }` | `{ id, oldRating, variation, ratingType, rating }`; `rating` is the player's new current rating |
 | `playersTournament.remove` | admin | `{ id }` | `{ id, ratingType, rating }` |
 | `playersTournament.revertTournament` | admin | `{ tournamentId }` | `{ reverted }`, the number of results removed |
+| `playersTournament.snapshotRankings` | admin | `{ ratingTypes }` (1–3) | `{ snapshotAt, deactivated, titlesRemoved, youthTitlesWithoutBirthDate }`; in one batch, marks players without activity in the last 3 years inactive, removes youth titles whose holder turns the title's `losesAtAge` this year, then ranks every active player per type into `ranking_snapshots` ([ADR 0007](/decisions/0007-ranking-snapshots)). `linkWithRating` makes the player active again |
 
 Errors: `NOT_FOUND` (player, tournament, or result), `BAD_REQUEST` (rating type
 differs from the tournament's, or a rating would leave 0–4000), `CONFLICT`
@@ -105,15 +114,18 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `tournaments.list` | public | — | Tournaments with championship | 300 s |
 | `tournaments.search` | public | `{ query }` | Matching `{ id, name }` for pickers | 30 s |
 | `tournaments.byId` | public | `{ id }` | Tournament with podiums | 120 s |
-| `tournaments.create` / `update` / `delete` | admin | `name`, `ratingType`, `date?`, `chessResults?` (`httpUrl`), `championshipId?` | Rows; `CONFLICT` when deleting, or changing the rating type of, a tournament with rating results | — |
-| `tournamentPodiums.list` | public | — | Podiums with player and tournament | 300 s |
-| `tournamentPodiums.create` / `update` / `delete` | admin | `{ playerId, tournamentId, place (1–100000) }` | Rows; `CONFLICT` for a second podium of the same player in a tournament | — |
+| `tournaments.create` / `update` / `delete` | admin | `name`, `ratingType`, `date?`, `chessResults?` (`httpUrl`), `championshipId?`, `tier?` (`S`, `A`, `B`, `school`; default `B`) | Rows; `CONFLICT` when deleting, or changing the rating type of, a tournament with rating results | — |
+| `tournamentPodiums.list` | public | — | Podiums with category, player, and tournament | 300 s |
+| `tournamentPodiums.create` / `update` / `delete` | admin | `{ playerId, tournamentId, place (1–100000), category? }` | Rows; `CONFLICT` for a second overall podium, or a second podium in the same category, of a player in a tournament | — |
 | `champions.list` | public | — | Championships `{ id, name }` | 300 s |
-| `champions.gallery` | public | — | Championships with their tournaments' podiums and players | 300 s |
+| `champions.gallery` | public | — | Championships with their tournaments' overall podiums (category podiums excluded) and players | 300 s |
 | `champions.create` / `update` / `delete` | admin | `{ name }` | Championship rows | — |
-| `circuits.listSimple` | public | — | `{ id, name, type }` for tabs | 300 s |
-| `circuits.byId` | public | `{ id }` | Circuit with phases, tournaments, clubs, and podiums | 300 s |
-| `circuits.create` / `update` / `delete` | admin | `{ name, type }` | Rows; delete cascades to phases and podiums | — |
+| `circuits.listSimple` | public | — | `{ id, name, type, year, tier, finishedAt }`, newest season first | 300 s |
+| `circuits.byId` | public | `{ id }` | Circuit with championship, phases, tournaments, clubs, points rows, and final podiums | 300 s |
+| `circuits.create` / `update` / `delete` | admin | `{ name, type, year (1900–2200), tier?, championshipId? }` | Rows; delete cascades to phases and points rows; `CONFLICT` while the circuit has final podiums | — |
+| `circuits.finish` | admin | `{ id, finishedAt }` | Sets `finishedAt` and, in one batch, stores the top 3 of the summed points (per category for `categories` and `school` circuits, shared places for equal totals) as final podiums; `CONFLICT` if already finished, `BAD_REQUEST` without points | — |
+| `circuits.reopen` | admin | `{ id }` | Deletes the final podiums and clears `finishedAt` in one batch | — |
+| `circuits.finalPodiums.create` / `update` / `delete` | admin | `{ circuitId, playerId, place (1–1000), category?, points? }` | Rows; `BAD_REQUEST` on create while the circuit is in progress, `CONFLICT` for a duplicate player in a category | — |
 | `circuits.phases.create` / `update` / `delete` | admin | `{ circuitId, tournamentId, clubId?, sortOrder }` | Rows | — |
 | `circuits.podiums.create` / `update` / `delete` | admin | `{ playerId, circuitId? XOR circuitPhaseId?, category?, place? (1–1000), points }` | Rows; `BAD_REQUEST` unless exactly one target is set | — |
 | `cups.list` | public | — | Cup summaries | 300 s |
@@ -131,12 +143,13 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `clubs.list` | public | — | `{ id, name, logoUrl }` | 300 s |
 | `clubs.search` | public | `{ query }` | Matching clubs for pickers | 30 s |
 | `locations.list` | public | — | `{ id, name, type, flagUrl }` | 300 s |
-| `titles.list` | public | — | Titles | 300 s |
+| `titles.list` | public | — | Titles with `tier` | 300 s |
 | `roles.list` | public | — | Roles | 300 s |
 | `roles.listWithPlayers` | public | — | Roles with their players (members page) | 300 s |
 | `norms.list` | public | — | Norms | 300 s |
 | `insignias.list` | public | — | Insignias | 300 s |
 | `<router>.create` / `update` / `delete` | admin | Entity fields (`name` is unique) | Rows; delete returns `CONFLICT` while referenced | — |
+| `titles.create` / `update` / `delete` | admin | `name`, `shortName`, `type`, `tier` (1–4; default 1), `losesAtAge?` (null or 1–120) | Rows; `BAD_REQUEST` for a tier outside 1–4 | — |
 | `clubs.create` / `update` / `delete`, `locations.create` / `update` / `delete` | admin | `name`, `logoUrl?` / `flagUrl?` (`emblemUrl`), `type` for locations | Rows; delete returns `{ id }` and also deletes the uploaded image, which is kept when the delete fails with `CONFLICT` | — |
 
 ## Publishing
@@ -150,11 +163,13 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `posts.listAdmin` | admin | — | All posts, including drafts | — |
 | `posts.forEdit` | admin | `{ id }` | Full post | — |
 | `posts.create` / `update` / `delete` | admin | `{ title, slug, content, imageUrl?, published }` | Rows; `CONFLICT` for a duplicate slug | — |
-| `announcements.list` | public | — | Announcements | 120 s |
+| `announcements.list` | public | — | Announcements with the linked player's name | 120 s |
 | `announcements.fresh` | public | — | Latest announcements for the home page | 60 s |
 | `announcements.byPage` | public | `{ page }` | 12 per page with pagination | 120 s |
-| `announcements.byId` | public | `{ id }` | One announcement | 120 s |
-| `announcements.create` / `update` / `delete` | admin | `{ year (1900–2200), number, content }` | Rows; `CONFLICT` for a duplicate `(year, number)` | — |
+| `announcements.byId` | public | `{ id }` | One announcement with its linked player | 120 s |
+| `announcements.byPlayer` | public | `{ playerId }` | The player's announcements `{ id, year, number, excerpt }`, newest first | 120 s |
+| `announcements.suggestPlayers` | admin | `{ content }` | Up to 5 players whose full name (two words or more) appears in the text, ignoring accents and case, by whole words | — |
+| `announcements.create` / `update` / `delete` | admin | `{ year (1900–2200), number, content, playerId? }` | Rows; `CONFLICT` for a duplicate `(year, number)` or an unknown player | — |
 | `events.list` | public | — | Events by start date, with their links | 60 s |
 | `events.create` / `update` / `delete` | admin | `{ name, startDate }` | Rows; delete removes the event's links | — |
 | `events.setLinks` | admin | `{ eventId, links: [{ id?, type: regulation\|form\|results, href? }] }` | Replaces the event's links in one D1 batch; labels and icons are derived from the type | — |

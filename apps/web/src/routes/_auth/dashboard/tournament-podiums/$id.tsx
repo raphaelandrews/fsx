@@ -1,6 +1,8 @@
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
+import type { CompetitionCategory } from "@fsx/api/circuit-types";
+
 import { EntityForm } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
@@ -43,7 +45,7 @@ function RouteComponent() {
   });
 
   if (!podium) return null;
-  const summary = `${podium.player?.name ?? "Player"} · ${podium.place}º in ${podium.tournament?.name ?? "tournament"}`;
+  const summary = `${podium.player?.name ?? "Player"} · ${podium.place}º${podium.category ? ` ${podium.category}` : ""} in ${podium.tournament?.name ?? "tournament"}`;
 
   return (
     <>
@@ -71,6 +73,7 @@ function RouteComponent() {
           tournamentId: String(podium.tournamentId),
           playerId: String(podium.playerId),
           place: String(podium.place),
+          category: podium.category ?? "",
         }}
         onSubmit={(values) =>
           updateMutation.mutate({
@@ -78,6 +81,7 @@ function RouteComponent() {
             tournamentId: Number(values.tournamentId),
             playerId: Number(values.playerId),
             place: Number(values.place),
+            category: (values.category || null) as CompetitionCategory | null,
           })
         }
         error={updateMutation.error}

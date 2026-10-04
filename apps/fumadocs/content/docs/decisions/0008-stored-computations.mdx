@@ -1,0 +1,38 @@
+---
+title: "ADR 0008: Stored Computations"
+description: Records, club standings, and the feed are stored in D1 and recomputed only after admin changes, to fit the Workers free plan's CPU limit.
+---
+
+- Status: Accepted
+- Date: 2026-10-03
+
+## Context
+
+[ADR 0006](/decisions/0006-derived-achievements) derives achievements on read.
+For one player that is cheap. The records page, the club standings, and the
+home feed need every career at once: on production-sized data, building every
+career takes about 50 ms of CPU and parsing the rows more, while the Workers free
+plan allows 10 ms per request. The edge cache alone would still recompute once
+per region every five minutes.
+
+## Decision
+
+- `computed_results (key, value, computed_at)` stores the JSON result of
+  `records.all`, `clubs.leaderboard`/`clubs.byId`, and `records.recent`, keyed by
+  what they depend on (the year, the feed's start day).
+- Every successful admin mutation upserts the `data_changed` row through one tRPC
+  middleware (`markComputedStale` in `packages/api/src/index.ts`), with no
+  per-mutation hooks. A stored result is used only when it was computed after the
+  last change and less than a day ago; otherwise it is recomputed and stored.
+  `computed_at` is when the computation started, so a change during it is not
+  missed.
+- The stats module stays the only definition (Principle 2 of the plan): the
+  stored value is its output, a cache, not a second source of truth.
+
+## Consequences
+
+The expensive computation runs about once per admin change, globally. On the
+free plan that request can still exceed the CPU limit; if it fails, the next
+visitor retries it. On the paid plan the design costs nothing extra and could be
+dropped. Changes made outside admin mutations (migrations, manual SQL) appear
+within a day, or at once after `DELETE FROM computed_results`.

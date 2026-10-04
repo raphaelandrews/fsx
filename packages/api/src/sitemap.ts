@@ -1,4 +1,4 @@
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, isNotNull } from "drizzle-orm";
 
 import { createDb } from "@fsx/db";
 import { players } from "@fsx/db/schema/players";
@@ -11,7 +11,7 @@ import { PUBLIC_COLLECTION_LIMIT } from "./resource-bounds";
 // Server-only: deliberately not a tRPC procedure, so anonymous clients cannot
 // pull thousands of IDs straight from D1 through /api/trpc.
 export async function getSitemapEntries(db = createDb(env.DB)) {
-  const [publishedPosts, activePlayers, publishedAnnouncements] = await Promise.all([
+  const [publishedPosts, activePlayers, publishedAnnouncements, clubsWithPlayers] = await Promise.all([
     db
       .select({ slug: posts.slug, updatedAt: posts.updatedAt })
       .from(posts)
@@ -29,11 +29,18 @@ export async function getSitemapEntries(db = createDb(env.DB)) {
       .from(announcements)
       .orderBy(asc(announcements.id))
       .limit(PUBLIC_COLLECTION_LIMIT * 20),
+    db
+      .selectDistinct({ id: players.clubId })
+      .from(players)
+      .where(and(eq(players.active, true), isNotNull(players.clubId)))
+      .orderBy(asc(players.clubId))
+      .limit(PUBLIC_COLLECTION_LIMIT),
   ]);
 
   return {
     posts: publishedPosts,
     playerIds: activePlayers.map(({ id }) => id),
     announcementIds: publishedAnnouncements.map(({ id }) => id),
+    clubIds: clubsWithPlayers.flatMap(({ id }) => (id === null ? [] : [id])),
   };
 }

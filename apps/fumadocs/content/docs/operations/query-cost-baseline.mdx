@@ -49,6 +49,29 @@ headroom.
 | tournaments.list (admin page) | 1 | 389 | 23.7 | tournaments |
 | swissManager.list (public export) | 2 | 16153 | 841 | — |
 
+### Gamification procedures (2026-10-03)
+
+| Procedure | D1 queries | Rows read | Response KB | Full table scans |
+| --- | --- | --- | --- | --- |
+| players.stats | 7 | 1088 | 11.2 | tournaments |
+| players.ranking | 8 | 9217 | 0.2 | — |
+| players.circuitSeasons | 3 | 547 | 0 | — |
+| records.all | 7 | 16759 | 9.8 | players, tournaments |
+| clubs.leaderboard | 4 | 13978 | 5.7 | clubs, tournament_podiums, circuit_final_podiums |
+| clubs.byId | 6 | 13980 | 0.1 | clubs, tournament_podiums, circuit_final_podiums |
+
+- Careers read the tournament list (173 rows) once and join it in memory; a nested
+  relation per result read each tournament and championship again per row
+  (`records.all` was 25,238 rows).
+- Club strength sorts each club's active members in the Worker; three
+  `ROW_NUMBER()` windows made D1 read 65,609 rows.
+- `records.all` and `clubs.leaderboard` read most of the players table by design.
+  Building every career costs about 50 ms of CPU, above the free plan's 10 ms, so
+  their results are stored in D1 and recomputed only after admin changes
+  ([ADR 0008](/decisions/0008-stored-computations)); the costs above are per
+  recomputation, not per request. Ranking with a shared `Intl.Collator` cut
+  building the records from about 245 ms to 25 ms.
+
 ## Findings and decisions
 
 - **All public responses are far below the 512 KB budget.** The largest is

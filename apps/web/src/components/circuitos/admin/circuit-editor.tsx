@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { CIRCUIT_CATEGORIES } from "@fsx/api/circuit-types";
+import type { CompetitionCategory } from "@fsx/api/circuit-types";
 import { Button } from "@fsx/ui/components/button";
 
 import { EntityFormDialog, optionalNumber, type EntityField } from "@/components/admin/entity-form";
@@ -11,6 +11,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useAdminMutation } from "@/lib/admin-mutations";
+import { CATEGORY_OPTIONS } from "@/lib/admin-forms";
 import { useTRPC } from "@/utils/trpc";
 
 import type { Circuit, CircuitPhase, CircuitPodium } from "../types";
@@ -30,21 +31,21 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
 
   const createPodium = useAdminMutation(trpc.circuits.podiums.create.mutationOptions(), {
     invalidates: "circuits",
-    success: "Podium added",
-    failure: "Failed to add podium",
+    success: "Result added",
+    failure: "Failed to add result",
     onSuccess: () => setEditingPodium(null),
   });
   const updatePodium = useAdminMutation(trpc.circuits.podiums.update.mutationOptions(), {
     invalidates: "circuits",
-    success: "Podium updated",
-    failure: "Failed to update podium",
+    success: "Result updated",
+    failure: "Failed to update result",
     reloadOnConflict: true,
     onSuccess: () => setEditingPodium(null),
   });
   const deletePodium = useAdminMutation(trpc.circuits.podiums.delete.mutationOptions(), {
     invalidates: "circuits",
-    success: "Podium deleted",
-    failure: "Failed to delete podium",
+    success: "Result deleted",
+    failure: "Failed to delete result",
   });
   const createPhase = useAdminMutation(trpc.circuits.phases.create.mutationOptions(), {
     invalidates: "circuits",
@@ -83,13 +84,13 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
       initialLabel: editingPodium?.podium?.player?.name,
       getQueryOptions: (query) => trpc.players.search.queryOptions({ query }),
     },
-    { name: "place", label: "Place", kind: "number", min: 1, max: 1000 },
+    { name: "place", label: "Stage place", kind: "number", min: 1, max: 1000 },
     { name: "points", label: "Points", kind: "number", required: true, min: 0, max: 1_000_000 },
     {
       name: "category",
       label: "Category",
       kind: "select",
-      options: CIRCUIT_CATEGORIES.map((category) => ({ value: category, label: category })),
+      options: CATEGORY_OPTIONS,
     },
   ];
 
@@ -153,7 +154,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
         cell: ({ row }) => (
           <DataTableRowActions
             id={row.original.id}
-            noun="podium"
+            noun="result"
             displayName={`${row.original.player?.name ?? "Player"} (${row.original.points} pts)`}
             onEdit={() => setEditingPodium({ target, podium: row.original })}
             isDeleting={deletePodium.isPending}
@@ -166,7 +167,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
       <DataTable
         columns={columns}
         data={[...podiums].sort(byPlaceThenPoints)}
-        emptyState="No podiums yet."
+        emptyState="No results yet."
         pagination={(table) => <DataTablePagination table={table} />}
       />
     );
@@ -177,10 +178,10 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
       {circuit.type === "geral" ? (
         <AdminSection
           title="Overall standings"
-          description="This circuit has no stages: these rows are its final ranking."
+          description="This circuit has no stages: each row is a player's points in the season ranking."
           actions={
             <Button onClick={() => setEditingPodium({ target: { circuitId: circuit.id } })}>
-              Add podium
+              Add result
             </Button>
           }
         >
@@ -189,7 +190,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
       ) : (
         <AdminSection
           title="Stages"
-          description="Each stage is played at a tournament and has its own podium."
+          description="Each stage is played at a tournament. Its results are the points each player scored there; the standings add them up."
           actions={<Button onClick={() => setEditingPhase({})}>Add stage</Button>}
         >
           {phases.length === 0 ? (
@@ -205,7 +206,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
                       </h3>
                       <p className="text-muted-foreground text-sm">
                         {phase.club?.name ? `Hosted by ${phase.club.name} · ` : ""}
-                        {phase.circuitPodiums.length} podium(s)
+                        {phase.circuitPodiums.length} result(s)
                       </p>
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
@@ -214,7 +215,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
                         variant="outline"
                         onClick={() => setEditingPodium({ target: { circuitPhaseId: phase.id } })}
                       >
-                        Add podium
+                        Add result
                       </Button>
                       <Button
                         size="sm"
@@ -227,7 +228,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
                         label="Delete stage"
                         title="Delete this stage?"
                         itemName={`Stage ${phase.sortOrder} · ${phase.tournament?.name ?? ""}`}
-                        description={`The stage and its ${phase.circuitPodiums.length} podium(s) will be permanently deleted. This cannot be undone.`}
+                        description={`The stage and its ${phase.circuitPodiums.length} result(s) will be permanently deleted. This cannot be undone.`}
                         pending={deletePhase.isPending}
                         onConfirm={() => deletePhase.mutate({ id: phase.id })}
                       />
@@ -244,7 +245,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
       <EntityFormDialog
         open={editingPodium !== null}
         onOpenChange={(open) => !open && setEditingPodium(null)}
-        title={editingPodium?.podium ? "Edit podium" : "Add podium"}
+        title={editingPodium?.podium ? "Edit result" : "Add result"}
         fields={podiumFields}
         defaultValues={{
           playerId: editingPodium?.podium ? String(editingPodium.podium.playerId) : "",
@@ -259,7 +260,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
             playerId: Number(values.playerId),
             place: optionalNumber(values.place!),
             points: Number(values.points),
-            category: (values.category || null) as (typeof CIRCUIT_CATEGORIES)[number] | null,
+            category: (values.category || null) as CompetitionCategory | null,
           };
           if (editingPodium.podium)
             updatePodium.mutate({ id: editingPodium.podium.id, ...payload });
@@ -267,7 +268,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
         }}
         error={podiumMutation.error}
         pending={podiumMutation.isPending}
-        submitLabel={editingPodium?.podium ? "Save podium" : "Add podium"}
+        submitLabel={editingPodium?.podium ? "Save result" : "Add result"}
       />
 
       <EntityFormDialog

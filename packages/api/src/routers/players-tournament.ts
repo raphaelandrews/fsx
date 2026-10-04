@@ -12,9 +12,13 @@ import {
   RATING_TYPES,
   removeRatingResult,
   revertTournamentRatings,
+  snapshotRankings,
 } from "./rating-update";
 
 const ratingTypeEnum = z.enum(RATING_TYPES);
+
+// The federation's calendar day, not UTC's, around midnight.
+const federationToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
 const variation = z.number().int().safe().min(-4000).max(4000);
 
 export const playersTournamentRouter = router({
@@ -28,6 +32,10 @@ export const playersTournamentRouter = router({
     .mutation(async ({ ctx, input }) => {
       return applyRatingUpdate(ctx.db, input);
     }),
+
+  snapshotRankings: adminProcedure
+    .input(z.object({ ratingTypes: z.array(ratingTypeEnum).min(1).max(RATING_TYPES.length) }))
+    .mutation(({ ctx, input }) => snapshotRankings(ctx.db, input.ratingTypes, federationToday())),
 
   listByPlayer: adminProcedure
     .input(z.object({ playerId: positiveInt }))

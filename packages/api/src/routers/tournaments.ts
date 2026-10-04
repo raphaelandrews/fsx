@@ -10,9 +10,11 @@ import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { httpUrl, isoDate, nameText, positiveInt, searchText } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+import { COMPETITION_TIERS } from "../circuit-types";
 import { escapeLike, like } from "../sql-like";
 
 const ratingTypeEnum = z.enum(["blitz", "rapid", "classic"]);
+const tierEnum = z.enum(COMPETITION_TIERS);
 
 const RATED_TOURNAMENT_MESSAGE =
   "This tournament has rating results. Revert them on the tournament's edit page before changing its rating type or deleting it.";
@@ -20,7 +22,7 @@ const RATED_TOURNAMENT_MESSAGE =
 export const tournamentsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
     ctx.db.query.tournaments.findMany({
-      columns: { id: true, name: true, chessResults: true, date: true, ratingType: true, championshipId: true },
+      columns: { id: true, name: true, chessResults: true, date: true, ratingType: true, championshipId: true, tier: true },
       with: {
         championship: { columns: { id: true, name: true } },
       },
@@ -45,12 +47,13 @@ export const tournamentsRouter = router({
     .query(async ({ ctx, input }) =>
       requireFound(await ctx.db.query.tournaments.findFirst({
         where: eq(tournaments.id, input.id),
-        columns: { id: true, name: true, chessResults: true, date: true, ratingType: true, championshipId: true },
+        columns: { id: true, name: true, chessResults: true, date: true, ratingType: true, championshipId: true, tier: true },
         with: {
           championship: { columns: { id: true, name: true } },
           tournamentPodiums: {
             limit: PUBLIC_NESTED_COLLECTION_LIMIT,
-            columns: { id: true, place: true, playerId: true },
+            columns: { id: true, place: true, category: true, playerId: true },
+            orderBy: (podium, { asc }) => [asc(podium.category), asc(podium.place), asc(podium.id)],
             with: {
               player: { columns: { id: true, name: true, nickname: true, imageUrl: true } },
             },
@@ -65,6 +68,7 @@ export const tournamentsRouter = router({
       date: isoDate.nullable().optional(),
       ratingType: ratingTypeEnum,
       championshipId: positiveInt.nullable().optional(),
+      tier: tierEnum.default("B"),
     }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(tournaments).values(input).returning()
@@ -77,6 +81,7 @@ export const tournamentsRouter = router({
       date: isoDate.nullable().optional(),
       ratingType: ratingTypeEnum.optional(),
       championshipId: positiveInt.nullable().optional(),
+      tier: tierEnum.optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const hasResults = exists(

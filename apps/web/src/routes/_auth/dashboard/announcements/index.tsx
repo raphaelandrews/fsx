@@ -59,6 +59,11 @@ function RouteComponent() {
       cell: ({ row }) => <span className="max-w-xs truncate block">{row.getValue("content")}</span>,
     },
     {
+      accessorKey: "playerName",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Player" />,
+      cell: ({ row }) => <span className="text-muted-foreground">{row.original.playerName ?? "—"}</span>,
+    },
+    {
       id: "actions",
       header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (

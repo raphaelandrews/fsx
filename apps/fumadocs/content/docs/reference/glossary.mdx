@@ -34,6 +34,7 @@ FSX titles are `internal` in the `titles` table; CBX and FIDE titles are `extern
 | ---- | ------- |
 | **Clássico / Rápido / Blitz / Bullet** | Classical, rapid, blitz, and bullet time controls. The code uses `classic`, `rapid`, and `blitz`. |
 | **Rating** | A player's strength number; the FSX keeps one per time control. |
+| **Ativo / inativo** | A player is active while they have played (rated result, podium, or circuit stage) in the last 3 years or registered within them; maintained at each rating update. |
 | **K-factor** | Maximum rating change per game. See [Rating variation](/guide/rating-variation). |
 | **Variation** | Rating change produced by one tournament. |
 | **Norm** (norma) | A qualifying result toward a title. |
@@ -49,7 +50,7 @@ FSX titles are `internal` in the `titles` table; CBX and FIDE titles are `extern
 | ---- | ------- |
 | **Campeonato** | Championship: a recurring competition grouping tournaments and cups (`championships`). |
 | **Torneio** | Tournament: one event (`tournaments`). |
-| **Pódio** | Podium: a player's final place in a tournament or circuit. |
+| **Pódio** | Podium: a player's final place in a tournament (overall or in a category) or in a finished circuit season. |
 | **Campeão vigente** | Defending champion (`defending_champions`). |
 | **Circuito / Etapa** | Circuit and stage (`circuits`, `circuit_phases`). |
 | **Copa** | Cup: bracket-and-group competition (`cups`). |
@@ -66,7 +67,9 @@ FSX titles are `internal` in the `titles` table; CBX and FIDE titles are `extern
 | **Master / Veterano / Sênior** | Adult age groups: 40–50, 51–64, and 65 or older. |
 | **Masculino / Feminino** | Male / female; stored as `male` / `female`. |
 | **Individual / Equipe** | Individual and team modalities; stored as `individual` / `team`. |
-| **Futuro / Juvenil / Master** | Additional circuit categories alongside the Sub categories (`CIRCUIT_CATEGORIES`). |
+| **Futuro / Juvenil / Master** | Additional categories alongside the Sub categories (`COMPETITION_CATEGORIES`), shared by circuits and tournament podiums. |
+| **Temporada** | Season: one year of a circuit (`circuits.year`). |
+| **Tier** | Importance of a tournament or circuit: S (Sergipanos), A, B, or School. |
 
 ## Site and code
 

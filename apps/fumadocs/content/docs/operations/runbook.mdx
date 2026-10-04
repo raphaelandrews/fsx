@@ -48,6 +48,26 @@ admin guard, and media delivery. Run it after each production deployment.
 Application rollback does not automatically undo a D1 migration. Destructive
 migrations require a restoration plan before deployment.
 
+## Gamification release (one time)
+
+1. Restore drill on a fresh backup (it applies migrations 0028–0034 to a copy).
+2. Deploy as above (migrations, then Worker).
+3. Before any rating import or **Update rankings now**, run
+   `packages/db/src/audits/maintenance-preview.sql` against production (read-only,
+   as in step 2 of the deployment order). It lists the players the 3-year rule
+   would make inactive and the youth titles that would be removed, and shows the
+   tier and age limit of every title. Fix any player who should stay active
+   (record the missing result or podium) before the first update.
+4. Click **Update rankings now** once: it applies both rules and records the first
+   ranking snapshot, so movement arrows appear after the next import.
+5. `DELETE FROM computed_results`, so records and club standings are computed with
+   the deployed code.
+6. Set `GAMIFICATION_LAUNCH_DATE` in `packages/api/src/gamification/constants.ts`
+   to the release day and deploy again, to turn on the home "Novidades" feed.
+7. Over the following weeks: link existing announcements to their players
+   (the edit page suggests them) and link tournaments to championships (only
+   linked tournaments count toward repeated titles).
+
 ## Docs site
 
 The docs (`apps/fumadocs`) are a static Astro build deployed by the same
@@ -110,6 +130,33 @@ against production D1. Rewrite each listed `birth_date`, tournament `date`, or e
 dashboard and age-group filters skip it. The rating import converts `DD/MM/YYYY`
 spreadsheet text automatically.
 
+To size the gaps that player achievements depend on (undated tournaments,
+breaks in rating history, podiums without results, the peak rating
+distribution), run `packages/db/src/audits/gamification-readiness.sql` against
+production D1 (read-only) and record the results in `GAMIFICATION.md`.
+
+The records page, club standings, and home feed are stored in `computed_results`
+and recomputed after any admin change ([ADR 0008](/decisions/0008-stored-computations)).
+After a manual SQL fix, a migration that changes their data, or a deploy that
+changes the XP weights or record rules, run `DELETE FROM computed_results` (or
+wait a day). The home "Novidades" feed stays
+off until `GAMIFICATION_LAUNCH_DATE` in `packages/api/src/gamification/constants.ts`
+is set to the release day.
+
+Before changing the XP weights in `packages/api/src/gamification/constants.ts`,
+check the level distribution on real data:
+
+```bash
+bun run db:backup
+bun packages/api/scripts/xp-distribution.ts ~/Backups/fsx-<stamp>/fsx-<stamp>.sql
+```
+
+It restores the backup into a local Miniflare D1 (the same loader as the restore
+drill), computes every player's level with the code the profile uses, and
+prints the level histogram, XP percentiles, and the top ten breakdowns, with no
+names. Most players should sit at the first levels and the most active ones
+around level 10; adjust the weights, not the formula.
+
 ## Upgrading the Cloudflare toolchain
 
 Alchemy, Miniflare, workerd, Wrangler, and the Worker compatibility date move
@@ -123,8 +170,8 @@ together; `bun run check:runtime` (also in CI) fails when they drift.
    compatibility date, and pin `wrangler` in `apps/web` exactly.
 4. Change `COMPATIBILITY_DATE` in `packages/infra/alchemy.run.ts` only on purpose,
    after reading the Workers compatibility-flag changelog; update the test
-   harnesses (`packages/api/src/test-d1.ts`, `apps/web/scripts/worker-harness.ts`)
-   to the same date.
+   harnesses (`packages/api/src/test-d1.ts`, `apps/web/scripts/worker-harness.ts`,
+   `packages/api/scripts/xp-distribution.ts`) to the same date.
 5. `bun install`, then run `bun run check:runtime`, `bun test`, `bun run build`,
    `bun run check:ssr`, and `bun run test:e2e` before deploying.
 

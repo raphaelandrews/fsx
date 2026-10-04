@@ -52,6 +52,16 @@ function RouteComponent() {
       header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
     },
     {
+      accessorKey: "tier",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Tier" />,
+      cell: ({ row }) => <span className="tabular-nums">{row.original.tier}</span>,
+    },
+    {
+      accessorKey: "losesAtAge",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Lost at age" />,
+      cell: ({ row }) => <span className="tabular-nums text-muted-foreground">{row.original.losesAtAge ?? "—"}</span>,
+    },
+    {
       id: "actions",
       header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (

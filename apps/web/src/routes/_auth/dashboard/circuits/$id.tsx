@@ -1,14 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import type { CircuitType } from "@fsx/api/circuit-types";
+import type { CircuitType, CompetitionTier } from "@fsx/api/circuit-types";
 
-import { EntityForm } from "@/components/admin/entity-form";
+import { EntityForm, optionalNumber } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { CircuitEditor } from "@/components/circuitos/admin/circuit-editor";
+import { CircuitFinalPodiums } from "@/components/circuitos/admin/circuit-final-podiums";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { CIRCUIT_SECTIONS } from "@/lib/admin-forms";
+import { circuitSections } from "@/lib/admin-forms";
 import { orNotFound } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
 import { useTRPC } from "@/utils/trpc";
@@ -17,11 +18,14 @@ export const Route = createFileRoute("/_auth/dashboard/circuits/$id")({
   params: idParams,
   head: () => ({ meta: [{ title: "Edit circuit - Admin - FSX" }] }),
   loader: ({ context, params }) =>
-    orNotFound(
-      context.queryClient.ensureQueryData(
-        context.trpc.circuits.byId.queryOptions({ id: params.id }),
+    Promise.all([
+      orNotFound(
+        context.queryClient.ensureQueryData(
+          context.trpc.circuits.byId.queryOptions({ id: params.id }),
+        ),
       ),
-    ),
+      context.queryClient.ensureQueryData(context.trpc.champions.list.queryOptions()),
+    ]),
   component: RouteComponent,
 });
 
@@ -31,6 +35,7 @@ function RouteComponent() {
   const navigate = useNavigate();
 
   const { data: circuit } = useSuspenseQuery(trpc.circuits.byId.queryOptions({ id }));
+  const { data: championships } = useSuspenseQuery(trpc.champions.list.queryOptions());
 
   const updateMutation = useAdminMutation(trpc.circuits.update.mutationOptions(), {
     invalidates: "circuits",
@@ -45,7 +50,7 @@ function RouteComponent() {
     onSuccess: () => navigate({ to: "/dashboard/circuits" }),
   });
 
-  const podiumCount =
+  const resultCount =
     circuit.circuitPodiums.length +
     circuit.circuitPhases.reduce((sum, phase) => sum + phase.circuitPodiums.length, 0);
 
@@ -55,23 +60,38 @@ function RouteComponent() {
         backTo="/dashboard/circuits"
         backLabel="Circuits"
         title={circuit.name}
-        description="Edit the circuit, its stages, and its podiums."
+        description="Edit the season, its stages and points, and its final podiums."
         actions={
-          <ConfirmDeleteButton
-            label="Delete circuit"
-            title="Delete this circuit?"
-            itemName={circuit.name}
-            description={`“${circuit.name}”, its ${circuit.circuitPhases.length} stage(s), and ${podiumCount} podium(s) will be permanently deleted. This cannot be undone.`}
-            pending={deleteMutation.isPending}
-            onConfirm={() => deleteMutation.mutate({ id })}
-          />
+          circuit.finishedAt ? null : (
+            <ConfirmDeleteButton
+              label="Delete circuit"
+              title="Delete this circuit?"
+              itemName={circuit.name}
+              description={`“${circuit.name}”, its ${circuit.circuitPhases.length} stage(s), and ${resultCount} result(s) will be permanently deleted. To start a new season, create a new circuit instead. This cannot be undone.`}
+              pending={deleteMutation.isPending}
+              onConfirm={() => deleteMutation.mutate({ id })}
+            />
+          )
         }
       />
       <EntityForm
-        sections={CIRCUIT_SECTIONS}
-        defaultValues={{ name: circuit.name, type: circuit.type }}
+        sections={circuitSections(championships)}
+        defaultValues={{
+          name: circuit.name,
+          year: circuit.year ? String(circuit.year) : "",
+          type: circuit.type,
+          tier: circuit.tier,
+          championshipId: circuit.championshipId ? String(circuit.championshipId) : "",
+        }}
         onSubmit={(values) =>
-          updateMutation.mutate({ id, name: values.name!, type: values.type as CircuitType })
+          updateMutation.mutate({
+            id,
+            name: values.name!,
+            year: Number(values.year),
+            type: values.type as CircuitType,
+            tier: values.tier as CompetitionTier,
+            championshipId: optionalNumber(values.championshipId!),
+          })
         }
         error={updateMutation.error}
         pending={updateMutation.isPending}
@@ -79,6 +99,7 @@ function RouteComponent() {
         cancelTo="/dashboard/circuits"
       />
       <CircuitEditor circuit={circuit} />
+      <CircuitFinalPodiums circuit={circuit} />
     </>
   );
 }

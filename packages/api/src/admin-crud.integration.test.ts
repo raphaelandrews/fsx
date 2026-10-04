@@ -84,7 +84,7 @@ beforeAll(async () => {
   const secondPlayerId = idOf(await caller.players.create(base({ name: "Second Player" })));
   const clubId = idOf(await caller.clubs.create({ name: "Fixture Club" }));
   const tournamentId = idOf(await caller.tournaments.create({ name: "Fixture Open", ratingType: "rapid" }));
-  const circuitId = idOf(await caller.circuits.create({ name: "Fixture Circuit", type: "default" }));
+  const circuitId = idOf(await caller.circuits.create({ name: "Fixture Circuit", type: "default", year: 2026 }));
   const phaseId = idOf(await caller.circuits.phases.create({ circuitId, tournamentId, sortOrder: 1 }));
   const titleId = idOf(await caller.titles.create({ name: "Mestre", shortName: "MF", type: "internal" }));
   const roleId = idOf(await caller.roles.create({ name: "Árbitro", shortName: "AR", type: "referee" }));
@@ -133,10 +133,10 @@ const cases = (): CrudCase[] => [
   {
     name: "circuits",
     table: circuits,
-    create: () => caller.circuits.create({ name: "Circuito Escolar", type: "school" }),
-    created: { name: "Circuito Escolar", type: "school" },
-    update: (id) => caller.circuits.update({ id, name: "Circuito Geral", type: "geral" }),
-    updated: { name: "Circuito Geral", type: "geral" },
+    create: () => caller.circuits.create({ name: "Circuito Escolar 2026", type: "school", year: 2026, tier: "school" }),
+    created: { name: "Circuito Escolar 2026", type: "school", year: 2026, tier: "school", finishedAt: null },
+    update: (id) => caller.circuits.update({ id, name: "Circuito Geral 2025", type: "geral", year: 2025, tier: "A" }),
+    updated: { name: "Circuito Geral 2025", type: "geral", year: 2025, tier: "A" },
     remove: (id) => caller.circuits.delete({ id }),
   },
   {
@@ -306,15 +306,17 @@ const cases = (): CrudCase[] => [
       playerId: fixtures.playerId,
       tournamentId: fixtures.tournamentId,
       place: 1,
+      category: "Sub 18 Feminino",
     }),
-    created: { playerId: fixtures.playerId, tournamentId: fixtures.tournamentId, place: 1 },
+    created: { playerId: fixtures.playerId, tournamentId: fixtures.tournamentId, place: 1, category: "Sub 18 Feminino" },
     update: (id) => caller.tournamentPodiums.update({
       id,
       playerId: fixtures.secondPlayerId,
       tournamentId: fixtures.tournamentId,
       place: 2,
+      category: null,
     }),
-    updated: { playerId: fixtures.secondPlayerId, place: 2 },
+    updated: { playerId: fixtures.secondPlayerId, place: 2, category: null },
     remove: (id) => caller.tournamentPodiums.delete({ id }),
   },
   {
@@ -325,8 +327,9 @@ const cases = (): CrudCase[] => [
       ratingType: "classic",
       date: "2026-05-02",
       chessResults: "https://chess-results.com/tnr1.aspx",
+      tier: "A",
     }),
-    created: { name: "Aberto de Aracaju", ratingType: "classic", date: "2026-05-02" },
+    created: { name: "Aberto de Aracaju", ratingType: "classic", date: "2026-05-02", tier: "A" },
     update: (id) => caller.tournaments.update({ id, name: "Aberto de Aracaju 2026", chessResults: null }),
     updated: { name: "Aberto de Aracaju 2026", date: "2026-05-02", chessResults: null },
     remove: (id) => caller.tournaments.delete({ id }),
@@ -482,8 +485,12 @@ describe("admin mutations reject missing and invalid ids", () => {
     "announcements.delete": (id) => caller.announcements.delete({ id }),
     "champions.update": (id) => caller.champions.update({ id, name: "x" }),
     "champions.delete": (id) => caller.champions.delete({ id }),
-    "circuits.update": (id) => caller.circuits.update({ id, name: "x", type: "default" }),
+    "circuits.update": (id) => caller.circuits.update({ id, name: "x", type: "default", year: 2026 }),
     "circuits.delete": (id) => caller.circuits.delete({ id }),
+    "circuits.finish": (id) => caller.circuits.finish({ id, finishedAt: "2026-12-01" }),
+    "circuits.reopen": (id) => caller.circuits.reopen({ id }),
+    "circuits.finalPodiums.update": (id) => caller.circuits.finalPodiums.update({ id, playerId, place: 1 }),
+    "circuits.finalPodiums.delete": (id) => caller.circuits.finalPodiums.delete({ id }),
     "circuits.phases.update": (id) => caller.circuits.phases.update({ id, tournamentId: fixtures.tournamentId, sortOrder: 1 }),
     "circuits.phases.delete": (id) => caller.circuits.phases.delete({ id }),
     "circuits.podiums.update": (id) => caller.circuits.podiums.update({ id, playerId, circuitId: fixtures.circuitId, points: 1 }),

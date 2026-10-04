@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { EntityForm } from "@/components/admin/entity-form";
+import { EntityForm, optionalNumber } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { TITLE_SECTIONS } from "@/lib/admin-forms";
@@ -32,12 +32,14 @@ function RouteComponent() {
       />
       <EntityForm
         sections={TITLE_SECTIONS}
-        defaultValues={{ name: "", shortName: "", type: "internal" }}
+        defaultValues={{ name: "", shortName: "", type: "internal", tier: "1", losesAtAge: "" }}
         onSubmit={(values) =>
           createMutation.mutate({
             name: values.name!,
             shortName: values.shortName!,
             type: values.type as "internal" | "external",
+            tier: Number(values.tier),
+            losesAtAge: optionalNumber(values.losesAtAge!),
           })
         }
         error={createMutation.error}

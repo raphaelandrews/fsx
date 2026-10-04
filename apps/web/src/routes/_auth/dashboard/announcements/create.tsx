@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { EntityForm } from "@/components/admin/entity-form";
+import { EntityForm, optionalNumber } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { ANNOUNCEMENT_SECTIONS } from "@/lib/admin-forms";
+import { announcementSections } from "@/lib/admin-forms";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/create")({
@@ -29,7 +29,13 @@ function RouteComponent() {
     invalidates: "announcements",
     success: "Announcement created",
     failure: "Failed to create announcement",
-    onSuccess: () => navigate({ to: "/dashboard/announcements" }),
+    // Without a player, open the announcement so its suggested players show up.
+    onSuccess: (created) => {
+      const announcement = created[0];
+      return announcement && announcement.playerId === null
+        ? navigate({ to: "/dashboard/announcements/$id", params: { id: announcement.id } })
+        : navigate({ to: "/dashboard/announcements" });
+    },
   });
 
   return (
@@ -41,13 +47,14 @@ function RouteComponent() {
         description="The next number for this year is filled in for you."
       />
       <EntityForm
-        sections={ANNOUNCEMENT_SECTIONS}
-        defaultValues={{ year: String(year), number: String(nextNumber), content: "" }}
+        sections={announcementSections(trpc)}
+        defaultValues={{ year: String(year), number: String(nextNumber), content: "", playerId: "" }}
         onSubmit={(values) =>
           createMutation.mutate({
             year: Number(values.year),
             number: Number(values.number),
             content: values.content!,
+            playerId: optionalNumber(values.playerId!),
           })
         }
         error={createMutation.error}

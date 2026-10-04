@@ -8,6 +8,7 @@ import { account, user } from "@fsx/db/schema/auth";
 import { env } from "@fsx/env/server";
 
 import type { Context } from "./context";
+import { markDataChanged } from "./gamification/computed";
 import { PUBLIC_COLLECTION_LIMIT } from "./resource-bounds";
 
 // Workers have no NODE_ENV, so tRPC's default would treat production as dev and
@@ -201,4 +202,12 @@ const requireAdmin = t.middleware(async ({ ctx, next }) => {
 
 export const protectedProcedure = t.procedure.use(errorBoundary).use(requireSession);
 
-export const adminProcedure = t.procedure.use(errorBoundary).use(requireAdmin);
+// Stored computations (records, club standings) are reused until data changes;
+// every successful admin mutation is such a change.
+const markComputedStale = t.middleware(async ({ ctx, next, type }) => {
+  const result = await next();
+  if (type === "mutation" && result.ok) await markDataChanged(ctx.db);
+  return result;
+});
+
+export const adminProcedure = t.procedure.use(errorBoundary).use(requireAdmin).use(markComputedStale);

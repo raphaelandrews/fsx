@@ -43,6 +43,7 @@ const SITEMAP_EXCLUDED = new Map([
   ["/login", "admin sign-in"],
   ["/$", "catch-all not-found page"],
   ["/swiss-manager", "noindex export tool, reached by direct link"],
+  ["/jogadores/$id/temporada/$ano", "season recaps, linked from each profile, which is the page to index"],
 ]);
 
 function urlPathOf(file) {

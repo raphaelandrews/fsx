@@ -13,6 +13,7 @@ export const limit = positiveInt.max(100).default(20);
 export const searchText = z.string().trim().max(120);
 export const nameText = z.string().trim().min(1).max(160);
 export const isoDate = z.iso.date();
+export const seasonYear = z.number().int().min(1900).max(2200);
 export const contentText = z.string().max(500_000);
 export const httpUrl = z.string().trim().max(2_048).pipe(z.url({ protocol: /^https?$/ }));
 // Uploaded images are stored as relative media paths; older rows may still hold external URLs.

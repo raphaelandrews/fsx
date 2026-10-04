@@ -13,6 +13,7 @@ import {
   Bookmark01Icon,
   Link01Icon,
   BookBookmark01Icon,
+  ChampionIcon,
 } from "@hugeicons/core-free-icons"
 
 type NavigationItem = {
@@ -58,6 +59,20 @@ export const navigationData: Navigation = () => [
         description: "Circuitos de Sergipe.",
         href: "/circuitos",
         icon: Medal01Icon,
+        target: "_self",
+      },
+      {
+        label: "Recordes",
+        description: "Os maiores feitos da história.",
+        href: "/recordes",
+        icon: ChampionIcon,
+        target: "_self",
+      },
+      {
+        label: "Clubes",
+        description: "Ranking e medalhas dos clubes.",
+        href: "/clubes",
+        icon: UserGroupIcon,
         target: "_self",
       },
       {

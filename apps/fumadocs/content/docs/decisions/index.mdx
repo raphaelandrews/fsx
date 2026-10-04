@@ -10,6 +10,9 @@ description: Architecture decision records for choices that change security or o
 | [0003](/decisions/0003-edge-cache-consistency) | Anonymous edge cache with bounded, eventual freshness; SSR HTML is not cached |
 | [0004](/decisions/0004-d1-rating-batch) | Rating updates and their history are written in one guarded D1 batch |
 | [0005](/decisions/0005-rate-limiting) | Native rate limiter for every rate-limited request |
+| [0006](/decisions/0006-derived-achievements) | Player achievements are derived on read by one pure module, never stored |
+| [0007](/decisions/0007-ranking-snapshots) | Ranking positions are captured once per rating import |
+| [0008](/decisions/0008-stored-computations) | Records, club standings, and the feed are stored and recomputed only after admin changes |
 
 Write a new ADR when a change affects security, data integrity, or operations in
 a way a future maintainer could reasonably undo by mistake. Use the next number

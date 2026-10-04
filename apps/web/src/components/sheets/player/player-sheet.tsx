@@ -2,14 +2,25 @@ import { SheetContent } from "@fsx/ui/components/sheet"
 import { Skeleton } from "@fsx/ui/components/skeleton"
 import { PlayerProfile } from "@/components/player/player-profile"
 import type { PlayerById as PlayerByIdType } from "@/components/player/player-profile"
+import type { ClubStanding, PlayerAnnouncement, PlayerCircuitSeason, PlayerRanking, PlayerStatsResult } from "@/components/player/types"
 
 export const PlayerSheet = ({
   player,
+  stats,
+  circuitSeasons,
+  announcements,
+  ranking,
+  clubStanding = null,
   isLoading,
   isError,
   error,
 }: {
   player?: PlayerByIdType | null
+  stats?: PlayerStatsResult
+  circuitSeasons?: PlayerCircuitSeason[]
+  announcements?: PlayerAnnouncement[]
+  ranking?: PlayerRanking
+  clubStanding?: ClubStanding | null
   isLoading?: boolean
   isError?: boolean
   error?: Error | null
@@ -46,13 +57,13 @@ export const PlayerSheet = ({
     )
   }
 
-  if (!player) {
+  if (!player || !stats || !circuitSeasons || !announcements || !ranking) {
     return null
   }
 
   return (
     <SheetContent className="!w-[400px] sm:!w-[540px] !max-w-[90%] sm:!max-w-[600px] gap-0 overflow-y-auto overflow-x-hidden p-0 [&>button#close-sheet]:top-2.5 [&>button#close-sheet]:right-2.5 border-l-0">
-      <PlayerProfile player={player} />
+      <PlayerProfile player={player} stats={stats} circuitSeasons={circuitSeasons} announcements={announcements} ranking={ranking} clubStanding={clubStanding} />
     </SheetContent>
   )
 }

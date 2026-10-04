@@ -55,6 +55,16 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
+  /* Achievement tiers: background tint + text/icon color, ≥ 4.5:1 apart. */
+  --tier-bronze: oklch(0.95 0.035 60);
+  --tier-bronze-foreground: oklch(0.43 0.1 50);
+  --tier-silver: oklch(0.95 0.005 260);
+  --tier-silver-foreground: oklch(0.41 0.02 260);
+  --tier-gold: oklch(0.95 0.07 92);
+  --tier-gold-foreground: oklch(0.44 0.1 75);
+  --tier-platinum: oklch(0.95 0.03 200);
+  --tier-platinum-foreground: oklch(0.41 0.08 215);
+
   --selection: oklch(0.6 0.21 267);
   --selection-foreground: oklch(1 0 0);
 
@@ -171,6 +181,15 @@
   --sidebar-border: oklch(27.4% 0.006 286.033);
   --sidebar-ring: oklch(44.2% 0.017 285.786);
 
+  --tier-bronze: oklch(0.29 0.05 55);
+  --tier-bronze-foreground: oklch(0.86 0.09 65);
+  --tier-silver: oklch(0.29 0.01 260);
+  --tier-silver-foreground: oklch(0.89 0.01 260);
+  --tier-gold: oklch(0.3 0.06 85);
+  --tier-gold-foreground: oklch(0.89 0.12 92);
+  --tier-platinum: oklch(0.29 0.04 210);
+  --tier-platinum-foreground: oklch(0.87 0.06 200);
+
   /*Custom*/
   --noir: oklch(0.252 0 0);
   --noir-foreground: oklch(0.9189 0 0);
@@ -244,6 +263,14 @@
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
   --color-chart-6: var(--chart-6);
+  --color-tier-bronze: var(--tier-bronze);
+  --color-tier-bronze-foreground: var(--tier-bronze-foreground);
+  --color-tier-silver: var(--tier-silver);
+  --color-tier-silver-foreground: var(--tier-silver-foreground);
+  --color-tier-gold: var(--tier-gold);
+  --color-tier-gold-foreground: var(--tier-gold-foreground);
+  --color-tier-platinum: var(--tier-platinum);
+  --color-tier-platinum-foreground: var(--tier-platinum-foreground);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);

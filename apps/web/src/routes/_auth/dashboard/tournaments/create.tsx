@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
+import type { CompetitionTier } from "@fsx/api/circuit-types";
+
 import { EntityForm, optional, optionalNumber } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { useAdminMutation } from "@/lib/admin-mutations";
@@ -40,6 +42,7 @@ function RouteComponent() {
           name: "",
           date: "",
           ratingType: "rapid",
+          tier: "B",
           championshipId: "",
           chessResults: "",
         }}
@@ -48,6 +51,7 @@ function RouteComponent() {
             name: values.name!,
             date: optional(values.date!),
             ratingType: values.ratingType as "blitz" | "rapid" | "classic",
+            tier: values.tier as CompetitionTier,
             championshipId: optionalNumber(values.championshipId!),
             chessResults: optional(values.chessResults!),
           })

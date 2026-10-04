@@ -7,9 +7,12 @@ import { nameText, positiveInt } from "../input-schemas";
 import { requireMutationRows } from "../errors";
 import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 
+const tier = z.number().int().min(1).max(4);
+const losesAtAge = z.number().int().min(1).max(120).nullable();
+
 export const titlesRouter = router({
   list: publicProcedure.query(({ ctx }) =>
-    ctx.db.select({ id: titles.id, name: titles.name, shortName: titles.shortName, type: titles.type })
+    ctx.db.select({ id: titles.id, name: titles.name, shortName: titles.shortName, type: titles.type, tier: titles.tier, losesAtAge: titles.losesAtAge })
       .from(titles).orderBy(asc(titles.name), asc(titles.id)).limit(PUBLIC_COLLECTION_LIMIT)
   ),
   create: adminProcedure
@@ -17,6 +20,8 @@ export const titlesRouter = router({
       name: nameText,
       shortName: z.string().trim().min(1).max(10),
       type: z.enum(["internal", "external"]),
+      tier: tier.default(1),
+      losesAtAge: losesAtAge.optional(),
     }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(titles).values(input).returning()
@@ -27,6 +32,8 @@ export const titlesRouter = router({
       name: nameText.optional(),
       shortName: z.string().trim().min(1).max(10).optional(),
       type: z.enum(["internal", "external"]).optional(),
+      tier: tier.optional(),
+      losesAtAge: losesAtAge.optional(),
     }))
     .mutation(async ({ ctx, input }) =>
       requireMutationRows(

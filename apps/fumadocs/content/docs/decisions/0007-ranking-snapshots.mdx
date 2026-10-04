@@ -1,0 +1,67 @@
+---
+title: "ADR 0007: Ranking Snapshots"
+description: Ranking positions are captured once per rating import so position changes can be shown.
+---
+
+- Status: Accepted
+- Date: 2026-10-03
+
+## Context
+
+A ranking position ("#3 no rápido") is derived from current ratings, but a past
+position cannot be: it depends on every other player's rating at that moment.
+Showing movement (▲2) needs history. A rating import applies one player per
+request ([ADR 0004](/decisions/0004-d1-rating-batch)), so no single batch covers
+a whole import.
+
+## Decision
+
+- `ranking_snapshots` stores `(player_id, rating_type, position, rating,
+  snapshot_at)`. It is derived data: `ON DELETE cascade` from players.
+- After an import, the rating-update page calls
+  `playersTournament.snapshotRankings` once with the rating types it touched.
+  Each type is one `INSERT … SELECT … RANK() OVER (ORDER BY rating DESC)` over
+  active players, all in one batch with a shared `snapshot_at`. Equal ratings
+  share a position.
+- Corrections to rating history do not take snapshots; the next import does.
+
+## Consequences
+
+Each import writes one row per active player and imported format (about 2,400
+per format today), a few hundred thousand rows a year. Movement is measured
+between imports, not between days. An import closed before it finishes takes
+no snapshot. If a snapshot fails, the ratings are still applied and the page
+reports it.
+
+## Update 2026-10-03
+
+- Positions are shown live (`players.ranking`: active players rated higher + 1);
+  movement compares the two latest snapshots of a rating type, on the profile and
+  on `/ratings` (`players.withFilters`). An index on `(rating_type, snapshot_at)`
+  finds those two snapshots without scanning older ones.
+- `snapshot_at` has millisecond precision, so two snapshots in the same second
+  stay distinct.
+- The rating-update page has an **Update rankings now** button (named **Snapshot
+  rankings now** at first) to record a
+  baseline before the first import after release.
+
+## Update 2026-10-03: inactivity
+
+- The FSX treats a player without a tournament in three years as inactive. The
+  same batch that records a snapshot first sets `active = 0` for players with no
+  dated rating result, tournament podium, or circuit stage result since the day
+  three years before (in America/Sao_Paulo), unless they registered after it.
+  One `UPDATE` per import, evaluated by D1; no scheduled job.
+- `linkWithRating` sets `active = 1` with the rating write, so playing again
+  restores a player.
+- A player made active by hand is deactivated again at the next update if the
+  rule still applies.
+
+## Update 2026-10-04: youth titles
+
+- `titles.loses_at_age` holds the age at which a youth title is lost (Mestre
+  Mirim 15, Mestre Júnior 19, per the Normas Técnicas). The same batch removes
+  each title link whose holder's birth year plus that age is the current year or
+  earlier, so the title goes from 1 January of the year the player turns that age.
+- Holders without a birth date cannot be checked; the update reports how many,
+  so the birth date can be filled in.

@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { EntityForm } from "@/components/admin/entity-form";
+import { EntityForm, optionalNumber } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
@@ -63,13 +63,21 @@ function RouteComponent() {
       />
       <EntityForm
         sections={TITLE_SECTIONS}
-        defaultValues={{ name: record.name, shortName: record.shortName, type: record.type }}
+        defaultValues={{
+          name: record.name,
+          shortName: record.shortName,
+          type: record.type,
+          tier: String(record.tier),
+          losesAtAge: record.losesAtAge ? String(record.losesAtAge) : "",
+        }}
         onSubmit={(values) =>
           updateMutation.mutate({
             id,
             name: values.name!,
             shortName: values.shortName!,
             type: values.type as "internal" | "external",
+            tier: Number(values.tier),
+            losesAtAge: optionalNumber(values.losesAtAge!),
           })
         }
         error={updateMutation.error}

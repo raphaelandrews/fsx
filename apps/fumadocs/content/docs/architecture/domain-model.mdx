@@ -38,25 +38,37 @@ are `snake_case` in SQL and `camelCase` in Drizzle. Every table has an integer
 ### Competitions
 
 - **Championship** (`championships`): a recurring competition, such as the
-  Sergipe Open. Groups tournaments and cups across years.
-- **Tournament** (`tournaments`): one event with a `rating_type`, an optional
-  `date` and Chess-Results URL, and an optional championship.
+  Sergipe Open. Groups tournaments, cups, and circuit seasons across years.
+  One-off tournaments have no championship.
+- **Tier** (`tournaments.tier`, `circuits.tier`): `S` for the Sergipano
+  championships, `A` and `B` for other events by importance, `school` for school
+  events. Planned to weight achievements (`GAMIFICATION.md` at the repository root).
+- **Tournament** (`tournaments`): one event with a `rating_type`, a tier, an
+  optional `date` and Chess-Results URL, and an optional championship.
 - **Tournament podium** (`tournament_podiums`): a player's final `place` in a
-  tournament. The champions gallery and player achievements come from podiums
-  of tournaments that belong to a championship.
+  tournament, overall (`category` null) or in one category (for example
+  `Sub 18 Masculino`). Any tournament can have podiums; the champions gallery
+  shows the overall podiums of championship tournaments.
 - **Defending champion** (`defending_champions`): the current holder of a
   championship.
 - **Rating history** (`players_to_tournaments`): the rating a player had before
   a tournament and the variation it produced. See
   [rating history](#ratings-and-rating-history).
-- **Circuit** (`circuits`): a season ranking across several tournaments. Its
-  `type` (`default`, `categories`, `school`, or `geral`) selects the
-  [layout](/guide/circuits#circuit-types).
+- **Circuit** (`circuits`): one season (`year`) of a ranking across several
+  tournaments, optionally linked to the championship that groups its seasons.
+  Its `type` (`default`, `categories`, `school`, or `geral`) selects the
+  [layout](/guide/circuits#circuit-types). A season is in progress until
+  `finished_at` is set.
   - **Circuit phase** (`circuit_phases`): one stage, played at a tournament,
     optionally hosted by a club, ordered by `sort_order`.
-  - **Circuit podium** (`circuit_podiums`): points for a player, attached to
-    **either** a phase **or** directly to the circuit (`geral` circuits), with
-    an optional place (1–1000) and category.
+  - **Circuit result** (`circuit_podiums`, a historical name): points for a
+    player, attached to **either** a phase **or** directly to the circuit
+    (`geral` circuits), with an optional stage place (1–1000) and category.
+    Standings are the sums of these points.
+  - **Circuit final podium** (`circuit_final_podiums`): the official top 3 of a
+    finished season, per category for `categories` and `school` circuits.
+    Snapshotted from the standings when the season is finished, then editable,
+    so champions do not change when stage points do.
 - **Cup** (`cups`): a bracket-and-group competition with a prize pool and rating
   type. See [Cups](/guide/cups).
   - **Group** → **cup players** and **rounds** → **matches** → **games**.
@@ -72,7 +84,8 @@ are `snake_case` in SQL and `camelCase` in Drizzle. Every table has an integer
 - **Post** (`posts`): a news article with a unique `slug`, Markdown content, an
   optional image, and `published`. Only published posts are public.
 - **Announcement** (`announcements`): an official notice numbered per year;
-  `(year, number)` is unique.
+  `(year, number)` is unique. It may name the one player it is about
+  (`player_id`), which lists it on that player's profile.
 - **Event** (`events`): an upcoming event with a `start_date`. Its links
   (regulations, registration form, results) live in one link group owned by the
   event.
@@ -102,6 +115,7 @@ erDiagram
   insignias ||--o{ players_to_insignias : ""
   championships ||--o{ tournaments : "championship_id"
   championships ||--o{ cups : "championship_id"
+  championships |o--o{ circuits : "seasons"
   championships ||--o{ defending_champions : ""
   players ||--o{ defending_champions : ""
   tournaments ||--o{ tournament_podiums : ""
@@ -114,6 +128,8 @@ erDiagram
   circuits |o--o{ circuit_podiums : "geral"
   circuit_phases |o--o{ circuit_podiums : "per phase"
   players ||--o{ circuit_podiums : ""
+  circuits ||--o{ circuit_final_podiums : ""
+  players ||--o{ circuit_final_podiums : ""
   cups ||--o{ cup_groups : ""
   cup_groups ||--o{ cup_players : ""
   cup_groups ||--o{ cup_rounds : ""
@@ -125,6 +141,7 @@ erDiagram
   players ||--o{ cup_matches : "player one/two"
   clubs ||--o{ tv_sergipe : "school"
   players |o--o{ tv_sergipe : "individual"
+  players |o--o{ announcements : "about"
   events ||--o| link_groups : "event links"
   link_groups ||--o{ links : ""
 ```
@@ -136,14 +153,14 @@ foreign-key error, which the API returns as `CONFLICT`.
 
 | Deleting a… | Also deletes | Blocked while referenced by |
 | ----------- | ------------ | --------------------------- |
-| player (no API procedure) | title, role, norm, and insignia links | rating history, tournament and circuit podiums, defending champions, cup players and matches |
+| player (no API procedure) | title, role, norm, and insignia links; ranking snapshots | announcements, rating history, tournament podiums, circuit results and final podiums, defending champions, cup players and matches |
 | club | — | players, circuit phases, School Games results |
 | location | — | players |
 | title, role, norm, insignia | its player links | — |
-| championship | its defending champions | tournaments, cups |
+| championship | its defending champions | tournaments, cups, circuits |
 | tournament | its podiums | rating history (revert it first), circuit phases |
-| circuit | its phases and their podiums, and its own podiums | — |
-| circuit phase | its podiums | — |
+| circuit | its phases and their results, and its own results | final podiums (reopen the season first) |
+| circuit phase | its results | — |
 | cup | groups, players, rounds, brackets, playoffs, matches, games | — |
 | event | its link group and links | — |
 | link group | its links | — |

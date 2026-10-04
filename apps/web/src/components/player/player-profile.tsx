@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowUpRight01Icon,
@@ -11,10 +12,15 @@ import {
   ZapIcon,
   CrownIcon,
   Medal01Icon,
+  MedalFirstPlaceIcon,
+  MedalThirdPlaceIcon,
   RabbitIcon,
   Loading01Icon,
   TrainIcon,
-  SwordsIcon
+  SwordsIcon,
+  Analytics01Icon,
+  Route01Icon,
+  ScrollIcon,
 } from "@hugeicons/core-free-icons";
 
 import { columns } from "@/components/sheets/player/columns";
@@ -35,6 +41,15 @@ import { Announcement } from "@/components/announcement";
 import { TotalRatingChart, VariationChart } from "@/components/player/player-charts";
 import { cn } from "@fsx/ui/lib/utils";
 import { avatarGradient, avatarGradientFor } from "@/components/avatar-gradient";
+import { PlayerLevel } from "@/components/gamification/player-level";
+import { TIER_CLASSES } from "@/components/gamification/tier";
+import { AchievementGrid, TrophyCabinet } from "@/components/player/player-achievements";
+import { PlayerAnnouncements } from "@/components/player/player-announcements";
+import { PlayerCircuits } from "@/components/player/player-circuits";
+import { PlayerStats } from "@/components/player/player-stats";
+import { byTitleTier } from "@/components/player/title-emblems";
+import type { ClubStanding, PlayerAnnouncement, PlayerCircuitSeason, PlayerRanking, PlayerStatsResult } from "@/components/player/types";
+import { Movement } from "@/components/gamification/movement";
 
 function FormatPodium(place: number | null | undefined, championship_id: number) {
   if (place === 1 && championship_id === 1) {
@@ -61,10 +76,21 @@ function FormatPodium(place: number | null | undefined, championship_id: number)
     return <HugeiconsIcon icon={TrainIcon} className="size-4" />;
   }
 
+  if (place === 1) {
+    return <HugeiconsIcon icon={MedalFirstPlaceIcon} className="size-4" />;
+  }
+
   if (place === 2) {
     return <HugeiconsIcon icon={Medal01Icon} className="size-4" />;
   }
+
+  if (place === 3) {
+    return <HugeiconsIcon icon={MedalThirdPlaceIcon} className="size-4" />;
+  }
 }
+
+const podiumLabel = (podium: { category?: string | null; tournament: { name: string } }) =>
+  podium.category ? `${podium.tournament.name} · ${podium.category}` : podium.tournament.name;
 
 function FormatPodiumTitle(place: number | null | undefined) {
   if (place === 1) {
@@ -72,6 +98,9 @@ function FormatPodiumTitle(place: number | null | undefined) {
   }
   if (place === 2) {
     return "Vice-Campeão(ã)";
+  }
+  if (place === 3) {
+    return "3º lugar";
   }
 }
 
@@ -164,14 +193,17 @@ export interface PlayerById {
       type: string;
       shortName: string;
       name: string;
+      tier?: number;
     };
   }>;
   tournamentPodiums?: Array<{
     place: number | null;
+    category?: string | null;
     tournament: {
       name: string;
       date?: string | null;
       championshipId?: number | null;
+      championship?: { name: string } | null;
     };
   }>;
   defendingChampions?: Array<{
@@ -180,6 +212,7 @@ export interface PlayerById {
     };
   }>;
   club?: {
+    id?: number;
     name: string;
     logoUrl?: string | null;
   } | null;
@@ -189,12 +222,45 @@ export interface PlayerById {
   } | null;
 }
 
-export function PlayerProfile({ player }: { player: PlayerById }) {
-  const orderPodiums = React.useMemo(() => {
-    return [...(player?.tournamentPodiums ?? [])].sort((a, b) =>
-      (b.tournament.date ?? "").localeCompare(a.tournament.date ?? ""),
-    );
+const TITLE_TIER_BADGES = { 1: "bronze", 2: "silver", 3: "gold", 4: "platinum" } as const;
+
+export function PlayerProfile({
+  player,
+  stats,
+  circuitSeasons,
+  announcements,
+  ranking,
+  clubStanding,
+}: {
+  player: PlayerById;
+  clubStanding: ClubStanding | null;
+  stats: PlayerStatsResult;
+  ranking: PlayerRanking;
+  circuitSeasons: PlayerCircuitSeason[];
+  announcements: PlayerAnnouncement[];
+}) {
+  // Championship groups (most titles first) with their podiums newest first;
+  // podiums of one-off tournaments close the list.
+  const podiumGroups = React.useMemo(() => {
+    const groups = new Map<string, NonNullable<PlayerById["tournamentPodiums"]>>();
+    for (const podium of player?.tournamentPodiums ?? []) {
+      const name = podium.tournament.championship?.name ?? "Outros torneios";
+      groups.set(name, [...(groups.get(name) ?? []), podium]);
+    }
+    return [...groups]
+      .map(([name, podiums]) => ({
+        name,
+        titles: podiums.filter((podium) => podium.place === 1 && !podium.category).length,
+        podiums: podiums.sort((a, b) => (b.tournament.date ?? "").localeCompare(a.tournament.date ?? "")),
+      }))
+      .sort((a, b) =>
+        a.name === "Outros torneios" ? 1 : b.name === "Outros torneios" ? -1 : b.titles - a.titles || a.name.localeCompare(b.name, "pt-BR"),
+      );
   }, [player?.tournamentPodiums]);
+
+  const titleEmblems = React.useMemo(() => byTitleTier(player?.playersToTitles ?? []), [player?.playersToTitles]);
+
+  const medalCount = Object.values(stats.stats.medals).reduce((sum, m) => sum + m.gold + m.silver + m.bronze, 0);
 
   const tournaments = React.useMemo(() => {
     return player?.playersToTournaments ? [...player.playersToTournaments].reverse() : [];
@@ -255,7 +321,22 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
               />
             </div>
 
+            <PlayerLevel level={stats.level} />
+
             <div className="flex flex-wrap items-center justify-center gap-2">
+              {titleEmblems.map(({ title }) => (
+                <span
+                  key={title.name}
+                  className={cn(
+                    "rounded-md px-2 py-0.5 font-semibold text-xs",
+                    TIER_CLASSES[TITLE_TIER_BADGES[(title.tier ?? 1) as keyof typeof TITLE_TIER_BADGES] ?? "bronze"],
+                  )}
+                  title={title.name}
+                >
+                  <span aria-hidden>{title.shortName}</span>
+                  <span className="sr-only">{title.name}</span>
+                </span>
+              ))}
               {(managementRole || refereeRole) && (
                 <>
                   {managementRole && <Badge variant="secondary">{managementRole.role.name}</Badge>}
@@ -268,11 +349,16 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
       </div>
 
       {/* Achievements Section */}
-      {(orderPodiums.length > 0 ||
+      {(podiumGroups.length > 0 ||
+        medalCount > 0 ||
+        stats.achievements.length > 0 ||
+        stats.upcoming.length > 0 ||
         (player.defendingChampions && player.defendingChampions?.length > 0)) && (
           <section className="mb-0">
             <Announcement icon={Target01Icon} label="Conquistas" className="text-sm" />
             <div className="p-3 grid gap-4">
+              <TrophyCabinet medals={stats.stats.medals} />
+              <AchievementGrid achievements={stats.achievements} upcoming={stats.upcoming} />
               {player.defendingChampions && player.defendingChampions?.length > 0 && (
                 <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                   {player.defendingChampions?.map((championship) => (
@@ -283,23 +369,29 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
                 </div>
               )}
 
-              {orderPodiums.length > 0 && (
+              {podiumGroups.map((group) => (
+                <div key={group.name} className="grid gap-2">
+                  <h3 className="text-muted-foreground text-xs font-medium">
+                    {group.name}
+                    {group.titles > 1 ? ` · ${group.titles} títulos` : ""}
+                  </h3>
                 <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                  {orderPodiums.map((podium) => (
-                    <Popover key={podium.place + podium.tournament.name}>
+                  {group.podiums.map((podium) => (
+                    <Popover key={`${podium.place}-${podium.category ?? ""}-${podium.tournament.name}`}>
                       <PopoverTrigger
-                        aria-label={`${FormatPodiumTitle(podium.place) ?? "Colocação"}: ${podium.tournament.name}`}
+                        aria-label={`${FormatPodiumTitle(podium.place) ?? "Colocação"}: ${podiumLabel(podium)}`}
                         className="rounded-md bg-muted p-2 text-xs font-medium transition-colors"
                       >
-                        {FormatPodium(podium.place, podium.tournament.championshipId ?? 0)}
+                        {FormatPodium(podium.place, podium.category ? 0 : (podium.tournament.championshipId ?? 0))}
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-2 text-xs font-medium">
-                        {FormatPodiumTitle(podium.place)} {podium.tournament.name}
+                        {FormatPodiumTitle(podium.place)} {podiumLabel(podium)}
                       </PopoverContent>
                     </Popover>
                   ))}
                 </div>
-              )}
+                </div>
+              ))}
             </div>
           </section>
         )}
@@ -335,7 +427,16 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
                 ) : (
                   <span className={cn("relative flex shrink-0 h-5 w-5 overflow-hidden rounded", avatarGradientFor(player.club.name))} />
                 )}
-                <span>{player.club.name}</span>
+                {player.club.id ? (
+                  <Link to="/clubes/$id" params={{ id: player.club.id }} className="hover:underline">
+                    {player.club.name}
+                  </Link>
+                ) : (
+                  <span>{player.club.name}</span>
+                )}
+                {clubStanding?.rank.rapid && (
+                  <span className="text-muted-foreground text-xs">#{clubStanding.rank.rapid} entre os clubes</span>
+                )}
               </div>
             </InfoItem>
           )}
@@ -390,11 +491,32 @@ export function PlayerProfile({ player }: { player: PlayerById }) {
         <Announcement icon={ChartBarLineIcon} label="Ratings" className="text-sm" />
 
         <div className="grid grid-cols-3 gap-2 px-2 sm:gap-4 sm:px-4">
-          <RatingBox label="Clássico" value={player.classic} />
-          <RatingBox label="Rápido" value={player.rapid} />
-          <RatingBox label="Blitz" value={player.blitz} />
+          <RatingBox label="Clássico" value={player.classic} peak={stats.stats.formats.classic?.peak.rating} rank={ranking.classic} />
+          <RatingBox label="Rápido" value={player.rapid} peak={stats.stats.formats.rapid?.peak.rating} rank={ranking.rapid} />
+          <RatingBox label="Blitz" value={player.blitz} peak={stats.stats.formats.blitz?.peak.rating} rank={ranking.blitz} />
         </div>
       </section>
+
+      {stats.stats.tournamentsPlayed > 0 && (
+        <section className="mb-0">
+          <Announcement icon={Analytics01Icon} label="Estatísticas" className="text-sm" />
+          <PlayerStats playerId={player.id} stats={stats.stats} tournaments={stats.tournaments} />
+        </section>
+      )}
+
+      {circuitSeasons.length > 0 && (
+        <section className="mb-0">
+          <Announcement icon={Route01Icon} label="Circuitos" className="text-sm" />
+          <PlayerCircuits seasons={circuitSeasons} />
+        </section>
+      )}
+
+      {announcements.length > 0 && (
+        <section className="mb-0">
+          <Announcement icon={ScrollIcon} label="Comunicados" className="text-sm" />
+          <PlayerAnnouncements announcements={announcements} />
+        </section>
+      )}
 
       {/* IDs Section */}
       <section className="mb-0">
@@ -486,13 +608,35 @@ function InfoItem({
   );
 }
 
-function RatingBox({ label, value }: { label: string; value?: number | null }) {
+function RatingBox({
+  label,
+  value,
+  peak,
+  rank,
+}: {
+  label: string;
+  value?: number | null;
+  peak?: number;
+  rank: PlayerRanking["rapid"];
+}) {
   return (
     <div className="bg-muted rounded-2xl flex h-full flex-col items-center justify-center gap-1 p-3 sm:p-4">
       <span className="text-xs sm:text-sm text-foreground/70 font-medium text-center">{label}</span>
       <span className="text-sm sm:text-base font-semibold text-foreground font-mono tabular-nums">
         {value ?? "-"}
       </span>
+      {rank && (
+        <span className="inline-flex items-baseline gap-1 text-[11px] text-foreground/70 tabular-nums">
+          <span>
+            #{rank.position}
+            <span className="sr-only"> de {rank.players} jogadores ativos</span>
+          </span>
+          <Movement value={rank.movement} />
+        </span>
+      )}
+      {peak !== undefined && value != null && peak > value && (
+        <span className="text-[11px] text-foreground/70 tabular-nums">Pico {peak}</span>
+      )}
     </div>
   );
 }

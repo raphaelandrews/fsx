@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ScrollIcon } from "@hugeicons/core-free-icons";
@@ -76,6 +76,19 @@ function RouteComponent() {
       <div className="mt-8 whitespace-pre-line text-pretty leading-relaxed text-foreground">
         {announcement.content}
       </div>
+
+      {announcement.player && (
+        <p className="mt-8 border-t pt-4 text-sm text-muted-foreground">
+          Jogador:{" "}
+          <Link
+            to="/jogadores/$id"
+            params={{ id: announcement.player.id }}
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            {announcement.player.nickname || announcement.player.name}
+          </Link>
+        </p>
+      )}
     </article>
   );
 }

@@ -6,10 +6,19 @@ description: FSX tournament circuits, with standings across stages.
 The circuits page (`/circuitos`) shows the tournament circuits run by the FSX
 and the player standings across their stages.
 
+## Seasons
+
+Each circuit is one season: a new year is a new circuit (for example
+"Circuito Escolar 2027"), linked to the same championship as the earlier
+seasons. Past seasons are kept, never deleted, so their champions stay on
+record.
+
 ## Navigation
 
-Tabs at the top switch between circuits, identified by name. The selected
-circuit is kept in the URL.
+A season selector (shown when there is more than one season) picks the year;
+tabs switch between that season's circuits. Both are kept in the URL
+(`?ano=2026&circuito=…`). Under the tabs, the page says whether the season is in
+progress or when it finished.
 
 ## Circuit types
 
@@ -20,8 +29,22 @@ A circuit is shown in one of four layouts:
 - **Escolar (school)**: a club ranking with a per-player breakdown and a category filter.
 - **Geral (overall)**: no stages; a single overall player ranking.
 
-## Stages and podiums
+## Stages and results
 
 Each stage is linked to the tournament where it was played. A stage lists its
-podium with place, player (name or nickname), category, and points. Stages
-without results show "Sem resultados" (no results).
+results with place, player (name or nickname), category, and points. Stages
+without results show "Sem resultados" (no results). The standings add up each
+player's points across stages.
+
+## Final podiums
+
+When a season ends, an admin finishes it on the circuit's edit page
+(`/dashboard/circuits/<id>`). The top 3 of the standings become the season's
+final podiums: one podium per category for the **Categorias** and **Escolar**
+layouts (Sub 18, Sub 16, …), a single one otherwise. Players with equal points
+share a place. The admin can then correct any placing, for example to apply a
+tiebreak from the regulation.
+
+A finished season shows a "Pódio final" block above its standings. To recompute
+the podiums, reopen the season and finish it again. A finished season cannot be
+deleted until it is reopened.

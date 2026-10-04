@@ -49,6 +49,11 @@ function RouteComponent() {
       cell: ({ row }) => <span>{row.original.tournament?.name ?? "—"}</span>,
     },
     {
+      accessorKey: "category",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Category" />,
+      cell: ({ row }) => <span className="text-muted-foreground">{row.original.category ?? "Overall"}</span>,
+    },
+    {
       id: "actions",
       header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (

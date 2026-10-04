@@ -126,7 +126,9 @@ describe("D1 migrations", () => {
 
       await applyAsProduction(db, pending);
 
-      expect(await rowCounts(db)).toEqual(countsBefore);
+      const countsAfter = await rowCounts(db);
+      const createdTables = Object.keys(countsAfter).filter((table) => !(table in countsBefore));
+      expect(countsAfter).toEqual({ ...countsBefore, ...Object.fromEntries(createdTables.map((table) => [table, 0])) });
       expect(await schemaOf(db)).toEqual(fresh);
       expect((await db.prepare("PRAGMA foreign_key_check").all()).results).toEqual([]);
       expect(
@@ -135,6 +137,16 @@ describe("D1 migrations", () => {
       expect(
         (await db.prepare("SELECT player_id, title_id FROM players_to_titles").all()).results,
       ).toEqual([{ player_id: 1, title_id: 1 }]);
+      expect(
+        (await db.prepare("SELECT id, tier FROM tournaments ORDER BY id").all()).results,
+      ).toEqual([{ id: 1, tier: "S" }, { id: 2, tier: "B" }]);
+      expect(
+        (await db.prepare("SELECT player_id, place, category FROM tournament_podiums").all()).results,
+      ).toEqual([{ player_id: 1, place: 1, category: null }]);
+      expect(
+        await db.prepare("SELECT COUNT(*) AS missing FROM circuits WHERE year IS NULL").first<{ missing: number }>(),
+      ).toEqual({ missing: 0 });
+      expect(await db.prepare("SELECT tier FROM titles WHERE id = 1").first<{ tier: number }>()).toEqual({ tier: 3 });
     });
   });
 

@@ -1,0 +1,44 @@
+---
+title: "ADR 0006: Derived Achievements"
+description: Player achievements are computed on read from competition history by one pure module, never stored.
+---
+
+- Status: Accepted
+- Date: 2026-10-03
+
+## Context
+
+The site is adding achievements to player profiles: rating milestones, streaks,
+medals, tournaments played, and repeated titles. Rating history is corrected
+after the fact (`correctVariation`, `remove`, `revertTournament` shift every
+later result), and most players' careers predate the site. Stored achievements
+would have to be backfilled once and then kept in sync with every correction.
+
+## Decision
+
+- Achievements are derived on read from `players_to_tournaments`,
+  `tournament_podiums`, `circuit_podiums`, and `circuit_final_podiums` by one pure
+  module, `packages/api/src/gamification/` (`stats.ts`, `badges.ts`). Every page
+  that shows them calls it; nothing else re-implements a rule.
+- Badge definitions and weights are code (`badges.ts`, `constants.ts`), not data.
+- Each achievement carries its provenance: the tournament and date that earned
+  it, `earnedAt: null` when the date is unknown (a gap in the history, a manual
+  rating edit, an undated tournament), and `legacy` when it predates the
+  records. A date is never invented.
+- `players.stats` loads a player's whole career in one D1 batch (up to 500
+  results; the largest career is 78) and is edge-cached like `players.byId`.
+- The rules for gaps and edge cases are the Data rules in `GAMIFICATION.md`,
+  each covered by a unit test in `stats.test.ts`.
+- Exceptions are stored only when they cannot be recomputed or are an official
+  record: ranking snapshots ([ADR 0007](/decisions/0007-ranking-snapshots)),
+  final circuit podiums, and tiers.
+
+## Consequences
+
+Existing players get every past achievement at launch with no backfill, and a
+correction to the data corrects the achievements. A correction can therefore
+remove an achievement; this is intended. Showing when an achievement first
+appeared on the site, or notifying players, would need a `player_achievements`
+table filled from the same module. Pages that aggregate all players (records,
+feed) read the whole history per cache miss; if that becomes expensive, cache
+the module's output instead of turning it into a source of truth.

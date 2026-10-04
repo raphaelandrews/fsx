@@ -6,6 +6,11 @@ description: FSX rating tables, filterable by time control, location, club, titl
 The ratings page (`/ratings`) ranks active FSX players by their rating in one
 of three time controls: classical, rapid, or blitz.
 
+A player is **active** while they have played in the last three years: a rated
+result, a podium, or a circuit stage. Each rating update marks players without
+any activity in that window inactive (players registered less than three years
+ago keep their place), and playing a tournament makes a player active again.
+
 ## Time controls
 
 Tabs at the top switch between **Clássico**, **Rápido**, and **Blitz**. The
@@ -44,6 +49,10 @@ Age groups use the player's birth year relative to the current year:
 ## Table
 
 Each row shows the position, the player (avatar and title), the rating in the
-selected time control, the location (with flag), and the club (with logo).
+selected time control, the location (with flag), and the club (with logo). Next
+to the position, ▲/▼ shows how many places the player moved in that time control
+with the last rating update, and "novo" marks a player who was not ranked
+before. Movement compares the overall ranking, so it is the same with or
+without filters.
 Clicking a name opens the [player profile](/guide/players). The table is
 paginated.

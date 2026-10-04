@@ -27,6 +27,7 @@ import { getErrorCode, getUserErrorMessage, showMutationError } from "@/lib/erro
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
 import { toIsoDate } from "@/utils/format";
 import { AdminPageHeader } from "@/components/admin/page-header";
+import { useAdminMutation } from "@/lib/admin-mutations";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -58,6 +59,15 @@ function RatingUpdatePage() {
   const errorCountRef = useRef(0);
 
   const linkMutation = useMutation(trpc.playersTournament.linkWithRating.mutationOptions());
+  const snapshotMutation = useMutation(trpc.playersTournament.snapshotRankings.mutationOptions());
+  // Applies the 3-year inactivity rule and records a ranking snapshot without
+  // waiting for the next import (movement compares two snapshots).
+  const manualSnapshot = useAdminMutation(trpc.playersTournament.snapshotRankings.mutationOptions(), {
+    invalidates: "playersTournament",
+    success: "Rankings updated",
+    failure: "Failed to update the rankings",
+    onSuccess: reportMaintenance,
+  });
   const createMutation = useMutation(trpc.players.create.mutationOptions());
   const updateMutation = useMutation(trpc.players.update.mutationOptions());
 
@@ -131,6 +141,7 @@ function RatingUpdatePage() {
     setSuccessPage(1);
     setErrorPage(1);
     setMotionGridStatus("Reading Excel file", "searching");
+    const importedRatingTypes = new Set<"blitz" | "rapid" | "classic">();
 
     try {
       const [XLSX, buffer] = await Promise.all([import("xlsx"), file.arrayBuffer()]);
@@ -309,6 +320,7 @@ function RatingUpdatePage() {
               variation: variation!,
               ratingType: ratingType as "blitz" | "rapid" | "classic",
             });
+            importedRatingTypes.add(ratingType as "blitz" | "rapid" | "classic");
             if (name || birth || sex || clubId || locationId) {
               await updateMutation.mutateAsync({
                 id,
@@ -364,6 +376,7 @@ function RatingUpdatePage() {
                 variation: variation!,
                 ratingType: ratingType as "blitz" | "rapid" | "classic",
               });
+              importedRatingTypes.add(ratingType as "blitz" | "rapid" | "classic");
               pushSuccess({
                 _uuid: crypto.randomUUID(),
                 operation: `${name} created + linked to tournament`,
@@ -482,6 +495,21 @@ function RatingUpdatePage() {
       setMotionGridStatus("Error", "x");
     } finally {
       setIsRunning(false);
+      // One ranking snapshot per import (also after a stop), so position
+      // changes can later be shown between imports.
+      if (importedRatingTypes.size > 0) {
+        snapshotMutation.mutate(
+          { ratingTypes: [...importedRatingTypes] },
+          {
+            onSuccess: (result) => {
+              reportMaintenance(result);
+              if (result.deactivated > 0 || result.titlesRemoved > 0) void invalidateAdmin("players");
+            },
+            onError: (error) =>
+              toast.error(getUserErrorMessage(error, "Ratings were updated, but the ranking snapshot failed.", "en")),
+          },
+        );
+      }
       if (successCountRef.current > 0) {
         void invalidateAdmin("players");
         void invalidateAdmin("playersTournament");
@@ -519,6 +547,15 @@ function RatingUpdatePage() {
         backLabel="Dashboard"
         title="Rating update"
         description="Apply tournament rating variations from a Swiss Manager Excel export. To fix a result afterwards, use the player's Rating history."
+        actions={
+          <Button
+            variant="outline"
+            disabled={isRunning || manualSnapshot.isPending}
+            onClick={() => manualSnapshot.mutate({ ratingTypes: ["classic", "rapid", "blitz"] })}
+          >
+            Update rankings now
+          </Button>
+        }
       />
       <div className="relative h-[calc(100dvh-15rem)] min-h-[34rem] overflow-hidden rounded-xl">
         <div className="absolute inset-0 bg-[radial-gradient(var(--muted),transparent_1px)] [background-size:16px_16px]" />
@@ -683,4 +720,19 @@ function LogPagination({
       </Button>
     </div>
   );
+}
+
+function reportMaintenance(result: { deactivated: number; titlesRemoved: number; youthTitlesWithoutBirthDate: number }) {
+  const plural = (count: number, noun: string) => `${count} ${noun}${count === 1 ? "" : "s"}`;
+  if (result.deactivated > 0) {
+    toast.info(`${plural(result.deactivated, "player")} marked inactive: no tournament in the last 3 years.`);
+  }
+  if (result.titlesRemoved > 0) {
+    toast.info(`${plural(result.titlesRemoved, "youth title")} removed: the holder reaches the title's age limit this year.`);
+  }
+  if (result.youthTitlesWithoutBirthDate > 0) {
+    toast.warning(
+      `${plural(result.youthTitlesWithoutBirthDate, "youth title")} cannot expire automatically: the holder has no birth date.`,
+    );
+  }
 }

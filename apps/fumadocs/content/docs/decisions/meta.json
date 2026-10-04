@@ -1,4 +1,4 @@
 {
   "title": "Decisions",
-  "pages": ["index", "0001-single-owner-admin", "0002-d1-migrations", "0003-edge-cache-consistency", "0004-d1-rating-batch", "0005-rate-limiting"]
+  "pages": ["index", "0001-single-owner-admin", "0002-d1-migrations", "0003-edge-cache-consistency", "0004-d1-rating-batch", "0005-rate-limiting", "0006-derived-achievements", "0007-ranking-snapshots", "0008-stored-computations"]
 }

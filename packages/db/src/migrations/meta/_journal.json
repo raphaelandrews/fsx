@@ -197,6 +197,55 @@
       "when": 1790955690035,
       "tag": "0027_fine_runaways",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "6",
+      "when": 1791068911430,
+      "tag": "0028_chief_reaper",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1791070150225,
+      "tag": "0029_perpetual_doctor_faustus",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1791071315644,
+      "tag": "0030_ambitious_nightshade",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1791073063446,
+      "tag": "0031_harsh_red_wolf",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1791073597517,
+      "tag": "0032_exotic_venom",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1791080086454,
+      "tag": "0033_marvelous_wiccan",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "6",
+      "when": 1791082933312,
+      "tag": "0034_deep_vin_gonzales",
+      "breakpoints": true
     }
   ]
 }

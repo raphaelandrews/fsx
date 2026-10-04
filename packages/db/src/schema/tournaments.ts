@@ -11,6 +11,9 @@ export const tournaments = sqliteTable("tournaments", {
 	date: text("date"),
 	ratingType: text("rating_type").notNull(),
 	championshipId: integer("championship_id").references(() => championships.id),
+	// No CHECK: adding one makes drizzle-kit rebuild this referenced table, which
+	// D1 cannot do safely. COMPETITION_TIERS is enforced by the API.
+	tier: text("tier").notNull().default("B"),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 }, (table) => [

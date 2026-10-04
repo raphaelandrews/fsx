@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
+import type { CompetitionCategory } from "@fsx/api/circuit-types";
+
 import { EntityForm } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { useAdminMutation } from "@/lib/admin-mutations";
@@ -32,12 +34,13 @@ function RouteComponent() {
       />
       <EntityForm
         sections={tournamentPodiumSections(trpc)}
-        defaultValues={{ tournamentId: "", playerId: "", place: "1" }}
+        defaultValues={{ tournamentId: "", playerId: "", place: "1", category: "" }}
         onSubmit={(values) =>
           createMutation.mutate({
             tournamentId: Number(values.tournamentId),
             playerId: Number(values.playerId),
             place: Number(values.place),
+            category: (values.category || null) as CompetitionCategory | null,
           })
         }
         error={createMutation.error}

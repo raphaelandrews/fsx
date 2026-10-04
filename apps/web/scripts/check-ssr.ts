@@ -31,9 +31,14 @@ const checks: Check[] = [
   { path: "/noticias", status: 200, maxKB: 85, canonical: `${SITE_URL}/noticias` },
   { path: `/noticias/${POST.slug}`, status: 200, maxKB: 60, title: POST.title, canonical: `${SITE_URL}/noticias/${POST.slug}` },
   { path: "/noticias/nao-existe", status: 404, maxKB: 15 },
-  { path: `/jogadores/${PLAYER.id}`, status: 200, maxKB: 150, title: PLAYER.name, canonical: `${SITE_URL}/jogadores/${PLAYER.id}` },
+  { path: `/jogadores/${PLAYER.id}`, status: 200, maxKB: 170, title: PLAYER.name, canonical: `${SITE_URL}/jogadores/${PLAYER.id}` },
   { path: "/jogadores/999999", status: 404, maxKB: 15 },
   { path: "/jogadores/abc", status: 404, maxKB: 15 },
+  // Synthetic player 1 played every year from 2015 to 2025.
+  { path: `/jogadores/${PLAYER.id}/temporada/2025`, status: 200, maxKB: 60, title: "Temporada 2025", canonical: `${SITE_URL}/jogadores/${PLAYER.id}/temporada/2025` },
+  { path: `/jogadores/${PLAYER.id}/temporada/1999`, status: 404, maxKB: 15 },
+  { path: `/jogadores/${PLAYER.id}/temporada/2999`, status: 404, maxKB: 15 },
+  { path: `/jogadores/${PLAYER.id}/temporada/abcd`, status: 404, maxKB: 15 },
   { path: "/comunicados", status: 200, maxKB: 115, canonical: `${SITE_URL}/comunicados` },
   { path: "/comunicados/1", status: 200, maxKB: 55, canonical: `${SITE_URL}/comunicados/1` },
   { path: "/comunicados/999999", status: 404, maxKB: 15 },
@@ -41,13 +46,18 @@ const checks: Check[] = [
   { path: "/membros", status: 200, maxKB: 145 },
   { path: "/circuitos", status: 200, maxKB: 225 },
   { path: "/campeoes", status: 200, maxKB: 75 },
+  { path: "/recordes", status: 200, maxKB: 100, title: "Recordes", canonical: `${SITE_URL}/recordes` },
+  { path: "/clubes", status: 200, maxKB: 200, title: "Clubes", canonical: `${SITE_URL}/clubes` },
+  { path: "/clubes/3", status: 200, maxKB: 60, title: "Clube 3", canonical: `${SITE_URL}/clubes/3` },
+  { path: "/clubes/999999", status: 404, maxKB: 15 },
+  { path: "/clubes/abc", status: 404, maxKB: 15 },
   { path: "/tv-sergipe", status: 200, maxKB: 250 },
   // The roster loads on click; a large page means birth dates leaked into the HTML.
   { path: "/swiss-manager", status: 200, maxKB: 60, contains: ["Baixar Excel"] },
   { path: "/pagina-inexistente", status: 404, maxKB: 15 },
   { path: "/dashboard", status: 307, location: "/login" },
   { path: "/dashboard/players/1", status: 307, location: "/login" },
-  { path: "/sitemap.xml", status: 200, maxKB: 400, contains: [`${SITE_URL}/jogadores/${PLAYER.id}`, `${SITE_URL}/noticias/${POST.slug}`] },
+  { path: "/sitemap.xml", status: 200, maxKB: 400, contains: [`${SITE_URL}/jogadores/${PLAYER.id}`, `${SITE_URL}/noticias/${POST.slug}`, `${SITE_URL}/recordes`, `${SITE_URL}/clubes/3`] },
 ];
 
 const UNSAFE_PATTERNS = [/\n\s+at \S+ \(/, /SQLITE_/, /D1_ERROR/, /Failed query:/];

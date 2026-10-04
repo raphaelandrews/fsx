@@ -26,10 +26,13 @@ The database is Cloudflare D1 (SQLite). The schema is defined with Drizzle in
 | `players` | `nickname`, `cbx_id`, `fide_id` | ratings 0–4000; `sex` in `male`, `female` |
 | `players_to_titles`, `_roles`, `_norms`, `_insignias` | `(player, other)` | — |
 | `players_to_tournaments` | `(player_id, tournament_id)` | `old_rating` 0–4000; `variation` −4000–4000; `rating_type` in `blitz`, `rapid`, `classic` |
-| `tournament_podiums` | `(player_id, tournament_id)` | `place` 1–100000 |
+| `ranking_snapshots` | — | `rating_type` in `blitz`, `rapid`, `classic`; `position` ≥ 1 |
+| `computed_results` | `key` | Stored JSON results and the `data_changed` marker ([ADR 0008](/decisions/0008-stored-computations)) |
+| `tournament_podiums` | `(player_id, tournament_id)` for overall podiums; `(player_id, tournament_id, category)` for category podiums (two partial indexes, since a `NULL` category never collides) | `place` 1–100000; `category` null (overall) or a known category |
 | `defending_champions` | `(player_id, championship_id)` | — |
 | `tournaments`, `cups` | `name` | `rating_type` in `blitz`, `rapid`, `classic`; `prize_pool` ≥ 0 |
 | `circuits` | `name` | `type` in `default`, `categories`, `school`, `geral` |
+| `circuit_final_podiums` | `(circuit_id, player_id)` overall; `(circuit_id, category, player_id)` per category | `place` 1–1000; `points` null or 0–1000000; `category` null (overall) or a known category |
 | `circuit_podiums` | — | exactly one of `circuit_id`, `circuit_phase_id`; `points` 0–1000000; `place` null or 1–1000; `category` null or a known category |
 | `cup_brackets` | — | `bracket_type` in `UB`, `LB`, `GF` |
 | `cup_playoffs` | — | `phase_type` in a fixed list of upper/lower bracket phases and `Grande Final` |
@@ -37,11 +40,16 @@ The database is Cloudflare D1 (SQLite). The schema is defined with Drizzle in
 | `announcements` | `content`; `(year, number)` | `year` 1900–2200; `number` > 0 |
 | `posts` | `slug` | — |
 | `roles` | `name`, `short_name` | `type` in `management`, `referee`, `teacher` |
-| `titles` | `name` | `type` in `internal`, `external` |
+| `titles` | `name` | `type` in `internal`, `external`; `tier` 1–4 and `loses_at_age` (null or 1–120) validated by the API (no `CHECK`: referenced table) |
 | `locations` | `name` | `type` in `city`, `state`, `country` |
 | `links` | — | `type` in `link`, `regulation`, `form`, `results` |
 | `link_groups` | `event_id` | — |
 | `clubs`, `championships`, `events`, `insignias`, `norms` | `name` | — |
+
+`tournaments.tier` and `circuits.tier` (`S`, `A`, `B`, `school`) and `circuits.year`
+have no `CHECK`: they were added to tables other tables reference, where a
+`CHECK` would force a table rebuild. The API validates them (`COMPETITION_TIERS`
+in `@fsx/db/competition`), and requires `year` on every circuit write.
 
 Foreign keys and their `ON DELETE` actions are summarized in
 [deletion behavior](/architecture/domain-model#deletion-behavior).
@@ -53,7 +61,8 @@ Indexes follow the public queries:
 - `players`: `active`, `sex`, `club_id`, `location_id`, `name`, each rating,
   `(active, rating)` for each rating, and `(active, birth_date)` for age groups.
 - `circuit_phases (circuit_id, sort_order)`, `circuit_podiums (circuit_phase_id)` and `(circuit_id)`.
-- `tournament_podiums (tournament_id, place)`, `cup_games (cup_match_id, game_number)`.
+- `ranking_snapshots (player_id, rating_type, snapshot_at)` and `(rating_type, snapshot_at)`, `announcements (player_id)`.
+- `tournament_podiums (tournament_id, place)`, `circuit_final_podiums (player_id)`, `cup_games (cup_match_id, game_number)`.
 - `events (start_date)`, `links (link_group_id)`.
 - `tv_sergipe (age_group, sex, modality)` and `(club_id, age_group)`.
 

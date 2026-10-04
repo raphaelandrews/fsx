@@ -2,10 +2,14 @@ import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { check, index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
+import { COMPETITION_CATEGORIES } from "../competition"
+import { sqlInList } from "../sql-in-list"
 import { circuitPhases, circuits, players } from "./index"
 
-// A podium belongs to exactly one target: either a circuit phase (etapa) or the
-// circuit itself (phase-less "geral" rankings). The check enforces exclusivity.
+// Despite the name, rows are a player's points in one stage (etapa), or in the
+// circuit itself for phase-less "geral" rankings; standings are their sums.
+// Official final placings live in circuit_final_podiums. The check enforces
+// exactly one target.
 export const circuitPodiums = sqliteTable(
 	"circuit_podiums",
 	{
@@ -25,7 +29,7 @@ export const circuitPodiums = sqliteTable(
         check("circuit_podiums_target_check", sql`(${t.circuitId} IS NULL) <> (${t.circuitPhaseId} IS NULL)`),
         check("circuit_podiums_points_check", sql`${t.points} BETWEEN 0 AND 1000000`),
         check("circuit_podiums_place_check", sql`${t.place} IS NULL OR ${t.place} BETWEEN 1 AND 1000`),
-        check("circuit_podiums_category_check", sql`${t.category} IS NULL OR ${t.category} IN ('Sub 8 Masculino', 'Sub 10 Masculino', 'Sub 12 Masculino', 'Sub 14 Masculino', 'Sub 16 Masculino', 'Sub 18 Masculino', 'Sub 8 Feminino', 'Sub 10 Feminino', 'Sub 12 Feminino', 'Sub 14 Feminino', 'Sub 16 Feminino', 'Sub 18 Feminino', 'Futuro', 'Juvenil', 'Master')`),
+        check("circuit_podiums_category_check", sql`${t.category} IS NULL OR ${t.category} IN (${sqlInList(COMPETITION_CATEGORIES)})`),
 	],
 )
 
