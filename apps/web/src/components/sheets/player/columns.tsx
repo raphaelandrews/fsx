@@ -35,11 +35,11 @@ export const columns: ColumnDef<any>[] = [
 ];
 
 export function formatVariationColor(variation: number | null | undefined) {
-  if (variation == null) return "text-primary";
-  if (variation > 0) return "text-emerald-700 dark:text-emerald-400";
+  if (variation == null) return "text-muted-foreground";
+  if (variation > 0) return "text-success";
   if (variation === 0) return "text-highlight";
   if (variation < 0) return "text-destructive";
-  return "text-primary";
+  return "text-muted-foreground";
 }
 
 export function formatVariationSymbol(variation: number | null | undefined) {

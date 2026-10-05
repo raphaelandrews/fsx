@@ -1,8 +1,9 @@
+import { useId } from "react"
+import { HugeiconsIcon } from "@hugeicons/react"
+
 import { cn } from "@fsx/ui/lib/utils"
 
 import type { IconSvgObject } from "@/lib/icon-types"
-
-import { Announcement } from "@/components/announcement"
 
 interface Props {
   label?: string
@@ -19,15 +20,26 @@ export function Section({
   main,
   children,
 }: Props) {
+  const headingId = useId()
+  const hasHeader = !main && label
+
   return (
-    <section className={cn(main ? "pt-8 pb-10 md:pb-12" : "py-10 md:py-12", className)}>
+    <section
+      aria-labelledby={hasHeader ? headingId : undefined}
+      className={cn(main ? "pt-8 pb-10 md:pb-12" : "py-10 md:py-12", className)}
+    >
       <div className="relative">
-        {!main && (
-          <Announcement
-            icon={icon}
-            label={label}
-            className="text-[1.15rem] font-bold leading-tight text-title"
-          />
+        {hasHeader && (
+          <header className="mb-8 flex flex-col items-center gap-3 px-3 text-center">
+            {icon && (
+              <span className="inline-flex size-11 items-center justify-center rounded-full bg-muted text-foreground" aria-hidden>
+                <HugeiconsIcon icon={icon} className="size-5" strokeWidth={1.75} />
+              </span>
+            )}
+            <h2 id={headingId} className="text-balance font-semibold text-2xl tracking-tight sm:text-3xl">
+              {label}
+            </h2>
+          </header>
         )}
         {children}
       </div>

@@ -15,7 +15,7 @@ const baseConfig = {
   },
   with: {
     defendingChampions: {
-      columns: {},
+      columns: { championshipId: true },
       with: { championship: { columns: { name: true } } },
     },
     playersToTitles: {

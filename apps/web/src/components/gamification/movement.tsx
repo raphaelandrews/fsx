@@ -13,7 +13,7 @@ export function Movement({ value, className }: { value: MovementValue; className
     <span
       className={cn(
         "text-[11px] font-medium tabular-nums",
-        up ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400",
+        up ? "text-success" : "text-destructive",
         className,
       )}
     >

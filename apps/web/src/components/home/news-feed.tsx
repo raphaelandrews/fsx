@@ -3,12 +3,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { CrownIcon, ScrollIcon, SparklesIcon } from "@hugeicons/core-free-icons";
 
 import type { FeedItem } from "@fsx/api/gamification/feed";
-import { cn } from "@fsx/ui/lib/utils";
 
 import { Section } from "./section";
 import { SectionButton } from "@/components/section-button";
 import { BADGE_ICONS } from "@/components/gamification/achievement-badge";
-import { TIER_CLASSES, formatIsoDate } from "@/components/gamification/tier";
+import { formatIsoDate } from "@/components/gamification/tier";
 
 function itemIcon(item: FeedItem) {
   if (item.icon === "title") return CrownIcon;
@@ -31,10 +30,7 @@ export function NewsFeed({ items }: { items: FeedItem[] }) {
             <li key={`${item.kind}-${item.player.id}-${item.label}-${item.date}`} className="m-1">
               <div className="flex items-start gap-3 rounded-md p-3 text-sm transition-colors duration-200 hover:bg-muted/50">
                 <span
-                  className={cn(
-                    "inline-flex size-8 shrink-0 items-center justify-center rounded-full",
-                    item.kind === "announcement" ? "bg-muted text-muted-foreground" : TIER_CLASSES.gold,
-                  )}
+                  className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-foreground"
                   aria-hidden
                 >
                   <HugeiconsIcon icon={itemIcon(item)} className="size-4" strokeWidth={1.75} />

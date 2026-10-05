@@ -15,7 +15,7 @@ interface Props {
 
 export function Announcement({ label, icon: Icon, className, stacked = false }: Props) {
   const baseStyles = cn(
-    "flex items-center text-base font-bold p-3",
+    "flex items-center text-base font-bold text-title p-3",
     stacked && "flex-col gap-2 px-0 pt-0 pb-6 text-center",
     className
   )

@@ -86,7 +86,7 @@ export const playersRouter = router({
           location: { columns: { name: true, flagUrl: true } },
           defendingChampions: {
             limit: PUBLIC_NESTED_COLLECTION_LIMIT,
-            columns: {},
+            columns: { championshipId: true },
             with: { championship: { columns: { name: true } } },
           },
           // Newest results in chain (id) order, so the cap drops the oldest.
@@ -394,7 +394,7 @@ export const playersRouter = router({
           location: { columns: { name: true, flagUrl: true } },
           defendingChampions: {
             limit: PUBLIC_NESTED_COLLECTION_LIMIT,
-            columns: {},
+            columns: { championshipId: true },
             with: { championship: { columns: { name: true } } },
           },
           playersToTitles: {

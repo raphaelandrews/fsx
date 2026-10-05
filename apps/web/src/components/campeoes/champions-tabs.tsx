@@ -36,7 +36,7 @@ export function ChampionsTabs({
   return (
     <Tabs defaultValue="classic" className="w-full gap-0">
       <div className="flex justify-center">
-        <TabsList className="grid grid-cols-3 md:grid-cols-6">
+        <TabsList className="overflow-x-auto">
           {tabContent.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>
               {tab.name}

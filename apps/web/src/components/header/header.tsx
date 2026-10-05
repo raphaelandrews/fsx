@@ -5,7 +5,7 @@ import { UpdateRegister } from "../update-register"
 
 export function Header() {
   return (
-    <header className="w-full border-border/40 bg-background">
+    <header className="w-full border-border/40 bg-background text-base font-semibold">
       <div className="container relative max-w-5xl flex h-16 items-center">
         <MainNav />
         <div className="flex items-center gap-2 md:justify-end">

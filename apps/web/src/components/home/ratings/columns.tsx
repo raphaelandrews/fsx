@@ -10,7 +10,7 @@ interface TopPlayer {
 	rapid?: number | null
 	blitz?: number | null
 	playersToTitles?: Array<{ title: { shortName: string } }>
-	defendingChampions?: Array<{ championship: { name: string } }> | null
+	defendingChampions?: Array<{ championshipId: number; championship: { name: string } }> | null
 }
 
 import { DataTableColumnHeader } from "./data-table-column-header"
@@ -66,7 +66,7 @@ export const columnsClassic: ColumnDef<TopPlayer>[] = [
 			<DataTableColumnHeader align="center" column={column} title="Clássico" />
 		),
 		cell: ({ row }) => {
-			return <div className="text-center font-mono font-medium tabular-nums">{row.original.classic}</div>
+			return <div className="text-center font-medium tabular-nums">{row.original.classic}</div>
 		},
 		enableSorting: false,
 		enableHiding: false,
@@ -123,7 +123,7 @@ export const columnsRapid: ColumnDef<TopPlayer>[] = [
 			<DataTableColumnHeader align="center" column={column} title="Rápido" />
 		),
 		cell: ({ row }) => {
-			return <div className="text-center font-mono font-medium tabular-nums">{row.original.rapid}</div>
+			return <div className="text-center font-medium tabular-nums">{row.original.rapid}</div>
 		},
 		enableSorting: false,
 		enableHiding: false,
@@ -180,7 +180,7 @@ export const columnsBlitz: ColumnDef<TopPlayer>[] = [
 			<DataTableColumnHeader align="center" column={column} title="Blitz" />
 		),
 		cell: ({ row }) => {
-			return <div className="text-center font-mono font-medium tabular-nums">{row.original.blitz}</div>
+			return <div className="text-center font-medium tabular-nums">{row.original.blitz}</div>
 		},
 		enableSorting: false,
 		enableHiding: false,

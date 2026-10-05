@@ -23,7 +23,7 @@ export function UpdateRegister() {
               render={
                 <Button
                   aria-label="Atualize seu cadastro"
-                  size="icon"
+                  size="icon-xl"
                   variant="secondary"
                 />
               }
@@ -32,7 +32,7 @@ export function UpdateRegister() {
         >
           <HugeiconsIcon
             icon={CheckmarkBadge01Icon}
-            className="size-4 text-white [&_path:first-child]:fill-[#1CA0F2]"
+            className="size-5 text-primary-foreground [&_path:first-child]:fill-primary"
           />
         </TooltipTrigger>
         <TooltipContent>
@@ -47,10 +47,10 @@ export function UpdateRegister() {
         <div className="flex items-center gap-2">
           <HugeiconsIcon
             icon={CheckmarkBadge01Icon}
-            className="size-4 text-white [&_path:first-child]:fill-[#1CA0F2]"
+            className="size-5 text-primary-foreground [&_path:first-child]:fill-primary"
           />
 
-          <h3 className="font-semibold text-primary">Verifique seu perfil</h3>
+          <h3 className="font-semibold">Verifique seu perfil</h3>
         </div>
         <div className="mt-2 space-y-2">
           <p className="font-medium text-sm">
@@ -64,7 +64,8 @@ export function UpdateRegister() {
         <a
           className={buttonVariants({
             variant: "default",
-            className: "mt-3 w-full",
+            size: "lg",
+            className: "mt-3 w-full active:scale-[0.96]",
           })}
           href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
           rel="noopener noreferrer"

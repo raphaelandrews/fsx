@@ -48,7 +48,7 @@ export const PlayerSheet = ({
   if (isError) {
     return (
       <SheetContent className="gap-0 overflow-y-auto overflow-x-hidden [&>button#close-sheet]:top-1 [&>button#close-sheet]:right-1">
-        <div className="flex h-full flex-col items-center justify-center text-red-500">
+        <div className="flex h-full flex-col items-center justify-center text-destructive">
           <p>
             Error loading player data: {error?.message || "Unknown error"}
           </p>

@@ -36,7 +36,7 @@ const socials = [
 
 export function Footer({ className }: { className?: string }) {
   return (
-    <footer className={cn("bg-background text-foreground", className)}>
+    <footer className={cn("bg-background text-base font-semibold text-foreground", className)}>
       <div className="container flex max-w-7xl flex-col items-center gap-8 px-3 py-14 sm:px-8">
         <Link aria-label="FSX — Página inicial" className="text-foreground" to="/">
           <Logo className="h-6 w-auto" />
@@ -73,7 +73,7 @@ export function Footer({ className }: { className?: string }) {
             {footerLinks.map((link) => (
               <Link
                 key={link.to}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                className="font-sans text-base text-muted-foreground transition-colors hover:text-foreground"
                 to={link.to}
               >
                 {link.label}
@@ -81,10 +81,10 @@ export function Footer({ className }: { className?: string }) {
             ))}
           </nav>
 
-          <div className="text-balance text-center text-muted-foreground text-sm leading-loose">
+          <div className="text-balance text-center font-sans text-muted-foreground text-base leading-loose">
             Built by 📟{" "}
             <a
-              className="font-medium text-primary transition duration-200 hover:text-highlight"
+              className="text-primary transition duration-200 hover:text-highlight"
               href="https://andrews.sh/"
               rel="noreferrer"
               target="_blank"
@@ -93,7 +93,7 @@ export function Footer({ className }: { className?: string }) {
             </a>
             .{" "}
             <a
-              className="font-medium transition duration-200 hover:text-highlight"
+              className="transition duration-200 hover:text-highlight"
               href="https://github.com/raphaelandrews/fsx"
               rel="noreferrer"
               target="_blank"

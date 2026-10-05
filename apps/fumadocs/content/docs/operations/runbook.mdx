@@ -21,6 +21,25 @@ restore to a separate staging D1 database, apply compatible migrations, then run
 row-count and smoke checks before promoting that database. Never use a recovery
 exercise as a direct production overwrite.
 
+## Local data from a backup
+
+To develop against real data, replace the local dev D1 with a backup:
+
+```bash
+# stop bun dev first
+bun run db:restore-local ~/Backups/fsx-<stamp>/fsx-<stamp>.sql
+bun dev
+```
+
+It wipes `.alchemy/miniflare/v3/d1`, restores the dump with the restore drill's
+loader, applies the migrations the backup predates, rebuilds `d1_migrations` in
+the shape Alchemy's local migrator expects (production's tracker requires an
+`applied_at` that Alchemy does not insert, so the next migration would fail), and
+clears `computed_results`. Don't run `bun run db:seed` afterwards. The local
+database then holds production accounts and personal data: keep it on your
+machine. To go back to seed data, stop dev, `rm -rf .alchemy/miniflare/v3/d1`,
+start `bun dev`, and run `bun run db:seed`.
+
 ## Deploy Smoke Test
 
 Set `BASE_URL` and `MEDIA_SMOKE_URL` to the deployment origin and a known public

@@ -37,12 +37,12 @@ export const HeaderNavigationDrawer = () => {
           <Button
             aria-label="Abrir menu de navegação"
             className="shrink-0 p-2 hover:bg-muted/50 xl:hidden shadow-none"
-            size="icon"
+            size="icon-xl"
             variant="outline"
           />
         }
       >
-        <HugeiconsIcon className="size-4" icon={Menu01Icon} />
+        <HugeiconsIcon className="size-5" icon={Menu01Icon} />
       </DrawerTrigger>
 
       <DrawerContent className="!inset-0 !h-dvh !max-h-dvh !w-full !rounded-none !border-0 !bg-background">
@@ -72,7 +72,7 @@ export const HeaderNavigationDrawer = () => {
                     <button
                       type="button"
                       onClick={() => setOpenSection(isOpen ? null : label)}
-                      className="flex w-full items-center justify-between py-3 text-left text-lg font-semibold text-foreground"
+                      className="flex w-full items-center justify-between py-3 text-left text-base font-semibold text-foreground"
                     >
                       {label}
                       <HugeiconsIcon
@@ -91,7 +91,7 @@ export const HeaderNavigationDrawer = () => {
                               to={sub.href}
                               target={sub.target}
                               onClick={() => setOpen(false)}
-                              className="flex items-center gap-3 px-3 py-2.5 text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
+                              className="flex items-center gap-3 px-3 py-2.5 text-base font-semibold text-muted-foreground transition-colors hover:text-foreground"
                             >
                               <HugeiconsIcon
                                 className="size-5 shrink-0"
@@ -113,7 +113,7 @@ export const HeaderNavigationDrawer = () => {
                     to={href}
                     target={target}
                     onClick={() => setOpen(false)}
-                    className="block py-3 text-lg font-semibold text-foreground"
+                    className="block py-3 text-base font-semibold text-foreground"
                   >
                     {label}
                   </Link>
@@ -127,7 +127,7 @@ export const HeaderNavigationDrawer = () => {
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => setOpen(false)}
-                className="block py-3 text-lg font-semibold text-foreground"
+                className="block py-3 text-base font-semibold text-foreground"
               >
                 Instagram
               </a>
@@ -136,7 +136,7 @@ export const HeaderNavigationDrawer = () => {
               <a
                 href="mailto:fsx.presidente@gmail.com"
                 onClick={() => setOpen(false)}
-                className="block py-3 text-lg font-semibold text-foreground"
+                className="block py-3 text-base font-semibold text-foreground"
               >
                 Email
               </a>

@@ -678,7 +678,7 @@ function RatingUpdatePage() {
 function LogTitle({ title, length, success }: { title: string; length: number; success: boolean }) {
   return (
     <div className="flex w-fit items-center gap-2 rounded-md border px-3 py-2">
-      <p className={success ? "font-medium text-green-600" : "font-medium text-red-600"}>{title}</p>
+      <p className={success ? "font-medium text-success" : "font-medium text-destructive"}>{title}</p>
       <span
         className={`text-xs rounded-sm px-1.5 py-0.5 ${success ? "bg-[#E8F5E9] text-[#388E3C] dark:bg-[#022C22] dark:text-[#1BC994]" : "bg-[#FFEBEE] text-[#D32F2F] dark:bg-[#4D0217] dark:text-[#FF6982]"}`}
       >

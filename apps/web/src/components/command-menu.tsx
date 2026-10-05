@@ -53,16 +53,16 @@ function getGradient(id: number): React.CSSProperties {
 
 const LoadingSkeleton = () => (
   <div className="grid gap-1">
-    <Skeleton className="h-10 w-full rounded-md" />
-    <Skeleton className="h-10 w-full rounded-md" />
-    <Skeleton className="h-10 w-full rounded-md" />
-    <Skeleton className="h-10 w-full rounded-md" />
-    <Skeleton className="h-10 w-full rounded-md" />
-    <Skeleton className="h-10 w-full rounded-md" />
-    <Skeleton className="h-10 w-full rounded-md" />
-    <Skeleton className="h-10 w-full rounded-md" />
-    <Skeleton className="h-10 w-full rounded-md" />
-    <Skeleton className="h-10 w-full rounded-md" />
+    <Skeleton className="h-9 w-full rounded-full" />
+    <Skeleton className="h-9 w-full rounded-full" />
+    <Skeleton className="h-9 w-full rounded-full" />
+    <Skeleton className="h-9 w-full rounded-full" />
+    <Skeleton className="h-9 w-full rounded-full" />
+    <Skeleton className="h-9 w-full rounded-full" />
+    <Skeleton className="h-9 w-full rounded-full" />
+    <Skeleton className="h-9 w-full rounded-full" />
+    <Skeleton className="h-9 w-full rounded-full" />
+    <Skeleton className="h-9 w-full rounded-full" />
   </div>
 )
 
@@ -117,7 +117,7 @@ const CommandResults = React.memo(
             onSelect={() => onSelect(player.id)}
             value={player.name}
           >
-            <div className="size-5 rounded" style={player.gradient} />
+            <div className="size-5 rounded-full" style={player.gradient} />
             {player.name}
           </CommandMenuItem>
         ))}
@@ -192,31 +192,33 @@ export function CommandMenu() {
         render={
           <Button
             className={cn(
-              "relative h-8 w-full justify-start rounded-lg pl-3 shadow-none md:w-48 lg:w-40 xl:w-48"
+              "relative w-full justify-start font-sans font-semibold text-muted-foreground shadow-none hover:text-foreground md:w-52 lg:w-60"
             )}
             variant="secondary"
+            size="xl"
             onFocus={prefetchDefaults}
             onMouseEnter={prefetchDefaults}
           />
         }
       >
-        <span className="hidden lg:inline-flex text-sm">Procurar jogadores...</span>
-        <span className="inline-flex text-sm lg:hidden">Procurar...</span>
+        <HugeiconsIcon icon={SearchIcon} data-icon="inline-start" className="size-4" strokeWidth={2} aria-hidden />
+        <span className="hidden lg:inline-flex text-base">Procurar jogadores...</span>
+        <span className="inline-flex text-base lg:hidden">Procurar...</span>
       </DialogTrigger>
       <DialogContent
-        className="rounded-xl border-none bg-clip-padding p-2 pb-11 shadow-2xl ring-4 ring-neutral-200/80 dark:ring-neutral-800"
+        className="rounded-4xl border-none bg-clip-padding p-2 pb-11 shadow-2xl ring-4 ring-border"
         showCloseButton={false}
       >
         <DialogHeader className="sr-only">
           <DialogTitle>Procurar jogadores...</DialogTitle>
           <DialogDescription>
-            Procurare jogadores cadastrados na FSX...
+            Procure jogadores cadastrados na FSX.
           </DialogDescription>
         </DialogHeader>
         <Command className="rounded-none bg-transparent">
           <CommandMenuInput
             onChange={handleSearchChange}
-            placeholder="Procurar jogadores.."
+            placeholder="Procurar jogadores..."
             value={searchValue}
           />
           <CommandList className="no-scrollbar min-h-80 scroll-pt-2 scroll-pb-1.5">
@@ -239,7 +241,7 @@ export function CommandMenu() {
             </CommandGroup>
           </CommandList>
         </Command>
-        <div className="absolute inset-x-0 bottom-0 z-20 flex h-10 items-center gap-2 rounded-b-xl border-t border-t-neutral-100 bg-neutral-50 px-4 text-xs font-medium text-muted-foreground dark:border-t-neutral-700 dark:bg-neutral-800">
+        <div className="absolute inset-x-0 bottom-0 z-20 flex h-10 items-center gap-2 rounded-b-4xl border-t border-t-border bg-muted px-5 text-xs font-medium text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1">
               <CommandMenuKbd>
@@ -289,7 +291,7 @@ function CommandMenuItem({
   return (
     <CommandItem
       className={cn(
-        "!px-3 h-9 rounded-md border border-transparent font-medium data-[selected=true]:border-input data-[selected=true]:bg-input/50",
+        "!px-3 h-9 rounded-full border border-transparent font-medium data-[selected=true]:border-input data-[selected=true]:bg-input/50",
         className
       )}
       {...props}
@@ -318,14 +320,14 @@ function CommandMenuInput({
   return (
     <div
       className={cn(
-        "mb-0 flex h-9 items-center gap-2 rounded-md border border-input bg-input/50 px-3",
+        "mb-0 flex h-10 items-center gap-2 rounded-full border border-input bg-input/50 px-4",
         className
       )}
       data-slot="command-input-wrapper"
     >
       <HugeiconsIcon className="size-4 shrink-0 opacity-50" icon={SearchIcon} />
       <input
-        className="flex h-9 w-full rounded-md bg-transparent py-0 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-10 w-full bg-transparent py-0 text-base outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
         data-slot="command-input"
         {...props}
       />

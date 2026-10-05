@@ -91,7 +91,7 @@ function ListItem({
         render={
           <Link to={href}>
             <HugeiconsIcon className="size-4 text-muted-foreground group-hover:text-primary-foreground transition-colors" icon={icon} />
-            <span className="text-sm font-medium text-foreground group-hover:text-primary-foreground transition-colors">{title}</span>
+            <span className="text-base font-semibold text-foreground group-hover:text-primary-foreground transition-colors">{title}</span>
           </Link>
         }
       />

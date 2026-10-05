@@ -44,6 +44,7 @@
     "db:backup": "bash scripts/d1-backup.sh",
     "db:backup:verify": "bash scripts/verify-d1-backup.sh",
     "db:restore-drill": "bun apps/web/scripts/restore-drill.ts",
+    "db:restore-local": "bun packages/api/scripts/restore-local.ts",
     "check:bundle": "node scripts/check-bundle-budgets.mjs",
     "check:seo": "node scripts/check-prerendered-seo.mjs",
     "check:routes": "node scripts/check-route-tree.mjs",

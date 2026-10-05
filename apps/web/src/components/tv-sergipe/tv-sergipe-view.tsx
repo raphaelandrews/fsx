@@ -151,9 +151,9 @@ export function TvSergipeView() {
       { id: "name", header: () => "Escola" },
       ...(isMedalView
         ? [
-            { id: "gold", header: () => <MedalHead icon={MedalFirstPlaceIcon} label="Ouro" color="text-amber-500" />, meta: { className: "w-24" } },
-            { id: "silver", header: () => <MedalHead icon={MedalSecondPlaceIcon} label="Prata" color="text-zinc-400" />, meta: { className: "w-24" } },
-            { id: "bronze", header: () => <MedalHead icon={MedalThirdPlaceIcon} label="Bronze" color="text-amber-700" />, meta: { className: "w-24" } },
+            { id: "gold", header: () => <MedalHead icon={MedalFirstPlaceIcon} label="Ouro" color="text-tier-gold-foreground" />, meta: { className: "w-24" } },
+            { id: "silver", header: () => <MedalHead icon={MedalSecondPlaceIcon} label="Prata" color="text-tier-silver-foreground" />, meta: { className: "w-24" } },
+            { id: "bronze", header: () => <MedalHead icon={MedalThirdPlaceIcon} label="Bronze" color="text-tier-bronze-foreground" />, meta: { className: "w-24" } },
           ]
         : [{ id: "points", header: () => <span className="text-center">Pontos</span>, meta: { className: "w-24" } }]),
     ] as const,

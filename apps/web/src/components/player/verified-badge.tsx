@@ -34,7 +34,7 @@ const TIER_CONFIG: Record<
 > = {
   admin: {
     iconClass:
-      "!fill-bulbasaur stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+      "!fill-title stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
     label: "Diretoria",
     description: "Este jogador faz parte da diretoria da federação.",
   },
@@ -46,13 +46,13 @@ const TIER_CONFIG: Record<
   },
   referee: {
     iconClass:
-      "!fill-slate-500 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+      "!fill-muted-foreground stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
     label: "Árbitro Oficial",
     description: "Este jogador é um árbitro oficial da federação.",
   },
   verified: {
     iconClass:
-      "!fill-sky-400 stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+      "!fill-primary stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
     label: "Perfil verificado",
     description: "Esse perfil teve seus dados confirmados pela federação.",
   },

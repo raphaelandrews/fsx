@@ -33,7 +33,7 @@ export function PlayerStats({
         <StatTile
           label="Melhor desempenho"
           value={bestGain ? `+${bestGain.variation}` : "—"}
-          valueClassName={bestGain ? "text-emerald-700 dark:text-emerald-400" : undefined}
+          valueClassName={bestGain ? "text-success" : undefined}
           hint={bestGain?.tournamentId ? tournaments[bestGain.tournamentId]?.name : undefined}
         />
         <StatTile

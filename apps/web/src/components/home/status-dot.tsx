@@ -35,8 +35,8 @@ export function StatusDot({ date }: { date: Date | string }) {
   if (daysDifference < 0) {
     return (
       <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-500 opacity-75" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-600" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-75" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-destructive" />
       </span>
     );
   }
@@ -44,8 +44,8 @@ export function StatusDot({ date }: { date: Date | string }) {
   if (daysDifference <= 7) {
     return (
       <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-75" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-600" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-warning-foreground opacity-75" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-warning-foreground" />
       </span>
     );
   }
@@ -53,8 +53,8 @@ export function StatusDot({ date }: { date: Date | string }) {
   if (daysDifference <= 14) {
     return (
       <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-green-600" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
       </span>
     );
   }

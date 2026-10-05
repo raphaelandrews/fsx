@@ -21,14 +21,14 @@ const getFillColorVariation = (
   isHighest: boolean
 ) => {
   if (isHighest && variation > 0) {
-    return "var(--chart-5)"
+    return "var(--chart-2)"
   }
 
   if (variation < 0) {
-    return "var(--chart-6)"
+    return "var(--chart-3)"
   }
 
-  return "var(--chart-1)"
+  return "var(--chart-4)"
 }
 
 const extractChartData = (player: PlayerById, selectedRatingType: string) => {

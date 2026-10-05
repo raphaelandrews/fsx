@@ -35,7 +35,7 @@ export function PlayerCircuits({ seasons }: { seasons: PlayerCircuitSeason[] }) 
                 </Link>
                 <p className="mt-0.5 flex items-center gap-1.5 text-muted-foreground text-xs">
                   <span
-                    className={cn("size-1.5 shrink-0 rounded-full", finished ? "bg-muted-foreground/50" : "bg-emerald-600")}
+                    className={cn("size-1.5 shrink-0 rounded-full", finished ? "bg-muted-foreground/50" : "bg-success")}
                     aria-hidden
                   />
                   <span className="tabular-nums">

@@ -9,11 +9,11 @@ import {
   StarIcon,
 } from "@hugeicons/core-free-icons";
 
-import type { Achievement, BadgeIcon } from "@fsx/api/gamification/badges";
+import type { Achievement, BadgeIcon, BadgeTier } from "@fsx/api/gamification/badges";
 import { Popover, PopoverContent, PopoverTrigger } from "@fsx/ui/components/popover";
 import { cn } from "@fsx/ui/lib/utils";
 
-import { TIER_CLASSES, TIER_LABELS, formatIsoDate } from "./tier";
+import { TIER_LABELS, formatIsoDate } from "./tier";
 
 export const BADGE_ICONS: Record<BadgeIcon, typeof StarIcon> = {
   rating: ChartUpIcon,
@@ -39,7 +39,7 @@ export function AchievementBadge({ achievement, locked = false }: { achievement:
           "inline-flex size-11 items-center justify-center rounded-full outline-offset-2 transition-[scale,box-shadow] duration-150 ease-out focus-visible:outline-2 focus-visible:outline-ring active:scale-[0.96]",
           locked
             ? "border border-border border-dashed text-muted-foreground hover:bg-muted"
-            : cn(TIER_CLASSES[achievement.tier], "shadow-[inset_0_0_0_1px_oklch(0_0_0/0.06)] hover:shadow-[inset_0_0_0_1px_currentColor] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/0.08)]"),
+            : "bg-muted text-foreground shadow-[inset_0_0_0_1px_var(--border)] hover:shadow-[inset_0_0_0_1px_var(--muted-foreground)]",
         )}
       >
         <HugeiconsIcon icon={locked ? LockIcon : BADGE_ICONS[achievement.icon]} className="size-5" strokeWidth={1.75} aria-hidden />
@@ -48,8 +48,8 @@ export function AchievementBadge({ achievement, locked = false }: { achievement:
         <div className="flex items-center gap-2">
           <span
             className={cn(
-              "inline-flex size-7 shrink-0 items-center justify-center rounded-full",
-              locked ? "bg-muted text-muted-foreground" : TIER_CLASSES[achievement.tier],
+              "inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-muted",
+              locked ? "text-muted-foreground" : "text-foreground",
             )}
             aria-hidden
           >
@@ -63,5 +63,43 @@ export function AchievementBadge({ achievement, locked = false }: { achievement:
         </p>
       </PopoverContent>
     </Popover>
+  );
+}
+
+const TIER_ORDER: BadgeTier[] = ["platinum", "gold", "silver", "bronze"];
+
+// Badges are neutral; the tier is a row label, so it reads without relying on color.
+export function BadgesByTier({ achievements, upcoming = [] }: { achievements: Achievement[]; upcoming?: Achievement[] }) {
+  const rows = [
+    ...TIER_ORDER.map((tier) => ({
+      key: tier,
+      label: TIER_LABELS[tier],
+      badges: achievements
+        .filter((achievement) => achievement.tier === tier)
+        .sort((a, b) => (b.earnedAt ?? "").localeCompare(a.earnedAt ?? "")),
+      locked: false,
+    })),
+    { key: "upcoming", label: "Próximas", badges: upcoming, locked: true },
+  ].filter((row) => row.badges.length > 0);
+
+  return (
+    <dl className="flex flex-col gap-3">
+      {rows.map((row) => (
+        <div key={row.key} className="flex items-start gap-3">
+          <dt className="flex h-11 w-16 shrink-0 items-center font-medium text-muted-foreground text-xs">
+            {row.label}
+          </dt>
+          <dd className="min-w-0 flex-1">
+            <ul className="flex flex-wrap gap-2" aria-label={row.label}>
+              {row.badges.map((achievement) => (
+                <li key={`${row.key}-${achievement.id}`}>
+                  <AchievementBadge achievement={achievement} locked={row.locked} />
+                </li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }

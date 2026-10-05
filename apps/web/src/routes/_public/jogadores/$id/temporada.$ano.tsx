@@ -15,7 +15,7 @@ import { buttonVariants } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
 import { Announcement } from "@/components/announcement";
-import { AchievementBadge } from "@/components/gamification/achievement-badge";
+import { BadgesByTier } from "@/components/gamification/achievement-badge";
 import { ActivityGraph } from "@/components/gamification/activity-graph";
 import { Medal } from "@/components/gamification/medal";
 import { StatTile } from "@/components/gamification/stat-tile";
@@ -98,7 +98,7 @@ function RouteComponent() {
         <StatTile
           label="Melhor desempenho"
           value={season.bestGain ? `+${season.bestGain.variation}` : "—"}
-          valueClassName={season.bestGain ? "text-emerald-700 dark:text-emerald-400" : undefined}
+          valueClassName={season.bestGain ? "text-success" : undefined}
           hint={season.bestGain ? season.tournaments[season.bestGain.tournamentId]?.name : undefined}
         />
         <StatTile label="XP no ano" value={`+${season.xpGained}`} hint={`nível ${season.level} ao fim do ano`} />
@@ -116,8 +116,8 @@ function RouteComponent() {
                 label={label}
                 value={change === null ? "—" : signed(change)}
                 valueClassName={cn(
-                  change !== null && change > 0 && "text-emerald-700 dark:text-emerald-400",
-                  change !== null && change < 0 && "text-rose-700 dark:text-rose-400",
+                  change !== null && change > 0 && "text-success",
+                  change !== null && change < 0 && "text-destructive",
                 )}
                 hint={change === null ? "sem torneios" : undefined}
               />
@@ -155,13 +155,9 @@ function RouteComponent() {
       {season.achievements.length > 0 && (
         <section aria-label="Conquistas do ano" className="mt-6">
           <Announcement icon={Target01Icon} label="Conquistas do ano" className="text-sm" />
-          <ul className="flex flex-wrap gap-2 px-3" aria-label="Conquistas do ano">
-            {season.achievements.map((achievement) => (
-              <li key={achievement.id}>
-                <AchievementBadge achievement={achievement} />
-              </li>
-            ))}
-          </ul>
+          <div className="px-3">
+            <BadgesByTier achievements={season.achievements} />
+          </div>
         </section>
       )}
     </div>

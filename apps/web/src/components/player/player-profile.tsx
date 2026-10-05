@@ -9,15 +9,6 @@ import {
   Target01Icon,
   BarChartIcon,
   ChartBarLineIcon,
-  ZapIcon,
-  CrownIcon,
-  Medal01Icon,
-  MedalFirstPlaceIcon,
-  MedalThirdPlaceIcon,
-  RabbitIcon,
-  Loading01Icon,
-  TrainIcon,
-  SwordsIcon,
   Analytics01Icon,
   Route01Icon,
   ScrollIcon,
@@ -42,6 +33,7 @@ import { TotalRatingChart, VariationChart } from "@/components/player/player-cha
 import { cn } from "@fsx/ui/lib/utils";
 import { avatarGradient, avatarGradientFor } from "@/components/avatar-gradient";
 import { PlayerLevel } from "@/components/gamification/player-level";
+import { championshipIcon, podiumIcon } from "@/components/gamification/championship-icons";
 import { TIER_CLASSES, formatIsoDate } from "@/components/gamification/tier";
 import { AchievementGrid, Subheading, TrophyCabinet } from "@/components/player/player-achievements";
 import { PlayerAnnouncements } from "@/components/player/player-announcements";
@@ -51,42 +43,9 @@ import { byTitleTier } from "@/components/player/title-emblems";
 import type { ClubStanding, PlayerAnnouncement, PlayerCircuitSeason, PlayerRanking, PlayerStatsResult } from "@/components/player/types";
 import { Movement } from "@/components/gamification/movement";
 
-function FormatPodium(place: number | null | undefined, championship_id: number) {
-  if (place === 1 && championship_id === 1) {
-    return <HugeiconsIcon icon={Loading01Icon} className="size-5" strokeWidth={1.75} aria-hidden />;
-  }
-
-  if (place === 1 && championship_id === 2) {
-    return <HugeiconsIcon icon={RabbitIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
-  }
-
-  if (place === 1 && championship_id === 3) {
-    return <HugeiconsIcon icon={ZapIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
-  }
-
-  if (place === 1 && championship_id === 4) {
-    return <HugeiconsIcon icon={CrownIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
-  }
-
-  if (place === 1 && championship_id === 5) {
-    return <HugeiconsIcon icon={SwordsIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
-  }
-
-  if (place === 1 && championship_id === 6) {
-    return <HugeiconsIcon icon={TrainIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
-  }
-
-  if (place === 1) {
-    return <HugeiconsIcon icon={MedalFirstPlaceIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
-  }
-
-  if (place === 2) {
-    return <HugeiconsIcon icon={Medal01Icon} className="size-5" strokeWidth={1.75} aria-hidden />;
-  }
-
-  if (place === 3) {
-    return <HugeiconsIcon icon={MedalThirdPlaceIcon} className="size-5" strokeWidth={1.75} aria-hidden />;
-  }
+function FormatPodium(place: number | null | undefined, championshipId: number) {
+  const icon = podiumIcon(place, championshipId);
+  return icon ? <HugeiconsIcon icon={icon} className="size-5" strokeWidth={1.75} aria-hidden /> : null;
 }
 
 const podiumLabel = (podium: { category?: string | null; tournament: { name: string } }) =>
@@ -104,18 +63,8 @@ function FormatPodiumTitle(place: number | null | undefined) {
   }
 }
 
-const DEFENDING_CHAMPIONS: Record<string, { icon: typeof CrownIcon; label: string }> = {
-  Absoluto: { icon: Loading01Icon, label: "Atual campeão Sergipano Absoluto" },
-  Rápido: { icon: RabbitIcon, label: "Atual campeão Sergipano Rápido" },
-  Blitz: { icon: ZapIcon, label: "Atual campeão Sergipano Blitz" },
-  Feminino: { icon: CrownIcon, label: "Atual campeã Sergipana Feminino" },
-  Equipes: { icon: SwordsIcon, label: "Atual campeão Sergipano Equipes" },
-};
-
-const PLACE_TIERS = { 1: "gold", 2: "silver", 3: "bronze" } as const;
-
 const medalButton =
-  "inline-flex size-11 items-center justify-center rounded-xl outline-offset-2 transition-[scale,box-shadow] duration-150 ease-out hover:shadow-[inset_0_0_0_1px_currentColor] focus-visible:outline-2 focus-visible:outline-ring active:scale-[0.96]";
+  "inline-flex size-11 items-center justify-center rounded-xl bg-muted text-foreground shadow-[inset_0_0_0_1px_var(--border)] hover:shadow-[inset_0_0_0_1px_var(--muted-foreground)] outline-offset-2 transition-[scale,box-shadow] duration-150 ease-out focus-visible:outline-2 focus-visible:outline-ring active:scale-[0.96]";
 
 export interface PlayerById {
   id: number;
@@ -163,6 +112,7 @@ export interface PlayerById {
     };
   }>;
   defendingChampions?: Array<{
+    championshipId: number;
     championship: {
       name: string;
     };
@@ -319,16 +269,15 @@ export function PlayerProfile({
                 <section aria-labelledby="player-defending">
                   <Subheading id="player-defending">Atual campeão</Subheading>
                   <ul className="flex flex-wrap gap-2">
-                    {player.defendingChampions.map(({ championship }) => {
-                      const defending = DEFENDING_CHAMPIONS[championship.name];
-                      if (!defending) return null;
+                    {player.defendingChampions.map(({ championshipId, championship }) => {
+                      const label = `Atual campeão(ã) · ${championship.name}`;
                       return (
-                        <li key={championship.name}>
+                        <li key={championshipId}>
                           <Popover>
-                            <PopoverTrigger aria-label={defending.label} className={cn(medalButton, TIER_CLASSES.gold)}>
-                              <HugeiconsIcon icon={defending.icon} className="size-5" strokeWidth={1.75} aria-hidden />
+                            <PopoverTrigger aria-label={label} className={medalButton}>
+                              <HugeiconsIcon icon={championshipIcon(championshipId)} className="size-5" strokeWidth={1.75} aria-hidden />
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-2 text-xs font-medium">{defending.label}</PopoverContent>
+                            <PopoverContent className="w-auto p-2 text-xs font-medium">{label}</PopoverContent>
                           </Popover>
                         </li>
                       );
@@ -354,12 +303,7 @@ export function PlayerProfile({
                             <Popover>
                               <PopoverTrigger
                                 aria-label={`${FormatPodiumTitle(podium.place) ?? "Colocação"}: ${podiumLabel(podium)}`}
-                                className={cn(
-                                  medalButton,
-                                  podium.place && podium.place <= 3
-                                    ? TIER_CLASSES[PLACE_TIERS[podium.place as 1 | 2 | 3]]
-                                    : "bg-muted text-muted-foreground",
-                                )}
+                                className={medalButton}
                               >
                                 {FormatPodium(podium.place, podium.category ? 0 : (podium.tournament.championshipId ?? 0))}
                               </PopoverTrigger>
@@ -453,8 +397,8 @@ export function PlayerProfile({
             <InfoItem label="Status">
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
                 </span>
                 <p>Ativo</p>
               </div>
@@ -463,8 +407,8 @@ export function PlayerProfile({
             <InfoItem label="Status">
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-500/75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-600" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive/75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-destructive" />
                 </span>
                 <p>Inativo</p>
               </div>
@@ -609,7 +553,7 @@ function RatingBox({
   return (
     <div className="bg-muted rounded-2xl flex h-full flex-col items-center justify-center gap-1 p-3 sm:p-4">
       <span className="text-xs sm:text-sm text-foreground/70 font-medium text-center">{label}</span>
-      <span className="text-sm sm:text-base font-semibold text-foreground font-mono tabular-nums">
+      <span className="text-sm sm:text-base font-semibold text-foreground tabular-nums">
         {value ?? "-"}
       </span>
       {rank && (
@@ -634,7 +578,7 @@ function IdBox({ label, value, href }: { label: string; value: string; href?: st
       <span className="text-xs sm:text-sm text-foreground/70 font-medium text-center">{label}</span>
       <div className="flex items-center gap-1.5">
         <span
-          className={`text-sm sm:text-base font-semibold font-mono tabular-nums ${href ? "group-hover:underline" : "text-foreground"}`}
+          className={`text-sm sm:text-base font-semibold tabular-nums ${href ? "group-hover:underline" : "text-foreground"}`}
         >
           {value}
         </span>

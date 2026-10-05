@@ -8,7 +8,7 @@ const MONTH_NAMES = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-const LEVELS = ["bg-muted", "bg-activity/50", "bg-activity/75", "bg-activity"] as const;
+const LEVELS = ["bg-muted", "bg-primary/50", "bg-primary/75", "bg-primary"] as const;
 const levelOf = (count: number) => Math.min(count, LEVELS.length - 1);
 const plural = (count: number) => `${count} ${count === 1 ? "torneio" : "torneios"}`;
 

@@ -29,6 +29,9 @@ Local Dev D1 gotchas:
 
 ## Frontend conventions
 
+- **Design system:** follow `DESIGN.md` (palette tokens, typography, radius scale, button sizes,
+  section/tile/row patterns). Use theme tokens, never raw hex or Tailwind palette colors.
+
 - **shadcn/react (Base UI) triggers render a `<button>`.** When a trigger wraps a `Button`, use the
   `render` prop (`<TooltipTrigger render={<Button/>}>`) instead of nesting — nesting produces
   `<button>`-in-`<button>` hydration errors.
