@@ -3,14 +3,17 @@ import { useEffect, useState } from "react"
 import { Link, useLocation } from "@tanstack/react-router"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
+  ArrowUpRight01Icon,
   Cancel01Icon,
   ChevronDownIcon,
+  InstagramIcon,
+  Mail02Icon,
   Menu01Icon,
 } from "@hugeicons/core-free-icons"
 
 import { navigationData } from "./header-navigation-data"
 import { Logo } from "../logo"
-import { Button } from "@fsx/ui/components/button"
+import { Button, buttonVariants } from "@fsx/ui/components/button"
 import {
   Drawer,
   DrawerClose,
@@ -56,7 +59,7 @@ export const HeaderNavigationDrawer = () => {
           </Link>
           <DrawerClose
             aria-label="Fechar menu"
-            className="rounded-md border border-border p-2.5 text-foreground transition-colors hover:bg-muted"
+            className={buttonVariants({ variant: "outline", size: "icon-xl", className: "shadow-none" })}
           >
             <HugeiconsIcon className="size-5" icon={Cancel01Icon} />
           </DrawerClose>
@@ -91,7 +94,7 @@ export const HeaderNavigationDrawer = () => {
                               to={sub.href}
                               target={sub.target}
                               onClick={() => setOpen(false)}
-                              className="flex items-center gap-3 px-3 py-2.5 text-base font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-semibold text-muted-foreground transition-colors hover:text-foreground aria-[current=page]:bg-primary/10 aria-[current=page]:text-primary aria-[current=page]:transition-none"
                             >
                               <HugeiconsIcon
                                 className="size-5 shrink-0"
@@ -112,36 +115,42 @@ export const HeaderNavigationDrawer = () => {
                   <Link
                     to={href}
                     target={target}
+                    activeOptions={{ exact: href === "/" }}
                     onClick={() => setOpen(false)}
-                    className="block py-3 text-base font-semibold text-foreground"
+                    className="flex items-center justify-between py-3 text-base font-semibold text-foreground aria-[current=page]:text-primary"
                   >
                     {label}
+                    {target === "_blank" && (
+                      <>
+                        <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-5 text-muted-foreground" aria-hidden />
+                        <span className="sr-only"> (abre em nova aba)</span>
+                      </>
+                    )}
                   </Link>
                 </li>
               )
             })}
 
-            <li className="border-b border-border py-2">
-              <a
-                href="https://www.instagram.com/xadrezsergipe/"
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => setOpen(false)}
-                className="block py-3 text-base font-semibold text-foreground"
-              >
-                Instagram
-              </a>
-            </li>
-            <li className="border-b border-border py-2">
-              <a
-                href="mailto:fsx.presidente@gmail.com"
-                onClick={() => setOpen(false)}
-                className="block py-3 text-base font-semibold text-foreground"
-              >
-                Email
-              </a>
-            </li>
           </ul>
+
+          <div className="mt-8 flex items-center gap-3">
+            <a
+              href="https://www.instagram.com/xadrezsergipe/"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram da FSX (@xadrezsergipe)"
+              className={buttonVariants({ variant: "secondary", size: "icon-xl", className: "active:scale-[0.96]" })}
+            >
+              <HugeiconsIcon icon={InstagramIcon} className="size-5" strokeWidth={1.75} aria-hidden />
+            </a>
+            <a
+              href="mailto:fsx.presidente@gmail.com"
+              aria-label="Enviar e-mail para a FSX"
+              className={buttonVariants({ variant: "secondary", size: "icon-xl", className: "active:scale-[0.96]" })}
+            >
+              <HugeiconsIcon icon={Mail02Icon} className="size-5" strokeWidth={1.75} aria-hidden />
+            </a>
+          </div>
         </nav>
       </DrawerContent>
     </Drawer>

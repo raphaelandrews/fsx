@@ -60,7 +60,7 @@ Local Dev D1 gotchas:
   be deleted). Forms use `EntityForm` with field definitions in `lib/admin-forms.ts`, or `AdminForm` +
   `FormSection` + `FormActions` when a form needs custom controls (players, posts, events, TV Sergipe);
   field errors use `FormField` with `error={fieldError(f, mutation.error)}`. Every collection is a
-  `DataTable` (borderless, paginated) with `DataTableRowActions` (pass `noun`); records that belong to a
+  `DataTable` (bordered frame from `Table`, paginated) with `DataTableRowActions` (pass `noun`); records that belong to a
   parent (links, circuit stages and podiums, rating results) are edited in the parent page with
   `EntityFormDialog`. Every delete or removal is confirmed in a dialog that names the record.
 - **Default to zero comments.** Add a comment only when it explains a non-obvious "why" or a

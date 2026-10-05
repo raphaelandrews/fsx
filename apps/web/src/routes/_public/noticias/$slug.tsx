@@ -69,7 +69,7 @@ function RouteComponent() {
   if (!post) return null;
 
   return (
-    <article className="mx-auto max-w-4xl py-10 md:py-16">
+    <article className="mx-auto max-w-4xl pt-10 md:pt-16">
       <header className="mx-auto max-w-2xl text-center">
         <h1
           className="text-balance text-3xl font-semibold tracking-tight text-foreground md:text-4xl"
@@ -79,7 +79,7 @@ function RouteComponent() {
         </h1>
 
         {post.createdAt && (
-          <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <div className="mt-4 flex items-center justify-center gap-2 text-base text-muted-foreground">
             <PostTimeAgo date={post.createdAt} />
           </div>
         )}
@@ -88,7 +88,7 @@ function RouteComponent() {
       {post.imageUrl && (
         <img
           alt={post.title}
-          className="mt-8 aspect-video w-full rounded-xl border border-border object-cover"
+          className="mt-8 aspect-video w-full rounded-xl object-cover"
           decoding="async"
           fetchPriority="high"
           height={675}

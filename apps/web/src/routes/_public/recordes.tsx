@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ChampionIcon, ChartUpIcon, CrownIcon } from "@hugeicons/core-free-icons";
 
+import { buttonVariants } from "@fsx/ui/components/button";
+
 import { Announcement } from "@/components/announcement";
 import { PageHeader } from "@/components/page-header";
 import { RecordCard } from "@/components/recordes/record-card";
@@ -10,6 +12,12 @@ import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/utils/trpc";
 
 const plural = (value: number, one: string, many: string) => `${value} ${value === 1 ? one : many}`;
+
+const SECTIONS = [
+  ["records-rating", "Rating"],
+  ["records-titles", "Títulos e atividade"],
+  ["records-champions", "Campeões"],
+] as const;
 
 export const Route = createFileRoute("/_public/recordes")({
   head: () =>
@@ -35,14 +43,22 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader
+      <PageHeader icon={ChampionIcon}
         title="Recordes"
         description="Os maiores feitos registrados pela FSX, de todos os jogadores, ativos ou não."
       />
 
-      <div className="flex flex-col gap-8 pb-12">
-        <section aria-label="Rating">
-          <Announcement icon={ChartUpIcon} label="Rating" className="px-0 text-sm" />
+      <nav aria-label="Seções" className="mb-8 flex flex-wrap justify-center gap-2">
+        {SECTIONS.filter(([id]) => id !== "records-champions" || records.championships.length > 0).map(([id, label]) => (
+          <a key={id} href={`#${id}`} className={buttonVariants({ variant: "secondary", size: "lg", className: "active:scale-[0.96]" })}>
+            {label}
+          </a>
+        ))}
+      </nav>
+
+      <div className="flex flex-col gap-10">
+        <section id="records-rating" aria-label="Rating" className="scroll-mt-24">
+          <Announcement icon={ChartUpIcon} label="Rating" className="px-0" />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <RecordCard title="Maior rating · Clássico" entries={records.peaks.classic} format={rating} />
             <RecordCard title="Maior rating · Rápido" entries={records.peaks.rapid} format={rating} />
@@ -56,8 +72,8 @@ function RouteComponent() {
           </div>
         </section>
 
-        <section aria-label="Títulos e atividade">
-          <Announcement icon={ChampionIcon} label="Títulos e atividade" className="px-0 text-sm" />
+        <section id="records-titles" aria-label="Títulos e atividade" className="scroll-mt-24">
+          <Announcement icon={ChampionIcon} label="Títulos e atividade" className="px-0" />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <RecordCard title="Mais títulos" entries={records.wins} format={(v) => plural(v, "título", "títulos")} />
             <RecordCard title="Mais pódios" entries={records.podiums} format={(v) => plural(v, "pódio", "pódios")} />
@@ -71,8 +87,8 @@ function RouteComponent() {
         </section>
 
         {records.championships.length > 0 && (
-          <section aria-label="Maiores campeões por campeonato">
-            <Announcement icon={CrownIcon} label="Maiores campeões por campeonato" className="px-0 text-sm" />
+          <section id="records-champions" aria-label="Maiores campeões por campeonato" className="scroll-mt-24">
+            <Announcement icon={CrownIcon} label="Maiores campeões por campeonato" className="px-0" />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {records.championships.map((championship) => (
                 <RecordCard

@@ -53,11 +53,11 @@ export function UpdateRegister() {
           <h3 className="font-semibold">Verifique seu perfil</h3>
         </div>
         <div className="mt-2 space-y-2">
-          <p className="font-medium text-sm">
+          <p className="font-medium text-base">
             Preencha o formulario para atualizar seus dados e obtenha o selo de
             verificado em seu perfil e outras informacoes!
           </p>
-          <p className="font-medium text-sm">
+          <p className="font-medium text-base">
             Tambem sera possivel adicionar uma foto de perfil.
           </p>
         </div>

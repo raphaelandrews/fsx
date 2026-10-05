@@ -117,7 +117,7 @@ const CommandResults = React.memo(
             onSelect={() => onSelect(player.id)}
             value={player.name}
           >
-            <div className="size-5 rounded-full" style={player.gradient} />
+            <div className="size-5 rounded-avatar" style={player.gradient} />
             {player.name}
           </CommandMenuItem>
         ))}
@@ -192,7 +192,7 @@ export function CommandMenu() {
         render={
           <Button
             className={cn(
-              "relative w-full justify-start font-sans font-semibold text-muted-foreground shadow-none hover:text-foreground md:w-52 lg:w-60"
+              "relative w-full justify-start border-border font-semibold text-muted-foreground shadow-none hover:text-foreground md:w-52 lg:w-60"
             )}
             variant="secondary"
             size="xl"

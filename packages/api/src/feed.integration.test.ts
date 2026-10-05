@@ -3,7 +3,7 @@ import type { Miniflare } from "miniflare";
 
 import { createDb } from "@fsx/db";
 
-import { feedStart, recentFeed } from "./gamification/feed";
+import { feedStart, pairTitleNotices, recentFeed } from "./gamification/feed";
 import { createTestD1 } from "./test-d1";
 import { ownerCaller, type AdminCaller } from "./test-admin";
 import { mockWorkerEnv } from "./test-env";
@@ -59,10 +59,23 @@ describe("recent feed", () => {
       expect.arrayContaining([
         ["achievement", "2000 no rápido"],
         ["title", "Mestre Sergipano"],
-        ["announcement", "Comunicado 007/2026"],
       ]),
     );
-    expect(items.find((item) => item.kind === "announcement")?.announcementId).toBe(announcementId);
+    // The announcement about the title is folded into the title item, not listed twice.
+    expect(items.find((item) => item.kind === "title")?.announcementId).toBe(announcementId);
+    expect(items.some((item) => item.kind === "announcement")).toBe(false);
+  });
+
+  test("keeps announcements that don't match a title as their own items", async () => {
+    const carlos = idOf(await caller.players.create({ name: "Carlos Aviso", blitz: 1900, rapid: 1900, classic: 1900, sex: "male", active: true }));
+    const noticeId = idOf(await caller.announcements.create({ year: 2026, number: 8, content: "Aviso para Carlos.", playerId: carlos }));
+
+    const items = await recentFeed(db, today);
+    expect(items.find((item) => item.player.id === carlos)).toMatchObject({
+      kind: "announcement",
+      label: "Comunicado 008/2026",
+      announcementId: noticeId,
+    });
   });
 
   test("is served through the API once the launch date is set", async () => {
@@ -82,5 +95,22 @@ describe("players.season", () => {
     expect(season.tournaments[tournamentId]?.name).toBe("Aberto 2025");
     await expect(caller.players.season({ id: playerId, year: 2024 })).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(caller.players.season({ id: 999_999, year: 2025 })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+});
+
+describe("pairTitleNotices", () => {
+  test("pairs each award with the closest unused announcement about the same player", () => {
+    const awards = [
+      { playerId: 1, createdAt: "2026-09-10 12:00:00" },
+      { playerId: 1, createdAt: "2026-09-12 12:00:00" },
+      { playerId: 2, createdAt: "2026-09-10 12:00:00" },
+    ];
+    const notices = [
+      { id: 10, playerId: 1, createdAt: "2026-09-11 08:00:00" },
+      { id: 11, playerId: 1, createdAt: "2026-09-13 08:00:00" },
+      { id: 12, playerId: 2, createdAt: "2026-12-01 08:00:00" },
+      { id: 13, playerId: null, createdAt: "2026-09-10 08:00:00" },
+    ];
+    expect(pairTitleNotices(awards, notices)).toEqual([10, 11, null]);
   });
 });

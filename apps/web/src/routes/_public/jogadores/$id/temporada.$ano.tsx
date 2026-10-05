@@ -74,12 +74,12 @@ function RouteComponent() {
   const next = season.seasons[index + 1];
 
   return (
-    <div className="mx-auto max-w-[720px] pb-12">
+    <div className="mx-auto max-w-[720px]">
       <header className="pt-8 pb-6 text-center sm:pt-12 sm:pb-8">
         <Link
           to="/jogadores/$id"
           params={{ id }}
-          className="inline-flex items-center gap-1 rounded-sm text-muted-foreground text-sm transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+          className="inline-flex items-center gap-1 rounded-sm text-muted-foreground text-base transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" aria-hidden />
           {name}
@@ -106,7 +106,7 @@ function RouteComponent() {
       </div>
 
       <section aria-label="Variação de rating" className="mt-6">
-        <Announcement icon={ChartBarLineIcon} label="Variação de rating" className="text-sm" />
+        <Announcement icon={ChartBarLineIcon} label="Variação de rating" className="text-base" />
         <div className="grid grid-cols-3 gap-2 px-2 sm:gap-4 sm:px-4">
           {FORMATS.map(([format, label]) => {
             const change = season.ratingChange[format];
@@ -127,7 +127,7 @@ function RouteComponent() {
       </section>
 
       <section aria-label="Torneios por mês" className="mt-6">
-        <Announcement icon={Calendar01Icon} label="Torneios por mês" className="text-sm" />
+        <Announcement icon={Calendar01Icon} label="Torneios por mês" className="text-base" />
         <div className="px-2 sm:px-4">
           <ActivityGraph dates={season.days} years={[season.year]} />
         </div>
@@ -135,11 +135,11 @@ function RouteComponent() {
 
       {season.podiums.length > 0 && (
         <section aria-label="Pódios" className="mt-6">
-          <Announcement icon={Award01Icon} label="Pódios" className="text-sm" />
+          <Announcement icon={Award01Icon} label="Pódios" className="text-base" />
           <ul className="flex flex-col">
             {season.podiums.map((podium) => (
               <li key={`${podium.name}-${podium.category}-${podium.place}`} className="m-1">
-                <div className="flex items-center gap-3 rounded-md p-3 text-sm transition-colors duration-200 hover:bg-muted/50">
+                <div className="flex items-center gap-3 rounded-md p-3 text-base transition-colors duration-200 hover:bg-muted/50">
                   <Medal place={podium.place as 1 | 2 | 3} />
                   <span className="min-w-0">
                     <span className="font-medium">{podium.name}</span>
@@ -154,7 +154,7 @@ function RouteComponent() {
 
       {season.achievements.length > 0 && (
         <section aria-label="Conquistas do ano" className="mt-6">
-          <Announcement icon={Target01Icon} label="Conquistas do ano" className="text-sm" />
+          <Announcement icon={Target01Icon} label="Conquistas do ano" className="text-base" />
           <div className="px-3">
             <BadgesByTier achievements={season.achievements} />
           </div>

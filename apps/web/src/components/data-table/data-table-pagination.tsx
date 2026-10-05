@@ -25,6 +25,8 @@ import {
   SelectValue,
 } from "@fsx/ui/components/select"
 import { cn } from "@fsx/ui/lib/utils"
+
+import { buildPageItems } from "./page-items"
 import { useTableText } from "@/lib/table-text"
 
 interface DataTablePaginationProps<TData> {
@@ -36,69 +38,6 @@ interface DataTablePaginationProps<TData> {
    */
   pageSizeOptions?: number[]
   className?: string
-}
-
-type PageItem =
-  | { type: "page"; page: number; isCurrent: boolean }
-  | { type: "ellipsis"; key: "start" | "end" }
-
-/**
- * Build the page-item sequence with smart truncation:
- *   1 … 4 5 [6] 7 8 … 23
- */
-function buildPageItems(
-  currentPage: number,
-  totalPages: number,
-  siblingCount: number
-): PageItem[] {
-  const totalNumbers = siblingCount * 2 + 5
-  if (totalPages <= totalNumbers) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => ({
-      type: "page" as const,
-      page,
-      isCurrent: page === currentPage,
-    }))
-  }
-
-  const leftSibling = Math.max(currentPage - siblingCount, 1)
-  const rightSibling = Math.min(currentPage + siblingCount, totalPages)
-
-  const showStartEllipsis = leftSibling > 2
-  const showEndEllipsis = rightSibling < totalPages - 1
-
-  const items: PageItem[] = []
-  items.push({ type: "page", page: 1, isCurrent: currentPage === 1 })
-
-  if (showStartEllipsis) {
-    items.push({ type: "ellipsis", key: "start" })
-  } else {
-    for (let page = 2; page < leftSibling; page++) {
-      items.push({ type: "page", page, isCurrent: page === currentPage })
-    }
-  }
-
-  for (
-    let page = leftSibling;
-    page <= (showStartEllipsis ? Math.min(rightSibling, totalPages - 1) : rightSibling);
-    page++
-  ) {
-    if (page === 1 || page === totalPages) continue
-    items.push({ type: "page", page, isCurrent: page === currentPage })
-  }
-
-  if (showEndEllipsis) {
-    items.push({ type: "ellipsis", key: "end" })
-  } else {
-    for (let page = rightSibling + 1; page < totalPages; page++) {
-      items.push({ type: "page", page, isCurrent: page === currentPage })
-    }
-  }
-
-  if (!items.some((item) => item.type === "page" && item.page === totalPages)) {
-    items.push({ type: "page", page: totalPages, isCurrent: currentPage === totalPages })
-  }
-
-  return items
 }
 
 function PageButton({
@@ -114,7 +53,7 @@ function PageButton({
     <Button
       aria-current={isCurrent ? "page" : undefined}
       aria-label={`Ir para a página ${page}`}
-      className={cn("h-8 w-8 p-0 text-sm", isCurrent && "pointer-events-none")}
+      className={cn("h-8 w-8 p-0 text-base", isCurrent && "pointer-events-none")}
       onClick={() => onPageChange(page)}
       size="sm"
       variant={isCurrent ? "default" : "outline"}
@@ -156,6 +95,14 @@ export function DataTablePagination<TData>({
   const items = buildPageItems(currentPage, totalPages, 1)
 
   const goto = (page: number) => table.setPageIndex(page - 1)
+  const renderItems = (list: typeof items) =>
+    list.map((item) =>
+      item.type === "ellipsis" ? (
+        <Ellipsis key={`ellipsis-${item.key}`} keyId={item.key} />
+      ) : (
+        <PageButton key={item.page} isCurrent={item.isCurrent} page={item.page} onPageChange={goto} />
+      )
+    )
 
   return (
     <nav
@@ -165,8 +112,8 @@ export function DataTablePagination<TData>({
         className
       )}
     >
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <label className="text-xs text-muted-foreground">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <label className="text-sm text-muted-foreground">
           {text.rowsPerPage}
         </label>
         <Select
@@ -218,20 +165,7 @@ export function DataTablePagination<TData>({
           <span className="hidden sm:inline">{text.previous}</span>
         </Button>
 
-        <div className="hidden items-center gap-1 sm:flex">
-          {items.map((item) =>
-            item.type === "ellipsis" ? (
-              <Ellipsis key={`ellipsis-${item.key}`} keyId={item.key} />
-            ) : (
-              <PageButton
-                key={item.page}
-                isCurrent={item.isCurrent}
-                page={item.page}
-                onPageChange={goto}
-              />
-            )
-          )}
-        </div>
+        <div className="hidden items-center gap-1 sm:flex">{renderItems(items)}</div>
 
         <Button
           aria-label={text.nextPage}

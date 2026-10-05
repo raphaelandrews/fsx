@@ -20,32 +20,32 @@ export function PlayerLevel({ level }: { level: Level }) {
         className="flex w-60 items-center gap-2.5 rounded-xl px-2 py-1.5 text-left outline-offset-2 transition-[background-color,scale] duration-150 ease-out hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring active:scale-[0.96]"
       >
         <span
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-sm tabular-nums"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-base tabular-nums"
           aria-hidden
         >
           {level.level}
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <span className="flex items-baseline justify-between gap-2 text-xs">
+          <span className="flex items-baseline justify-between gap-2 text-sm">
             <span className="font-semibold">Nível {level.level}</span>
             <span className="text-muted-foreground tabular-nums">
               {level.xp} / {level.nextLevelXp} XP
             </span>
           </span>
           <span className="block h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
-            <span className="block h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
+            <span className="block h-full animate-fill-x rounded-full bg-primary" style={{ width: `${progress}%` }} />
           </span>
         </span>
       </PopoverTrigger>
-      <PopoverContent className="w-72 gap-3 p-3 text-sm">
+      <PopoverContent className="w-72 gap-3 p-3 text-base">
         <div>
           <p className="font-medium">Nível {level.level}</p>
-          <p className="text-muted-foreground text-xs">
+          <p className="text-muted-foreground text-sm">
             Faltam <span className="tabular-nums">{level.nextLevelXp - level.xp}</span> XP para o nível {level.level + 1}.
           </p>
         </div>
         {sources.length > 0 ? (
-          <dl className="space-y-2 text-xs">
+          <dl className="space-y-2 text-sm">
             {sources.map(([source, label]) => (
               <div key={source} className="space-y-1">
                 <div className="flex justify-between gap-2">
@@ -62,9 +62,9 @@ export function PlayerLevel({ level }: { level: Level }) {
             ))}
           </dl>
         ) : (
-          <p className="text-muted-foreground text-xs">Dispute o primeiro torneio para começar a ganhar XP.</p>
+          <p className="text-muted-foreground text-sm">Dispute o primeiro torneio para começar a ganhar XP.</p>
         )}
-        <p className="border-t pt-3 text-pretty text-muted-foreground text-xs">
+        <p className="border-t pt-3 text-pretty text-muted-foreground text-sm">
           15 XP por torneio; pódios valem 60/40/25 (circuitos 40/25/15, etapas 15/10/5), conforme a
           importância do evento, e metade em categorias; 30 XP por marca de rating (2000 a 2400);
           o título mais alto vale de 50 a 300. O XP vem do histórico registrado pela FSX.

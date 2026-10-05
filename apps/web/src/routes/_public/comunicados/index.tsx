@@ -1,15 +1,14 @@
-import { createFileRoute, Link, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ScrollIcon, ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
+import { Megaphone01Icon } from "@hugeicons/core-free-icons";
 import { z } from "zod";
 
+import { AnnouncementRow } from "@/components/announcement-row";
 import { Pagination } from "@/components/data-table/pagination";
 
 import { PageHeader } from "@/components/page-header";
 import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
 import { useTRPC } from "@/utils/trpc";
-import { padNumber } from "@/utils/format";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
 const searchSchema = z.object({
@@ -49,19 +48,22 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader
+      <PageHeader icon={Megaphone01Icon}
         description="Avisos e comunicados oficiais da Federação Sergipana de Xadrez."
         title="Comunicados"
       />
 
       {data.announcements.length === 0 ? (
-        <p className="text-muted-foreground">Nenhum comunicado publicado.</p>
+        <p className="py-12 text-center text-muted-foreground">Nenhum comunicado publicado.</p>
       ) : (
-        <div className="grid">
+        <ul className="grid md:grid-cols-2">
           {data.announcements.map((announcement) => (
-            <AnnouncementRow key={announcement.id} announcement={announcement} />
+            <AnnouncementRow
+              key={announcement.id}
+              announcement={{ ...announcement, excerpt: announcement.content }}
+            />
           ))}
-        </div>
+        </ul>
       )}
 
       <div className="mt-6">
@@ -76,36 +78,5 @@ function RouteComponent() {
         />
       </div>
     </>
-  );
-}
-
-function AnnouncementRow({
-  announcement,
-}: {
-  announcement: { id: number; year: number; number: number; content: string };
-}) {
-  return (
-    <div className="m-1">
-      <Link
-        className="group flex w-full cursor-pointer items-center justify-between p-3 text-left transition-colors duration-300 select-none hover:bg-muted/50"
-        to="/comunicados/$id"
-        params={{ id: announcement.id }}
-      >
-        <div className="flex w-full flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <HugeiconsIcon className="size-3.5 text-muted-foreground" icon={ScrollIcon} />
-              <h3 className="text-sm leading-tight font-bold">
-                Comunicado {padNumber(announcement.number)}/{announcement.year}
-              </h3>
-            </div>
-            <div className="text-muted-foreground transition-colors group-hover:text-foreground">
-              <HugeiconsIcon className="size-3.5" icon={ArrowUpRight01Icon} />
-            </div>
-          </div>
-          <p className="line-clamp-2 text-xs text-muted-foreground">{announcement.content}</p>
-        </div>
-      </Link>
-    </div>
   );
 }

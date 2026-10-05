@@ -26,9 +26,9 @@ export function Section({
   return (
     <section
       aria-labelledby={hasHeader ? headingId : undefined}
-      className={cn(main ? "pt-8 pb-10 md:pb-12" : "py-10 md:py-12", className)}
+      className={cn(main ? "pt-8 pb-10 md:pb-12" : "py-10 md:py-12", "last:pb-0", className)}
     >
-      <div className="relative">
+      <div className={cn("relative", !main && "reveal-on-scroll")}>
         {hasHeader && (
           <header className="mb-8 flex flex-col items-center gap-3 px-3 text-center">
             {icon && (

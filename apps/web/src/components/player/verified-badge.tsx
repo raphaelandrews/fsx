@@ -86,13 +86,13 @@ export function VerifiedBadge({
       <PopoverContent className="w-80 p-4">
         <div className="space-y-2">
           <h4 className="font-semibold leading-none">{label}</h4>
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-base text-muted-foreground">{description}</p>
 
           {showVerifiedSection && (
             <>
               <Separator />
               <h4 className="font-semibold leading-none">Perfil verificado</h4>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 Esse perfil teve seus dados confirmados pela federação.
               </p>
             </>

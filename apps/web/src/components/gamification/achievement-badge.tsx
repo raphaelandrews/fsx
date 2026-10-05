@@ -44,7 +44,7 @@ export function AchievementBadge({ achievement, locked = false }: { achievement:
       >
         <HugeiconsIcon icon={locked ? LockIcon : BADGE_ICONS[achievement.icon]} className="size-5" strokeWidth={1.75} aria-hidden />
       </PopoverTrigger>
-      <PopoverContent className="w-64 gap-2 p-3 text-sm">
+      <PopoverContent className="w-64 gap-2 p-3 text-base">
         <div className="flex items-center gap-2">
           <span
             className={cn(
@@ -58,7 +58,7 @@ export function AchievementBadge({ achievement, locked = false }: { achievement:
           <p className="font-medium leading-tight">{achievement.label}</p>
         </div>
         <p className="text-pretty text-muted-foreground">{achievement.description}</p>
-        <p className="text-muted-foreground text-xs">
+        <p className="text-muted-foreground text-sm">
           {locked ? "Próxima conquista · ainda não alcançada" : `${TIER_LABELS[achievement.tier]} · ${earnedText(achievement)}`}
         </p>
       </PopoverContent>
@@ -86,7 +86,7 @@ export function BadgesByTier({ achievements, upcoming = [] }: { achievements: Ac
     <dl className="flex flex-col gap-3">
       {rows.map((row) => (
         <div key={row.key} className="flex items-start gap-3">
-          <dt className="flex h-11 w-16 shrink-0 items-center font-medium text-muted-foreground text-xs">
+          <dt className="flex h-11 w-20 shrink-0 items-center font-medium text-muted-foreground text-sm">
             {row.label}
           </dt>
           <dd className="min-w-0 flex-1">

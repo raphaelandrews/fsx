@@ -1,65 +1,26 @@
-import { useState } from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowUpRight01Icon, Megaphone01Icon, ScrollIcon } from "@hugeicons/core-free-icons";
+import { Megaphone01Icon } from "@hugeicons/core-free-icons";
 import type { inferRouterOutputs } from "@trpc/server";
 
 import type { AppRouter } from "@fsx/api/routers/index";
 
 import { Section } from "./section";
-import { AnnouncementsModal } from "@/components/modals/announcements-modal";
 import { SectionButton } from "@/components/section-button";
-import { padNumber } from "@/utils/format";
+import { AnnouncementRow } from "@/components/announcement-row";
 
 type AnnouncementType = inferRouterOutputs<AppRouter>["announcements"]["fresh"][number];
 
-interface AnnouncementsSectionProps {
-  announcements: AnnouncementType[];
-}
-
-export function Announcements({ announcements }: AnnouncementsSectionProps) {
+export function Announcements({ announcements }: { announcements: AnnouncementType[] }) {
   return (
     <Section icon={Megaphone01Icon} label="Comunicados" main={false}>
-      <div className="grid md:grid-cols-2">
-        {announcements?.map((announcement: AnnouncementType) => (
-          <AnnouncementItem key={announcement.id} announcement={announcement} />
+      <ul className="grid md:grid-cols-2">
+        {announcements.map((announcement) => (
+          <AnnouncementRow
+            key={announcement.id}
+            announcement={{ ...announcement, excerpt: announcement.content }}
+          />
         ))}
-      </div>
-      <SectionButton href="/comunicados" label="Ver Comunicados" />
+      </ul>
+      <SectionButton href="/comunicados" label="Ver comunicados" />
     </Section>
-  );
-}
-
-function AnnouncementItem({ announcement }: { announcement: AnnouncementType }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <AnnouncementsModal
-      content={announcement.content}
-      number={padNumber(announcement.number)}
-      onOpenChange={setIsOpen}
-      open={isOpen}
-      trigger={
-        <button
-          type="button"
-          className="m-1 flex w-full items-center justify-between rounded-md p-3 select-none text-left transition-colors duration-300 hover:bg-muted/50 group"
-        >
-          <div className="flex w-full flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <HugeiconsIcon icon={ScrollIcon} size={14} className="text-muted-foreground" />
-                <h3 className="text-sm leading-tight font-bold">
-                  Comunicado {padNumber(announcement.number)}/{announcement.year}
-                </h3>
-              </div>
-              <div className="text-muted-foreground transition-colors group-hover:text-foreground">
-                <HugeiconsIcon icon={ArrowUpRight01Icon} size={14} />
-              </div>
-            </div>
-            <p className="text-muted-foreground text-xs line-clamp-2">{announcement.content}</p>
-          </div>
-        </button>
-      }
-      year={announcement.year}
-    />
   );
 }

@@ -1,5 +1,16 @@
-import { LandmarkIcon, Link02Icon, Target01Icon } from "@hugeicons/core-free-icons";
-import { createFileRoute } from "@tanstack/react-router";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowRight01Icon,
+  ArrowUpRight01Icon,
+  Book01Icon,
+  LandmarkIcon,
+  Link02Icon,
+  Mail02Icon,
+  ScrollIcon,
+  Target01Icon,
+  UserGroupIcon,
+} from "@hugeicons/core-free-icons";
+import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { Announcement } from "@/components/announcement";
 import { PageHeader } from "@/components/page-header";
@@ -33,23 +44,24 @@ const finalidades = [
 ];
 
 const links = [
-  { label: "Normas técnicas", href: "/normas-tecnicas" },
-  { label: "Membros", href: "/membros" },
-  { label: "fsx.presidente@gmail.com", href: "mailto:fsx.presidente@gmail.com" },
-];
+  { label: "Normas técnicas", to: "/normas-tecnicas", icon: Book01Icon },
+  { label: "Membros", to: "/membros", icon: UserGroupIcon },
+] as const;
+
+const CONTACT = "fsx.presidente@gmail.com";
 
 function RouteComponent() {
   return (
     <>
       <PageHeader
+        icon={ScrollIcon}
         description="História, finalidades e contatos da Federação Sergipana de Xadrez."
         title="Sobre"
       />
 
-      <section className="mb-0">
-        <Announcement icon={LandmarkIcon} label="A FSX" className="text-sm" />
-
-        <div className="space-y-3 px-4 py-3 text-sm leading-relaxed text-foreground">
+      <section aria-label="A FSX">
+        <Announcement icon={LandmarkIcon} label="A FSX" />
+        <div className="space-y-4 px-3 text-base text-reading leading-relaxed sm:text-lg">
           <p>
             A Federação Sergipana de Xadrez foi fundada em 11 de dezembro de 1989 pelas sociedades
             desportivas Cotinguiba Esporte Clube, Associação Atlética de Sergipe, Clube Esportivo
@@ -62,50 +74,52 @@ function RouteComponent() {
         </div>
       </section>
 
-      <section className="mb-0">
-        <Announcement icon={Target01Icon} label="Finalidades" className="text-sm" />
-
-        <div className="flex flex-col">
-          {finalidades.map((item, index) => (
-            <SobreItem key={index}>
-              <div className="flex items-start gap-2">
-                <span className="shrink-0 text-muted-foreground">•</span>
-                <p className="text-sm text-foreground">{item}</p>
-              </div>
-            </SobreItem>
+      <section aria-label="Finalidades" className="mt-6">
+        <Announcement icon={Target01Icon} label="Finalidades" />
+        <ul className="list-disc space-y-2 pr-3 pl-8 text-base text-reading leading-relaxed marker:text-muted-foreground">
+          {finalidades.map((item) => (
+            <li key={item}>{item}</li>
           ))}
-        </div>
+        </ul>
       </section>
 
-      <section className="mb-0">
-        <Announcement icon={Link02Icon} label="Links" className="text-sm" />
-
-        <div className="flex flex-col">
-          {links.map((link, index) => (
-            <a
-              key={index}
-              className="flex items-center gap-2 p-3 text-sm text-link transition-colors hover:underline"
-              href={link.href}
-              rel="noreferrer"
-              target={
-                link.href.startsWith("http") || link.href.startsWith("mailto")
-                  ? "_blank"
-                  : undefined
-              }
-            >
-              {link.label}
-            </a>
+      <section aria-label="Links" className="mt-6">
+        <Announcement icon={Link02Icon} label="Links" />
+        <ul className="grid sm:grid-cols-2">
+          {links.map((link) => (
+            <li key={link.to} className="m-1">
+              <Link to={link.to} className={rowClass}>
+                <RowIcon icon={link.icon} />
+                <span className="flex-1 font-semibold">{link.label}</span>
+                <HugeiconsIcon icon={ArrowRight01Icon} className={arrowClass} aria-hidden />
+              </Link>
+            </li>
           ))}
-        </div>
+          <li className="m-1">
+            <a href={`mailto:${CONTACT}`} className={rowClass}>
+              <RowIcon icon={Mail02Icon} />
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="font-semibold">E-mail</span>
+                <span className="truncate text-muted-foreground text-sm">{CONTACT}</span>
+              </span>
+              <HugeiconsIcon icon={ArrowUpRight01Icon} className={arrowClass} aria-hidden />
+            </a>
+          </li>
+        </ul>
       </section>
     </>
   );
 }
 
-function SobreItem({ children, className }: { children: React.ReactNode; className?: string }) {
+const rowClass =
+  "group flex items-center gap-3 rounded-md p-3 text-base transition-colors duration-200 hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring";
+const arrowClass =
+  "size-4 shrink-0 text-muted-foreground transition-[color,translate] duration-200 group-hover:translate-x-0.5 group-hover:text-foreground";
+
+function RowIcon({ icon }: { icon: typeof Book01Icon }) {
   return (
-    <div className="m-1">
-      <div className={`p-3 transition-colors hover:bg-muted/50 ${className ?? ""}`}>{children}</div>
-    </div>
+    <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-foreground" aria-hidden>
+      <HugeiconsIcon icon={icon} className="size-4" strokeWidth={1.75} />
+    </span>
   );
 }

@@ -62,9 +62,9 @@ function RouteComponent() {
   if (!announcement) return null;
 
   return (
-    <article className="mx-auto max-w-2xl py-10 md:py-16">
+    <article className="mx-auto max-w-2xl pt-10 md:pt-16">
       <header className="text-center">
-        <div className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+        <div className="inline-flex items-center gap-2 text-base font-medium text-muted-foreground">
           <HugeiconsIcon className="size-4 text-primary" icon={ScrollIcon} />
           Comunicado oficial
         </div>
@@ -73,17 +73,17 @@ function RouteComponent() {
         </h1>
       </header>
 
-      <div className="mt-8 whitespace-pre-line text-pretty leading-relaxed text-foreground">
+      <div className="mt-8 whitespace-pre-line text-pretty text-base text-reading leading-relaxed sm:text-lg">
         {announcement.content}
       </div>
 
       {announcement.player && (
-        <p className="mt-8 border-t pt-4 text-sm text-muted-foreground">
+        <p className="mt-8 border-t pt-4 text-base text-muted-foreground">
           Jogador:{" "}
           <Link
             to="/jogadores/$id"
             params={{ id: announcement.player.id }}
-            className="font-medium text-foreground underline-offset-4 hover:underline"
+            className="link-inline"
           >
             {announcement.player.nickname || announcement.player.name}
           </Link>

@@ -43,8 +43,8 @@ export function FormField({
             "aria-describedby": `${htmlFor}-error`,
           })
         : children}
-      {hint && <p id={htmlFor ? `${htmlFor}-hint` : undefined} className="text-xs text-muted-foreground">{hint}</p>}
-      {error && <p id={htmlFor ? `${htmlFor}-error` : undefined} className="text-xs text-destructive" role="alert">{error}</p>}
+      {hint && <p id={htmlFor ? `${htmlFor}-hint` : undefined} className="text-sm text-muted-foreground">{hint}</p>}
+      {error && <p id={htmlFor ? `${htmlFor}-error` : undefined} className="text-sm text-destructive" role="alert">{error}</p>}
     </div>
   );
 }

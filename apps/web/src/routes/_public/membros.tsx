@@ -2,12 +2,11 @@ import { useMemo } from "react";
 import type { inferRouterOutputs } from "@trpc/server";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { CrownIcon, Flag01Icon } from "@hugeicons/core-free-icons";
+import { CrownIcon, Flag01Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 
 import type { AppRouter } from "@fsx/api/routers/index";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
-import { Separator } from "@fsx/ui/components/separator";
 
 import { Announcement } from "@/components/announcement";
 import { PageHeader } from "@/components/page-header";
@@ -112,12 +111,12 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader
+      <PageHeader icon={UserGroupIcon}
         title="Membros"
         description="Diretoria e árbitros da Federação Sergipana de Xadrez."
       />
 
-      <section className="mb-10">
+      <section className="mb-8">
         <Announcement label="Diretoria" icon={CrownIcon} />
         {diretoria.length === 0 ? (
           <EmptyState message="Nenhum membro da diretoria cadastrado." />
@@ -133,11 +132,10 @@ function RouteComponent() {
         ) : (
           <div className="flex flex-col gap-6">
             {refereeGroups.map((group) => (
-              <div key={group.name} className="flex flex-col">
-                <Separator />
-                <h3 className="p-3 text-sm font-semibold text-muted-foreground">{group.name}</h3>
+              <section key={group.name} aria-label={group.name}>
+                <h3 className="px-3 pb-1 font-medium text-muted-foreground text-sm">{group.name}</h3>
                 <MemberList members={group.members} />
-              </div>
+              </section>
             ))}
           </div>
         )}
@@ -147,20 +145,20 @@ function RouteComponent() {
 }
 
 function EmptyState({ message }: { message: string }) {
-  return <p className="px-3 text-sm text-muted-foreground">{message}</p>;
+  return <p className="px-3 text-base text-muted-foreground">{message}</p>;
 }
 
 function MemberList({ members }: { members: Member[] }) {
   return (
-    <div className="flex flex-col">
-      {members.map((member, index) => (
-        <MemberCard key={member.id} member={member} isLast={index === members.length - 1} />
+    <ul className="grid sm:grid-cols-2">
+      {members.map((member) => (
+        <MemberCard key={member.id} member={member} />
       ))}
-    </div>
+    </ul>
   );
 }
 
-function MemberCard({ member, isLast }: { member: Member; isLast: boolean }) {
+function MemberCard({ member }: { member: Member }) {
   const gradient = getGradient(member.id);
   const initials = member.name
     .split(/\s+/)
@@ -170,22 +168,17 @@ function MemberCard({ member, isLast }: { member: Member; isLast: boolean }) {
     .join("");
 
   return (
-    <div>
-      <div className="group flex items-center gap-4 p-3 transition-colors duration-300 hover:bg-muted/50">
-        <Avatar className="size-12 rounded-md">
-          <AvatarImage alt={member.name} src={member.imageUrl ?? undefined} />
-          <AvatarFallback style={gradient}>
-            {initials ? (
-              <span className="text-xs font-bold uppercase text-foreground">{initials}</span>
-            ) : null}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-semibold leading-tight">{member.name}</span>
-          <span className="text-xs font-medium text-muted-foreground">{member.role}</span>
-        </div>
-      </div>
-      {!isLast ? <Separator /> : null}
-    </div>
+    <li className="flex items-center gap-3 p-3">
+      <Avatar className="size-11">
+        <AvatarImage alt="" src={member.imageUrl ?? undefined} />
+        <AvatarFallback style={gradient}>
+          {initials ? <span className="font-bold text-foreground text-xs uppercase">{initials}</span> : null}
+        </AvatarFallback>
+      </Avatar>
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <span className="font-semibold text-base leading-tight">{member.name}</span>
+        <span className="text-muted-foreground text-sm">{member.role}</span>
+      </span>
+    </li>
   );
 }

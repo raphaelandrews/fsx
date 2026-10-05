@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { FileExportIcon } from "@hugeicons/core-free-icons";
+
 import { PageHeader } from "@/components/page-header";
 import { SwissManagerExport } from "@/components/swiss-manager/swiss-manager-export";
 import { buildSeo, withBrand } from "@/lib/seo";
@@ -20,7 +22,7 @@ export const Route = createFileRoute("/_public/swiss-manager")({
 function RouteComponent() {
   return (
     <div>
-      <PageHeader
+      <PageHeader icon={FileExportIcon}
         title="Swiss Manager"
         description="Gere a lista de jogadores para importar no Swiss Manager."
       />

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 import { cn } from "@fsx/ui/lib/utils";
 
@@ -24,16 +24,16 @@ export function PlayerCircuits({ seasons }: { seasons: PlayerCircuitSeason[] }) 
                 <Link
                   to="/circuitos"
                   search={{ ano: season.circuit.year ?? undefined, circuito: slugify(season.circuit.name) }}
-                  className="group inline-flex items-center gap-1 font-medium text-sm hover:underline"
+                  className="group inline-flex items-center gap-1 font-medium text-base hover:underline"
                 >
                   {season.circuit.name}
                   <HugeiconsIcon
-                    icon={ArrowUpRight01Icon}
+                    icon={ArrowRight01Icon}
                     className="size-3.5 text-muted-foreground transition-colors group-hover:text-foreground"
                     aria-hidden
                   />
                 </Link>
-                <p className="mt-0.5 flex items-center gap-1.5 text-muted-foreground text-xs">
+                <p className="mt-0.5 flex items-center gap-1.5 text-muted-foreground text-sm">
                   <span
                     className={cn("size-1.5 shrink-0 rounded-full", finished ? "bg-muted-foreground/50" : "bg-success")}
                     aria-hidden
@@ -50,7 +50,7 @@ export function PlayerCircuits({ seasons }: { seasons: PlayerCircuitSeason[] }) 
                   podium.place <= 3 ? (
                     <span
                       key={`${podium.category}-${podium.place}`}
-                      className="inline-flex items-center gap-1.5 rounded-md bg-muted py-0.5 pr-2 pl-0.5 font-medium text-xs"
+                      className="inline-flex items-center gap-1.5 rounded-md bg-muted py-0.5 pr-2 pl-0.5 font-medium text-sm"
                     >
                       <Medal place={podium.place as 1 | 2 | 3} className="px-1.5 py-0.5" />
                       {categoryLabel(podium.category)}
@@ -58,7 +58,7 @@ export function PlayerCircuits({ seasons }: { seasons: PlayerCircuitSeason[] }) 
                   ) : null,
                 )}
                 {season.standings.map((standing) => (
-                  <span key={standing.category ?? ""} className="rounded-md bg-muted px-2 py-1 text-xs tabular-nums">
+                  <span key={standing.category ?? ""} className="rounded-md bg-muted px-2 py-1 text-sm tabular-nums">
                     <span className="font-medium">{standing.position}º</span>
                     <span className="text-muted-foreground"> de {standing.players}</span>
                     {standing.category ? ` · ${standing.category}` : ""}

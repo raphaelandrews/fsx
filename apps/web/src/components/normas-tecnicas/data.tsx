@@ -95,7 +95,7 @@ export const titulations = [
         note={
           <>
             <p>É necessário cumprir ambos os itens 1 e 2 para a obtenção da titulação.</p>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-base text-muted-foreground">
               No ano em que o enxadrista completa 19 anos, perderá a referida titulação.
             </p>
           </>
@@ -118,7 +118,7 @@ export const titulations = [
         note={
           <>
             <p>É necessário cumprir ambos os itens 1 e 2 para a obtenção da titulação.</p>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-base text-muted-foreground">
               No ano em que o enxadrista completa 15 anos, perderá a referida titulação.
             </p>
           </>
@@ -165,7 +165,7 @@ export const ratingVariations = [
     title: "Variação de Rating",
     description: "Regras sobre o fator K e variação de rating.",
     content: (
-      <div className="flex flex-col">
+      <ul className="flex flex-col divide-y">
         <RatingRule
           k={1}
           description="Em torneios que só contenham atletas com idade menor ou igual a 18 anos e o jogador possua rating superior ou igual a 2100."
@@ -179,7 +179,7 @@ export const ratingVariations = [
           description="O enxadrista possua rating igual ou superior a 2300 pontos."
         />
         <RatingRule k={20} description="Nas demais situações." />
-      </div>
+      </ul>
     ),
   },
 ];

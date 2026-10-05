@@ -4,6 +4,8 @@ import { z } from "zod";
 
 import { Pagination } from "@/components/data-table/pagination";
 
+import { NewsIcon } from "@hugeicons/core-free-icons";
+
 import { PageHeader } from "@/components/page-header";
 import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
 import { PostCard } from "@/components/post-card";
@@ -58,7 +60,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader title="Notícias" />
+      <PageHeader icon={NewsIcon} title="Notícias" />
 
       {data.posts.length === 0 ? (
         <p className="text-muted-foreground">Nenhuma notícia publicada.</p>

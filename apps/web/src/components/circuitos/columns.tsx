@@ -20,11 +20,14 @@ function indexColumn<T>(): ColumnDef<T> {
     header: ({ column }) => (
       <DataTableColumnHeader className="justify-center" column={column} title="#" />
     ),
-    cell: ({ row, table }) =>
-      (table.getSortedRowModel()?.flatRows?.findIndex((flatRow) => flatRow.id === row.id) || 0) + 1,
+    cell: ({ row, table }) => (
+      <span className="text-muted-foreground">
+        {(table.getSortedRowModel()?.flatRows?.findIndex((flatRow) => flatRow.id === row.id) || 0) + 1}
+      </span>
+    ),
     enableSorting: false,
     enableHiding: false,
-    meta: { className: "w-10 text-center text-muted-foreground tabular-nums" },
+    meta: { className: "w-12 text-center tabular-nums" },
   };
 }
 
@@ -101,7 +104,7 @@ export function buildPlayerColumns(
         if (categories.length === 0) {
           return <span className="text-muted-foreground">—</span>;
         }
-        return <span className="text-xs text-muted-foreground">{categories.join(", ")}</span>;
+        return <span className="text-sm text-muted-foreground">{categories.join(", ")}</span>;
       },
       enableSorting: false,
     });

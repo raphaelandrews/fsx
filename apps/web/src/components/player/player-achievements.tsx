@@ -15,10 +15,10 @@ const MEDAL_GROUPS = [
 export function Subheading({ id, children, aside }: { id?: string; children: ReactNode; aside?: ReactNode }) {
   return (
     <div className="mb-2 flex items-baseline justify-between gap-2">
-      <h3 id={id} className="font-medium text-muted-foreground text-xs">
+      <h3 id={id} className="font-medium text-muted-foreground text-sm">
         {children}
       </h3>
-      {aside && <span className="text-muted-foreground text-xs tabular-nums">{aside}</span>}
+      {aside && <span className="text-muted-foreground text-sm tabular-nums">{aside}</span>}
     </div>
   );
 }
@@ -32,7 +32,7 @@ export function TrophyCabinet({ medals }: { medals: PlayerStatsResult["stats"]["
       <dl className="grid gap-2 sm:grid-cols-2">
         {groups.map(([key, label]) => (
           <div key={key} className="flex min-h-12 items-center justify-between gap-2 rounded-2xl bg-muted px-3 py-2">
-            <dt className="font-medium text-foreground/70 text-xs sm:text-sm">{label}</dt>
+            <dt className="font-medium text-foreground/70 text-base">{label}</dt>
             <dd className="flex gap-1.5">
               {([1, 2, 3] as const).map((place) => {
                 const count = medals[key][place === 1 ? "gold" : place === 2 ? "silver" : "bronze"];

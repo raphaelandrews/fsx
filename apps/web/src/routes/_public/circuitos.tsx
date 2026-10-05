@@ -8,6 +8,8 @@ import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 import { CircuitChampions, CircuitStatus } from "@/components/circuitos/circuit-champions";
 import { CircuitView } from "@/components/circuitos/circuit-view";
 import { selectSeason } from "@/components/circuitos/season";
+import { Medal01Icon } from "@hugeicons/core-free-icons";
+
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { useTRPC } from "@/utils/trpc";
@@ -68,7 +70,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader
+      <PageHeader icon={Medal01Icon}
         description="Classificação e resultados dos circuitos da Federação Sergipana de Xadrez."
         title="Circuitos"
       />
@@ -83,7 +85,7 @@ function RouteComponent() {
                 value={String(year)}
                 onValueChange={(value) => value && navigate({ to: "/circuitos", search: { ano: Number(value) } })}
               >
-                <SelectTrigger className="h-8 w-[110px] text-xs" aria-label="Temporada">
+                <SelectTrigger className="h-8 w-[110px] text-sm" aria-label="Temporada">
                   <SelectValue>{(value) => value as string}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>

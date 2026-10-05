@@ -7,17 +7,12 @@ interface TitulacaoGuidelinesProps {
   className?: string;
 }
 
-export function TitulacaoGuidelines({
-  intro,
-  requirements,
-  note,
-  className,
-}: TitulacaoGuidelinesProps) {
+export function TitulacaoGuidelines({ intro, requirements, note, className }: TitulacaoGuidelinesProps) {
   return (
-    <div className={cn("space-y-4 px-3 pb-3", className)}>
-      <div className="text-foreground">{intro}</div>
-      <div className="space-y-2 border-l-2 border-muted pl-4 text-foreground">{requirements}</div>
-      {note && <div className="mt-4 rounded-xs bg-muted/50 p-4 text-foreground">{note}</div>}
+    <div className={cn("space-y-4 text-reading leading-relaxed", className)}>
+      <div>{intro}</div>
+      <div className="space-y-2 border-l-2 pl-4">{requirements}</div>
+      {note && <div className="rounded-2xl bg-muted p-4 font-semibold text-foreground">{note}</div>}
     </div>
   );
 }

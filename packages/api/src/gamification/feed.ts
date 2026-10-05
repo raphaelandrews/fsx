@@ -14,6 +14,30 @@ const FEED_WINDOW_DAYS = 60;
 // Players with something recorded in the window. Their ids are bound as an IN
 // list, and D1 accepts at most 100 parameters per statement.
 const FEED_PLAYERS_LIMIT = 90;
+// A title award is usually published as an official announcement about the player;
+// one recorded this close to the award is treated as that announcement.
+const NOTICE_MATCH_DAYS = 30;
+
+const daysApart = (a: string, b: string) =>
+  Math.abs(Date.parse(`${a.slice(0, 10)}T00:00:00Z`) - Date.parse(`${b.slice(0, 10)}T00:00:00Z`)) / 86_400_000;
+
+// Pairs each title award with the announcement about it (same player, recorded within
+// NOTICE_MATCH_DAYS), so the feed shows one item that links to the announcement
+// instead of two. Returns the matched announcement per award, in award order.
+export function pairTitleNotices(
+  awards: { playerId: number; createdAt: string }[],
+  notices: { id: number; playerId: number | null; createdAt: string }[],
+): (number | null)[] {
+  const used = new Set<number>();
+  return awards.map((award) => {
+    const notice = notices
+      .filter((n) => n.playerId === award.playerId && !used.has(n.id) && daysApart(n.createdAt, award.createdAt) <= NOTICE_MATCH_DAYS)
+      .sort((a, b) => daysApart(a.createdAt, award.createdAt) - daysApart(b.createdAt, award.createdAt))[0];
+    if (!notice) return null;
+    used.add(notice.id);
+    return notice.id;
+  });
+}
 
 export interface FeedItem {
   kind: "achievement" | "title" | "announcement";
@@ -83,6 +107,8 @@ export async function recentFeed(db: Context["db"], since: string): Promise<Feed
     }
   }
   const who = (id: number) => people.get(id)!;
+  const titleNotices = pairTitleNotices(titleAwards, notices);
+  const paired = new Set(titleNotices.filter((id): id is number => id !== null));
 
   const items: FeedItem[] = [
     ...careers.flatMap(({ player, stats }) =>
@@ -97,15 +123,15 @@ export async function recentFeed(db: Context["db"], since: string): Promise<Feed
           announcementId: null,
         })),
     ),
-    ...titleAwards.map((award) => ({
+    ...titleAwards.map((award, index) => ({
       kind: "title" as const,
       date: award.createdAt.slice(0, 10),
       player: who(award.playerId),
       label: award.title,
       icon: "title" as const,
-      announcementId: null,
+      announcementId: titleNotices[index] ?? null,
     })),
-    ...notices.map((notice) => ({
+    ...notices.filter((notice) => !paired.has(notice.id)).map((notice) => ({
       kind: "announcement" as const,
       date: notice.createdAt.slice(0, 10),
       player: who(notice.playerId!),

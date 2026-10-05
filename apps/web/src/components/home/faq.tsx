@@ -15,9 +15,9 @@ const FAQ_ITEMS = [
     answer: (
       <>
         Para jogar os torneios da FSX, basta preencher o formulário e pagar a taxa de inscrição. Os
-        links são disponibilizados no site e no instagram ({" "}
+        links são disponibilizados no site e no Instagram (
         <a
-          className="text-link no-underline! hover:underline! hover:text-link!"
+          className="link-inline"
           href="https://www.instagram.com/xadrezsergipe"
           rel="noreferrer"
           target="_blank"
@@ -27,13 +27,13 @@ const FAQ_ITEMS = [
         ). Alguns torneios são válidos para rating CBX e FIDE, nesses casos, é necessário também
         preencher o{" "}
         <a
-          className="text-link no-underline! hover:underline! hover:text-link!"
+          className="link-inline"
           href="https://www.cbx.org.br/cadastro"
           rel="noreferrer"
           target="_blank"
         >
           Formulário de Cadastro da CBX
-        </a>{" "}
+        </a>
         .
       </>
     ),
@@ -47,7 +47,7 @@ const FAQ_ITEMS = [
         preciso fazer nenhuma solicitação. Assim que o enxadrista estiver cadastrado, ele pode
         preencher o{" "}
         <a
-          className="text-link no-underline! hover:underline! hover:text-link!"
+          className="link-inline"
           href="https://forms.gle/5JXbBckcWB33EprW8"
           rel="noreferrer"
           target="_blank"
@@ -66,16 +66,16 @@ const FAQ_ITEMS = [
       <>
         Acesse nosso{" "}
         <a
-          className="text-link no-underline! hover:underline! hover:text-link!"
+          className="link-inline"
           href="https://docs.google.com/spreadsheets/d/1FqWEWcpcRzW0r4wnsjLOIFmrwFkcqd9gnA7Lk1ZZ5uM"
           rel="noreferrer"
           target="_blank"
         >
           Calendário
         </a>
-        . Os torneios são divulgados no site e instagram (
+        . Os torneios são divulgados no site e no Instagram (
         <a
-          className="text-link no-underline! hover:underline! hover:text-link!"
+          className="link-inline"
           href="https://www.instagram.com/xadrezsergipe"
           rel="noreferrer"
           target="_blank"
@@ -91,18 +91,12 @@ const FAQ_ITEMS = [
 export function FAQ() {
   return (
     <Section icon={HelpCircleIcon} label="FAQ" main={false}>
-      <Accordion className="flex flex-col">
+      <Accordion className="mx-auto max-w-3xl px-3">
         {FAQ_ITEMS.map((item) => (
-          <div key={item.value}>
-            <AccordionItem value={item.value} className="border-b-0">
-              <div className="m-1">
-                <AccordionTrigger className="text-left hover:no-underline hover:bg-muted/50 px-2 py-3 rounded-none">
-                  {item.question}
-                </AccordionTrigger>
-                <AccordionContent className="px-2 pb-2">{item.answer}</AccordionContent>
-              </div>
-            </AccordionItem>
-          </div>
+          <AccordionItem key={item.value} value={item.value}>
+            <AccordionTrigger>{item.question}</AccordionTrigger>
+            <AccordionContent>{item.answer}</AccordionContent>
+          </AccordionItem>
         ))}
       </Accordion>
     </Section>

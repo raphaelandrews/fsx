@@ -120,7 +120,7 @@ function ClubRows({ row, phases }: { row: Row<ClubRow>; phases: string[] }) {
         ))}
       </TableRow>
       {row.getIsExpanded() && (
-        <TableRow className="hover:bg-transparent odd:bg-background even:bg-background">
+        <TableRow className="hover:bg-transparent">
           <TableCell className="bg-muted/30 p-0" colSpan={row.getVisibleCells().length + 1}>
             <ClubPlayersDetail phases={phases} players={row.original.players} />
           </TableCell>
@@ -136,13 +136,13 @@ function ClubPlayersDetail({ players, phases }: { players: PlayerRow[]; phases: 
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-left text-muted-foreground">
-            <th className="py-2 pr-2 text-xs font-medium">Jogador</th>
+            <th className="py-2 pr-2 text-sm font-medium">Jogador</th>
             {phases.map((phase) => (
-              <th className="px-2 py-2 text-right text-xs font-medium" key={phase}>
+              <th className="px-2 py-2 text-right text-sm font-medium" key={phase}>
                 {phase}
               </th>
             ))}
-            <th className="py-2 pl-2 text-right text-xs font-medium">Total</th>
+            <th className="py-2 pl-2 text-right text-sm font-medium">Total</th>
           </tr>
         </thead>
         <tbody>

@@ -7,7 +7,7 @@ interface MarkdownProps {
 
 export function Markdown({ content }: MarkdownProps) {
   return (
-    <div className="prose max-w-none">
+    <div className="prose max-w-none sm:prose-lg [&_:is(p,li)]:leading-relaxed">
       <MarkdownRenderer>{content}</MarkdownRenderer>
     </div>
   );

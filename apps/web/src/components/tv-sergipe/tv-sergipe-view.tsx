@@ -151,11 +151,11 @@ export function TvSergipeView() {
       { id: "name", header: () => "Escola" },
       ...(isMedalView
         ? [
-            { id: "gold", header: () => <MedalHead icon={MedalFirstPlaceIcon} label="Ouro" color="text-tier-gold-foreground" />, meta: { className: "w-24" } },
-            { id: "silver", header: () => <MedalHead icon={MedalSecondPlaceIcon} label="Prata" color="text-tier-silver-foreground" />, meta: { className: "w-24" } },
-            { id: "bronze", header: () => <MedalHead icon={MedalThirdPlaceIcon} label="Bronze" color="text-tier-bronze-foreground" />, meta: { className: "w-24" } },
+            { id: "gold", header: () => <MedalHead icon={MedalFirstPlaceIcon} label="Ouro" color="text-tier-gold-foreground" />, meta: { className: "w-24 text-center" } },
+            { id: "silver", header: () => <MedalHead icon={MedalSecondPlaceIcon} label="Prata" color="text-tier-silver-foreground" />, meta: { className: "w-24 text-center" } },
+            { id: "bronze", header: () => <MedalHead icon={MedalThirdPlaceIcon} label="Bronze" color="text-tier-bronze-foreground" />, meta: { className: "w-24 text-center" } },
           ]
-        : [{ id: "points", header: () => <span className="text-center">Pontos</span>, meta: { className: "w-24" } }]),
+        : [{ id: "points", header: () => <span className="text-center">Pontos</span>, meta: { className: "w-24 text-center" } }]),
     ] as const,
     state: { expanded },
     onExpandedChange: setExpanded,
@@ -253,7 +253,7 @@ export function TvSergipeView() {
                         header.column.id === "expander"
                           ? "w-10"
                           : header.column.id === "position"
-                            ? "w-10"
+                            ? "w-12 text-center"
                             : header.column.id === "name"
                               ? "w-full"
                               : (header.column.columnDef.meta as { className?: string } | undefined)?.className
@@ -324,7 +324,7 @@ function SchoolRows({
           }
           if (cell.column.id === "position") {
             return (
-              <TableCell className="text-muted-foreground tabular-nums" key={cell.id}>
+              <TableCell className="text-center text-muted-foreground tabular-nums" key={cell.id}>
                 {position}º
               </TableCell>
             );
@@ -369,7 +369,7 @@ function SchoolRows({
         })}
       </TableRow>
       {row.getIsExpanded() && (
-        <TableRow className="hover:bg-transparent odd:bg-background even:bg-background">
+        <TableRow className="hover:bg-transparent">
           <TableCell className="bg-muted/30 p-0" colSpan={row.getVisibleCells().length + 1}>
             <SchoolDetail
               name={school.name}
@@ -398,7 +398,7 @@ function SchoolDetail({
   return (
     <div className="space-y-3 px-4 py-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm font-medium">{name}</p>
+        <p className="text-base font-medium">{name}</p>
         <Tabs className="w-fit" onValueChange={(value) => onSelectScope(value as ResultScope)} value={scope}>
           <TabsList>
             <TabsTrigger value="todos">Todos</TabsTrigger>
@@ -409,7 +409,7 @@ function SchoolDetail({
       </div>
 
       {results.length === 0 ? (
-        <p className="text-muted-foreground text-sm">Nenhum resultado neste recorte.</p>
+        <p className="text-muted-foreground text-base">Nenhum resultado neste recorte.</p>
       ) : (
         <div className="overflow-hidden">
           <Table>

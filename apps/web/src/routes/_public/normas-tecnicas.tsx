@@ -1,9 +1,10 @@
-import { ChartBarLineIcon, Medal01Icon } from "@hugeicons/core-free-icons";
+import { ChartBarLineIcon, Medal01Icon, Book01Icon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { Announcement } from "@/components/announcement";
-import { NormasItem } from "@/components/normas-tecnicas/normas-item";
 import { ratingVariations, titulations } from "@/components/normas-tecnicas/data";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@fsx/ui/components/accordion";
+
 import { PageHeader } from "@/components/page-header";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
@@ -25,33 +26,36 @@ export const Route = createFileRoute("/_public/normas-tecnicas")({
 function RouteComponent() {
   return (
     <>
-      <PageHeader
+      <PageHeader icon={Book01Icon}
         description="Regras, títulos e critérios oficiais da Federação Sergipana de Xadrez."
         title="Normas Técnicas"
       />
 
-      <section className="mb-0">
-        <Announcement icon={Medal01Icon} label="Titulações" className="text-sm" />
-
-        <div className="flex flex-col">
+      <section aria-label="Titulações">
+        <Announcement icon={Medal01Icon} label="Titulações" />
+        <Accordion className="mx-3 w-auto">
           {titulations.map((item) => (
-            <NormasItem key={item.title} title={item.title} description={item.description}>
-              {item.content}
-            </NormasItem>
+            <AccordionItem key={item.title} value={item.title}>
+              <AccordionTrigger>
+                <span className="flex flex-col gap-0.5">
+                  <span>{item.title}</span>
+                  <span className="font-medium text-muted-foreground text-sm">{item.description}</span>
+                </span>
+              </AccordionTrigger>
+              <AccordionContent>{item.content}</AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       </section>
 
-      <section className="mb-0">
-        <Announcement icon={ChartBarLineIcon} label="Variação de Rating" className="text-sm" />
-
-        <div className="flex flex-col">
-          {ratingVariations.map((item) => (
-            <NormasItem key={item.title} title={item.title} description={item.description}>
-              {item.content}
-            </NormasItem>
-          ))}
-        </div>
+      <section aria-label="Variação de rating" className="mt-6">
+        <Announcement icon={ChartBarLineIcon} label="Variação de rating" />
+        {ratingVariations.map((item) => (
+          <div key={item.title} className="px-3">
+            <p className="text-muted-foreground text-sm">{item.description}</p>
+            {item.content}
+          </div>
+        ))}
       </section>
     </>
   );

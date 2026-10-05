@@ -93,7 +93,7 @@ export function SwissManagerExport({ locale = "en" }: { locale?: keyof typeof TE
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">{text.ratingType}</label>
+          <label className="text-base font-medium">{text.ratingType}</label>
           <Select value={ratingType} onValueChange={(value) => setRatingType(value as RatingType)}>
             <SelectTrigger aria-label={text.ratingTypeLabel}>
               <SelectValue placeholder={text.placeholder}>
@@ -110,7 +110,7 @@ export function SwissManagerExport({ locale = "en" }: { locale?: keyof typeof TE
           </Select>
         </div>
 
-        <p className="text-muted-foreground text-sm" aria-live="polite">
+        <p className="text-muted-foreground text-base" aria-live="polite">
           {exportedCount === null ? text.hint : text.exported(exportedCount)}
         </p>
 

@@ -49,7 +49,7 @@ function RouteComponent() {
   const { club, standing, members } = data;
 
   return (
-    <div className="mx-auto max-w-[720px] pb-12">
+    <div className="mx-auto max-w-[720px]">
       <header className="flex flex-col items-center gap-3 pt-8 pb-6 text-center sm:pt-12 sm:pb-8">
         <ClubLogo name={club.name} logoUrl={club.logoUrl} className="size-20 rounded-2xl" />
         <h1 className="text-balance font-semibold text-3xl tracking-tight sm:text-4xl">{club.name}</h1>
@@ -75,9 +75,9 @@ function RouteComponent() {
       </div>
 
       <section aria-label="Jogadores" className="mt-6">
-        <Announcement icon={UserGroupIcon} label="Jogadores" className="text-sm" />
+        <Announcement icon={UserGroupIcon} label="Jogadores" className="text-base" />
         {members.length === 0 ? (
-          <p className="px-3 text-muted-foreground text-sm">Nenhum jogador cadastrado neste clube.</p>
+          <p className="px-3 text-muted-foreground text-base">Nenhum jogador cadastrado neste clube.</p>
         ) : (
           <Table>
             <TableHeader>
@@ -97,7 +97,7 @@ function RouteComponent() {
                     <Link to="/jogadores/$id" params={{ id: member.id }} className="font-medium hover:underline">
                       {member.nickname || member.name}
                     </Link>
-                    {!member.active && <span className="ml-1.5 text-muted-foreground text-xs">inativo</span>}
+                    {!member.active && <span className="ml-1.5 text-muted-foreground text-sm">inativo</span>}
                   </TableCell>
                   {FORMATS.map(([format]) => (
                     <TableCell key={format} className="text-center tabular-nums">

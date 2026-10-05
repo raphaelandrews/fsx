@@ -3,6 +3,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { ChampionsTabs } from "@/components/campeoes/champions-tabs";
 import type { ChampionTournament } from "@/components/campeoes/columns";
+import { CrownIcon } from "@hugeicons/core-free-icons";
+
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
@@ -40,7 +42,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader title="Campeões" />
+      <PageHeader icon={CrownIcon} title="Campeões" />
       <ChampionsTabs championshipMap={championshipMap} />
     </>
   );

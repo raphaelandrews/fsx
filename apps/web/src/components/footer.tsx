@@ -51,17 +51,17 @@ export function Footer({ className }: { className?: string }) {
         />
 
         <div className="flex flex-col items-center gap-6">
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-3">
             {socials.map(({ label, href, icon }) => (
               <a
                 key={href}
                 aria-label={label}
-                className={buttonVariants({ variant: "secondary", size: "icon" })}
+                className={buttonVariants({ variant: "secondary", size: "icon-xl", className: "active:scale-[0.96]" })}
                 href={href}
                 rel="noreferrer"
                 target={href.startsWith("mailto:") ? undefined : "_blank"}
               >
-                <HugeiconsIcon className="size-4" icon={icon} strokeWidth={2} />
+                <HugeiconsIcon className="size-5" icon={icon} strokeWidth={1.75} aria-hidden />
               </a>
             ))}
           </div>
@@ -73,7 +73,7 @@ export function Footer({ className }: { className?: string }) {
             {footerLinks.map((link) => (
               <Link
                 key={link.to}
-                className="font-sans text-base text-muted-foreground transition-colors hover:text-foreground"
+                className="text-base text-muted-foreground transition-colors hover:text-foreground"
                 to={link.to}
               >
                 {link.label}
@@ -81,10 +81,10 @@ export function Footer({ className }: { className?: string }) {
             ))}
           </nav>
 
-          <div className="text-balance text-center font-sans text-muted-foreground text-base leading-loose">
+          <div className="text-balance text-center text-muted-foreground text-base leading-loose">
             Built by 📟{" "}
             <a
-              className="text-primary transition duration-200 hover:text-highlight"
+              className="text-primary transition-colors duration-150 hover:text-link-hover"
               href="https://andrews.sh/"
               rel="noreferrer"
               target="_blank"
@@ -93,7 +93,7 @@ export function Footer({ className }: { className?: string }) {
             </a>
             .{" "}
             <a
-              className="transition duration-200 hover:text-highlight"
+              className="text-foreground transition-colors duration-150 hover:text-link-hover"
               href="https://github.com/raphaelandrews/fsx"
               rel="noreferrer"
               target="_blank"

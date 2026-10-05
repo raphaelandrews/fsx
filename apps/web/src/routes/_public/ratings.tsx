@@ -4,7 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, BarChartIcon } from "@hugeicons/core-free-icons";
 
 import { Button } from "@fsx/ui/components/button";
 import { Pagination } from "@/components/data-table/pagination";
@@ -167,7 +167,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader title="Ratings" />
+      <PageHeader icon={BarChartIcon} title="Ratings" />
 
       {/* Rating tabs — drive which rating column is rendered below */}
       <Tabs
@@ -267,7 +267,7 @@ function RouteComponent() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-10">#</TableHead>
+              <TableHead className="w-12 text-center">#</TableHead>
               <TableHead>Jogador</TableHead>
               <TableHead className="text-center">{ratingColumn}</TableHead>
               <TableHead>Local</TableHead>
@@ -277,7 +277,7 @@ function RouteComponent() {
           <TableBody>
             {players.map((player, index) => (
               <TableRow key={player.id}>
-                <TableCell className="text-muted-foreground tabular-nums">
+                <TableCell className="text-center text-muted-foreground tabular-nums">
                   <span className="inline-flex items-baseline gap-1">
                     {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
                     <Movement value={player.movement} />

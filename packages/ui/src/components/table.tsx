@@ -4,7 +4,7 @@ import { cn } from "@fsx/ui/lib/utils";
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto">
+    <div data-slot="table-container" className="relative w-full overflow-x-auto rounded-2xl border bg-background">
       <table
         data-slot="table"
         className={cn("w-full caption-bottom text-sm", className)}
@@ -15,7 +15,13 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
 }
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
-  return <thead data-slot="table-header" className={cn(className)} {...props} />;
+  return (
+    <thead
+      data-slot="table-header"
+      className={cn("bg-muted/70 [&_tr]:hover:bg-transparent", className)}
+      {...props}
+    />
+  );
 }
 
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
@@ -43,7 +49,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "transition-colors odd:bg-background even:bg-muted/30 hover:bg-muted has-aria-expanded:bg-muted data-[state=selected]:bg-muted",
+        "border-b transition-colors hover:bg-muted/40 has-aria-expanded:bg-muted/40 data-[state=selected]:bg-muted",
         className,
       )}
       {...props}
@@ -56,7 +62,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0",
+        "h-11 px-4 text-left align-middle font-semibold whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}
@@ -69,7 +75,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        "px-4 py-3 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}

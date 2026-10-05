@@ -102,7 +102,7 @@ export function TitledPlayersTable({ data }: { data: TitledPlayer[] }) {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead colSpan={header.colSpan} key={header.id}>
+                  <TableHead colSpan={header.colSpan} className={header.column.columnDef.meta?.className} key={header.id}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
@@ -116,7 +116,7 @@ export function TitledPlayersTable({ data }: { data: TitledPlayer[] }) {
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell className={cell.column.columnDef.meta?.className} key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

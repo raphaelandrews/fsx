@@ -40,7 +40,7 @@ export function DataTableColumnHeader<TData, TValue>({
           render={
             <Button
               className={cn(
-                "h-8 hover:bg-accent/50 data-[state=open]:bg-accent",
+                "h-8 font-semibold text-foreground text-sm hover:bg-accent/50 data-[state=open]:bg-accent",
                 align === "left" && "-ms-3",
               )}
               size="sm"

@@ -28,7 +28,7 @@ export function NewsFeed({ items }: { items: FeedItem[] }) {
           );
           return (
             <li key={`${item.kind}-${item.player.id}-${item.label}-${item.date}`} className="m-1">
-              <div className="flex items-start gap-3 rounded-md p-3 text-sm transition-colors duration-200 hover:bg-muted/50">
+              <div className="flex items-start gap-3 rounded-md p-3 text-base transition-colors duration-200 hover:bg-muted/50">
                 <span
                   className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-foreground"
                   aria-hidden
@@ -39,12 +39,12 @@ export function NewsFeed({ items }: { items: FeedItem[] }) {
                   <span className="text-pretty leading-snug">
                     {item.kind === "achievement" && (
                       <>
-                        {player} conquistou <span className="font-medium">{item.label}</span>
+                        {player} conquistou <span className="font-semibold">{item.label}</span>
                       </>
                     )}
                     {item.kind === "title" && (
                       <>
-                        {player} recebeu o título <span className="font-medium">{item.label}</span>
+                        {player} recebeu o título <span className="font-semibold">{item.label}</span>
                       </>
                     )}
                     {item.kind === "announcement" && item.announcementId !== null && (
@@ -56,9 +56,20 @@ export function NewsFeed({ items }: { items: FeedItem[] }) {
                       </>
                     )}
                   </span>
-                  <time dateTime={item.date.slice(0, 10)} className="text-muted-foreground text-xs tabular-nums">
-                    {formatIsoDate(item.date)}
-                  </time>
+                  <span className="flex flex-wrap items-baseline gap-x-2 text-muted-foreground text-sm">
+                    <time dateTime={item.date.slice(0, 10)} className="tabular-nums">
+                      {formatIsoDate(item.date)}
+                    </time>
+                    {item.kind === "title" && item.announcementId !== null && (
+                      <Link
+                        to="/comunicados/$id"
+                        params={{ id: item.announcementId }}
+                        className="link-inline"
+                      >
+                        Ver comunicado
+                      </Link>
+                    )}
+                  </span>
                 </span>
               </div>
             </li>

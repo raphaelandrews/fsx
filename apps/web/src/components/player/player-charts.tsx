@@ -28,7 +28,7 @@ const getFillColorVariation = (
     return "var(--chart-3)"
   }
 
-  return "var(--chart-4)"
+  return "var(--chart-1)"
 }
 
 const extractChartData = (player: PlayerById, selectedRatingType: string) => {
@@ -73,7 +73,7 @@ export function VariationChart({
 
   if (chartData.length === 0) {
     return (
-      <div className="py-8 text-center text-muted-foreground text-sm border rounded-md bg-muted/20">
+      <div className="rounded-2xl bg-muted py-8 text-center text-muted-foreground text-sm">
         Nenhum dado de variação disponível para este tipo de rating.
       </div>
     )
@@ -124,7 +124,11 @@ export function TotalRatingChart({
   const chartData = extractTotalRatingData(player, selectedRatingType)
 
   if (chartData.length === 0) {
-    return <div />
+    return (
+      <div className="rounded-2xl bg-muted py-8 text-center text-muted-foreground text-sm">
+        Nenhum dado de rating disponível para este tipo de rating.
+      </div>
+    )
   }
 
   const ratingChart = defineChart({

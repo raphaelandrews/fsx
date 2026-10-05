@@ -295,7 +295,7 @@ function InfoCard({ cup }: { cup: Cup }) {
           <div className="py-1.5 pl-1">Online</div>
           <div className="bg-primary-foreground py-1.5 pl-1">
             <a
-              className="text-link"
+              className="link-inline"
               href="https://lichess.org"
               rel="noreferrer"
               target="_blank"
@@ -366,7 +366,7 @@ export function BulletClient({ cup }: { cup: Cup }) {
             <p>
               Campeonato Sergipano Bullet de Xadrez é realizado de forma online no{" "}
               <a
-                className="text-link hover:text-primary"
+                className="link-inline"
                 href="https://lichess.org"
                 rel="noreferrer"
                 target="_blank"

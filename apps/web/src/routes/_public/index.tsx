@@ -57,6 +57,9 @@ function RouteComponent() {
   );
   const { data: topPlayers } = useSuspenseQuery(trpc.topPlayers.list.queryOptions());
   const { data: feed } = useSuspenseQuery(trpc.records.recent.queryOptions());
+  // Announcements already shown in Novidades (as a title or on their own) aren't repeated below.
+  const inFeed = new Set(feed.flatMap((item) => (item.announcementId === null ? [] : [item.announcementId])));
+  const otherAnnouncements = announcements.filter((announcement) => !inFeed.has(announcement.id));
 
   return (
     <>
@@ -65,7 +68,7 @@ function RouteComponent() {
       <Posts posts={posts} />
       <TopPlayers topPlayers={topPlayers} />
       {feed.length > 0 && <NewsFeed items={feed} />}
-      <Announcements announcements={announcements} />
+      {otherAnnouncements.length > 0 && <Announcements announcements={otherAnnouncements} />}
       <FAQ />
     </>
   );

@@ -20,13 +20,7 @@ import { DataTable } from "@/components/sheets/player/data-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
 import { Badge } from "@fsx/ui/components/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@fsx/ui/components/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@fsx/ui/components/select";
+import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 import { VerifiedBadge } from "@/components/player/verified-badge";
 import { Announcement } from "@/components/announcement";
 import { TotalRatingChart, VariationChart } from "@/components/player/player-charts";
@@ -42,6 +36,7 @@ import { PlayerStats } from "@/components/player/player-stats";
 import { byTitleTier } from "@/components/player/title-emblems";
 import type { ClubStanding, PlayerAnnouncement, PlayerCircuitSeason, PlayerRanking, PlayerStatsResult } from "@/components/player/types";
 import { Movement } from "@/components/gamification/movement";
+import { StatTile } from "@/components/gamification/stat-tile";
 
 function FormatPodium(place: number | null | undefined, championshipId: number) {
   const icon = podiumIcon(place, championshipId);
@@ -190,25 +185,14 @@ export function PlayerProfile({
 
   const [selectedRatingType, setSelectedRatingType] = React.useState("rapid");
 
-  const ratingTypeLabels: Record<string, string> = {
-    classic: "Clássico",
-    rapid: "Rápido",
-    blitz: "Blitz",
-  };
-
   return (
     <>
-      {/* Header Section */}
       <div className="relative">
         <div className="px-4 pb-4">
           <div className="mb-4 flex justify-center pt-12">
-            <Avatar className="h-24 w-24 after:border-0 after:mix-blend-normal">
-              <AvatarImage
-                alt={player.name}
-                src={player.imageUrl ?? ""}
-                className="h-full w-full object-cover rounded-2xl"
-              />
-              <AvatarFallback className={cn("rounded-2xl", avatarGradient(player.id))} />
+            <Avatar className="size-24 after:border-0 after:mix-blend-normal">
+              <AvatarImage alt={player.name} src={player.imageUrl ?? ""} />
+              <AvatarFallback className={avatarGradient(player.id)} />
             </Avatar>
           </div>
 
@@ -254,14 +238,23 @@ export function PlayerProfile({
         </div>
       </div>
 
-      {/* Achievements Section */}
+      <section className="mb-0">
+        <Announcement icon={ChartBarLineIcon} label="Ratings" />
+
+        <div className="grid grid-cols-3 gap-2 px-2 sm:gap-4 sm:px-4">
+          <RatingBox label="Clássico" value={player.classic} peak={stats.stats.formats.classic?.peak.rating} rank={ranking.classic} />
+          <RatingBox label="Rápido" value={player.rapid} peak={stats.stats.formats.rapid?.peak.rating} rank={ranking.rapid} />
+          <RatingBox label="Blitz" value={player.blitz} peak={stats.stats.formats.blitz?.peak.rating} rank={ranking.blitz} />
+        </div>
+      </section>
+
       {(podiumGroups.length > 0 ||
         medalCount > 0 ||
         stats.achievements.length > 0 ||
         stats.upcoming.length > 0 ||
         (player.defendingChampions && player.defendingChampions?.length > 0)) && (
           <section className="mb-0">
-            <Announcement icon={Target01Icon} label="Conquistas" className="text-sm" />
+            <Announcement icon={Target01Icon} label="Conquistas" />
             <div className="grid gap-6 px-3 pt-1 pb-4">
               <TrophyCabinet medals={stats.stats.medals} />
               <AchievementGrid achievements={stats.achievements} upcoming={stats.upcoming} />
@@ -277,7 +270,7 @@ export function PlayerProfile({
                             <PopoverTrigger aria-label={label} className={medalButton}>
                               <HugeiconsIcon icon={championshipIcon(championshipId)} className="size-5" strokeWidth={1.75} aria-hidden />
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-2 text-xs font-medium">{label}</PopoverContent>
+                            <PopoverContent className="w-auto p-2 text-sm font-medium">{label}</PopoverContent>
                           </Popover>
                         </li>
                       );
@@ -307,7 +300,7 @@ export function PlayerProfile({
                               >
                                 {FormatPodium(podium.place, podium.category ? 0 : (podium.tournament.championshipId ?? 0))}
                               </PopoverTrigger>
-                              <PopoverContent className="w-auto max-w-64 gap-0.5 p-2 text-xs">
+                              <PopoverContent className="w-auto max-w-64 gap-0.5 p-2 text-sm">
                                 <p className="font-medium">
                                   {FormatPodiumTitle(podium.place)} · {podiumLabel(podium)}
                                 </p>
@@ -327,11 +320,10 @@ export function PlayerProfile({
           </section>
         )}
 
-      {/* Info Section */}
       <section className="mb-0">
-        <Announcement icon={InformationCircleIcon} label="Informações" className="text-sm" />
+        <Announcement icon={InformationCircleIcon} label="Informações" />
 
-        <div className="flex flex-col">
+        <dl className="flex flex-col divide-y px-3">
           <InfoItem label="Nome Completo" value={player.name} />
 
           {internalTitle && <InfoItem label="Titulação FSX" value={internalTitle.title.name} />}
@@ -366,7 +358,7 @@ export function PlayerProfile({
                   <span>{player.club.name}</span>
                 )}
                 {clubStanding?.rank.rapid && (
-                  <span className="text-muted-foreground text-xs">#{clubStanding.rank.rapid} entre os clubes</span>
+                  <span className="text-muted-foreground text-sm">#{clubStanding.rank.rapid} entre os clubes</span>
                 )}
               </div>
             </InfoItem>
@@ -393,120 +385,86 @@ export function PlayerProfile({
             </InfoItem>
           )}
 
-          {player.active ? (
-            <InfoItem label="Status">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-                </span>
-                <p>Ativo</p>
-              </div>
-            </InfoItem>
-          ) : (
-            <InfoItem label="Status">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive/75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-destructive" />
-                </span>
-                <p>Inativo</p>
-              </div>
-            </InfoItem>
-          )}
-        </div>
+          <InfoItem label="Status">
+            <span className="flex items-center gap-2">
+              <span className={cn("size-2 rounded-full", player.active ? "bg-success" : "bg-destructive-fill")} aria-hidden />
+              {player.active ? "Ativo" : "Inativo"}
+            </span>
+          </InfoItem>
+        </dl>
       </section>
 
-      {/* Ratings Section */}
-      <section className="mb-0">
-        <Announcement icon={ChartBarLineIcon} label="Ratings" className="text-sm" />
-
-        <div className="grid grid-cols-3 gap-2 px-2 sm:gap-4 sm:px-4">
-          <RatingBox label="Clássico" value={player.classic} peak={stats.stats.formats.classic?.peak.rating} rank={ranking.classic} />
-          <RatingBox label="Rápido" value={player.rapid} peak={stats.stats.formats.rapid?.peak.rating} rank={ranking.rapid} />
-          <RatingBox label="Blitz" value={player.blitz} peak={stats.stats.formats.blitz?.peak.rating} rank={ranking.blitz} />
-        </div>
-      </section>
 
       {stats.stats.tournamentsPlayed > 0 && (
         <section className="mb-0">
-          <Announcement icon={Analytics01Icon} label="Estatísticas" className="text-sm" />
+          <Announcement icon={Analytics01Icon} label="Estatísticas" />
           <PlayerStats playerId={player.id} stats={stats.stats} tournaments={stats.tournaments} />
         </section>
       )}
 
       {circuitSeasons.length > 0 && (
         <section className="mb-0">
-          <Announcement icon={Route01Icon} label="Circuitos" className="text-sm" />
+          <Announcement icon={Route01Icon} label="Circuitos" />
           <PlayerCircuits seasons={circuitSeasons} />
         </section>
       )}
 
       {announcements.length > 0 && (
         <section className="mb-0">
-          <Announcement icon={ScrollIcon} label="Comunicados" className="text-sm" />
+          <Announcement icon={ScrollIcon} label="Comunicados" />
           <PlayerAnnouncements announcements={announcements} />
         </section>
       )}
 
-      {/* IDs Section */}
       <section className="mb-0">
-        <Announcement icon={Link02Icon} label="IDs" className="text-sm" />
+        <Announcement icon={Link02Icon} label="IDs" />
 
         <div className="grid grid-cols-3 gap-2 px-2 sm:gap-4 sm:px-4">
           <IdBox label="ID FSX" value={String(player.id)} />
           <IdBox
             label="ID CBX"
-            value={player.cbxId ? String(player.cbxId) : "-"}
+            value={player.cbxId ? String(player.cbxId) : "—"}
             href={player.cbxId ? `https://www.cbx.org.br/jogador/${player.cbxId}` : undefined}
           />
           <IdBox
             label="ID FIDE"
-            value={player.fideId ? String(player.fideId) : "-"}
+            value={player.fideId ? String(player.fideId) : "—"}
             href={player.fideId ? `https://ratings.fide.com/profile/${player.fideId}` : undefined}
           />
         </div>
       </section>
 
-      {/* Performance Section */}
       {tournaments.length > 0 && (
         <section className="mb-0">
-          <Announcement icon={BarChartIcon} label="Performance" className="text-sm flex-1" />
+          <Announcement icon={BarChartIcon} label="Performance" />
 
           <div className="p-4 space-y-6">
-            <Select
-              onValueChange={(value) => value && setSelectedRatingType(value)}
-              value={selectedRatingType}
-            >
-              <SelectTrigger className="w-[140px] h-8 text-xs" aria-label="Tipo de rating">
-                <SelectValue placeholder="Rating">
-                  {(value) => ratingTypeLabels[value as string] ?? value}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="classic">Clássico</SelectItem>
-                <SelectItem value="rapid">Rápido</SelectItem>
-                <SelectItem value="blitz">Blitz</SelectItem>
-              </SelectContent>
-            </Select>
+            <Tabs value={selectedRatingType} onValueChange={(value) => setSelectedRatingType(value as string)}>
+              <div className="flex justify-center">
+                <TabsList aria-label="Tipo de rating">
+                  <TabsTrigger value="classic">Clássico</TabsTrigger>
+                  <TabsTrigger value="rapid">Rápido</TabsTrigger>
+                  <TabsTrigger value="blitz">Blitz</TabsTrigger>
+                </TabsList>
+              </div>
+            </Tabs>
 
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-muted-foreground ml-2">Variação de Rating</h4>
+            <section aria-labelledby="player-variation">
+              <Subheading id="player-variation">Variação de rating</Subheading>
               <VariationChart player={player} selectedRatingType={selectedRatingType} />
-            </div>
+            </section>
 
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-muted-foreground ml-2">Evolução de Rating</h4>
+            <section aria-labelledby="player-evolution">
+              <Subheading id="player-evolution">Evolução de rating</Subheading>
               <TotalRatingChart player={player} selectedRatingType={selectedRatingType} />
-            </div>
+            </section>
           </div>
         </section>
       )}
 
-      {/* Tournaments Section */}
       {tournaments && tournaments.length > 0 && (
         <section className="mb-0">
-          <Announcement icon={Calendar01Icon} label="Histórico de Torneios" className="text-sm" />
+          <Announcement icon={Calendar01Icon} label="Histórico de Torneios" />
           <div className="py-4">
             <DataTable columns={columns} data={tournaments} />
           </div>
@@ -526,16 +484,10 @@ function InfoItem({
   children?: React.ReactNode;
 }) {
   return (
-    <>
-      <div className="m-1">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 hover:bg-muted/50 transition-colors duration-200">
-          <span className="text-sm font-medium text-muted-foreground">{label}</span>
-          <div className="mt-1 sm:mt-0 text-sm font-medium text-foreground">
-            {children ? children : value}
-          </div>
-        </div>
-      </div>
-    </>
+    <div className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <dt className="text-muted-foreground text-sm">{label}</dt>
+      <dd className="font-medium text-base">{children ?? value}</dd>
+    </div>
   );
 }
 
@@ -550,52 +502,49 @@ function RatingBox({
   peak?: number;
   rank: PlayerRanking["rapid"];
 }) {
+  const showPeak = peak !== undefined && value != null && peak > value;
   return (
-    <div className="bg-muted rounded-2xl flex h-full flex-col items-center justify-center gap-1 p-3 sm:p-4">
-      <span className="text-xs sm:text-sm text-foreground/70 font-medium text-center">{label}</span>
-      <span className="text-sm sm:text-base font-semibold text-foreground tabular-nums">
-        {value ?? "-"}
-      </span>
-      {rank && (
-        <span className="inline-flex items-baseline gap-1 text-[11px] text-foreground/70 tabular-nums">
-          <span>
-            #{rank.position}
-            <span className="sr-only"> de {rank.players} jogadores ativos</span>
+    <StatTile
+      label={label}
+      value={value ?? "—"}
+      valueClassName="text-xl sm:text-2xl"
+      hint={
+        rank || showPeak ? (
+          <span className="inline-flex flex-wrap items-baseline justify-center gap-x-1.5 tabular-nums">
+            {rank && (
+              <span className="inline-flex items-baseline gap-1">
+                #{rank.position}
+                <span className="sr-only"> de {rank.players} jogadores ativos</span>
+                <Movement value={rank.movement} />
+              </span>
+            )}
+            {showPeak && <span>Pico {peak}</span>}
           </span>
-          <Movement value={rank.movement} />
-        </span>
-      )}
-      {peak !== undefined && value != null && peak > value && (
-        <span className="text-[11px] text-foreground/70 tabular-nums">Pico {peak}</span>
-      )}
-    </div>
+        ) : undefined
+      }
+    />
   );
 }
 
 function IdBox({ label, value, href }: { label: string; value: string; href?: string }) {
-  const content = (
-    <div className="bg-muted rounded-2xl flex h-full flex-col items-center justify-center gap-1 p-3 sm:p-4">
-      <span className="text-xs sm:text-sm text-foreground/70 font-medium text-center">{label}</span>
-      <div className="flex items-center gap-1.5">
-        <span
-          className={`text-sm sm:text-base font-semibold tabular-nums ${href ? "group-hover:underline" : "text-foreground"}`}
-        >
-          {value}
-        </span>
-        {href && (
-          <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3 text-muted-foreground" />
-        )}
-      </div>
-    </div>
+  if (!href) return <StatTile label={label} value={value} />;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="group block h-full rounded-2xl outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
+    >
+      <StatTile
+        label={label}
+        className="transition-colors duration-200 group-hover:bg-accent"
+        value={
+          <span className="inline-flex items-center gap-1.5 group-hover:underline">
+            {value}
+            <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3.5 text-muted-foreground" aria-hidden />
+          </span>
+        }
+      />
+    </a>
   );
-
-  if (href) {
-    return (
-      <a href={href} target="_blank" rel="noreferrer" className="block h-full">
-        {content}
-      </a>
-    );
-  }
-
-  return content;
 }

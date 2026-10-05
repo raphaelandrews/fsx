@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
+import { ZapIcon } from "@hugeicons/core-free-icons";
+
 import { PageHeader } from "@/components/page-header";
 import { BulletClient } from "@/components/bullet/bullet-client";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
@@ -37,7 +39,7 @@ function RouteComponent() {
   if (!cup) {
     return (
       <>
-        <PageHeader title="Sergipano Bullet" />
+        <PageHeader icon={ZapIcon} title="Sergipano Bullet" />
         <p className="text-muted-foreground">
           Nenhuma edição do Campeonato Sergipano Bullet disponível.
         </p>
@@ -55,7 +57,7 @@ function BulletCup({ id }: { id: number }) {
 
   return (
     <>
-      <PageHeader title="Sergipano Bullet" />
+      <PageHeader icon={ZapIcon} title="Sergipano Bullet" />
       <BulletClient cup={cup} />
     </>
   );

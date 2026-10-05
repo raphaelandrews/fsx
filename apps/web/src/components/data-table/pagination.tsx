@@ -11,6 +11,8 @@ import {
 import { Button, buttonVariants } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
+import { buildPageItems } from "./page-items";
+
 import { useTableText } from "@/lib/table-text";
 
 interface PaginationProps {
@@ -32,62 +34,6 @@ interface PaginationProps {
 // Module scope: the route's pending state can unmount this bar while the next
 // page loads, so the request to restore focus must outlive the instance.
 let restoreFocusAfterPageChange = false;
-
-type PageItem =
-  | { type: "page"; page: number; isCurrent: boolean }
-  | { type: "ellipsis"; key: "start" | "end" };
-
-function buildPageItems(currentPage: number, totalPages: number, siblingCount: number): PageItem[] {
-  const totalNumbers = siblingCount * 2 + 5;
-  if (totalPages <= totalNumbers) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => ({
-      type: "page" as const,
-      page,
-      isCurrent: page === currentPage,
-    }));
-  }
-
-  const leftSibling = Math.max(currentPage - siblingCount, 1);
-  const rightSibling = Math.min(currentPage + siblingCount, totalPages);
-
-  const showStartEllipsis = leftSibling > 2;
-  const showEndEllipsis = rightSibling < totalPages - 1;
-
-  const items: PageItem[] = [];
-
-  items.push({ type: "page", page: 1, isCurrent: currentPage === 1 });
-
-  if (showStartEllipsis) {
-    items.push({ type: "ellipsis", key: "start" });
-  } else {
-    for (let page = 2; page < leftSibling; page++) {
-      items.push({ type: "page", page, isCurrent: page === currentPage });
-    }
-  }
-
-  for (
-    let page = leftSibling;
-    page <= (showStartEllipsis ? Math.min(rightSibling, totalPages - 1) : rightSibling);
-    page++
-  ) {
-    if (page === 1 || page === totalPages) continue;
-    items.push({ type: "page", page, isCurrent: page === currentPage });
-  }
-
-  if (showEndEllipsis) {
-    items.push({ type: "ellipsis", key: "end" });
-  } else {
-    for (let page = rightSibling + 1; page < totalPages; page++) {
-      items.push({ type: "page", page, isCurrent: page === currentPage });
-    }
-  }
-
-  if (!items.some((item) => item.type === "page" && item.page === totalPages)) {
-    items.push({ type: "page", page: totalPages, isCurrent: currentPage === totalPages });
-  }
-
-  return items;
-}
 
 type ControlStyle = { variant: "default" | "outline" | "ghost"; size: "default" | "sm" | "icon" };
 
@@ -207,6 +153,24 @@ export function Pagination({
     onPageChange(page);
   };
   const shared = { getPageHref, onSelect: changePage, onPagePreload };
+  const renderItems = (list: typeof items, size: string) =>
+    list.map((item) =>
+      item.type === "ellipsis" ? (
+        <Ellipsis key={`ellipsis-${item.key}`} keyId={item.key} />
+      ) : (
+        <PageControl
+          {...shared}
+          key={item.page}
+          className={cn(size, "p-0 text-base tabular-nums", item.isCurrent && "pointer-events-none")}
+          current={item.isCurrent}
+          label={`Ir para a página ${item.page}`}
+          page={item.page}
+          style={{ variant: item.isCurrent ? "default" : "outline", size: "sm" }}
+        >
+          {item.page}
+        </PageControl>
+      ),
+    );
 
   return (
     <nav
@@ -243,25 +207,7 @@ export function Pagination({
           <span className="hidden sm:inline">{text.previous}</span>
         </PageControl>
 
-        <div className="hidden items-center gap-1 sm:flex">
-          {items.map((item) =>
-            item.type === "ellipsis" ? (
-              <Ellipsis key={`ellipsis-${item.key}`} keyId={item.key} />
-            ) : (
-              <PageControl
-                {...shared}
-                key={item.page}
-                className={cn("h-8 w-8 p-0 text-sm", item.isCurrent && "pointer-events-none")}
-                current={item.isCurrent}
-                label={`Ir para a página ${item.page}`}
-                page={item.page}
-                style={{ variant: item.isCurrent ? "default" : "outline", size: "sm" }}
-              >
-                {item.page}
-              </PageControl>
-            ),
-          )}
-        </div>
+        <div className="hidden items-center gap-1 sm:flex">{renderItems(items, "size-8")}</div>
 
         <PageControl
           {...shared}
@@ -290,7 +236,7 @@ export function Pagination({
       </div>
 
       {showLabel ? (
-        <p aria-live="polite" aria-atomic="true" className="text-xs text-muted-foreground">
+        <p aria-live="polite" aria-atomic="true" className="text-sm text-muted-foreground">
           {text.pageOf(currentPage, totalPages)}
         </p>
       ) : (

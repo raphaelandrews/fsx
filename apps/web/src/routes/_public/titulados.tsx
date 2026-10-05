@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
+import { Bookmark01Icon } from "@hugeicons/core-free-icons";
+
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { TitledPlayersTable } from "@/components/titulados/titled-players-table";
@@ -30,7 +32,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader title="Titulados" />
+      <PageHeader icon={Bookmark01Icon} title="Titulados" />
       <TitledPlayersTable data={titledPlayers} />
     </>
   );

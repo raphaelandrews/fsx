@@ -16,11 +16,15 @@ export interface TitledPlayer {
 export const titledPlayersColumns: ColumnDef<TitledPlayer>[] = [
   {
     id: "index",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="#" />,
-    cell: ({ row, table }) =>
-      (table.getSortedRowModel()?.flatRows?.findIndex((flatRow) => flatRow.id === row.id) || 0) + 1,
+    header: ({ column }) => <DataTableColumnHeader align="center" column={column} title="#" />,
+    cell: ({ row, table }) => (
+      <span className="text-muted-foreground">
+        {(table.getSortedRowModel()?.flatRows?.findIndex((flatRow) => flatRow.id === row.id) || 0) + 1}
+      </span>
+    ),
     enableSorting: false,
     enableHiding: false,
+    meta: { className: "w-12 text-center tabular-nums" },
   },
   {
     accessorKey: "name",

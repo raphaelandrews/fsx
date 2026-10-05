@@ -1,20 +1,22 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Calendar01Icon, Trophy } from "@hugeicons/core-free-icons";
+import { ArrowUpRight01Icon, Calendar01Icon, Trophy } from "@hugeicons/core-free-icons";
 import type { inferRouterOutputs } from "@trpc/server";
 
-import { Button, buttonVariants } from "@fsx/ui/components/button";
+import { buttonVariants } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
 import { resolveEventLinkType } from "@fsx/api/event-link-types";
 import type { AppRouter } from "@fsx/api/routers/index";
 
 import { Section } from "./section";
-import { StatusDot } from "./status-dot";
 
 type Event = inferRouterOutputs<AppRouter>["events"]["list"][number];
 type EventLink = NonNullable<Event["linkGroup"]>["links"][number];
 
 const PREFERENCE: Record<string, number> = { form: 0, regulation: 1, results: 2 };
+
+const DAY_MS = 86_400_000;
+const dayNumber = (isoDate: string) => Date.parse(`${isoDate.slice(0, 10)}T00:00:00Z`) / DAY_MS;
 
 export function Events({ events }: { events: Event[] }) {
   // Fixed timezone so the server (UTC) and client pick the same "today" and
@@ -35,42 +37,50 @@ export function Events({ events }: { events: Event[] }) {
 
   return (
     <Section icon={Trophy} label="Próximos Eventos" main={false}>
-      <div className="grid sm:grid-cols-2 md:grid-cols-3">
+      <ul className="grid gap-3 px-3 sm:grid-cols-2 sm:px-0 md:grid-cols-3">
         {upcoming.map((event) => (
-          <EventCard
-            key={event.id}
-            name={event.name}
-            startDate={event.startDate}
-            links={event.linkGroup?.links ?? []}
-          />
+          <li key={event.id}>
+            <EventCard
+              name={event.name}
+              startDate={event.startDate}
+              daysUntil={dayNumber(event.startDate) - dayNumber(today)}
+              links={event.linkGroup?.links ?? []}
+            />
+          </li>
         ))}
-      </div>
+      </ul>
     </Section>
   );
+}
+
+function countdown(days: number) {
+  if (days === 0) return "Hoje";
+  if (days === 1) return "Amanhã";
+  return `Em ${days} dias`;
 }
 
 function EventCard({
   name,
   startDate,
+  daysUntil,
   links,
 }: {
   name: string;
-  startDate: string | Date;
+  startDate: string;
+  daysUntil: number;
   links: EventLink[];
 }) {
   // startDate is a date-only "YYYY-MM-DD" string. new Date("YYYY-MM-DD")
   // parses as UTC midnight; formatting that in America/Sao_Paulo (UTC-3)
   // shifts it back a day (17 -> 16). Parse as UTC and format in UTC so the
   // stored calendar date renders exactly, with identical server/client output.
-  const dateObj = typeof startDate === "string" ? new Date(startDate + "T00:00:00Z") : startDate;
-
   const formattedDate = new Intl.DateTimeFormat("pt-BR", {
     day: "numeric",
     month: "short",
     year: "numeric",
     timeZone: "UTC",
   })
-    .format(dateObj)
+    .format(new Date(`${startDate.slice(0, 10)}T00:00:00Z`))
     .replace(/de\s/g, "")
     .replace(".", "")
     .replace(/^\d+\s(\w)/, (match, p1) => match.replace(p1, p1.toUpperCase()))
@@ -78,109 +88,69 @@ function EventCard({
 
   // Normalize the stored type (legacy event links are "link") from the label so
   // Formulário/Regulamento/Chess-Results are recognized for the layout.
-  const resolved = links.map((link) => ({
-    ...link,
-    type: resolveEventLinkType(link.type, link.label),
-  }));
-  const ordered = [...resolved].sort(
-    (a, b) => (PREFERENCE[a.type] ?? 9) - (PREFERENCE[b.type] ?? 9) || a.sortOrder - b.sortOrder,
-  );
-
-  const renderLink = (link: EventLink, extra?: string) => (
-    <LinkAction
-      key={link.id}
-      link={link}
-      variant={link.type === "form" ? "default" : "outline"}
-      className={extra}
-    />
-  );
-
-  const linksContent = (() => {
-    if (ordered.length === 0) {
-      return (
-        <Button variant="secondary" disabled className="mt-1 h-9 w-full" size="sm">
-          Em Breve
-        </Button>
-      );
-    }
-    if (ordered.length === 1) {
-      return <div className="mt-1">{renderLink(ordered[0], "w-full")}</div>;
-    }
-    if (ordered.length === 2) {
-      return (
-        <div className="mt-1 flex flex-col gap-2">
-          {ordered.map((link) => renderLink(link, "w-full"))}
-        </div>
-      );
-    }
-    const formLink = ordered.find((link) => link.type === "form");
-    const rest = ordered.filter((link) => link.type !== "form");
-    return (
-      <div className="mt-1 flex flex-col gap-2">
-        {formLink && renderLink(formLink, "w-full")}
-        {rest.length > 0 && (
-          <div className="grid md:grid-cols-2 gap-2">
-            {rest.map((link) => renderLink(link))}
-          </div>
-        )}
-      </div>
-    );
-  })();
+  const ordered = links
+    .map((link) => ({ ...link, type: resolveEventLinkType(link.type, link.label) }))
+    .sort((a, b) => (PREFERENCE[a.type] ?? 9) - (PREFERENCE[b.type] ?? 9) || a.sortOrder - b.sortOrder);
+  const [first, ...rest] = ordered;
 
   return (
-    <div>
-      <div className="m-1">
-        <div className="flex items-center justify-between p-3">
-          <div className="flex flex-col gap-2 w-full">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold leading-tight line-clamp-2">{name}</h3>
-              <StatusDot date={startDate} />
+    <article className="flex h-full flex-col gap-3 rounded-2xl bg-muted p-4">
+      <header className="flex items-start justify-between gap-3">
+        <h3 className="line-clamp-2 font-semibold text-base leading-snug">{name}</h3>
+        {daysUntil <= 14 && (
+          <span
+            className={cn(
+              "shrink-0 rounded-full px-2 py-0.5 font-semibold text-xs",
+              daysUntil <= 7 ? "bg-warning text-warning-foreground" : "bg-background text-muted-foreground",
+            )}
+          >
+            {countdown(daysUntil)}
+          </span>
+        )}
+      </header>
+      <p className="flex items-center gap-1.5 text-muted-foreground text-sm">
+        <HugeiconsIcon icon={Calendar01Icon} className="size-4" aria-hidden />
+        <time dateTime={startDate.slice(0, 10)}>{formattedDate}</time>
+      </p>
+
+      {ordered.length === 0 ? (
+        <p className="mt-auto text-muted-foreground text-sm">Links em breve</p>
+      ) : (
+        <div className="mt-auto flex flex-col gap-2">
+          <LinkAction link={first} primary={first.type === "form"} />
+          {rest.length > 0 && (
+            <div className={cn("grid gap-2", rest.length > 1 && "sm:grid-cols-2")}>
+              {rest.map((link) => (
+                <LinkAction key={link.id} link={link} />
+              ))}
             </div>
-            <div className="flex items-center gap-1 text-muted-foreground select-none text-xs font-medium">
-              <HugeiconsIcon icon={Calendar01Icon} size={14} /> <span>{formattedDate}</span>
-            </div>
-            {linksContent}
-          </div>
+          )}
         </div>
-      </div>
-    </div>
+      )}
+    </article>
   );
 }
 
-function LinkAction({
-  link,
-  variant,
-  className,
-}: {
-  link: EventLink;
-  variant: "default" | "outline";
-  className?: string;
-}) {
-  const inner = (
-    <>
-      {link.label}
-      {!link.href && <span className="ml-1 text-xs opacity-70">(em breve)</span>}
-    </>
-  );
-
-  // Real anchor keeps native open-in-new-tab/middle-click behavior, styled
-  // with the shared button variants.
-  if (link.href) {
+function LinkAction({ link, primary = false }: { link: EventLink; primary?: boolean }) {
+  if (!link.href) {
     return (
-      <a
-        href={link.href}
-        target="_blank"
-        rel="noreferrer"
-        className={cn(buttonVariants({ variant, size: "sm" }), "h-9", className)}
-      >
-        {inner}
-      </a>
+      <span className="inline-flex h-9 items-center justify-center rounded-full border border-dashed px-3.5 text-muted-foreground text-sm">
+        {link.label} · em breve
+      </span>
     );
   }
 
+  // Real anchor keeps native open-in-new-tab/middle-click behavior.
   return (
-    <Button size="sm" variant={variant} className={cn("h-9", className)} disabled>
-      {inner}
-    </Button>
+    <a
+      href={link.href}
+      target="_blank"
+      rel="noreferrer"
+      className={cn(buttonVariants({ variant: primary ? "default" : "outline", size: "lg" }), "w-full active:scale-[0.96]")}
+    >
+      {link.label}
+      <HugeiconsIcon icon={ArrowUpRight01Icon} data-icon="inline-end" className="size-4" aria-hidden />
+      <span className="sr-only"> (abre em nova aba)</span>
+    </a>
   );
 }

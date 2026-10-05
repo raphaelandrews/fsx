@@ -12,7 +12,7 @@ const formatDate = (iso: string) => iso.split("-").reverse().join("/");
 
 export function CircuitStatus({ circuit }: { circuit: Circuit }) {
   return (
-    <p className="mb-4 text-center text-muted-foreground text-sm">
+    <p className="mb-4 text-center text-muted-foreground text-base">
       {circuit.year ? `Temporada ${circuit.year} · ` : ""}
       {circuit.finishedAt ? `Encerrada em ${formatDate(circuit.finishedAt)}` : "Em andamento"}
     </p>
@@ -36,10 +36,10 @@ export function CircuitChampions({ circuit }: { circuit: Circuit }) {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {[...groups].map(([category, podiums]) => (
           <div key={category} className="rounded-lg border p-3">
-            <h3 className="mb-2 font-medium text-sm">{category}</h3>
+            <h3 className="mb-2 font-medium text-base">{category}</h3>
             <ol className="space-y-1.5">
               {podiums.map((podium) => (
-                <li key={podium.id} className="flex items-center gap-2 text-sm">
+                <li key={podium.id} className="flex items-center gap-2 text-base">
                   <HugeiconsIcon
                     icon={PLACE_ICONS[podium.place as keyof typeof PLACE_ICONS] ?? Medal01Icon}
                     className="size-4 shrink-0 text-muted-foreground"

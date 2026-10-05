@@ -8,6 +8,8 @@ import {
   tvSergipeLeaderboardOptions,
   tvSergipeListOptions,
 } from "@/components/tv-sergipe/queries";
+import { SchoolIcon } from "@hugeicons/core-free-icons";
+
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
@@ -66,7 +68,7 @@ export const Route = createFileRoute("/_public/tv-sergipe")({
 function RouteComponent() {
   return (
     <>
-      <PageHeader
+      <PageHeader icon={SchoolIcon}
         title="Jogos Escolares TV Sergipe"
         description="Classificação por escola nos Jogos Escolares TV Sergipe — medalhas e pontos por idade, sexo e modalidade."
       />

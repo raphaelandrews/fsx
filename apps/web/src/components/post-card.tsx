@@ -34,13 +34,13 @@ export function PostCard({
     >
       <div
         aria-hidden
-        className="relative aspect-video w-full overflow-hidden rounded-md bg-muted select-none"
+        className="relative aspect-video w-full overflow-hidden rounded-md bg-muted select-none after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:shadow-[inset_0_0_0_1px_oklch(0_0_0/0.1)] after:content-[''] dark:after:shadow-[inset_0_0_0_1px_oklch(1_0_0/0.1)]"
         style={slug ? { viewTransitionName: `post-image-${slug}` } : undefined}
       >
         {imageUrl ? (
           <img
             alt=""
-            className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover object-top outline-none transition-transform duration-300 group-hover:scale-105"
             decoding="async"
             height={675}
             loading="lazy"
