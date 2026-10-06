@@ -31,7 +31,7 @@ export function TournamentRatingResults({ tournamentId }: { tournamentId: number
       cell: ({ row }) =>
         row.original.player ? (
           <RowLink to="/dashboard/players/$id" id={row.original.player.id}>
-            {row.original.player.name}
+            <span className="font-semibold">{row.original.player.name}</span>
           </RowLink>
         ) : (
           "Unknown player"

@@ -441,7 +441,7 @@ Tasks:
   SSR check and a11y e2e; not in the sitemap.
 - [ ] Deferred: the OG image. Rendering images at the edge (Satori/resvg) costs hundreds of
   milliseconds of CPU, far above the free plan's 10 ms; revisit on the paid plan. The recap uses
-  the player's photo as its preview meanwhile.
+  the player's photo as its preview meanwhile, and Phase 8.5 adds a card drawn in the browser.
 - [x] Tests and docs.
 
 ---
@@ -470,6 +470,83 @@ Tasks:
 
 ---
 
+## Phase 8 — Progress, rarity, and new emblems
+
+**Status: done (2026-10-05).** Make achievements discoverable and motivating: show how close the
+next goal is, how rare each emblem is, add emblems derived from data already recorded, and give
+players something to share. Badges still give no XP (Phase 2), so levels don't change.
+
+### 8.1 Progress on locked emblems
+- [x] `upcomingOf` returns `progress: { current, target }` for each locked emblem (tournaments,
+  rating thresholds, and the new ladders below).
+- [x] The locked emblem popover shows the progress as a bar and "7 de 10 torneios" /
+  "1958 de 2000 no rápido".
+- [x] Tests: progress values per ladder, no progress for completed ladders.
+
+### 8.2 "Próximo marco" on the profile
+- [x] `nextMilestone(upcoming)`: the locked emblem with the highest completed share.
+- [x] One line under the level bar: "Próximo marco: 2000 no rápido · faltam 42 pontos", with a bar.
+- [x] Tests: picks the closest goal; none when every ladder is complete.
+
+### 8.3 Emblem rarity
+- [x] One stored computation per data change (`computed_results`, key `gamification:<year>`)
+  holds the records **and** the number of players holding each emblem, so an admin change
+  triggers one expensive recompute, not two. `records.all` reads the records from it.
+- [x] `records.badges` public procedure: share of players (with at least one tournament) holding
+  each emblem, plus record holders (8.6). Cache policy entry; invalidated like `records.all`.
+- [x] The emblem popover shows "12% dos jogadores têm". The profile loads it without suspending,
+  so a recompute never delays or breaks the profile.
+- [x] Tests: shares over a fixture, an emblem nobody holds.
+
+### 8.4 New emblems (badges.ts, derived from existing data)
+| Emblem | Rule | Tiers |
+| --- | --- | --- |
+| Veterano | Seasons with at least one result | 5 / 10 / 20 |
+| Maratonista | Tournaments in a single year | 6 / 10 / 15 |
+| Tríplice | All three formats played in the same year | single |
+| Tríplice 2000 | Peak ≥ 2000 in rapid, blitz, and classic | single (platinum) |
+| Volta por cima | A positive result right after 3+ results without gain, same format | single |
+| Grande salto | Single-tournament gain of +30 / +50 / +80 | 3 |
+| Circuito completo | Played every stage of a circuit season | single |
+| Pódio de etapa | Circuit stage podiums | 3 / 10 / 25 |
+| Campeão de categoria | First place in a tournament category (Sub-14, Feminino, …) | one per category |
+| Década | A result 10+ years after the first recorded tournament | single |
+| Recordista | Holds first place in a `/recordes` list | single (from 8.3) |
+
+- [x] Stats module: the derived fields these need (gain steps, comeback, formats per year, stage
+  podium dates, category wins, stage counts per circuit season), each with provenance.
+- [x] Loader: stage count per circuit season for "Circuito completo".
+- [x] Unit tests per emblem, including legacy/undated provenance and ties.
+
+### 8.5 Shareable season card
+- [x] "Baixar imagem" on `/jogadores/$id/temporada/$ano`: draws the season summary (name, year,
+  tournaments, best result, XP, podiums, rating change) to a canvas in the browser and downloads
+  a PNG. Replaces the deferred server-rendered OG image without any edge CPU.
+
+### 8.6 Path to title (unofficial)
+- [x] `titlePath(...)`: show only the next major-title goal (CMS → MSE → GMS), while retaining
+  eligible youth and female-title goals. Requirements from `/normas-tecnicas` are checks with
+  progress: peak rating, top-3 overall finishes and wins in the listed Sergipanos (Absoluto, Rápido,
+  Blitz, Equipes), sex for MFS, and age for MMS/MJS when a birth date exists. MSHC (honorary) is
+  excluded.
+- [x] Profile section "Caminho para títulos", marked unofficial: the federation grants titles,
+  top-5 finishes aren't recorded (only podiums), and championships approved case by case aren't
+  counted.
+- [x] Tests: major-title progression, each title's rule, a player over the youth age limit, unknown
+  birth date.
+
+### 8.7 "Destaque do mês" on the home page
+- [x] `records.monthHighlight`: the biggest single-tournament rating gain in the current month
+  (America/Sao_Paulo); `null` when the month has no results. Cache policy and invalidation entries.
+- [x] Home block linking to the player and the tournament; hidden when `null`.
+- [x] Integration tests: picks the largest gain, ignores other months.
+
+### 8.8 Docs and verification
+- [x] Update `reference/procedures.mdx`, `guide/players.mdx`, and DESIGN.md where the UI changes.
+- [x] `bun test`, `bun run check-types`, `bun run lint`, browser check of profile, season, and home.
+
+---
+
 ## Order and sizing
 
 | # | Phase | Schema change | Size |
@@ -482,6 +559,7 @@ Tasks:
 | 5 | Clubs ✅ | — | M |
 | 6 | Heatmap + season recap ✅ | — | M |
 | 7 | Home feed ✅ | — | S |
+| 8 | Progress, rarity, new emblems, path to title, highlight ✅ | — | L |
 
 ## Deferred
 

@@ -159,8 +159,8 @@ describe("playerStats", () => {
           { place: 2, category: null, tournament: tournament(900, "1998-04-01") },
         ],
         circuitStageResults: [
-          { place: 5, category: "Sub 18 Masculino", tournamentId: 901, date: "2025-02-01", circuit: { id: 1, name: "Circuito" } },
-          { place: 1, category: "Sub 18 Masculino", tournamentId: results[0]!.tournament.id, date: "2025-01-05", circuit: { id: 1, name: "Circuito" } },
+          { place: 5, category: "Sub 18 Masculino", tournamentId: 901, date: "2025-02-01", circuit: { id: 1, name: "Circuito", stages: 4 } },
+          { place: 1, category: "Sub 18 Masculino", tournamentId: results[0]!.tournament.id, date: "2025-01-05", circuit: { id: 1, name: "Circuito", stages: 4 } },
         ],
       }),
     );
@@ -179,8 +179,8 @@ describe("playerStats", () => {
           { place: 3, category: null, tournament: tournament(3, "2024-10-01") },
         ],
         circuitStageResults: [
-          { place: 2, category: null, tournamentId: 4, date: "2024-03-01", circuit: { id: 1, name: "C" } },
-          { place: 7, category: null, tournamentId: 5, date: "2024-04-01", circuit: { id: 1, name: "C" } },
+          { place: 2, category: null, tournamentId: 4, date: "2024-03-01", circuit: { id: 1, name: "C", stages: 4 } },
+          { place: 7, category: null, tournamentId: 5, date: "2024-04-01", circuit: { id: 1, name: "C", stages: 4 } },
         ],
         circuitFinalPodiums: [
           { place: 1, category: "Sub 16 Feminino", circuit: { ...tournament(10, "2024-11-30"), year: 2024 } },

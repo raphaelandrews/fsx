@@ -1,6 +1,7 @@
 import { and, asc, eq, inArray, isNotNull, type SQL } from "drizzle-orm";
 
 import { circuitFinalPodiums } from "@fsx/db/schema/circuitFinalPodiums";
+import { circuitPhases } from "@fsx/db/schema/circuitPhases";
 import { circuitPodiums } from "@fsx/db/schema/circuitPodiums";
 import { players } from "@fsx/db/schema/players";
 import { playersToTitles } from "@fsx/db/schema/playersToTitles";
@@ -10,10 +11,11 @@ import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
 import type { CompetitionTier } from "../circuit-types";
 import type { Context } from "../context";
 import type { RatingType } from "../routers/rating-update";
-import { achievementsOf, upcomingOf } from "./badges";
+import { achievementsOf, nextMilestone, upcomingOf } from "./badges";
 import { PLAYER_RESULTS_LIMIT, STARTING_RATING } from "./constants";
 import { playerLevel, type LevelInput } from "./level";
 import { playerStats, type Competition, type StatsInput } from "./stats";
+import { titlePath } from "./title-path";
 
 // Every career at once (records, clubs). Far above today's 8.5k results.
 const ALL_CAREERS_LIMIT = 100_000;
@@ -49,7 +51,7 @@ function careerQueries(db: Context["db"], scope?: number | number[]) {
   return [
     db.query.players.findMany({
       where: only(players.id),
-      columns: { id: true, name: true, nickname: true, active: true, classic: true, rapid: true, blitz: true },
+      columns: { id: true, name: true, nickname: true, active: true, classic: true, rapid: true, blitz: true, sex: true, birthDate: true },
       limit: typeof scope === "number" ? 1 : ALL_CAREERS_LIMIT,
     }),
     db.query.playersToTournaments.findMany({
@@ -92,21 +94,22 @@ function careerQueries(db: Context["db"], scope?: number | number[]) {
       where: only(playersToTitles.playerId),
       columns: { playerId: true },
       limit,
-      with: { title: { columns: { tier: true } } },
+      with: { title: { columns: { tier: true, shortName: true } } },
     }),
     db.query.tournaments.findMany({
       columns: { id: true, name: true, date: true, tier: true, championshipId: true },
       limit: ALL_CAREERS_LIMIT,
       with: { championship: { columns: { name: true } } },
     }),
+    db.select({ circuitId: circuitPhases.circuitId }).from(circuitPhases).limit(ALL_CAREERS_LIMIT),
   ] as const;
 }
 
 type CareerRows = Awaited<ReturnType<typeof loadCareerRows>>;
 
 export async function loadCareerRows(db: Context["db"], scope?: number | number[]) {
-  const [people, results, podiums, stages, finals, titles, events] = await db.batch(careerQueries(db, scope));
-  return { people, results, podiums, stages, finals, titles, events };
+  const [people, results, podiums, stages, finals, titles, events, phases] = await db.batch(careerQueries(db, scope));
+  return { people, results, podiums, stages, finals, titles, events, phases };
 }
 
 export type CareerPlayer = CareerRows["people"][number];
@@ -114,11 +117,14 @@ export type CareerPlayer = CareerRows["people"][number];
 export interface Career {
   player: CareerPlayer;
   input: StatsInput & LevelInput;
+  titleShortNames: string[];
   tournaments: Record<number, { name: string; date: string | null }>;
 }
 
 function careers(rows: CareerRows): Map<number, Career> {
   const byId = new Map(rows.events.map((row) => [row.id, competition(row)]));
+  const stageCounts = new Map<number, number>();
+  for (const { circuitId } of rows.phases) stageCounts.set(circuitId, (stageCounts.get(circuitId) ?? 0) + 1);
   const byPlayer = new Map<number, Career>();
   for (const player of rows.people) {
     byPlayer.set(player.id, {
@@ -131,6 +137,7 @@ function careers(rows: CareerRows): Map<number, Career> {
         circuitFinalPodiums: [],
         titleTiers: [],
       },
+      titleShortNames: [],
       tournaments: {},
     });
   }
@@ -162,7 +169,7 @@ function careers(rows: CareerRows): Map<number, Career> {
       category: row.category,
       tournamentId: row.circuitPhases.tournamentId,
       date: row.circuitPhases.tournament.date,
-      circuit: row.circuitPhases.circuit,
+      circuit: { ...row.circuitPhases.circuit, stages: stageCounts.get(row.circuitPhases.circuit.id) ?? 0 },
     });
     career.tournaments[row.circuitPhases.tournamentId] = row.circuitPhases.tournament;
   }
@@ -173,7 +180,11 @@ function careers(rows: CareerRows): Map<number, Career> {
       circuit: { ...competition({ ...row.circuit, date: row.circuit.finishedAt }), year: row.circuit.year },
     });
   }
-  for (const row of rows.titles) byPlayer.get(row.playerId)?.input.titleTiers.push(row.title.tier);
+  for (const row of rows.titles) {
+    const career = byPlayer.get(row.playerId);
+    career?.input.titleTiers.push(row.title.tier);
+    career?.titleShortNames.push(row.title.shortName);
+  }
   return byPlayer;
 }
 
@@ -187,11 +198,23 @@ export async function loadPlayerStats(db: Context["db"], playerId: number) {
   const career = await loadPlayerCareer(db, playerId);
   if (!career) return undefined;
   const stats = playerStats(career.input);
+  const upcoming = upcomingOf(stats);
+  // The federation's year, not UTC's, for youth title ages around New Year.
+  const year = Number(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric" }).format(new Date()));
   return {
     stats,
     level: playerLevel(career.input, stats),
     achievements: achievementsOf(stats),
-    upcoming: upcomingOf(stats),
+    upcoming,
+    nextMilestone: nextMilestone(upcoming),
+    titlePath: titlePath({
+      stats,
+      podiums: career.input.tournamentPodiums,
+      sex: career.player.sex,
+      birthDate: career.player.birthDate,
+      heldShortNames: career.titleShortNames,
+      year,
+    }),
     tournaments: career.tournaments,
   };
 }

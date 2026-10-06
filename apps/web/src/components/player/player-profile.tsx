@@ -1,5 +1,8 @@
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+
+import { RECORD_HOLDER_ID, recordHolderAchievement } from "@fsx/api/gamification/badges";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowUpRight01Icon,
@@ -12,6 +15,7 @@ import {
   Analytics01Icon,
   Route01Icon,
   ScrollIcon,
+  Medal01Icon,
 } from "@hugeicons/core-free-icons";
 
 import { columns } from "@/components/sheets/player/columns";
@@ -37,6 +41,9 @@ import { byTitleTier } from "@/components/player/title-emblems";
 import type { ClubStanding, PlayerAnnouncement, PlayerCircuitSeason, PlayerRanking, PlayerStatsResult } from "@/components/player/types";
 import { Movement } from "@/components/gamification/movement";
 import { StatTile } from "@/components/gamification/stat-tile";
+import { PlayerMilestone } from "@/components/player/player-milestone";
+import { PlayerTitlePath } from "@/components/player/player-title-path";
+import { useTRPC } from "@/utils/trpc";
 
 function FormatPodium(place: number | null | undefined, championshipId: number) {
   const icon = podiumIcon(place, championshipId);
@@ -161,6 +168,24 @@ export function PlayerProfile({
 
   const titleEmblems = React.useMemo(() => byTitleTier(player?.playersToTitles ?? []), [player?.playersToTitles]);
 
+  // Site-wide emblem data (rarity, record holders). Loaded after the page renders:
+  // it can trigger the all-careers recompute, which must never delay the profile.
+  const trpc = useTRPC();
+  const { data: badges } = useQuery(trpc.records.badges.queryOptions());
+  const heldRecords = badges?.recordHolders[player.id];
+  const achievements = React.useMemo(
+    () => (heldRecords ? [...stats.achievements, recordHolderAchievement(heldRecords)] : stats.achievements),
+    [stats.achievements, heldRecords],
+  );
+  const rarity = React.useCallback(
+    (id: string) => {
+      if (!badges || badges.players === 0) return undefined;
+      const holders = id === RECORD_HOLDER_ID ? Object.keys(badges.recordHolders).length : badges.holders[id];
+      return holders === undefined ? undefined : holders / badges.players;
+    },
+    [badges],
+  );
+
   const medalCount = Object.values(stats.stats.medals).reduce((sum, m) => sum + m.gold + m.silver + m.bronze, 0);
 
   const tournaments = React.useMemo(() => {
@@ -212,6 +237,7 @@ export function PlayerProfile({
             </div>
 
             <PlayerLevel level={stats.level} />
+            <PlayerMilestone milestone={stats.nextMilestone} />
 
             <div className="flex flex-wrap items-center justify-center gap-2">
               {titleEmblems.map(({ title }) => (
@@ -257,7 +283,7 @@ export function PlayerProfile({
             <Announcement icon={Target01Icon} label="Conquistas" />
             <div className="grid gap-6 px-3 pt-1 pb-4">
               <TrophyCabinet medals={stats.stats.medals} />
-              <AchievementGrid achievements={stats.achievements} upcoming={stats.upcoming} />
+              <AchievementGrid achievements={achievements} upcoming={stats.upcoming} rarity={rarity} />
               {player.defendingChampions && player.defendingChampions.length > 0 && (
                 <section aria-labelledby="player-defending">
                   <Subheading id="player-defending">Atual campeão</Subheading>
@@ -319,6 +345,13 @@ export function PlayerProfile({
             </div>
           </section>
         )}
+
+      {stats.titlePath.length > 0 && (
+        <section aria-label="Caminho para títulos">
+          <Announcement icon={Medal01Icon} label="Caminho para títulos" />
+          <PlayerTitlePath goals={stats.titlePath} />
+        </section>
+      )}
 
       <section className="mb-0">
         <Announcement icon={InformationCircleIcon} label="Informações" />

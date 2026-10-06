@@ -8,6 +8,14 @@ export const RATING_THRESHOLDS = [2000, 2100, 2200, 2300, 2400] as const;
 
 export const TOURNAMENTS_PLAYED_STEPS = [10, 25, 50, 100] as const;
 export const POSITIVE_STREAK_STEPS = [3, 5, 10] as const;
+// Phase 8 emblems.
+export const VETERAN_SEASON_STEPS = [5, 10, 20] as const;
+export const MARATHON_STEPS = [6, 10, 15] as const;
+export const GAIN_STEPS = [30, 50, 80] as const;
+export const STAGE_PODIUM_STEPS = [3, 10, 25] as const;
+// "Volta por cima": a gain right after this many results without one, same format.
+export const COMEBACK_AFTER = 3;
+export const DECADE_YEARS = 10;
 
 // The "Novidades" feed shows only items dated on or after this day (and within
 // the last 60 days), so launch does not publish decades of history as news.

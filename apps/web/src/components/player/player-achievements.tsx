@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { BadgesByTier } from "@/components/gamification/achievement-badge";
+import { BadgesByTier, type RarityLookup } from "@/components/gamification/achievement-badge";
 import { Medal } from "@/components/gamification/medal";
 
 import type { PlayerStatsResult } from "./types";
@@ -46,7 +46,11 @@ export function TrophyCabinet({ medals }: { medals: PlayerStatsResult["stats"]["
   );
 }
 
-export function AchievementGrid({ achievements, upcoming }: Pick<PlayerStatsResult, "achievements" | "upcoming">) {
+export function AchievementGrid({
+  achievements,
+  upcoming,
+  rarity,
+}: Pick<PlayerStatsResult, "achievements" | "upcoming"> & { rarity?: RarityLookup }) {
   if (achievements.length === 0 && upcoming.length === 0) return null;
   return (
     <section aria-labelledby="player-badges">
@@ -56,7 +60,7 @@ export function AchievementGrid({ achievements, upcoming }: Pick<PlayerStatsResu
       >
         Emblemas
       </Subheading>
-      <BadgesByTier achievements={achievements} upcoming={upcoming} />
+      <BadgesByTier achievements={achievements} upcoming={upcoming} rarity={rarity} />
     </section>
   );
 }

@@ -93,7 +93,7 @@ export function CircuitFinalPodiums({ circuit }: { circuit: Circuit }) {
     {
       id: "player",
       header: "Player",
-      cell: ({ row }) => <span className="font-medium">{row.original.player?.name ?? "—"}</span>,
+      cell: ({ row }) => <span className="font-semibold">{row.original.player?.name ?? "—"}</span>,
     },
     {
       id: "points",

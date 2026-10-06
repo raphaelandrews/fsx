@@ -1,11 +1,20 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  ArrowReloadHorizontalIcon,
   Award01Icon,
+  Calendar03Icon,
   ChampionIcon,
   ChartUpIcon,
-  ChessPawnIcon,
+  PartyPopperIcon,
+  Clock01Icon,
+  CrownIcon,
   FireIcon,
+  GridIcon,
   LockIcon,
+  Medal01Icon,
+  Rocket01Icon,
+  Route01Icon,
+  RunningShoesIcon,
   StarIcon,
 } from "@hugeicons/core-free-icons";
 
@@ -17,11 +26,20 @@ import { TIER_LABELS, formatIsoDate } from "./tier";
 
 export const BADGE_ICONS: Record<BadgeIcon, typeof StarIcon> = {
   rating: ChartUpIcon,
-  tournaments: ChessPawnIcon,
+  tournaments: PartyPopperIcon,
   streak: FireIcon,
   first: StarIcon,
   podium: Award01Icon,
   trophy: ChampionIcon,
+  veteran: Clock01Icon,
+  marathon: RunningShoesIcon,
+  formats: GridIcon,
+  comeback: ArrowReloadHorizontalIcon,
+  leap: Rocket01Icon,
+  circuit: Route01Icon,
+  category: Medal01Icon,
+  decade: Calendar03Icon,
+  record: CrownIcon,
 };
 
 function earnedText(achievement: Achievement) {
@@ -30,7 +48,30 @@ function earnedText(achievement: Achievement) {
   return `Conquistada em ${formatIsoDate(achievement.earnedAt)}`;
 }
 
-export function AchievementBadge({ achievement, locked = false }: { achievement: Achievement; locked?: boolean }) {
+// Share of players holding the emblem, from records.badges; undefined until loaded.
+export type RarityLookup = (id: string) => number | undefined;
+
+const formatShare = (share: number) =>
+  share < 0.01 ? "menos de 1%" : `${Math.round(share * 100)}%`;
+
+export function ProgressBar({ current, target, className }: { current: number; target: number; className?: string }) {
+  const percent = Math.min(100, Math.max(0, (current / target) * 100));
+  return (
+    <span className={cn("block h-1.5 overflow-hidden rounded-full bg-muted", className)} aria-hidden>
+      <span className="block h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+    </span>
+  );
+}
+
+export function AchievementBadge({
+  achievement,
+  locked = false,
+  share,
+}: {
+  achievement: Achievement;
+  locked?: boolean;
+  share?: number;
+}) {
   return (
     <Popover>
       <PopoverTrigger
@@ -58,9 +99,20 @@ export function AchievementBadge({ achievement, locked = false }: { achievement:
           <p className="font-medium leading-tight">{achievement.label}</p>
         </div>
         <p className="text-pretty text-muted-foreground">{achievement.description}</p>
+        {locked && achievement.progress && (
+          <div className="flex flex-col gap-1">
+            <ProgressBar current={achievement.progress.current} target={achievement.progress.target} />
+            <span className="text-muted-foreground text-sm tabular-nums">
+              {achievement.progress.current} de {achievement.progress.target}
+            </span>
+          </div>
+        )}
         <p className="text-muted-foreground text-sm">
           {locked ? "Próxima conquista · ainda não alcançada" : `${TIER_LABELS[achievement.tier]} · ${earnedText(achievement)}`}
         </p>
+        {share !== undefined && (
+          <p className="font-medium text-sm">{formatShare(share)} dos jogadores têm</p>
+        )}
       </PopoverContent>
     </Popover>
   );
@@ -69,7 +121,15 @@ export function AchievementBadge({ achievement, locked = false }: { achievement:
 const TIER_ORDER: BadgeTier[] = ["platinum", "gold", "silver", "bronze"];
 
 // Badges are neutral; the tier is a row label, so it reads without relying on color.
-export function BadgesByTier({ achievements, upcoming = [] }: { achievements: Achievement[]; upcoming?: Achievement[] }) {
+export function BadgesByTier({
+  achievements,
+  upcoming = [],
+  rarity,
+}: {
+  achievements: Achievement[];
+  upcoming?: Achievement[];
+  rarity?: RarityLookup;
+}) {
   const rows = [
     ...TIER_ORDER.map((tier) => ({
       key: tier,
@@ -93,7 +153,7 @@ export function BadgesByTier({ achievements, upcoming = [] }: { achievements: Ac
             <ul className="flex flex-wrap gap-2" aria-label={row.label}>
               {row.badges.map((achievement) => (
                 <li key={`${row.key}-${achievement.id}`}>
-                  <AchievementBadge achievement={achievement} locked={row.locked} />
+                  <AchievementBadge achievement={achievement} locked={row.locked} share={rarity?.(achievement.id)} />
                 </li>
               ))}
             </ul>

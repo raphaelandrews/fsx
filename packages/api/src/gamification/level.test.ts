@@ -71,10 +71,10 @@ describe("playerLevel", () => {
         { place: 2, category: "Sub 16 Feminino", circuit: { ...competition(101, "school"), year: 2025 } },
       ],
       circuitStageResults: [
-        { place: 1, category: null, tournamentId: 8, date: "2025-02-01", circuit: { id: 100, name: "C" } },
-        { place: 3, category: null, tournamentId: 9, date: "2025-03-01", circuit: { id: 100, name: "C" } },
-        { place: 1, category: null, tournamentId: 7, date: "2025-01-01", circuit: { id: 100, name: "C" } },
-        { place: 6, category: null, tournamentId: 10, date: "2025-04-01", circuit: { id: 100, name: "C" } },
+        { place: 1, category: null, tournamentId: 8, date: "2025-02-01", circuit: { id: 100, name: "C", stages: 4 } },
+        { place: 3, category: null, tournamentId: 9, date: "2025-03-01", circuit: { id: 100, name: "C", stages: 4 } },
+        { place: 1, category: null, tournamentId: 7, date: "2025-01-01", circuit: { id: 100, name: "C", stages: 4 } },
+        { place: 6, category: null, tournamentId: 10, date: "2025-04-01", circuit: { id: 100, name: "C", stages: 4 } },
       ],
     });
     expect(breakdown.circuitPodiums).toBe(Math.round(40 * 0.7 + 25 * 0.4 * 0.5 + 15 + 5));

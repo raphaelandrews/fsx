@@ -48,7 +48,7 @@ const links = [
   { label: "Membros", to: "/membros", icon: UserGroupIcon },
 ] as const;
 
-const CONTACT = "fsx.presidente@gmail.com";
+const CONTACT = "presidente@fsx.org.br";
 
 function RouteComponent() {
   return (

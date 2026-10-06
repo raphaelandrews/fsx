@@ -144,7 +144,7 @@ export const HeaderNavigationDrawer = () => {
               <HugeiconsIcon icon={InstagramIcon} className="size-5" strokeWidth={1.75} aria-hidden />
             </a>
             <a
-              href="mailto:fsx.presidente@gmail.com"
+              href="mailto:presidente@fsx.org.br"
               aria-label="Enviar e-mail para a FSX"
               className={buttonVariants({ variant: "secondary", size: "icon-xl", className: "active:scale-[0.96]" })}
             >

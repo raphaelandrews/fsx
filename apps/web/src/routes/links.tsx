@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowUpRight01Icon, FoldersIcon, Link01Icon } from "@hugeicons/core-free-icons";
+import { ArrowUpRight01Icon, FoldersIcon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
@@ -7,7 +7,6 @@ import { Announcement } from "@/components/announcement";
 import { FlickeringGrid } from "@/components/flickering-grid";
 import { Footer } from "@/components/footer";
 import { Logo } from "@/components/logo";
-import { PageHeader } from "@/components/page-header";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/utils/trpc";
 import { resolveLinkIcon } from "@fsx/api/link-icons";
@@ -33,7 +32,7 @@ function LinkIcon({ icon, muted = false }: { icon: string; muted?: boolean }) {
   return (
     <span
       aria-hidden="true"
-      className={`grid size-8 shrink-0 place-items-center rounded-full bg-muted ${muted ? "text-muted-foreground" : "text-foreground"} [&_svg]:size-4`}
+      className={`grid size-8 shrink-0 place-items-center rounded-full transition-colors duration-200 [&_svg]:size-4 ${muted ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground"}`}
       dangerouslySetInnerHTML={{ __html: resolveLinkIcon(icon) }}
     />
   );
@@ -42,7 +41,7 @@ function LinkIcon({ icon, muted = false }: { icon: string; muted?: boolean }) {
 function LinkItem({ href, label, icon }: { href: string | null; label: string; icon: string }) {
   if (!href) {
     return (
-      <div className="flex items-center gap-3 rounded-md border border-dashed p-3">
+      <div className="flex items-center gap-3 rounded-xl border border-dashed p-3">
         <LinkIcon icon={icon} muted />
         <span className="flex-1 text-muted-foreground">{label}</span>
         <span className="text-muted-foreground text-sm">em breve</span>
@@ -52,7 +51,7 @@ function LinkItem({ href, label, icon }: { href: string | null; label: string; i
 
   return (
     <a
-      className="group flex items-center gap-3 rounded-md p-3 transition-colors duration-200 hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring"
+      className="group flex items-center gap-3 rounded-xl p-3 transition-colors duration-200 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-ring"
       href={href}
       rel="noreferrer"
       target="_blank"
@@ -61,7 +60,7 @@ function LinkItem({ href, label, icon }: { href: string | null; label: string; i
       <span className="flex-1 font-semibold">{label}</span>
       <HugeiconsIcon
         aria-hidden="true"
-        className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
+        className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
         icon={ArrowUpRight01Icon}
       />
       <span className="sr-only"> (abre em nova aba)</span>
@@ -89,10 +88,10 @@ function RouteComponent() {
               />
             </div>
 
-            <div className="flex justify-center pt-6">
+            <h1 className="sr-only">Links</h1>
+            <div className="flex justify-center py-6">
               <Logo className="h-5 text-foreground" />
             </div>
-            <PageHeader icon={Link01Icon} title="Links" className="pt-6 sm:pt-8" />
 
             {linkGroups
               .filter((item) => (item.links?.length ?? 0) > 0)

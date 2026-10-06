@@ -50,7 +50,11 @@ function RouteComponent() {
 
       <nav aria-label="Seções" className="mb-8 flex flex-wrap justify-center gap-2">
         {SECTIONS.filter(([id]) => id !== "records-champions" || records.championships.length > 0).map(([id, label]) => (
-          <a key={id} href={`#${id}`} className={buttonVariants({ variant: "secondary", size: "lg", className: "active:scale-[0.96]" })}>
+          <a
+            key={id}
+            href={`#${id}`}
+            className={buttonVariants({ variant: "default", size: "lg", className: "active:scale-[0.96]" })}
+          >
             {label}
           </a>
         ))}
@@ -59,7 +63,7 @@ function RouteComponent() {
       <div className="flex flex-col gap-10">
         <section id="records-rating" aria-label="Rating" className="scroll-mt-24">
           <Announcement icon={ChartUpIcon} label="Rating" className="px-0" />
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <RecordCard title="Maior rating · Clássico" entries={records.peaks.classic} format={rating} />
             <RecordCard title="Maior rating · Rápido" entries={records.peaks.rapid} format={rating} />
             <RecordCard title="Maior rating · Blitz" entries={records.peaks.blitz} format={rating} />
@@ -74,7 +78,7 @@ function RouteComponent() {
 
         <section id="records-titles" aria-label="Títulos e atividade" className="scroll-mt-24">
           <Announcement icon={ChampionIcon} label="Títulos e atividade" className="px-0" />
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <RecordCard title="Mais títulos" entries={records.wins} format={(v) => plural(v, "título", "títulos")} />
             <RecordCard title="Mais pódios" entries={records.podiums} format={(v) => plural(v, "pódio", "pódios")} />
             <RecordCard
@@ -89,7 +93,7 @@ function RouteComponent() {
         {records.championships.length > 0 && (
           <section id="records-champions" aria-label="Maiores campeões por campeonato" className="scroll-mt-24">
             <Announcement icon={CrownIcon} label="Maiores campeões por campeonato" className="px-0" />
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               {records.championships.map((championship) => (
                 <RecordCard
                   key={championship.championshipId}

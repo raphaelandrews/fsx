@@ -16,6 +16,7 @@ import { cn } from "@fsx/ui/lib/utils";
 
 import { Announcement } from "@/components/announcement";
 import { BadgesByTier } from "@/components/gamification/achievement-badge";
+import { SeasonShareButton } from "@/components/gamification/season-share-button";
 import { ActivityGraph } from "@/components/gamification/activity-graph";
 import { Medal } from "@/components/gamification/medal";
 import { StatTile } from "@/components/gamification/stat-tile";
@@ -91,6 +92,21 @@ function RouteComponent() {
           <SeasonLink id={id} year={previous} direction="previous" />
           <SeasonLink id={id} year={next} direction="next" />
         </nav>
+        <div className="mt-3 flex justify-center">
+          <SeasonShareButton
+            card={{
+              playerId: id,
+              name,
+              year: season.year,
+              tournaments: season.tournamentsPlayed,
+              bestGain: season.bestGain?.variation ?? null,
+              xpGained: season.xpGained,
+              level: season.level,
+              podiums: season.podiums.length,
+              ratingChange: FORMATS.map(([format, label]) => ({ label, value: season.ratingChange[format] })),
+            }}
+          />
+        </div>
       </header>
 
       <div className="grid grid-cols-2 gap-2 px-2 sm:grid-cols-4 sm:gap-4 sm:px-4">

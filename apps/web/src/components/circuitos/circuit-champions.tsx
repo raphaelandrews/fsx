@@ -49,7 +49,7 @@ export function CircuitChampions({ circuit }: { circuit: Circuit }) {
                   <Link
                     to="/jogadores/$id"
                     params={{ id: podium.playerId }}
-                    className="truncate hover:underline"
+                    className="truncate font-semibold hover:underline"
                   >
                     {podium.player.name}
                   </Link>

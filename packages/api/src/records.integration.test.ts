@@ -65,12 +65,16 @@ describe("records.all", () => {
 
 describe("stored records", () => {
   test("are reused until an admin mutation changes the data", async () => {
-    const before = await caller.records.all();
-    const [stored] = await db.select().from(computedResults).where(like(computedResults.key, "records:%"));
+    await caller.records.all();
+    const [stored] = await db.select().from(computedResults).where(like(computedResults.key, "gamification:%"));
     expect(stored).toBeDefined();
 
     // A tampered stored value proves the next read did not recompute.
-    await db.update(computedResults).set({ value: JSON.stringify({ ...before, wins: [] }) }).where(eq(computedResults.key, stored!.key));
+    const summary = JSON.parse(stored!.value);
+    await db
+      .update(computedResults)
+      .set({ value: JSON.stringify({ ...summary, records: { ...summary.records, wins: [] } }) })
+      .where(eq(computedResults.key, stored!.key));
     expect((await caller.records.all()).wins).toEqual([]);
 
     const playerId = idOf(await caller.players.create({ name: "Caio Recorde", blitz: 1900, rapid: 1900, classic: 1900, sex: "male", active: true }));
@@ -80,8 +84,10 @@ describe("stored records", () => {
   });
 
   test("are recomputed when computed before the last change or more than a day ago", async () => {
-    const [stored] = await db.select().from(computedResults).where(like(computedResults.key, "records:%"));
-    const fake = JSON.stringify({ ...(await caller.records.all()), wins: [] });
+    await caller.records.all();
+    const [stored] = await db.select().from(computedResults).where(like(computedResults.key, "gamification:%"));
+    const summary = JSON.parse(stored!.value);
+    const fake = JSON.stringify({ ...summary, records: { ...summary.records, wins: [] } });
 
     await db.update(computedResults).set({ value: fake, computedAt: 1 }).where(eq(computedResults.key, stored!.key));
     expect((await caller.records.all()).wins.length).toBeGreaterThan(0);
@@ -91,3 +97,38 @@ describe("stored records", () => {
     expect((await caller.records.all()).wins.length).toBeGreaterThan(0);
   });
 });
+
+describe("emblem rarity and record holders", () => {
+  test("share comes from players with a tournament; first places become record holders", async () => {
+    const { players, holders, recordHolders } = await caller.records.badges();
+    const records = await caller.records.all();
+    expect(players).toBeGreaterThan(0);
+    expect(holders["first-tournament"]).toBeLessThanOrEqual(players);
+    const leader = records.wins.find((entry) => entry.place === 1)!;
+    expect(recordHolders[leader.player.id]).toContain("Mais títulos");
+  });
+});
+
+describe("month highlight", () => {
+  test("is the biggest gain in the current month and ignores other months", async () => {
+    const month = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date()).slice(0, 7);
+    const playerId = idOf(await caller.players.create({ name: "Dora Destaque", blitz: 1900, rapid: 1900, classic: 1900, sex: "female", active: true }));
+    const thisMonth = idOf(await caller.tournaments.create({ name: "Aberto do Mês", ratingType: "rapid", date: `${month}-02` }));
+    const longAgo = idOf(await caller.tournaments.create({ name: "Aberto Antigo", ratingType: "blitz", date: "2001-01-10" }));
+    await caller.playersTournament.linkWithRating({ playerId, tournamentId: thisMonth, variation: 61, ratingType: "rapid" });
+    await caller.playersTournament.linkWithRating({ playerId, tournamentId: longAgo, variation: 90, ratingType: "blitz" });
+
+    expect(await caller.records.monthHighlight()).toMatchObject({
+      variation: 61,
+      month,
+      player: { id: playerId },
+      tournament: { id: thisMonth, name: "Aberto do Mês" },
+    });
+  });
+
+  test("is null for a month without results", async () => {
+    const { monthHighlight } = await import("./routers/records");
+    expect(await monthHighlight(db, "1990-06-15")).toBeNull();
+  });
+});
+

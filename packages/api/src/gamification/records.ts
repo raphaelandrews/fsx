@@ -6,7 +6,6 @@ export const RECORD_SIZE = 10;
 // One collator: localeCompare(…, "pt-BR") builds a new one per call, which
 // dominated ranking thousands of players.
 const byName = new Intl.Collator("pt-BR").compare;
-const CHAMPIONSHIP_HOLDERS = 3;
 
 export interface RecordPlayer {
   id: number;
@@ -104,7 +103,7 @@ export function playerRecords(careers: CareerSummary[], year: number) {
             const years = dynasty.wins.flatMap((win) => (win.year === null ? [] : [win.year]));
             return { player: career.player, value: dynasty.wins.length, detail: years.join(", ") || null };
           }),
-          CHAMPIONSHIP_HOLDERS,
+          RECORD_SIZE,
         ),
       }))
       .sort((a, b) => byName(a.name, b.name)),
@@ -138,3 +137,26 @@ export function playerRecords(careers: CareerSummary[], year: number) {
 }
 
 export type PlayerRecords = ReturnType<typeof playerRecords>;
+
+// Players in first place of any record list, with the lists they lead (Recordista).
+export function recordHolders(records: PlayerRecords): Record<number, string[]> {
+  const lists: [string, RecordEntry[]][] = [
+    ["Maior rating · Clássico", records.peaks.classic],
+    ["Maior rating · Rápido", records.peaks.rapid],
+    ["Maior rating · Blitz", records.peaks.blitz],
+    ["Mais títulos", records.wins],
+    ["Mais pódios", records.podiums],
+    ["Maior sequência subindo", records.streaks],
+    ["Maior ganho em um torneio", records.gains],
+    ["Maior nível", records.levels],
+    ...records.championships.map(({ name, holders }) => [`Mais títulos · ${name}`, holders] as [string, RecordEntry[]]),
+  ];
+  const holders: Record<number, string[]> = {};
+  for (const [title, entries] of lists) {
+    for (const entry of entries) {
+      if (entry.place !== 1) continue;
+      (holders[entry.player.id] ??= []).push(title);
+    }
+  }
+  return holders;
+}

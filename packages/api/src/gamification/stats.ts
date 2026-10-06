@@ -1,6 +1,6 @@
 import type { CompetitionTier } from "../circuit-types";
 import { RATING_TYPES, type RatingType } from "../routers/rating-update";
-import { POSITIVE_STREAK_STEPS, RATING_THRESHOLDS, STARTING_RATING } from "./constants";
+import { COMEBACK_AFTER, DECADE_YEARS, GAIN_STEPS, POSITIVE_STREAK_STEPS, RATING_THRESHOLDS, STARTING_RATING } from "./constants";
 
 // Implements the Data rules of GAMIFICATION.md. Pure: callers load the rows.
 
@@ -32,7 +32,8 @@ export interface CircuitStageResult {
   category: string | null;
   tournamentId: number;
   date: string | null;
-  circuit: { id: number; name: string };
+  // `stages`: how many stages the circuit season has, for "Circuito completo".
+  circuit: { id: number; name: string; stages: number };
 }
 
 export interface CircuitFinalPodium {
@@ -66,6 +67,10 @@ export interface FormatStats {
   bestStreak: number;
   thresholds: ({ threshold: number } & Provenance)[];
   streakSteps: ({ length: number } & Provenance)[];
+  // First result reaching each GAIN_STEPS gain, and the first gain after a run of
+  // COMEBACK_AFTER results without one.
+  gainSteps: ({ step: number } & Provenance)[];
+  comeback: Provenance | null;
 }
 
 export interface Medals {
@@ -100,6 +105,18 @@ export interface PlayerStats {
     positiveResult: Provenance | null;
     podium: Provenance | null;
   };
+  // First dated tournament of each season, in order (Veterano).
+  seasonStarts: Provenance[];
+  // When a single year first had results in all three formats (Tríplice).
+  allFormatsInYear: Provenance | null;
+  // Circuit stage podiums (place 1–3), in date order (Pódio de etapa).
+  stagePodiums: Provenance[];
+  // Circuit seasons where the player played every stage (Circuito completo).
+  completeCircuits: ({ circuitId: number; name: string } & Provenance)[];
+  // First win per tournament category (Campeão de categoria).
+  categoryWins: ({ category: string } & Provenance)[];
+  // First result DECADE_YEARS or more after the first dated tournament (Década).
+  decade: Provenance | null;
 }
 
 const UNKNOWN: Provenance = { earnedAt: null, tournamentId: null, legacy: false };
@@ -151,7 +168,80 @@ export function playerStats(input: StatsInput): PlayerStats {
     },
     dynasties: dynasties(input),
     firsts: firsts(input, played[0]),
+    seasonStarts: seasonStarts(played),
+    allFormatsInYear: allFormatsInYear(input.results),
+    stagePodiums: input.circuitStageResults
+      .filter((stage) => stage.place !== null && stage.place <= 3)
+      .map((stage) => at({ id: stage.tournamentId, date: stage.date }))
+      .sort((a, b) => byDate(a.earnedAt, b.earnedAt)),
+    completeCircuits: completeCircuits(input.circuitStageResults),
+    categoryWins: categoryWins(input.tournamentPodiums),
+    decade: decade(played),
   };
+}
+
+function seasonStarts(played: PlayerStats["played"]): Provenance[] {
+  const seen = new Set<number>();
+  const starts: Provenance[] = [];
+  for (const entry of played) {
+    const year = yearOf(entry.date);
+    if (year === null || seen.has(year)) continue;
+    seen.add(year);
+    starts.push(at({ id: entry.tournamentId, date: entry.date }));
+  }
+  return starts;
+}
+
+function allFormatsInYear(results: RatingResult[]): Provenance | null {
+  const byYear = new Map<number, Map<RatingType, RatingResult>>();
+  for (const result of results) {
+    const year = yearOf(result.tournament.date);
+    if (year === null) continue;
+    const formats = byYear.get(year) ?? new Map<RatingType, RatingResult>();
+    const current = formats.get(result.ratingType);
+    if (!current || byDate(result.tournament.date, current.tournament.date) < 0) formats.set(result.ratingType, result);
+    byYear.set(year, formats);
+  }
+  const years = [...byYear.entries()]
+    .filter(([, formats]) => formats.size === RATING_TYPES.length)
+    .sort(([a], [b]) => a - b);
+  if (years.length === 0) return null;
+  // The trio completes with the latest of the three first results that year.
+  const completing = [...years[0]![1].values()].sort((a, b) => byDate(b.tournament.date, a.tournament.date))[0]!;
+  return at(completing.tournament);
+}
+
+function completeCircuits(stages: CircuitStageResult[]): PlayerStats["completeCircuits"] {
+  const byCircuit = new Map<number, { circuit: CircuitStageResult["circuit"]; tournaments: Map<number, string | null> }>();
+  for (const stage of stages) {
+    const entry = byCircuit.get(stage.circuit.id) ?? { circuit: stage.circuit, tournaments: new Map() };
+    entry.tournaments.set(stage.tournamentId, stage.date);
+    byCircuit.set(stage.circuit.id, entry);
+  }
+  return [...byCircuit.values()]
+    .filter(({ circuit, tournaments }) => circuit.stages > 0 && tournaments.size >= circuit.stages)
+    .map(({ circuit, tournaments }) => {
+      const [tournamentId, date] = [...tournaments].sort((a, b) => byDate(b[1], a[1]))[0]!;
+      return { circuitId: circuit.id, name: circuit.name, ...at({ id: tournamentId, date }) };
+    })
+    .sort((a, b) => byDate(a.earnedAt, b.earnedAt));
+}
+
+function categoryWins(podiums: TournamentPodium[]): PlayerStats["categoryWins"] {
+  const wins = new Map<string, Provenance>();
+  for (const podium of [...podiums].sort((a, b) => byDate(a.tournament.date, b.tournament.date))) {
+    if (podium.place !== 1 || podium.category === null || wins.has(podium.category)) continue;
+    wins.set(podium.category, at(podium.tournament));
+  }
+  return [...wins].map(([category, provenance]) => ({ category, ...provenance }));
+}
+
+function decade(played: PlayerStats["played"]): Provenance | null {
+  const first = played.find((entry) => entry.date !== null);
+  if (!first) return null;
+  const target = `${Number(first.date!.slice(0, 4)) + DECADE_YEARS}${first.date!.slice(4, 10)}`;
+  const reached = played.find((entry) => entry.date !== null && entry.date.slice(0, 10) >= target);
+  return reached ? at({ id: reached.tournamentId, date: reached.date }) : null;
 }
 
 // Tournaments played = rating results ∪ tournament podiums ∪ circuit stages,
@@ -180,6 +270,8 @@ function formatStats(chain: RatingResult[], current: number): FormatStats | null
         ...LEGACY,
       })),
       streakSteps: [],
+      gainSteps: [],
+      comeback: null,
     };
   }
 
@@ -194,6 +286,9 @@ function formatStats(chain: RatingResult[], current: number): FormatStats | null
   let streak = 0;
   let bestStreak = 0;
   const streakSteps: FormatStats["streakSteps"] = [];
+  const gainSteps: FormatStats["gainSteps"] = [];
+  let comeback: Provenance | null = null;
+  let withoutGain = 0;
 
   for (const row of chain) {
     const end = row.oldRating + row.variation;
@@ -209,6 +304,17 @@ function formatStats(chain: RatingResult[], current: number): FormatStats | null
         streakSteps.push({ length, ...at(row.tournament) });
       }
     }
+    for (const step of GAIN_STEPS) {
+      if (row.variation >= step && !gainSteps.some((gain) => gain.step === step)) {
+        gainSteps.push({ step, ...at(row.tournament) });
+      }
+    }
+    if (row.variation > 0) {
+      if (withoutGain >= COMEBACK_AFTER && comeback === null) comeback = at(row.tournament);
+      withoutGain = 0;
+    } else {
+      withoutGain++;
+    }
   }
   if (current > peak.rating) peak = { rating: current, ...UNKNOWN };
 
@@ -223,6 +329,8 @@ function formatStats(chain: RatingResult[], current: number): FormatStats | null
       ...thresholdProvenance(chain, threshold),
     })),
     streakSteps,
+    gainSteps,
+    comeback,
   };
 }
 

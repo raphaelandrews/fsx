@@ -38,7 +38,7 @@ components. Decorative gradients (`avatar-gradient.tsx`) are the only exception.
 | `reading` | cool gray (near `#4C5267`) | light gray | Long-form text: blog posts (prose body) and announcements. Not for tables or labels. |
 | `primary` / `primary-foreground` | burple / white | light burple / dark ink | Main buttons, active tabs, links, level chip, rating line |
 | `primary-inverse` / `-foreground` | deep burple / light burple | deep burple / light burple | Hover of primary pills (colors swap) |
-| `link` / `link-hover` | burple / azure | light burple / light azure | Inline links (`link-inline`): burple at rest, azure on hover |
+| `link` / `link-hover` | burple / deep burple | light burple / pale burple | Inline links (`link-inline`): burple at rest, deeper on hover (like the primary button) |
 | `secondary`, `muted` | `#F5F7FA` | burple-gray | Tiles, tracks, secondary buttons, hover rows |
 | `muted-foreground` | neutral gray | neutral light gray | Secondary text |
 | `accent` / `accent-foreground` | pale gray / `title` | dark gray / `title` | Selected and hovered menu items, soft tags |
@@ -213,8 +213,9 @@ All controls are 40px tall: nav triggers (`h-10`, pill hover), search (`size="xl
 
 No divider above it; spacing separates it from the page. Centered stack: logo, flag, social buttons
 (`secondary`, `icon-xl`, 20px icons), nav links (16px, `text-muted-foreground`,
-`hover:text-foreground`), and credits. The credit links have no underline: "Raphael" is `text-primary` and "Source code"
-is `text-foreground`, both turning `link-hover` on hover, at the line's own weight (600).
+`hover:text-foreground`), and credits. The credit links have no underline at rest: "Raphael" is
+`text-primary` and "Source code" is `text-foreground`, both turning `link-hover` on hover, at the
+line's own weight (600). On hover and keyboard focus, a 2px underline expands from the center.
 
 ### Page header (`PageHeader`)
 
@@ -226,16 +227,16 @@ route's icon from the nav menu (`header-navigation-data.tsx`) so the page and it
 
 For links inside running text only: FAQ answers, blog posts (`.prose a`), announcement text,
 footer credits, feed metadata. Burple, semibold, with a 1px underline in the same color offset
-3px; on hover the color turns azure (`link-hover`). Navigation, buttons, tabs, row links, and
+3px; on hover the color deepens to `link-hover` (lighter in dark mode). Navigation, buttons, tabs, row links, and
 table links keep their own styles; don't apply `link-inline` to them.
 
 ### Accordion
 
 Items are separated by a line between them only; no border above the first or below the last. The question is
 `font-semibold text-foreground`; the answer is `text-reading leading-relaxed`, so the two never
-look alike. The chevron sits in a 32px `bg-muted` circle, darkens on hover, and rotates when open.
-No underline on hover. Used for the FAQ and the Normas Técnicas titulations (abbreviation plus a
-muted one-line description in the trigger).
+look alike. The trigger gets a neutral `accent` background on hover. The chevron sits in a 32px
+`bg-muted` circle, darkens on hover, and rotates when open. No underline on hover. Used for the FAQ
+and the Normas Técnicas titulations (abbreviation plus a muted one-line description in the trigger).
 
 ### Section header (home)
 
@@ -256,7 +257,10 @@ Every table sits in a bordered frame and reads as one surface:
   (gray on the cell content, never on the header).
 - Rows: separated by a 1px `border` line, no zebra stripes; `hover:bg-muted/40`; the last row has
   no line.
+- Player names in rating tables use a centered 1px Burple underline that expands on hover and
+  keyboard focus.
 - Text: 14px (`text-sm`) in cells and header labels, set on the table.
+- Player names use `font-semibold` (600).
 - Cells: `px-4 py-3`, numbers `tabular-nums`, numeric columns centered or right-aligned
   consistently within a table.
 - These styles live in `packages/ui/src/components/table.tsx`; don't re-add borders, stripes, or
@@ -294,8 +298,11 @@ Links are `lg` pills (the form is `default`, others `outline`), each with `Arrow
 
 ### Records (`/recordes`)
 
-Jump links under the page title (`secondary` `lg` pills) to each group; groups use
-`scroll-mt-24`. Each `RecordCard` shows the top 5 and a "Ver top 10" toggle (`aria-expanded`).
+Jump links under the page title use primary `lg` buttons; groups use `scroll-mt-24`. Record cards
+use one column on phones and at most two columns from `sm` up. Each `RecordCard` shows the top 5 and
+a primary "Ver top 10" toggle (`aria-expanded`) with a down arrow, switching to an up arrow for
+"Ver menos". Its button uses `rounded-lg` inside the `rounded-2xl` card: 8px button radius + 8px
+inset = 16px outer radius.
 
 ### Player profile
 
@@ -311,6 +318,18 @@ first because they're what most visitors look for.
   `bg-destructive`) plus the word; no pulsing animation.
 - Performance switches format with pill `Tabs` (not a select); chart titles use `Subheading`, and
   empty charts show a `bg-muted rounded-2xl` message.
+
+### Progress and goals (gamification)
+
+- `ProgressBar` (`achievement-badge.tsx`): 6px `primary` fill on a `bg-muted` track; on a gray
+  card the track is `bg-background` so the empty part stays visible. Always paired with numbers
+  ("7 de 10", "2162 / 2200").
+- Locked emblem popovers show the bar; owned ones show rarity ("12% dos jogadores têm").
+- Profile: "Próximo marco" under the level bar; "Caminho para títulos" as `bg-muted rounded-2xl`
+  cards with a check list (`text-success` check when met, help icon when the data can't tell)
+  and an unofficial note. Major-title goals advance one at a time: CMS → MSE → GMS.
+- Home: "Destaque do mês" is a single centered `bg-muted` card with the gain in `text-success`.
+- `/links`: rows hover to a `bg-primary/5` tint, the icon chip fills with `primary`.
 
 ### Tiles (`StatTile`)
 
@@ -333,8 +352,9 @@ a semibold `text-base` title and a `text-sm` muted excerpt (`line-clamp-2`).
 
 ### Cards (`RecordCard`)
 
-`bg-muted rounded-2xl p-2` with a `px-2` title; rows inside are `rounded-lg` links with
-`hover:bg-background`. Places 1–3 use `Medal`.
+`bg-muted rounded-2xl border border-border p-2` with a `px-2` title; rows inside are `rounded-lg`
+links with a neutral `hover:bg-accent`. Player names use a centered 1px Burple underline that
+expands on hover and focus. Places 1–3 use `Medal` without a separate white row fill.
 
 ### Badges, medals, achievements
 

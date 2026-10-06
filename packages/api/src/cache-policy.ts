@@ -16,6 +16,8 @@ export const PROCEDURE_CACHE_POLICY: Record<string, ProcedureCachePolicy> = {
   "players.ranking": { classification: "public", ttlSeconds: 120 },
   "players.season": { classification: "public", ttlSeconds: 300 },
   "records.all": { classification: "public", ttlSeconds: 300 },
+  "records.badges": { classification: "public", ttlSeconds: 300 },
+  "records.monthHighlight": { classification: "public", ttlSeconds: 300 },
   "records.recent": { classification: "public", ttlSeconds: 300 },
   "clubs.leaderboard": { classification: "public", ttlSeconds: 300 },
   "clubs.byId": { classification: "public", ttlSeconds: 300 },

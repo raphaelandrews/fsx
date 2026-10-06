@@ -54,7 +54,7 @@
   --primary-inverse: oklch(0.3 0.13 268);
   --primary-inverse-foreground: oklch(0.87 0.08 267);
   --link: oklch(0.5 0.22 267);
-  --link-hover: oklch(0.53 0.13 245);
+  --link-hover: oklch(0.36 0.17 272);
   --ring: oklch(0.57 0.22 267);
   --selection: oklch(0.57 0.22 267);
   --selection-foreground: oklch(1 0 0);
@@ -128,7 +128,7 @@
   --primary-inverse: oklch(0.3 0.08 267);
   --primary-inverse-foreground: oklch(0.86 0.1 267);
   --link: oklch(0.79 0.1 267);
-  --link-hover: oklch(0.84 0.1 225);
+  --link-hover: oklch(0.9 0.05 267);
   --ring: oklch(0.7 0.15 267);
   --selection: oklch(0.7 0.15 267);
   --selection-foreground: oklch(0.2 0.06 267);
@@ -316,7 +316,7 @@
 
 /* ===== Inline links =====
    Links inside running text (FAQ answers, posts, announcements, credits): burple with a
-   matching underline, turning azure on hover. Navigation, buttons, and row links keep
+   matching underline, deepening on hover like the primary button does. Navigation, buttons, and row links keep
    their own styles. */
 @utility link-inline {
   color: var(--link);
@@ -329,6 +329,34 @@
   &:hover {
     color: var(--link-hover);
   }
+}
+
+@utility underline-reveal {
+  position: relative;
+  display: inline-block;
+  --underline-reveal-height: 2px;
+  --underline-reveal-color: currentColor;
+  &::after {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: var(--underline-reveal-height);
+    background-color: var(--underline-reveal-color);
+    content: "";
+    transition-property: left, width;
+    transition-duration: 200ms;
+    transition-timing-function: ease-out;
+  }
+  &:is(:hover, :focus-visible)::after {
+    left: 0;
+    width: 100%;
+  }
+}
+
+@utility underline-reveal-primary {
+  --underline-reveal-height: 1px;
+  --underline-reveal-color: var(--primary);
 }
 
 /* ===== Prose ===== */

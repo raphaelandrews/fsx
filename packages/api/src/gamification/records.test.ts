@@ -63,6 +63,16 @@ describe("playerRecords", () => {
     ]);
   });
 
+  test("championship holder lists keep the top ten", () => {
+    const holders = Array.from({ length: RECORD_SIZE + 5 }, (_, i) =>
+      career(`Jogador ${i}`, { tournamentPodiums: [win(i + 1, `202${i % 10}-07-01`, 7)] }),
+    );
+    const [absoluto] = playerRecords(holders, 2026).championships;
+
+    expect(absoluto!.holders).toHaveLength(RECORD_SIZE);
+    expect(absoluto!.holders[0]!.place).toBe(1);
+  });
+
   test("most active counts only the requested year", () => {
     const results = ["2025-03-01", "2026-03-01", "2026-04-01"].map((date, i) => ({
       id: 100 + i,

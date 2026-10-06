@@ -458,7 +458,7 @@ function ResultRow({ result }: { result: SchoolResult }) {
       <TableCell className="text-left text-sm font-medium">
         {result.modality === "team"
           ? `${result.club.name}${result.teamName ? ` ${result.teamName}` : ""}`
-          : (result.player?.name ?? "—")}
+          : <span className="font-semibold">{result.player?.name ?? "—"}</span>}
       </TableCell>
       <TableCell className="text-center text-sm tabular-nums">{result.place}º</TableCell>
       <TableCell className="text-center text-sm tabular-nums">{result.points}</TableCell>

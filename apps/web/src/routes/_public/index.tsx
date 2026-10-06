@@ -5,6 +5,7 @@ import { Announcements } from "@/components/home/announcements";
 import { Events } from "@/components/home/events";
 import { FAQ } from "@/components/home/faq";
 import { Hero } from "@/components/home/hero";
+import { MonthHighlight } from "@/components/home/month-highlight";
 import { NewsFeed } from "@/components/home/news-feed";
 import { Posts } from "@/components/home/posts";
 import { TopPlayers } from "@/components/home/ratings/top-players";
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/_public/")({
       ),
       context.queryClient.ensureQueryData(context.trpc.topPlayers.list.queryOptions()),
       context.queryClient.ensureQueryData(context.trpc.records.recent.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.records.monthHighlight.queryOptions()),
     ]);
   },
   component: RouteComponent,
@@ -57,6 +59,7 @@ function RouteComponent() {
   );
   const { data: topPlayers } = useSuspenseQuery(trpc.topPlayers.list.queryOptions());
   const { data: feed } = useSuspenseQuery(trpc.records.recent.queryOptions());
+  const { data: highlight } = useSuspenseQuery(trpc.records.monthHighlight.queryOptions());
   // Announcements already shown in Novidades (as a title or on their own) aren't repeated below.
   const inFeed = new Set(feed.flatMap((item) => (item.announcementId === null ? [] : [item.announcementId])));
   const otherAnnouncements = announcements.filter((announcement) => !inFeed.has(announcement.id));
@@ -67,6 +70,7 @@ function RouteComponent() {
       {events.length > 0 && <Events events={events} />}
       <Posts posts={posts} />
       <TopPlayers topPlayers={topPlayers} />
+      {highlight && <MonthHighlight highlight={highlight} />}
       {feed.length > 0 && <NewsFeed items={feed} />}
       {otherAnnouncements.length > 0 && <Announcements announcements={otherAnnouncements} />}
       <FAQ />

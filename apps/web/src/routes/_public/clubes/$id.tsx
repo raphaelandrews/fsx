@@ -94,7 +94,7 @@ function RouteComponent() {
               {members.map((member) => (
                 <TableRow key={member.id}>
                   <TableCell>
-                    <Link to="/jogadores/$id" params={{ id: member.id }} className="font-medium hover:underline">
+                    <Link to="/jogadores/$id" params={{ id: member.id }} className="font-semibold hover:underline">
                       {member.nickname || member.name}
                     </Link>
                     {!member.active && <span className="ml-1.5 text-muted-foreground text-sm">inativo</span>}

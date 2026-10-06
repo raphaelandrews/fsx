@@ -25,17 +25,17 @@ export const PlayerActions = ({ id, name, nickname, image, shortTitle }: Props) 
       trigger={
         <Button
           aria-label={`Ver perfil de ${name}`}
-          className="flex h-auto items-center gap-3 rounded-md p-0 text-sm hover:bg-transparent hover:underline dark:hover:bg-transparent aria-expanded:bg-transparent"
+          className="group flex h-auto items-center gap-3 rounded-md p-0 text-sm hover:bg-transparent dark:hover:bg-transparent aria-expanded:bg-transparent"
           variant="ghost"
         >
           <Avatar className="size-8">
             <AvatarImage alt={name} src={image ?? undefined} />
             <AvatarFallback className={avatarGradient(id)} />
           </Avatar>
-          <div className="font-medium whitespace-nowrap">
+          <span className="font-semibold whitespace-nowrap underline-reveal underline-reveal-primary group-hover:after:left-0 group-hover:after:w-full group-focus-visible:after:left-0 group-focus-visible:after:w-full">
             {shortTitle && <span className="text-highlight">{shortTitle}</span>}{" "}
             {nickname ?? name}
-          </div>
+          </span>
         </Button>
       }
     />

@@ -29,7 +29,7 @@ const socials = [
   },
   {
     label: "Enviar e-mail para a FSX",
-    href: "mailto:fsx.presidente@gmail.com",
+    href: "mailto:presidente@fsx.org.br",
     icon: Mail02Icon,
   },
 ];
@@ -84,7 +84,7 @@ export function Footer({ className }: { className?: string }) {
           <div className="text-balance text-center text-muted-foreground text-base leading-loose">
             Built by 📟{" "}
             <a
-              className="text-primary transition-colors duration-150 hover:text-link-hover"
+              className="underline-reveal text-primary transition-colors duration-150 hover:text-link-hover"
               href="https://andrews.sh/"
               rel="noreferrer"
               target="_blank"
@@ -93,7 +93,7 @@ export function Footer({ className }: { className?: string }) {
             </a>
             .{" "}
             <a
-              className="text-foreground transition-colors duration-150 hover:text-link-hover"
+              className="underline-reveal text-foreground transition-colors duration-150 hover:text-link-hover"
               href="https://github.com/raphaelandrews/fsx"
               rel="noreferrer"
               target="_blank"
