@@ -14,6 +14,49 @@ test("navigates to the ratings and opens a player sheet", async ({ page }) => {
   await expect(sheet).toBeHidden();
 });
 
+test("redirects the legacy records URL to statistics", async ({ page }) => {
+  await page.goto("/recordes", { waitUntil: "networkidle" });
+  await expect(page).toHaveURL(/\/estatisticas$/);
+  await expect(page.getByRole("heading", { name: "Estatísticas" })).toBeVisible();
+});
+
+test("statistics charts use grouped comparisons and a 100% tier bar", async ({ page }) => {
+  await page.goto("/estatisticas", { waitUntil: "networkidle" });
+  await expect(page.getByRole("heading", { name: "Jogadores ativos por faixa de rating" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Torneios por nível" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Jogadores ativos por faixa de rating e formato" })).toBeVisible();
+  await expect(page.getByRole("img", { name: /Distribuição proporcional de .* torneios por nível/ })).toBeVisible();
+  const formats = page.getByRole("list", { name: "Formatos de rating" });
+  await expect(formats.getByText("Clássico")).toBeVisible();
+  await expect(formats.getByText("Rápido")).toBeVisible();
+  await expect(formats.getByText("Blitz")).toBeVisible();
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  const ratingHeading = await page.getByRole("heading", { name: "Jogadores ativos por faixa de rating" }).boundingBox();
+  const tiersHeading = await page.getByRole("heading", { name: "Torneios por nível" }).boundingBox();
+  expect(ratingHeading).not.toBeNull();
+  expect(tiersHeading).not.toBeNull();
+  expect(tiersHeading!.y).toBeGreaterThan(ratingHeading!.y);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("player ranking positions are grouped in tiles below the ratings", async ({ page }) => {
+  await page.goto(`/jogadores/${PLAYER.id}`, { waitUntil: "networkidle" });
+  await expect(page.getByRole("heading", { name: "Posições no ranking" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Variação de rating" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Evolução de rating" })).toBeVisible();
+  const evolutionChart = page.getByRole("img", { name: "Evolução do rating nos torneios recentes" });
+  await expect(evolutionChart).toBeVisible();
+  const yTicks = (await evolutionChart.locator("text").allTextContents())
+    .map((label) => Number(label.replaceAll(",", "")))
+    .filter(Number.isFinite);
+  expect(yTicks.length).toBeGreaterThan(0);
+  expect(Math.min(...yTicks)).toBeGreaterThan(0);
+  const openPosition = page.getByText(/Absoluto #/).first();
+  await expect(openPosition).toBeVisible();
+  expect(await openPosition.evaluate((element) => getComputedStyle(element).fontSize)).toBe("16px");
+});
+
 test("searches players from the keyboard command menu and opens the profile", async ({ page }) => {
   await page.goto("/", { waitUntil: "networkidle" });
   await page.keyboard.press("/");

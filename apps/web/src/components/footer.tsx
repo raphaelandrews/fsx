@@ -13,7 +13,7 @@ const footerLinks = [
   { label: "Rating", to: "/ratings" },
   { label: "Campeões", to: "/campeoes" },
   { label: "Circuitos", to: "/circuitos" },
-  { label: "Recordes", to: "/recordes" },
+  { label: "Estatísticas", to: "/estatisticas" },
   { label: "Clubes", to: "/clubes" },
   { label: "Comunicados", to: "/comunicados" },
   { label: "Membros", to: "/membros" },

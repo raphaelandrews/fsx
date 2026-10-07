@@ -17,11 +17,12 @@ breadcrumb JSON-LD. **Sitemap** marks URLs listed in `/sitemap.xml`.
 | --- | ------- | ------------------ | ------------- | -------------- |
 | `/` | [Home](/guide/home) | `topPlayers.list`, `events.list`, `posts.fresh`, `announcements.fresh` | — | Sitemap |
 | `/ratings` | [Ratings](/guide/ratings) | `players.withFilters`, `clubs.list`, `locations.list` | `page`, `ordenar`, `sexo`, `nome`, `local[]`, `clube[]`, `titulo[]`, `grupo[]`; defaults are stripped from the URL | Sitemap. Unfiltered page *n* is its own canonical; filtered views canonicalize to `/ratings` |
-| `/jogadores/$id` | [Player profile](/guide/players) | `players.byId`, `players.stats`, `players.ranking`, `players.circuitSeasons`, `announcements.byPlayer`, `clubs.leaderboard` (after the player resolves) | — | Sitemap (active players). Person JSON-LD. Invalid or unknown ID → 404 |
+| `/jogadores/$id` | [Player profile](/guide/players) | `players.byId`, `players.stats`, `players.ranking` (including the active Feminino ranking for female players), `players.circuitSeasons`, `announcements.byPlayer`, `clubs.leaderboard` (after the player resolves) | — | Sitemap (active players). Person JSON-LD. Invalid or unknown ID → 404 |
 | `/titulados` | [Titled players](/guide/titled-players) | `titledPlayers.list` | — | Sitemap |
 | `/campeoes` | [Champions](/guide/champions) | `champions.gallery` | — | Sitemap |
 | `/jogadores/$id/temporada/$ano` | [Player profile](/guide/players) | `players.season` | — | Not in the sitemap (the profile is the page to index). Invalid id or year, future year, or no activity → 404 |
-| `/recordes` | [Records](/guide/records) | `records.all` | — | Sitemap |
+| `/estatisticas` | [Statistics and records](/guide/records) | `records.statistics`, `records.all` | — | Sitemap |
+| `/recordes` | Legacy URL | — | — | Permanent redirect to `/estatisticas` |
 | `/clubes` | [Clubs](/guide/clubs) | `clubs.leaderboard` | `ritmo` (default `rapid`, stripped) | Sitemap |
 | `/clubes/$id` | [Clubs](/guide/clubs) | `clubs.byId` | — | Sitemap (clubs with active players). Invalid or unknown ID → 404 |
 | `/circuitos` | [Circuits](/guide/circuits) | `circuits.listSimple`, `circuits.byId` for the selected circuit | `circuito` | Sitemap; canonical is always `/circuitos` |

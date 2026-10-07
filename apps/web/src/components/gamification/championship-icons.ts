@@ -1,8 +1,8 @@
 import {
   CrownIcon,
   Loading01Icon,
-  Medal01Icon,
   MedalFirstPlaceIcon,
+  MedalSecondPlaceIcon,
   MedalThirdPlaceIcon,
   RabbitIcon,
   SwordsIcon,
@@ -23,7 +23,7 @@ const CHAMPIONSHIP_ICONS: Record<number, typeof CrownIcon> = {
 export const championshipIcon = (championshipId: number | null | undefined) =>
   (championshipId != null ? CHAMPIONSHIP_ICONS[championshipId] : undefined) ?? MedalFirstPlaceIcon;
 
-const PLACE_ICONS = { 1: MedalFirstPlaceIcon, 2: Medal01Icon, 3: MedalThirdPlaceIcon } as const;
+const PLACE_ICONS = { 1: MedalFirstPlaceIcon, 2: MedalSecondPlaceIcon, 3: MedalThirdPlaceIcon } as const;
 
 // A championship win shows the championship's icon; other places and category podiums show a medal.
 export function podiumIcon(place: number | null | undefined, championshipId: number | null | undefined) {

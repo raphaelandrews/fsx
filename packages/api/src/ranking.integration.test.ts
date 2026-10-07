@@ -25,8 +25,8 @@ afterAll(async () => {
 });
 
 const idOf = (rows: { id: number }[]) => rows[0]!.id;
-const player = async (name: string, rapid: number, active = true) =>
-  idOf(await caller.players.create({ name, blitz: 1900, rapid, classic: 1900, sex: "male", active }));
+const player = async (name: string, rapid: number, active = true, sex: "male" | "female" = "male") =>
+  idOf(await caller.players.create({ name, blitz: 1900, rapid, classic: 1900, sex, active }));
 
 describe("ranking position and movement", () => {
   test("positions are live, shared on equal ratings, and only for active players", async () => {
@@ -63,5 +63,22 @@ describe("ranking position and movement", () => {
     ]);
     const blitz = await caller.players.withFilters({ page: 1, limit: 10, sortBy: "blitz" });
     expect(blitz.players.every((p) => p.movement === null)).toBe(true);
+  });
+
+  test("female profiles show both open and female-only ranking positions", async () => {
+    await player("Ana Open Leader", 4000);
+    const femaleLeader = await player("Bia Feminino", 3900, true, "female");
+    const femaleRunnerUp = await player("Cris Feminino", 3800, true, "female");
+    const inactiveFemale = await player("Dora Inativa", 4000, false, "female");
+
+    expect((await caller.players.ranking({ id: femaleRunnerUp })).rapid).toMatchObject({
+      position: 3,
+      female: { position: 2, players: 2 },
+    });
+    expect((await caller.players.ranking({ id: femaleLeader })).rapid).toMatchObject({
+      position: 2,
+      female: { position: 1, players: 2 },
+    });
+    expect((await caller.players.ranking({ id: inactiveFemale })).rapid).toBeNull();
   });
 });

@@ -11,7 +11,7 @@ import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
 import type { CompetitionTier } from "../circuit-types";
 import type { Context } from "../context";
 import type { RatingType } from "../routers/rating-update";
-import { achievementsOf, nextMilestone, upcomingOf } from "./badges";
+import { achievementsOf, upcomingOf } from "./badges";
 import { PLAYER_RESULTS_LIMIT, STARTING_RATING } from "./constants";
 import { playerLevel, type LevelInput } from "./level";
 import { playerStats, type Competition, type StatsInput } from "./stats";
@@ -206,7 +206,6 @@ export async function loadPlayerStats(db: Context["db"], playerId: number) {
     level: playerLevel(career.input, stats),
     achievements: achievementsOf(stats),
     upcoming,
-    nextMilestone: nextMilestone(upcoming),
     titlePath: titlePath({
       stats,
       podiums: career.input.tournamentPodiums,

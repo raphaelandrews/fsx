@@ -1,11 +1,18 @@
 ---
-title: Records
-description: The all-time records of Sergipe chess on /recordes.
+title: Statistics and records
+description: Database-wide statistics and all-time records of Sergipe chess on /estatisticas.
 ---
 
-The records page (`/recordes`) lists the top ten of each record among every
-player the FSX has recorded, active or not; inactive players are marked
-"inativo". Equal values share a place.
+The statistics page (`/estatisticas`) starts with database-wide counts for active and registered
+players, female players, tournaments, rating results, podiums, circuits, clubs, and cities with
+active players. It then lists the top ten of each record among every player the FSX has recorded,
+active or not; inactive players are marked "inativo". Equal values share a place. The old
+`/recordes` URL redirects here.
+
+Two charts put those numbers in context: grouped columns compare active players at current rating
+thresholds across classical, rapid, and blitz, and a 100% stacked bar shows tournament shares by
+competition tier (S, A, B, and School). Rating thresholds use the Absoluto ranking, which includes
+female players; they do not add the Feminino subset twice.
 
 - **Maior rating** per time control (classical, rapid, blitz), with where it was
   reached, or "anterior aos registros" for a rating held before the records.
@@ -14,7 +21,7 @@ player the FSX has recorded, active or not; inactive players are marked
 - **Maior sequência subindo**: the most consecutive tournaments with a rating gain.
 - **Mais ativos** in the current year.
 - **Maiores níveis**: the highest [player levels](/guide/players).
-- **Maiores campeões por campeonato**: the three players with the most overall
+- **Maiores campeões por campeonato**: the ten players with the most overall
   titles in each championship, with the years.
 
 Records are computed from the same history as each player's profile, so a

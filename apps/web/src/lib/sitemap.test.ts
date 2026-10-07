@@ -16,7 +16,7 @@ describe("renderSitemap", () => {
     expect(sitemap).toContain("<lastmod>2026-09-30</lastmod>");
     expect(sitemap).toContain("https://www.fsx.org.br/jogadores/42");
     expect(sitemap).toContain("https://www.fsx.org.br/comunicados/7");
-    expect(sitemap).toContain("https://www.fsx.org.br/recordes");
+    expect(sitemap).toContain("https://www.fsx.org.br/estatisticas");
     expect(sitemap).toContain("https://www.fsx.org.br/clubes/3");
     expect(sitemap).toContain("</urlset>");
   });

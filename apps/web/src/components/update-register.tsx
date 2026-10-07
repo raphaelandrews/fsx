@@ -23,6 +23,7 @@ export function UpdateRegister() {
               render={
                 <Button
                   aria-label="Atualize seu cadastro"
+                  className="border-border"
                   size="icon-xl"
                   variant="secondary"
                 />

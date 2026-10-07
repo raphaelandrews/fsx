@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { achievementsOf, badgeHolders, nextMilestone, recordHolderAchievement, upcomingOf } from "./badges";
+import { achievementsOf, badgeHolders, recordHolderAchievement, upcomingOf } from "./badges";
 import { playerStats, type Competition, type RatingResult, type StatsInput } from "./stats";
 
 const tournament = (id: number, date: string | null, extra: Partial<Competition> = {}): Competition => ({
@@ -136,7 +136,7 @@ describe("phase 8 emblems", () => {
   });
 });
 
-describe("progress and milestones", () => {
+describe("progress", () => {
   test("locked emblems carry progress toward their target", () => {
     const rows = results(1900, Array.from({ length: 7 }, (_, i) => ({ variation: 8, date: `2024-0${i + 1}-01` })));
     const upcoming = upcomingOf(playerStats(input({ results: rows })));
@@ -145,12 +145,6 @@ describe("progress and milestones", () => {
     expect(upcoming.find((a) => a.id === "marathon-10")?.progress).toEqual({ current: 7, target: 10 });
   });
 
-  test("the next milestone is the goal with the largest share reached", () => {
-    const rows = results(1900, Array.from({ length: 7 }, (_, i) => ({ variation: 8, date: `2024-0${i + 1}-01` })));
-    const milestone = nextMilestone(upcomingOf(playerStats(input({ results: rows }))));
-    expect(milestone?.id).toBe("rating-rapid-2000");
-    expect(nextMilestone([])).toBeNull();
-  });
 });
 
 describe("badgeHolders", () => {

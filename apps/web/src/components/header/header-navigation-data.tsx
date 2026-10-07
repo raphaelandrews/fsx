@@ -13,7 +13,7 @@ import {
   Bookmark01Icon,
   Link01Icon,
   BookBookmark01Icon,
-  ChampionIcon,
+  Analytics01Icon,
 } from "@hugeicons/core-free-icons"
 
 type NavigationItem = {
@@ -62,10 +62,10 @@ export const navigationData: Navigation = () => [
         target: "_self",
       },
       {
-        label: "Recordes",
-        description: "Os maiores feitos da história.",
-        href: "/recordes",
-        icon: ChampionIcon,
+        label: "Estatísticas",
+        description: "Panorama e recordes do xadrez sergipano.",
+        href: "/estatisticas",
+        icon: Analytics01Icon,
         target: "_self",
       },
       {

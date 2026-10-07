@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Medal01Icon, MedalFirstPlaceIcon, MedalThirdPlaceIcon } from "@hugeicons/core-free-icons";
+import { Medal01Icon, MedalFirstPlaceIcon, MedalSecondPlaceIcon, MedalThirdPlaceIcon } from "@hugeicons/core-free-icons";
 
 import type { Circuit } from "./types";
 
-const PLACE_ICONS = { 1: MedalFirstPlaceIcon, 2: Medal01Icon, 3: MedalThirdPlaceIcon } as const;
+const PLACE_ICONS = { 1: MedalFirstPlaceIcon, 2: MedalSecondPlaceIcon, 3: MedalThirdPlaceIcon } as const;
 
 // finishedAt is a plain YYYY-MM-DD; formatting it through Date would shift it a
 // day in UTC-3 and differ between server and client.

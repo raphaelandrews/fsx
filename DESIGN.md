@@ -47,9 +47,11 @@ components. Decorative gradients (`avatar-gradient.tsx`) are the only exception.
 | `success` | green | light green | Gains, won variation, rises, "Ativo", in progress, coming soon, success messages |
 | `destructive` | crimson | light crimson | Red text and icons: errors, deletion, losses, drops |
 | `destructive-fill` | candy red | candy red | Red fills next to a label (status dots, chart losses); 3:1, not for text |
-| `warning` / `warning-foreground` | gold tint / amber | dark gold / bright yellow | Warnings, "this week", neutral emphasis |
-| `highlight` | amber | yellow | Title abbreviations and small accents only |
-| `chart-1`…`chart-3` | burple, deep burple, candy red | burple, light burple, candy red | Charts: gains and the rating line, best result, losses. Fills keep ≥3:1 against the background. Add `chart-4`+ for new series. |
+| `warning` / `warning-foreground` | yellow / dark amber | dark gold / bright yellow | Warnings, title abbreviations, "this week" |
+| `highlight` | magenta | yellow | Small accents only |
+| `pink`, `red`, `yellow`, `orange`, `cyan`, `green`, `teal`, `blue`, `indigo`, `purple`, `violet` and their `-fill` / `-foreground` tokens | Strong hue / pale fill / dark foreground | Same semantic hues | Reusable color families; e.g. `text-pink`, `bg-pink-fill`, `text-pink-foreground` |
+| `neutral`, `neutral-fill`, `neutral-foreground` | Pale cool gray / lighter cool gray / dark cool gray | Same neutral palette | Neutral labeled treatments |
+| `chart-1`…`chart-6` | burple, deep burple, green, yellow, magenta, orange | burple, light deep burple, light magenta, bright amber, light blue, light peach | Neutral chart series and categories. Pair yellow with a labeled legend; other fills keep ≥3:1 against the chart surface. |
 | `sidebar-*` | grays + burple | grays + burple | Reserved for a future sidebar |
 | `tier-*` / `tier-*-foreground` | bronze, silver, gold, platinum tints | dark tints | `Medal` counts and title emblems only |
 
@@ -63,15 +65,16 @@ components. Decorative gradients (`avatar-gradient.tsx`) are the only exception.
 | Warning, needs attention soon | `warning-foreground` on `warning` | Text label |
 | Medal count (`Medal`) | `tier-gold` / `tier-silver` / `tier-bronze` | Icon and label |
 
-Green is only for success and positive change, never for actions or decoration. Charts are the
-exception: they stay in the brand palette (burple gains, candy-red losses) so data reads as one
-family.
+Green indicates success and positive change, never actions or decoration; it also appears as a
+categorical series in the light chart palette. Signed changes use semantic `success` and
+`destructive-fill` colors.
 
 **Candy vs. text colors.** Graphics (chart bars, dots) need 3:1 against their background, text
-needs 4.5:1. Candy red (`chart-3`) passes 3:1 but not 4.5:1, so it is for fills only; red text uses
-`destructive`. A light, candy yellow can't reach 3:1 on white at all, so yellow is used as a tint
-behind dark text (`warning` / `warning-foreground`), never as a fill on white. Never use color as
-the only signal; pair it with a sign, arrow, icon, or label.
+needs 4.5:1. In dark mode, magenta (`chart-3`) passes 3:1 but not 4.5:1, so it is for fills only;
+red text uses `destructive`. A light, candy yellow can't reach 3:1 on white, so semantic warnings use a tint
+behind dark text (`warning` / `warning-foreground`). Bright categorical chart colors can be fills
+when their shape has a contrasting outline and a labeled legend. Never use color as the only signal;
+pair it with a sign, arrow, icon, or label.
 
 ### Contrast
 
@@ -296,13 +299,18 @@ Links are `lg` pills (the form is `default`, others `outline`), each with `Arrow
 "(abre em nova aba)" for screen readers. A link without a URL is a dashed, non-interactive pill
 ("Regulamento · em breve"), never a disabled button.
 
-### Records (`/recordes`)
+### Statistics (`/estatisticas`)
 
-Jump links under the page title use primary `lg` buttons; groups use `scroll-mt-24`. Record cards
-use one column on phones and at most two columns from `sm` up. Each `RecordCard` shows the top 5 and
-a primary "Ver top 10" toggle (`aria-expanded`) with a down arrow, switching to an up arrow for
-"Ver menos". Its button uses `rounded-lg` inside the `rounded-2xl` card: 8px button radius + 8px
-inset = 16px outer radius.
+Open with a compact metrics grid (2 columns on phones, 4 on wide screens), then a two-panel chart
+row: grouped columns compare active-player rating thresholds across Clássico, Rápido, and Blitz;
+a 100% stacked horizontal bar shows tournament shares by tier (S, A, B, and School). Both charts
+use bordered white cards, explicit titles, and visible legends; keep exact counts beside the share bar.
+Use `chart-1` through `chart-6` for series.
+Jump links under the title use primary `lg` buttons; groups use `scroll-mt-24`. Record
+cards use one column on phones and at most two columns from `sm` up. Each `RecordCard` shows the top
+5 and a primary "Ver top 10" toggle (`aria-expanded`) with a down arrow, switching to an up arrow
+for "Ver menos". Its button uses `rounded-lg` inside the `rounded-2xl` card: 8px button radius +
+8px inset = 16px outer radius.
 
 ### Player profile
 
@@ -310,14 +318,17 @@ Order: header (photo, name, level, title emblems) → **Ratings** → Conquistas
 Estatísticas → Circuitos → Comunicados → IDs → Performance → Histórico de torneios. Ratings come
 first because they're what most visitors look for.
 
-- Rating and ID boxes are `StatTile`s: label, the rating at `text-xl sm:text-2xl`, and rank,
-  movement, and peak as the hint. ID tiles that link out show `ArrowUpRight01Icon` and hover to
+- Rating boxes are `StatTile`s: label, the rating at `text-xl sm:text-2xl`, and peak as the hint.
+  Below them, one compact `StatTile` per time control stacks the `Absoluto` position and, for female
+  profiles, the `Feminino` position. Position values use `text-base`. ID tiles that link out show `ArrowUpRight01Icon` and hover to
   `bg-accent`.
 - Informações is a `dl` of static rows (label `text-sm` muted, value `text-base` medium), with no
   hover state, since the rows aren't interactive. Status is a static dot (`bg-success` /
   `bg-destructive`) plus the word; no pulsing animation.
-- Performance switches format with pill `Tabs` (not a select); chart titles use `Subheading`, and
-  empty charts show a `bg-muted rounded-2xl` message.
+- Performance switches format with pill `Tabs` (not a select) above two full-width chart cards in a
+  single column: rating variation uses vertical columns (red for losses), and total rating uses a
+  smooth filled area with its line overlaid and a y-axis padded around the player's observed ratings.
+  Each card has a title; empty charts show a `bg-muted rounded-2xl` message.
 
 ### Progress and goals (gamification)
 
@@ -325,9 +336,9 @@ first because they're what most visitors look for.
   card the track is `bg-background` so the empty part stays visible. Always paired with numbers
   ("7 de 10", "2162 / 2200").
 - Locked emblem popovers show the bar; owned ones show rarity ("12% dos jogadores têm").
-- Profile: "Próximo marco" under the level bar; "Caminho para títulos" as `bg-muted rounded-2xl`
-  cards with a check list (`text-success` check when met, help icon when the data can't tell)
-  and an unofficial note. Major-title goals advance one at a time: CMS → MSE → GMS.
+- Profile: "Caminho para títulos" as `bg-muted rounded-2xl` cards with a check list (`text-success`
+  check when met, help icon when the data can't tell) and an unofficial note. Major-title goals
+  advance one at a time: CMS → MSE → GMS. Locked emblem cards retain their own progress bars.
 - Home: "Destaque do mês" is a single centered `bg-muted` card with the gain in `text-success`.
 - `/links`: rows hover to a `bg-primary/5` tint, the icon chip fills with `primary`.
 

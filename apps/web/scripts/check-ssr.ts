@@ -46,7 +46,8 @@ const checks: Check[] = [
   { path: "/membros", status: 200, maxKB: 145 },
   { path: "/circuitos", status: 200, maxKB: 225 },
   { path: "/campeoes", status: 200, maxKB: 75 },
-  { path: "/recordes", status: 200, maxKB: 100, title: "Recordes", canonical: `${SITE_URL}/recordes` },
+  { path: "/estatisticas", status: 200, maxKB: 170, title: "Estatísticas", canonical: `${SITE_URL}/estatisticas` },
+  { path: "/recordes", status: 308, location: "/estatisticas" },
   { path: "/clubes", status: 200, maxKB: 200, title: "Clubes", canonical: `${SITE_URL}/clubes` },
   { path: "/clubes/3", status: 200, maxKB: 60, title: "Clube 3", canonical: `${SITE_URL}/clubes/3` },
   { path: "/clubes/999999", status: 404, maxKB: 15 },
@@ -57,7 +58,7 @@ const checks: Check[] = [
   { path: "/pagina-inexistente", status: 404, maxKB: 15 },
   { path: "/dashboard", status: 307, location: "/login" },
   { path: "/dashboard/players/1", status: 307, location: "/login" },
-  { path: "/sitemap.xml", status: 200, maxKB: 400, contains: [`${SITE_URL}/jogadores/${PLAYER.id}`, `${SITE_URL}/noticias/${POST.slug}`, `${SITE_URL}/recordes`, `${SITE_URL}/clubes/3`] },
+  { path: "/sitemap.xml", status: 200, maxKB: 400, contains: [`${SITE_URL}/jogadores/${PLAYER.id}`, `${SITE_URL}/noticias/${POST.slug}`, `${SITE_URL}/estatisticas`, `${SITE_URL}/clubes/3`] },
 ];
 
 const UNSAFE_PATTERNS = [/\n\s+at \S+ \(/, /SQLITE_/, /D1_ERROR/, /Failed query:/];

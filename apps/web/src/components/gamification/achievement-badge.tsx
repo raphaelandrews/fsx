@@ -22,6 +22,8 @@ import type { Achievement, BadgeIcon, BadgeTier } from "@fsx/api/gamification/ba
 import { Popover, PopoverContent, PopoverTrigger } from "@fsx/ui/components/popover";
 import { cn } from "@fsx/ui/lib/utils";
 
+import { formatShare } from "@/lib/format-share";
+
 import { TIER_LABELS, formatIsoDate } from "./tier";
 
 export const BADGE_ICONS: Record<BadgeIcon, typeof StarIcon> = {
@@ -50,9 +52,6 @@ function earnedText(achievement: Achievement) {
 
 // Share of players holding the emblem, from records.badges; undefined until loaded.
 export type RarityLookup = (id: string) => number | undefined;
-
-const formatShare = (share: number) =>
-  share < 0.01 ? "menos de 1%" : `${Math.round(share * 100)}%`;
 
 export function ProgressBar({ current, target, className }: { current: number; target: number; className?: string }) {
   const percent = Math.min(100, Math.max(0, (current / target) * 100));

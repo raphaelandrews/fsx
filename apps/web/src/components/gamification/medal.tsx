@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Medal01Icon, MedalFirstPlaceIcon, MedalThirdPlaceIcon } from "@hugeicons/core-free-icons";
+import { MedalFirstPlaceIcon, MedalSecondPlaceIcon, MedalThirdPlaceIcon } from "@hugeicons/core-free-icons";
 
 import { cn } from "@fsx/ui/lib/utils";
 
@@ -7,7 +7,7 @@ import { TIER_CLASSES } from "./tier";
 
 const MEDALS = {
   1: { icon: MedalFirstPlaceIcon, tier: "gold", label: "1º lugar" },
-  2: { icon: Medal01Icon, tier: "silver", label: "2º lugar" },
+  2: { icon: MedalSecondPlaceIcon, tier: "silver", label: "2º lugar" },
   3: { icon: MedalThirdPlaceIcon, tier: "bronze", label: "3º lugar" },
 } as const;
 

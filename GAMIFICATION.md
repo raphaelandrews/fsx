@@ -16,7 +16,7 @@ everything they already qualify for on launch day.
    module.
 2. **One definition per concept.** Every derived value (peak, threshold crossing, streak, XP,
    "tournaments played") is defined once, in the pure TypeScript module
-   `packages/api/src/gamification/`. The profile, records page, feed, and season recap all call it.
+   `packages/api/src/gamification/`. The profile, statistics page, feed, and season recap all call it.
    SQL is used only for values whose definition is trivially identical (counts, `MAX`), and a test
    asserts SQL and TypeScript agree on the same fixture.
 3. **Every achievement has a provenance.** `{ id, earnedAt: string | null, tournamentId: number | null,
@@ -37,7 +37,7 @@ everything they already qualify for on launch day.
 
 | Topic | Decision |
 | --- | --- |
-| Norms | Not part of this plan. A norm is a title requirement published on `/normas-tecnicas` (rating reached plus podiums or wins in listed championships); the federation grants the title after the player proves it. The `norms`/`playersToNorms` tables are unused (0 rows) and stay untouched; no norm XP. A derived "path to title" view is listed under Deferred. |
+| Norms | Not part of this plan. A norm is a title requirement published on `/normas-tecnicas` (rating reached plus podiums or wins in listed championships); the federation grants the title after the player proves it. The `norms`/`playersToNorms` tables are unused (0 rows) and stay untouched; no norm XP. The unofficial derived title path shipped in Phase 8.6. |
 | Announcements | **Done** (migration `0031`). An announcement may name the one player it is about (`announcements.player_id`); the profile lists them under "Comunicados", and the admin edit page suggests players whose full name appears in the text. The Phase 7 feed can use the link. |
 | Title weight | New `titles.tier` (1–4) orders emblems and sets title XP, instead of a flat internal/external value (Phase 1.6). |
 | Insignias | Out of scope until the insignia model is reworked (see Deferred). |
@@ -339,6 +339,8 @@ Tasks:
 - [x] `players.withFilters` returns each player's movement in the sorted format; `/ratings` shows it
   next to the position.
 - [x] Profile: "#3 · ▲2" in each rating box.
+- [x] Female player profiles also show their active Feminino rank beside their
+  Absoluto rank; the Absoluto ranking continues to include all active players.
 - [x] Rating update page: a button to take a snapshot now, so a baseline exists before the first
   import after release (movement needs two snapshots).
 - [x] Tests (position with ties, inactive player, movement up/down/new/none) and docs.
@@ -348,10 +350,10 @@ Tasks:
 ## Phase 4 — Records and Hall of Fame
 
 **Status: done (2026-10-03).** `gamification/records.ts`,
-`loadAllPlayerStats`, `records.all`, `/recordes`. Measured on production-sized data: 16.8k rows read
+`loadAllPlayerStats`, `records.all`, `/estatisticas`. Measured on production-sized data: 16.8k rows read
 per cache miss (`operations/query-cost-baseline`).
 
-Route `/recordes`. **Players:** all.
+Route `/estatisticas`. **Players:** all.
 
 - Highest peak per format, most wins, most podiums, most titles per championship, longest streak,
   biggest single gain, most active of the current year, highest levels. (No age-based records:
@@ -359,6 +361,12 @@ Route `/recordes`. **Players:** all.
 - `records.all` public procedure computing on read with the stats module (Principle 2) over all
   8.5k history rows, behind the edge cache; cache policy entry; `ADMIN_QUERY_DEPENDENTS` as for
   `players.stats`. Confirm the D1 rows-read cost with `query-plans.sql` before release.
+- The statistics overview summarizes registered and active players, active female players,
+  tournaments and date coverage, rating results, podiums, completed circuits, clubs, and represented
+  cities.
+- [x] Statistics charts compare current active-player rating thresholds across time controls with
+  grouped columns and show tournament shares by competition tier in a 100% stacked bar using shared chart tokens.
+- `/recordes` permanently redirects to `/estatisticas`; the new URL is canonical and in the sitemap.
 - Sitemap (`apps/web/src/lib/sitemap.ts`), `apps/web/scripts/check-ssr.ts`, `apps/web/e2e/a11y.e2e.ts`;
   link from the main nav.
 
@@ -367,11 +375,12 @@ Tasks:
 - [x] Bulk loader: every player's career in one D1 batch (all results, podiums, circuit results,
   final podiums, titles), grouped in memory and fed to the same `playerStats`/`playerLevel` as the
   profile, so a record can never disagree with a profile.
-- [x] `records.all`: top 10 per record, equal values sharing a place; inactive holders flagged.
+- [x] `records.all`: top 10 per record and championship, equal values sharing a place; inactive holders flagged.
   Peaks per format, most tournament wins and podiums (overall), most titles per championship,
   longest streak, biggest single gain, most active this year (America/Sao_Paulo year), highest
   levels.
-- [x] Route `/recordes` (Portuguese), main nav link, sitemap, SSR check, a11y e2e.
+- [x] Route `/estatisticas` (Portuguese), legacy `/recordes` redirect, main nav link, sitemap, SSR
+  check, a11y e2e.
 - [x] Tests (ties, inactive holders, a record matches the holder's profile stats, empty database)
   and docs.
 - [x] Free plan (10 ms of CPU per request): computing every career takes about 50 ms of compute
@@ -381,6 +390,9 @@ Tasks:
   the last change (and is less than a day old). The expensive request then happens once per admin
   change, globally, instead of per region every 5 minutes. Ranking with one shared `Intl.Collator`
   cut building the records from about 245 ms to 25 ms.
+- [x] `records.statistics`: database-wide counts for players, female players, tournaments, rating
+  results, tournament podiums, completed circuits, clubs, and cities with active players. The page
+  keeps the all-time record lists below the overview; tests cover aggregate changes.
 
 ---
 
@@ -483,10 +495,9 @@ players something to share. Badges still give no XP (Phase 2), so levels don't c
   "1958 de 2000 no rápido".
 - [x] Tests: progress values per ladder, no progress for completed ladders.
 
-### 8.2 "Próximo marco" on the profile
-- [x] `nextMilestone(upcoming)`: the locked emblem with the highest completed share.
-- [x] One line under the level bar: "Próximo marco: 2000 no rápido · faltam 42 pontos", with a bar.
-- [x] Tests: picks the closest goal; none when every ladder is complete.
+### 8.2 "Próximo marco" (removed)
+- [x] Removed the profile's single closest-goal callout; individual locked emblems continue to show
+  their own progress bars and requirements.
 
 ### 8.3 Emblem rarity
 - [x] One stored computation per data change (`computed_results`, key `gamification:<year>`)
@@ -511,7 +522,7 @@ players something to share. Badges still give no XP (Phase 2), so levels don't c
 | Pódio de etapa | Circuit stage podiums | 3 / 10 / 25 |
 | Campeão de categoria | First place in a tournament category (Sub-14, Feminino, …) | one per category |
 | Década | A result 10+ years after the first recorded tournament | single |
-| Recordista | Holds first place in a `/recordes` list | single (from 8.3) |
+| Recordista | Holds first place in a `/estatisticas` record list | single (from 8.3) |
 
 - [x] Stats module: the derived fields these need (gain steps, comeback, formats per year, stage
   podium dates, category wins, stage counts per circuit season), each with provenance.
@@ -565,13 +576,6 @@ players something to share. Badges still give no XP (Phase 2), so levels don't c
 
 - **Insignias** (`insignias`, `playersToInsignias`): reworked before being shown; then they plug
   into `AchievementBadge` and the XP table.
-- **Path to title (informational):** derive progress toward each title from the published
-  requirements: peak rating vs. the title's rating, and top-3 / top-5 finishes or wins in the listed
-  championships. Must say it is unofficial — the federation grants titles. Blockers:
-  existing podiums predate categories (requirements count only the Absoluto), 57% of
-  tournaments are not linked to a championship, and the requirements live as prose in
-  `components/normas-tecnicas/data.tsx` rather than data. The `norms`/`playersToNorms` tables can be
-  removed or repurposed then.
 - **Placements from the rating import:** podiums can now be entered for any tournament by hand.
   The rating update imports a Swiss Manager spreadsheet (`tournamentid`, `variation`,
   `ratingtype`, …); an optional rank column stored as a nullable `playersToTournaments.place` would
@@ -584,7 +588,7 @@ players something to share. Badges still give no XP (Phase 2), so levels don't c
 ## Docs to update
 
 - `reference/procedures.mdx` — every new procedure.
-- `reference/routes.mdx` — `/recordes`, `/clubes`, season recap.
+- `reference/routes.mdx` — `/estatisticas`, `/clubes`, season recap.
 - `reference/database.mdx` — `rankingSnapshots`, `titles.tier`. (Competition tiers, podium
   categories, and circuit seasons are already documented.)
 - `guide/players.mdx` — new profile sections.

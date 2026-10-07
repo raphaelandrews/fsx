@@ -45,7 +45,7 @@ export const Actions = ({ id, name, nickname, image, shortName, defendingChampio
               <AvatarFallback className={avatarGradient(id)} />
             </Avatar>
             <span className="whitespace-nowrap font-semibold underline-reveal underline-reveal-primary group-hover:after:left-0 group-hover:after:w-full group-focus-visible:after:left-0 group-focus-visible:after:w-full">
-              {shortName && <span className="text-highlight">{shortName}</span>} {nickname ?? name}
+              {shortName && <span className="text-warning">{shortName}</span>} {nickname ?? name}
             </span>
           </Button>
         }

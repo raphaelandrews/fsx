@@ -41,7 +41,6 @@ import { byTitleTier } from "@/components/player/title-emblems";
 import type { ClubStanding, PlayerAnnouncement, PlayerCircuitSeason, PlayerRanking, PlayerStatsResult } from "@/components/player/types";
 import { Movement } from "@/components/gamification/movement";
 import { StatTile } from "@/components/gamification/stat-tile";
-import { PlayerMilestone } from "@/components/player/player-milestone";
 import { PlayerTitlePath } from "@/components/player/player-title-path";
 import { useTRPC } from "@/utils/trpc";
 
@@ -72,6 +71,7 @@ export interface PlayerById {
   id: number;
   name: string;
   nickname?: string | null;
+  sex?: string;
   imageUrl?: string | null;
   verified?: boolean | null;
   active?: boolean | null;
@@ -225,7 +225,7 @@ export function PlayerProfile({
             <div className="flex items-center gap-1.5">
               <h1 className="text-lg font-semibold tracking-tight">
                 {internalTitle && (
-                  <span className="text-highlight mr-1.5">{internalTitle.title.shortName}</span>
+                  <span className="mr-1.5 text-warning">{internalTitle.title.shortName}</span>
                 )}
                 {player.nickname || player.name}
               </h1>
@@ -237,8 +237,6 @@ export function PlayerProfile({
             </div>
 
             <PlayerLevel level={stats.level} />
-            <PlayerMilestone milestone={stats.nextMilestone} />
-
             <div className="flex flex-wrap items-center justify-center gap-2">
               {titleEmblems.map(({ title }) => (
                 <span
@@ -268,10 +266,11 @@ export function PlayerProfile({
         <Announcement icon={ChartBarLineIcon} label="Ratings" />
 
         <div className="grid grid-cols-3 gap-2 px-2 sm:gap-4 sm:px-4">
-          <RatingBox label="Clássico" value={player.classic} peak={stats.stats.formats.classic?.peak.rating} rank={ranking.classic} />
-          <RatingBox label="Rápido" value={player.rapid} peak={stats.stats.formats.rapid?.peak.rating} rank={ranking.rapid} />
-          <RatingBox label="Blitz" value={player.blitz} peak={stats.stats.formats.blitz?.peak.rating} rank={ranking.blitz} />
+          <RatingBox label="Clássico" value={player.classic} peak={stats.stats.formats.classic?.peak.rating} />
+          <RatingBox label="Rápido" value={player.rapid} peak={stats.stats.formats.rapid?.peak.rating} />
+          <RatingBox label="Blitz" value={player.blitz} peak={stats.stats.formats.blitz?.peak.rating} />
         </div>
+        {player.active && <RankingPositions ranking={ranking} showFemale={player.sex === "female"} />}
       </section>
 
       {(podiumGroups.length > 0 ||
@@ -482,15 +481,10 @@ export function PlayerProfile({
               </div>
             </Tabs>
 
-            <section aria-labelledby="player-variation">
-              <Subheading id="player-variation">Variação de rating</Subheading>
+            <div className="grid gap-4">
               <VariationChart player={player} selectedRatingType={selectedRatingType} />
-            </section>
-
-            <section aria-labelledby="player-evolution">
-              <Subheading id="player-evolution">Evolução de rating</Subheading>
               <TotalRatingChart player={player} selectedRatingType={selectedRatingType} />
-            </section>
+            </div>
           </div>
         </section>
       )}
@@ -528,12 +522,10 @@ function RatingBox({
   label,
   value,
   peak,
-  rank,
 }: {
   label: string;
   value?: number | null;
   peak?: number;
-  rank: PlayerRanking["rapid"];
 }) {
   const showPeak = peak !== undefined && value != null && peak > value;
   return (
@@ -541,21 +533,51 @@ function RatingBox({
       label={label}
       value={value ?? "—"}
       valueClassName="text-xl sm:text-2xl"
-      hint={
-        rank || showPeak ? (
-          <span className="inline-flex flex-wrap items-baseline justify-center gap-x-1.5 tabular-nums">
-            {rank && (
-              <span className="inline-flex items-baseline gap-1">
-                #{rank.position}
-                <span className="sr-only"> de {rank.players} jogadores ativos</span>
-                <Movement value={rank.movement} />
-              </span>
-            )}
-            {showPeak && <span>Pico {peak}</span>}
-          </span>
-        ) : undefined
-      }
+      hint={showPeak ? <span className="tabular-nums">Pico {peak}</span> : undefined}
     />
+  );
+}
+
+function RankingPositions({ ranking, showFemale }: { ranking: PlayerRanking; showFemale: boolean }) {
+  const formats = [
+    { label: "Clássico", rank: ranking.classic },
+    { label: "Rápido", rank: ranking.rapid },
+    { label: "Blitz", rank: ranking.blitz },
+  ];
+
+  return (
+    <div className="mt-4 px-2 sm:px-4">
+      <Subheading>Posições no ranking</Subheading>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {formats.map(({ label, rank }) => (
+          <StatTile
+            key={label}
+            label={label}
+            className="p-2 sm:p-3"
+            valueClassName="text-base sm:text-base"
+            value={
+              <span className="flex flex-col items-center gap-0.5">
+                <span className="inline-flex items-baseline gap-1">
+                  Absoluto {rank ? `#${rank.position}` : "—"}
+                  {rank && (
+                    <>
+                      <span className="sr-only"> de {rank.players} jogadores ativos</span>
+                      <Movement value={rank.movement} />
+                    </>
+                  )}
+                </span>
+                {showFemale && (
+                  <span className="text-muted-foreground">
+                    Feminino {rank?.female ? `#${rank.female.position}` : "—"}
+                    {rank?.female && <span className="sr-only"> de {rank.female.players} jogadoras ativas</span>}
+                  </span>
+                )}
+              </span>
+            }
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 

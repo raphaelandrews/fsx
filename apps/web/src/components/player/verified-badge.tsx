@@ -34,13 +34,13 @@ const TIER_CONFIG: Record<
 > = {
   admin: {
     iconClass:
-      "!fill-title stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+      "!fill-destructive stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
     label: "Diretoria",
     description: "Este jogador faz parte da diretoria da federação.",
   },
   management: {
     iconClass:
-      "!fill-highlight stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
+      "!fill-warning stroke-none [&_path:last-child]:stroke-white [&_path:last-child]:[stroke-width:1.5]",
     label: "Diretoria",
     description: "Este jogador faz parte da diretoria da federação.",
   },

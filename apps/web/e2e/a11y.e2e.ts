@@ -23,7 +23,7 @@ async function expectNoSeriousViolations(page: Page, label: string) {
   expect(serious, `${label} accessibility violations`).toEqual([]);
 }
 
-const publicPages = ["/", "/ratings", "/noticias", `/noticias/${POST.slug}`, `/jogadores/${PLAYER.id}`, `/jogadores/${PLAYER.id}/temporada/2026`, "/comunicados", "/comunicados/1", "/titulados", "/membros", "/circuitos", "/campeoes", "/recordes", "/clubes", "/clubes/3", "/tv-sergipe", "/links", "/normas-tecnicas", "/sobre", "/swiss-manager", "/login"];
+const publicPages = ["/", "/ratings", "/noticias", `/noticias/${POST.slug}`, `/jogadores/${PLAYER.id}`, `/jogadores/${PLAYER.id}/temporada/2026`, "/comunicados", "/comunicados/1", "/titulados", "/membros", "/circuitos", "/campeoes", "/estatisticas", "/clubes", "/clubes/3", "/tv-sergipe", "/links", "/normas-tecnicas", "/sobre", "/swiss-manager", "/login"];
 
 for (const path of publicPages) {
   test(`public page ${path} has no serious accessibility violations`, async ({ page }) => {

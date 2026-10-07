@@ -76,7 +76,7 @@ export function NewsFeed({ items }: { items: FeedItem[] }) {
           );
         })}
       </ul>
-      <SectionButton href="/recordes" label="Ver recordes" />
+      <SectionButton href="/estatisticas" label="Ver estatísticas" />
     </Section>
   );
 }

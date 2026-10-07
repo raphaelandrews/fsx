@@ -63,6 +63,52 @@ describe("records.all", () => {
   });
 });
 
+describe("records.statistics", () => {
+  test("summarizes database activity and the open/female player counts", async () => {
+    const before = await caller.records.statistics();
+    const locationId = idOf(await caller.locations.create({ name: "Cidade Estatísticas", type: "city" }));
+    const playerId = idOf(await caller.players.create({
+      name: "Jogadora Estatísticas",
+      blitz: 1900,
+      rapid: 2300,
+      classic: 2100,
+      sex: "female",
+      active: true,
+      locationId,
+    }));
+    const tournamentId = idOf(await caller.tournaments.create({
+      name: "Torneio Estatísticas",
+      ratingType: "rapid",
+      date: "2026-10-01",
+    }));
+    await caller.tournaments.create({ name: "Torneio sem data", ratingType: "rapid" });
+    await caller.playersTournament.linkWithRating({ playerId, tournamentId, variation: 0, ratingType: "rapid" });
+    await caller.tournamentPodiums.create({ playerId, tournamentId, place: 1 });
+
+    const statistics = await caller.records.statistics();
+    expect(statistics.players).toEqual({
+      total: before.players.total + 1,
+      active: before.players.active + 1,
+      femaleActive: before.players.femaleActive + 1,
+    });
+    expect(statistics.tournaments.total).toBe(before.tournaments.total + 2);
+    expect(statistics.ratingResults).toBe(before.ratingResults + 1);
+    expect(statistics.tournamentPodiums).toBe(before.tournamentPodiums + 1);
+    expect(statistics.citiesRepresented).toBe(before.citiesRepresented + 1);
+    expect(statistics.tournaments.lastDate).toBe("2026-10-01");
+    expect(statistics.ratingsByThreshold).toHaveLength(5);
+    expect(statistics.ratingsByThreshold.find((row) => row.threshold === 2000)?.rapid).toBe(
+      (before.ratingsByThreshold.find((row) => row.threshold === 2000)?.rapid ?? 0) + 1,
+    );
+    expect(statistics.ratingsByThreshold.find((row) => row.threshold === 2100)?.classic).toBe(
+      (before.ratingsByThreshold.find((row) => row.threshold === 2100)?.classic ?? 0) + 1,
+    );
+    expect(statistics.tournamentsByTier.find((row) => row.tier === "B")?.tournaments).toBe(
+      (before.tournamentsByTier.find((row) => row.tier === "B")?.tournaments ?? 0) + 2,
+    );
+  });
+});
+
 describe("stored records", () => {
   test("are reused until an admin mutation changes the data", async () => {
     await caller.records.all();
@@ -131,4 +177,3 @@ describe("month highlight", () => {
     expect(await monthHighlight(db, "1990-06-15")).toBeNull();
   });
 });
-

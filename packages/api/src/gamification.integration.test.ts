@@ -181,14 +181,13 @@ describe("players.circuitSeasons", () => {
 describe("upcoming achievements", () => {
   test("lists the next tournaments milestone and the next rating step per format played", async () => {
     const id = await playerWithResults("Iniciante", 3);
-    const { upcoming, nextMilestone, tournaments } = await caller.players.stats({ id });
+    const { upcoming, tournaments } = await caller.players.stats({ id });
     expect(upcoming.slice(0, 2).map((a) => [a.id, a.description, a.progress])).toEqual([
       ["tournaments-10", "Faltam 7 torneios.", { current: 3, target: 10 }],
       ["rating-rapid-2000", "Faltam 97 pontos acima do seu melhor rating rápido.", { current: 1903, target: 2000 }],
     ]);
     // Phase 8 ladders follow: seasons, tournaments in a year, and single-tournament gain.
     expect(upcoming.map((a) => a.family)).toEqual(expect.arrayContaining(["veteran", "marathon", "leap"]));
-    expect(nextMilestone?.id).toBe("rating-rapid-2000");
     expect(Object.values(tournaments).map((t) => t.name)).toContain("Iniciante 1");
   });
 });

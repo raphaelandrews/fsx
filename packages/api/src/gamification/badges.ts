@@ -499,14 +499,6 @@ export function upcomingOf(stats: PlayerStats): Achievement[] {
   return upcoming;
 }
 
-// The locked emblem the player is closest to, by share of the target reached.
-export function nextMilestone(upcoming: Achievement[]): Achievement | null {
-  const withProgress = upcoming.filter((achievement) => achievement.progress && achievement.progress.target > 0);
-  if (withProgress.length === 0) return null;
-  const share = (achievement: Achievement) => achievement.progress!.current / achievement.progress!.target;
-  return withProgress.reduce((best, achievement) => (share(achievement) > share(best) ? achievement : best));
-}
-
 // How many players hold each emblem, over players with at least one tournament.
 export function badgeHolders(careers: PlayerStats[]): { players: number; holders: Record<string, number> } {
   const holders: Record<string, number> = {};

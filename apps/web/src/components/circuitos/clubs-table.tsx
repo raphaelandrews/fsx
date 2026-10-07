@@ -137,12 +137,12 @@ function ClubPlayersDetail({ players, phases }: { players: PlayerRow[]; phases: 
         <thead>
           <tr className="border-b text-left text-muted-foreground">
             <th className="py-2 pr-2 text-sm font-medium">Jogador</th>
+            <th className="py-2 pl-2 text-right text-sm font-medium">Total</th>
             {phases.map((phase) => (
               <th className="px-2 py-2 text-right text-sm font-medium" key={phase}>
                 {phase}
               </th>
             ))}
-            <th className="py-2 pl-2 text-right text-sm font-medium">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -157,12 +157,12 @@ function ClubPlayersDetail({ players, phases }: { players: PlayerRow[]; phases: 
                   shortTitle={player.playersToTitles?.find((t) => t.title)?.title.shortName ?? null}
                 />
               </td>
+              <td className="py-2 pl-2 text-right font-semibold tabular-nums">{player.total}</td>
               {phases.map((phase) => (
                 <td className="px-2 py-2 text-right tabular-nums" key={phase}>
                   {player.pointsByPhase[phase] || <span className="text-muted-foreground">—</span>}
                 </td>
               ))}
-              <td className="py-2 pl-2 text-right font-semibold tabular-nums">{player.total}</td>
             </tr>
           ))}
         </tbody>

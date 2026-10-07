@@ -76,7 +76,7 @@ test.describe("dark theme", () => {
   });
   test.use({ reducedMotion: "reduce" });
 
-  for (const path of ["/", "/ratings", `/jogadores/${PLAYER.id}`, "/noticias", "/login"]) {
+  for (const path of ["/", "/ratings", `/jogadores/${PLAYER.id}`, "/noticias", "/estatisticas", "/login"]) {
     test(`${path} meets AA contrast in the dark theme`, async ({ page }) => {
       await page.goto(path, { waitUntil: "networkidle" });
       await expect(page.locator("html")).toHaveClass(/dark/);

@@ -6,7 +6,7 @@ const STATIC_PATHS = [
   "/ratings",
   "/campeoes",
   "/circuitos",
-  "/recordes",
+  "/estatisticas",
   "/clubes",
   "/comunicados",
   "/titulados",

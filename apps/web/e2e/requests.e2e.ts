@@ -27,13 +27,20 @@ function expectPublicReads(calls: TrpcCall[]) {
   expect(new Set(procedures).size, `duplicate procedures: ${procedures.join(", ")}`).toBe(procedures.length);
 }
 
-for (const path of ["/", "/ratings", "/noticias", "/comunicados", "/jogadores/1"]) {
+for (const path of ["/", "/ratings", "/noticias", "/comunicados", "/estatisticas"]) {
   test(`${path} hydrates from SSR data without refetching`, async ({ page }) => {
     const calls = recordTrpc(page);
     await page.goto(path, { waitUntil: "networkidle" });
     expect(calls.map((call) => call.procedures.join(","))).toEqual([]);
   });
 }
+
+test("the player profile hydrates career data and fetches only non-blocking badge rarity", async ({ page }) => {
+  const calls = recordTrpc(page);
+  await page.goto("/jogadores/1", { waitUntil: "networkidle" });
+  expect(calls.map((call) => call.procedures.join(","))).toEqual(["records.badges"]);
+  expectPublicReads(calls);
+});
 
 test("client navigation stays within the request budget and reuses prefetched data", async ({ page }) => {
   await page.goto("/", { waitUntil: "networkidle" });

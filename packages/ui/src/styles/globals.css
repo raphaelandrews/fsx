@@ -33,8 +33,8 @@
   descent-override: 36%;
 }
 
-/* Palette: burple for actions on neutral text and cool gray surfaces, plus green,
-   red, and yellow for status. Every token is defined for both themes in the same order. */
+/* Palette: burple for actions on neutral text and cool gray surfaces, with status and semantic
+   hue families. Every token is defined for both themes in the same order. */
 
 :root {
   /* Surfaces and text */
@@ -69,24 +69,60 @@
   --border: #e4e9f1;
   --input: #e4e9f1;
 
-  /* Status. Green for success and gains; red for errors and losses; yellow for
-     warnings and highlights. The strong value reads as text or icon on the page,
-     the soft one tints behind it. */
-  --success: oklch(0.52 0.14 152);
-  --destructive: oklch(0.54 0.2 22);
-  /* Candy red for fills next to a label (dots, chart bars): 3:1 is enough there, 4.5:1 is not
-     required, so it can be lighter than the destructive text color. */
+  /* Status colors */
+  --success: oklch(0.70 0.20 150);
+  --destructive: oklch(0.64 0.21 18);
+  /* Red fills next to a label (dots, chart bars). */
   --destructive-fill: oklch(0.64 0.21 18);
-  --warning: oklch(0.96 0.06 92);
-  --warning-foreground: oklch(0.47 0.11 72);
-  --highlight: oklch(0.62 0.15 72);
+  --warning: oklch(0.78 0.18 85);
+  --warning-foreground: oklch(0.32 0.12 75);
+  --highlight: oklch(0.74 0.19 330);
 
-  /* Charts: 1 gains and the rating line, 2 best result, 3 losses. Bar fills keep at
-     least 3:1 against the background (WCAG 1.4.11); 3 is a candy red, lighter than the
-     destructive text color, which must stay at 4.5:1. */
-  --chart-1: var(--primary);
+  /* Semantic hue families: strong color, soft fill, and readable foreground. */
+  --pink: oklch(0.68 0.20 330);
+  --pink-fill: oklch(0.94 0.075 330);
+  --pink-foreground: oklch(0.38 0.13 330);
+  --red: oklch(0.64 0.21 18);
+  --red-fill: oklch(0.94 0.075 18);
+  --red-foreground: oklch(0.38 0.14 18);
+  --yellow: oklch(0.78 0.18 85);
+  --yellow-fill: oklch(0.95 0.085 85);
+  --yellow-foreground: oklch(0.36 0.10 75);
+  --orange: oklch(0.72 0.20 35);
+  --orange-fill: oklch(0.94 0.075 35);
+  --orange-foreground: oklch(0.39 0.13 35);
+  --cyan: oklch(0.70 0.15 195);
+  --cyan-fill: oklch(0.94 0.065 195);
+  --cyan-foreground: oklch(0.34 0.10 195);
+  --green: oklch(0.70 0.19 150);
+  --green-fill: oklch(0.94 0.075 150);
+  --green-foreground: oklch(0.32 0.11 150);
+  --teal: oklch(0.67 0.16 175);
+  --teal-fill: oklch(0.94 0.065 175);
+  --teal-foreground: oklch(0.32 0.10 175);
+  --blue: oklch(0.60 0.20 250);
+  --blue-fill: oklch(0.94 0.065 250);
+  --blue-foreground: oklch(0.36 0.13 250);
+  --indigo: oklch(0.55 0.21 275);
+  --indigo-fill: oklch(0.94 0.06 275);
+  --indigo-foreground: oklch(0.35 0.14 275);
+  --purple: oklch(0.59 0.21 295);
+  --purple-fill: oklch(0.94 0.065 295);
+  --purple-foreground: oklch(0.37 0.14 295);
+  --violet: oklch(0.57 0.22 315);
+  --violet-fill: oklch(0.94 0.07 315);
+  --violet-foreground: oklch(0.36 0.14 315);
+  --neutral: oklch(0.94 0.012 267);
+  --neutral-foreground: oklch(0.28 0.025 267);
+  --neutral-fill: oklch(0.97 0.008 267);
+
+  /* Categorical chart series: burple, deep burple, green, yellow, magenta, orange. */
+  --chart-1: oklch(0.57 0.22 267);
   --chart-2: oklch(0.42 0.19 267);
-  --chart-3: var(--destructive-fill);
+  --chart-3: oklch(0.72 0.20 155);
+  --chart-4: oklch(0.78 0.18 85);
+  --chart-5: oklch(0.68 0.22 330);
+  --chart-6: oklch(0.72 0.20 35);
 
   /* Sidebar */
   --sidebar: #f5f7fa;
@@ -99,14 +135,14 @@
   --sidebar-ring: oklch(0.57 0.22 267);
 
   /* Achievement tiers: tint + text/icon color, at least 4.5:1 apart. */
-  --tier-bronze: oklch(0.95 0.035 60);
-  --tier-bronze-foreground: oklch(0.43 0.1 50);
+  --tier-bronze: oklch(0.94 0.075 35);
+  --tier-bronze-foreground: oklch(0.39 0.13 35);
   --tier-silver: oklch(0.95 0.005 260);
   --tier-silver-foreground: oklch(0.41 0.02 260);
-  --tier-gold: oklch(0.95 0.07 92);
-  --tier-gold-foreground: oklch(0.44 0.1 75);
-  --tier-platinum: oklch(0.95 0.03 200);
-  --tier-platinum-foreground: oklch(0.41 0.08 215);
+  --tier-gold: oklch(0.95 0.085 85);
+  --tier-gold-foreground: oklch(0.36 0.10 75);
+  --tier-platinum: oklch(0.94 0.065 175);
+  --tier-platinum-foreground: oklch(0.32 0.10 175);
 
   --radius: 0.5rem;
 }
@@ -151,10 +187,51 @@
   --warning-foreground: oklch(0.87 0.13 90);
   --highlight: oklch(0.86 0.15 88);
 
+  /* Semantic hue families */
+  --pink: oklch(0.68 0.20 330);
+  --pink-fill: oklch(0.94 0.075 330);
+  --pink-foreground: oklch(0.38 0.13 330);
+  --red: oklch(0.64 0.21 18);
+  --red-fill: oklch(0.94 0.075 18);
+  --red-foreground: oklch(0.38 0.14 18);
+  --yellow: oklch(0.78 0.18 85);
+  --yellow-fill: oklch(0.95 0.085 85);
+  --yellow-foreground: oklch(0.36 0.10 75);
+  --orange: oklch(0.72 0.20 35);
+  --orange-fill: oklch(0.94 0.075 35);
+  --orange-foreground: oklch(0.39 0.13 35);
+  --cyan: oklch(0.70 0.15 195);
+  --cyan-fill: oklch(0.94 0.065 195);
+  --cyan-foreground: oklch(0.34 0.10 195);
+  --green: oklch(0.70 0.19 150);
+  --green-fill: oklch(0.94 0.075 150);
+  --green-foreground: oklch(0.32 0.11 150);
+  --teal: oklch(0.67 0.16 175);
+  --teal-fill: oklch(0.94 0.065 175);
+  --teal-foreground: oklch(0.32 0.10 175);
+  --blue: oklch(0.60 0.20 250);
+  --blue-fill: oklch(0.94 0.065 250);
+  --blue-foreground: oklch(0.36 0.13 250);
+  --indigo: oklch(0.55 0.21 275);
+  --indigo-fill: oklch(0.94 0.06 275);
+  --indigo-foreground: oklch(0.35 0.14 275);
+  --purple: oklch(0.59 0.21 295);
+  --purple-fill: oklch(0.94 0.065 295);
+  --purple-foreground: oklch(0.37 0.14 295);
+  --violet: oklch(0.57 0.22 315);
+  --violet-fill: oklch(0.94 0.07 315);
+  --violet-foreground: oklch(0.36 0.14 315);
+  --neutral: oklch(0.94 0.012 267);
+  --neutral-foreground: oklch(0.28 0.025 267);
+  --neutral-fill: oklch(0.97 0.008 267);
+
   /* Charts */
   --chart-1: var(--primary);
-  --chart-2: oklch(0.85 0.08 267);
-  --chart-3: var(--destructive-fill);
+  --chart-2: oklch(0.78 0.14 267);
+  --chart-3: oklch(0.76 0.15 325);
+  --chart-4: oklch(0.86 0.13 85);
+  --chart-5: oklch(0.74 0.14 235);
+  --chart-6: oklch(0.75 0.14 35);
 
   /* Sidebar */
   --sidebar: oklch(0.19 0.014 267);
@@ -167,14 +244,14 @@
   --sidebar-ring: oklch(0.7 0.15 267);
 
   /* Achievement tiers */
-  --tier-bronze: oklch(0.29 0.05 55);
-  --tier-bronze-foreground: oklch(0.86 0.09 65);
+  --tier-bronze: oklch(0.94 0.075 35);
+  --tier-bronze-foreground: oklch(0.39 0.13 35);
   --tier-silver: oklch(0.29 0.01 260);
   --tier-silver-foreground: oklch(0.89 0.01 260);
-  --tier-gold: oklch(0.3 0.06 85);
-  --tier-gold-foreground: oklch(0.89 0.12 92);
-  --tier-platinum: oklch(0.29 0.04 210);
-  --tier-platinum-foreground: oklch(0.87 0.06 200);
+  --tier-gold: oklch(0.95 0.085 85);
+  --tier-gold-foreground: oklch(0.36 0.10 75);
+  --tier-platinum: oklch(0.94 0.065 175);
+  --tier-platinum-foreground: oklch(0.32 0.10 175);
 }
 
 @theme inline {
@@ -217,9 +294,49 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-highlight: var(--highlight);
 
+  --color-pink: var(--pink);
+  --color-pink-fill: var(--pink-fill);
+  --color-pink-foreground: var(--pink-foreground);
+  --color-red: var(--red);
+  --color-red-fill: var(--red-fill);
+  --color-red-foreground: var(--red-foreground);
+  --color-yellow: var(--yellow);
+  --color-yellow-fill: var(--yellow-fill);
+  --color-yellow-foreground: var(--yellow-foreground);
+  --color-orange: var(--orange);
+  --color-orange-fill: var(--orange-fill);
+  --color-orange-foreground: var(--orange-foreground);
+  --color-cyan: var(--cyan);
+  --color-cyan-fill: var(--cyan-fill);
+  --color-cyan-foreground: var(--cyan-foreground);
+  --color-green: var(--green);
+  --color-green-fill: var(--green-fill);
+  --color-green-foreground: var(--green-foreground);
+  --color-teal: var(--teal);
+  --color-teal-fill: var(--teal-fill);
+  --color-teal-foreground: var(--teal-foreground);
+  --color-blue: var(--blue);
+  --color-blue-fill: var(--blue-fill);
+  --color-blue-foreground: var(--blue-foreground);
+  --color-indigo: var(--indigo);
+  --color-indigo-fill: var(--indigo-fill);
+  --color-indigo-foreground: var(--indigo-foreground);
+  --color-purple: var(--purple);
+  --color-purple-fill: var(--purple-fill);
+  --color-purple-foreground: var(--purple-foreground);
+  --color-violet: var(--violet);
+  --color-violet-fill: var(--violet-fill);
+  --color-violet-foreground: var(--violet-foreground);
+  --color-neutral: var(--neutral);
+  --color-neutral-foreground: var(--neutral-foreground);
+  --color-neutral-fill: var(--neutral-fill);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);

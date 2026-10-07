@@ -76,6 +76,7 @@ export const playersRouter = router({
           rapid: true,
           classic: true,
           active: true,
+          sex: true,
           imageUrl: true,
           cbxId: true,
           fideId: true,
