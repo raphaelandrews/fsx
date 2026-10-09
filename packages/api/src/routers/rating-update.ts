@@ -119,7 +119,7 @@ function ratingColumn(ratingType: RatingType) {
 async function findHistoryRow(db: RatingDatabase, id: number) {
   const row = await db.query.playersToTournaments.findFirst({
     where: eq(playersToTournaments.id, id),
-    columns: { id: true, playerId: true, ratingType: true, variation: true },
+    columns: { id: true, playerId: true, ratingType: true, oldRating: true, variation: true },
     with: { player: { columns: { blitz: true, rapid: true, classic: true } } },
   });
   if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Rating result not found" });
@@ -132,14 +132,18 @@ function assertRatingInRange(rating: number) {
   }
 }
 
-export async function correctRatingVariation(db: RatingDatabase, input: { id: number; variation: number }) {
+export async function correctRatingVariation(db: RatingDatabase, input: { id: number; variation: number; oldRating?: number }) {
   const row = await findHistoryRow(db, input.id);
-  assertRatingInRange(row.player[row.ratingType] + input.variation - row.variation);
+  const newOldRating = input.oldRating ?? row.oldRating;
+  assertRatingInRange(newOldRating);
+  assertRatingInRange(row.player[row.ratingType] + newOldRating + input.variation - row.oldRating - row.variation);
 
   const target = alias(playersToTournaments, "target");
   const targetRow = db.select({ id: target.id }).from(target).where(eq(target.id, input.id));
   const storedVariation = db.select({ variation: target.variation }).from(target).where(eq(target.id, input.id));
-  const delta = sql<number>`${input.variation} - (${storedVariation})`;
+  const storedOldRating = db.select({ oldRating: target.oldRating }).from(target).where(eq(target.id, input.id));
+  const newOld = input.oldRating === undefined ? sql`(${storedOldRating})` : sql`${input.oldRating}`;
+  const delta = sql<number>`${newOld} + ${input.variation} - (${storedOldRating}) - (${storedVariation})`;
   const column = ratingColumn(row.ratingType);
 
   const [, , corrected, [player]] = await db.batch([
@@ -158,7 +162,7 @@ export async function correctRatingVariation(db: RatingDatabase, input: { id: nu
       )),
     db
       .update(playersToTournaments)
-      .set({ variation: input.variation })
+      .set({ variation: input.variation, ...(input.oldRating === undefined ? {} : { oldRating: input.oldRating }) })
       .where(eq(playersToTournaments.id, input.id))
       .returning({ id: playersToTournaments.id, oldRating: playersToTournaments.oldRating, variation: playersToTournaments.variation }),
     db.select({ rating: column }).from(players).where(eq(players.id, row.playerId)),

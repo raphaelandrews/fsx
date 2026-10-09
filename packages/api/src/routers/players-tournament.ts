@@ -60,7 +60,7 @@ export const playersTournamentRouter = router({
     ),
 
   correctVariation: adminProcedure
-    .input(z.object({ id: positiveInt, variation }))
+    .input(z.object({ id: positiveInt, variation, oldRating: z.number().int().min(0).max(4000).optional() }))
     .mutation(({ ctx, input }) => correctRatingVariation(ctx.db, input)),
 
   remove: adminProcedure

@@ -96,6 +96,23 @@ describe("players.merge", () => {
     await expect(caller.players.rebuildRatings({ id: 999999 })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
+  test("correcting the Before of a result shifts the rating and later results", async () => {
+    const id = await player("Before Player", { rapid: 1500 });
+    const first = await tournament("Before Open 1");
+    const second = await tournament("Before Open 2");
+    const [one] = await db.insert(playersToTournaments).values({ playerId: id, tournamentId: first, oldRating: 1500, variation: 10, ratingType: "rapid" }).returning();
+    await db.insert(playersToTournaments).values({ playerId: id, tournamentId: second, oldRating: 1510, variation: 5, ratingType: "rapid" });
+    await db.update(players).set({ rapid: 1515 }).where(eq(players.id, id));
+
+    await caller.playersTournament.correctVariation({ id: one!.id, oldRating: 1600, variation: 10 });
+
+    expect(await caller.playersTournament.listByPlayer({ playerId: id })).toMatchObject([
+      { oldRating: 1600, variation: 10 },
+      { oldRating: 1610, variation: 5 },
+    ]);
+    expect(await caller.players.forEdit({ id })).toMatchObject({ rapid: 1615 });
+  });
+
   test("rejects merging a player into itself and unknown players", async () => {
     const id = await player("Solo Player");
     await expect(caller.players.merge({ sourceId: id, targetId: id })).rejects.toMatchObject({ code: "BAD_REQUEST" });

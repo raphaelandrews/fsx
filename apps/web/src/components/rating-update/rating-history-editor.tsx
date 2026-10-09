@@ -36,8 +36,8 @@ export function RatingHistoryEditor({ playerId, onRatingChange }: RatingHistoryE
     trpc.playersTournament.correctVariation.mutationOptions(),
     {
       invalidates: "playersTournament",
-      success: "Variation corrected",
-      failure: "Failed to correct the variation",
+      success: "Result corrected",
+      failure: "Failed to correct the result",
       reloadOnConflict: true,
       onSuccess: (data) => {
         onRatingChange(data.ratingType, data.rating);
@@ -105,7 +105,7 @@ export function RatingHistoryEditor({ playerId, onRatingChange }: RatingHistoryE
           <DataTableRowActions
             id={result.id}
             noun="result"
-            editLabel="Correct variation"
+            editLabel="Correct result"
             onEdit={() => setEditing(result)}
             deleteLabel="Remove"
             deleteDescription={`The ${signed(result.variation)} from “${name}” will be subtracted from the current ${type} rating, and later results will be rebased.`}
@@ -131,13 +131,21 @@ export function RatingHistoryEditor({ playerId, onRatingChange }: RatingHistoryE
       <EntityFormDialog
         open={editing !== null}
         onOpenChange={(open) => !open && setEditing(null)}
-        title="Correct variation"
+        title="Correct result"
         description={
           editing
-            ? `${editing.tournament?.name ?? "Tournament"} · started at ${editing.oldRating}`
+            ? `${editing.tournament?.name ?? "Tournament"}. Later results of the same type shift by the same amount.`
             : undefined
         }
         fields={[
+          {
+            name: "oldRating",
+            label: "Before",
+            kind: "number",
+            required: true,
+            min: 0,
+            max: 4000,
+          },
           {
             name: "variation",
             label: "Variation",
@@ -147,13 +155,18 @@ export function RatingHistoryEditor({ playerId, onRatingChange }: RatingHistoryE
             max: 4000,
           },
         ]}
-        defaultValues={{ variation: String(editing?.variation ?? 0) }}
+        defaultValues={{ oldRating: String(editing?.oldRating ?? 0), variation: String(editing?.variation ?? 0) }}
         onSubmit={(values) =>
-          editing && correctMutation.mutate({ id: editing.id, variation: Number(values.variation) })
+          editing &&
+          correctMutation.mutate({
+            id: editing.id,
+            oldRating: Number(values.oldRating),
+            variation: Number(values.variation),
+          })
         }
         error={correctMutation.error}
         pending={correctMutation.isPending}
-        submitLabel="Save variation"
+        submitLabel="Save result"
       />
     </AdminSection>
   );
