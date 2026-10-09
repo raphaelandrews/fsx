@@ -52,7 +52,7 @@ components. Decorative gradients (`avatar-gradient.tsx`) are the only exception.
 | `pink`, `red`, `yellow`, `orange`, `cyan`, `green`, `teal`, `blue`, `indigo`, `purple`, `violet` and their `-fill` / `-foreground` tokens | Strong hue / pale fill / dark foreground | Same semantic hues | Reusable color families; e.g. `text-pink`, `bg-pink-fill`, `text-pink-foreground` |
 | `neutral`, `neutral-fill`, `neutral-foreground` | Pale cool gray / lighter cool gray / dark cool gray | Same neutral palette | Neutral labeled treatments |
 | `chart-1`…`chart-6` | burple, deep burple, green, yellow, magenta, orange | burple, light deep burple, light magenta, bright amber, light blue, light peach | Neutral chart series and categories. Pair yellow with a labeled legend; other fills keep ≥3:1 against the chart surface. |
-| `sidebar-*` | grays + burple | grays + burple | Reserved for a future sidebar |
+| `sidebar-*` | grays + burple | grays + burple | Admin dashboard sidebar surface and hover rows |
 | `tier-*` / `tier-*-foreground` | bronze, silver, gold, platinum tints | dark tints | `Medal` counts and title emblems only |
 
 ### Semantic mapping
@@ -192,6 +192,19 @@ Section CTAs use `SectionButton`: `size="pill"`, `ArrowRight01Icon` at the end, 
 phones, `sm:w-fit`. For links styled as buttons use
 `className={buttonVariants({ size, variant })}` on the `<a>` or `<Link>`.
 
+### Admin sidebar (`AdminSidebar`, `AdminShell`)
+
+The dashboard (`/dashboard`, `/rating-update`) uses the shadcn `inset` sidebar: a `sidebar` (`#F5F7FA`)
+rail with the page on a `bg-background` `rounded-4xl` panel, flat (no shadow). Menu buttons are 40px
+pills with 16px labels; the current page is a `bg-primary` pill that swaps to `primary-inverse` on
+hover, like the primary button. Groups collapse with a chevron and open on the active route's group;
+sub-items are 36px pills. The footer holds the user menu. Collapsed (`ctrl+b` or the trigger beside the logo), it becomes a
+56px icon rail: the trigger and a logo tile on top, every page as a 40px icon tile with a tooltip
+(groups flattened), and the avatar at the bottom. On phones the sidebar is a drawer opened from the
+top bar of the panel, which also carries the
+breadcrumb, built from `ADMIN_NAV`
+(`components/header/admin-nav-data.tsx`), so add new admin pages there.
+
 ### Header
 
 All controls are 40px tall: nav triggers (`h-10`, pill hover), search (`size="xl"`), icon buttons
@@ -246,6 +259,13 @@ and the Normas Técnicas titulations (abbreviation plus a muted one-line descrip
 Home sections (`components/home/section.tsx`) open with a centered header: the icon in a 44px
 `bg-muted` circle, then an `h2` at `text-2xl sm:text-3xl`, semibold, `tracking-tight`, 32px above
 the content. Pair it with a centered `SectionButton` at the end of the section.
+
+### Empty collections (`EmptyCollection`)
+
+A collection with no rows replaces its table with a centered block: the page's nav icon in a 56px
+`bg-muted` circle, an `h2` ("No clubs yet"), a muted one-line description, and a `xl` primary pill
+with a plus icon that links to the create form. A search that matches nothing keeps the plain text
+row inside the table instead.
 
 ### Tables (`Table`)
 

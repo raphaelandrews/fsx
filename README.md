@@ -20,8 +20,9 @@ Environment files (all variables are explained in `apps/web/.env.example`):
 
 | File | Holds |
 | ---- | ----- |
-| `apps/web/.env.common` | Shared secrets: `BETTER_AUTH_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_USER_ID` (the only account that can sign in) |
-| `apps/web/.env` | Dev URLs: `BETTER_AUTH_URL` and `CORS_ORIGIN` = `http://localhost:3001` |
+| `apps/web/.env.common` | Shared secrets: `BETTER_AUTH_SECRET`, `GITHUB_USER_ID` (the only account that can sign in) |
+| `apps/web/.env` | Dev URLs (`BETTER_AUTH_URL` and `CORS_ORIGIN` = `http://localhost:3001`) and the dev GitHub OAuth app (`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`) |
+| `apps/web/.env.prod` | Production URLs and the production GitHub OAuth app (`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`) |
 | `packages/infra/.env` | `ALCHEMY_PASSWORD` (any stable string) |
 
 ```bash

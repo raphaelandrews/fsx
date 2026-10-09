@@ -14,9 +14,13 @@ description: Set up, run, seed, and test the FSX project locally.
 1. `bun install`
 2. Create the environment files described in `apps/web/.env.example`:
    - `apps/web/.env`: development URLs (`BETTER_AUTH_URL` and `CORS_ORIGIN`
-     set to `http://localhost:3001`).
+     set to `http://localhost:3001`) and the development GitHub OAuth app
+     (`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`; callback URL
+     `http://localhost:3001/api/auth/callback/github`).
+   - `apps/web/.env.prod`: production URLs and the production GitHub OAuth app
+     (a separate app whose callback URL is on the production domain).
    - `apps/web/.env.common`: secrets shared by development and production
-     (`BETTER_AUTH_SECRET`, GitHub OAuth, `GITHUB_USER_ID`, Cloudflare account).
+     (`BETTER_AUTH_SECRET`, `GITHUB_USER_ID`, Cloudflare account).
    - `packages/infra/.env`: `ALCHEMY_PASSWORD`.
 3. `bun run hooks:setup` installs the Git hooks.
 

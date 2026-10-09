@@ -1,6 +1,6 @@
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
-import { AdminHeader } from "@/components/header/admin-header";
+import { AdminShell } from "@/components/admin/admin-shell";
 import { PageSkeleton } from "@/components/skeletons/page-skeleton";
 import { getUser } from "@/functions/get-user";
 import { buildSeo, withBrand } from "@/lib/seo";
@@ -27,29 +27,19 @@ export const Route = createFileRoute("/_auth")({
   },
 });
 
-function AuthShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex min-h-dvh flex-col">
-      <AdminHeader />
-      <main className="flex-1">
-        <div className="mx-auto w-full max-w-[1120px] px-4 py-6 sm:px-6 lg:py-8">{children}</div>
-      </main>
-    </div>
-  );
-}
-
 function AuthLayout() {
+  const { session } = Route.useRouteContext();
   return (
-    <AuthShell>
+    <AdminShell user={session.user}>
       <Outlet />
-    </AuthShell>
+    </AdminShell>
   );
 }
 
 function AuthLayoutPending() {
   return (
-    <AuthShell>
+    <AdminShell>
       <PageSkeleton />
-    </AuthShell>
+    </AdminShell>
   );
 }

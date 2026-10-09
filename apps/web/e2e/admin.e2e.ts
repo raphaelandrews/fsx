@@ -183,7 +183,7 @@ test("deletes a record from its edit page after confirming", async ({ page }) =>
 
   await page.getByRole("link", { name: "Clube Para Excluir" }).click();
   await expect(page.getByRole("heading", { name: "Clube Para Excluir" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Clubs" })).toHaveAttribute("href", "/dashboard/clubs");
+  await expect(page.getByRole("main").getByRole("link", { name: "Clubs" })).toHaveAttribute("href", "/dashboard/clubs");
 
   await page.getByRole("button", { name: "Delete club" }).click();
   const confirm = page.getByRole("alertdialog");

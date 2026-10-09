@@ -38,8 +38,8 @@ test.describe("dashboard keyboard and layout", () => {
 
   test("empty collections explain themselves and link to the create form", async ({ page }) => {
     await page.goto("/dashboard/norms", { waitUntil: "networkidle" });
-    await expect(page.getByText("No norms yet.")).toBeVisible();
-    await page.getByRole("link", { name: "Create the first one" }).click();
+    await expect(page.getByRole("heading", { name: "No norms yet" })).toBeVisible();
+    await page.getByRole("link", { name: "Create", exact: true }).click();
     await expect(page).toHaveURL(/\/dashboard\/norms\/create$/);
   });
 

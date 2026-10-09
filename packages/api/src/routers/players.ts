@@ -18,6 +18,7 @@ import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
 import { loadPlayerCircuits } from "../gamification/circuits";
 import { loadPlayerCareer, loadPlayerStats } from "../gamification/load";
 import { playerSeason } from "../gamification/season";
+import { mergePlayers } from "./players-merge";
 import { loadPlayerRanking, movementsFor } from "../gamification/ranking";
 
 export const playersRouter = router({
@@ -268,6 +269,10 @@ export const playersRouter = router({
         "Player",
       );
     }),
+
+  merge: adminProcedure
+    .input(z.object({ sourceId: positiveInt, targetId: positiveInt }))
+    .mutation(({ ctx, input }) => mergePlayers(ctx.db, input)),
 
   withFilters: publicProcedure
     .input(z.object({

@@ -67,6 +67,15 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
+  if (data.length === 0 && emptyState && typeof emptyState !== "string") {
+    return (
+      <div className="space-y-4">
+        {toolbar?.(table)}
+        {emptyState}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {toolbar?.(table)}

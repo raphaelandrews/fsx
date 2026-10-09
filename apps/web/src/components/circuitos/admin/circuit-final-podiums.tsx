@@ -131,6 +131,7 @@ export function CircuitFinalPodiums({ circuit }: { circuit: Circuit }) {
               </Button>
               <ConfirmDeleteButton
                 label="Reopen season"
+                confirmLabel="Reopen"
                 title="Reopen this season?"
                 itemName={circuit.name}
                 description={`Its ${podiums.length} final podium(s) will be deleted and the season will be in progress again. Finishing it again recomputes them from the stage points.`}

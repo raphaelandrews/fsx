@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { buttonVariants } from "@fsx/ui/components/button";
 
 import { AdminPageHeader } from "@/components/admin/page-header";
+import { MergePlayerButton } from "@/components/admin/merge-player-button";
 import { PlayerForm, type RatingType } from "@/components/admin/player-form";
 import {
   PlayerInsigniasSection,
@@ -81,15 +82,18 @@ function RouteComponent() {
         backTo="/dashboard/players"
         backLabel="Players"
         title={player.name}
-        description="Players are never deleted; clear Active to hide them from the rankings."
+        description="Clear Active to hide a player from the rankings. Duplicates can be combined with Merge into."
         actions={
-          <Link
-            to="/jogadores/$id"
-            params={{ id }}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            View public profile
-          </Link>
+          <>
+            <MergePlayerButton playerId={id} playerName={player.name} />
+            <Link
+              to="/jogadores/$id"
+              params={{ id }}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              View public profile
+            </Link>
+          </>
         }
       />
       <PlayerForm

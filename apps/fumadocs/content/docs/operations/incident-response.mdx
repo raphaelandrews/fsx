@@ -81,7 +81,8 @@ minutes.
 
 1. Rotate the affected secret: `BETTER_AUTH_SECRET` (signs out every session),
    the GitHub OAuth secret, or the Cloudflare API token.
-2. Update `apps/web/.env.common` and redeploy; update GitHub repository secrets
+2. Update `apps/web/.env.common` (or `apps/web/.env.prod` for the production GitHub
+   OAuth secret) and redeploy; update GitHub repository secrets
    for the workflows.
 3. Delete sessions in the `session` table if the owner account may have been
    used by someone else, and review recent changes in the dashboard.

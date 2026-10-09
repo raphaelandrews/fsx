@@ -28,15 +28,7 @@ export type AdminNavItem = {
 };
 
 export const ADMIN_NAV: AdminNavItem[] = [
-  {
-    label: "Overview",
-    to: "/dashboard",
-    icon: Home01Icon,
-    items: [
-      { label: "Dashboard", to: "/dashboard", icon: Home01Icon },
-      { label: "Rating Update", to: "/rating-update", icon: Route01Icon },
-    ],
-  },
+  { label: "Dashboard", to: "/dashboard", icon: Home01Icon },
   {
     label: "Content",
     to: "/dashboard/posts",
@@ -53,6 +45,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
     icon: Route01Icon,
     items: [
       { label: "Tournaments", to: "/dashboard/tournaments", icon: Route01Icon },
+      { label: "Rating Update", to: "/rating-update", icon: Medal01Icon },
       { label: "Championships", to: "/dashboard/championships", icon: ChampionIcon },
       { label: "Podiums", to: "/dashboard/tournament-podiums", icon: Medal01Icon },
       { label: "Circuits", to: "/dashboard/circuits", icon: MapPinIcon },
@@ -93,3 +86,20 @@ export const ADMIN_NAV: AdminNavItem[] = [
     ],
   },
 ];
+
+export function isNavActive(pathname: string, to: string): boolean {
+  if (to === "/dashboard") return pathname === "/dashboard";
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
+
+export function findActiveNav(pathname: string): { group?: AdminNavItem; item?: AdminNavItem } {
+  for (const group of ADMIN_NAV) {
+    if (!group.items) {
+      if (isNavActive(pathname, group.to)) return { item: group };
+      continue;
+    }
+    const item = group.items.find((sub) => isNavActive(pathname, sub.to));
+    if (item) return { group, item };
+  }
+  return {};
+}

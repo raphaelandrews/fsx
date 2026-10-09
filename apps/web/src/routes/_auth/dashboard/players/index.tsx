@@ -58,6 +58,11 @@ function RouteComponent() {
 
   const columns: ColumnDef<(typeof players)[number]>[] = [
     {
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => <span className="tabular-nums text-muted-foreground">{row.original.id}</span>,
+    },
+    {
       accessorKey: "name",
       header: "Name",
       cell: ({ row }) => (

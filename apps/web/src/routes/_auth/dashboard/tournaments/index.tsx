@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -25,7 +26,10 @@ export const Route = createFileRoute("/_auth/dashboard/tournaments/")({
 function RouteComponent() {
   const trpc = useTRPC();
 
-  const { data = [] } = useSuspenseQuery(trpc.tournaments.list.queryOptions());
+  const { data: all = [] } = useSuspenseQuery(trpc.tournaments.list.queryOptions());
+  const [unlinkedOnly, setUnlinkedOnly] = useState(false);
+  const unlinkedCount = all.filter((tournament) => !tournament.championship).length;
+  const data = unlinkedOnly ? all.filter((tournament) => !tournament.championship) : all;
 
   const deleteMutation = useAdminMutation(trpc.tournaments.delete.mutationOptions(), {
     invalidates: "tournaments",
@@ -46,7 +50,7 @@ function RouteComponent() {
     },
     {
       accessorKey: "date",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Data" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
       cell: ({ row }) => <span className="tabular-nums text-muted-foreground">{row.getValue("date")}</span>,
     },
     {
@@ -95,7 +99,16 @@ function RouteComponent() {
         columns={columns}
         data={data}
         toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search tournament..." />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search tournament..." />
+            <Button
+              aria-pressed={unlinkedOnly}
+              onClick={() => setUnlinkedOnly((value) => !value)}
+              variant={unlinkedOnly ? "default" : "outline"}
+            >
+              Without championship ({unlinkedCount})
+            </Button>
+          </div>
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />
