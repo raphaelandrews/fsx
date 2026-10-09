@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, notExists } from "drizzle-orm";
+import { and, asc, eq, inArray, notExists } from "drizzle-orm";
 import { alias, type SQLiteColumn } from "drizzle-orm/sqlite-core";
 
 import { announcements } from "@fsx/db/schema/announcements";
@@ -64,18 +64,67 @@ async function findConflicts(db: Database, sourceId: number, targetId: number): 
   return conflicts;
 }
 
+const RATING_TYPES = ["classic", "rapid", "blitz"] as const;
+
+type Ratings = Record<(typeof RATING_TYPES)[number], number>;
+
+async function planRatingChain(db: Database, playerIds: number[], fallback: Ratings) {
+  const results = await db
+    .select({
+      id: playersToTournaments.id,
+      ratingType: playersToTournaments.ratingType,
+      oldRating: playersToTournaments.oldRating,
+      variation: playersToTournaments.variation,
+    })
+    .from(playersToTournaments)
+    .where(inArray(playersToTournaments.playerId, playerIds))
+    .orderBy(asc(playersToTournaments.id));
+
+  const ratings = { ...fallback };
+  const rewrites = RATING_TYPES.flatMap((ratingType) => {
+    const chain = results.filter((row) => row.ratingType === ratingType);
+    const first = chain[0];
+    if (!first) return [];
+    let rating = first.oldRating;
+    const updates = chain.flatMap((row) => {
+      const update = row.oldRating === rating
+        ? []
+        : [db.update(playersToTournaments).set({ oldRating: rating }).where(eq(playersToTournaments.id, row.id))];
+      rating += row.variation;
+      return update;
+    });
+    ratings[ratingType] = rating;
+    return updates;
+  });
+  return { ratings, rewrites };
+}
+
+export async function rebuildPlayerRatings(db: Database, input: { id: number }) {
+  const [player] = await db.select().from(players).where(eq(players.id, input.id));
+  if (!player) throw new TRPCError({ code: "NOT_FOUND", message: "Player not found" });
+
+  const { ratings, rewrites } = await planRatingChain(db, [input.id], {
+    classic: player.classic,
+    rapid: player.rapid,
+    blitz: player.blitz,
+  });
+  await db.batch([db.update(players).set(ratings).where(eq(players.id, input.id)), ...rewrites]);
+  return { id: input.id, ...ratings };
+}
+
 export async function mergePlayers(db: Database, input: { sourceId: number; targetId: number }) {
-  const { sourceId, targetId } = input;
-  if (sourceId === targetId) {
+  if (input.sourceId === input.targetId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a different player to merge into" });
   }
+
+  const targetId = Math.min(input.sourceId, input.targetId);
+  const sourceId = Math.max(input.sourceId, input.targetId);
 
   const [[source], [target]] = await db.batch([
     db.select().from(players).where(eq(players.id, sourceId)),
     db.select().from(players).where(eq(players.id, targetId)),
   ]);
-  if (!source) throw new TRPCError({ code: "NOT_FOUND", message: "Player not found" });
-  if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "Target player not found" });
+  if (!source || !target) throw new TRPCError({ code: "NOT_FOUND", message: "Player not found" });
 
   const conflicts = await findConflicts(db, sourceId, targetId);
   if (conflicts.length) {
@@ -84,6 +133,12 @@ export async function mergePlayers(db: Database, input: { sourceId: number; targ
       message: `Cannot merge: ${conflicts.join("; ")}. Remove one of them first.`,
     });
   }
+
+  const { ratings, rewrites } = await planRatingChain(db, [sourceId, targetId], {
+    classic: target.classic,
+    rapid: target.rapid,
+    blitz: target.blitz,
+  });
 
   const inherited = Object.fromEntries(
     PROFILE_FIELDS.filter((field) => target[field] == null && source[field] != null).map((field) => [field, source[field]]),
@@ -108,11 +163,10 @@ export async function mergePlayers(db: Database, input: { sourceId: number; targ
       ...inherited,
       active: target.active || source.active,
       verified: target.verified || source.verified,
-      blitz: Math.min(target.blitz, source.blitz),
-      rapid: Math.min(target.rapid, source.rapid),
-      classic: Math.min(target.classic, source.classic),
+      ...ratings,
     }).where(eq(players.id, targetId)),
     db.update(playersToTournaments).set({ playerId: targetId }).where(eq(playersToTournaments.playerId, sourceId)),
+    ...rewrites,
     db.update(tournamentPodiums).set({ playerId: targetId }).where(eq(tournamentPodiums.playerId, sourceId)),
     db.update(circuitPodiums).set({ playerId: targetId }).where(eq(circuitPodiums.playerId, sourceId)),
     db.update(circuitFinalPodiums).set({ playerId: targetId }).where(eq(circuitFinalPodiums.playerId, sourceId)),

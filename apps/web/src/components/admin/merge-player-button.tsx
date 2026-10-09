@@ -39,15 +39,16 @@ export function MergePlayerButton({ playerId, playerName }: { playerId: number; 
   return (
     <>
       <Button type="button" variant="outline" onClick={() => setOpen(true)}>
-        Merge into…
+        Merge with…
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Merge “{playerName}” into another player</DialogTitle>
+            <DialogTitle>Merge “{playerName}” with another player</DialogTitle>
             <DialogDescription>
-              Results, podiums, titles, roles and other history of this player move to the player you pick, and
-              this record is deleted. The lower rating of each type is kept. This cannot be undone.
+              The two records become one and the player with the lowest ID is kept. Results, podiums, titles and
+              other history are combined, and ratings are rebuilt from the combined rating history. This cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <SearchableSelect
@@ -55,7 +56,7 @@ export function MergePlayerButton({ playerId, playerName }: { playerId: number; 
             value={targetId}
             onChange={setTargetId}
             getQueryOptions={(query) => trpc.players.search.queryOptions({ query })}
-            placeholder="Search the player to keep..."
+            placeholder="Search the other record..."
             emptyText="No player found."
           />
           <DialogFooter>

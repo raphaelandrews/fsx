@@ -3,7 +3,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { buttonVariants } from "@fsx/ui/components/button";
+import { Button, buttonVariants } from "@fsx/ui/components/button";
 
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { MergePlayerButton } from "@/components/admin/merge-player-button";
@@ -76,15 +76,38 @@ function RouteComponent() {
     },
   });
 
+  const rebuildMutation = useMutation({
+    ...trpc.players.rebuildRatings.mutationOptions(),
+    onSuccess: async (result) => {
+      await Promise.all([
+        invalidateAdmin("players"),
+        invalidateAdmin("playersTournament"),
+      ]);
+      for (const ratingType of ["classic", "rapid", "blitz"] as const) {
+        setRatingRef.current?.(ratingType, result[ratingType]);
+      }
+      toast.success("Rating history rebuilt");
+    },
+    onError: (error) => showMutationError(error, "Failed to rebuild rating history"),
+  });
+
   return (
     <>
       <AdminPageHeader
         backTo="/dashboard/players"
         backLabel="Players"
         title={player.name}
-        description="Clear Active to hide a player from the rankings. Duplicates can be combined with Merge into."
+        description="Clear Active to hide a player from the rankings. Duplicates can be combined with Merge with."
         actions={
           <>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={rebuildMutation.isPending}
+              onClick={() => rebuildMutation.mutate({ id })}
+            >
+              Rebuild ratings
+            </Button>
             <MergePlayerButton playerId={id} playerName={player.name} />
             <Link
               to="/jogadores/$id"
