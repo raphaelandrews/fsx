@@ -30,6 +30,7 @@ export function RatingHistoryEditor({ playerId, onRatingChange }: RatingHistoryE
   const { data: history } = useSuspenseQuery(
     trpc.playersTournament.listByPlayer.queryOptions({ playerId }),
   );
+  const newestFirst = [...history].reverse();
   const [editing, setEditing] = useState<(typeof history)[number] | null>(null);
 
   const correctMutation = useAdminMutation(
@@ -124,7 +125,7 @@ export function RatingHistoryEditor({ playerId, onRatingChange }: RatingHistoryE
     >
       <DataTable
         columns={columns}
-        data={history}
+        data={newestFirst}
         emptyState="No rated tournaments yet."
         pagination={(table) => <DataTablePagination table={table} />}
       />
