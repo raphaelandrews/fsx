@@ -520,9 +520,15 @@ players something to share. Badges still give no XP (Phase 2), so levels don't c
 | Grande salto | Single-tournament gain of +30 / +50 / +80 | 3 |
 | Circuito completo | Played every stage of a circuit season | single |
 | Pódio de etapa | Circuit stage podiums | 3 / 10 / 25 |
-| Campeão de categoria | First place in a tournament category (Sub-14, Feminino, …) | one per category |
+| Campeão de categoria | First place in a tournament category (Sub-14, Feminino, …); Futuro, Juvenil, and Master have none | one per category |
 | Década | A result 10+ years after the first recorded tournament | single |
 | Recordista | Holds first place in a `/estatisticas` record list | single (from 8.3) |
+| Campeão(ã) Sergipano · Absoluto / Feminino / Rápido / Blitz / Bullet / Equipes | First overall win of a tier S championship of that kind. The kind comes from the championship name (`gamification/sergipano.ts`: "feminin", "equipe", "bullet", "blitz", "rapid", "absolut"), so name Sergipano championships accordingly | gold (Absoluto, Feminino), silver (others) |
+| Tríplice Coroa Sergipana | One Sergipano win in each of classic (Absoluto or Feminino), rapid, and blitz | gold |
+| Tríplice Coroa em dobro | Two wins in each of those three | platinum |
+| Grand Slam Sergipano | A win in classic, rapid, blitz, Bullet, and Equipes. The Bullet win comes from the Grand Final winner of a cup whose name or championship matches "bullet" (cups record no tournament podium) | platinum |
+| Campeão(ã) · Sergipano / Tier A / Tier B / Escolar | First places (overall or category) per competition tier | 1 / 3 / 5 wins |
+| Pódio em todos os níveis | A podium in tier S, A, B, and school | platinum |
 
 - [x] Stats module: the derived fields these need (gain steps, comeback, formats per year, stage
   podium dates, category wins, stage counts per circuit season), each with provenance.

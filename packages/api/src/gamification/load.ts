@@ -1,5 +1,6 @@
 import { and, asc, eq, inArray, isNotNull, type SQL } from "drizzle-orm";
 
+import { cupBrackets } from "@fsx/db/schema/cupBrackets";
 import { circuitFinalPodiums } from "@fsx/db/schema/circuitFinalPodiums";
 import { circuitPhases } from "@fsx/db/schema/circuitPhases";
 import { circuitPodiums } from "@fsx/db/schema/circuitPodiums";
@@ -102,14 +103,26 @@ function careerQueries(db: Context["db"], scope?: number | number[]) {
       with: { championship: { columns: { name: true } } },
     }),
     db.select({ circuitId: circuitPhases.circuitId }).from(circuitPhases).limit(ALL_CAREERS_LIMIT),
+    db.query.cups.findMany({
+      columns: { id: true, name: true, endDate: true },
+      limit: ALL_CAREERS_LIMIT,
+      with: {
+        championship: { columns: { name: true } },
+        cupBrackets: {
+          where: eq(cupBrackets.bracketType, "GF"),
+          columns: { id: true },
+          with: { cupPlayoffs: { columns: { id: true }, with: { cupMatches: { columns: { winnerId: true } } } } },
+        },
+      },
+    }),
   ] as const;
 }
 
 type CareerRows = Awaited<ReturnType<typeof loadCareerRows>>;
 
 export async function loadCareerRows(db: Context["db"], scope?: number | number[]) {
-  const [people, results, podiums, stages, finals, titles, events, phases] = await db.batch(careerQueries(db, scope));
-  return { people, results, podiums, stages, finals, titles, events, phases };
+  const [people, results, podiums, stages, finals, titles, events, phases, cupRows] = await db.batch(careerQueries(db, scope));
+  return { people, results, podiums, stages, finals, titles, events, phases, cupRows };
 }
 
 export type CareerPlayer = CareerRows["people"][number];
@@ -135,6 +148,7 @@ function careers(rows: CareerRows): Map<number, Career> {
         tournamentPodiums: [],
         circuitStageResults: [],
         circuitFinalPodiums: [],
+        cupTitles: [],
         titleTiers: [],
       },
       titleShortNames: [],
@@ -180,6 +194,19 @@ function careers(rows: CareerRows): Map<number, Career> {
       circuit: { ...competition({ ...row.circuit, date: row.circuit.finishedAt }), year: row.circuit.year },
     });
   }
+  for (const cup of rows.cupRows) {
+    // The Grand Final's first decided match names the champion, as on /bullet.
+    const winnerId = cup.cupBrackets
+      .flatMap((bracket) => bracket.cupPlayoffs.flatMap((playoff) => playoff.cupMatches))
+      .find((match) => match.winnerId !== null)?.winnerId;
+    const career = winnerId == null ? undefined : byPlayer.get(winnerId);
+    career?.input.cupTitles?.push({
+      cupId: cup.id,
+      name: cup.name,
+      championshipName: cup.championship?.name ?? null,
+      date: cup.endDate,
+    });
+  }
   for (const row of rows.titles) {
     const career = byPlayer.get(row.playerId);
     career?.input.titleTiers.push(row.title.tier);
@@ -223,6 +250,7 @@ const hasCareer = ({ input }: Career) =>
   input.tournamentPodiums.length > 0 ||
   input.circuitStageResults.length > 0 ||
   input.circuitFinalPodiums.length > 0 ||
+  (input.cupTitles?.length ?? 0) > 0 ||
   input.titleTiers.length > 0 ||
   Object.values(input.ratings).some((rating) => rating !== STARTING_RATING);
 

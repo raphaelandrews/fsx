@@ -24,6 +24,11 @@ export function TournamentRatingResults({ tournamentId }: { tournamentId: number
     },
   );
 
+  const averageBefore =
+    results.length > 0
+      ? Math.round(results.reduce((sum, result) => sum + result.oldRating, 0) / results.length)
+      : null;
+
   const columns: ColumnDef<(typeof results)[number]>[] = [
     {
       id: "player",
@@ -58,8 +63,8 @@ export function TournamentRatingResults({ tournamentId }: { tournamentId: number
 
   return (
     <AdminSection
-      title={`Rating results (${results.length})`}
-      description="Imported from Rating update. To fix one player's variation, open the player and use Rating history."
+      title={`Rating results (${results.length})${averageBefore === null ? "" : ` · average ${averageBefore}`}`}
+      description={`Imported from Rating update. To fix one player's variation, open the player and use Rating history. The average is the players' rating before the tournament.`}
       actions={
         results.length > 0 ? (
           <ConfirmDeleteButton

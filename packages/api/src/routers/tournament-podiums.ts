@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 
 import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
 import { adminProcedure, publicProcedure, router } from "../index";
@@ -15,6 +15,28 @@ const podiumInput = z.object({
   category: z.enum(COMPETITION_CATEGORIES).nullable().optional(),
 });
 
+const MAX_BULK_PODIUMS = 50;
+
+const bulkPodiumsInput = z
+  .object({
+    tournamentId: positiveInt,
+    podiums: z
+      .array(
+        z.object({
+          playerId: positiveInt,
+          place: positiveInt.max(100_000),
+          category: z.enum(COMPETITION_CATEGORIES).nullable().optional(),
+        }),
+      )
+      .min(1)
+      .max(MAX_BULK_PODIUMS),
+  })
+  .refine(
+    ({ podiums }) =>
+      new Set(podiums.map((p) => `${p.playerId}:${p.category ?? ""}`)).size === podiums.length,
+    { message: "A player can appear only once per category.", path: ["podiums"] },
+  );
+
 export const tournamentPodiumsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
     ctx.db.query.tournamentPodiums.findMany({
@@ -27,6 +49,29 @@ export const tournamentPodiumsRouter = router({
        limit: PUBLIC_COLLECTION_LIMIT,
     })
   ),
+  listByTournament: adminProcedure
+    .input(z.object({ tournamentId: positiveInt }))
+    .query(({ ctx, input }) =>
+      ctx.db.query.tournamentPodiums.findMany({
+        where: eq(tournamentPodiums.tournamentId, input.tournamentId),
+        columns: { id: true, playerId: true, place: true, category: true },
+        with: { player: { columns: { id: true, name: true } } },
+        orderBy: [asc(tournamentPodiums.category), asc(tournamentPodiums.place), asc(tournamentPodiums.id)],
+        limit: PUBLIC_COLLECTION_LIMIT,
+      })
+    ),
+  createMany: adminProcedure
+    .input(bulkPodiumsInput)
+    .mutation(async ({ ctx, input }) => {
+      const inserts = input.podiums.map((podium) =>
+        ctx.db
+          .insert(tournamentPodiums)
+          .values({ ...podium, tournamentId: input.tournamentId, category: podium.category ?? null })
+          .returning({ id: tournamentPodiums.id }),
+      );
+      const results = await ctx.db.batch(inserts as [(typeof inserts)[number], ...(typeof inserts)[number][]]);
+      return results.flat();
+    }),
   create: adminProcedure
     .input(podiumInput)
     .mutation(({ ctx, input }) =>

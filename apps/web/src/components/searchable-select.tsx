@@ -87,7 +87,7 @@ export function SearchableSelect({
             setSelectedLabel("");
           }}
           onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onBlur={() => setOpen(false)}
         />
         {selectedLabel && value ? (
           <button
@@ -102,7 +102,10 @@ export function SearchableSelect({
       </div>
 
       {open ? (
-        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border bg-popover shadow-md">
+        <div
+          className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border bg-popover shadow-md"
+          onMouseDown={(e) => e.preventDefault()}
+        >
           <Command shouldFilter={false}>
             <CommandList>
               {isFetching ? (

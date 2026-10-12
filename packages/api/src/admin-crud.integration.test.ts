@@ -428,6 +428,44 @@ describe("admin CRUD round-trips against D1", () => {
   });
 });
 
+describe("tournamentPodiums.createMany against D1", () => {
+  test("inserts every podium, lists them by tournament, and rejects a duplicate atomically", async () => {
+    const podiums = [
+      { playerId: fixtures.playerId, place: 1 },
+      { playerId: fixtures.secondPlayerId, place: 2 },
+    ] as const;
+    const created = await caller.tournamentPodiums.createMany({
+      tournamentId: fixtures.tournamentId,
+      podiums: [...podiums],
+    });
+    expect(created).toHaveLength(2);
+
+    const listed = await caller.tournamentPodiums.listByTournament({ tournamentId: fixtures.tournamentId });
+    expect(listed.map((p) => [p.playerId, p.place])).toEqual([
+      [fixtures.playerId, 1],
+      [fixtures.secondPlayerId, 2],
+    ]);
+
+    await expect(
+      caller.tournamentPodiums.createMany({
+        tournamentId: fixtures.tournamentId,
+        podiums: [{ playerId: fixtures.playerId, place: 3, category: "Sub 18 Feminino" }, { playerId: fixtures.playerId, place: 3 }],
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+    const after = await caller.tournamentPodiums.listByTournament({ tournamentId: fixtures.tournamentId });
+    expect(after).toHaveLength(2);
+
+    await expect(
+      caller.tournamentPodiums.createMany({
+        tournamentId: fixtures.tournamentId,
+        podiums: [podiums[0], podiums[0]],
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+
+    await db.delete(tournamentPodiums).where(eq(tournamentPodiums.tournamentId, fixtures.tournamentId));
+  });
+});
+
 describe("events.setLinks against D1", () => {
   test("creates the group, then updates, inserts, and deletes links in one batch", async () => {
     const eventId = idOf(await caller.events.create({ name: "Evento com links", startDate: "2026-02-01" }));

@@ -30,6 +30,9 @@ export interface RatingUpdateProps {
   };
   error?: {
     message: string;
+    detail?: string;
+    row?: number;
+    input?: string;
     stack?: string;
   };
 }

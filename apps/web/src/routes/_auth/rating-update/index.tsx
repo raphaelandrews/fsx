@@ -23,7 +23,7 @@ import { RatingUpdateMonitor } from "@/components/rating-update/rating-update-mo
 import { RatingUpdateToolbar } from "@/components/rating-update/rating-update-toolbar";
 import type { AnimationState } from "@/components/rating-update/motion-grid-states";
 import type { RatingUpdateProps } from "@/components/rating-update/rating-update-types";
-import { getErrorCode, getUserErrorMessage, showMutationError } from "@/lib/errors";
+import { getAdminErrorMessage, getErrorCode, getUserErrorMessage, showMutationError } from "@/lib/errors";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
 import { toIsoDate } from "@/utils/format";
 import { AdminPageHeader } from "@/components/admin/page-header";
@@ -168,8 +168,9 @@ function RatingUpdatePage() {
       }
 
       const dataRows = rows
+        .map((cells, index) => ({ cells, sheetRow: index + 1 }))
         .slice(1)
-        .filter((r) => r.some((c) => c !== null && c !== undefined && c !== ""));
+        .filter(({ cells }) => cells.some((c) => c !== null && c !== undefined && c !== ""));
       if (dataRows.length === 0) {
         setMotionGridStatus("Error: No valid data rows found", "x");
         toast.error("File contains no data rows or all rows are empty.");
@@ -194,7 +195,7 @@ function RatingUpdatePage() {
         setCurrentIndex(i + 1);
         setMotionGridStatus(`Processing row ${i + 1} of ${dataRows.length}`, "busy");
 
-        const row = dataRows[i];
+        const { cells: row, sheetRow } = dataRows[i];
         const id = Number.parseInt(String(row[headerMap["id"]]), 10);
         const name =
           headerMap["name"] !== undefined ? String(row[headerMap["name"]] ?? "").trim() : undefined;
@@ -243,6 +244,17 @@ function RatingUpdatePage() {
         const variation = variationRaw ? Number.parseInt(variationRaw, 10) : undefined;
         const ratingType = ratingTypeRaw;
 
+        const input = Object.entries(headerMap)
+          .map(([column, index]) => `${column}=${String(row[index] ?? "")}`)
+          .join(", ");
+        const pushRowError = (message: string, status: number, detail?: string) =>
+          pushError({
+            _uuid: crypto.randomUUID(),
+            operation: `Row ${sheetRow}: ${name || `ID ${Number.isNaN(id) ? "?" : id}`}`,
+            status,
+            error: { message, row: sheetRow, input, detail },
+          });
+
         const validRatingTypes = ["blitz", "rapid", "classic"] as const;
         const isTournamentUpdate =
           tournamentId !== undefined || variation !== undefined || ratingType !== undefined;
@@ -253,58 +265,26 @@ function RatingUpdatePage() {
           validRatingTypes.includes(ratingType as (typeof validRatingTypes)[number]);
 
         if (isTournamentUpdate && !hasValidTournamentData) {
-          pushError({
-            _uuid: crypto.randomUUID(),
-            operation: `Row ${i + 1}`,
-            status: 400,
-            error: {
-              message:
-                "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be valid.",
-            },
-          });
+          pushRowError("If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be valid.", 400);
           continue;
         }
         if (tournamentId !== undefined && (!Number.isInteger(tournamentId) || tournamentId <= 0)) {
-          pushError({
-            _uuid: crypto.randomUUID(),
-            operation: `Row ${i + 1}`,
-            status: 400,
-            error: {
-              message: `Invalid tournament ID '${tournamentIdRaw}'. Must be a positive integer.`,
-            },
-          });
+          pushRowError(`Invalid tournament ID '${tournamentIdRaw}'. Must be a positive integer.`, 400);
           continue;
         }
         if (
           variation !== undefined &&
           (!Number.isInteger(variation) || variation < -100 || variation > 100)
         ) {
-          pushError({
-            _uuid: crypto.randomUUID(),
-            operation: `Row ${i + 1}`,
-            status: 400,
-            error: {
-              message: `Invalid variation value '${variationRaw}'. Must be an integer between -100 and 100.`,
-            },
-          });
+          pushRowError(`Invalid variation value '${variationRaw}'. Must be an integer between -100 and 100.`, 400);
           continue;
         }
         if (Number.isNaN(id) || id < 0) {
-          pushError({
-            _uuid: crypto.randomUUID(),
-            operation: `Row ${i + 1}`,
-            status: 400,
-            error: { message: "Invalid or missing 'id'. ID must be 0 or positive." },
-          });
+          pushRowError("Invalid or missing 'id'. ID must be 0 or positive.", 400);
           continue;
         }
         if (id === 0 && !name) {
-          pushError({
-            _uuid: crypto.randomUUID(),
-            operation: `Row ${i + 1}`,
-            status: 400,
-            error: { message: "Missing or empty 'name' for new player." },
-          });
+          pushRowError("Missing or empty 'name' for new player.", 400);
           continue;
         }
 
@@ -460,24 +440,14 @@ function RatingUpdatePage() {
               });
             }
           } else {
-            pushError({
-              _uuid: crypto.randomUUID(),
-              operation: `Row ${i + 1}`,
-              status: 400,
-              error: { message: "Invalid data: no valid operation." },
-            });
+            pushRowError("Invalid data: no valid operation.", 400);
           }
         } catch (err) {
-          const msg = getUserErrorMessage(err, "Could not update this player.", "en");
+          const { message, detail } = describeError(err);
           if (getErrorCode(err) === "CONFLICT") {
             showMutationError(err, "Could not update this player.", () => window.location.reload());
           }
-          pushError({
-            _uuid: crypto.randomUUID(),
-            operation: name ?? `ID ${id}`,
-            status: 500,
-            error: { message: msg },
-          });
+          pushRowError(message, 500, detail);
         }
       }
 
@@ -720,6 +690,19 @@ function LogPagination({
       </Button>
     </div>
   );
+}
+
+function describeError(err: unknown): { message: string; detail?: string } {
+  const message = getAdminErrorMessage(err, "Could not update this player.");
+  const fieldErrors = (
+    err as { data?: { zodError?: { fieldErrors?: Record<string, string[] | undefined> } | null } }
+  )?.data?.zodError?.fieldErrors;
+  const fields = Object.entries(fieldErrors ?? {})
+    .map(([field, issues]) => `${field}: ${issues?.join(", ")}`)
+    .join("; ");
+  const raw = err instanceof Error ? err.message : undefined;
+  const detail = [fields, raw && raw !== message ? raw : undefined].filter(Boolean).join(" | ");
+  return { message, detail: detail || undefined };
 }
 
 function reportMaintenance(result: { deactivated: number; titlesRemoved: number; youthTitlesWithoutBirthDate: number }) {

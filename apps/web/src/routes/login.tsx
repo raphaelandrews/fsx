@@ -2,6 +2,7 @@ import { Button } from "@fsx/ui/components/button";
 import { Github01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth-client";
 import { getUser } from "@/functions/get-user";
@@ -39,12 +40,13 @@ function RouteComponent() {
         <Button
           variant="outline"
           className="w-full"
-          onClick={() =>
-            authClient.signIn.social({
+          onClick={async () => {
+            const { error } = await authClient.signIn.social({
               provider: "github",
               callbackURL: "/dashboard",
-            })
-          }
+            });
+            if (error) toast.error(error.message || "Não foi possível entrar com o GitHub.");
+          }}
         >
           <HugeiconsIcon icon={Github01Icon} className="mr-2 size-4" />
           Entrar com GitHub

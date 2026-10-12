@@ -6,6 +6,7 @@ import type { CompetitionTier } from "@fsx/api/circuit-types";
 import { EntityForm, optional, optionalNumber } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { TournamentPodiums } from "@/components/admin/tournament-podiums";
 import { TournamentRatingResults } from "@/components/rating-update/tournament-rating-results";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { tournamentSections } from "@/lib/admin-forms";
@@ -26,6 +27,9 @@ export const Route = createFileRoute("/_auth/dashboard/tournaments/$id")({
       context.queryClient.ensureQueryData(context.trpc.champions.list.queryOptions()),
       context.queryClient.ensureQueryData(
         context.trpc.playersTournament.listByTournament.queryOptions({ tournamentId: params.id }),
+      ),
+      context.queryClient.ensureQueryData(
+        context.trpc.tournamentPodiums.listByTournament.queryOptions({ tournamentId: params.id }),
       ),
     ]),
   component: RouteComponent,
@@ -58,7 +62,7 @@ function RouteComponent() {
         backTo="/dashboard/tournaments"
         backLabel="Tournaments"
         title={tournament.name}
-        description="Edit the tournament and review its rating results."
+        description="Edit the tournament and manage its podiums and review its rating results."
         actions={
           <ConfirmDeleteButton
             label="Delete tournament"
@@ -96,6 +100,7 @@ function RouteComponent() {
         submitLabel="Save changes"
         cancelTo="/dashboard/tournaments"
       />
+      <TournamentPodiums tournamentId={id} />
       <TournamentRatingResults tournamentId={id} />
     </>
   );

@@ -8,6 +8,8 @@ import {
   TOURNAMENTS_PLAYED_STEPS,
   VETERAN_SEASON_STEPS,
 } from "./constants";
+import { COMPETITION_CATEGORIES, type CompetitionTier } from "../circuit-types";
+import { CROWN_FORMATS, SERGIPANO_KINDS, SERGIPANO_LABELS, type CrownFormat } from "./sergipano";
 import type { PlayerStats, Provenance } from "./stats";
 
 export type BadgeTier = "bronze" | "silver" | "gold" | "platinum";
@@ -27,7 +29,8 @@ export type BadgeIcon =
   | "circuit"
   | "category"
   | "decade"
-  | "record";
+  | "record"
+  | "crown";
 
 export interface Achievement extends Provenance {
   id: string;
@@ -68,6 +71,12 @@ const TITLE_COUNTS: Record<number, string> = {
   5: "Pentacampeão(ã)",
   6: "Hexacampeão(ã)",
 };
+
+// Age-less categories are not youth champions, so they earn no category emblem.
+const CATEGORIES_WITHOUT_BADGE: readonly string[] = ["Futuro", "Juvenil", "Master"];
+const hasCategoryBadge = (category: string) => !CATEGORIES_WITHOUT_BADGE.includes(category);
+
+const categoryBadgeId = (category: string) => `category-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
 const LADDER_TIERS: BadgeTier[] = ["bronze", "silver", "gold"];
 
@@ -341,7 +350,7 @@ BADGE_FAMILIES.push(
           id: "circuit-complete",
           family: "circuit",
           label: "Circuito completo",
-          description: `Jogou todas as etapas de uma temporada de circuito (${complete.name}).`,
+          description: "Jogou todas as etapas de uma temporada de circuito.",
           icon: "circuit",
           tier: "silver",
         });
@@ -365,9 +374,9 @@ BADGE_FAMILIES.push(
   {
     id: "category",
     earned: (stats) =>
-      stats.categoryWins.map(({ category, ...provenance }) => ({
+      stats.categoryWins.filter(({ category }) => hasCategoryBadge(category)).map(({ category, ...provenance }) => ({
         ...provenance,
-        id: `category-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        id: categoryBadgeId(category),
         family: "category",
         label: `Campeão(ã) · ${category}`,
         description: `Venceu a categoria ${category} em um torneio.`,
@@ -389,6 +398,129 @@ BADGE_FAMILIES.push(
             tier: "gold" as const,
           }]
         : [],
+  },
+);
+
+const TIER_WIN_STEPS = [1, 3, 5] as const;
+const TIER_NAMES: Record<CompetitionTier, { label: string; of: string }> = {
+  S: { label: "Sergipano", of: "em campeonatos Sergipanos (Tier S)" },
+  A: { label: "Tier A", of: "em torneios Tier A" },
+  B: { label: "Tier B", of: "em torneios Tier B" },
+  school: { label: "Escolar", of: "em torneios escolares" },
+};
+
+const CROWN_TEXT = {
+  1: "Foi campeão(ã) sergipano(a) no clássico (Absoluto ou Feminino), no rápido e na blitz.",
+  2: "Venceu duas vezes o Sergipano do clássico (Absoluto ou Feminino), duas do rápido e duas da blitz.",
+} as const;
+const SLAM_TEXT = "Venceu o Sergipano do clássico, do rápido, da blitz, do bullet e de equipes.";
+const ALL_PODIUMS_TEXT = "Subiu ao pódio em torneios Sergipanos, Tier A, Tier B e escolares.";
+const tierWinLabel = (tier: CompetitionTier, count: number) =>
+  count === 1 ? `Campeão(ã) · ${TIER_NAMES[tier].label}` : `${count} títulos · ${TIER_NAMES[tier].label}`;
+const tierWinText = (tier: CompetitionTier, count: number) =>
+  `Venceu ${count === 1 ? "um torneio" : `${count} torneios`} ${TIER_NAMES[tier].of}.`;
+
+// The moment the last of several milestones was reached; unknown if any is undated.
+function completedAt(milestones: Provenance[]): Provenance {
+  if (milestones.some((milestone) => milestone.earnedAt === null)) return { earnedAt: null, tournamentId: null, legacy: false };
+  return [...milestones].sort((a, b) => (a.earnedAt! < b.earnedAt! ? 1 : -1))[0]!;
+}
+
+BADGE_FAMILIES.push(
+  {
+    id: "sergipano",
+    earned: (stats) => {
+      const earned: Achievement[] = [];
+      for (const kind of SERGIPANO_KINDS) {
+        const first = stats.sergipanoTitles.find((title) => title.kind === kind);
+        if (!first) continue;
+        earned.push({
+          earnedAt: first.earnedAt,
+          tournamentId: first.tournamentId,
+          legacy: first.legacy,
+          id: `sergipano-${kind}`,
+          family: "sergipano",
+          label: `Campeão(ã) Sergipano · ${SERGIPANO_LABELS[kind]}`,
+          description: `Venceu o Campeonato Sergipano ${SERGIPANO_LABELS[kind]} na classificação geral.`,
+          icon: "trophy",
+          tier: kind === "absoluto" || kind === "feminino" ? "gold" : "silver",
+        });
+      }
+
+      const byFormat = new Map<CrownFormat, Provenance[]>();
+      for (const title of stats.sergipanoTitles) {
+        const format = CROWN_FORMATS[title.kind];
+        if (format) byFormat.set(format, [...(byFormat.get(format) ?? []), title]);
+      }
+      const crownFormats: CrownFormat[] = ["classic", "rapid", "blitz"];
+      ([1, 2] as const).forEach((count) => {
+        const reached = crownFormats.map((format) => byFormat.get(format)?.[count - 1]);
+        if (reached.some((title) => !title)) return;
+        earned.push({
+          ...completedAt(reached as Provenance[]),
+          id: `sergipano-crown-${count}`,
+          family: "sergipano",
+          label: count === 1 ? "Tríplice Coroa Sergipana" : "Tríplice Coroa em dobro",
+          description: CROWN_TEXT[count],
+          icon: "crown",
+          tier: count === 1 ? "gold" : "platinum",
+        });
+      });
+
+      const slamKinds = ["classic", "rapid", "blitz", "bullet", "equipes"] as const;
+      const slam = slamKinds.map((group) =>
+        stats.sergipanoTitles.find((title) =>
+          group === "bullet" || group === "equipes" ? title.kind === group : CROWN_FORMATS[title.kind] === group,
+        ),
+      );
+      if (slam.every(Boolean)) {
+        earned.push({
+          ...completedAt(slam as Provenance[]),
+          id: "sergipano-slam",
+          family: "sergipano",
+          label: "Grand Slam Sergipano",
+          description: SLAM_TEXT,
+          icon: "crown",
+          tier: "platinum",
+        });
+      }
+      return earned;
+    },
+  },
+  {
+    id: "tier",
+    earned: (stats) => {
+      const earned: Achievement[] = [];
+      for (const tier of ["S", "A", "B", "school"] as const) {
+        const wins = stats.tierWins[tier];
+        TIER_WIN_STEPS.forEach((count, index) => {
+          const reached = wins[count - 1];
+          if (!reached) return;
+          earned.push({
+            ...reached,
+            id: `tier-${tier}-${count}`,
+            family: "tier",
+            label: tierWinLabel(tier, count),
+            description: tierWinText(tier, count),
+            icon: "trophy",
+            tier: LADDER_TIERS[index]!,
+          });
+        });
+      }
+      const podiums = (["S", "A", "B", "school"] as const).map((tier) => stats.tierPodiums[tier]);
+      if (podiums.every(Boolean)) {
+        earned.push({
+          ...completedAt(podiums as Provenance[]),
+          id: "tier-all-podiums",
+          family: "tier",
+          label: "Pódio em todos os níveis",
+          description: ALL_PODIUMS_TEXT,
+          icon: "podium",
+          tier: "platinum",
+        });
+      }
+      return earned;
+    },
   },
 );
 
@@ -499,12 +631,124 @@ export function upcomingOf(stats: PlayerStats): Achievement[] {
   return upcoming;
 }
 
-// How many players hold each emblem, over players with at least one tournament.
+// A cup title (Bullet) has no tournament behind it, so it counts as a career too.
+const hasRecordedCareer = (stats: PlayerStats) => stats.tournamentsPlayed > 0 || stats.sergipanoTitles.length > 0;
+
+export type BadgeCatalogEntry = Pick<Achievement, "id" | "family" | "label" | "description" | "icon" | "tier">;
+
+// Every emblem at least one player holds. Descriptions are personal ("Seu maior
+// ganho é +X"), so only the generic fields are kept.
+export function badgeCatalog(careers: PlayerStats[]): BadgeCatalogEntry[] {
+  const catalog = new Map<string, BadgeCatalogEntry>();
+  for (const stats of careers) {
+    if (!hasRecordedCareer(stats)) continue;
+    for (const { id, family, label, description, icon, tier } of achievementsOf(stats)) {
+      if (!catalog.has(id)) {
+        // Dynasty text names the holder's own count, so it stays generic here.
+        const generic =
+          family !== "dynasty"
+            ? description
+            : id.startsWith("dynasty-run-")
+              ? "Venceu o mesmo campeonato em anos consecutivos."
+              : "Venceu o mesmo campeonato mais de uma vez.";
+        catalog.set(id, { id, family, label, description: generic, icon, tier });
+      }
+    }
+  }
+  return [...catalog.values()];
+}
+
+// Every emblem that can exist, earned or not, so the public list can show what is
+// still out there. Mirrors BADGE_FAMILIES (badges.test.ts checks they agree);
+// dynasties are per championship, so they only appear once someone earns them.
+// The descriptions must not mention one player's own numbers.
+export function allBadges(): BadgeCatalogEntry[] {
+  const entry = (
+    id: string,
+    family: string,
+    label: string,
+    description: string,
+    icon: BadgeIcon,
+    tier: BadgeTier,
+  ): BadgeCatalogEntry => ({ id, family, label, description, icon, tier });
+  const formats = ["classic", "rapid", "blitz"] as const;
+  return [
+    ...formats.flatMap((format) =>
+      RATING_THRESHOLDS.map((threshold) =>
+        entry(
+          `rating-${format}-${threshold}`,
+          "rating",
+          `${threshold} ${FORMAT_LABELS[format].in}`,
+          `Atingiu ${threshold} de rating FSX no ritmo ${FORMAT_LABELS[format].name}.`,
+          "rating",
+          THRESHOLD_TIERS[threshold] ?? "bronze",
+        ),
+      ),
+    ),
+    ...TOURNAMENTS_PLAYED_STEPS.map((count, i) =>
+      entry(`tournaments-${count}`, "tournaments", `${count} torneios`, `Disputou ${count} torneios registrados pela FSX.`, "tournaments", STEP_TIERS[i]!),
+    ),
+    ...POSITIVE_STREAK_STEPS.map((length, i) =>
+      entry(`streak-${length}`, "streak", `${length} torneios seguidos subindo`, `Ganhou rating em ${length} torneios seguidos no mesmo ritmo.`, "streak", STEP_TIERS[i]!),
+    ),
+    entry("first-tournament", "first", "Primeiro torneio", "Disputou o primeiro torneio registrado pela FSX.", "first", "bronze"),
+    entry("first-positive-result", "first", "Primeiro ganho de rating", "Ganhou rating pela primeira vez em um torneio.", "first", "bronze"),
+    entry("first-podium", "first", "Primeiro pódio", "Subiu ao pódio pela primeira vez.", "first", "bronze"),
+    ...VETERAN_SEASON_STEPS.map((count, i) =>
+      entry(`veteran-${count}`, "veteran", `Veterano · ${count} temporadas`, `Disputou torneios em ${count} temporadas diferentes.`, "veteran", LADDER_TIERS[i]!),
+    ),
+    ...MARATHON_STEPS.map((count, i) =>
+      entry(`marathon-${count}`, "marathon", `Maratonista · ${count} no ano`, `Disputou ${count} torneios em um mesmo ano.`, "marathon", LADDER_TIERS[i]!),
+    ),
+    entry("formats-year", "formats", "Tríplice", "Jogou clássico, rápido e blitz em um mesmo ano.", "formats", "silver"),
+    entry("formats-2000", "formats", "Tríplice 2000", "Atingiu 2000 de rating no clássico, no rápido e na blitz.", "formats", "platinum"),
+    entry("comeback", "comeback", "Volta por cima", "Ganhou rating logo depois de três ou mais torneios sem ganho no mesmo ritmo.", "comeback", "bronze"),
+    ...GAIN_STEPS.map((step, i) =>
+      entry(`leap-${step}`, "leap", `Grande salto · +${step}`, `Ganhou ${step} pontos ou mais de rating em um único torneio.`, "leap", LADDER_TIERS[i]!),
+    ),
+    entry("circuit-complete", "circuit", "Circuito completo", "Jogou todas as etapas de uma temporada de circuito.", "circuit", "silver"),
+    ...STAGE_PODIUM_STEPS.map((count, i) =>
+      entry(`stage-podiums-${count}`, "circuit", `${count} pódios de etapa`, `Subiu ao pódio em ${count} etapas de circuito.`, "circuit", LADDER_TIERS[i]!),
+    ),
+    ...COMPETITION_CATEGORIES.filter(hasCategoryBadge).map((category) =>
+      entry(categoryBadgeId(category), "category", `Campeão(ã) · ${category}`, `Venceu a categoria ${category} em um torneio.`, "category", "silver"),
+    ),
+    entry("decade", "decade", "Década", "Continua jogando dez anos depois do primeiro torneio registrado.", "decade", "gold"),
+    ...SERGIPANO_KINDS.map((kind) =>
+      entry(
+        `sergipano-${kind}`,
+        "sergipano",
+        `Campeão(ã) Sergipano · ${SERGIPANO_LABELS[kind]}`,
+        `Venceu o Campeonato Sergipano ${SERGIPANO_LABELS[kind]} na classificação geral.`,
+        "trophy",
+        kind === "absoluto" || kind === "feminino" ? "gold" : "silver",
+      ),
+    ),
+    entry("sergipano-crown-1", "sergipano", "Tríplice Coroa Sergipana", CROWN_TEXT[1], "crown", "gold"),
+    entry("sergipano-crown-2", "sergipano", "Tríplice Coroa em dobro", CROWN_TEXT[2], "crown", "platinum"),
+    entry("sergipano-slam", "sergipano", "Grand Slam Sergipano", SLAM_TEXT, "crown", "platinum"),
+    ...(["S", "A", "B", "school"] as const).flatMap((tier) =>
+      TIER_WIN_STEPS.map((count, i) =>
+        entry(
+          `tier-${tier}-${count}`,
+          "tier",
+          tierWinLabel(tier, count),
+          tierWinText(tier, count),
+          "trophy",
+          LADDER_TIERS[i]!,
+        ),
+      ),
+    ),
+    entry("tier-all-podiums", "tier", "Pódio em todos os níveis", ALL_PODIUMS_TEXT, "podium", "platinum"),
+  ];
+}
+
+// How many players hold each emblem, over players with at least one tournament (or cup title).
 export function badgeHolders(careers: PlayerStats[]): { players: number; holders: Record<string, number> } {
   const holders: Record<string, number> = {};
   let players = 0;
   for (const stats of careers) {
-    if (stats.tournamentsPlayed === 0) continue;
+    if (!hasRecordedCareer(stats)) continue;
     players++;
     for (const id of new Set(achievementsOf(stats).map((achievement) => achievement.id))) {
       holders[id] = (holders[id] ?? 0) + 1;

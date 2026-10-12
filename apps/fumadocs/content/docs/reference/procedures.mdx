@@ -65,6 +65,7 @@ the affected rows (`.returning()`), except where noted.
 | `records.statistics` | public | — | Database-wide counts plus active-player rating counts at thresholds by format and tournament totals by competition tier, for `/estatisticas` | 300 s |
 | `records.all` | public | — | `{ year, peaks, wins, podiums, championships, streaks, gains, activeThisYear, levels }`: top 10 per record and championship, equal values sharing a place, computed from every career with the profile's stats module | 300 s |
 | `records.badges` | public | — | `{ players, holders, recordHolders }`: players with at least one tournament, how many hold each emblem (rarity), and the record lists each player leads (Recordista). Stored together with the records (`gamification:<year>`), so one recompute per data change | 300 s |
+| `records.badgeStats` | public | — | `{ players, badges }`: every emblem that exists (id, label, description, icon, tier), including those nobody holds yet, with its holder count, most held first, plus Recordista. Dynasty emblems appear once someone earns them. Same stored summary as `records.badges` | 300 s |
 | `records.monthHighlight` | public | — | The biggest single-tournament rating gain of the current month (America/Sao_Paulo) with player and tournament, or `null` | 300 s |
 | `records.recent` | public | — | The "Novidades" feed: up to 20 achievements, titles, and player announcements from the last 60 days and after `GAMIFICATION_LAUNCH_DATE` (empty while it is `null`), newest first; stored like the records | 300 s |
 | `clubs.leaderboard` | public | — | Per club with members: members, active members, strength and rank per rating type (average of the top 5 active members; `null` below 5), medals of current members | 300 s |
@@ -119,6 +120,8 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `tournaments.byId` | public | `{ id }` | Tournament with podiums | 120 s |
 | `tournaments.create` / `update` / `delete` | admin | `name`, `ratingType`, `date?`, `chessResults?` (`httpUrl`), `championshipId?`, `tier?` (`S`, `A`, `B`, `school`; default `B`) | Rows; `CONFLICT` when deleting, or changing the rating type of, a tournament with rating results | — |
 | `tournamentPodiums.list` | public | — | Podiums with category, player, and tournament | 300 s |
+| `tournamentPodiums.listByTournament` | admin | `{ tournamentId }` | A tournament's podiums with players, for its edit page | — |
+| `tournamentPodiums.createMany` | admin | `{ tournamentId, podiums: { playerId, place (1–100000), category? }[] }` (1–50) | New podium ids, inserted in one `db.batch`; `BAD_REQUEST` for a player repeated in a category, `CONFLICT` (nothing saved) when any row duplicates an existing podium | — |
 | `tournamentPodiums.create` / `update` / `delete` | admin | `{ playerId, tournamentId, place (1–100000), category? }` | Rows; `CONFLICT` for a second overall podium, or a second podium in the same category, of a player in a tournament | — |
 | `champions.list` | public | — | Championships `{ id, name }` | 300 s |
 | `champions.gallery` | public | — | Championships with their tournaments' overall podiums (category podiums excluded) and players | 300 s |

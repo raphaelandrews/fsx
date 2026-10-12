@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Analytics01Icon, ChampionIcon, ChartUpIcon, CrownIcon } from "@hugeicons/core-free-icons";
+import { Analytics01Icon, Award01Icon, ChampionIcon, ChartUpIcon, CrownIcon } from "@hugeicons/core-free-icons";
 
 import { buttonVariants } from "@fsx/ui/components/button";
 
 import { Announcement } from "@/components/announcement";
+import { BadgeCensus } from "@/components/gamification/badge-census";
 import { StatTile } from "@/components/gamification/stat-tile";
 import { PageHeader } from "@/components/page-header";
 import { RecordCard } from "@/components/recordes/record-card";
@@ -21,6 +22,7 @@ const SECTIONS = [
   ["records-rating", "Rating"],
   ["records-titles", "Títulos e atividade"],
   ["records-champions", "Campeões"],
+  ["records-badges", "Emblemas"],
 ] as const;
 
 export const Route = createFileRoute("/_public/estatisticas")({
@@ -39,6 +41,7 @@ export const Route = createFileRoute("/_public/estatisticas")({
     Promise.all([
       context.queryClient.ensureQueryData(context.trpc.records.all.queryOptions()),
       context.queryClient.ensureQueryData(context.trpc.records.statistics.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.records.badgeStats.queryOptions()),
     ]),
   pendingComponent: () => <TableSkeleton />,
   component: RouteComponent,
@@ -48,6 +51,7 @@ function RouteComponent() {
   const trpc = useTRPC();
   const { data: records } = useSuspenseQuery(trpc.records.all.queryOptions());
   const { data: statistics } = useSuspenseQuery(trpc.records.statistics.queryOptions());
+  const { data: badgeStats } = useSuspenseQuery(trpc.records.badgeStats.queryOptions());
   const rating = (value: number) => String(value);
   const firstYear = statistics.tournaments.firstDate?.slice(0, 4);
   const lastYear = statistics.tournaments.lastDate?.slice(0, 4);
@@ -174,6 +178,17 @@ function RouteComponent() {
                 />
               ))}
             </div>
+          </section>
+        )}
+
+        {badgeStats.badges.length > 0 && (
+          <section id="records-badges" aria-label="Emblemas" className="scroll-mt-24">
+            <Announcement icon={Award01Icon} label="Emblemas e quem os conquistou" className="px-0" />
+            <p className="mb-4 text-pretty text-center text-muted-foreground text-sm">
+              Todos os emblemas que existem, inclusive os que ninguém conquistou ainda. Percentual sobre{" "}
+              {number.format(badgeStats.players)} jogadores com ao menos um torneio.
+            </p>
+            <BadgeCensus badges={badgeStats.badges} players={badgeStats.players} />
           </section>
         )}
       </div>

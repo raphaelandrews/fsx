@@ -42,6 +42,7 @@ export const BADGE_ICONS: Record<BadgeIcon, typeof StarIcon> = {
   category: Medal01Icon,
   decade: Calendar03Icon,
   record: CrownIcon,
+  crown: CrownIcon,
 };
 
 function earnedText(achievement: Achievement) {

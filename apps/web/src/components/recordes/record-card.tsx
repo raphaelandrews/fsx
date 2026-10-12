@@ -27,7 +27,7 @@ export function RecordCard({
   const visible = expanded ? entries : entries.slice(0, PREVIEW_SIZE);
   return (
     // Card radius 16px = row radius 8px + card padding 8px.
-    <section className="min-w-0 rounded-2xl border border-border bg-muted p-2">
+    <section className="min-w-0 rounded-2xl border border-border bg-background p-2">
       <h2 className="px-2 pt-2 pb-3 font-semibold text-base text-balance">{title}</h2>
       {entries.length === 0 ? (
         <p className="px-2 pb-2 text-muted-foreground text-base">Sem registros ainda.</p>

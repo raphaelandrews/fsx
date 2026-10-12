@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { achievementsOf, badgeHolders, recordHolderAchievement, upcomingOf } from "./badges";
+import { achievementsOf, allBadges, badgeHolders, recordHolderAchievement, upcomingOf } from "./badges";
 import { playerStats, type Competition, type RatingResult, type StatsInput } from "./stats";
 
 const tournament = (id: number, date: string | null, extra: Partial<Competition> = {}): Competition => ({
@@ -146,6 +146,165 @@ describe("progress", () => {
   });
 
 });
+
+describe("Sergipano and tier emblems", () => {
+  const sergipano = (id: number, date: string, championshipName: string, extra: Partial<Competition> = {}) =>
+    tournament(id, date, { tier: "S", championshipId: id % 10, championshipName, ...extra });
+  const win = (competition: Competition, place = 1, category: string | null = null) => ({ place, category, tournament: competition });
+
+  test("a Sergipano win earns the kind emblem; Absoluto and Feminino are told apart by name", () => {
+    const podiums = [
+      win(sergipano(1, "2023-06-01", "Sergipano Absoluto")),
+      win(sergipano(2, "2024-06-01", "Campeonato Sergipano Feminino")),
+      win(sergipano(3, "2024-07-01", "Sergipano Rápido"), 2),
+    ];
+    const list = ids({ tournamentPodiums: podiums });
+    expect(list).toContain("sergipano-absoluto");
+    expect(list).toContain("sergipano-feminino");
+    expect(list).not.toContain("sergipano-rapido");
+    expect(earned({ tournamentPodiums: podiums }, "sergipano-absoluto")).toMatchObject({ earnedAt: "2023-06-01", tier: "gold" });
+  });
+
+  test("only overall wins in tier S count as Sergipano titles", () => {
+    expect(ids({ tournamentPodiums: [win(sergipano(1, "2023-06-01", "Sergipano Absoluto"), 1, "Sub 14 Masculino")] })).not.toContain("sergipano-absoluto");
+    expect(ids({ tournamentPodiums: [win(tournament(1, "2023-06-01", { tier: "A", championshipName: "Sergipano Absoluto" }))] })).not.toContain("sergipano-absoluto");
+    expect(ids({ tournamentPodiums: [win(sergipano(1, "2023-06-01", "Sub-18"))] })).not.toContain("sergipano-sub-18");
+  });
+
+  test("Tríplice Coroa needs classic, rapid, and blitz, and is dated by the last one", () => {
+    const crown = [
+      win(sergipano(1, "2020-06-01", "Sergipano Feminino")),
+      win(sergipano(2, "2022-06-01", "Sergipano Rápido")),
+      win(sergipano(3, "2021-06-01", "Sergipano Blitz")),
+    ];
+    expect(earned({ tournamentPodiums: crown }, "sergipano-crown-1")).toMatchObject({ earnedAt: "2022-06-01", tier: "gold" });
+    expect(ids({ tournamentPodiums: crown })).not.toContain("sergipano-crown-2");
+    expect(ids({ tournamentPodiums: crown.slice(0, 2) })).not.toContain("sergipano-crown-1");
+  });
+
+  test("Tríplice Coroa em dobro needs two of each, with Absoluto and Feminino both counting as classic", () => {
+    const double = [
+      win(sergipano(1, "2018-06-01", "Sergipano Absoluto")),
+      win(sergipano(2, "2019-06-01", "Sergipano Feminino")),
+      win(sergipano(3, "2018-07-01", "Sergipano Rápido")),
+      win(sergipano(4, "2019-07-01", "Sergipano Rápido")),
+      win(sergipano(5, "2018-08-01", "Sergipano Blitz")),
+      win(sergipano(6, "2024-08-01", "Sergipano Blitz")),
+    ];
+    expect(earned({ tournamentPodiums: double }, "sergipano-crown-2")).toMatchObject({ earnedAt: "2024-08-01", tier: "platinum" });
+    expect(ids({ tournamentPodiums: double.slice(0, 5) })).not.toContain("sergipano-crown-2");
+  });
+
+  test("Grand Slam also needs Bullet and Equipes", () => {
+    const base = [
+      win(sergipano(1, "2020-06-01", "Sergipano Absoluto")),
+      win(sergipano(2, "2020-07-01", "Sergipano Rápido")),
+      win(sergipano(3, "2020-08-01", "Sergipano Blitz")),
+      win(sergipano(4, "2021-01-01", "Sergipano Bullet")),
+    ];
+    expect(ids({ tournamentPodiums: base })).not.toContain("sergipano-slam");
+    const all = [...base, win(sergipano(5, "2022-01-01", "Sergipano de Equipes"))];
+    expect(earned({ tournamentPodiums: all }, "sergipano-slam")).toMatchObject({ earnedAt: "2022-01-01", tier: "platinum" });
+  });
+
+  test("tier wins climb 1 / 3 / 5 per tier, counting category wins", () => {
+    const wins = [1, 2, 3].map((n) => win(tournament(n, `2024-0${n}-01`, { tier: "A" }), 1, n === 3 ? "Sub 14 Masculino" : null));
+    expect(earned({ tournamentPodiums: wins }, "tier-A-1")).toMatchObject({ earnedAt: "2024-01-01", tier: "bronze" });
+    expect(earned({ tournamentPodiums: wins }, "tier-A-3")).toMatchObject({ earnedAt: "2024-03-01", tier: "silver" });
+    expect(ids({ tournamentPodiums: wins })).not.toContain("tier-A-5");
+    expect(ids({ tournamentPodiums: wins })).not.toContain("tier-B-1");
+  });
+
+  test("a podium in every tier earns Pódio em todos os níveis, dated by the last tier reached", () => {
+    const podiums = (["S", "A", "B", "school"] as const).map((tier, index) =>
+      win(tournament(index + 1, `202${index}-05-01`, { tier }), 3),
+    );
+    expect(earned({ tournamentPodiums: podiums }, "tier-all-podiums")).toMatchObject({ earnedAt: "2023-05-01", tier: "platinum" });
+    expect(ids({ tournamentPodiums: podiums.slice(0, 3) })).not.toContain("tier-all-podiums");
+  });
+});
+
+describe("categories without an emblem", () => {
+  test("Futuro, Juvenil, and Master wins earn nothing and are not in the catalog", () => {
+    const podiums = ["Futuro", "Juvenil", "Master", "Sub 14 Masculino"].map((category, i) => ({
+      place: 1,
+      category,
+      tournament: tournament(900 + i, "2024-05-01"),
+    }));
+    const categories = achievementsOf(playerStats(input({ tournamentPodiums: podiums }))).filter((a) => a.family === "category");
+    expect(categories.map((a) => a.id)).toEqual(["category-sub-14-masculino"]);
+    const catalog = allBadges().map((badge) => badge.id);
+    for (const id of ["category-futuro", "category-juvenil", "category-master"]) expect(catalog).not.toContain(id);
+    expect(catalog).toContain("category-sub-14-masculino");
+  });
+});
+
+describe("Sergipano Bullet cups", () => {
+  const cup = { cupId: 1, name: "Campeonato Sergipano Bullet", championshipName: null, date: "2025-03-01" };
+
+  test("a Bullet cup title earns the Bullet emblem and counts toward the Grand Slam", () => {
+    const base = [
+      win2(sergipanoAt(1, "2020-06-01", "Sergipano Absoluto")),
+      win2(sergipanoAt(2, "2020-07-01", "Sergipano Rápido")),
+      win2(sergipanoAt(3, "2020-08-01", "Sergipano Blitz")),
+      win2(sergipanoAt(4, "2021-01-01", "Sergipano de Equipes")),
+    ];
+    expect(ids({ tournamentPodiums: base })).not.toContain("sergipano-slam");
+    expect(ids({ tournamentPodiums: base, cupTitles: [cup] })).toContain("sergipano-bullet");
+    expect(earned({ tournamentPodiums: base, cupTitles: [cup] }, "sergipano-slam")).toMatchObject({ earnedAt: "2025-03-01", tier: "platinum" });
+  });
+
+  test("a cup that is not a Sergipano kind earns nothing", () => {
+    expect(ids({ cupTitles: [{ ...cup, name: "Copa dos Campeões" }] })).not.toContain("sergipano-bullet");
+  });
+});
+
+function sergipanoAt(id: number, date: string, championshipName: string) {
+  return tournament(id, date, { tier: "S", championshipId: id, championshipName });
+}
+const win2 = (competition: Competition) => ({ place: 1, category: null, tournament: competition });
+
+describe("allBadges catalog", () => {
+  test("ids are unique and cover every emblem a career can earn, with matching labels", () => {
+    const catalog = allBadges();
+    expect(new Set(catalog.map((badge) => badge.id)).size).toBe(catalog.length);
+    const byId = new Map(catalog.map((badge) => [badge.id, badge]));
+
+    const rapid = results(1900, Array.from({ length: 100 }, (_, i) => ({ variation: i % 2 ? 60 : -5, date: `${2000 + (i % 25)}-0${(i % 9) + 1}-10` })));
+    const careers = [
+      input({ ratings: { classic: 2450, rapid: 2450, blitz: 2450 }, results: rapid }),
+      input({
+        tournamentPodiums: [
+          ...(["S", "A", "B", "school"] as const).flatMap((tier, t) =>
+            [1, 2, 3, 4, 5].map((n) => ({ place: 1, category: n === 5 ? "Sub 14 Masculino" : null, tournament: tournament(100 * t + n, `20${10 + n}-05-01`, { tier }) })),
+          ),
+          ...["Absoluto", "Feminino", "Rápido", "Blitz", "de Equipes"].flatMap((name, k) =>
+            [1, 2].map((n) => win2(sergipanoAt(900 + k * 10 + n, `20${10 + k * 2 + n}-06-01`, `Sergipano ${name}`))),
+          ),
+        ],
+        cupTitles: [cup0()],
+        circuitStageResults: Array.from({ length: 25 }, (_, n) => ({
+          place: 1, category: null, tournamentId: 5000 + n, date: `2024-01-${String((n % 28) + 1).padStart(2, "0")}`, circuit: { id: 1, name: "Circuito", stages: 25 },
+        })),
+      }),
+    ];
+    const earnedIds = new Set<string>();
+    for (const career of careers) {
+      for (const achievement of achievementsOf(playerStats(career))) {
+        if (achievement.family === "dynasty") continue;
+        earnedIds.add(achievement.id);
+        const known = byId.get(achievement.id);
+        expect(known, achievement.id).toBeDefined();
+        expect(known).toMatchObject({ label: achievement.label, description: achievement.description, icon: achievement.icon, tier: achievement.tier, family: achievement.family });
+      }
+    }
+    expect(earnedIds.size).toBeGreaterThan(40);
+  });
+});
+
+function cup0() {
+  return { cupId: 1, name: "Campeonato Sergipano Bullet", championshipName: null, date: "2025-03-01" };
+}
 
 describe("badgeHolders", () => {
   test("counts players with at least one tournament and each emblem they hold", () => {

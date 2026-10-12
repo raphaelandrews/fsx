@@ -8,7 +8,7 @@ import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
 import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
 import { tournaments } from "@fsx/db/schema/tournaments";
 
-import { badgeHolders } from "../gamification/badges";
+import { RECORD_HOLDER_ID, allBadges, badgeCatalog, badgeHolders, type BadgeCatalogEntry } from "../gamification/badges";
 import { storedOrComputed } from "../gamification/computed";
 import { GAMIFICATION_LAUNCH_DATE } from "../gamification/constants";
 import { feedStart, recentFeed } from "../gamification/feed";
@@ -25,7 +25,7 @@ const currentYear = () => Number(today().slice(0, 4));
 // once per data change (computing every career exceeds the free plan's CPU).
 function gamificationSummary(db: Context["db"]) {
   const year = currentYear();
-  return storedOrComputed(db, `gamification:${year}`, async () => {
+  return storedOrComputed(db, `gamification:v3:${year}`, async () => {
     const careers = await loadAllPlayerStats(db);
     const records = playerRecords(
       careers.map(({ player, stats, level, tournaments }) => ({
@@ -36,9 +36,11 @@ function gamificationSummary(db: Context["db"]) {
       })),
       year,
     );
+    const stats = careers.map((career) => career.stats);
     return {
       records,
-      badges: { ...badgeHolders(careers.map((career) => career.stats)), recordHolders: recordHolders(records) },
+      badges: { ...badgeHolders(stats), recordHolders: recordHolders(records) },
+      catalog: badgeCatalog(stats),
     };
   });
 }
@@ -157,5 +159,27 @@ export const recordsRouter = router({
   statistics: publicProcedure.query(({ ctx }) => siteStatistics(ctx.db)),
   // Share of players holding each emblem, and who leads a record list.
   badges: publicProcedure.query(async ({ ctx }) => (await gamificationSummary(ctx.db)).badges),
+  badgeStats: publicProcedure.query(async ({ ctx }) => {
+    const { badges, catalog } = await gamificationSummary(ctx.db);
+    const recordists = Object.keys(badges.recordHolders).length;
+    // Every possible emblem (these win), plus those that only exist once earned (dynasties).
+    const known = new Map<string, BadgeCatalogEntry>([...catalog, ...allBadges()].map((badge) => [badge.id, badge]));
+    const entries: (BadgeCatalogEntry & { holders: number })[] = [...known.values()].map((badge) => ({
+      ...badge,
+      holders: badges.holders[badge.id] ?? 0,
+    }));
+    if (recordists > 0) {
+      entries.push({
+        id: RECORD_HOLDER_ID,
+        family: "record",
+        label: "Recordista",
+        description: "Lidera algum dos recordes de /estatisticas, como maior rating, maior ganho ou mais títulos.",
+        icon: "record",
+        tier: "platinum",
+        holders: recordists,
+      });
+    }
+    return { players: badges.players, badges: entries.sort((a, b) => b.holders - a.holders || a.label.localeCompare(b.label, "pt-BR")) };
+  }),
   monthHighlight: publicProcedure.query(({ ctx }) => monthHighlight(ctx.db, today())),
 });

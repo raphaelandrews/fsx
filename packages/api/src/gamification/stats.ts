@@ -1,5 +1,6 @@
 import type { CompetitionTier } from "../circuit-types";
 import { RATING_TYPES, type RatingType } from "../routers/rating-update";
+import { sergipanoKind, type SergipanoKind } from "./sergipano";
 import { COMEBACK_AFTER, DECADE_YEARS, GAIN_STEPS, POSITIVE_STREAK_STEPS, RATING_THRESHOLDS, STARTING_RATING } from "./constants";
 
 // Implements the Data rules of GAMIFICATION.md. Pure: callers load the rows.
@@ -48,6 +49,15 @@ export interface StatsInput {
   tournamentPodiums: TournamentPodium[];
   circuitStageResults: CircuitStageResult[];
   circuitFinalPodiums: CircuitFinalPodium[];
+  // Cups the player won (the Grand Final winner), such as the Sergipano Bullet.
+  cupTitles?: CupTitle[];
+}
+
+export interface CupTitle {
+  cupId: number;
+  name: string;
+  championshipName: string | null;
+  date: string | null;
 }
 
 // Where an achievement came from. `legacy`: earned before the recorded history
@@ -117,6 +127,12 @@ export interface PlayerStats {
   categoryWins: ({ category: string } & Provenance)[];
   // First result DECADE_YEARS or more after the first dated tournament (Década).
   decade: Provenance | null;
+  // Overall wins of Sergipano championships (tier S), by kind, in date order.
+  sergipanoTitles: ({ kind: SergipanoKind } & Provenance)[];
+  // First places (overall or category) per competition tier, in date order.
+  tierWins: Record<CompetitionTier, Provenance[]>;
+  // First podium (places 1–3, overall or category) in each competition tier.
+  tierPodiums: Record<CompetitionTier, Provenance | null>;
 }
 
 const UNKNOWN: Provenance = { earnedAt: null, tournamentId: null, legacy: false };
@@ -177,7 +193,50 @@ export function playerStats(input: StatsInput): PlayerStats {
     completeCircuits: completeCircuits(input.circuitStageResults),
     categoryWins: categoryWins(input.tournamentPodiums),
     decade: decade(played),
+    sergipanoTitles: sergipanoTitles(input.tournamentPodiums, input.cupTitles ?? []),
+    tierWins: tierWins(input.tournamentPodiums),
+    tierPodiums: tierPodiums(input.tournamentPodiums),
   };
+}
+
+const TIERS: CompetitionTier[] = ["S", "A", "B", "school"];
+
+function sergipanoTitles(podiums: TournamentPodium[], cups: CupTitle[]): PlayerStats["sergipanoTitles"] {
+  const cupWins = cups.flatMap((cup) => {
+    const kind = sergipanoKind({ tier: "S", championshipName: cup.championshipName ?? cup.name });
+    return kind ? [{ kind, earnedAt: cup.date, tournamentId: null, legacy: false }] : [];
+  });
+  return podiums
+    .flatMap((podium) => {
+      const kind = podium.place === 1 && podium.category === null ? sergipanoKind(podium.tournament) : null;
+      return kind ? [{ kind, ...at(podium.tournament) }] : [];
+    })
+    .concat(cupWins)
+    .sort((a, b) => byDate(a.earnedAt, b.earnedAt));
+}
+
+function tierWins(podiums: TournamentPodium[]): PlayerStats["tierWins"] {
+  return Object.fromEntries(
+    TIERS.map((tier) => [
+      tier,
+      podiums
+        .filter((podium) => podium.place === 1 && podium.tournament.tier === tier)
+        .map((podium) => at(podium.tournament))
+        .sort((a, b) => byDate(a.earnedAt, b.earnedAt)),
+    ]),
+  ) as PlayerStats["tierWins"];
+}
+
+function tierPodiums(podiums: TournamentPodium[]): PlayerStats["tierPodiums"] {
+  return Object.fromEntries(
+    TIERS.map((tier) => [
+      tier,
+      podiums
+        .filter((podium) => podium.place <= 3 && podium.tournament.tier === tier)
+        .map((podium) => at(podium.tournament))
+        .sort((a, b) => byDate(a.earnedAt, b.earnedAt))[0] ?? null,
+    ]),
+  ) as PlayerStats["tierPodiums"];
 }
 
 function seasonStarts(played: PlayerStats["played"]): Provenance[] {

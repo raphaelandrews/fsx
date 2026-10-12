@@ -326,7 +326,7 @@ row: grouped columns compare active-player rating thresholds across Clássico, R
 a 100% stacked horizontal bar shows tournament shares by tier (S, A, B, and School). Both charts
 use bordered white cards, explicit titles, and visible legends; keep exact counts beside the share bar.
 Use `chart-1` through `chart-6` for series.
-Jump links under the title use primary `lg` buttons; groups use `scroll-mt-24`. Record
+The badge list (`BadgeCensus`) groups every emblem by tier into `rounded-2xl border bg-background` tiles (neutral `bg-muted` icon circle and progress track), like the chart cards. Jump links under the title use primary `lg` buttons; groups use `scroll-mt-24`. Record
 cards use one column on phones and at most two columns from `sm` up. Each `RecordCard` shows the top
 5 and a primary "Ver top 10" toggle (`aria-expanded`) with a down arrow, switching to an up arrow
 for "Ver menos". Its button uses `rounded-lg` inside the `rounded-2xl` card: 8px button radius +
@@ -383,7 +383,7 @@ a semibold `text-base` title and a `text-sm` muted excerpt (`line-clamp-2`).
 
 ### Cards (`RecordCard`)
 
-`bg-muted rounded-2xl border border-border p-2` with a `px-2` title; rows inside are `rounded-lg`
+`bg-background rounded-2xl border border-border p-2` with a `px-2` title; rows inside are `rounded-lg`
 links with a neutral `hover:bg-accent`. Player names use a centered 1px Burple underline that
 expands on hover and focus. Places 1–3 use `Medal` without a separate white row fill.
 

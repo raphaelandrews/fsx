@@ -16,7 +16,6 @@ import {
   PopoverTrigger,
 } from "@fsx/ui/components/popover";
 import { cn } from "@fsx/ui/lib/utils";
-import { getUserErrorMessage } from "@/lib/errors";
 
 import type { PlayerDataFields, PlayerTournamentDataFields, RatingUpdateProps } from "./rating-update-types";
 
@@ -114,7 +113,10 @@ export function RatingUpdateLogs({ updates }: { updates: RatingUpdateProps[] }) 
                       {update.success ? <SuccessDetail data={update.success.dataFields} /> : null}
                       {update.error ? (
                         <>
-                          <InfoRow icon={InformationCircleIcon} label="Status" value={getUserErrorMessage(update.error, undefined, "en")} />
+                          {update.error.row ? <InfoRow icon={InformationCircleIcon} label="Excel row" value={update.error.row} /> : null}
+                          <InfoRow icon={InformationCircleIcon} label="Error" value={update.error.message} />
+                          {update.error.detail ? <InfoRow icon={InformationCircleIcon} label="Detail" value={update.error.detail} /> : null}
+                          {update.error.input ? <InfoRow icon={InformationCircleIcon} label="Row data" value={update.error.input} /> : null}
                         </>
                       ) : null}
                     </PopoverContent>

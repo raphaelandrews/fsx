@@ -2,11 +2,18 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import type { Miniflare } from "miniflare";
 
 import { createDb } from "@fsx/db";
+import { cupBrackets } from "@fsx/db/schema/cupBrackets";
+import { cupMatches } from "@fsx/db/schema/cupMatches";
+import { cupPlayoffs } from "@fsx/db/schema/cupPlayoffs";
+import { cups } from "@fsx/db/schema/cups";
+import { championships } from "@fsx/db/schema/championships";
 import { players } from "@fsx/db/schema/players";
 import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
 import { rankingSnapshots } from "@fsx/db/schema/rankingSnapshots";
+import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
 import { tournaments } from "@fsx/db/schema/tournaments";
 
+import { markDataChanged } from "./gamification/computed";
 import { PLAYER_RESULTS_LIMIT } from "./gamification/constants";
 import { createTestD1 } from "./test-d1";
 import { ownerCaller, type AdminCaller } from "./test-admin";
@@ -227,5 +234,80 @@ describe("playersTournament.snapshotRankings", () => {
 
   test("rejects an empty list of formats", async () => {
     await expect(caller.playersTournament.snapshotRankings({ ratingTypes: [] })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});
+
+describe("records.badgeStats", () => {
+  test("lists every held emblem with its holders, most held first, within the player total", async () => {
+    const before = new Map((await caller.records.badgeStats()).badges.map((badge) => [badge.id, badge.holders]));
+    let byId = new Map<string, { holders: number }>();
+    const held = (id: string) => (byId.get(id)?.holders ?? 0) - (before.get(id) ?? 0);
+    await playerWithResults("Badge Veterano", 10);
+    const [champion] = await db.insert(players).values({ name: "Badge Campeão", active: true }).returning({ id: players.id });
+    const [championship] = await db.insert(championships).values({ name: "Sergipano Absoluto" }).returning({ id: championships.id });
+    const [tournament] = await db
+      .insert(tournaments)
+      .values({ name: "Sergipano Absoluto 2025", ratingType: "classic", date: "2025-06-01", tier: "S", championshipId: championship!.id })
+      .returning({ id: tournaments.id });
+    await db.insert(tournamentPodiums).values({ playerId: champion!.id, tournamentId: tournament!.id, place: 1 });
+    await markDataChanged(db);
+
+    const { players: total, badges } = await caller.records.badgeStats();
+    byId = new Map(badges.map((badge) => [badge.id, badge]));
+
+    expect(total).toBeGreaterThanOrEqual(2);
+    expect(byId.get("tournaments-10")).toMatchObject({ label: "10 torneios", tier: "bronze" });
+    expect(held("tournaments-10")).toBe(1);
+    expect(byId.get("sergipano-absoluto")).toMatchObject({ label: "Campeão(ã) Sergipano · Absoluto", tier: "gold" });
+    expect(held("sergipano-absoluto")).toBe(1);
+    expect(held("tier-S-1")).toBe(1);
+    expect(held("first-podium")).toBe(1);
+    expect(badges.every((badge) => badge.holders <= total)).toBe(true);
+    const counts = badges.map((badge) => badge.holders);
+    expect(counts).toEqual([...counts].sort((a, b) => b - a));
+    expect(new Set(badges.map((badge) => badge.id)).size).toBe(badges.length);
+  });
+
+  test("lists emblems nobody holds yet, with zero holders", async () => {
+    const { badges } = await caller.records.badgeStats();
+    const byId = new Map(badges.map((badge) => [badge.id, badge]));
+    expect(byId.get("sergipano-slam")).toMatchObject({ label: "Grand Slam Sergipano", holders: 0 });
+    expect(badges.every((badge) => badge.description.length > 0)).toBe(true);
+    expect(byId.get("sergipano-slam")?.description).toContain("bullet");
+    expect(byId.get("rating-classic-2400")).toMatchObject({ holders: 0 });
+    expect(byId.get("category-sub-8-masculino")).toMatchObject({ holders: 0 });
+    expect(badges.at(-1)!.holders).toBe(0);
+  });
+
+  test("the winner of a Bullet cup's Grand Final holds the Bullet emblem", async () => {
+    const [winner, loser] = await db
+      .insert(players)
+      .values([{ name: "Bullet Campeão", active: true }, { name: "Bullet Vice", active: true }])
+      .returning({ id: players.id });
+    const [cup] = await db
+      .insert(cups)
+      .values({ name: "Campeonato Sergipano Bullet 2025", imageUrl: "/x.webp", startDate: "2025-02-01", endDate: "2025-03-01", prizePool: 0, ratingType: "blitz" })
+      .returning({ id: cups.id });
+    const [bracket] = await db.insert(cupBrackets).values({ cupId: cup!.id, bracketType: "GF" }).returning({ id: cupBrackets.id });
+    const [playoff] = await db
+      .insert(cupPlayoffs)
+      .values({ cupBracketId: bracket!.id, phaseType: "Grande Final", sortOrder: 1 })
+      .returning({ id: cupPlayoffs.id });
+    await db.insert(cupMatches).values({
+      playerOneId: winner!.id,
+      playerTwoId: loser!.id,
+      winnerId: winner!.id,
+      cupPlayoffId: playoff!.id,
+      bestOf: 11,
+      sortOrder: 1,
+      date: "2025-03-01",
+    });
+    const before = (await caller.records.badgeStats()).badges.find((badge) => badge.id === "sergipano-bullet")?.holders ?? 0;
+    await markDataChanged(db);
+
+    const after = (await caller.records.badgeStats()).badges.find((badge) => badge.id === "sergipano-bullet");
+    expect(after?.holders).toBe(before + 1);
+    const stats = await caller.players.stats({ id: winner!.id });
+    expect(stats.achievements.map((achievement) => achievement.id)).toContain("sergipano-bullet");
   });
 });
