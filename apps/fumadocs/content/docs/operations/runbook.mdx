@@ -107,7 +107,7 @@ as Worker static assets. It has no bindings and no server code.
   host there before the docs fetch from anywhere else. `astro preview` ignores
   this file; test it with `wrangler dev --assets ./dist`.
 - **Build alone:** `cd apps/fumadocs && bun run build`, then `bunx astro preview`.
-- The API Reference page is generated from `packages/api/src/openapi.ts` at
+- The API Reference page is generated from `packages/api/src/http/openapi.ts` at
   build time; redeploy the docs when the public API changes.
 
 ## Monitoring and Media Cleanup

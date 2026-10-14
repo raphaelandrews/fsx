@@ -25,7 +25,7 @@ domain or database logic.
 
 ## Caching and Freshness
 
-`packages/api/src/cache-policy.ts` is the single source of truth for cache
+`packages/api/src/cache/cache-policy.ts` is the single source of truth for cache
 classification and TTLs. Mutations, errors, authenticated responses, and
 unknown procedures are not cached. After an edit, the dashboard invalidates its
 query families; anonymous visitors may see the previous response until the

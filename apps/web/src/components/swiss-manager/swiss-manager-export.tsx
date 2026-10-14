@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@fsx/ui/components/select";
 
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 import {
   buildSwissManagerWorkbook,
   RATING_TYPES,

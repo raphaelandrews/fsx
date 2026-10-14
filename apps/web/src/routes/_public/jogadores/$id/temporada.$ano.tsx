@@ -14,7 +14,7 @@ import {
 import { buttonVariants } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
-import { Announcement } from "@/components/announcement";
+import { Announcement } from "@/components/announcements/announcement";
 import { BadgesByTier } from "@/components/gamification/achievement-badge";
 import { SeasonShareButton } from "@/components/gamification/season-share-button";
 import { ActivityGraph } from "@/components/gamification/activity-graph";
@@ -22,7 +22,7 @@ import { Medal } from "@/components/gamification/medal";
 import { StatTile } from "@/components/gamification/stat-tile";
 import { orNotFound } from "@/lib/errors";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { ProfileSkeleton } from "@/components/skeletons/profile-skeleton";
 
 // The federation's calendar year; a future season has nothing to show.

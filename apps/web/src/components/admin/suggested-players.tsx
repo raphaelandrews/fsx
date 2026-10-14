@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@fsx/ui/components/button";
 
 import { AdminSection } from "@/components/admin/form-layout";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 // Players whose full name appears in the saved text; linking one saves only
 // the player, so save other edits first.

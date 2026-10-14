@@ -9,7 +9,7 @@ import { AdminSection } from "@/components/admin/form-layout";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { DataTable } from "@/components/data-table/data-table";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 type Assigned = { linkId: number; name: string; detail?: string };
 

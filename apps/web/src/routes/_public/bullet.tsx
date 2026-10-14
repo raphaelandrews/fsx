@@ -6,7 +6,7 @@ import { ZapIcon } from "@hugeicons/core-free-icons";
 import { PageHeader } from "@/components/page-header";
 import { BulletClient } from "@/components/bullet/bullet-client";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_public/bullet")({
   head: () =>

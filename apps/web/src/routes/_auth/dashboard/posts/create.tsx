@@ -4,7 +4,7 @@ import { AdminPageHeader } from "@/components/admin/page-header";
 import { PostForm } from "@/components/admin/post-form";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/create")({
   head: () => ({ meta: [{ title: "New post - Admin - FSX" }] }),

@@ -19,9 +19,9 @@ plugin({
 });
 
 const { createDb } = await import("@fsx/db");
-const { meterD1 } = await import("../src/d1-meter");
+const { meterD1 } = await import("../src/cache/d1-meter");
 const { appRouter } = await import("../src/routers/index");
-const { getSitemapEntries } = await import("../src/sitemap");
+const { getSitemapEntries } = await import("../src/http/sitemap");
 const { createTestD1 } = await import("../src/test-d1");
 const { DEFAULT_SYNTHETIC_COUNTS, seedSyntheticData } = await import("../src/synthetic-data");
 const { insertGithubUser } = await import("../src/test-admin");

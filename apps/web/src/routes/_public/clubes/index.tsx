@@ -14,7 +14,7 @@ import { UserGroupIcon } from "@hugeicons/core-free-icons";
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 const searchSchema = z.object({
   ritmo: z.enum(["classic", "rapid", "blitz"]).default("rapid"),

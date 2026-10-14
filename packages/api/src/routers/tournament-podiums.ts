@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { asc, eq } from "drizzle-orm";
 
-import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
+import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { idInput, positiveInt } from "../input-schemas";
 import { requireMutationRows } from "../errors";
-import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 import { COMPETITION_CATEGORIES } from "../circuit-types";
 
 const podiumInput = z.object({

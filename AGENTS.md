@@ -38,7 +38,7 @@ Local Dev D1 gotchas:
 - **Always pass an explicit `timeZone`** to `Intl.DateTimeFormat`/`toLocaleString`. The server runs
   in UTC (Cloudflare) and the client in the user's timezone; omitting `timeZone` causes SSR/client
   hydration mismatches.
-- **CSP** (`packages/api/src/security-headers.ts`) adds `unsafe-eval` only in dev (Vite tooling
+- **CSP** (`packages/api/src/http/security-headers.ts`) adds `unsafe-eval` only in dev (Vite tooling
   needs it); production stays strict. The Cloudflare analytics beacon is gated on
   `VITE_CLOUDFLARE_ANALYTICS_TOKEN`.
 - Routes sharing a URL prefix (e.g. `/noticias` list + `/noticias/$slug` detail) must use the

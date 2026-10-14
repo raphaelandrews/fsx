@@ -4,7 +4,7 @@ import { createDb } from "@fsx/db";
 import { players } from "@fsx/db/schema/players";
 import { env } from "@fsx/env/server";
 
-import { dropFromEdge, edgeCache, isCachedEntryFresh, storeAtEdge, toClientResponse } from "./edge-cache";
+import { dropFromEdge, edgeCache, isCachedEntryFresh, storeAtEdge, toClientResponse } from "../cache/edge-cache";
 import { PUBLIC_API_HEADERS, PUBLIC_API_TTL_SECONDS, type PublicPlayer, type PublicPlayerDetail } from "./public-api-contract";
 import { limitUncachedRead } from "./security";
 

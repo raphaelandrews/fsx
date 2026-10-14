@@ -46,7 +46,7 @@ import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 
 import { cn } from "@fsx/ui/lib/utils";
 import { avatarGradientFor } from "@/components/avatar-gradient";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 import {
   AGE_GROUPS,
   AGE_LABEL,

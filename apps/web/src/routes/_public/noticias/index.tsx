@@ -8,9 +8,9 @@ import { NewsIcon } from "@hugeicons/core-free-icons";
 
 import { PageHeader } from "@/components/page-header";
 import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
-import { PostCard } from "@/components/post-card";
+import { PostCard } from "@/components/noticias/post-card";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 const searchSchema = z.object({
   page: z.number().int().positive().max(1_000).default(1),

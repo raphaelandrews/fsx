@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { optional } from "@/components/admin/entity-form";
-import { EntityCreatePage, entityMessages } from "@/components/admin/entity-pages";
+import { EntityCreatePage } from "@/components/admin/entity-pages";
+import { entityMessages } from "@/lib/entity-routes";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { LOCATION_SECTIONS } from "@/lib/admin-forms";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/locations/create")({
   head: () => ({ meta: [{ title: "New location - Admin - FSX" }] }),

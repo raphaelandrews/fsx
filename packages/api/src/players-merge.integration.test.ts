@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 
 import { createDb } from "@fsx/db";
 import { players } from "@fsx/db/schema/players";
-import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
+import { playersToTournaments } from "@fsx/db/schema/players-to-tournaments";
 
 import { createTestD1 } from "./test-d1";
 import { ownerCaller, type AdminCaller } from "./test-admin";

@@ -7,7 +7,7 @@ import {
 } from "@fsx/api/circuit-types";
 
 import type { EntitySection } from "@/components/admin/entity-form";
-import type { useTRPC } from "@/utils/trpc";
+import type { useTRPC } from "@/lib/trpc";
 
 type TRPC = ReturnType<typeof useTRPC>;
 

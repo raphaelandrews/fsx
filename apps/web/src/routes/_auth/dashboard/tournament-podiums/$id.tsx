@@ -9,7 +9,7 @@ import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { tournamentPodiumSections } from "@/lib/admin-forms";
 import { idParams } from "@/lib/route-params";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/$id")({
   params: idParams,

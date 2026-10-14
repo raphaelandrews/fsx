@@ -5,7 +5,7 @@ import type { AppRouter } from "@fsx/api/routers/index";
 
 import { Section } from "./section";
 import { SectionButton } from "@/components/section-button";
-import { AnnouncementRow } from "@/components/announcement-row";
+import { AnnouncementRow } from "@/components/announcements/announcement-row";
 
 type AnnouncementType = inferRouterOutputs<AppRouter>["announcements"]["fresh"][number];
 

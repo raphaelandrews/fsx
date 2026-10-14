@@ -8,12 +8,12 @@ import type { AppRouter } from "@fsx/api/routers/index";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
 
-import { Announcement } from "@/components/announcement";
+import { Announcement } from "@/components/announcements/announcement";
 import { PageHeader } from "@/components/page-header";
 import { ListSkeleton } from "@/components/skeletons/list-skeleton";
 import { getGradient } from "@/lib/gradients";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_public/membros")({
   head: () =>

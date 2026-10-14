@@ -4,10 +4,10 @@ import { useForm } from "@tanstack/react-form";
 import { NATIVE_SELECT_CLASS } from "@/components/admin/entity-form";
 import { AdminForm, FormActions, FormSection } from "@/components/admin/form-layout";
 import { FormField } from "@/components/form/form-field";
-import { SearchableSelect } from "@/components/searchable-select";
+import { SearchableSelect } from "@/components/form/searchable-select";
 import { fieldError } from "@/lib/errors";
 import { submitThenChange } from "@/lib/field-rules";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 import {
   AGE_GROUPS,
   MODALITY_OPTIONS,

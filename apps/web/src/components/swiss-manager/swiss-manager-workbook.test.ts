@@ -26,4 +26,21 @@ describe("Swiss Manager workbook", () => {
     expect(nameCell?.f).toBeUndefined();
     expect(nameCell?.v).toBe(players[0]?.name);
   });
+
+  test("exports the stored birth date regardless of the machine time zone", async () => {
+    const players = [
+      { id: 1, name: "A", sex: "male", birthDate: "2010-05-15", classic: 1, rapid: 1, blitz: 1, club: null },
+    ] as SwissManagerPlayer[];
+    const previous = process.env.TZ;
+    process.env.TZ = "America/Sao_Paulo";
+    try {
+      const blob = await buildSwissManagerWorkbook(players, "rapid");
+      const rows = XLSX.utils.sheet_to_json<{ Birthday: string }>(
+        XLSX.read(await blob.arrayBuffer(), { type: "array" }).Sheets.Players!,
+      );
+      expect(rows[0]?.Birthday).toBe("2010-05-15");
+    } finally {
+      process.env.TZ = previous;
+    }
+  });
 });

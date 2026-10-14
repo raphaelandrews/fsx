@@ -6,7 +6,7 @@ import { adminProcedure, publicProcedure, router } from "../index";
 import { nameText, positiveInt } from "../input-schemas";
 import { deleteById } from "../crud";
 import { requireMutationRows } from "../errors";
-import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 export const insigniaRouter = router({
   list: publicProcedure.query(({ ctx }) =>

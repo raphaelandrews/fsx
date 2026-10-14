@@ -7,7 +7,7 @@ import { players as playersTable, insertPlayerSchema } from "@fsx/db/schema/play
 import { clubs } from "@fsx/db/schema/clubs";
 import { locations } from "@fsx/db/schema/locations";
 import { titles } from "@fsx/db/schema/titles";
-import { playersToTitles } from "@fsx/db/schema/playersToTitles";
+import { playersToTitles } from "@fsx/db/schema/players-to-titles";
 import { normalizeName } from "@fsx/db/normalize";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
@@ -26,9 +26,9 @@ import {
   searchText,
   seasonYear,
 } from "../input-schemas";
-import { paginate } from "../pagination";
-import { escapeLike, like } from "../sql-like";
-import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+import { paginate } from "../lib/pagination";
+import { escapeLike, like } from "../lib/sql-like";
+import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 import { loadPlayerCircuits } from "../gamification/circuits";
 import { loadPlayerCareer, loadPlayerStats } from "../gamification/load";
 import { playerSeason } from "../gamification/season";

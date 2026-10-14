@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { EntityListPage, entityMessages } from "@/components/admin/entity-pages";
+import { EntityListPage } from "@/components/admin/entity-pages";
+import { entityMessages } from "@/lib/entity-routes";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/norms/")({
   head: () => ({ meta: [{ title: "Norms - Admin - FSX" }] }),

@@ -43,7 +43,7 @@ SVG is markup and is served from the site's own origin. `<img>` never runs SVG
 scripts, but opening the file URL directly would render it as a document, so
 uploaded SVGs are restricted in two layers:
 
-- **On upload**, `findSvgProblem` (`packages/api/src/svg-safety.ts`) accepts only
+- **On upload**, `findSvgProblem` (`packages/api/src/lib/svg-safety.ts`) accepts only
   static drawings. It parses tags with quoted attribute values (so a `>` inside
   a value cannot hide the attributes after it) and rejects:
   - elements outside an allowlist of shapes, text, gradients, filters, and

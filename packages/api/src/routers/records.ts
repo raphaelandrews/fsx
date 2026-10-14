@@ -4,8 +4,8 @@ import { circuits } from "@fsx/db/schema/circuits";
 import { clubs } from "@fsx/db/schema/clubs";
 import { locations } from "@fsx/db/schema/locations";
 import { players } from "@fsx/db/schema/players";
-import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
-import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
+import { playersToTournaments } from "@fsx/db/schema/players-to-tournaments";
+import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
 import { tournaments } from "@fsx/db/schema/tournaments";
 
 import { RECORD_HOLDER_ID, allBadges, badgeCatalog, badgeHolders, type BadgeCatalogEntry } from "../gamification/badges";

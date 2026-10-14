@@ -13,7 +13,7 @@ import {
 
 import { cn } from "@fsx/ui/lib/utils"
 
-import { useTRPC } from "@/utils/trpc"
+import { useTRPC } from "@/lib/trpc"
 
 import { Button } from "@fsx/ui/components/button"
 import {

@@ -2,7 +2,7 @@ import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { check, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
-import { playersToTitles } from "./playersToTitles"
+import { playersToTitles } from "./players-to-titles"
 
 export const titles = sqliteTable("titles", {
 	id: integer("id").primaryKey({ autoIncrement: true }),

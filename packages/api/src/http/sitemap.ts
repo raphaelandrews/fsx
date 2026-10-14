@@ -6,7 +6,7 @@ import { announcements } from "@fsx/db/schema/announcements";
 import { posts } from "@fsx/db/schema/posts";
 import { env } from "@fsx/env/server";
 
-import { PUBLIC_COLLECTION_LIMIT } from "./resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 // Server-only: deliberately not a tRPC procedure, so anonymous clients cannot
 // pull thousands of IDs straight from D1 through /api/trpc.

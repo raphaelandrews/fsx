@@ -47,7 +47,7 @@ time becomes visible. Decision: [ADR 0003](/decisions/0003-edge-cache-consistenc
 
 | Layer | Scope | Lifetime | Source of truth |
 | ----- | ----- | -------- | --------------- |
-| Edge cache for public tRPC GETs | one Cloudflare data center | 30–300 s per procedure | `packages/api/src/cache-policy.ts` |
+| Edge cache for public tRPC GETs | one Cloudflare data center | 30–300 s per procedure | `packages/api/src/cache/cache-policy.ts` |
 | React Query | one browser tab | stale after 5 min by default (60 s for news and announcements, 30 s for events and search), collected after 10 min | `apps/web/src/router.tsx` |
 | Static assets | Cloudflare CDN | hashed file names, long-lived | Vite build |
 | Images | Cloudflare CDN and browser | one year, `immutable` | `media-handler.ts` |
@@ -86,6 +86,6 @@ recovering from an urgent mistake, not part of normal editing.
 
 - **Prerendered paths:** `pages` in `tanstackStart()` in `apps/web/vite.config.ts`.
 - **Server vs browser tRPC link:** `apps/web/src/router.tsx`.
-- **Procedure TTLs and classification:** `PROCEDURE_CACHE_POLICY` in `packages/api/src/cache-policy.ts`.
-- **HTML and API security headers:** `apps/web/src/routes/__root.tsx` and `packages/api/src/security-headers.ts`.
+- **Procedure TTLs and classification:** `PROCEDURE_CACHE_POLICY` in `packages/api/src/cache/cache-policy.ts`.
+- **HTML and API security headers:** `apps/web/src/routes/__root.tsx` and `packages/api/src/http/security-headers.ts`.
 - **Which admin edits refresh which queries:** `ADMIN_QUERY_DEPENDENTS` in `apps/web/src/lib/admin-mutations.ts`.

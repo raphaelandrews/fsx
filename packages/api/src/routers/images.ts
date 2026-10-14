@@ -4,7 +4,7 @@ import { z } from "zod";
 import { env } from "@fsx/env/server";
 
 import { adminProcedure, router } from "../index";
-import { base64ToBytes, decodeUtf8, hasImageSignature, MAX_BASE64_LENGTH } from "../image-validation";
+import { base64ToBytes, decodeUtf8, hasImageSignature, MAX_BASE64_LENGTH } from "../lib/image-validation";
 import {
   formatBytes,
   MEDIA_EXTENSIONS,
@@ -15,7 +15,7 @@ import {
   SVG_MIME,
   type MediaMime,
 } from "../media-kinds";
-import { ensureSvgViewBox, findSvgProblem } from "../svg-safety";
+import { ensureSvgViewBox, findSvgProblem } from "../lib/svg-safety";
 
 // Strip the public path back down to the object key so a stored relative URL
 // (e.g. `/api/media/players/uuid.webp`) can be deleted from R2.

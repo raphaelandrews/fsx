@@ -232,7 +232,7 @@ Add validation in `packages/env/src/server.ts`.
 | `await (await supabase()).auth.getUser()` in API routes | `ctx.session` in tRPC procedures (via `protectedProcedure`) |
 | `utils/supabase/server.ts` | `packages/auth/src/index.ts` (single source of truth) |
 | `utils/supabase/client.ts` | `apps/web/src/lib/auth-client.ts` (already scaffolded) |
-| `utils/supabase/middleware.ts` + `proxy.ts` | `apps/web/src/middleware/auth.ts` (already scaffolded) |
+| `utils/supabase/middleware.ts` + `proxy.ts` | `apps/web/src/server/auth-middleware.ts` (already scaffolded) |
 | Supabase `exchangeCodeForSession` callback | Built into Better Auth handler at `/api/auth/$` |
 
 #### 2.4 Auth Guard
@@ -322,7 +322,7 @@ export async function createContext({ req }: { req: Request }) {
 
 #### 3.5 Client Integration
 
-Already scaffolded in `apps/web/src/utils/trpc.ts` with `createTRPCContext<AppRouter>()`.
+Already scaffolded in `apps/web/src/lib/trpc.ts` with `createTRPCContext<AppRouter>()`.
 The `TRPCProvider` is injected in `apps/web/src/router.tsx`.
 
 ---
@@ -362,10 +362,10 @@ Move from `source-project/components/` to `apps/web/src/components/`, adapting i
 | `components/logo.tsx` | `apps/web/src/components/logo.tsx` | No changes |
 | `components/login-form.tsx` | `apps/web/src/components/login-form.tsx` | Rewrite: supabase auth → Better Auth client |
 | `components/mdx.tsx` | `apps/web/src/components/mdx.tsx` | Rewrite: next-mdx-remote → @tanstack/react-markdown |
-| `components/post-card.tsx` | `apps/web/src/components/post-card.tsx` | Port as-is |
+| `components/post-card.tsx` | `apps/web/src/components/noticias/post-card.tsx` | Port as-is |
 | `components/command-menu.tsx` | `apps/web/src/components/command-menu.tsx` | Port as-is |
 | `components/mode-switcher.tsx` | `apps/web/src/components/mode-switcher.tsx` | Port as-is |
-| `components/image-cropper.tsx` | `apps/web/src/components/image-cropper.tsx` | Port, update storage upload to R2 |
+| `components/image-cropper.tsx` | `apps/web/src/components/media/image-cropper.tsx` | Port, update storage upload to R2 |
 
 #### 4.4 Dependencies to Add
 
@@ -712,7 +712,7 @@ Execute in this sequence to maintain a working application at each step:
   ```
 - **Client usage**:
   ```typescript
-  import { useTRPC, useTRPCClient } from "@/utils/trpc";
+  import { useTRPC, useTRPCClient } from "@/lib/trpc";
 
   // Query (read)
   const [players] = useSuspenseQuery(useTRPC().players.list.queryOptions({}));
@@ -868,7 +868,7 @@ Execute in this sequence to maintain a working application at each step:
 - **`@tanstack/react-query-devtools`** — Replaced by unified TanStack Devtools panel
 - **`lucide-react`** — Replaced by `@hugeicons/react`
 - **`@radix-ui/*` packages** — Replaced by `@base-ui/react` (via shadcn/react)
-- **`proxy.ts`** — Replaced by `apps/web/src/middleware/auth.ts`
+- **`proxy.ts`** — Replaced by `apps/web/src/server/auth-middleware.ts`
 - **`biome.json`** — Replaced by `oxlint` + `oxfmt`
 - **`components.json`** at root — Replaced by config in `packages/ui/` and `apps/web/`
 - **`next.config.ts`** — Not applicable

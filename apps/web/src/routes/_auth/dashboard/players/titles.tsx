@@ -7,9 +7,9 @@ import { buttonVariants } from "@fsx/ui/components/button";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { PlayerTitlesSection } from "@/components/admin/player-relations";
 import { FormField } from "@/components/form/form-field";
-import { SearchableSelect } from "@/components/searchable-select";
+import { SearchableSelect } from "@/components/form/searchable-select";
 import { orNotFound } from "@/lib/errors";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 const searchSchema = z.object({
   playerId: z.number().int().positive().optional().catch(undefined),

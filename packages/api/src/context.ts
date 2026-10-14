@@ -2,7 +2,7 @@ import { createAuth } from "@fsx/auth";
 import { createDb } from "@fsx/db";
 import { env } from "@fsx/env/server";
 
-import { meterD1, type D1Meter } from "./d1-meter";
+import { meterD1, type D1Meter } from "./cache/d1-meter";
 
 type Session = Awaited<ReturnType<ReturnType<typeof createAuth>["api"]["getSession"]>>;
 

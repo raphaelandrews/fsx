@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { EntityEditPage, ensureListRecord, entityMessages } from "@/components/admin/entity-pages";
+import { EntityEditPage } from "@/components/admin/entity-pages";
+import { ensureListRecord, entityMessages } from "@/lib/entity-routes";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { INSIGNIA_SECTIONS } from "@/lib/admin-forms";
 import { idParams } from "@/lib/route-params";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/insignias/$id")({
   params: idParams,

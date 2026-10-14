@@ -2,7 +2,7 @@ import { describe, expect, spyOn, test } from "bun:test";
 
 import { createDb } from "@fsx/db";
 
-import { PUBLIC_COLLECTION_LIMIT } from "./resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT } from "./lib/resource-bounds";
 import { callerAs } from "./test-admin";
 import { createTestD1 } from "./test-d1";
 import { mockWorkerEnv } from "./test-env";

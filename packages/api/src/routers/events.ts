@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, gte, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 import { events, insertEventSchema } from "@fsx/db/schema/events";
-import { linkGroups } from "@fsx/db/schema/linkGroups";
+import { linkGroups } from "@fsx/db/schema/link-groups";
 import { links } from "@fsx/db/schema/links";
 import { EVENT_LINK_TYPES } from "../event-link-types";
 import { iconForLinkLabel } from "../link-icons";
@@ -11,9 +11,39 @@ import { adminProcedure, publicProcedure, router } from "../index";
 import { requireMutationRows } from "../errors";
 import { requireOwnedEventLink, validateEventLinkTypes } from "./event-links";
 import { isoDate, nameText, optionalHttpUrl, positiveInt, sortOrder } from "../input-schemas";
-import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
+
+const UPCOMING_EVENTS_LIMIT = 12;
+
+const todayInSaoPaulo = () =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 
 export const eventsRouter = router({
+  upcoming: publicProcedure.query(({ ctx }) =>
+    ctx.db.query.events.findMany({
+      columns: { id: true, name: true, startDate: true },
+      with: {
+        linkGroup: {
+          columns: { id: true },
+          with: {
+            links: {
+              limit: PUBLIC_NESTED_COLLECTION_LIMIT,
+              columns: { id: true, href: true, label: true, icon: true, type: true, sortOrder: true },
+              orderBy: (l, { asc }) => [asc(l.sortOrder), asc(l.id)],
+            },
+          },
+        },
+      },
+      where: gte(events.startDate, todayInSaoPaulo()),
+      orderBy: (e, { asc }) => [asc(e.startDate), asc(e.id)],
+      limit: UPCOMING_EVENTS_LIMIT,
+    })
+  ),
   list: publicProcedure.query(({ ctx }) =>
     ctx.db.query.events.findMany({
       columns: { id: true, name: true, startDate: true },

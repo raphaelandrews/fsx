@@ -172,7 +172,7 @@ Please credit the source when you publish the data, for example
 
 ## OpenAPI and the reference page
 
-- **Spec:** `packages/api/src/openapi.ts` holds the OpenAPI 3.1 document, in
+- **Spec:** `packages/api/src/http/openapi.ts` holds the OpenAPI 3.1 document, in
   English. `GET /api/v1/openapi.json` serves it statically (no D1, no rate
   limit) with the same CORS headers and a 5-minute cache. Servers are relative
   (`/`), so imported clients call the host that served the spec.
@@ -186,7 +186,7 @@ Please credit the source when you publish the data, for example
   works on Astro without React Server Components). Pages whose frontmatter sets
   `openapi: true` get the reference after their body
   (`apps/fumadocs/src/components/api-reference.tsx`). It imports
-  `@fsx/api/openapi` at build time; `public-api-contract.ts` keeps that import
+  `@fsx/api/http/openapi` at build time; `public-api-contract.ts` keeps that import
   free of D1 and Worker modules. The docs copy replaces the relative server with
   `https://www.fsx.org.br`, so "Send" calls production from the docs domain
   (allowed by the CORS headers). The component and its highlighter load lazily,
@@ -197,14 +197,14 @@ fail until the spec matches, and the docs pick it up on their next build.
 
 ## Implementation
 
-The handlers are in `packages/api/src/public-api.ts`, mounted by
+The handlers are in `packages/api/src/http/public-api.ts`, mounted by
 `apps/web/src/routes/api/v1/players/index.ts` and `players/$id.ts`. Both go
 through `servePublicJson`: it reads D1 only on a cache miss, stores one edge
 entry per canonical path without the query string (so cache-busting parameters
 or `007`-style IDs cannot reach D1), caches `404`s, and applies
 `PUBLIC_READ_RATE_LIMIT` to misses ([ADR 0005](/decisions/0005-rate-limiting)). It is not a tRPC
 procedure, so it skips the tRPC origin check. Tests:
-`packages/api/src/public-api.integration.test.ts`.
+`packages/api/src/http/public-api.integration.test.ts`.
 
 When you add a field, update the tables above, both languages in `openapi.ts`,
 and the test's exact field lists. Never publish full birth dates or contact

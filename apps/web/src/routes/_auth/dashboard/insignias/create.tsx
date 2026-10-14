@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { EntityCreatePage, entityMessages } from "@/components/admin/entity-pages";
+import { EntityCreatePage } from "@/components/admin/entity-pages";
+import { entityMessages } from "@/lib/entity-routes";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { INSIGNIA_SECTIONS } from "@/lib/admin-forms";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/insignias/create")({
   head: () => ({ meta: [{ title: "New insignia - Admin - FSX" }] }),

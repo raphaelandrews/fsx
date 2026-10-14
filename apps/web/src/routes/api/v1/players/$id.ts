@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { handlePublicPlayerRequest } from "@fsx/api/public-api";
+import { handlePublicPlayerRequest } from "@fsx/api/http/public-api";
 
 export const Route = createFileRoute("/api/v1/players/$id")({
   server: {

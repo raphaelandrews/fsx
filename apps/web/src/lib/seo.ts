@@ -1,4 +1,4 @@
-import { toIsoTimestamp } from "../utils/format";
+import { toIsoTimestamp } from "./format";
 
 export const SITE_URL = "https://www.fsx.org.br";
 export const SITE_NAME = "Federação Sergipana de Xadrez";

@@ -3,16 +3,16 @@ import { and, asc, eq, isNull } from "drizzle-orm";
 
 import { championships, insertChampionshipSchema } from "@fsx/db/schema/championships";
 import { tournaments } from "@fsx/db/schema/tournaments";
-import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
+import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
 import { players } from "@fsx/db/schema/players";
 import { locations } from "@fsx/db/schema/locations";
-import { playersToTitles } from "@fsx/db/schema/playersToTitles";
+import { playersToTitles } from "@fsx/db/schema/players-to-titles";
 import { titles } from "@fsx/db/schema/titles";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { deleteById } from "../crud";
 import { requireMutationRows } from "../errors";
 import { nameText, positiveInt } from "../input-schemas";
-import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 export const championsRouter = router({
   list: publicProcedure.query(({ ctx }) =>

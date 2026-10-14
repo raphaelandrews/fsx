@@ -8,7 +8,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 type RatingType = "blitz" | "rapid" | "classic";
 

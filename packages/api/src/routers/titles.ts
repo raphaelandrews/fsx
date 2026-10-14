@@ -6,7 +6,7 @@ import { adminProcedure, publicProcedure, router } from "../index";
 import { nameText, positiveInt } from "../input-schemas";
 import { deleteById } from "../crud";
 import { requireMutationRows } from "../errors";
-import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const tier = z.number().int().min(1).max(4);
 const losesAtAge = z.number().int().min(1).max(120).nullable();

@@ -1,6 +1,6 @@
 import { inArray } from "drizzle-orm";
 
-import { computedResults } from "@fsx/db/schema/computedResults";
+import { computedResults } from "@fsx/db/schema/computed-results";
 
 import type { Context } from "../context";
 

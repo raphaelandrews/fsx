@@ -6,7 +6,7 @@ import { adminProcedure, publicProcedure, router } from "../index";
 import { emblemUrl, nameText, positiveInt } from "../input-schemas";
 import { deleteMediaUrl, deleteReplacedMedia } from "./images";
 import { requireMutationRows } from "../errors";
-import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const locationTypeEnum = z.enum(["city", "state", "country"]);
 

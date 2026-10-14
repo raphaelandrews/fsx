@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Calendar01Icon } from "@hugeicons/core-free-icons"
 
-import { parseDbTimestamp } from "@/utils/format";
+import { parseDbTimestamp } from "@/lib/format";
 
 const TIME_ZONE = "America/Sao_Paulo";
 

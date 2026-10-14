@@ -11,9 +11,9 @@ import {
   DialogTitle,
 } from "@fsx/ui/components/dialog";
 
-import { SearchableSelect } from "@/components/searchable-select";
+import { SearchableSelect } from "@/components/form/searchable-select";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function MergePlayerButton({ playerId, playerName }: { playerId: number; playerName: string }) {
   const trpc = useTRPC();

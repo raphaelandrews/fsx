@@ -1,7 +1,7 @@
 import { and, count, desc, eq, gt, inArray, sql } from "drizzle-orm";
 
 import { players } from "@fsx/db/schema/players";
-import { rankingSnapshots } from "@fsx/db/schema/rankingSnapshots";
+import { rankingSnapshots } from "@fsx/db/schema/ranking-snapshots";
 
 import type { Context } from "../context";
 import { RATING_TYPES, type RatingType } from "../routers/rating-update";

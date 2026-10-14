@@ -4,9 +4,9 @@ import { alias } from "drizzle-orm/sqlite-core";
 
 import type { createDb } from "@fsx/db";
 import { players } from "@fsx/db/schema/players";
-import { playersToTitles } from "@fsx/db/schema/playersToTitles";
-import { playersToTournaments, type NewPlayerToTournament } from "@fsx/db/schema/playersToTournaments";
-import { rankingSnapshots } from "@fsx/db/schema/rankingSnapshots";
+import { playersToTitles } from "@fsx/db/schema/players-to-titles";
+import { playersToTournaments, type NewPlayerToTournament } from "@fsx/db/schema/players-to-tournaments";
+import { rankingSnapshots } from "@fsx/db/schema/ranking-snapshots";
 import { tournaments } from "@fsx/db/schema/tournaments";
 
 export const RATING_TYPES = ["blitz", "rapid", "classic"] as const;

@@ -1,8 +1,8 @@
 import { eq, inArray, or } from "drizzle-orm";
 
-import { circuitFinalPodiums } from "@fsx/db/schema/circuitFinalPodiums";
-import { circuitPhases } from "@fsx/db/schema/circuitPhases";
-import { circuitPodiums } from "@fsx/db/schema/circuitPodiums";
+import { circuitFinalPodiums } from "@fsx/db/schema/circuit-final-podiums";
+import { circuitPhases } from "@fsx/db/schema/circuit-phases";
+import { circuitPodiums } from "@fsx/db/schema/circuit-podiums";
 import { players } from "@fsx/db/schema/players";
 
 import { rankCircuit } from "../circuit-standings";

@@ -5,7 +5,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth-client";
-import { getUser } from "@/functions/get-user";
+import { getUser } from "@/server/get-user";
 import { buildSeo, withBrand } from "@/lib/seo";
 
 export const Route = createFileRoute("/login")({

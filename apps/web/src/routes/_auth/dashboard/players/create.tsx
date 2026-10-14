@@ -5,7 +5,7 @@ import { AdminPageHeader } from "@/components/admin/page-header";
 import { PlayerForm } from "@/components/admin/player-form";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/players/create")({
   head: () => ({ meta: [{ title: "New player - Admin - FSX" }] }),

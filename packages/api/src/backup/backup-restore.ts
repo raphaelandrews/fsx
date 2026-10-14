@@ -6,7 +6,7 @@ import { fileURLToPath, URL as NodeURL } from "node:url";
 
 import { splitSqlStatements } from "./sql-dump";
 
-const migrationsDir = fileURLToPath(new NodeURL("../../db/src/migrations/", import.meta.url));
+const migrationsDir = fileURLToPath(new NodeURL("../../../db/src/migrations", import.meta.url));
 
 const SKIPPED = /^(PRAGMA|BEGIN|COMMIT|ROLLBACK)\b|sqlite_sequence|\b_cf_\w+/i;
 

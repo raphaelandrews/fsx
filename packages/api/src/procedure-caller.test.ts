@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { TRPCError } from "@trpc/server";
 
 import type { Context } from "./context";
-import { PROCEDURE_CACHE_POLICY } from "./cache-policy";
+import { PROCEDURE_CACHE_POLICY } from "./cache/cache-policy";
 import { mockWorkerEnv } from "./test-env";
 
 mockWorkerEnv();

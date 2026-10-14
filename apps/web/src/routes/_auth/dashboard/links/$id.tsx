@@ -13,11 +13,11 @@ import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
-import { LinkIconSelect } from "@/components/link-icon-select";
+import { LinkIconSelect } from "@/components/form/link-icon-select";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { LINK_GROUP_SECTIONS } from "@/lib/admin-forms";
 import { idParams } from "@/lib/route-params";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/links/$id")({
   params: idParams,

@@ -1,11 +1,11 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { Markdown } from "@/components/markdown";
+import { Markdown } from "@/components/markdown/markdown";
 import { PostTimeAgo } from "@/components/noticias/post-time-ago";
 import { articleJsonLd, breadcrumbJsonLd, buildSeo, truncate, withBrand } from "@/lib/seo";
 import { getErrorCode } from "@/lib/errors";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { ArticleSkeleton } from "@/components/skeletons/article-skeleton";
 
 export const Route = createFileRoute("/_public/noticias/$slug")({

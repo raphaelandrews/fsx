@@ -14,7 +14,7 @@ import { DataTableRowActions } from "@/components/data-table/data-table-row-acti
 import { Pagination } from "@/components/data-table/pagination";
 import { RowLink } from "@/components/data-table/row-link";
 import { SearchInput } from "@/components/data-table/search-input";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 const PER_PAGE = 20;
 

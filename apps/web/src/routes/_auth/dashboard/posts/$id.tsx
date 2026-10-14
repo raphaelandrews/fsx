@@ -8,7 +8,7 @@ import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { orNotFound } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/$id")({
   params: idParams,

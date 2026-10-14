@@ -10,7 +10,7 @@ import { mockWorkerEnv, testEnv } from "./test-env";
 mockWorkerEnv();
 
 const { appRouter } = await import("./routers/index");
-const { handleTrpcRequest } = await import("./trpc-handler");
+const { handleTrpcRequest } = await import("./http/trpc-handler");
 
 describe("procedure error boundary", () => {
   test("turns constraint violations into CONFLICT without leaking SQL, and logs once", async () => {

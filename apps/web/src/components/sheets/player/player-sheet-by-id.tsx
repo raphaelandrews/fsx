@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { Sheet, SheetTrigger } from "@fsx/ui/components/sheet"
 
-import { useTRPC } from "@/utils/trpc"
+import { useTRPC } from "@/lib/trpc"
 import { getUserErrorMessage } from "@/lib/errors"
 import { PlayerSheet } from "./player-sheet"
 

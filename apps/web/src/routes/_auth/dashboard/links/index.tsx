@@ -13,7 +13,7 @@ import { DataTableRowActions } from "@/components/data-table/data-table-row-acti
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { RowLink } from "@/components/data-table/row-link";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/links/")({
   head: () => ({ meta: [{ title: "Links - Admin - FSX" }] }),

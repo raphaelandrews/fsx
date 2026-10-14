@@ -2,17 +2,17 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, exists, not, or, sql } from "drizzle-orm";
 
-import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
-import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
+import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
+import { playersToTournaments } from "@fsx/db/schema/players-to-tournaments";
 import { tournaments, insertTournamentSchema } from "@fsx/db/schema/tournaments";
 import { normalizeName } from "@fsx/db/normalize";
 import type { Context } from "../context";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { httpUrl, isoDate, nameText, positiveInt, searchText } from "../input-schemas";
-import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 import { COMPETITION_TIERS } from "../circuit-types";
-import { escapeLike, like } from "../sql-like";
+import { escapeLike, like } from "../lib/sql-like";
 
 const ratingTypeEnum = z.enum(["blitz", "rapid", "classic"]);
 const tierEnum = z.enum(COMPETITION_TIERS);

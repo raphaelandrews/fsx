@@ -2,15 +2,15 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import type { Miniflare } from "miniflare";
 
 import { createDb } from "@fsx/db";
-import { cupBrackets } from "@fsx/db/schema/cupBrackets";
-import { cupMatches } from "@fsx/db/schema/cupMatches";
-import { cupPlayoffs } from "@fsx/db/schema/cupPlayoffs";
+import { cupBrackets } from "@fsx/db/schema/cup-brackets";
+import { cupMatches } from "@fsx/db/schema/cup-matches";
+import { cupPlayoffs } from "@fsx/db/schema/cup-playoffs";
 import { cups } from "@fsx/db/schema/cups";
 import { championships } from "@fsx/db/schema/championships";
 import { players } from "@fsx/db/schema/players";
-import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
-import { rankingSnapshots } from "@fsx/db/schema/rankingSnapshots";
-import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
+import { playersToTournaments } from "@fsx/db/schema/players-to-tournaments";
+import { rankingSnapshots } from "@fsx/db/schema/ranking-snapshots";
+import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
 import { tournaments } from "@fsx/db/schema/tournaments";
 
 import { markDataChanged } from "./gamification/computed";

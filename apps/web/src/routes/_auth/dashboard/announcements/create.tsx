@@ -5,7 +5,7 @@ import { EntityForm, optionalNumber } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { announcementSections } from "@/lib/admin-forms";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/create")({
   head: () => ({ meta: [{ title: "New announcement - Admin - FSX" }] }),

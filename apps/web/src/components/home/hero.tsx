@@ -3,7 +3,7 @@ import type { inferRouterOutputs } from "@trpc/server"
 import type { AppRouter } from "@fsx/api/routers/index"
 
 import { Section } from "./section"
-import { PostCard } from "@/components/post-card"
+import { PostCard } from "@/components/noticias/post-card"
 
 type FreshPost = inferRouterOutputs<AppRouter>["posts"]["fresh"][number]
 

@@ -17,7 +17,7 @@ import {
 } from "@fsx/ui/components/alert-dialog";
 import { Button } from "@fsx/ui/components/button";
 
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { RatingUpdateLogs } from "@/components/rating-update/rating-update-logs";
 import { RatingUpdateMonitor } from "@/components/rating-update/rating-update-monitor";
 import { RatingUpdateToolbar } from "@/components/rating-update/rating-update-toolbar";
@@ -25,7 +25,7 @@ import type { AnimationState } from "@/components/rating-update/motion-grid-stat
 import type { RatingUpdateProps } from "@/components/rating-update/rating-update-types";
 import { getAdminErrorMessage, getErrorCode, getUserErrorMessage, showMutationError } from "@/lib/errors";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
-import { toIsoDate } from "@/utils/format";
+import { toIsoDate } from "@/lib/format";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { useAdminMutation } from "@/lib/admin-mutations";
 
@@ -77,25 +77,29 @@ function RatingUpdatePage() {
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem("rating-update-log");
-    if (saved) {
-      try {
+    try {
+      const saved = localStorage.getItem("rating-update-log");
+      if (saved) {
         const { success, errors } = JSON.parse(saved);
         if (success?.length) setSuccessLog(success);
         if (errors?.length) setErrorLog(errors);
-      } catch {
-        /* ignore */
       }
+    } catch {
+      /* storage blocked or corrupt */
     }
     setHasLoadedInitialData(true);
   }, []);
 
   useEffect(() => {
     if (!hasLoadedInitialData) return;
-    localStorage.setItem(
-      "rating-update-log",
-      JSON.stringify({ success: successLog, errors: errorLog }),
-    );
+    try {
+      localStorage.setItem(
+        "rating-update-log",
+        JSON.stringify({ success: successLog, errors: errorLog }),
+      );
+    } catch {
+      /* storage full or blocked */
+    }
   }, [successLog, errorLog, hasLoadedInitialData]);
 
   const validateExcel = (headerMap: Record<string, number>) => {
@@ -484,7 +488,11 @@ function RatingUpdatePage() {
   };
 
   const clearHistory = () => {
-    localStorage.removeItem("rating-update-log");
+    try {
+      localStorage.removeItem("rating-update-log");
+    } catch {
+      /* storage blocked */
+    }
     setSuccessLog([]);
     setErrorLog([]);
     setCurrentIndex(0);

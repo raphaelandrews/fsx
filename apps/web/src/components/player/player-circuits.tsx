@@ -5,7 +5,7 @@ import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@fsx/ui/lib/utils";
 
 import { Medal } from "@/components/gamification/medal";
-import { slugify } from "@/utils/slugify";
+import { slugify } from "@/lib/slugify";
 
 import type { PlayerCircuitSeason } from "./types";
 

@@ -2,7 +2,7 @@ import { and, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
 
 import { announcements } from "@fsx/db/schema/announcements";
 import { players } from "@fsx/db/schema/players";
-import { playersToTitles } from "@fsx/db/schema/playersToTitles";
+import { playersToTitles } from "@fsx/db/schema/players-to-titles";
 import { titles } from "@fsx/db/schema/titles";
 
 import type { Context } from "../context";

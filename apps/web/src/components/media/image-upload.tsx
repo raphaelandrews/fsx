@@ -3,13 +3,13 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { formatBytes, MEDIA_POLICIES, SVG_MIME, type MediaKind, type MediaMime } from "@fsx/api/media-kinds";
-import { findSvgProblem } from "@fsx/api/svg-safety";
+import { findSvgProblem } from "@fsx/api/lib/svg-safety";
 import { Button } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
-import { ImageCropper } from "@/components/image-cropper";
+import { ImageCropper } from "@/components/media/image-cropper";
 import { showMutationError } from "@/lib/errors";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete03Icon, ImageUploadIcon, Loading01Icon } from "@hugeicons/core-free-icons";

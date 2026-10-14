@@ -7,7 +7,7 @@ import { fileURLToPath, URL as NodeURL } from "node:url";
 
 import { Miniflare } from "miniflare";
 
-import { readBackup, restoreBackup } from "../src/backup-restore";
+import { readBackup, restoreBackup } from "../src/backup/backup-restore";
 
 const backupPath = process.argv[2];
 if (!backupPath) {

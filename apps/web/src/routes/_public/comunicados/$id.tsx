@@ -3,8 +3,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ScrollIcon } from "@hugeicons/core-free-icons";
 
-import { useTRPC } from "@/utils/trpc";
-import { padNumber } from "@/utils/format";
+import { useTRPC } from "@/lib/trpc";
+import { padNumber } from "@/lib/format";
 import { breadcrumbJsonLd, buildSeo, truncate, withBrand } from "@/lib/seo";
 import { getErrorCode } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";

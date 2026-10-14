@@ -10,7 +10,7 @@ import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useAdminMutation, useInvalidateAdmin } from "@/lib/admin-mutations";
 import { showMutationError } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/events/$id")({
   params: idParams,
@@ -74,7 +74,7 @@ function RouteComponent() {
               sortOrder: link.sortOrder,
             })) ?? [],
         }}
-        error={updateMutation.error}
+        error={updateMutation.error ?? setLinksMutation.error}
         submitLabel="Save changes"
         cancelTo="/dashboard/events"
         onSubmit={async ({ name, startDate, links }) => {

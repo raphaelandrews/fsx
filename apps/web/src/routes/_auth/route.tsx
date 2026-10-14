@@ -3,7 +3,7 @@ import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { ErrorFallback } from "@/components/not-found";
 import { RoutePending } from "@/components/skeletons/route-pending";
-import { getUser } from "@/functions/get-user";
+import { getUser } from "@/server/get-user";
 import { buildSeo, withBrand } from "@/lib/seo";
 
 export const Route = createFileRoute("/_auth")({

@@ -9,8 +9,8 @@ import { useAdminMutation } from "@/lib/admin-mutations";
 import { announcementSections } from "@/lib/admin-forms";
 import { orNotFound } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
-import { useTRPC } from "@/utils/trpc";
-import { padNumber } from "@/utils/format";
+import { useTRPC } from "@/lib/trpc";
+import { padNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/$id")({
   params: idParams,

@@ -37,6 +37,7 @@ export const PROCEDURE_CACHE_POLICY: Record<string, ProcedureCachePolicy> = {
   "roles.listWithPlayers": { classification: "public", ttlSeconds: 300 },
   "titledPlayers.list": { classification: "public", ttlSeconds: 300 },
   "swissManager.list": { classification: "public", ttlSeconds: 300 },
+  "events.upcoming": { classification: "public", ttlSeconds: 60 },
   "events.list": { classification: "public", ttlSeconds: 60 },
   "posts.list": { classification: "public", ttlSeconds: 120 },
   "posts.bySlug": { classification: "public", ttlSeconds: 120 },

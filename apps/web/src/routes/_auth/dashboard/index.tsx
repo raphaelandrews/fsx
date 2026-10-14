@@ -22,7 +22,7 @@ import { Card, CardContent } from "@fsx/ui/components/card";
 import { Badge } from "@fsx/ui/components/badge";
 import { cn } from "@fsx/ui/lib/utils";
 
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { avatarGradient } from "@/components/avatar-gradient";
 

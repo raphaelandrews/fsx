@@ -3,12 +3,12 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Megaphone01Icon } from "@hugeicons/core-free-icons";
 import { z } from "zod";
 
-import { AnnouncementRow } from "@/components/announcement-row";
+import { AnnouncementRow } from "@/components/announcements/announcement-row";
 import { Pagination } from "@/components/data-table/pagination";
 
 import { PageHeader } from "@/components/page-header";
 import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
 const searchSchema = z.object({

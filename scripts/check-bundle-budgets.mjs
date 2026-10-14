@@ -8,6 +8,7 @@ const budgets = {
   totalGzipBytes: 1_500_000,
   largestChunkGzipBytes: 200_000,
   initialEntryGzipBytes: 160_000,
+  initialGraphGzipBytes: 330_000,
   xlsxGzipBytes: 170_000,
   ratingUpdateGzipBytes: 60_000,
   playerProfileGzipBytes: 50_000,
@@ -39,6 +40,20 @@ const largestChunk = assets.reduce((largest, asset) => asset.gzipBytes > largest
 const initialEntry = assets.find((asset) => /^index-[^/]+\.js$/.test(asset.name));
 const failures = [];
 
+const byName = new Map(assets.map((asset) => [asset.name, asset]));
+const initialGraph = new Set();
+const pending = initialEntry ? [initialEntry.name] : [];
+while (pending.length > 0) {
+  const name = pending.pop();
+  if (initialGraph.has(name) || !byName.has(name)) continue;
+  initialGraph.add(name);
+  const source = await readFile(join(clientAssets, name), "utf8");
+  for (const [, dependency] of source.matchAll(/(?:from|^import)\s*"\.\/([^"]+\.js)"/gm)) pending.push(dependency);
+}
+const initialGraphGzipBytes = initialEntry
+  ? [...initialGraph].reduce((total, name) => total + byName.get(name).gzipBytes, 0)
+  : undefined;
+
 function check(name, measured, maximum) {
   if (measured === undefined) {
     failures.push(`${name}: bundle not found`);
@@ -50,6 +65,7 @@ function check(name, measured, maximum) {
 check("Total client JavaScript (gzip)", totalGzipBytes, budgets.totalGzipBytes);
 check("Largest client chunk (gzip)", largestChunk.gzipBytes, budgets.largestChunkGzipBytes);
 check("Initial client entry (gzip)", initialEntry?.gzipBytes, budgets.initialEntryGzipBytes);
+check("Initial client graph (gzip, entry + static imports)", initialGraphGzipBytes, budgets.initialGraphGzipBytes);
 check("Excel export chunk (gzip)", assets.find((asset) => asset.name.startsWith("xlsx-"))?.gzipBytes, budgets.xlsxGzipBytes);
 check("Rating update route chunk (gzip)", assets.find((asset) => asset.name.startsWith("rating-update-"))?.gzipBytes, budgets.ratingUpdateGzipBytes);
 check("Player profile route chunk (gzip)", assets.find((asset) => asset.name.startsWith("player-profile-"))?.gzipBytes, budgets.playerProfileGzipBytes);

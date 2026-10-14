@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { handleOpenApiRequest } from "@fsx/api/openapi";
+import { handleOpenApiRequest } from "@fsx/api/http/openapi";
 
 export const Route = createFileRoute("/api/v1/openapi.json")({
   server: {

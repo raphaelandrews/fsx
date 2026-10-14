@@ -12,7 +12,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { Announcement } from "@/components/announcement";
+import { Announcement } from "@/components/announcements/announcement";
 import { PageHeader } from "@/components/page-header";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 

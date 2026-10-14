@@ -17,10 +17,10 @@ import { Input } from "@fsx/ui/components/input";
 import { Textarea } from "@fsx/ui/components/textarea";
 
 import { AdminForm, FormActions, FormSection } from "@/components/admin/form-layout";
-import { DatePicker } from "@/components/date-picker";
+import { DatePicker } from "@/components/form/date-picker";
 import { FormField } from "@/components/form/form-field";
-import { ImageUpload } from "@/components/image-upload";
-import { SearchableSelect } from "@/components/searchable-select";
+import { ImageUpload } from "@/components/media/image-upload";
+import { SearchableSelect } from "@/components/form/searchable-select";
 import { fieldError } from "@/lib/errors";
 import { httpUrlError, LONG_TEXT_MAX, maxLengthError, submitThenChange, TEXT_MAX, URL_MAX } from "@/lib/field-rules";
 

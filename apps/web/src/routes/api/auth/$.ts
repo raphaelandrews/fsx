@@ -4,8 +4,8 @@ import {
   isTrustedRequest,
   rateLimit,
   rateLimitedResponse,
-} from "@fsx/api/security";
-import { applySecurityHeaders } from "@fsx/api/security-headers";
+} from "@fsx/api/http/security";
+import { applySecurityHeaders } from "@fsx/api/http/security-headers";
 import { createAuth } from "@fsx/auth";
 import { createFileRoute } from "@tanstack/react-router";
 

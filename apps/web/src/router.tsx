@@ -14,7 +14,7 @@ import { ThemeProvider } from "next-themes";
 import { NotFound } from "./components/not-found";
 import { RoutePending } from "./components/skeletons/route-pending";
 import { routeTree } from "./routeTree.gen";
-import { TRPCProvider } from "./utils/trpc";
+import { TRPCProvider } from "./lib/trpc";
 import { getUserErrorMessage, isAdminPath, isExpectedQueryError } from "./lib/errors";
 
 function createQueryClient() {

@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { TvSergipeForm, toTvSergipeInput } from "@/components/admin/tv-sergipe-form";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/create")({
   head: () => ({ meta: [{ title: "New School Games result - Admin - FSX" }] }),

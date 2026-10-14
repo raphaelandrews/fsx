@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 
-import { MAX_MEDIA_BYTES, type MediaMime } from "./media-kinds";
+import { MAX_MEDIA_BYTES, type MediaMime } from "../media-kinds";
 
 export const MAX_BASE64_LENGTH = Math.ceil((MAX_MEDIA_BYTES * 4) / 3) + 4;
 

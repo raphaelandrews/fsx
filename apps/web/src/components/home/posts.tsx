@@ -5,7 +5,7 @@ import type { AppRouter } from "@fsx/api/routers/index"
 
 import { Section } from "./section"
 import { SectionButton } from "@/components/section-button"
-import { PostCard } from "@/components/post-card"
+import { PostCard } from "@/components/noticias/post-card"
 
 type FreshPost = inferRouterOutputs<AppRouter>["posts"]["fresh"][number]
 

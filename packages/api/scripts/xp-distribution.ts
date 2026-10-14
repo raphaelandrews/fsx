@@ -7,7 +7,7 @@ import { Miniflare } from "miniflare";
 
 import { createDb } from "@fsx/db";
 
-import { readBackup, restoreBackup } from "../src/backup-restore";
+import { readBackup, restoreBackup } from "../src/backup/backup-restore";
 import { loadPlayerStats } from "../src/gamification/load";
 
 const backupPath = process.argv[2];

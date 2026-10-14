@@ -3,11 +3,11 @@ import { afterAll, beforeAll, beforeEach, describe, expect, test } from "bun:tes
 import { createDb } from "@fsx/db";
 import { clubs } from "@fsx/db/schema/clubs";
 import { players } from "@fsx/db/schema/players";
-import { playersToTitles } from "@fsx/db/schema/playersToTitles";
+import { playersToTitles } from "@fsx/db/schema/players-to-titles";
 import { titles } from "@fsx/db/schema/titles";
 
-import { createTestD1 } from "./test-d1";
-import { flushWaitUntil, mockWorkerEnv, testEnv } from "./test-env";
+import { createTestD1 } from "../test-d1";
+import { flushWaitUntil, mockWorkerEnv, testEnv } from "../test-env";
 
 mockWorkerEnv();
 

@@ -1,13 +1,13 @@
 import { and, asc, eq, inArray, isNotNull, type SQL } from "drizzle-orm";
 
-import { cupBrackets } from "@fsx/db/schema/cupBrackets";
-import { circuitFinalPodiums } from "@fsx/db/schema/circuitFinalPodiums";
-import { circuitPhases } from "@fsx/db/schema/circuitPhases";
-import { circuitPodiums } from "@fsx/db/schema/circuitPodiums";
+import { cupBrackets } from "@fsx/db/schema/cup-brackets";
+import { circuitFinalPodiums } from "@fsx/db/schema/circuit-final-podiums";
+import { circuitPhases } from "@fsx/db/schema/circuit-phases";
+import { circuitPodiums } from "@fsx/db/schema/circuit-podiums";
 import { players } from "@fsx/db/schema/players";
-import { playersToTitles } from "@fsx/db/schema/playersToTitles";
-import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
-import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
+import { playersToTitles } from "@fsx/db/schema/players-to-titles";
+import { playersToTournaments } from "@fsx/db/schema/players-to-tournaments";
+import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
 
 import type { CompetitionTier } from "../circuit-types";
 import type { Context } from "../context";

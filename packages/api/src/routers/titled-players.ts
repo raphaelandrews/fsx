@@ -1,6 +1,6 @@
-import { playersToTitles } from "@fsx/db/schema/playersToTitles";
+import { playersToTitles } from "@fsx/db/schema/players-to-titles";
 import { publicProcedure, router } from "../index";
-import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 export const titledPlayersRouter = router({
   list: publicProcedure.query(({ ctx }) =>

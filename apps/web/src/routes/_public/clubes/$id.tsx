@@ -5,14 +5,14 @@ import { UserGroupIcon } from "@hugeicons/core-free-icons";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fsx/ui/components/table";
 
-import { Announcement } from "@/components/announcement";
+import { Announcement } from "@/components/announcements/announcement";
 import { ClubLogo } from "@/components/clubes/club-logo";
 import { Medal } from "@/components/gamification/medal";
 import { StatTile } from "@/components/gamification/stat-tile";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { orNotFound } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 
 const FORMATS = [

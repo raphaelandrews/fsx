@@ -63,7 +63,7 @@ Example: a public `tournaments.recent` returning the five latest tournaments.
    - Mutations use `adminProcedure`, and `update`/`delete` wrap `.returning()`
      in `requireMutationRows` so a missing ID returns `NOT_FOUND`.
 2. **Cache policy.** Add the procedure to `PROCEDURE_CACHE_POLICY` in
-   `packages/api/src/cache-policy.ts`:
+   `packages/api/src/cache/cache-policy.ts`:
 
    ```ts
    "tournaments.recent": { classification: "public", ttlSeconds: 300 },
@@ -117,7 +117,7 @@ Example: `/torneios/$id`, a tournament page.
    - Put `head` after `loader` so `loaderData` is typed.
    - Format dates with an explicit `timeZone` (`"UTC"` for stored dates, `"America/Sao_Paulo"` for local times).
 3. **Sitemap.** Add list pages to `STATIC_PATHS` in `apps/web/src/lib/sitemap.ts`;
-   for detail pages, add their IDs in `packages/api/src/sitemap.ts`.
+   for detail pages, add their IDs in `packages/api/src/http/sitemap.ts`.
    `bun run check:routes` fails otherwise.
 4. **SSR check.** Add the path with its expected status, title, and size budget
    to the route list in `apps/web/scripts/check-ssr.ts`, then run

@@ -3,20 +3,20 @@ import { and, asc, eq, inArray, notExists } from "drizzle-orm";
 import { alias, type SQLiteColumn } from "drizzle-orm/sqlite-core";
 
 import { announcements } from "@fsx/db/schema/announcements";
-import { circuitFinalPodiums } from "@fsx/db/schema/circuitFinalPodiums";
-import { circuitPodiums } from "@fsx/db/schema/circuitPodiums";
-import { cupGames } from "@fsx/db/schema/cupGames";
-import { cupMatches } from "@fsx/db/schema/cupMatches";
-import { cupPlayers } from "@fsx/db/schema/cupPlayers";
-import { defendingChampions } from "@fsx/db/schema/defendingChampions";
+import { circuitFinalPodiums } from "@fsx/db/schema/circuit-final-podiums";
+import { circuitPodiums } from "@fsx/db/schema/circuit-podiums";
+import { cupGames } from "@fsx/db/schema/cup-games";
+import { cupMatches } from "@fsx/db/schema/cup-matches";
+import { cupPlayers } from "@fsx/db/schema/cup-players";
+import { defendingChampions } from "@fsx/db/schema/defending-champions";
 import { players } from "@fsx/db/schema/players";
-import { playersToInsignias } from "@fsx/db/schema/playersToInsignias";
-import { playersToNorms } from "@fsx/db/schema/playersToNorms";
-import { playersToRoles } from "@fsx/db/schema/playersToRoles";
-import { playersToTitles } from "@fsx/db/schema/playersToTitles";
-import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
-import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
-import { tvSergipe } from "@fsx/db/schema/tvSergipe";
+import { playersToInsignias } from "@fsx/db/schema/players-to-insignias";
+import { playersToNorms } from "@fsx/db/schema/players-to-norms";
+import { playersToRoles } from "@fsx/db/schema/players-to-roles";
+import { playersToTitles } from "@fsx/db/schema/players-to-titles";
+import { playersToTournaments } from "@fsx/db/schema/players-to-tournaments";
+import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
+import { tvSergipe } from "@fsx/db/schema/tv-sergipe";
 
 import type { createDb } from "@fsx/db";
 

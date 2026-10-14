@@ -8,12 +8,12 @@ import {
   TEAM_MEDAL_WEIGHT,
   TEAM_NAMES,
   tvSergipe,
-} from "@fsx/db/schema/tvSergipe";
+} from "@fsx/db/schema/tv-sergipe";
 import { clubs } from "@fsx/db/schema/clubs";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireMutationRows } from "../errors";
 import { idInput, positiveInt } from "../input-schemas";
-import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const ageGroupEnum = z.enum(AGE_GROUPS);
 const sexEnum = z.enum(["male", "female"]);

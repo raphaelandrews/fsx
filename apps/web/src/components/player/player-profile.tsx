@@ -26,7 +26,7 @@ import { Badge } from "@fsx/ui/components/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@fsx/ui/components/popover";
 import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 import { VerifiedBadge } from "@/components/player/verified-badge";
-import { Announcement } from "@/components/announcement";
+import { Announcement } from "@/components/announcements/announcement";
 import { TotalRatingChart, VariationChart } from "@/components/player/player-charts";
 import { cn } from "@fsx/ui/lib/utils";
 import { avatarGradient, avatarGradientFor } from "@/components/avatar-gradient";
@@ -42,7 +42,7 @@ import type { ClubStanding, PlayerAnnouncement, PlayerCircuitSeason, PlayerRanki
 import { Movement } from "@/components/gamification/movement";
 import { StatTile } from "@/components/gamification/stat-tile";
 import { PlayerTitlePath } from "@/components/player/player-title-path";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 function FormatPodium(place: number | null | undefined, championshipId: number) {
   const icon = podiumIcon(place, championshipId);

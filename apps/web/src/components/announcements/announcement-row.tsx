@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon, ScrollIcon } from "@hugeicons/core-free-icons";
 
-import { padNumber } from "@/utils/format";
+import { padNumber } from "@/lib/format";
 
 export function AnnouncementRow({
   announcement,

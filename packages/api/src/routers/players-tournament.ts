@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { asc, eq } from "drizzle-orm";
 
-import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
+import { playersToTournaments } from "@fsx/db/schema/players-to-tournaments";
 
 import { adminProcedure, router } from "../index";
 import { positiveInt } from "../input-schemas";

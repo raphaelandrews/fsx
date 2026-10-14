@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { MEDIA_KEY_PATTERN, MEDIA_PATH_PATTERN, mediaPathPatternFor } from "./media-kinds";
+import { MEDIA_KEY_PATTERN, MEDIA_PATH_PATTERN, mediaPathPatternFor } from "../media-kinds";
 import { ensureSvgViewBox, findSvgProblem } from "./svg-safety";
 
 const svg = (body: string, attributes = 'xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"') =>

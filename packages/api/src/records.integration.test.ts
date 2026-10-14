@@ -3,7 +3,7 @@ import { eq, like } from "drizzle-orm";
 import type { Miniflare } from "miniflare";
 
 import { createDb } from "@fsx/db";
-import { computedResults } from "@fsx/db/schema/computedResults";
+import { computedResults } from "@fsx/db/schema/computed-results";
 
 import { createTestD1 } from "./test-d1";
 import { ownerCaller, type AdminCaller } from "./test-admin";

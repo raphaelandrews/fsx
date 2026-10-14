@@ -4,7 +4,7 @@ import { createDb } from "@fsx/db";
 import { clubs } from "@fsx/db/schema/clubs";
 import { players } from "@fsx/db/schema/players";
 
-import { getProcedureCachePolicy } from "./cache-policy";
+import { getProcedureCachePolicy } from "./cache/cache-policy";
 import { callerAs } from "./test-admin";
 import { createTestD1 } from "./test-d1";
 import { mockWorkerEnv } from "./test-env";

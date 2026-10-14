@@ -9,7 +9,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import { MotionConfig } from "motion/react";
 
-import { SECURITY_HEADERS } from "@fsx/api/security-headers";
+import { SECURITY_HEADERS } from "@fsx/api/http/security-headers";
 
 import appCss from "../index.css?url";
 import { ErrorFallback, NotFound } from "@/components/not-found";

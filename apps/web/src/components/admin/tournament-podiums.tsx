@@ -25,11 +25,11 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { RowLink } from "@/components/data-table/row-link";
-import { SearchableSelect } from "@/components/searchable-select";
+import { SearchableSelect } from "@/components/form/searchable-select";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { CATEGORY_OPTIONS } from "@/lib/admin-forms";
 import { getAdminErrorMessage } from "@/lib/errors";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 type Podium = {
   id: number;

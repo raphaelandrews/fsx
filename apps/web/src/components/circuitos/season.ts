@@ -1,4 +1,4 @@
-import { slugify } from "@/utils/slugify";
+import { slugify } from "@/lib/slugify";
 
 type ListedCircuit = { id: number; name: string; year: number | null };
 

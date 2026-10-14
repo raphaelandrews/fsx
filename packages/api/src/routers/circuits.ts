@@ -2,9 +2,9 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 
-import { circuitFinalPodiums } from "@fsx/db/schema/circuitFinalPodiums";
-import { circuitPhases } from "@fsx/db/schema/circuitPhases";
-import { circuitPodiums } from "@fsx/db/schema/circuitPodiums";
+import { circuitFinalPodiums } from "@fsx/db/schema/circuit-final-podiums";
+import { circuitPhases } from "@fsx/db/schema/circuit-phases";
+import { circuitPodiums } from "@fsx/db/schema/circuit-podiums";
 import { circuits } from "@fsx/db/schema/circuits";
 import { COMPETITION_CATEGORIES, COMPETITION_TIERS, CIRCUIT_TYPES, type CircuitType } from "../circuit-types";
 import { circuitFinalPodiums as rankFinalPodiums } from "../circuit-standings";
@@ -12,7 +12,7 @@ import type { Context } from "../context";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { idInput, isoDate, nameText, points, positiveInt, seasonYear, sortOrder } from "../input-schemas";
-import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const circuitTypeEnum = z.enum(CIRCUIT_TYPES);
 const categoryEnum = z.enum(COMPETITION_CATEGORIES);

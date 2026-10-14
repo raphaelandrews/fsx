@@ -7,8 +7,8 @@ import { players } from "@fsx/db/schema/players";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { contentText, idInput, page, positiveInt } from "../input-schemas";
-import { paginate } from "../pagination";
-import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
+import { paginate } from "../lib/pagination";
+import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const SUGGESTION_LIMIT = 5;
 const EXCERPT_LENGTH = 200;

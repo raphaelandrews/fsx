@@ -11,7 +11,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { CATEGORY_OPTIONS } from "@/lib/admin-forms";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 import type { Circuit } from "../types";
 

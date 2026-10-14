@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { dropFromEdge, edgeCache, isCachedEntryFresh, storeAtEdge, toClientResponse } from "@fsx/api/edge-cache";
-import { getSitemapEntries } from "@fsx/api/sitemap";
+import { dropFromEdge, edgeCache, isCachedEntryFresh, storeAtEdge, toClientResponse } from "@fsx/api/cache/edge-cache";
+import { getSitemapEntries } from "@fsx/api/http/sitemap";
 
 import { renderSitemap } from "@/lib/sitemap";
 

@@ -3,12 +3,12 @@ import { ArrowUpRight01Icon, FoldersIcon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { Announcement } from "@/components/announcement";
+import { Announcement } from "@/components/announcements/announcement";
 import { FlickeringGrid } from "@/components/flickering-grid";
 import { Footer } from "@/components/footer";
 import { Logo } from "@/components/logo";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { resolveLinkIcon } from "@fsx/api/link-icons";
 
 export const Route = createFileRoute("/links")({

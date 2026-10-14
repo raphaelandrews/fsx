@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
-import { useTRPCClient } from "@/utils/trpc";
+import { useTRPCClient } from "@/lib/trpc";
 
 // Coordinates R2 object lifecycle with a form's save:
 //

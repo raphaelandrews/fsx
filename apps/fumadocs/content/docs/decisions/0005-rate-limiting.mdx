@@ -42,7 +42,7 @@ location. Sign-in is GitHub OAuth for a single allowlisted account, so there is
 no password to brute-force and exact global counts buy little.
 
 Rate limiting adds no D1 reads or writes. Each limit lives in two places
-(`RATE_LIMITS` in `packages/api/src/security.ts` and the binding in
+(`RATE_LIMITS` in `packages/api/src/http/security.ts` and the binding in
 `packages/infra/alchemy.run.ts`) and must change together. The binding period
 can only be 10 or 60 seconds. Large shared networks (e.g. a school lab behind
 one IP) share one budget; raise the limit if 429s appear in

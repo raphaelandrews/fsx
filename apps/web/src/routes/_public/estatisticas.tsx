@@ -4,7 +4,7 @@ import { Analytics01Icon, Award01Icon, ChampionIcon, ChartUpIcon, CrownIcon } fr
 
 import { buttonVariants } from "@fsx/ui/components/button";
 
-import { Announcement } from "@/components/announcement";
+import { Announcement } from "@/components/announcements/announcement";
 import { BadgeCensus } from "@/components/gamification/badge-census";
 import { StatTile } from "@/components/gamification/stat-tile";
 import { PageHeader } from "@/components/page-header";
@@ -12,7 +12,7 @@ import { RecordCard } from "@/components/recordes/record-card";
 import { StatsSkeleton } from "@/components/skeletons/stats-skeleton";
 import { StatisticsCharts } from "@/components/statistics-charts";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 const plural = (value: number, one: string, many: string) => `${value} ${value === 1 ? one : many}`;
 const number = new Intl.NumberFormat("pt-BR");

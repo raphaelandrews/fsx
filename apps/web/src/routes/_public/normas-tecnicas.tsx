@@ -1,7 +1,7 @@
 import { ChartBarLineIcon, Medal01Icon, Book01Icon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { Announcement } from "@/components/announcement";
+import { Announcement } from "@/components/announcements/announcement";
 import { ratingVariations, titulations } from "@/components/normas-tecnicas/data";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@fsx/ui/components/accordion";
 

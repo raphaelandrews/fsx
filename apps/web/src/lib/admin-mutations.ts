@@ -11,7 +11,7 @@ import type { inferRouterInputs } from "@trpc/server";
 import { toast } from "sonner";
 
 import { showMutationError } from "@/lib/errors";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 type RouterKey = keyof inferRouterInputs<AppRouter>;
 

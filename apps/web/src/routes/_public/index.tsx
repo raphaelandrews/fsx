@@ -10,7 +10,7 @@ import { NewsFeed } from "@/components/home/news-feed";
 import { Posts } from "@/components/home/posts";
 import { TopPlayers } from "@/components/home/ratings/top-players";
 import { DEFAULT_DESCRIPTION, SITE_NAME, buildSeo } from "@/lib/seo";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 // Public homepage content is admin-edited, so keep staleness short so a
 // returning visitor / SPA navigation refetches quickly after an edit. This
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_public/")({
   loader: async ({ context }) => {
     await Promise.all([
       context.queryClient.ensureQueryData(
-        context.trpc.events.list.queryOptions(undefined, { staleTime: 30_000 }),
+        context.trpc.events.upcoming.queryOptions(undefined, { staleTime: 30_000 }),
       ),
       context.queryClient.ensureQueryData(
         context.trpc.posts.fresh.queryOptions(undefined, { staleTime: PUBLICATION_STALE_TIME }),
@@ -49,7 +49,7 @@ export const Route = createFileRoute("/_public/")({
 function RouteComponent() {
   const trpc = useTRPC();
   const { data: events = [] } = useSuspenseQuery(
-    trpc.events.list.queryOptions(undefined, { staleTime: 30_000 }),
+    trpc.events.upcoming.queryOptions(undefined, { staleTime: 30_000 }),
   );
   const { data: posts = [] } = useSuspenseQuery(
     trpc.posts.fresh.queryOptions(undefined, { staleTime: PUBLICATION_STALE_TIME }),

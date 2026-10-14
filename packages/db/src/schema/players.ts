@@ -3,7 +3,7 @@ import { relations, sql } from "drizzle-orm"
 import { check, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { announcements, circuitFinalPodiums, rankingSnapshots, circuitPodiums, cupPlayers, clubs, defendingChampions, locations, playersToRoles, playersToTournaments, playersToNorms, tournamentPodiums, cupMatches, cupGames, playersToInsignias, tvSergipe } from "./index"
-import { playersToTitles } from "./playersToTitles"
+import { playersToTitles } from "./players-to-titles"
 
 export const players = sqliteTable(
 	"players",

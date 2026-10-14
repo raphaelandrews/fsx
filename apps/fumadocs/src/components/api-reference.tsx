@@ -1,4 +1,4 @@
-import { OPENAPI_DOCUMENT } from "@fsx/api/openapi";
+import { OPENAPI_DOCUMENT } from "@fsx/api/http/openapi";
 import { createOpenAPIPage } from "fumadocs-openapi/ui";
 
 const OpenAPIPage = createOpenAPIPage();

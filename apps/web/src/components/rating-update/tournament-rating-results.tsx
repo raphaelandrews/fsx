@@ -7,7 +7,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { RowLink } from "@/components/data-table/row-link";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function TournamentRatingResults({ tournamentId }: { tournamentId: number }) {
   const trpc = useTRPC();

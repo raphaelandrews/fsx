@@ -30,7 +30,7 @@ const images = await R2Bucket("images", {
   adopt: true,
 });
 
-// Keep each limit in sync with RATE_LIMITS in packages/api/src/security.ts.
+// Keep each limit in sync with RATE_LIMITS in packages/api/src/http/security.ts.
 const publicReadRateLimit = RateLimit({
   namespace_id: 1001,
   simple: { limit: 600, period: 60 },

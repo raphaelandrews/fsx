@@ -6,11 +6,11 @@ import { Label } from "@fsx/ui/components/label";
 
 import { AdminForm, FormActions, FormSection } from "@/components/admin/form-layout";
 import { FormField } from "@/components/form/form-field";
-import { ImageUpload } from "@/components/image-upload";
-import { MarkdownEditor } from "@/components/markdown-editor";
+import { ImageUpload } from "@/components/media/image-upload";
+import { MarkdownEditor } from "@/components/markdown/markdown-editor";
 import { fieldError, getFieldError } from "@/lib/errors";
 import { LONG_TEXT_MAX, requiredText, submitThenChange, TEXT_MAX } from "@/lib/field-rules";
-import { sanitizeTitle, slugify } from "@/utils/slugify";
+import { sanitizeTitle, slugify } from "@/lib/slugify";
 
 export interface PostValues {
   title: string;

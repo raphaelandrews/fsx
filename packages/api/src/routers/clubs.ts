@@ -8,8 +8,8 @@ import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { emblemUrl, idInput, nameText, positiveInt, searchText } from "../input-schemas";
 import { deleteMediaUrl, deleteReplacedMedia } from "./images";
-import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
-import { escapeLike, like } from "../sql-like";
+import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
+import { escapeLike, like } from "../lib/sql-like";
 
 function normalizeClubName(name: string): string {
   return name

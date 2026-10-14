@@ -6,7 +6,7 @@ import { TvSergipeForm, toTvSergipeInput } from "@/components/admin/tv-sergipe-f
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/$id")({
   params: idParams,

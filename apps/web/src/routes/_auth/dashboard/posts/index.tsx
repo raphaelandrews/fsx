@@ -5,7 +5,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@fsx/ui/components/badge";
 import { Button } from "@fsx/ui/components/button";
 
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";

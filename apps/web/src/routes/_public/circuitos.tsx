@@ -12,8 +12,8 @@ import { Medal01Icon } from "@hugeicons/core-free-icons";
 
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
-import { useTRPC } from "@/utils/trpc";
-import { slugify } from "@/utils/slugify";
+import { useTRPC } from "@/lib/trpc";
+import { slugify } from "@/lib/slugify";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
 const searchSchema = z.object({

@@ -14,7 +14,7 @@ import {
 } from "@fsx/ui/components/alert-dialog";
 import { Button } from "@fsx/ui/components/button";
 
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { FormSection } from "@/components/admin/form-layout";
 import { AdminPageHeader } from "@/components/admin/page-header";

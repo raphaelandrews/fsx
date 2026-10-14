@@ -1,6 +1,6 @@
 import { env } from "@fsx/env/server";
 
-import { MEDIA_KEY_PATTERN } from "./media-kinds";
+import { MEDIA_KEY_PATTERN } from "../media-kinds";
 
 const MEDIA_PREFIX = "/api/media/";
 

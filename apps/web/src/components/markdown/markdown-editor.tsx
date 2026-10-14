@@ -23,7 +23,7 @@ import {
 import { Button } from "@fsx/ui/components/button";
 import { Textarea } from "@fsx/ui/components/textarea";
 
-import { Markdown } from "@/components/markdown";
+import { Markdown } from "@/components/markdown/markdown";
 
 interface MarkdownEditorProps {
   id?: string;

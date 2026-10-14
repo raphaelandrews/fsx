@@ -9,8 +9,8 @@ import { flushWaitUntil, mockWorkerEnv, TEST_OWNER_GITHUB_ID, testEnv } from "./
 
 mockWorkerEnv();
 
-const { handleTrpcRequest } = await import("./trpc-handler");
-const { handleMediaRequest } = await import("./media-handler");
+const { handleTrpcRequest } = await import("./http/trpc-handler");
+const { handleMediaRequest } = await import("./http/media-handler");
 
 const ORIGIN = "http://localhost:3001";
 const MEDIA_KEY = "players/0b1c2d3e-4f50-6172-8394-a5b6c7d8e9f0.webp";

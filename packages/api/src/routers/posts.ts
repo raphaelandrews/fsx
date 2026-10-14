@@ -5,7 +5,7 @@ import { posts, insertPostSchema } from "@fsx/db/schema/posts";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { contentText, idInput, imageUrl, nameText, page, positiveInt, searchText } from "../input-schemas";
 import { requireFound, requireMutationRows } from "../errors";
-import { paginate } from "../pagination";
+import { paginate } from "../lib/pagination";
 import { deleteMediaUrl, deleteReplacedMedia } from "./images";
 
 export const postsRouter = router({

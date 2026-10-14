@@ -1,4 +1,4 @@
-import { parseDbTimestamp } from "../utils/format";
+import { parseDbTimestamp } from "./format";
 import { SITE_URL } from "./seo";
 
 const STATIC_PATHS = [

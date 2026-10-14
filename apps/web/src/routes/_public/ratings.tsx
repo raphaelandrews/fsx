@@ -29,8 +29,8 @@ import {
   ratingSexes,
   ratingSortLabels,
   ratingTitles,
-} from "@/components/ratings/data-options";
-import { useTRPC } from "@/utils/trpc";
+} from "@/components/home/ratings/data-options";
+import { useTRPC } from "@/lib/trpc";
 import { isAgeGroup } from "@fsx/api/age-groups";
 import { cn } from "@fsx/ui/lib/utils";
 import { avatarGradientFor } from "@/components/avatar-gradient";

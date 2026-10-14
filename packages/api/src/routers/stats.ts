@@ -7,7 +7,7 @@ import { events } from "@fsx/db/schema/events";
 import { players } from "@fsx/db/schema/players";
 import { posts } from "@fsx/db/schema/posts";
 import { tournaments } from "@fsx/db/schema/tournaments";
-import { tvSergipe } from "@fsx/db/schema/tvSergipe";
+import { tvSergipe } from "@fsx/db/schema/tv-sergipe";
 import { adminProcedure, router } from "../index";
 
 // Lightweight aggregate counts for the admin dashboard. The dashboard only

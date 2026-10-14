@@ -1,4 +1,4 @@
-import { AnnouncementRow } from "@/components/announcement-row";
+import { AnnouncementRow } from "@/components/announcements/announcement-row";
 
 export function PlayerAnnouncements({
   announcements,

@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 
-import { playersToTitles, insertPlayerToTitleSchema } from "@fsx/db/schema/playersToTitles";
+import { playersToTitles, insertPlayerToTitleSchema } from "@fsx/db/schema/players-to-titles";
 import { adminProcedure, router } from "../index";
 import { requireMutationRows } from "../errors";
 import { positiveInt } from "../input-schemas";
-import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 export const playersToTitlesRouter = router({
   listByPlayer: adminProcedure

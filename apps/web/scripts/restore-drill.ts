@@ -3,7 +3,7 @@
 // recovery deploy would), then runs the built app against it and checks that row
 // counts survived and public pages render real records. Prints counts only.
 //   bun run build && bun apps/web/scripts/restore-drill.ts ~/Backups/fsx-<stamp>/fsx-<stamp>.sql
-import { readBackup, restoreBackup } from "@fsx/api/backup-restore";
+import { readBackup, restoreBackup } from "@fsx/api/backup/backup-restore";
 import { startWorker } from "./worker-harness";
 
 const backupPath = process.argv[2];

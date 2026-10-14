@@ -6,7 +6,7 @@ import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { idInput, imageUrl, isoDate, nameText, positiveInt, points } from "../input-schemas";
 import { deleteMediaUrl, deleteReplacedMedia } from "./images";
-import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const ratingTypeEnum = z.enum(["blitz", "rapid", "classic"]);
 

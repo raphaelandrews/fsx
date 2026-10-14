@@ -9,7 +9,7 @@ import { env } from "@fsx/env/server";
 
 import type { Context } from "./context";
 import { markDataChanged } from "./gamification/computed";
-import { PUBLIC_COLLECTION_LIMIT } from "./resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT } from "./lib/resource-bounds";
 
 // Workers have no NODE_ENV, so tRPC's default would treat production as dev and
 // put stack traces in error responses; Vite's build flag decides instead.

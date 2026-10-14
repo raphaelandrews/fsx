@@ -5,7 +5,7 @@ import { createDb } from "@fsx/db";
 import { norms } from "@fsx/db/schema/norms";
 
 import { meterD1 } from "./d1-meter";
-import { createTestD1 } from "./test-d1";
+import { createTestD1 } from "../test-d1";
 
 describe("meterD1", () => {
   test("counts drizzle statements, including batches, and records replayable SQL", async () => {

@@ -7,13 +7,13 @@ import { Label } from "@fsx/ui/components/label";
 
 import { NATIVE_SELECT_CLASS } from "@/components/admin/entity-form";
 import { AdminForm, FormActions, FormSection } from "@/components/admin/form-layout";
-import { DatePicker } from "@/components/date-picker";
+import { DatePicker } from "@/components/form/date-picker";
 import { FormField } from "@/components/form/form-field";
-import { ImageUpload } from "@/components/image-upload";
-import { SearchableSelect } from "@/components/searchable-select";
+import { ImageUpload } from "@/components/media/image-upload";
+import { SearchableSelect } from "@/components/form/searchable-select";
 import { fieldError } from "@/lib/errors";
 import { integerError, maxLengthError, requiredText, submitThenChange, TEXT_MAX } from "@/lib/field-rules";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export type RatingType = "classic" | "rapid" | "blitz";
 const RATING_TYPES: RatingType[] = ["classic", "rapid", "blitz"];

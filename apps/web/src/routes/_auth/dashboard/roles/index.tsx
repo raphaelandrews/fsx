@@ -3,9 +3,10 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { EntityListPage, entityMessages } from "@/components/admin/entity-pages";
+import { EntityListPage } from "@/components/admin/entity-pages";
+import { entityMessages } from "@/lib/entity-routes";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/roles/")({
   head: () => ({ meta: [{ title: "Roles - Admin - FSX" }] }),

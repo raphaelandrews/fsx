@@ -2,14 +2,14 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { and, eq, isNull } from "drizzle-orm";
 
-import { linkGroups, insertLinkGroupSchema } from "@fsx/db/schema/linkGroups";
+import { linkGroups, insertLinkGroupSchema } from "@fsx/db/schema/link-groups";
 import { links, insertLinkSchema } from "@fsx/db/schema/links";
 import type { Context } from "../context";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { nameText, optionalHttpUrl, positiveInt, sortOrder } from "../input-schemas";
 import { isKnownLinkIcon } from "../link-icons";
-import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const linkTypeEnum = z.enum(["link", "regulation", "form", "results"]);
 

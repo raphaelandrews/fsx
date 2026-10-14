@@ -175,10 +175,10 @@ limit. `sitemap.entries` is a public tRPC procedure with no cache-registry entry
 every call returns up to 10,000 player IDs straight from D1. The rate limiter itself
 performs one D1 write per checked request.
 
-- [x] Remove `sitemap.entries` from the public `appRouter`; `/sitemap.xml` calls the server-only `getSitemapEntries()` (`packages/api/src/sitemap.ts`).
+- [x] Remove `sitemap.entries` from the public `appRouter`; `/sitemap.xml` calls the server-only `getSitemapEntries()` (`packages/api/src/http/sitemap.ts`).
 - [x] Rate-limit every tRPC GET that is not served from the edge cache (600/min per IP), including cookie-bearing GETs, because a forged session-cookie name bypasses the cache.
 - [x] Evaluate the Workers Rate Limiting binding and record the decision (ADR 0005, `decisions/0005-rate-limiting.mdx`): the native `PUBLIC_READ_RATE_LIMIT` binding covers the uncached read path with no D1 write; auth and mutations keep exact D1 counters.
-- [x] Return 404 instead of 500 for malformed media paths (`packages/api/src/media-handler.ts`).
+- [x] Return 404 instead of 500 for malformed media paths (`packages/api/src/http/media-handler.ts`).
 - [x] Answer a matching `If-None-Match` on media with `304` through an R2 `etagDoesNotMatch` precondition, without transferring the body.
 - [x] Add fetch-handler tests for each item above with real `Request`/`Response` objects and Miniflare D1/R2 (`fetch-handlers.integration.test.ts`). The tRPC and media handlers moved into `@fsx/api` (`trpc-handler.ts`, `media-handler.ts`) so they are testable; the route files only wire them.
 - [x] Stop injecting stored `links.icon` SVG into `/links`. The icons now live in one shared allowlist (`packages/api/src/link-icons.ts`), writes of any other markup are rejected, and the page renders through `resolveLinkIcon`. Legacy custom icons render as the default link icon and are replaced with it on the next save.
@@ -201,7 +201,7 @@ values silently produce wrong results.
 - [x] Reject blank names on update: `tournaments.update.name`, `posts.update.title`, and `posts.update.slug` used search-text rules that allowed empty strings.
 - [x] Validate `groups` filters as an enum of known age groups (`AGE_GROUPS` in `packages/api/src/age-groups.ts`, shared with the ratings page options). `/ratings` drops unknown `grupo` values from the URL instead of sending them to the API.
 - [x] Validate `birthDate` as an ISO `YYYY-MM-DD` date (`isoDate`), along with the date-picker-backed `tournaments.date` and `events.startDate`. The rating import converts `DD/MM/YYYY` spreadsheet text (`toIsoDate`).
-- [x] Escape `%`, `_`, and `\` in every user-supplied `LIKE` pattern (`escapeLike` + `like(... ESCAPE '\')` in `packages/api/src/sql-like.ts`): `players.search`, `players.page`, `players.withFilters`, `clubs.search`, `tournaments.search`.
+- [x] Escape `%`, `_`, and `\` in every user-supplied `LIKE` pattern (`escapeLike` + `like(... ESCAPE '\')` in `packages/api/src/lib/sql-like.ts`): `players.search`, `players.page`, `players.withFilters`, `clubs.search`, `tournaments.search`.
 - [x] Validate numeric `$id` params in every dashboard and public route with `params.parse` (`idParams` in `apps/web/src/lib/route-params.ts`); malformed IDs throw `notFound()` instead of reaching the API.
 - [x] Add tests: age-group mapping, ISO dates, `LIKE` escaping, `idParams`, and real-D1 checks that `_`/`%` match literally, `sub-10` filters by birth date, and unknown groups or `DD/MM/YYYY` birth dates are rejected.
 - [x] Add an audit for stored non-ISO dates (`packages/db/src/audits/date-formats.sql`, documented in `operations/runbook.mdx`).

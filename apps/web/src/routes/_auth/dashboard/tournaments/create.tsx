@@ -7,7 +7,7 @@ import { EntityForm, optional, optionalNumber } from "@/components/admin/entity-
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { tournamentSections } from "@/lib/admin-forms";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/tournaments/create")({
   head: () => ({ meta: [{ title: "New tournament - Admin - FSX" }] }),
