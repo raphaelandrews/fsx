@@ -1,5 +1,5 @@
 import type { CompetitionTier } from "../circuit-types";
-import { RATING_TYPES, type RatingType } from "../routers/rating-update";
+import { RATING_TYPES, type RatingType } from "../rating-types";
 import { sergipanoKind, type SergipanoKind } from "./sergipano";
 import { COMEBACK_AFTER, DECADE_YEARS, GAIN_STEPS, POSITIVE_STREAK_STEPS, RATING_THRESHOLDS, STARTING_RATING } from "./constants";
 

@@ -1,13 +1,14 @@
 import { z } from "zod";
 
 import { isAgeGroup } from "@fsx/api/age-groups";
+import { RATING_TYPES } from "@fsx/api/rating-types";
 
 import { AGE_GROUPS } from "@/components/tv-sergipe/constants";
 
 const MAX_PAGE = 1_000;
 
-export const pageParam = z.number().int().positive().max(MAX_PAGE).default(1).catch(1);
-export const ratingTypeParam = z.enum(["classic", "rapid", "blitz"]).default("rapid").catch("rapid");
+const pageParam = z.number().int().positive().max(MAX_PAGE).default(1).catch(1);
+const ratingTypeParam = z.enum(RATING_TYPES).default("rapid").catch("rapid");
 
 const listParam = z
   .array(z.string().max(80))

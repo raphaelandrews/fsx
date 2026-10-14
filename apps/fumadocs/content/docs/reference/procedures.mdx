@@ -170,8 +170,8 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `posts.forEdit` | admin | `{ id }` | Full post | — |
 | `posts.create` / `update` / `delete` | admin | `{ title, slug, content, imageUrl?, published }` | Rows; `CONFLICT` for a duplicate slug | — |
 | `announcements.list` | public | — | Announcements with the linked player's name | 120 s |
-| `announcements.fresh` | public | — | Latest announcements for the home page | 60 s |
-| `announcements.byPage` | public | `{ page }` | 12 per page with pagination | 120 s |
+| `announcements.fresh` | public | — | Latest announcements for the home page (200-character excerpts) | 60 s |
+| `announcements.byPage` | public | `{ page }` | 12 per page with pagination (200-character excerpts; the full text comes from `announcements.byId`) | 120 s |
 | `announcements.byId` | public | `{ id }` | One announcement with its linked player | 120 s |
 | `announcements.byPlayer` | public | `{ playerId }` | The player's announcements `{ id, year, number, excerpt }`, newest first | 120 s |
 | `announcements.suggestPlayers` | admin | `{ content }` | Up to 5 players whose full name (two words or more) appears in the text, ignoring accents and case, by whole words | — |

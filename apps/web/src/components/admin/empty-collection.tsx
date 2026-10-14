@@ -4,7 +4,7 @@ import { Add01Icon, File01Icon } from "@hugeicons/core-free-icons";
 
 import { buttonVariants } from "@fsx/ui/components/button";
 
-import { findActiveNav } from "@/components/header/admin-nav-data";
+import { findActiveNav } from "@/components/admin/admin-nav-data";
 
 export function EmptyCollection({ noun, createTo }: { noun: string; createTo: LinkProps["to"] }) {
   const { pathname } = useLocation();

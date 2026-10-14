@@ -354,16 +354,16 @@ Move from `source-project/components/` to `apps/web/src/components/`, adapting i
 | `components/header/` | `apps/web/src/components/header/` | Import from `@fsx/ui/components/*` instead of `@/components/ui/*` |
 | `components/home/` | `apps/web/src/components/home/` | Same structure, different imports |
 | `components/player/` | `apps/web/src/components/player/` | Player charts use TanStack Charts |
-| `components/animate-ui/` | `apps/web/src/components/animate-ui/` | Uses `motion` (framer-motion successor) |
+| `components/animate-ui/` | `apps/web/src/components/rating-update/` (`motion-grid.tsx`, `rotating-text.tsx`) | Uses `motion` (framer-motion successor); the unused counting and sliding numbers were removed |
 | `components/modals/` | `apps/web/src/components/modals/` | Dialog-based modals |
-| `components/sheets/player/` | `apps/web/src/components/sheets/player/` | Sheet component from shadcn |
+| `components/sheets/player/` | `apps/web/src/components/player/` (`player-sheet*.tsx`) | Sheet component from shadcn |
 | `components/providers.tsx` | `apps/web/src/components/providers.tsx` | Adapt: no PersistQueryClient, use tRPC provider instead |
 | `components/footer.tsx` | `apps/web/src/components/footer.tsx` | No changes |
 | `components/logo.tsx` | `apps/web/src/components/logo.tsx` | No changes |
 | `components/login-form.tsx` | `apps/web/src/components/login-form.tsx` | Rewrite: supabase auth → Better Auth client |
 | `components/mdx.tsx` | `apps/web/src/components/mdx.tsx` | Rewrite: next-mdx-remote → @tanstack/react-markdown |
 | `components/post-card.tsx` | `apps/web/src/components/noticias/post-card.tsx` | Port as-is |
-| `components/command-menu.tsx` | `apps/web/src/components/command-menu.tsx` | Port as-is |
+| `components/command-menu.tsx` | `apps/web/src/components/header/command-menu.tsx` | Port as-is |
 | `components/mode-switcher.tsx` | `apps/web/src/components/mode-switcher.tsx` | Port as-is |
 | `components/image-cropper.tsx` | `apps/web/src/components/media/image-cropper.tsx` | Port, update storage upload to R2 |
 

@@ -60,18 +60,14 @@ export function limitUncachedRead(request: Request): Promise<RateLimitResult> {
 }
 
 export function rateLimitedResponse(result: RateLimitResult): Response {
-  const response = new Response(
-    JSON.stringify({ error: "Too many requests, please try again later." }),
-    {
-      status: 429,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-store",
-        "Retry-After": String(result.retryAfter),
-        "X-RateLimit-Limit": String(result.limit),
-        "X-RateLimit-Remaining": String(result.remaining),
-      },
+  return new Response(JSON.stringify({ error: "Too many requests, please try again later." }), {
+    status: 429,
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      "Retry-After": String(result.retryAfter),
+      "X-RateLimit-Limit": String(result.limit),
+      "X-RateLimit-Remaining": String(result.remaining),
     },
-  );
-  return response;
+  });
 }

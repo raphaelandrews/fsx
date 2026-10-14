@@ -1,4 +1,4 @@
-import type { RatingType } from "../routers/rating-update";
+import type { RatingType } from "../rating-types";
 import {
   GAIN_STEPS,
   MARATHON_STEPS,

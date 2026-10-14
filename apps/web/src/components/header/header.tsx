@@ -1,7 +1,7 @@
 import { MainNav } from "./main-nav"
 import { HeaderNavigationDrawer } from "./header-navigation-drawer"
-import { CommandMenu } from "../command-menu"
-import { UpdateRegister } from "../update-register"
+import { CommandMenu } from "./command-menu"
+import { UpdateRegister } from "./update-register"
 
 export function Header() {
   return (

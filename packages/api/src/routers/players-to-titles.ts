@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { playersToTitles, insertPlayerToTitleSchema } from "@fsx/db/schema/players-to-titles";
 import { adminProcedure, router } from "../index";
 import { requireMutationRows } from "../errors";
-import { positiveInt } from "../input-schemas";
+import { idInput, positiveInt } from "../input-schemas";
 import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 export const playersToTitlesRouter = router({
@@ -28,7 +28,7 @@ export const playersToTitlesRouter = router({
     ),
 
   unlink: adminProcedure
-    .input(z.object({ id: positiveInt }))
+    .input(idInput)
     .mutation(async ({ ctx, input }) =>
       requireMutationRows(
         await ctx.db.delete(playersToTitles).where(eq(playersToTitles.id, input.id)).returning({ id: playersToTitles.id }),

@@ -5,7 +5,7 @@ import { Cancel01Icon, SearchIcon } from "@hugeicons/core-free-icons";
 
 import { Command, CommandEmpty, CommandItem, CommandList } from "@fsx/ui/components/command";
 
-import { useTableText } from "@/lib/table-text";
+import { useTableText } from "@/hooks/use-table-text";
 
 export interface SearchableOption {
   id: number;

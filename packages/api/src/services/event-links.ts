@@ -1,7 +1,5 @@
 import { TRPCError } from "@trpc/server";
 
-export const EVENT_LINK_VALUES = ["regulation", "form", "results"] as const;
-
 export function validateEventLinkTypes(types: readonly string[]): void {
   if (new Set(types).size !== types.length) {
     throw new TRPCError({

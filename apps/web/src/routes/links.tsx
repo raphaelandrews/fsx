@@ -3,8 +3,8 @@ import { ArrowUpRight01Icon, FoldersIcon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { Announcement } from "@/components/announcements/announcement";
-import { FlickeringGrid } from "@/components/flickering-grid";
+import { SectionHeading } from "@/components/section-heading";
+import { FlickeringGrid } from "@/components/links/flickering-grid";
 import { Footer } from "@/components/footer";
 import { Logo } from "@/components/logo";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
@@ -97,7 +97,7 @@ function RouteComponent() {
               .filter((item) => (item.links?.length ?? 0) > 0)
               .map((item) => (
                 <section className="mb-6" key={item.id}>
-                  <Announcement icon={FoldersIcon} label={item.event?.name ?? item.label} />
+                  <SectionHeading icon={FoldersIcon} label={item.event?.name ?? item.label} />
                   <ul className="flex flex-col">
                     {item.links?.map((link) => (
                       <li key={link.id} className="m-1">

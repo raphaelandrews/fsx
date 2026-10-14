@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { cn } from "@fsx/ui/lib/utils";
 
-import { PlayerActions } from "@/components/campeoes/actions";
+import { PlayerSheetButton } from "@/components/player/player-sheet-button";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { avatarGradientFor } from "@/components/avatar-gradient";
 
@@ -76,7 +76,7 @@ export function buildPlayerColumns(
         const player = row.original;
         const shortTitle = player.playersToTitles?.find((t) => t.title)?.title.shortName ?? null;
         return (
-          <PlayerActions
+          <PlayerSheetButton
             id={player.id}
             image={player.imageUrl}
             name={player.name}

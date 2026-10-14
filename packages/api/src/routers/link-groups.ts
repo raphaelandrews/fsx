@@ -7,7 +7,7 @@ import { links, insertLinkSchema } from "@fsx/db/schema/links";
 import type { Context } from "../context";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
-import { nameText, optionalHttpUrl, positiveInt, sortOrder } from "../input-schemas";
+import { idInput, nameText, optionalHttpUrl, positiveInt, sortOrder } from "../input-schemas";
 import { isKnownLinkIcon } from "../link-icons";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
@@ -102,7 +102,7 @@ export const linkGroupsRouter = router({
       );
     }),
   deleteLink: adminProcedure
-    .input(z.object({ id: positiveInt }))
+    .input(idInput)
     .mutation(async ({ ctx, input }) =>
       requireMutationRows(
         await ctx.db.delete(links).where(eq(links.id, input.id)).returning({ id: links.id }),
@@ -110,7 +110,7 @@ export const linkGroupsRouter = router({
       ),
     ),
   deleteGroup: adminProcedure
-    .input(z.object({ id: positiveInt }))
+    .input(idInput)
     .mutation(async ({ ctx, input }) =>
       requireMutationRows(
         await ctx.db

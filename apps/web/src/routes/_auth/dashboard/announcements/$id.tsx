@@ -4,7 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { EntityForm, optionalNumber } from "@/components/admin/entity-form";
 import { SuggestedPlayers } from "@/components/admin/suggested-players";
 import { AdminPageHeader } from "@/components/admin/page-header";
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { announcementSections } from "@/lib/admin-forms";
 import { orNotFound } from "@/lib/errors";

@@ -25,16 +25,29 @@ import {
   rating,
   searchText,
   seasonYear,
+  sexSchema,
 } from "../input-schemas";
+import { federationYear } from "../lib/dates";
 import { paginate } from "../lib/pagination";
-import { escapeLike, like } from "../lib/sql-like";
+import { containsText, escapeLike, like } from "../lib/sql-like";
 import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 import { loadPlayerCircuits } from "../gamification/circuits";
 import { loadPlayerCareer, loadPlayerStats } from "../gamification/load";
 import { playerSeason } from "../gamification/season";
-import { deleteReplacedMedia } from "./images";
-import { mergePlayers, rebuildPlayerRatings } from "./players-merge";
+import { deleteReplacedMedia } from "../services/media-storage";
+import { mergePlayers, rebuildPlayerRatings } from "../services/players-merge";
 import { loadPlayerRanking, movementsFor } from "../gamification/ranking";
+
+const profileFields = {
+  nickname: z.string().trim().max(160).nullable().optional(),
+  imageUrl: imageUrl.nullable().optional(),
+  cbxId: positiveInt.nullable().optional(),
+  fideId: positiveInt.nullable().optional(),
+  birthDate: isoDate.nullable().optional(),
+  clubId: positiveInt.nullable().optional(),
+  locationId: positiveInt.nullable().optional(),
+  description: contentText.nullable().optional(),
+};
 
 export const playersRouter = router({
   page: adminProcedure
@@ -46,9 +59,7 @@ export const playersRouter = router({
     .query(async ({ ctx, input }) => {
       const limit = input.limit;
       const offset = (input.page - 1) * limit;
-      const where = input.name
-        ? like(playersTable.normalizedName, `%${escapeLike(normalizeName(input.name))}%`)
-        : undefined;
+      const where = input.name ? containsText(playersTable.normalizedName, normalizeName(input.name)) : undefined;
 
       const [countResult, players] = await Promise.all([
         ctx.db.select({ value: count() }).from(playersTable).where(where),
@@ -183,17 +194,16 @@ export const playersRouter = router({
           .limit(10);
       }
 
-      const wordConditions = words.map(
-        (word) => like(playersTable.normalizedName, `%${escapeLike(word)}%`)
+      const whereClause = sql.join(
+        words.map((word) => containsText(playersTable.normalizedName, word)),
+        sql` AND `,
       );
-
-      const whereClause = sql.join(wordConditions, sql` AND `);
 
       const relevanceScore = sql<number>`
         CASE
           WHEN ${playersTable.normalizedName} = ${normalizedQuery} THEN 4
           WHEN ${like(playersTable.normalizedName, `${escapeLike(words[0] ?? "")}%`)} THEN 3
-          WHEN ${like(playersTable.normalizedName, `%${escapeLike(normalizedQuery)}%`)} THEN 2
+          WHEN ${containsText(playersTable.normalizedName, normalizedQuery)} THEN 2
           ELSE 1
         END
       `;
@@ -234,19 +244,12 @@ export const playersRouter = router({
 
   create: adminProcedure
     .input(insertPlayerSchema.omit({ id: true, normalizedName: true, createdAt: true, updatedAt: true }).extend({
+      ...profileFields,
       name: nameText,
-      nickname: z.string().trim().max(160).nullable().optional(),
       blitz: rating,
       rapid: rating,
       classic: rating,
-      imageUrl: imageUrl.nullable().optional(),
-      cbxId: positiveInt.nullable().optional(),
-      fideId: positiveInt.nullable().optional(),
-      birthDate: isoDate.nullable().optional(),
-      sex: z.enum(["male", "female"]),
-      clubId: positiveInt.nullable().optional(),
-      locationId: positiveInt.nullable().optional(),
-      description: contentText.nullable().optional(),
+      sex: sexSchema,
     }))
     .mutation(({ ctx, input }) =>
       ctx.db
@@ -257,22 +260,15 @@ export const playersRouter = router({
 
   update: adminProcedure
     .input(z.object({
+      ...profileFields,
       id: positiveInt,
       name: nameText.optional(),
-       nickname: z.string().trim().max(160).nullable().optional(),
       blitz: rating.optional(),
       rapid: rating.optional(),
       classic: rating.optional(),
       active: z.boolean().optional(),
-       imageUrl: imageUrl.nullable().optional(),
-      cbxId: positiveInt.nullable().optional(),
-      fideId: positiveInt.nullable().optional(),
       verified: z.boolean().optional(),
-       birthDate: isoDate.nullable().optional(),
-      sex: z.enum(["male", "female"]).optional(),
-      clubId: positiveInt.nullable().optional(),
-      locationId: positiveInt.nullable().optional(),
-       description: contentText.nullable().optional(),
+      sex: sexSchema.optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const { id, ...rest } = input;
@@ -307,7 +303,7 @@ export const playersRouter = router({
     .input(z.object({
       page,
       limit,
-      sex: z.enum(["male", "female"]).optional(),
+      sex: sexSchema.optional(),
       titles: filterArray.default([]),
       clubs: filterArray.default([]),
       groups: z.array(z.enum(AGE_GROUPS)).max(AGE_GROUPS.length).default([]),
@@ -316,14 +312,12 @@ export const playersRouter = router({
       name: searchText.optional(),
     }))
     .query(async ({ ctx, input }) => {
-      const { page = 1, limit = 20, sex, titles: titleFilters = [], clubs: clubFilters = [], groups: groupFilters = [], locations: locationFilters = [], sortBy = "rapid", name } = input;
+      const { page, limit, sex, titles: titleFilters, clubs: clubFilters, groups: groupFilters, locations: locationFilters, sortBy, name } = input;
 
       const whereConditions: SQL[] = [eq(playersTable.active, true)];
 
       if (name) {
-        whereConditions.push(
-          like(playersTable.normalizedName, `%${escapeLike(normalizeName(name))}%`)
-        );
+        whereConditions.push(containsText(playersTable.normalizedName, normalizeName(name)));
       }
       if (sex) {
         whereConditions.push(eq(playersTable.sex, sex));
@@ -353,7 +347,7 @@ export const playersRouter = router({
         );
       }
       if (groupFilters.length) {
-        const year = new Date().getUTCFullYear();
+        const year = federationYear();
         const groupConditions = groupFilters.map((group) => {
           const [from, to] = getBirthDateRange(group, year);
           return and(gte(playersTable.birthDate, from), lte(playersTable.birthDate, to));
@@ -374,24 +368,21 @@ export const playersRouter = router({
 
       const where = and(...whereConditions);
 
-      const countResult = await ctx.db
-        .select({ value: count() })
-        .from(playersTable)
-        .where(where);
-      const totalItems = countResult[0]?.value ?? 0;
-      const offset = (page - 1) * limit;
-
       const sortColumn = playersTable[sortBy];
 
-      // 1) Page of matching player ids ordered by rating; the rating index
-      //    drives ORDER BY + LIMIT/OFFSET without a full table sort or scan.
-      const pageIds = await ctx.db
-        .select({ id: playersTable.id })
-        .from(playersTable)
-        .where(where)
-        .orderBy(desc(sortColumn), asc(playersTable.id))
-        .limit(limit)
-        .offset(offset);
+      // The page of matching player ids, ordered by rating: the rating index
+      // drives ORDER BY + LIMIT/OFFSET without a full table sort or scan.
+      const [countResult, pageIds] = await Promise.all([
+        ctx.db.select({ value: count() }).from(playersTable).where(where),
+        ctx.db
+          .select({ id: playersTable.id })
+          .from(playersTable)
+          .where(where)
+          .orderBy(desc(sortColumn), asc(playersTable.id))
+          .limit(limit)
+          .offset((page - 1) * limit),
+      ]);
+      const totalItems = countResult[0]?.value ?? 0;
 
       const pagination = paginate({ page, perPage: limit, totalItems });
 
@@ -401,10 +392,8 @@ export const playersRouter = router({
 
       const ids = pageIds.map((row) => row.id);
 
-      // 2) Load the page's players + relations in one relational query. Drizzle
-      //    issues a separate query per relation keyed on the page ids, so a
-      //    player with several titles/championships no longer multiplies rows
-      //    (which previously forced a full players scan + JS de-duplication).
+      // Drizzle issues one query per relation keyed on the page ids, so a player
+      // with several titles or championships does not multiply rows.
       const [rows, movements] = await Promise.all([ctx.db.query.players.findMany({
         columns: {
           id: true,

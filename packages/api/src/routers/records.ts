@@ -10,21 +10,19 @@ import { tournaments } from "@fsx/db/schema/tournaments";
 
 import { RECORD_HOLDER_ID, allBadges, badgeCatalog, badgeHolders, type BadgeCatalogEntry } from "../gamification/badges";
 import { storedOrComputed } from "../gamification/computed";
-import { GAMIFICATION_LAUNCH_DATE } from "../gamification/constants";
+import { GAMIFICATION_LAUNCH_DATE, RATING_THRESHOLDS } from "../gamification/constants";
 import { feedStart, recentFeed } from "../gamification/feed";
 import { loadAllPlayerStats } from "../gamification/load";
 import { playerRecords, recordHolders } from "../gamification/records";
 import type { Context } from "../context";
 import { publicProcedure, router } from "../index";
-
-// The federation's calendar day and year, not UTC's, around midnight.
-const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
-const currentYear = () => Number(today().slice(0, 4));
+import { federationToday, federationYear } from "../lib/dates";
+import { RATING_TYPES } from "../rating-types";
 
 // Records and emblem rarity come from the same pass over every career, stored
 // once per data change (computing every career exceeds the free plan's CPU).
 function gamificationSummary(db: Context["db"]) {
-  const year = currentYear();
+  const year = federationYear();
   return storedOrComputed(db, `gamification:v3:${year}`, async () => {
     const careers = await loadAllPlayerStats(db);
     const records = playerRecords(
@@ -66,11 +64,9 @@ export async function monthHighlight(db: Context["db"], day: string) {
     .innerJoin(tournaments, eq(tournaments.id, playersToTournaments.tournamentId))
     .innerJoin(players, eq(players.id, playersToTournaments.playerId))
     .where(
-      and(
-        inArray(
-          playersToTournaments.tournamentId,
-          db.select({ id: tournaments.id }).from(tournaments).where(and(gte(tournaments.date, start), lt(tournaments.date, end))),
-        ),
+      inArray(
+        playersToTournaments.tournamentId,
+        db.select({ id: tournaments.id }).from(tournaments).where(and(gte(tournaments.date, start), lt(tournaments.date, end))),
       ),
     )
     .orderBy(desc(playersToTournaments.variation), playersToTournaments.id)
@@ -79,24 +75,19 @@ export async function monthHighlight(db: Context["db"], day: string) {
 }
 
 async function siteStatistics(db: Context["db"]) {
-  const ratingThresholdCounts = (format: "classic" | "rapid" | "blitz") =>
-    db
-      .select({
-        threshold2000: sql<number>`coalesce(sum(case when ${players[format]} >= 2000 then 1 else 0 end), 0)`,
-        threshold2100: sql<number>`coalesce(sum(case when ${players[format]} >= 2100 then 1 else 0 end), 0)`,
-        threshold2200: sql<number>`coalesce(sum(case when ${players[format]} >= 2200 then 1 else 0 end), 0)`,
-        threshold2300: sql<number>`coalesce(sum(case when ${players[format]} >= 2300 then 1 else 0 end), 0)`,
-        threshold2400: sql<number>`coalesce(sum(case when ${players[format]} >= 2400 then 1 else 0 end), 0)`,
-      })
-      .from(players)
-      .where(eq(players.active, true));
+  const thresholdSums = Object.fromEntries(
+    RATING_TYPES.flatMap((format) =>
+      RATING_THRESHOLDS.map((threshold) => {
+        const key = `${format}${threshold}`;
+        return [key, sql<number>`coalesce(sum(case when ${players[format]} >= ${threshold} then 1 else 0 end), 0)`.as(key)];
+      }),
+    ),
+  );
   const [
     [playerCounts],
     [tournamentCounts],
     tournamentTiers,
-    [classicRatings],
-    [rapidRatings],
-    [blitzRatings],
+    [thresholdCounts],
   ] = await db.batch([
     db
       .select({
@@ -123,18 +114,15 @@ async function siteStatistics(db: Context["db"]) {
       .from(tournaments)
       .groupBy(tournaments.tier)
       .orderBy(tournaments.tier),
-    ratingThresholdCounts("classic"),
-    ratingThresholdCounts("rapid"),
-    ratingThresholdCounts("blitz"),
+    db.select(thresholdSums).from(players).where(eq(players.active, true)),
   ]);
 
-  const ratingsByThreshold = [
-    { threshold: 2000, classic: classicRatings?.threshold2000 ?? 0, rapid: rapidRatings?.threshold2000 ?? 0, blitz: blitzRatings?.threshold2000 ?? 0 },
-    { threshold: 2100, classic: classicRatings?.threshold2100 ?? 0, rapid: rapidRatings?.threshold2100 ?? 0, blitz: blitzRatings?.threshold2100 ?? 0 },
-    { threshold: 2200, classic: classicRatings?.threshold2200 ?? 0, rapid: rapidRatings?.threshold2200 ?? 0, blitz: blitzRatings?.threshold2200 ?? 0 },
-    { threshold: 2300, classic: classicRatings?.threshold2300 ?? 0, rapid: rapidRatings?.threshold2300 ?? 0, blitz: blitzRatings?.threshold2300 ?? 0 },
-    { threshold: 2400, classic: classicRatings?.threshold2400 ?? 0, rapid: rapidRatings?.threshold2400 ?? 0, blitz: blitzRatings?.threshold2400 ?? 0 },
-  ];
+  const ratingsByThreshold = RATING_THRESHOLDS.map((threshold) => ({
+    threshold,
+    classic: thresholdCounts?.[`classic${threshold}`] ?? 0,
+    rapid: thresholdCounts?.[`rapid${threshold}`] ?? 0,
+    blitz: thresholdCounts?.[`blitz${threshold}`] ?? 0,
+  }));
 
   return {
     players: {
@@ -159,7 +147,7 @@ async function siteStatistics(db: Context["db"]) {
 
 export const recordsRouter = router({
   recent: publicProcedure.query(({ ctx }) => {
-    const since = feedStart(GAMIFICATION_LAUNCH_DATE, today());
+    const since = feedStart(GAMIFICATION_LAUNCH_DATE, federationToday());
     return since ? storedOrComputed(ctx.db, `feed:${since}`, () => recentFeed(ctx.db, since)) : [];
   }),
   all: publicProcedure.query(async ({ ctx }) => (await gamificationSummary(ctx.db)).records),
@@ -188,5 +176,5 @@ export const recordsRouter = router({
     }
     return { players: badges.players, badges: entries.sort((a, b) => b.holders - a.holders || a.label.localeCompare(b.label, "pt-BR")) };
   }),
-  monthHighlight: publicProcedure.query(({ ctx }) => monthHighlight(ctx.db, today())),
+  monthHighlight: publicProcedure.query(({ ctx }) => monthHighlight(ctx.db, federationToday())),
 });

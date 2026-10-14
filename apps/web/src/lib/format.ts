@@ -19,7 +19,7 @@ export function parseDbTimestamp(value: string | Date): Date {
   return new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(value) ? value : `${value.replace(" ", "T")}Z`);
 }
 
-export function toIsoTimestamp(value: string | null | undefined): string | undefined {
+export function toIsoTimestamp(value: string | Date | null | undefined): string | undefined {
   if (!value) return undefined;
   const date = parseDbTimestamp(value);
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString();

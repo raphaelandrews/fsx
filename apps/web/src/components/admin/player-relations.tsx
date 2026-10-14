@@ -6,7 +6,7 @@ import { Button } from "@fsx/ui/components/button";
 
 import { NATIVE_SELECT_CLASS } from "@/components/admin/entity-form";
 import { AdminSection } from "@/components/admin/form-layout";
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { DataTable } from "@/components/data-table/data-table";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/lib/trpc";

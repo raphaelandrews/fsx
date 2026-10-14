@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { PlayerActions } from "@/components/campeoes/actions";
+import { PlayerSheetButton } from "@/components/player/player-sheet-button";
 
 export interface TitledPlayer {
   id: number
@@ -32,7 +32,7 @@ export const titledPlayersColumns: ColumnDef<TitledPlayer>[] = [
     cell: ({ row }) => {
       const shortTitle = row.original.playersToTitles?.find((t) => t.title)?.title.shortName
       return (
-        <PlayerActions
+        <PlayerSheetButton
           id={row.original.id}
           image={row.original.imageUrl}
           name={row.original.name}

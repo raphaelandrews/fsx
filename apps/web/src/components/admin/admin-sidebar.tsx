@@ -35,7 +35,7 @@ import {
 } from "@fsx/ui/components/sidebar";
 import { Skeleton } from "@fsx/ui/components/skeleton";
 
-import { ADMIN_NAV, isNavActive } from "@/components/header/admin-nav-data";
+import { ADMIN_NAV, isNavActive } from "@/components/admin/admin-nav-data";
 import { Logo } from "@/components/logo";
 import { authClient } from "@/lib/auth-client";
 

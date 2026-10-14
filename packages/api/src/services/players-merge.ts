@@ -20,7 +20,8 @@ import { tvSergipe } from "@fsx/db/schema/tv-sergipe";
 
 import type { createDb } from "@fsx/db";
 
-import { deleteMediaUrl } from "./images";
+import { RATING_TYPES, type RatingType } from "../rating-types";
+import { deleteMediaUrl } from "./media-storage";
 
 type Database = ReturnType<typeof createDb>;
 
@@ -66,9 +67,7 @@ async function findConflicts(db: Database, sourceId: number, targetId: number): 
   return conflicts;
 }
 
-const RATING_TYPES = ["classic", "rapid", "blitz"] as const;
-
-type Ratings = Record<(typeof RATING_TYPES)[number], number>;
+type Ratings = Record<RatingType, number>;
 
 async function planRatingChain(db: Database, playerIds: number[], fallback: Ratings) {
   const results = await db

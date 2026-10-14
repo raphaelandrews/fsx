@@ -1,6 +1,3 @@
-export const CACHE_TTL_DEFAULT_SECONDS = 60;
-export const PUBLIC_EDGE_CONSISTENCY_WINDOW_SECONDS = CACHE_TTL_DEFAULT_SECONDS;
-
 export type CacheClassification = "public" | "private" | "never";
 
 type ProcedureCachePolicy = {
@@ -76,11 +73,6 @@ export function getProcedureCachePolicy(pathname: string): ProcedureCachePolicy 
     classification: "public",
     ttlSeconds: Math.min(...typedPolicies.map((policy) => policy.ttlSeconds)),
   };
-}
-
-export function resolveProcedureTtl(pathname: string): number {
-  const policy = getProcedureCachePolicy(pathname);
-  return policy.ttlSeconds || CACHE_TTL_DEFAULT_SECONDS;
 }
 
 export function shouldCachePublicQuery(input: {

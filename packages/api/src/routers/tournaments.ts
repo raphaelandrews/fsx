@@ -1,20 +1,18 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, exists, not, or, sql } from "drizzle-orm";
+import { and, desc, eq, exists, not, or } from "drizzle-orm";
 
 import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
 import { playersToTournaments } from "@fsx/db/schema/players-to-tournaments";
 import { tournaments, insertTournamentSchema } from "@fsx/db/schema/tournaments";
-import { normalizeName } from "@fsx/db/normalize";
 import type { Context } from "../context";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
-import { httpUrl, isoDate, nameText, positiveInt, searchText } from "../input-schemas";
+import { httpUrl, idInput, isoDate, nameText, positiveInt, ratingTypeSchema, searchText } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 import { COMPETITION_TIERS } from "../circuit-types";
-import { escapeLike, like } from "../lib/sql-like";
+import { matchesAllWords, SEARCH_RESULT_LIMIT, SEARCH_SCAN_LIMIT, searchWords } from "../lib/name-search";
 
-const ratingTypeEnum = z.enum(["blitz", "rapid", "classic"]);
 const tierEnum = z.enum(COMPETITION_TIERS);
 
 const RATED_TOURNAMENT_MESSAGE =
@@ -34,17 +32,16 @@ export const tournamentsRouter = router({
   search: publicProcedure
     .input(z.object({ query: searchText }))
     .query(async ({ ctx, input }) => {
-      const query = normalizeName(input.query);
-      const words = query.split(/\s+/).filter(Boolean);
-      return ctx.db
+      const words = searchWords(input.query);
+      const rows = await ctx.db
         .select({ id: tournaments.id, name: tournaments.name })
         .from(tournaments)
-        .where(words.length ? like(sql`lower(${tournaments.name})`, `%${words.map(escapeLike).join("%")}%`) : undefined)
         .orderBy(desc(tournaments.date), desc(tournaments.id))
-        .limit(10);
+        .limit(SEARCH_SCAN_LIMIT);
+      return rows.filter((tournament) => matchesAllWords(tournament.name, words)).slice(0, SEARCH_RESULT_LIMIT);
     }),
   byId: publicProcedure
-    .input(z.object({ id: positiveInt }))
+    .input(idInput)
     .query(async ({ ctx, input }) =>
       requireFound(await ctx.db.query.tournaments.findFirst({
         where: eq(tournaments.id, input.id),
@@ -67,7 +64,7 @@ export const tournamentsRouter = router({
       name: nameText,
       chessResults: httpUrl.nullable().optional(),
       date: isoDate.nullable().optional(),
-      ratingType: ratingTypeEnum,
+      ratingType: ratingTypeSchema,
       championshipId: positiveInt.nullable().optional(),
       tier: tierEnum.default("B"),
     }))
@@ -80,7 +77,7 @@ export const tournamentsRouter = router({
       name: nameText.optional(),
       chessResults: httpUrl.nullable().optional(),
       date: isoDate.nullable().optional(),
-      ratingType: ratingTypeEnum.optional(),
+      ratingType: ratingTypeSchema.optional(),
       championshipId: positiveInt.nullable().optional(),
       tier: tierEnum.optional(),
     }))
@@ -101,7 +98,7 @@ export const tournamentsRouter = router({
       }
       return requireMutationRows(rows, "Tournament");
     }),
-  delete: adminProcedure.input(z.object({ id: positiveInt })).mutation(async ({ ctx, input }) => {
+  delete: adminProcedure.input(idInput).mutation(async ({ ctx, input }) => {
     const result = await ctx.db.query.playersToTournaments.findFirst({
       where: eq(playersToTournaments.tournamentId, input.id),
       columns: { id: true },

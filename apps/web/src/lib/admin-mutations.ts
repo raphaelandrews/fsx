@@ -1,11 +1,5 @@
 import type { AppRouter } from "@fsx/api/routers/index";
-import {
-  useMutation,
-  useQueryClient,
-  type QueryClient,
-  type QueryFilters,
-  type UseMutationOptions,
-} from "@tanstack/react-query";
+import { useMutation, useQueryClient, type UseMutationOptions } from "@tanstack/react-query";
 import type { inferRouterInputs } from "@trpc/server";
 
 import { toast } from "sonner";
@@ -61,21 +55,20 @@ export const ADMIN_QUERY_DEPENDENTS = {
 
 export type AdminDomain = keyof typeof ADMIN_QUERY_DEPENDENTS;
 
-export async function invalidateAdminQueries(
-  queryClient: QueryClient,
-  filters: QueryFilters[],
-): Promise<void> {
-  await Promise.all(filters.map((filters) => queryClient.invalidateQueries(filters)));
+/** The routers to refetch for several domains, each once even when the domains overlap. */
+export function routersToInvalidate(domains: AdminDomain | readonly AdminDomain[]): RouterKey[] {
+  const list: readonly AdminDomain[] = typeof domains === "string" ? [domains] : domains;
+  return [...new Set<RouterKey>(list.flatMap((domain) => ADMIN_QUERY_DEPENDENTS[domain]))];
 }
 
 export function useInvalidateAdmin() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  return (domain: AdminDomain) =>
-    invalidateAdminQueries(
-      queryClient,
-      ADMIN_QUERY_DEPENDENTS[domain].map((key) => trpc[key].pathFilter()),
+  return async (domains: AdminDomain | readonly AdminDomain[]) => {
+    await Promise.all(
+      routersToInvalidate(domains).map((key) => queryClient.invalidateQueries(trpc[key].pathFilter())),
     );
+  };
 }
 
 type AdminMutationConfig<TData, TVariables> = {
@@ -100,7 +93,7 @@ export function useAdminMutation<TData, TError, TVariables, TContext>(
   return useMutation({
     ...options,
     onSuccess: async (data, variables) => {
-      const refreshed = Promise.all([config.invalidates ?? []].flat().map((domain) => invalidateAdmin(domain)));
+      const refreshed = invalidateAdmin(config.invalidates ?? []);
       if (config.awaitInvalidation) await refreshed;
       if (config.success) toast.success(config.success);
       await config.onSuccess?.(data, variables);

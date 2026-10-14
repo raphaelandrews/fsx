@@ -13,11 +13,16 @@ const SKIPPED = /^(PRAGMA|BEGIN|COMMIT|ROLLBACK)\b|sqlite_sequence|\b_cf_\w+/i;
 const tableOf = (statement: string, verb: RegExp) => statement.match(verb)?.[1];
 const insertTable = (statement: string) => tableOf(statement, /^INSERT INTO\s+["`]?(\w+)["`]?/i)!;
 
-export async function readBackup(backupPath: string) {
+// Tables whose rows are personal data: logins, OAuth tokens and sessions.
+export const ACCOUNT_TABLES = ["user", "session", "account", "verification"];
+
+// `excludeRows` keeps a table's schema but drops its data.
+export async function readBackup(backupPath: string, options: { excludeRows?: readonly string[] } = {}) {
   const dump = splitSqlStatements(await readFile(backupPath, "utf8")).filter((statement) => !SKIPPED.test(statement));
   const creates = dump.filter((statement) => /^CREATE TABLE/i.test(statement));
-  const inserts = dump.filter((statement) => /^INSERT INTO/i.test(statement));
-  const others = dump.filter((statement) => !creates.includes(statement) && !inserts.includes(statement));
+  const excluded = new Set(options.excludeRows);
+  const inserts = dump.filter((statement) => /^INSERT INTO/i.test(statement) && !excluded.has(insertTable(statement)));
+  const others = dump.filter((statement) => !/^(CREATE TABLE|INSERT INTO)/i.test(statement));
 
   // D1 rejects PRAGMA foreign_keys=OFF, so parents must be restored before children.
   const references = new Map<string, Set<string>>();

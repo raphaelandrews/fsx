@@ -1,4 +1,6 @@
-import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { fileURLToPath, URL as NodeURL } from "node:url";
 
 import { Miniflare } from "miniflare";
@@ -268,7 +270,88 @@ async function seedTrophyPreview(db: Db) {
   console.log(`    player "Teste Troféus" (id ${champion.id}) has ${tournaments.length} championship titles`);
 }
 
-seed().catch((err) => {
-  console.error("❌ Seed failed:", err);
-  process.exit(1);
-});
+// Newest backup made by `bun run db:backup` (fsx-<date>-<time>/fsx-<date>-<time>.sql).
+function latestBackup(): string | undefined {
+  const root = process.env.BACKUP_ROOT ?? `${homedir()}/Backups`;
+  if (!existsSync(root)) return undefined;
+  const newest = readdirSync(root)
+    .filter((name) => /^fsx-\d{4}-\d{2}-\d{2}-\d{6}$/.test(name) && existsSync(`${root}/${name}/${name}.sql`))
+    .sort()
+    .at(-1);
+  return newest ? `${root}/${newest}/${newest}.sql` : undefined;
+}
+
+function exportRemote(repoRoot: string, outputPath: string) {
+  const database = process.env.D1_DATABASE ?? "fsx-database-raphael";
+  if (!/^[A-Za-z0-9_-]+$/.test(database)) throw new Error("Invalid D1_DATABASE name.");
+  const localWrangler = `${repoRoot}apps/web/node_modules/.bin/wrangler`;
+  const [command, ...prefix] = existsSync(localWrangler) ? [localWrangler] : ["bunx", "wrangler"];
+  console.log(`  → exporting remote D1 "${database}"`);
+  const exported = spawnSync(
+    command!,
+    [...prefix, "d1", "export", database, "--remote", `--output=${outputPath}`, "--skip-confirmation"],
+    { cwd: repoRoot, stdio: "inherit" },
+  );
+  return exported.status === 0;
+}
+
+// Real data instead of the samples above: restores a copy of the remote D1 (or a
+// backup file) over the local dev database, without logins or sessions. Wipes
+// the local D1, so it never runs unless asked for.
+//   bun run db:seed                    sample data
+//   bun run db:seed:remote             export the remote D1 (needs `wrangler login`);
+//                                      falls back to the newest backup if that fails
+//   bun run db:seed:latest             newest backup in ~/Backups, no network
+//   bun packages/db/src/seed.ts --backup <sql>  a specific file from `bun run db:backup`
+function seedFromRealData(args: string[]) {
+  const repoRoot = fileURLToPath(new NodeURL("../../../", import.meta.url));
+  const backupFlag = args.indexOf("--backup");
+  let tempDir: string | undefined;
+  try {
+    let backupPath = backupFlag === -1 ? undefined : args[backupFlag + 1];
+    if (backupFlag !== -1 && (!backupPath || backupPath.startsWith("--"))) {
+      throw new Error("--backup needs the path of a .sql backup.");
+    }
+    if (!backupPath && args.includes("--latest")) {
+      backupPath = latestBackup();
+      if (!backupPath) throw new Error("No backup found in ~/Backups (or BACKUP_ROOT). Run `bun run db:backup` first.");
+      console.log(`  → using ${backupPath}`);
+    }
+    if (!backupPath) {
+      tempDir = mkdtempSync(`${tmpdir()}/fsx-seed-`);
+      const exportPath = `${tempDir}/remote.sql`;
+      if (exportRemote(repoRoot, exportPath)) {
+        backupPath = exportPath;
+      } else {
+        backupPath = latestBackup();
+        if (!backupPath) throw new Error("wrangler d1 export failed and there is no local backup. Run `wrangler login` or set CLOUDFLARE_API_TOKEN.");
+        console.warn(`  ⚠ export failed; using the newest local backup instead (may be out of date): ${backupPath}`);
+      }
+    }
+    console.log("  → restoring into the local D1 (without accounts)");
+    const restored = spawnSync(
+      "bun",
+      [`${repoRoot}packages/api/scripts/restore-local.ts`, backupPath, "--no-accounts"],
+      { cwd: repoRoot, stdio: "inherit" },
+    );
+    if (restored.status !== 0) throw new Error("Restore failed.");
+    console.log("✅ Local D1 now holds a copy of the real data. Sign in with GitHub to get an admin session.");
+  } finally {
+    if (tempDir) rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
+const args = process.argv.slice(2);
+if (["--remote", "--latest", "--backup"].some((flag) => args.includes(flag))) {
+  try {
+    seedFromRealData(args);
+  } catch (err) {
+    console.error("❌ Seed failed:", err instanceof Error ? err.message : err);
+    process.exit(1);
+  }
+} else {
+  seed().catch((err) => {
+    console.error("❌ Seed failed:", err);
+    process.exit(1);
+  });
+}

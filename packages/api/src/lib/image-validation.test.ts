@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { TRPCError } from "@trpc/server";
 
-import { base64ToBytes, hasImageSignature, MAX_BASE64_LENGTH } from "../lib/image-validation";
+import { base64ToBytes, hasImageSignature, MAX_BASE64_LENGTH } from "./image-validation";
 
 describe("image payload validation", () => {
   test("rejects malformed base64", () => {

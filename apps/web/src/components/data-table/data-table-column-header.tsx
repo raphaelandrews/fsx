@@ -17,7 +17,7 @@ import {
 } from "@fsx/ui/components/dropdown-menu";
 import { cn } from "@fsx/ui/lib/utils";
 
-import { useTableText } from "@/lib/table-text";
+import { useTableText } from "@/hooks/use-table-text";
 
 interface DataTableColumnHeaderProps<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>;

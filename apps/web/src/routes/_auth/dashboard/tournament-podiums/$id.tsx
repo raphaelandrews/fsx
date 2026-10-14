@@ -5,7 +5,7 @@ import type { CompetitionCategory } from "@fsx/api/circuit-types";
 
 import { EntityForm } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { tournamentPodiumSections } from "@/lib/admin-forms";
 import { idParams } from "@/lib/route-params";

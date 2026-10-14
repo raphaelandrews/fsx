@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "@fsx/ui/components/table";
 
-import { useTableText } from "@/lib/table-text";
+import { useTableText } from "@/hooks/use-table-text";
 
 declare module "@tanstack/react-table" {
   interface ColumnMeta<TData extends RowData, TValue> {

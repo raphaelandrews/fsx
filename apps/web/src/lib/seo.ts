@@ -44,6 +44,9 @@ export interface SeoOptions {
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
+// "<" is escaped so text such as "</script>" in a title cannot end the script block.
+export const serializeJsonLd = (block: unknown) => JSON.stringify(block).replace(/</g, "\\u003c");
+
 export interface SeoScript {
   type: string;
   children: string;
@@ -112,7 +115,7 @@ export function buildSeo(options: SeoOptions) {
   if (jsonLd) {
     const blocks = Array.isArray(jsonLd) ? jsonLd : [jsonLd];
     for (const block of blocks) {
-      scripts.push({ type: "application/ld+json", children: JSON.stringify(block) });
+      scripts.push({ type: "application/ld+json", children: serializeJsonLd(block) });
     }
   }
 

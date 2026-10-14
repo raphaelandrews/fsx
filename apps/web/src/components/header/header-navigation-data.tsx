@@ -20,14 +20,11 @@ type NavigationItem = {
   label: string
   href: string
   icon: typeof Home01Icon
-  description?: string
   target: string
   items?: NavigationItem[]
 }
 
-type Navigation = () => NavigationItem[]
-
-export const navigationData: Navigation = () => [
+export const NAVIGATION: NavigationItem[] = [
   {
     label: "Home",
     href: "/",
@@ -42,49 +39,42 @@ export const navigationData: Navigation = () => [
     items: [
       {
         label: "Notícias",
-        description: "Informações mais recentes.",
         href: "/noticias",
         icon: NewsIcon,
         target: "_self",
       },
       {
         label: "Rating",
-        description: "Tabelas de rating.",
         href: "/ratings",
         icon: BarChartIcon,
         target: "_self",
       },
       {
         label: "Circuitos",
-        description: "Circuitos de Sergipe.",
         href: "/circuitos",
         icon: Medal01Icon,
         target: "_self",
       },
       {
         label: "Estatísticas",
-        description: "Panorama e recordes do xadrez sergipano.",
         href: "/estatisticas",
         icon: Analytics01Icon,
         target: "_self",
       },
       {
         label: "Clubes",
-        description: "Ranking e medalhas dos clubes.",
         href: "/clubes",
         icon: UserGroupIcon,
         target: "_self",
       },
       {
         label: "Comunicados",
-        description: "Informações.",
         href: "/comunicados",
         icon: Megaphone01Icon,
         target: "_self",
       },
       {
         label: "Campeões",
-        description: "Galeria dos campeões.",
         href: "/campeoes",
         icon: CrownIcon,
         target: "_self",
@@ -99,28 +89,24 @@ export const navigationData: Navigation = () => [
     items: [
       {
         label: "Titulados",
-        description: "Jogadores titulados.",
         href: "/titulados",
         icon: Bookmark01Icon,
         target: "_self",
       },
       {
         label: "Membros",
-        description: "Diretoria e árbitros.",
         href: "/membros",
         icon: UserGroupIcon,
         target: "_self",
       },
       {
         label: "Normas Técnicas",
-        description: "Normas.",
         href: "/normas-tecnicas",
         icon: Book01Icon,
         target: "_self",
       },
       {
         label: "Sobre",
-        description: "Documentos e história.",
         href: "/sobre",
         icon: ScrollIcon,
         target: "_self",
@@ -135,7 +121,6 @@ export const navigationData: Navigation = () => [
   },
   {
     label: "Links",
-    description: "Principais links.",
     href: "/links",
     icon: Link01Icon,
     target: "_blank",

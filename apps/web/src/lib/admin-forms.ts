@@ -17,7 +17,7 @@ const RATING_TYPE_OPTIONS = [
   { value: "blitz", label: "Blitz" },
 ] as const;
 
-export const TIER_OPTIONS = COMPETITION_TIERS.map((tier) => ({ value: tier, label: COMPETITION_TIER_LABELS[tier] }));
+const TIER_OPTIONS = COMPETITION_TIERS.map((tier) => ({ value: tier, label: COMPETITION_TIER_LABELS[tier] }));
 export const CATEGORY_OPTIONS = COMPETITION_CATEGORIES.map((category) => ({ value: category, label: category }));
 
 const TIER_HINT = "Tier S: Sergipano championships. A and B: other events by importance. School: school events.";

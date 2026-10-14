@@ -19,7 +19,7 @@ import {
 import { cn } from "@fsx/ui/lib/utils"
 
 import { buildPageItems } from "./page-items"
-import { useTableText } from "@/lib/table-text"
+import { useTableText } from "@/hooks/use-table-text"
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>

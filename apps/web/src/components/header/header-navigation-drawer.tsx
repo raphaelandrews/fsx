@@ -6,13 +6,12 @@ import {
   ArrowUpRight01Icon,
   Cancel01Icon,
   ChevronDownIcon,
-  InstagramIcon,
-  Mail02Icon,
   Menu01Icon,
 } from "@hugeicons/core-free-icons"
 
-import { navigationData } from "./header-navigation-data"
+import { NAVIGATION } from "./header-navigation-data"
 import { Logo } from "../logo"
+import { SocialLinks } from "../social-links"
 import { Button, buttonVariants } from "@fsx/ui/components/button"
 import {
   Drawer,
@@ -30,8 +29,6 @@ export const HeaderNavigationDrawer = () => {
   useEffect(() => {
     setOpen(false)
   }, [pathname])
-
-  const items = navigationData()
 
   return (
     <Drawer onOpenChange={setOpen} open={open}>
@@ -67,7 +64,7 @@ export const HeaderNavigationDrawer = () => {
 
         <nav className="flex flex-1 flex-col overflow-y-auto px-6 pb-8">
           <ul>
-            {items.map(({ label, href, items, target }) => {
+            {NAVIGATION.map(({ label, href, items, target }) => {
               if (items?.length) {
                 const isOpen = openSection === label
                 return (
@@ -133,24 +130,7 @@ export const HeaderNavigationDrawer = () => {
 
           </ul>
 
-          <div className="mt-8 flex items-center gap-3">
-            <a
-              href="https://www.instagram.com/xadrezsergipe/"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Instagram da FSX (@xadrezsergipe)"
-              className={buttonVariants({ variant: "secondary", size: "icon-xl", className: "active:scale-[0.96]" })}
-            >
-              <HugeiconsIcon icon={InstagramIcon} className="size-5" strokeWidth={1.75} aria-hidden />
-            </a>
-            <a
-              href="mailto:presidente@fsx.org.br"
-              aria-label="Enviar e-mail para a FSX"
-              className={buttonVariants({ variant: "secondary", size: "icon-xl", className: "active:scale-[0.96]" })}
-            >
-              <HugeiconsIcon icon={Mail02Icon} className="size-5" strokeWidth={1.75} aria-hidden />
-            </a>
-          </div>
+          <SocialLinks className="mt-8 flex items-center gap-3" />
         </nav>
       </DrawerContent>
     </Drawer>

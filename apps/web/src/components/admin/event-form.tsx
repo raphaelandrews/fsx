@@ -6,7 +6,7 @@ import { Input } from "@fsx/ui/components/input";
 
 import { AdminForm, FormActions, FormSection } from "@/components/admin/form-layout";
 import { DatePicker } from "@/components/form/date-picker";
-import { EventLinksEditor, type EventLinkDraft } from "@/components/event-links-editor";
+import { EventLinksEditor, type EventLinkDraft } from "@/components/admin/event-links-editor";
 import { FormField } from "@/components/form/form-field";
 import { fieldError } from "@/lib/errors";
 import { httpUrlError, requiredText, submitThenChange, TEXT_MAX } from "@/lib/field-rules";

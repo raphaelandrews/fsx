@@ -6,7 +6,7 @@ import { adminProcedure, publicProcedure, router } from "../index";
 import { contentText, idInput, imageUrl, nameText, page, positiveInt, searchText } from "../input-schemas";
 import { requireFound, requireMutationRows } from "../errors";
 import { paginate } from "../lib/pagination";
-import { deleteMediaUrl, deleteReplacedMedia } from "./images";
+import { deleteMediaUrl, deleteReplacedMedia } from "../services/media-storage";
 
 export const postsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -14,7 +14,7 @@ export const postsRouter = router({
       .select({ id: posts.id, title: posts.title, imageUrl: posts.imageUrl, slug: posts.slug })
       .from(posts)
       .where(eq(posts.published, true))
-       .orderBy(desc(posts.createdAt), desc(posts.id))
+      .orderBy(desc(posts.createdAt), desc(posts.id))
       .limit(24)
   ),
   listAdmin: adminProcedure.query(({ ctx }) =>
@@ -45,7 +45,6 @@ export const postsRouter = router({
       }), "Post")
     ),
   byPage: publicProcedure.input(z.object({ page })).query(async ({ ctx, input }) => {
-    const validPage = Math.max(1, input.page);
     const perPage = 12;
     const [data, countResult] = await Promise.all([
       ctx.db.query.posts.findMany({
@@ -60,14 +59,14 @@ export const postsRouter = router({
         where: eq(posts.published, true),
         orderBy: [desc(posts.createdAt), desc(posts.id)],
         limit: perPage,
-        offset: (validPage - 1) * perPage,
+        offset: (input.page - 1) * perPage,
       }),
       ctx.db.select({ value: count() }).from(posts).where(eq(posts.published, true)),
     ]);
     const totalItems = countResult[0]?.value ?? 0;
     return {
       posts: data,
-      pagination: paginate({ page: validPage, perPage, totalItems }),
+      pagination: paginate({ page: input.page, perPage, totalItems }),
     };
   }),
   fresh: publicProcedure.query(({ ctx }) =>
@@ -75,7 +74,7 @@ export const postsRouter = router({
       .select({ id: posts.id, title: posts.title, imageUrl: posts.imageUrl, slug: posts.slug })
       .from(posts)
       .where(eq(posts.published, true))
-       .orderBy(desc(posts.createdAt), desc(posts.id))
+      .orderBy(desc(posts.createdAt), desc(posts.id))
       .limit(8)
   ),
   create: adminProcedure

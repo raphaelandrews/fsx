@@ -41,6 +41,8 @@
     "dev:web": "vp run --filter web dev",
     "db:generate": "vp run --filter @fsx/db db:generate",
     "db:seed": "vp run --filter @fsx/db db:seed",
+    "db:seed:remote": "bun packages/db/src/seed.ts --remote",
+    "db:seed:latest": "bun packages/db/src/seed.ts --latest",
     "db:backup": "bash scripts/d1-backup.sh",
     "db:backup:verify": "bash scripts/verify-d1-backup.sh",
     "db:restore-drill": "bun apps/web/scripts/restore-drill.ts",

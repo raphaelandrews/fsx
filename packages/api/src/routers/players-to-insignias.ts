@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { playersToInsignias, insertPlayerToInsigniaSchema } from "@fsx/db/schema/players-to-insignias";
 import { adminProcedure, router } from "../index";
 import { requireMutationRows } from "../errors";
-import { positiveInt } from "../input-schemas";
+import { idInput, positiveInt } from "../input-schemas";
 import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 export const playersToInsigniasRouter = router({
@@ -28,7 +28,7 @@ export const playersToInsigniasRouter = router({
     ),
 
   unlink: adminProcedure
-    .input(z.object({ id: positiveInt }))
+    .input(idInput)
     .mutation(async ({ ctx, input }) =>
       requireMutationRows(
         await ctx.db.delete(playersToInsignias).where(eq(playersToInsignias.id, input.id)).returning({ id: playersToInsignias.id }),

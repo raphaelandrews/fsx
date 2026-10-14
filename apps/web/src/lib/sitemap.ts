@@ -1,4 +1,4 @@
-import { parseDbTimestamp } from "./format";
+import { toIsoTimestamp } from "./format";
 import { SITE_URL } from "./seo";
 
 const STATIC_PATHS = [
@@ -24,13 +24,6 @@ export interface SitemapPost {
   updatedAt: string | Date | null;
 }
 
-function formatLastModified(value: string | Date | null): string | undefined {
-  if (!value) return undefined;
-  const date = parseDbTimestamp(value);
-  if (Number.isNaN(date.getTime())) return undefined;
-  return date.toISOString().slice(0, 10);
-}
-
 function urlEntry(path: string, lastModified?: string): string {
   const loc = new URL(path, SITE_URL).toString();
   return [
@@ -52,7 +45,7 @@ export function renderSitemap({ posts, playerIds, announcementIds, clubIds }: Si
   const entries = [
     ...STATIC_PATHS.map((path) => urlEntry(path)),
     ...posts.map((post) =>
-      urlEntry(`/noticias/${encodeURIComponent(post.slug)}`, formatLastModified(post.updatedAt)),
+      urlEntry(`/noticias/${encodeURIComponent(post.slug)}`, toIsoTimestamp(post.updatedAt)?.slice(0, 10)),
     ),
     ...playerIds.map((id) => urlEntry(`/jogadores/${id}`)),
     ...announcementIds.map((id) => urlEntry(`/comunicados/${id}`)),

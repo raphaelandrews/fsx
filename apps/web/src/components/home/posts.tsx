@@ -19,15 +19,8 @@ export function Posts({ posts }: PostsSectionProps) {
   return (
     <Section icon={NewsIcon} label="Notícias" main={false}>
       <div className="relative grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {freshPosts?.map((post: FreshPost) => (
-          <div key={post.id}>
-            <PostCard
-              imageUrl={post.imageUrl ?? null}
-              key={post.id}
-              slug={post.slug ?? undefined}
-              title={post.title}
-            />
-          </div>
+        {freshPosts.map((post) => (
+          <PostCard key={post.id} imageUrl={post.imageUrl} slug={post.slug} title={post.title} />
         ))}
       </div>
       <SectionButton href="/noticias" label="Ver Notícias" />

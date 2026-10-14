@@ -4,13 +4,13 @@ import { Analytics01Icon, Award01Icon, ChampionIcon, ChartUpIcon, CrownIcon } fr
 
 import { buttonVariants } from "@fsx/ui/components/button";
 
-import { Announcement } from "@/components/announcements/announcement";
+import { SectionHeading } from "@/components/section-heading";
 import { BadgeCensus } from "@/components/gamification/badge-census";
 import { StatTile } from "@/components/gamification/stat-tile";
 import { PageHeader } from "@/components/page-header";
 import { RecordCard } from "@/components/recordes/record-card";
 import { StatsSkeleton } from "@/components/skeletons/stats-skeleton";
-import { StatisticsCharts } from "@/components/statistics-charts";
+import { StatisticsCharts } from "@/components/recordes/statistics-charts";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/lib/trpc";
 
@@ -84,7 +84,7 @@ function RouteComponent() {
 
       <div className="flex flex-col gap-10">
         <section id="statistics-overview" aria-label="Panorama geral" className="scroll-mt-24">
-          <Announcement icon={Analytics01Icon} label="O xadrez em Sergipe, em números" className="px-0" />
+          <SectionHeading icon={Analytics01Icon} label="O xadrez em Sergipe, em números" className="px-0" />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <StatTile
               label="Jogadores ativos"
@@ -136,7 +136,7 @@ function RouteComponent() {
         </section>
 
         <section id="records-rating" aria-label="Rating" className="scroll-mt-24">
-          <Announcement icon={ChartUpIcon} label="Recordes de rating" className="px-0" />
+          <SectionHeading icon={ChartUpIcon} label="Recordes de rating" className="px-0" />
           <div className="grid gap-3 sm:grid-cols-2">
             <RecordCard title="Maior rating · Clássico" entries={records.peaks.classic} format={rating} />
             <RecordCard title="Maior rating · Rápido" entries={records.peaks.rapid} format={rating} />
@@ -151,7 +151,7 @@ function RouteComponent() {
         </section>
 
         <section id="records-titles" aria-label="Títulos e atividade" className="scroll-mt-24">
-          <Announcement icon={ChampionIcon} label="Títulos e atividade" className="px-0" />
+          <SectionHeading icon={ChampionIcon} label="Títulos e atividade" className="px-0" />
           <div className="grid gap-3 sm:grid-cols-2">
             <RecordCard title="Mais títulos" entries={records.wins} format={(v) => plural(v, "título", "títulos")} />
             <RecordCard title="Mais pódios" entries={records.podiums} format={(v) => plural(v, "pódio", "pódios")} />
@@ -166,7 +166,7 @@ function RouteComponent() {
 
         {records.championships.length > 0 && (
           <section id="records-champions" aria-label="Maiores campeões por campeonato" className="scroll-mt-24">
-            <Announcement icon={CrownIcon} label="Maiores campeões por campeonato" className="px-0" />
+            <SectionHeading icon={CrownIcon} label="Maiores campeões por campeonato" className="px-0" />
             <div className="grid gap-3 sm:grid-cols-2">
               {records.championships.map((championship) => (
                 <RecordCard
@@ -183,7 +183,7 @@ function RouteComponent() {
 
         {badgeStats.badges.length > 0 && (
           <section id="records-badges" aria-label="Emblemas" className="scroll-mt-24">
-            <Announcement icon={Award01Icon} label="Emblemas e quem os conquistou" className="px-0" />
+            <SectionHeading icon={Award01Icon} label="Emblemas e quem os conquistou" className="px-0" />
             <p className="mb-4 text-pretty text-center text-muted-foreground text-sm">
               Todos os emblemas que existem, inclusive os que ninguém conquistou ainda. Percentual sobre{" "}
               {number.format(badgeStats.players)} jogadores com ao menos um torneio.

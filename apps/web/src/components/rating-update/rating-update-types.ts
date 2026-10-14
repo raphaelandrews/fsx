@@ -15,11 +15,6 @@ export interface PlayerTournamentDataFields {
   oldRating: number;
 }
 
-export interface PlayerAPIResponse {
-  message: string;
-  dataFields: PlayerDataFields | { player: PlayerDataFields; playerTournament: PlayerTournamentDataFields };
-}
-
 export interface RatingUpdateProps {
   _uuid?: string;
   operation: string;

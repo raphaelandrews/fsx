@@ -12,7 +12,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { Announcement } from "@/components/announcements/announcement";
+import { SectionHeading } from "@/components/section-heading";
 import { PageHeader } from "@/components/page-header";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
@@ -60,7 +60,7 @@ function RouteComponent() {
       />
 
       <section aria-label="A FSX">
-        <Announcement icon={LandmarkIcon} label="A FSX" />
+        <SectionHeading icon={LandmarkIcon} label="A FSX" />
         <div className="space-y-4 px-3 text-base text-reading leading-relaxed sm:text-lg">
           <p>
             A Federação Sergipana de Xadrez foi fundada em 11 de dezembro de 1989 pelas sociedades
@@ -75,7 +75,7 @@ function RouteComponent() {
       </section>
 
       <section aria-label="Finalidades" className="mt-6">
-        <Announcement icon={Target01Icon} label="Finalidades" />
+        <SectionHeading icon={Target01Icon} label="Finalidades" />
         <ul className="list-disc space-y-2 pr-3 pl-8 text-base text-reading leading-relaxed marker:text-muted-foreground">
           {finalidades.map((item) => (
             <li key={item}>{item}</li>
@@ -84,7 +84,7 @@ function RouteComponent() {
       </section>
 
       <section aria-label="Links" className="mt-6">
-        <Announcement icon={Link02Icon} label="Links" />
+        <SectionHeading icon={Link02Icon} label="Links" />
         <ul className="grid sm:grid-cols-2">
           {links.map((link) => (
             <li key={link.to} className="m-1">

@@ -1,12 +1,13 @@
+import { RATING_TYPES, type RatingType } from "@fsx/api/rating-types";
+
 import { toIsoDate } from "@/lib/format";
 
-export type ImportRatingType = "blitz" | "rapid" | "classic";
-
-const RATING_TYPES: readonly string[] = ["blitz", "rapid", "classic"];
 const TOURNAMENT_COLUMNS = ["tournamentid", "variation", "ratingtype"];
 const PLAYER_COLUMNS = ["name", "sex", "birth", "locationid", "clubid"];
 
-export const MAX_VARIATION = 100;
+const isRatingType = (value: string): value is RatingType => (RATING_TYPES as readonly string[]).includes(value);
+
+const MAX_VARIATION = 100;
 
 export function columnsError(headerMap: Record<string, number>): string | null {
   const available = Object.keys(headerMap);
@@ -33,7 +34,7 @@ export interface ImportRow {
   sex?: "male" | "female";
   clubId?: number;
   locationId?: number;
-  tournament?: { tournamentId: number; variation: number; ratingType: ImportRatingType };
+  tournament?: { tournamentId: number; variation: number; ratingType: RatingType };
   error?: string;
 }
 
@@ -72,7 +73,7 @@ export function parseImportRow(cells: unknown[], headerMap: Record<string, numbe
   const isTournamentUpdate =
     tournamentId !== undefined || variation !== undefined || ratingTypeRaw !== undefined;
   if (isTournamentUpdate) {
-    if (tournamentId === undefined || variation === undefined || !ratingTypeRaw || !RATING_TYPES.includes(ratingTypeRaw)) {
+    if (tournamentId === undefined || variation === undefined || !ratingTypeRaw || !isRatingType(ratingTypeRaw)) {
       return {
         ...row,
         error: "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be valid.",
@@ -87,7 +88,7 @@ export function parseImportRow(cells: unknown[], headerMap: Record<string, numbe
         error: `Invalid variation value '${variationRaw}'. Must be an integer between -${MAX_VARIATION} and ${MAX_VARIATION}.`,
       };
     }
-    row.tournament = { tournamentId, variation, ratingType: ratingTypeRaw as ImportRatingType };
+    row.tournament = { tournamentId, variation, ratingType: ratingTypeRaw };
   }
   if (Number.isNaN(id) || id < 0) {
     return { ...row, error: "Invalid or missing 'id'. ID must be 0 or positive." };

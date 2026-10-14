@@ -14,7 +14,7 @@ import {
 } from "@tanstack/react-table";
 
 import { Button } from "@fsx/ui/components/button";
-import { PlayerActions } from "@/components/campeoes/actions";
+import { PlayerSheetButton } from "@/components/player/player-sheet-button";
 import { EmptyTableRow } from "@/components/data-table/empty-table-row";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import {
@@ -149,7 +149,7 @@ function ClubPlayersDetail({ players, phases }: { players: PlayerRow[]; phases: 
           {players.map((player) => (
             <tr className="border-b last:border-0" key={player.id}>
               <td className="py-2 pr-2">
-                <PlayerActions
+                <PlayerSheetButton
                   id={player.id}
                   image={player.imageUrl}
                   name={player.name}

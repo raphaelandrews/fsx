@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { personJsonLd, stripMarkdown, truncate } from "./seo";
+import { articleJsonLd, buildSeo, personJsonLd, serializeJsonLd, stripMarkdown, truncate } from "./seo";
 
 describe("meta descriptions", () => {
   test("strip Markdown syntax before truncating", () => {
@@ -21,5 +21,15 @@ describe("structured data", () => {
     expect(personJsonLd({ name: "Ana", path: "/jogadores/1", image: "/api/media/players/a.webp" }).image).toBe(
       "https://www.fsx.org.br/api/media/players/a.webp",
     );
+  });
+});
+
+describe("JSON-LD serialization", () => {
+  test("cannot close the script element from user text", () => {
+    const block = articleJsonLd({ title: "</script><script>alert(1)</script>", path: "/noticias/x" });
+    const { scripts } = buildSeo({ title: "x", jsonLd: block });
+    expect(scripts[0]!.children).not.toContain("<");
+    expect(JSON.parse(scripts[0]!.children)).toEqual(JSON.parse(JSON.stringify(block)));
+    expect(serializeJsonLd({ a: "<b>" })).toBe('{"a":"\\u003cb>"}');
   });
 });

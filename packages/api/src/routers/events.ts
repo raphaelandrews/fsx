@@ -8,61 +8,38 @@ import { links } from "@fsx/db/schema/links";
 import { EVENT_LINK_TYPES } from "../event-link-types";
 import { iconForLinkLabel } from "../link-icons";
 import { adminProcedure, publicProcedure, router } from "../index";
+import type { Context } from "../context";
 import { requireMutationRows } from "../errors";
-import { requireOwnedEventLink, validateEventLinkTypes } from "./event-links";
-import { isoDate, nameText, optionalHttpUrl, positiveInt, sortOrder } from "../input-schemas";
+import { requireOwnedEventLink, validateEventLinkTypes } from "../services/event-links";
+import { idInput, isoDate, nameText, optionalHttpUrl, positiveInt, sortOrder } from "../input-schemas";
+import { federationToday } from "../lib/dates";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const UPCOMING_EVENTS_LIMIT = 12;
 
-const todayInSaoPaulo = () =>
-  new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Sao_Paulo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+const listEvents = (db: Context["db"], options: { upcoming: boolean; limit: number }) =>
+  db.query.events.findMany({
+    columns: { id: true, name: true, startDate: true },
+    with: {
+      linkGroup: {
+        columns: { id: true },
+        with: {
+          links: {
+            limit: PUBLIC_NESTED_COLLECTION_LIMIT,
+            columns: { id: true, href: true, label: true, icon: true, type: true, sortOrder: true },
+            orderBy: (l, { asc }) => [asc(l.sortOrder), asc(l.id)],
+          },
+        },
+      },
+    },
+    where: options.upcoming ? gte(events.startDate, federationToday()) : undefined,
+    orderBy: (e, { asc }) => [asc(e.startDate), asc(e.id)],
+    limit: options.limit,
+  });
 
 export const eventsRouter = router({
-  upcoming: publicProcedure.query(({ ctx }) =>
-    ctx.db.query.events.findMany({
-      columns: { id: true, name: true, startDate: true },
-      with: {
-        linkGroup: {
-          columns: { id: true },
-          with: {
-            links: {
-              limit: PUBLIC_NESTED_COLLECTION_LIMIT,
-              columns: { id: true, href: true, label: true, icon: true, type: true, sortOrder: true },
-              orderBy: (l, { asc }) => [asc(l.sortOrder), asc(l.id)],
-            },
-          },
-        },
-      },
-      where: gte(events.startDate, todayInSaoPaulo()),
-      orderBy: (e, { asc }) => [asc(e.startDate), asc(e.id)],
-      limit: UPCOMING_EVENTS_LIMIT,
-    })
-  ),
-  list: publicProcedure.query(({ ctx }) =>
-    ctx.db.query.events.findMany({
-      columns: { id: true, name: true, startDate: true },
-      with: {
-        linkGroup: {
-          columns: { id: true },
-          with: {
-            links: {
-              limit: PUBLIC_NESTED_COLLECTION_LIMIT,
-              columns: { id: true, href: true, label: true, icon: true, type: true, sortOrder: true },
-              orderBy: (l, { asc }) => [asc(l.sortOrder), asc(l.id)],
-            },
-          },
-        },
-      },
-      orderBy: (e, { asc }) => [asc(e.startDate), asc(e.id)],
-      limit: PUBLIC_COLLECTION_LIMIT,
-    })
-  ),
+  upcoming: publicProcedure.query(({ ctx }) => listEvents(ctx.db, { upcoming: true, limit: UPCOMING_EVENTS_LIMIT })),
+  list: publicProcedure.query(({ ctx }) => listEvents(ctx.db, { upcoming: false, limit: PUBLIC_COLLECTION_LIMIT })),
   create: adminProcedure
     .input(insertEventSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
       name: nameText,
@@ -84,7 +61,7 @@ export const eventsRouter = router({
       )
     ),
   delete: adminProcedure
-    .input(z.object({ id: positiveInt }))
+    .input(idInput)
     .mutation(async ({ ctx, input }) =>
       requireMutationRows(
         await ctx.db.delete(events).where(eq(events.id, input.id)).returning({ id: events.id }),

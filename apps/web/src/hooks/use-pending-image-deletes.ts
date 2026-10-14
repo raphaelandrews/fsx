@@ -29,11 +29,7 @@ export function usePendingImageDeletes() {
 
   const deleteUrls = useCallback(
     async (urls: string[]) => {
-      if (urls.length === 0) return;
-      const results = await Promise.allSettled(
-        urls.map((url) => trpc.images.delete.mutate({ url })),
-      );
-      return urls.filter((_, i) => results[i]?.status === "rejected");
+      await Promise.allSettled(urls.map((url) => trpc.images.delete.mutate({ url })));
     },
     [trpc],
   );

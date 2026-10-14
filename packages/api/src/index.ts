@@ -119,7 +119,7 @@ const errorBoundary = t.middleware(async ({ next, path, ctx }) => {
     throw error;
   }
 
-  if (Array.isArray(result.data) && result.data.length >= PUBLIC_COLLECTION_LIMIT) {
+  if (Array.isArray(result.data) && result.data.length === PUBLIC_COLLECTION_LIMIT) {
     console.warn("[resource] collection reached its row cap", {
       path,
       requestId: ctx.requestId,

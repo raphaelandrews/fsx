@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test";
 
-import { getProcedureCachePolicy, hasSessionCookie, isSuccessfulTrpcPayload, resolveProcedureTtl, shouldCachePublicQuery } from "./cache-policy";
+import { getProcedureCachePolicy, hasSessionCookie, isSuccessfulTrpcPayload, shouldCachePublicQuery } from "./cache-policy";
 
 describe("cache policy", () => {
   test("uses the shortest TTL in a batched request", () => {
-    expect(resolveProcedureTtl("/api/trpc/clubs.list,players.search")).toBe(30);
+    expect(getProcedureCachePolicy("/api/trpc/clubs.list,players.search").ttlSeconds).toBe(30);
   });
 
-  test("uses the default TTL for unknown procedures", () => {
-    expect(resolveProcedureTtl("/api/trpc/private.unknown")).toBe(60);
+  test("never caches unknown or non-public procedures", () => {
+    expect(getProcedureCachePolicy("/api/trpc/private.unknown").ttlSeconds).toBe(0);
     expect(getProcedureCachePolicy("/api/trpc/private.unknown").classification).toBe("never");
     expect(getProcedureCachePolicy("/api/trpc/players.page").classification).toBe("never");
     expect(getProcedureCachePolicy("/api/trpc/clubs.list,private.unknown").classification).toBe("never");

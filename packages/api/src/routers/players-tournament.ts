@@ -4,22 +4,18 @@ import { asc, eq } from "drizzle-orm";
 import { playersToTournaments } from "@fsx/db/schema/players-to-tournaments";
 
 import { adminProcedure, router } from "../index";
-import { positiveInt } from "../input-schemas";
-
+import { idInput, positiveInt, rating, ratingTypeSchema } from "../input-schemas";
+import { federationToday } from "../lib/dates";
+import { MAX_RATING, RATING_TYPES } from "../rating-types";
 import {
   applyRatingUpdate,
   correctRatingVariation,
-  RATING_TYPES,
   removeRatingResult,
   revertTournamentRatings,
   snapshotRankings,
-} from "./rating-update";
+} from "../services/rating-update";
 
-const ratingTypeEnum = z.enum(RATING_TYPES);
-
-// The federation's calendar day, not UTC's, around midnight.
-const federationToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
-const variation = z.number().int().safe().min(-4000).max(4000);
+const variation = z.number().int().safe().min(-MAX_RATING).max(MAX_RATING);
 
 export const playersTournamentRouter = router({
   linkWithRating: adminProcedure
@@ -27,14 +23,12 @@ export const playersTournamentRouter = router({
       playerId: positiveInt,
       tournamentId: positiveInt,
       variation,
-      ratingType: ratingTypeEnum,
+      ratingType: ratingTypeSchema,
     }))
-    .mutation(async ({ ctx, input }) => {
-      return applyRatingUpdate(ctx.db, input);
-    }),
+    .mutation(({ ctx, input }) => applyRatingUpdate(ctx.db, input)),
 
   snapshotRankings: adminProcedure
-    .input(z.object({ ratingTypes: z.array(ratingTypeEnum).min(1).max(RATING_TYPES.length) }))
+    .input(z.object({ ratingTypes: z.array(ratingTypeSchema).min(1).max(RATING_TYPES.length) }))
     .mutation(({ ctx, input }) => snapshotRankings(ctx.db, input.ratingTypes, federationToday())),
 
   listByPlayer: adminProcedure
@@ -60,11 +54,11 @@ export const playersTournamentRouter = router({
     ),
 
   correctVariation: adminProcedure
-    .input(z.object({ id: positiveInt, variation, oldRating: z.number().int().min(0).max(4000).optional() }))
+    .input(z.object({ id: positiveInt, variation, oldRating: rating.optional() }))
     .mutation(({ ctx, input }) => correctRatingVariation(ctx.db, input)),
 
   remove: adminProcedure
-    .input(z.object({ id: positiveInt }))
+    .input(idInput)
     .mutation(({ ctx, input }) => removeRatingResult(ctx.db, input)),
 
   revertTournament: adminProcedure

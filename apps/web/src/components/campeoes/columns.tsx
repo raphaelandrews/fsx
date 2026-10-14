@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
-import { PlayerActions } from "./actions"
+import { PlayerSheetButton } from "@/components/player/player-sheet-button"
 
 export interface ChampionPodiumPlayer {
   id: number
@@ -43,7 +43,7 @@ export const championColumns: ColumnDef<ChampionTournament>[] = [
       return (
         <div className="flex items-center gap-3">
           {champions.map((player) => (
-            <PlayerActions
+            <PlayerSheetButton
               key={player.id}
               id={player.id}
               image={player.imageUrl}
@@ -68,7 +68,7 @@ export const championColumns: ColumnDef<ChampionTournament>[] = [
       return (
         <div className="flex items-center gap-3">
           {runnerUps.map((player) => (
-            <PlayerActions
+            <PlayerSheetButton
               key={player.id}
               id={player.id}
               image={player.imageUrl}

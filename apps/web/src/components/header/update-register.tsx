@@ -55,11 +55,11 @@ export function UpdateRegister() {
         </div>
         <div className="mt-2 space-y-2">
           <p className="font-medium text-base">
-            Preencha o formulario para atualizar seus dados e obtenha o selo de
-            verificado em seu perfil e outras informacoes!
+            Preencha o formulário para atualizar seus dados e obtenha o selo de
+            verificado em seu perfil e outras informações!
           </p>
           <p className="font-medium text-base">
-            Tambem sera possivel adicionar uma foto de perfil.
+            Também será possível adicionar uma foto de perfil.
           </p>
         </div>
         <a

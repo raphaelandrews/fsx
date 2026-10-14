@@ -3,7 +3,7 @@ import { eq, asc } from "drizzle-orm";
 
 import { roles, insertRoleSchema } from "@fsx/db/schema/roles";
 import { adminProcedure, publicProcedure, router } from "../index";
-import { nameText, positiveInt } from "../input-schemas";
+import { idInput, nameText, positiveInt } from "../input-schemas";
 import { deleteById } from "../crud";
 import { requireMutationRows } from "../errors";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
@@ -52,6 +52,6 @@ export const rolesRouter = router({
       )
     ),
   delete: adminProcedure
-    .input(z.object({ id: positiveInt }))
+    .input(idInput)
     .mutation(({ ctx, input }) => deleteById(ctx.db, roles, input.id, "Role")),
 });

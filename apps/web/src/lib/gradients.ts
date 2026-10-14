@@ -1,4 +1,4 @@
-export const meshGradients = [
+const meshGradients = [
   {
     backgroundColor: "oklch(0.93 0.03 80)",
     backgroundImage: `radial-gradient(at 73% 56%, oklch(0.86 0.12 85) 0px, transparent 50%), radial-gradient(at 68% 18%, oklch(0.84 0.09 355) 0px, transparent 50%), radial-gradient(at 33% 10%, oklch(0.85 0.10 12) 0px, transparent 50%), radial-gradient(at 89% 46%, oklch(0.86 0.09 40) 0px, transparent 50%)`,

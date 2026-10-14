@@ -8,7 +8,7 @@ import {
   InputGroupInput,
 } from "@fsx/ui/components/input-group"
 
-import { useTableText } from "@/lib/table-text"
+import { useTableText } from "@/hooks/use-table-text"
 
 interface SearchInputProps
   extends Omit<React.ComponentProps<typeof InputGroupInput>, "type"> {

@@ -203,7 +203,7 @@ sub-items are 36px pills. The footer holds the user menu. Collapsed (`ctrl+b` or
 (groups flattened), and the avatar at the bottom. On phones the sidebar is a drawer opened from the
 top bar of the panel, which also carries the
 breadcrumb, built from `ADMIN_NAV`
-(`components/header/admin-nav-data.tsx`), so add new admin pages there.
+(`components/admin/admin-nav-data.tsx`), so add new admin pages there.
 
 ### Header
 

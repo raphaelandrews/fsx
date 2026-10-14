@@ -17,15 +17,8 @@ export function Hero({ posts }: PostsSectionProps) {
   return (
     <Section main={true}>
       <div className="relative grid sm:grid-cols-2 gap-6">
-        {mainPosts?.map((post: FreshPost) => (
-          <div key={post.id}>
-            <PostCard
-              imageUrl={post.imageUrl ?? null}
-              main={true}
-              slug={post.slug ?? undefined}
-              title={post.title}
-            />
-          </div>
+        {mainPosts.map((post) => (
+          <PostCard key={post.id} main imageUrl={post.imageUrl} slug={post.slug} title={post.title} />
         ))}
       </div>
     </Section>

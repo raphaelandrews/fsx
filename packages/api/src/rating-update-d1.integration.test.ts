@@ -6,7 +6,7 @@ import { players } from "@fsx/db/schema/players";
 import { playersToTournaments } from "@fsx/db/schema/players-to-tournaments";
 import { tournaments } from "@fsx/db/schema/tournaments";
 
-import { applyRatingUpdate } from "./routers/rating-update";
+import { applyRatingUpdate } from "./services/rating-update";
 import { createTestD1 } from "./test-d1";
 
 describe("D1 migration and rating integration", () => {

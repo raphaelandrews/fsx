@@ -8,7 +8,7 @@ import type { AppRouter } from "@fsx/api/routers/index";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
 
-import { Announcement } from "@/components/announcements/announcement";
+import { SectionHeading } from "@/components/section-heading";
 import { PageHeader } from "@/components/page-header";
 import { ListSkeleton } from "@/components/skeletons/list-skeleton";
 import { getGradient } from "@/lib/gradients";
@@ -117,7 +117,7 @@ function RouteComponent() {
       />
 
       <section className="mb-8">
-        <Announcement label="Diretoria" icon={CrownIcon} />
+        <SectionHeading label="Diretoria" icon={CrownIcon} />
         {diretoria.length === 0 ? (
           <EmptyState message="Nenhum membro da diretoria cadastrado." />
         ) : (
@@ -126,7 +126,7 @@ function RouteComponent() {
       </section>
 
       <section>
-        <Announcement label="Árbitros" icon={Flag01Icon} />
+        <SectionHeading label="Árbitros" icon={Flag01Icon} />
         {refereeGroups.length === 0 ? (
           <EmptyState message="Nenhum árbitro cadastrado." />
         ) : (

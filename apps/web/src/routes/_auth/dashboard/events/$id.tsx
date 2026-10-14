@@ -6,7 +6,7 @@ import { resolveEventLinkType } from "@fsx/api/event-link-types";
 
 import { EventForm } from "@/components/admin/event-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { useAdminMutation, useInvalidateAdmin } from "@/lib/admin-mutations";
 import { showMutationError } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";

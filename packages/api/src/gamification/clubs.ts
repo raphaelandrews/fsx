@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 
 import type { Context } from "../context";
 import { storedOrComputed } from "./computed";
-import { RATING_TYPES, type RatingType } from "../routers/rating-update";
+import { RATING_TYPES, type RatingType } from "../rating-types";
 
 // A club is ranked by the average of its best active players; with fewer than
 // this many active members one strong player could carry it, so it is unranked.

@@ -1,7 +1,7 @@
 import { ChartBarLineIcon, Medal01Icon, Book01Icon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { Announcement } from "@/components/announcements/announcement";
+import { SectionHeading } from "@/components/section-heading";
 import { ratingVariations, titulations } from "@/components/normas-tecnicas/data";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@fsx/ui/components/accordion";
 
@@ -32,7 +32,7 @@ function RouteComponent() {
       />
 
       <section aria-label="Titulações">
-        <Announcement icon={Medal01Icon} label="Titulações" />
+        <SectionHeading icon={Medal01Icon} label="Titulações" />
         <Accordion className="mx-3 w-auto">
           {titulations.map((item) => (
             <AccordionItem key={item.title} value={item.title}>
@@ -49,7 +49,7 @@ function RouteComponent() {
       </section>
 
       <section aria-label="Variação de rating" className="mt-6">
-        <Announcement icon={ChartBarLineIcon} label="Variação de rating" />
+        <SectionHeading icon={ChartBarLineIcon} label="Variação de rating" />
         {ratingVariations.map((item) => (
           <div key={item.title} className="px-3">
             <p className="text-muted-foreground text-sm">{item.description}</p>

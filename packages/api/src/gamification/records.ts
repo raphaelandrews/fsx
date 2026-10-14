@@ -1,4 +1,4 @@
-import { RATING_TYPES, type RatingType } from "../routers/rating-update";
+import { RATING_TYPES, type RatingType } from "../rating-types";
 import type { PlayerLevel } from "./level";
 import type { PlayerStats, Provenance } from "./stats";
 

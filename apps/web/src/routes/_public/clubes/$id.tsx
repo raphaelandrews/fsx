@@ -5,7 +5,7 @@ import { UserGroupIcon } from "@hugeicons/core-free-icons";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fsx/ui/components/table";
 
-import { Announcement } from "@/components/announcements/announcement";
+import { SectionHeading } from "@/components/section-heading";
 import { ClubLogo } from "@/components/clubes/club-logo";
 import { Medal } from "@/components/gamification/medal";
 import { StatTile } from "@/components/gamification/stat-tile";
@@ -77,7 +77,7 @@ function RouteComponent() {
       </div>
 
       <section aria-label="Jogadores" className="mt-6">
-        <Announcement icon={UserGroupIcon} label="Jogadores" className="text-base" />
+        <SectionHeading icon={UserGroupIcon} label="Jogadores" className="text-base" />
         {members.length === 0 ? (
           <p className="px-3 text-muted-foreground text-base">Nenhum jogador cadastrado neste clube.</p>
         ) : (

@@ -34,18 +34,13 @@ import {
   DialogTrigger,
 } from "@fsx/ui/components/dialog"
 
+const SKELETON_ROWS = Array.from({ length: 10 }, (_, row) => row)
+
 const LoadingSkeleton = () => (
   <div className="grid gap-1">
-    <Skeleton className="h-9 w-full rounded-full" />
-    <Skeleton className="h-9 w-full rounded-full" />
-    <Skeleton className="h-9 w-full rounded-full" />
-    <Skeleton className="h-9 w-full rounded-full" />
-    <Skeleton className="h-9 w-full rounded-full" />
-    <Skeleton className="h-9 w-full rounded-full" />
-    <Skeleton className="h-9 w-full rounded-full" />
-    <Skeleton className="h-9 w-full rounded-full" />
-    <Skeleton className="h-9 w-full rounded-full" />
-    <Skeleton className="h-9 w-full rounded-full" />
+    {SKELETON_ROWS.map((row) => (
+      <Skeleton key={row} className="h-9 w-full rounded-full" />
+    ))}
   </div>
 )
 

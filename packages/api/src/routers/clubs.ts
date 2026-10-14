@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, asc, desc, sql } from "drizzle-orm";
+import { eq, asc, desc } from "drizzle-orm";
 
 import { clubs, insertClubSchema } from "@fsx/db/schema/clubs";
 import { players } from "@fsx/db/schema/players";
@@ -7,17 +7,9 @@ import { loadClubStandings } from "../gamification/clubs";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { emblemUrl, idInput, nameText, positiveInt, searchText } from "../input-schemas";
-import { deleteMediaUrl, deleteReplacedMedia } from "./images";
+import { deleteMediaUrl, deleteReplacedMedia } from "../services/media-storage";
 import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
-import { escapeLike, like } from "../lib/sql-like";
-
-function normalizeClubName(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .trim();
-}
+import { matchesAllWords, SEARCH_RESULT_LIMIT, SEARCH_SCAN_LIMIT, searchWords } from "../lib/name-search";
 
 export const clubsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -53,15 +45,13 @@ export const clubsRouter = router({
   search: publicProcedure
     .input(z.object({ query: searchText }))
     .query(async ({ ctx, input }) => {
-      const q = normalizeClubName(input.query);
-      const words = q.split(/\s+/).filter(Boolean);
+      const words = searchWords(input.query);
       const rows = await ctx.db
         .select({ id: clubs.id, name: clubs.name })
         .from(clubs)
-        .where(words.length ? like(sql`lower(${clubs.name})`, `%${words.map(escapeLike).join("%")}%`) : undefined)
         .orderBy(asc(clubs.name), asc(clubs.id))
-        .limit(10);
-      return rows;
+        .limit(SEARCH_SCAN_LIMIT);
+      return rows.filter((club) => matchesAllWords(club.name, words)).slice(0, SEARCH_RESULT_LIMIT);
     }),
   create: adminProcedure
     .input(insertClubSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
@@ -91,7 +81,7 @@ export const clubsRouter = router({
       await deleteReplacedMedia(previous?.logoUrl, input.logoUrl);
       return updated;
     }),
-  delete: adminProcedure.input(z.object({ id: positiveInt })).mutation(async ({ ctx, input }) => {
+  delete: adminProcedure.input(idInput).mutation(async ({ ctx, input }) => {
     // Delete the row first: if a foreign key blocks it, the logo must survive.
     const deleted = requireMutationRows(
       await ctx.db

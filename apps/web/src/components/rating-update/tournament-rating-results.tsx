@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { AdminSection } from "@/components/admin/form-layout";
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { RowLink } from "@/components/data-table/row-link";

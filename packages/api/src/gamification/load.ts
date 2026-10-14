@@ -11,7 +11,8 @@ import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
 
 import type { CompetitionTier } from "../circuit-types";
 import type { Context } from "../context";
-import type { RatingType } from "../routers/rating-update";
+import { federationYear } from "../lib/dates";
+import type { RatingType } from "../rating-types";
 import { achievementsOf, upcomingOf } from "./badges";
 import { PLAYER_RESULTS_LIMIT, STARTING_RATING } from "./constants";
 import { playerLevel, type LevelInput } from "./level";
@@ -226,8 +227,6 @@ export async function loadPlayerStats(db: Context["db"], playerId: number) {
   if (!career) return undefined;
   const stats = playerStats(career.input);
   const upcoming = upcomingOf(stats);
-  // The federation's year, not UTC's, for youth title ages around New Year.
-  const year = Number(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric" }).format(new Date()));
   return {
     stats,
     level: playerLevel(career.input, stats),
@@ -239,7 +238,7 @@ export async function loadPlayerStats(db: Context["db"], playerId: number) {
       sex: career.player.sex,
       birthDate: career.player.birthDate,
       heldShortNames: career.titleShortNames,
-      year,
+      year: federationYear(),
     }),
     tournaments: career.tournaments,
   };

@@ -4,11 +4,9 @@ import { eq } from "drizzle-orm";
 import { cups } from "@fsx/db/schema/cups";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
-import { idInput, imageUrl, isoDate, nameText, positiveInt, points } from "../input-schemas";
-import { deleteMediaUrl, deleteReplacedMedia } from "./images";
+import { idInput, imageUrl, isoDate, nameText, positiveInt, points, ratingTypeSchema } from "../input-schemas";
+import { deleteMediaUrl, deleteReplacedMedia } from "../services/media-storage";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
-
-const ratingTypeEnum = z.enum(["blitz", "rapid", "classic"]);
 
 const endsAfterStart = (value: { startDate?: string; endDate?: string }) =>
   value.startDate === undefined || value.endDate === undefined || value.endDate >= value.startDate;
@@ -108,7 +106,7 @@ export const cupsRouter = router({
           startDate: isoDate,
           endDate: isoDate,
           prizePool: points,
-          ratingType: ratingTypeEnum,
+          ratingType: ratingTypeSchema,
           championshipId: positiveInt.nullable().optional(),
         })
         .refine(endsAfterStart, DATE_ORDER_MESSAGE),
@@ -125,7 +123,7 @@ export const cupsRouter = router({
           startDate: isoDate.optional(),
           endDate: isoDate.optional(),
           prizePool: points.optional(),
-          ratingType: ratingTypeEnum.optional(),
+          ratingType: ratingTypeSchema.optional(),
           championshipId: positiveInt.nullable().optional(),
         })
         .refine(endsAfterStart, DATE_ORDER_MESSAGE),

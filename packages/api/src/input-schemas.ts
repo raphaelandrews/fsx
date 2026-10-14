@@ -1,10 +1,13 @@
 import { z } from "zod";
 
 import { mediaPathPatternFor, type MediaKind } from "./media-kinds";
+import { MAX_RATING, RATING_TYPES } from "./rating-types";
 
 export const positiveInt = z.number().int().safe().min(1);
 export const nonNegativeInt = z.number().int().safe().min(0);
-export const rating = z.number().int().safe().min(0).max(4000);
+export const rating = z.number().int().safe().min(0).max(MAX_RATING);
+export const ratingTypeSchema = z.enum(RATING_TYPES);
+export const sexSchema = z.enum(["male", "female"]);
 export const points = z.number().int().safe().min(0).max(1_000_000);
 export const sortOrder = nonNegativeInt.max(100_000);
 

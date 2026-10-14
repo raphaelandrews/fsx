@@ -12,11 +12,10 @@ import {
 import { clubs } from "@fsx/db/schema/clubs";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireMutationRows } from "../errors";
-import { idInput, positiveInt } from "../input-schemas";
+import { idInput, positiveInt, sexSchema } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const ageGroupEnum = z.enum(AGE_GROUPS);
-const sexEnum = z.enum(["male", "female"]);
 const modalityEnum = z.enum(["individual", "team"]);
 const teamNameEnum = z.enum(TEAM_NAMES);
 
@@ -26,7 +25,7 @@ const resultInput = z
     playerId: positiveInt.nullable().optional(),
     teamName: teamNameEnum.nullable().optional(),
     ageGroup: ageGroupEnum,
-    sex: sexEnum,
+    sex: sexSchema,
     modality: modalityEnum,
     place: z.number().int().min(1).max(8),
   })
@@ -41,6 +40,17 @@ const resultInput = z
 
 const medalColumn = (place: number) =>
   sql<number>`sum(case when ${tvSergipe.place} = ${place} then (case when ${tvSergipe.modality} = 'team' then ${TEAM_MEDAL_WEIGHT} else ${INDIVIDUAL_MEDAL_WEIGHT} end) else 0 end)`;
+
+const resultRow = (input: z.infer<typeof resultInput>) => ({
+  clubId: input.clubId,
+  playerId: input.modality === "individual" ? input.playerId : null,
+  teamName: input.modality === "team" ? input.teamName : null,
+  ageGroup: input.ageGroup,
+  sex: input.sex,
+  modality: input.modality,
+  place: input.place,
+  points: PLACE_POINTS[input.place]!,
+});
 
 export const tvSergipeRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -69,7 +79,7 @@ export const tvSergipeRouter = router({
       z
         .object({
           ageGroup: ageGroupEnum.optional(),
-          sex: sexEnum.optional(),
+          sex: sexSchema.optional(),
           modality: modalityEnum.optional(),
         })
         .optional()
@@ -100,44 +110,15 @@ export const tvSergipeRouter = router({
     }),
   create: adminProcedure
     .input(resultInput)
-    .mutation(async ({ ctx, input }) => {
-      const points = PLACE_POINTS[input.place]!;
-      return ctx.db
-        .insert(tvSergipe)
-        .values({
-          clubId: input.clubId,
-          playerId: input.modality === "individual" ? input.playerId : null,
-          teamName: input.modality === "team" ? input.teamName : null,
-          ageGroup: input.ageGroup,
-          sex: input.sex,
-          modality: input.modality,
-          place: input.place,
-          points,
-        })
-        .returning();
-    }),
+    .mutation(({ ctx, input }) => ctx.db.insert(tvSergipe).values(resultRow(input)).returning()),
   update: adminProcedure
     .input(resultInput.extend({ id: positiveInt }))
-    .mutation(async ({ ctx, input }) => {
-      const { id, ...rest } = input;
-      return requireMutationRows(
-        await ctx.db
-          .update(tvSergipe)
-          .set({
-          clubId: rest.clubId,
-          playerId: rest.modality === "individual" ? rest.playerId : null,
-          teamName: rest.modality === "team" ? rest.teamName : null,
-          ageGroup: rest.ageGroup,
-          sex: rest.sex,
-          modality: rest.modality,
-          place: rest.place,
-          points: PLACE_POINTS[rest.place]!,
-        })
-        .where(eq(tvSergipe.id, id))
-          .returning(),
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.update(tvSergipe).set(resultRow(input)).where(eq(tvSergipe.id, input.id)).returning(),
         "School result",
-      );
-    }),
+      ),
+    ),
   delete: adminProcedure
     .input(idInput)
     .mutation(async ({ ctx, input }) =>

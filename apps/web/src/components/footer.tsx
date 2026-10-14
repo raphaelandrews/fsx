@@ -1,10 +1,8 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { InstagramIcon, Mail02Icon } from "@hugeicons/core-free-icons";
 import { Link } from "@tanstack/react-router";
 
 import { Logo } from "@/components/logo";
+import { SocialLinks } from "@/components/social-links";
 
-import { buttonVariants } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
 const footerLinks = [
@@ -19,19 +17,6 @@ const footerLinks = [
   { label: "Membros", to: "/membros" },
   { label: "Titulados", to: "/titulados" },
   { label: "Sobre", to: "/sobre" },
-];
-
-const socials = [
-  {
-    label: "Instagram da FSX (@xadrezsergipe)",
-    href: "https://www.instagram.com/xadrezsergipe/",
-    icon: InstagramIcon,
-  },
-  {
-    label: "Enviar e-mail para a FSX",
-    href: "mailto:presidente@fsx.org.br",
-    icon: Mail02Icon,
-  },
 ];
 
 export function Footer({ className }: { className?: string }) {
@@ -51,20 +36,7 @@ export function Footer({ className }: { className?: string }) {
         />
 
         <div className="flex flex-col items-center gap-6">
-          <div className="flex items-center gap-3">
-            {socials.map(({ label, href, icon }) => (
-              <a
-                key={href}
-                aria-label={label}
-                className={buttonVariants({ variant: "secondary", size: "icon-xl", className: "active:scale-[0.96]" })}
-                href={href}
-                rel="noreferrer"
-                target={href.startsWith("mailto:") ? undefined : "_blank"}
-              >
-                <HugeiconsIcon className="size-5" icon={icon} strokeWidth={1.75} aria-hidden />
-              </a>
-            ))}
-          </div>
+          <SocialLinks className="flex items-center gap-3" />
 
           <nav
             aria-label="Rodapé"

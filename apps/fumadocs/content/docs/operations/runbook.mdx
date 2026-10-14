@@ -31,13 +31,31 @@ bun run db:restore-local ~/Backups/fsx-<stamp>/fsx-<stamp>.sql
 bun dev
 ```
 
-It wipes `.alchemy/miniflare/v3/d1`, restores the dump with the restore drill's
+Three commands fill the local database with real data. All of them leave out
+logins, OAuth tokens and sessions (sign in with GitHub locally), and none of them
+copies uploaded images, which stay in R2, so photos and logos do not load locally.
+
+| Command | Data | Needs |
+| --- | --- | --- |
+| `bun run db:seed:remote` | Current: exports the remote D1 into a private temporary directory and deletes the dump afterwards | `wrangler login` or `CLOUDFLARE_API_TOKEN`, and network |
+| `bun run db:seed:latest` | As old as the newest `fsx-*/fsx-*.sql` in `~/Backups` (`BACKUP_ROOT` changes the folder) | Only the file |
+| `bun packages/db/src/seed.ts --backup <file.sql>` | As old as that file | Only the file |
+
+Prefer `db:seed:remote` when you have Cloudflare access. If the export fails,
+it warns and falls back to the newest local backup. On a machine without access, or
+offline, copy a file made by `bun run db:backup` into `~/Backups/fsx-<stamp>/` (keep
+the `fsx-<stamp>.sql` name) and run `db:seed:latest`. A backup is about 4 MB (350 KB
+gzipped). It holds players' names and birth dates, many of them minors, so keep it
+in a private place and never commit it. `D1_DATABASE` picks another remote database.
+Plain `bun run db:seed` still inserts the small sample data set.
+
+`db:restore-local` itself wipes `.alchemy/miniflare/v3/d1`, restores the dump with the restore drill's
 loader, applies the migrations the backup predates, rebuilds `d1_migrations` in
 the shape Alchemy's local migrator expects (production's tracker requires an
 `applied_at` that Alchemy does not insert, so the next migration would fail), and
-clears `computed_results`. Don't run `bun run db:seed` afterwards. The local
-database then holds production accounts and personal data: keep it on your
-machine. To go back to seed data, stop dev, `rm -rf .alchemy/miniflare/v3/d1`,
+clears `computed_results`. Don't run `bun run db:seed` afterwards. Run directly,
+it keeps production accounts (the seed commands pass `--no-accounts`); either way
+the local database holds personal data, so keep it on your machine. To go back to seed data, stop dev, `rm -rf .alchemy/miniflare/v3/d1`,
 start `bun dev`, and run `bun run db:seed`.
 
 ## Deploy Smoke Test

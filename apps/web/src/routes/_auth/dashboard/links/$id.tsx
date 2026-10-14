@@ -9,7 +9,7 @@ import { Button } from "@fsx/ui/components/button";
 import { EntityForm, EntityFormDialog, type EntityField } from "@/components/admin/entity-form";
 import { AdminSection } from "@/components/admin/form-layout";
 import { AdminPageHeader } from "@/components/admin/page-header";
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";

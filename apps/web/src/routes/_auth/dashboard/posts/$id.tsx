@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { PostForm } from "@/components/admin/post-form";
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { orNotFound } from "@/lib/errors";

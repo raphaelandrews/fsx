@@ -1,4 +1,4 @@
-import { RATING_TYPES, type RatingType } from "../routers/rating-update";
+import { RATING_TYPES, type RatingType } from "../rating-types";
 import { achievementsOf } from "./badges";
 import { playerLevel, type LevelInput } from "./level";
 import { playerStats, type StatsInput } from "./stats";
@@ -78,4 +78,3 @@ export function playerSeason(input: CareerInput, year: number) {
   };
 }
 
-export type PlayerSeason = ReturnType<typeof playerSeason>;

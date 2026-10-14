@@ -47,3 +47,16 @@ describe("deleting a tournament with podiums", () => {
     });
   });
 });
+
+describe("searching tournaments and clubs by name", () => {
+  test("ignores accents and case on both sides", async () => {
+    const tournament = idOf(await caller.tournaments.create({ name: "Copa São Paulo de Xadrez", ratingType: "rapid" }));
+    const club = idOf(await caller.clubs.create({ name: "Clube Ação Rápida" }));
+
+    expect((await caller.tournaments.search({ query: "sao paulo" })).map((row) => row.id)).toEqual([tournament]);
+    expect((await caller.tournaments.search({ query: "SÃO xadrez" })).map((row) => row.id)).toEqual([tournament]);
+    expect((await caller.clubs.search({ query: "acao rapida" })).map((row) => row.id)).toEqual([club]);
+    expect((await caller.clubs.search({ query: "ação" })).map((row) => row.id)).toEqual([club]);
+    expect(await caller.tournaments.search({ query: "inexistente" })).toEqual([]);
+  });
+});

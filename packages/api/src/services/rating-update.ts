@@ -9,8 +9,7 @@ import { playersToTournaments, type NewPlayerToTournament } from "@fsx/db/schema
 import { rankingSnapshots } from "@fsx/db/schema/ranking-snapshots";
 import { tournaments } from "@fsx/db/schema/tournaments";
 
-export const RATING_TYPES = ["blitz", "rapid", "classic"] as const;
-export type RatingType = (typeof RATING_TYPES)[number];
+import { MAX_RATING, type RatingType } from "../rating-types";
 
 export interface RatingUpdateInput {
   playerId: number;
@@ -24,7 +23,7 @@ type RatingHistoryResult = Pick<NewPlayerToTournament, "oldRating" | "variation"
 
 export function calculateUpdatedRating(oldRating: number, variation: number): number {
   const updatedRating = oldRating + variation;
-  if (updatedRating < 0 || updatedRating > 4000) {
+  if (updatedRating < 0 || updatedRating > MAX_RATING) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Updated rating is outside the valid range" });
   }
   return updatedRating;
@@ -127,8 +126,8 @@ async function findHistoryRow(db: RatingDatabase, id: number) {
 }
 
 function assertRatingInRange(rating: number) {
-  if (rating < 0 || rating > 4000) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "The corrected rating would be outside 0–4000" });
+  if (rating < 0 || rating > MAX_RATING) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: `The corrected rating would be outside 0–${MAX_RATING}` });
   }
 }
 

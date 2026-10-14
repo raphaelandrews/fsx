@@ -3,8 +3,8 @@ import { eq, asc } from "drizzle-orm";
 
 import { locations, insertLocationSchema } from "@fsx/db/schema/locations";
 import { adminProcedure, publicProcedure, router } from "../index";
-import { emblemUrl, nameText, positiveInt } from "../input-schemas";
-import { deleteMediaUrl, deleteReplacedMedia } from "./images";
+import { emblemUrl, idInput, nameText, positiveInt } from "../input-schemas";
+import { deleteMediaUrl, deleteReplacedMedia } from "../services/media-storage";
 import { requireMutationRows } from "../errors";
 import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
@@ -45,7 +45,7 @@ export const locationsRouter = router({
       await deleteReplacedMedia(previous?.flagUrl, input.flagUrl);
       return updated;
     }),
-  delete: adminProcedure.input(z.object({ id: positiveInt })).mutation(async ({ ctx, input }) => {
+  delete: adminProcedure.input(idInput).mutation(async ({ ctx, input }) => {
     // Delete the row first: if a foreign key blocks it, the flag must survive.
     const deleted = requireMutationRows(
       await ctx.db

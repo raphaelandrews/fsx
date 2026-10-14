@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { TvSergipeForm, toTvSergipeInput } from "@/components/admin/tv-sergipe-form";
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { idParams } from "@/lib/route-params";
 import { useTRPC } from "@/lib/trpc";

@@ -55,10 +55,7 @@ function RouteComponent() {
       ) : (
         <ul className="grid md:grid-cols-2">
           {data.announcements.map((announcement) => (
-            <AnnouncementRow
-              key={announcement.id}
-              announcement={{ ...announcement, excerpt: announcement.content }}
-            />
+            <AnnouncementRow key={announcement.id} announcement={announcement} />
           ))}
         </ul>
       )}

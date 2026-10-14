@@ -21,7 +21,7 @@ import { DataTableFacetedFilter } from "@/components/data-table/data-table-facet
 import { SearchInput } from "@/components/data-table/search-input";
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
-import { PlayerActions } from "@/components/campeoes/actions";
+import { PlayerSheetButton } from "@/components/player/player-sheet-button";
 import { Movement } from "@/components/gamification/movement";
 import {
   ratingGroups,
@@ -269,7 +269,7 @@ function RouteComponent() {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <PlayerActions
+                  <PlayerSheetButton
                     id={player.id}
                     image={player.imageUrl}
                     name={player.name}

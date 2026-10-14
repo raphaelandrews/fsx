@@ -4,11 +4,9 @@ import { ArrowRight01Icon, ScrollIcon } from "@hugeicons/core-free-icons";
 
 import { padNumber } from "@/lib/format";
 
-export function AnnouncementRow({
-  announcement,
-}: {
-  announcement: { id: number; year: number; number: number; excerpt: string };
-}) {
+export type AnnouncementRowData = { id: number; year: number; number: number; excerpt: string };
+
+export function AnnouncementRow({ announcement }: { announcement: AnnouncementRowData }) {
   return (
     <li className="m-1">
       <Link

@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@fsx/ui/components/button";
 import { Badge } from "@fsx/ui/components/badge";
 
-import { MotionGrid } from "@/components/animate-ui/motion-grid";
-import { RotatingText } from "@/components/animate-ui/rotating";
+import { MotionGrid } from "@/components/rating-update/motion-grid";
+import { RotatingText } from "@/components/rating-update/rotating-text";
 
 import { motionGridStates, type AnimationState } from "./motion-grid-states";
 

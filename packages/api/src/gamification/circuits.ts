@@ -76,7 +76,15 @@ export async function loadPlayerCircuits(db: Context["db"], playerId: number): P
       })
       .from(circuitPodiums)
       .leftJoin(circuitPhases, eq(circuitPhases.id, circuitPodiums.circuitPhaseId))
-      .where(or(inArray(circuitPhases.circuitId, inProgress), inArray(circuitPodiums.circuitId, inProgress)))
+      .where(
+        or(
+          inArray(
+            circuitPodiums.circuitPhaseId,
+            db.select({ id: circuitPhases.id }).from(circuitPhases).where(inArray(circuitPhases.circuitId, inProgress)),
+          ),
+          inArray(circuitPodiums.circuitId, inProgress),
+        ),
+      )
       .limit(SEASON_POINTS_LIMIT);
     for (const id of inProgress) {
       const entry = seasons.get(id)!;

@@ -11,7 +11,7 @@ import { titles } from "@fsx/db/schema/titles";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { deleteById } from "../crud";
 import { requireMutationRows } from "../errors";
-import { nameText, positiveInt } from "../input-schemas";
+import { idInput, nameText, positiveInt } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 export const championsRouter = router({
@@ -126,6 +126,6 @@ export const championsRouter = router({
       )
     ),
   delete: adminProcedure
-    .input(z.object({ id: positiveInt }))
+    .input(idInput)
     .mutation(({ ctx, input }) => deleteById(ctx.db, championships, input.id, "Championship")),
 });

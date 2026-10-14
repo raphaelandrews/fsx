@@ -21,7 +21,7 @@ import {
 } from "@fsx/ui/components/popover"
 import { Separator } from "@fsx/ui/components/separator"
 
-import { useTableText } from "@/lib/table-text"
+import { useTableText } from "@/hooks/use-table-text"
 
 interface DataTableFacetedFilterOption {
   label: string

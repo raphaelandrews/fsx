@@ -1,13 +1,9 @@
-import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
-import { Button } from "@fsx/ui/components/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@fsx/ui/components/popover";
 
-import { PlayerSheetById } from "@/components/sheets/player/player-sheet-by-id";
-import { avatarGradient } from "@/components/avatar-gradient";
 import { championshipIcon } from "@/components/gamification/championship-icons";
+import { PlayerSheetButton } from "@/components/player/player-sheet-button";
 
 interface Props {
   id: number;
@@ -15,41 +11,13 @@ interface Props {
   nickname?: string | null;
   image?: string | null;
   shortName?: string | null;
-  defendingChampions?:
-  | {
-    championshipId: number;
-    championship: {
-      name: string;
-    };
-  }[]
-  | null;
+  defendingChampions?: { championshipId: number; championship: { name: string } }[] | null;
 }
 
-export const Actions = ({ id, name, nickname, image, shortName, defendingChampions }: Props) => {
-  const [open, setOpen] = useState(false);
-
+export function Actions({ id, name, nickname, image, shortName, defendingChampions }: Props) {
   return (
     <div className="flex items-center gap-3">
-      <PlayerSheetById
-        id={id}
-        open={open}
-        setOpen={setOpen}
-        trigger={
-          <Button
-            aria-label={`Ver perfil de ${name}`}
-            className="group flex h-auto items-center gap-3 rounded-md p-0 text-sm hover:bg-transparent dark:hover:bg-transparent aria-expanded:bg-transparent"
-            variant="ghost"
-          >
-            <Avatar className="size-8">
-              <AvatarImage alt={name} src={image ?? undefined} />
-              <AvatarFallback className={avatarGradient(id)} />
-            </Avatar>
-            <span className="whitespace-nowrap font-semibold underline-reveal underline-reveal-primary group-hover:after:left-0 group-hover:after:w-full group-focus-visible:after:left-0 group-focus-visible:after:w-full">
-              {shortName && <span className="text-warning">{shortName}</span>} {nickname ?? name}
-            </span>
-          </Button>
-        }
-      />
+      <PlayerSheetButton id={id} name={name} nickname={nickname} image={image} shortTitle={shortName} />
 
       {defendingChampions && (
         <div className="flex items-center gap-2">
@@ -68,4 +36,4 @@ export const Actions = ({ id, name, nickname, image, shortName, defendingChampio
       )}
     </div>
   );
-};
+}

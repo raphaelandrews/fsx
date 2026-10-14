@@ -1,9 +1,9 @@
-import { AnnouncementRow } from "@/components/announcements/announcement-row";
+import { AnnouncementRow, type AnnouncementRowData } from "@/components/announcements/announcement-row";
 
 export function PlayerAnnouncements({
   announcements,
 }: {
-  announcements: { id: number; year: number; number: number; excerpt: string }[];
+  announcements: AnnouncementRowData[];
 }) {
   if (announcements.length === 0) return null;
   return (

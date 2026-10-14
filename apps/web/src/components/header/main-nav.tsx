@@ -14,13 +14,12 @@ import {
   navigationMenuTriggerStyle,
 } from "@fsx/ui/components/navigation-menu";
 
-import { navigationData } from "./header-navigation-data";
+import { NAVIGATION } from "./header-navigation-data";
 import { Logo } from "../logo";
 import { LogoContextMenu } from "./logo-context-menu";
 
 export function MainNav() {
   const pathname = useLocation().pathname;
-  const items = navigationData();
 
   return (
     <div className="flex flex-1 items-center">
@@ -39,7 +38,7 @@ export function MainNav() {
       )}
       <NavigationMenu className="mx-auto hidden xl:block">
         <NavigationMenuList>
-          {items.map(({ label, items, href, target }) => {
+          {NAVIGATION.map(({ label, items, href, target }) => {
             const hasItems = Boolean(items?.length);
 
             if (hasItems) {

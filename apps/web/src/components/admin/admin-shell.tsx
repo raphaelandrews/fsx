@@ -6,7 +6,7 @@ import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@fsx/ui/components/sidebar";
 
 import { AdminSidebar, type SidebarUser } from "@/components/admin/admin-sidebar";
-import { findActiveNav } from "@/components/header/admin-nav-data";
+import { findActiveNav } from "@/components/admin/admin-nav-data";
 
 export function AdminShell({ user, children }: { user?: SidebarUser; children: ReactNode }) {
   return (

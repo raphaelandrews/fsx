@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@fsx/ui/components/dropdown-menu"
 
-import { useTableText } from "@/lib/table-text";
+import { useTableText } from "@/hooks/use-table-text";
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>;

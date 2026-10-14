@@ -6,11 +6,12 @@ import { buttonVariants } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
 import { resolveEventLinkType } from "@fsx/api/event-link-types";
+import { federationToday } from "@fsx/api/lib/dates";
 import type { AppRouter } from "@fsx/api/routers/index";
 
 import { Section } from "./section";
 
-type Event = inferRouterOutputs<AppRouter>["events"]["list"][number];
+type Event = inferRouterOutputs<AppRouter>["events"]["upcoming"][number];
 type EventLink = NonNullable<Event["linkGroup"]>["links"][number];
 
 const PREFERENCE: Record<string, number> = { form: 0, regulation: 1, results: 2 };
@@ -19,19 +20,12 @@ const DAY_MS = 86_400_000;
 const dayNumber = (isoDate: string) => Date.parse(`${isoDate.slice(0, 10)}T00:00:00Z`) / DAY_MS;
 
 export function Events({ events }: { events: Event[] }) {
-  // Fixed timezone so the server (UTC) and client pick the same "today" and
-  // avoid a hydration mismatch. en-CA yields an ISO YYYY-MM-DD string.
-  const today = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Sao_Paulo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+  // A fixed time zone keeps server (UTC) and client on the same "today", so hydration matches.
+  const today = federationToday();
 
-  const upcoming = [...events]
-    .filter((event) => (event.startDate ?? "").slice(0, 10) >= today)
-    .sort((a, b) => a.startDate.localeCompare(b.startDate))
-    .slice(0, 6);
+  // The API returns upcoming events in date order; the filter only drops ones a
+  // cached response kept past midnight.
+  const upcoming = events.filter((event) => event.startDate.slice(0, 10) >= today).slice(0, 6);
 
   if (upcoming.length === 0) return null;
 

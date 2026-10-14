@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { ADMIN_QUERY_DEPENDENTS, type AdminDomain } from "./admin-mutations";
+import { ADMIN_QUERY_DEPENDENTS, routersToInvalidate, type AdminDomain } from "./admin-mutations";
 
 const domains = Object.keys(ADMIN_QUERY_DEPENDENTS) as AdminDomain[];
 
@@ -30,5 +30,18 @@ describe("admin invalidation map", () => {
       "tvSergipe",
       "swissManager",
     ]));
+  });
+});
+
+describe("routersToInvalidate", () => {
+  test("lists a router once when several domains depend on it", () => {
+    const routers = routersToInvalidate(["players", "clubs", "locations"]);
+    expect(new Set(routers).size).toBe(routers.length);
+    expect(routers).toEqual(expect.arrayContaining(["players", "clubs", "locations", "swissManager"]));
+  });
+
+  test("accepts a single domain or none", () => {
+    expect(routersToInvalidate("norms")).toEqual(["norms"]);
+    expect(routersToInvalidate([])).toEqual([]);
   });
 });

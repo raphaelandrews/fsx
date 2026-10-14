@@ -5,7 +5,7 @@ import type { Miniflare } from "miniflare";
 import { createDb } from "@fsx/db";
 import { players } from "@fsx/db/schema/players";
 
-import { yearsBefore } from "./routers/rating-update";
+import { yearsBefore } from "./services/rating-update";
 import { createTestD1 } from "./test-d1";
 import { ownerCaller, type AdminCaller } from "./test-admin";
 import { mockWorkerEnv } from "./test-env";

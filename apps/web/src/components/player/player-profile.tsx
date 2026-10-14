@@ -30,7 +30,7 @@ import { Badge } from "@fsx/ui/components/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@fsx/ui/components/popover";
 import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 import { VerifiedBadge } from "@/components/player/verified-badge";
-import { Announcement } from "@/components/announcements/announcement";
+import { SectionHeading } from "@/components/section-heading";
 import { TotalRatingChart, VariationChart } from "@/components/player/player-charts";
 import { cn } from "@fsx/ui/lib/utils";
 import { avatarGradient, avatarGradientFor } from "@/components/avatar-gradient";
@@ -206,7 +206,7 @@ export function PlayerProfile({
       </div>
 
       <section className="mb-0">
-        <Announcement icon={ChartBarLineIcon} label="Ratings" />
+        <SectionHeading icon={ChartBarLineIcon} label="Ratings" />
 
         <div className="grid grid-cols-3 gap-2 px-2 sm:gap-4 sm:px-4">
           <RatingBox label="Clássico" value={player.classic} peak={stats.stats.formats.classic?.peak.rating} />
@@ -222,7 +222,7 @@ export function PlayerProfile({
         stats.upcoming.length > 0 ||
         (player.defendingChampions && player.defendingChampions?.length > 0)) && (
           <section className="mb-0">
-            <Announcement icon={Target01Icon} label="Conquistas" />
+            <SectionHeading icon={Target01Icon} label="Conquistas" />
             <div className="grid gap-6 px-3 pt-1 pb-4">
               <TrophyCabinet medals={stats.stats.medals} />
               <AchievementGrid achievements={achievements} upcoming={stats.upcoming} rarity={rarity} />
@@ -290,13 +290,13 @@ export function PlayerProfile({
 
       {stats.titlePath.length > 0 && (
         <section aria-label="Caminho para títulos">
-          <Announcement icon={Medal01Icon} label="Caminho para títulos" />
+          <SectionHeading icon={Medal01Icon} label="Caminho para títulos" />
           <PlayerTitlePath goals={stats.titlePath} />
         </section>
       )}
 
       <section className="mb-0">
-        <Announcement icon={InformationCircleIcon} label="Informações" />
+        <SectionHeading icon={InformationCircleIcon} label="Informações" />
 
         <dl className="flex flex-col divide-y px-3">
           <InfoItem label="Nome Completo" value={player.name} />
@@ -372,27 +372,27 @@ export function PlayerProfile({
 
       {stats.stats.tournamentsPlayed > 0 && (
         <section className="mb-0">
-          <Announcement icon={Analytics01Icon} label="Estatísticas" />
+          <SectionHeading icon={Analytics01Icon} label="Estatísticas" />
           <PlayerStats playerId={player.id} stats={stats.stats} tournaments={stats.tournaments} />
         </section>
       )}
 
       {circuitSeasons.length > 0 && (
         <section className="mb-0">
-          <Announcement icon={Route01Icon} label="Circuitos" />
+          <SectionHeading icon={Route01Icon} label="Circuitos" />
           <PlayerCircuits seasons={circuitSeasons} />
         </section>
       )}
 
       {announcements.length > 0 && (
         <section className="mb-0">
-          <Announcement icon={ScrollIcon} label="Comunicados" />
+          <SectionHeading icon={ScrollIcon} label="Comunicados" />
           <PlayerAnnouncements announcements={announcements} />
         </section>
       )}
 
       <section className="mb-0">
-        <Announcement icon={Link02Icon} label="IDs" />
+        <SectionHeading icon={Link02Icon} label="IDs" />
 
         <div className="grid grid-cols-3 gap-2 px-2 sm:gap-4 sm:px-4">
           <IdBox label="ID FSX" value={String(player.id)} />
@@ -411,7 +411,7 @@ export function PlayerProfile({
 
       {tournaments.length > 0 && (
         <section className="mb-0">
-          <Announcement icon={BarChartIcon} label="Performance" />
+          <SectionHeading icon={BarChartIcon} label="Performance" />
 
           <div className="p-4 space-y-6">
             <Tabs value={selectedRatingType} onValueChange={(value) => setSelectedRatingType(value as string)}>
@@ -434,7 +434,7 @@ export function PlayerProfile({
 
       {tournaments && tournaments.length > 0 && (
         <section className="mb-0">
-          <Announcement icon={Calendar01Icon} label="Histórico de Torneios" />
+          <SectionHeading icon={Calendar01Icon} label="Histórico de Torneios" />
           <div className="py-4">
             <DataTable
               columns={tournamentHistoryColumns}

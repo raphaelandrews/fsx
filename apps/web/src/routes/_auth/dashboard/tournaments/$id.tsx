@@ -5,7 +5,7 @@ import type { CompetitionTier } from "@fsx/api/circuit-types";
 
 import { EntityForm, optional, optionalNumber } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { TournamentPodiums } from "@/components/admin/tournament-podiums";
 import { TournamentRatingResults } from "@/components/rating-update/tournament-rating-results";
 import { useAdminMutation } from "@/lib/admin-mutations";

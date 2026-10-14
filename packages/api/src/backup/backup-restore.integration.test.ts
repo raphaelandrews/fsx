@@ -1,7 +1,10 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { Miniflare } from "miniflare";
 
-import { migrationRecorder } from "./backup-restore";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+
+import { ACCOUNT_TABLES, migrationRecorder, readBackup } from "./backup-restore";
 
 let miniflare: Miniflare;
 let db: D1Database;
@@ -52,5 +55,28 @@ describe("migrationRecorder", () => {
     await db.exec("DROP TABLE IF EXISTS d1_migrations");
     await db.exec("CREATE TABLE d1_migrations (id INTEGER PRIMARY KEY, name TEXT NOT NULL, checksum TEXT NOT NULL)");
     await expect(migrationRecorder(db)).rejects.toThrow("checksum");
+  });
+});
+
+describe("readBackup", () => {
+  test("keeps a table's schema but drops its rows when asked", async () => {
+    const dir = mkdtempSync(`${tmpdir()}/fsx-backup-test-`);
+    try {
+      const file = `${dir}/dump.sql`;
+      writeFileSync(
+        file,
+        `CREATE TABLE "user" (id TEXT PRIMARY KEY);
+CREATE TABLE clubs (id INTEGER PRIMARY KEY, name TEXT);
+INSERT INTO "user" VALUES ('secret');
+INSERT INTO clubs VALUES (1, 'Clube');
+CREATE INDEX clubs_name_idx ON clubs (name);`,
+      );
+      const { statements, expectedRows } = await readBackup(file, { excludeRows: ACCOUNT_TABLES });
+      expect(statements.some((statement) => statement.includes("secret"))).toBe(false);
+      expect(statements.filter((statement) => /^CREATE/i.test(statement))).toHaveLength(3);
+      expect([...expectedRows]).toEqual([["clubs", 1]]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

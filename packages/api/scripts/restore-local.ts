@@ -1,17 +1,20 @@
 // Replaces the local dev D1 (the one `bun dev` reads) with a production backup, so
 // the app can be checked against real data. Stop `bun dev` first.
-//   bun run db:restore-local ~/Backups/fsx-<stamp>/fsx-<stamp>.sql
+//   bun run db:restore-local ~/Backups/fsx-<stamp>/fsx-<stamp>.sql [--no-accounts]
+// --no-accounts leaves out logins, OAuth tokens and sessions.
 import { spawnSync } from "node:child_process";
 import { readFileSync, rmSync } from "node:fs";
 import { fileURLToPath, URL as NodeURL } from "node:url";
 
 import { Miniflare } from "miniflare";
 
-import { readBackup, restoreBackup } from "../src/backup/backup-restore";
+import { ACCOUNT_TABLES, readBackup, restoreBackup } from "../src/backup/backup-restore";
 
-const backupPath = process.argv[2];
+const args: string[] = process.argv.slice(2);
+const backupPath = args.find((arg: string) => !arg.startsWith("--"));
+const withoutAccounts = args.includes("--no-accounts");
 if (!backupPath) {
-  console.error("Usage: bun run db:restore-local <backup.sql>");
+  console.error("Usage: bun run db:restore-local <backup.sql> [--no-accounts]");
   process.exit(2);
 }
 
@@ -44,7 +47,7 @@ const miniflare = new Miniflare({
 
 try {
   const d1 = await miniflare.getD1Database("DB");
-  const backup = await readBackup(backupPath);
+  const backup = await readBackup(backupPath!, { excludeRows: withoutAccounts ? ACCOUNT_TABLES : [] });
   const { appliedAfterRestore, failures } = await restoreBackup(d1, backup);
   if (failures.length) throw new Error(`Restore failed:\n${failures.join("\n")}`);
 

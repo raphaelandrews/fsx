@@ -14,20 +14,17 @@ import {
 import { buttonVariants } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
-import { Announcement } from "@/components/announcements/announcement";
+import { SectionHeading } from "@/components/section-heading";
 import { BadgesByTier } from "@/components/gamification/achievement-badge";
 import { SeasonShareButton } from "@/components/gamification/season-share-button";
 import { ActivityGraph } from "@/components/gamification/activity-graph";
 import { Medal } from "@/components/gamification/medal";
 import { StatTile } from "@/components/gamification/stat-tile";
 import { orNotFound } from "@/lib/errors";
+import { federationYear } from "@fsx/api/lib/dates";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/lib/trpc";
 import { ProfileSkeleton } from "@/components/skeletons/profile-skeleton";
-
-// The federation's calendar year; a future season has nothing to show.
-const currentYear = () =>
-  Number(new Intl.DateTimeFormat("en", { timeZone: "America/Sao_Paulo", year: "numeric" }).format(new Date()));
 
 const FORMATS = [
   ["classic", "Clássico"],
@@ -41,7 +38,7 @@ export const Route = createFileRoute("/_public/jogadores/$id/temporada/$ano")({
   params: {
     parse: ({ ano }: { ano: string }): { ano: number } => {
       const year = Number(ano);
-      if (!/^\d{4}$/.test(ano) || year < 1900 || year > currentYear()) throw notFound();
+      if (!/^\d{4}$/.test(ano) || year < 1900 || year > federationYear()) throw notFound();
       return { ano: year };
     },
     stringify: ({ ano }: { ano: number }) => ({ ano: String(ano) }),
@@ -124,7 +121,7 @@ function RouteComponent() {
       </div>
 
       <section aria-label="Variação de rating" className="mt-6">
-        <Announcement icon={ChartBarLineIcon} label="Variação de rating" className="text-base" />
+        <SectionHeading icon={ChartBarLineIcon} label="Variação de rating" className="text-base" />
         <div className="grid grid-cols-3 gap-2 px-2 sm:gap-4 sm:px-4">
           {FORMATS.map(([format, label]) => {
             const change = season.ratingChange[format];
@@ -145,7 +142,7 @@ function RouteComponent() {
       </section>
 
       <section aria-label="Torneios por mês" className="mt-6">
-        <Announcement icon={Calendar01Icon} label="Torneios por mês" className="text-base" />
+        <SectionHeading icon={Calendar01Icon} label="Torneios por mês" className="text-base" />
         <div className="px-2 sm:px-4">
           <ActivityGraph dates={season.days} years={[season.year]} />
         </div>
@@ -153,7 +150,7 @@ function RouteComponent() {
 
       {season.podiums.length > 0 && (
         <section aria-label="Pódios" className="mt-6">
-          <Announcement icon={Award01Icon} label="Pódios" className="text-base" />
+          <SectionHeading icon={Award01Icon} label="Pódios" className="text-base" />
           <ul className="flex flex-col">
             {season.podiums.map((podium) => (
               <li key={`${podium.name}-${podium.category}-${podium.place}`} className="m-1">
@@ -172,7 +169,7 @@ function RouteComponent() {
 
       {season.achievements.length > 0 && (
         <section aria-label="Conquistas do ano" className="mt-6">
-          <Announcement icon={Target01Icon} label="Conquistas do ano" className="text-base" />
+          <SectionHeading icon={Target01Icon} label="Conquistas do ano" className="text-base" />
           <div className="px-3">
             <BadgesByTier achievements={season.achievements} />
           </div>

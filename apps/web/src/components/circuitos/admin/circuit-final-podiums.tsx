@@ -6,20 +6,19 @@ import { Button } from "@fsx/ui/components/button";
 
 import { EntityFormDialog, optionalNumber, type EntityField } from "@/components/admin/entity-form";
 import { AdminSection } from "@/components/admin/form-layout";
-import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { CATEGORY_OPTIONS } from "@/lib/admin-forms";
 import { useTRPC } from "@/lib/trpc";
 
+import { federationToday } from "@fsx/api/lib/dates";
+
 import type { Circuit } from "../types";
 
 type FinalPodium = Circuit["circuitFinalPodiums"][number];
 type Editing = { podium?: FinalPodium } | null;
-
-const todayInSergipe = () =>
-  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
 
 export function CircuitFinalPodiums({ circuit }: { circuit: Circuit }) {
   const trpc = useTRPC();
@@ -148,7 +147,7 @@ export function CircuitFinalPodiums({ circuit }: { circuit: Circuit }) {
           title="Final podiums"
           description={`When the season ends, finish it: the top 3 of the current standings${byCategory ? " in each category" : ""} become its final podiums, with shared places for equal points. You can correct them afterwards.`}
           actions={
-            <Button onClick={() => setFinishing(todayInSergipe())}>
+            <Button onClick={() => setFinishing(federationToday())}>
               Finish season
             </Button>
           }

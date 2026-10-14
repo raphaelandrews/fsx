@@ -6,12 +6,15 @@ import { announcements, insertAnnouncementSchema } from "@fsx/db/schema/announce
 import { players } from "@fsx/db/schema/players";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
-import { contentText, idInput, page, positiveInt } from "../input-schemas";
+import { contentText, idInput, page, positiveInt, seasonYear } from "../input-schemas";
 import { paginate } from "../lib/pagination";
 import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const SUGGESTION_LIMIT = 5;
 const EXCERPT_LENGTH = 200;
+
+// Lists show two lines of text; the full content is only needed on the detail page.
+const excerptOf = () => sql<string>`substr(${announcements.content}, 1, ${EXCERPT_LENGTH})`;
 
 // Whole words only: spaces around both sides keep "ana" from matching "mariana".
 const wordsOf = (text: string) => ` ${normalizeName(text).replace(/[^a-z0-9]+/g, " ").trim()} `;
@@ -39,21 +42,20 @@ export const announcementsRouter = router({
     }), "Announcement"),
   ),
   byPage: publicProcedure.input(z.object({ page })).query(async ({ ctx, input }) => {
-    const validPage = Math.max(1, input.page);
     const perPage = 12;
     const [data, countResult] = await Promise.all([
-      ctx.db.query.announcements.findMany({
-        columns: { id: true, year: true, number: true, content: true },
-        orderBy: [desc(announcements.year), desc(announcements.number), desc(announcements.id)],
-        limit: perPage,
-        offset: (validPage - 1) * perPage,
-      }),
+      ctx.db
+        .select({ id: announcements.id, year: announcements.year, number: announcements.number, excerpt: excerptOf() })
+        .from(announcements)
+        .orderBy(desc(announcements.year), desc(announcements.number), desc(announcements.id))
+        .limit(perPage)
+        .offset((input.page - 1) * perPage),
       ctx.db.select({ value: count() }).from(announcements),
     ]);
     const totalItems = countResult[0]?.value ?? 0;
     return {
       announcements: data,
-      pagination: paginate({ page: validPage, perPage, totalItems }),
+      pagination: paginate({ page: input.page, perPage, totalItems }),
     };
   }),
   fresh: publicProcedure.query(({ ctx }) =>
@@ -62,7 +64,7 @@ export const announcementsRouter = router({
         id: announcements.id,
         year: announcements.year,
         number: announcements.number,
-        content: announcements.content,
+        excerpt: excerptOf(),
       })
       .from(announcements)
       .orderBy(desc(announcements.year), desc(announcements.number), desc(announcements.id))
@@ -76,7 +78,7 @@ export const announcementsRouter = router({
           id: announcements.id,
           year: announcements.year,
           number: announcements.number,
-          excerpt: sql<string>`substr(${announcements.content}, 1, ${EXCERPT_LENGTH})`,
+          excerpt: excerptOf(),
         })
         .from(announcements)
         .where(eq(announcements.playerId, input.playerId))
@@ -98,7 +100,7 @@ export const announcementsRouter = router({
     ),
   create: adminProcedure
     .input(insertAnnouncementSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
-      year: z.number().int().min(1900).max(2200),
+      year: seasonYear,
       number: positiveInt.max(100_000),
       content: contentText,
       playerId: positiveInt.nullable().optional(),
@@ -108,7 +110,7 @@ export const announcementsRouter = router({
     .input(
       z.object({
         id: positiveInt,
-        year: z.number().int().min(1900).max(2200).optional(),
+        year: seasonYear.optional(),
         number: positiveInt.max(100_000).optional(),
         content: contentText.optional(),
         playerId: positiveInt.nullable().optional(),
