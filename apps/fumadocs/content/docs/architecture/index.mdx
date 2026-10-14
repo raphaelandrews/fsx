@@ -12,7 +12,7 @@ serves a tRPC API backed by a D1 (SQLite) database and an R2 image bucket.
 | ---------------- | ------- |
 | `apps/web`       | TanStack Start app: routes, components, SSR entry, e2e tests, and check scripts. |
 | `apps/fumadocs`  | This documentation site (Astro + Fumadocs). |
-| `packages/api`   | tRPC routers, cache policy, edge cache, rate limiting, media handler, security headers. |
+| `packages/api`   | tRPC routers, domain services (rating updates, player merge, media storage), cache policy, edge cache, rate limiting, media handler, security headers. |
 | `packages/auth`  | Better Auth configuration and the owner-identity rules. |
 | `packages/db`    | Drizzle schema, migrations, seed, and audit queries. |
 | `packages/env`   | Typed access to Worker bindings and environment variables. |
@@ -24,6 +24,7 @@ Dependencies point one way: `apps/web` → `@fsx/api` → `@fsx/auth`, `@fsx/db`
 
 ## Pages in this section
 
+- [Code layout](/architecture/code-layout): where each kind of code lives in the API and web packages, the conventions, and where tests go.
 - [Domain model](/architecture/domain-model): entities, relationships, deletion behavior, and invariants of the data.
 - [Runtime](/architecture/runtime): how a request flows from a route loader to D1 and back.
 - [Rendering and caching](/architecture/rendering-and-caching): SSR, hydration, preloading, prerendering, and every cache layer.

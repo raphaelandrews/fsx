@@ -12,6 +12,7 @@ import { MotionConfig } from "motion/react";
 import { SECURITY_HEADERS } from "@fsx/api/http/security-headers";
 
 import appCss from "../index.css?url";
+import { NavigationProgress } from "@/components/navigation-progress";
 import { ErrorFallback, NotFound } from "@/components/not-found";
 import {
   DEFAULT_DESCRIPTION,
@@ -106,6 +107,7 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body>
+        <NavigationProgress />
         <MotionConfig reducedMotion="user">
           <Outlet />
         </MotionConfig>

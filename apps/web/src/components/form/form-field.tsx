@@ -44,7 +44,7 @@ export function FormField({
           })
         : children}
       {hint && <p id={htmlFor ? `${htmlFor}-hint` : undefined} className="text-sm text-muted-foreground">{hint}</p>}
-      {error && <p id={htmlFor ? `${htmlFor}-error` : undefined} className="text-sm text-destructive" role="alert">{error}</p>}
+      {error && <p id={htmlFor ? `${htmlFor}-error` : undefined} className="fade-in-0 slide-in-from-top-1 animate-in text-sm text-destructive duration-150" role="alert">{error}</p>}
     </div>
   );
 }

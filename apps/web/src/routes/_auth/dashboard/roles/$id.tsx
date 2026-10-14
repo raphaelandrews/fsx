@@ -42,6 +42,7 @@ function RouteComponent() {
 
   return (
     <EntityEditPage
+      id={id}
       noun="role"
       basePath="/dashboard/roles"
       backLabel="Roles"

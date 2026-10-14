@@ -306,7 +306,7 @@ function BulkPodiumsForm({ tournamentId, onDone }: { tournamentId: number; onDon
       ) : null}
       <DialogFooter>
         <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
-        <Button type="submit" disabled={create.isPending || filled.length === 0 || problem !== null}>
+        <Button type="submit" loading={create.isPending} disabled={filled.length === 0 || problem !== null}>
           {create.isPending ? "Saving..." : `Create ${filled.length} podium${filled.length === 1 ? "" : "s"}`}
         </Button>
       </DialogFooter>

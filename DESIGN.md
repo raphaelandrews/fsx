@@ -107,7 +107,7 @@ using it.
 - Numbers that change or align in columns use `tabular-nums` (Fustat has equal-width digits).
 - Headings: weight 600, `tracking-tight`, `text-balance`. Page titles `text-3xl sm:text-4xl`
   (`PageHeader`), home section titles `text-2xl sm:text-3xl`, section labels `text-base font-bold`
-  (`Announcement`).
+  (`SectionHeading`).
 - Header and footer text is 16px, weight 600.
 - Body text uses `text-pretty`; headings use `text-balance` (both set in the base layer).
 
@@ -133,7 +133,7 @@ Base `--radius` is 8px, so the scale lands on 8 / 16 / 24:
 - Public pages sit in `container max-w-5xl`; profile-like pages (player, season, club) narrow to
   `max-w-[720px]`.
 - Side gutters: 12px on phones (`px-3`), 16px from `sm` (`sm:px-4`).
-- Section rhythm: on detail pages, `Announcement` label (12px padding), content, then `mt-6` to
+- Section rhythm: on detail pages, `SectionHeading` (12px padding), content, then `mt-6` to
   the next section; on the home page, the centered section header (see Components).
 - Space above the footer comes from `<main>` (`pb-16`), never from page wrappers; the last home
   section drops its own bottom padding (`last:pb-0`). Article pages pad only the top.
@@ -162,6 +162,18 @@ to tiles or cards.
 - `prefers-reduced-motion: reduce` disables all of the above (a global rule in the base layer,
   and `reveal-on-scroll` only runs under `no-preference`).
 - Press feedback: `active:scale-[0.96]` on buttons and clickable tiles (built into `Button`).
+- Work in progress, never decoration:
+  - `NavigationProgress` (root layout): a 2px `primary` bar that appears after 150ms of waiting on a
+    navigation or a save, and in the dashboard on the refetch an edit triggers. It stays silent for
+    prefetches and search-as-you-type on the public site, and finishes with a quick fill and fade.
+  - `Button loading`: a spinner before the label, `aria-busy`, and disabled. Use it on a button
+    whose own action is running (save, rebuild, update rankings); keep the label.
+  - Messages that appear because of an action (`FormField` errors, `InlineAlert`) ease in over
+    150–200ms with a 4px slide; dashboard pages fade in over 150ms when the path changes (not for
+    search parameters or pagination).
+  - An icon moves only when it says where the click goes: a trailing arrow nudges 2px along its
+    direction on hover (`SectionButton`, external-link buttons). Chevrons that open something
+    rotate. Nothing else animates on hover.
 - No animation on high-frequency interactions (table hover, typing, graph tooltips).
 - Popovers and dialogs use the shadcn enter/exit animations; don't add custom ones.
 
@@ -294,9 +306,9 @@ Every table sits in a bordered frame and reads as one surface:
 A `muted` pill track (40px, 4px padding) with pill triggers; the active tab is `primary`. Long tab
 lists scroll horizontally (the track centers only when it fits). Don't wrap tabs into a grid.
 
-### Section label (`Announcement`)
+### Section label (`SectionHeading`)
 
-Icon, a short vertical separator, then a bold `title` label. Use it to open the sections of
+`components/section-heading.tsx`: an optional icon, a short vertical separator, then a bold `title` label. Use it to open the sections of
 detail pages (profile, season, club, records); the home page uses the centered section header. Inside a section, subgroups use `Subheading` (`text-sm` muted label with an
 optional count on the right).
 

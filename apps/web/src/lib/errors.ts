@@ -57,6 +57,18 @@ export function getFieldError(error: unknown, field: string): string | undefined
   return typeof message === "string" ? message : undefined;
 }
 
+/** Every field the server rejected, with its first message and a readable name ("birthDate" → "Birth date"). */
+export function getFieldErrorList(error: unknown): { field: string; message: string }[] {
+  const fieldErrors = (error as AppError | undefined)?.data?.zodError?.fieldErrors;
+  if (!fieldErrors || typeof fieldErrors !== "object") return [];
+  return Object.entries(fieldErrors as Record<string, unknown>).flatMap(([field, messages]) => {
+    const message = Array.isArray(messages) ? messages[0] : undefined;
+    if (typeof message !== "string") return [];
+    const words = field.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase();
+    return [{ field: words.charAt(0).toUpperCase() + words.slice(1), message }];
+  });
+}
+
 type FieldLike = { name: string; state: { meta: { errors: unknown[] } } };
 
 /** First client validation message for a form field, else the server's message for it. */

@@ -11,6 +11,7 @@ import { titles } from "@fsx/db/schema/titles";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { deleteById } from "../crud";
 import { requireMutationRows } from "../errors";
+import { assertDeletable } from "../services/delete-impact";
 import { idInput, nameText, positiveInt } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
@@ -127,5 +128,8 @@ export const championsRouter = router({
     ),
   delete: adminProcedure
     .input(idInput)
-    .mutation(({ ctx, input }) => deleteById(ctx.db, championships, input.id, "Championship")),
+    .mutation(async ({ ctx, input }) => {
+      await assertDeletable(ctx.db, "championship", input.id);
+      return deleteById(ctx.db, championships, input.id, "Championship");
+    }),
 });

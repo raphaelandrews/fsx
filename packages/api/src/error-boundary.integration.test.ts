@@ -10,6 +10,7 @@ import { mockWorkerEnv, testEnv } from "./test-env";
 mockWorkerEnv();
 
 const { appRouter } = await import("./routers/index");
+const { describeUniqueViolation } = await import("./index");
 const { handleTrpcRequest } = await import("./http/trpc-handler");
 
 describe("procedure error boundary", () => {
@@ -21,7 +22,7 @@ describe("procedure error boundary", () => {
       await caller.clubs.create({ name: "Duplicado" });
 
       const error = await caller.clubs.create({ name: "Duplicado" }).catch((caught: unknown) => caught);
-      expect(error).toMatchObject({ code: "CONFLICT", message: "The submitted data conflicts with an existing record." });
+      expect(error).toMatchObject({ code: "CONFLICT", message: "A club with this name already exists." });
       expect(String((error as Error).message)).not.toMatch(/insert|clubs|Failed query/i);
 
       const failures = logged.mock.calls.filter(([label]) => label === "[trpc] procedure rejected");
@@ -95,5 +96,25 @@ describe("error response shape", () => {
     const body = await response.json() as { error: { data: Record<string, unknown> } };
     expect(response.status).toBe(401);
     expect(body.error.data.userMessage).toBe("Authentication required");
+  });
+});
+
+describe("constraint messages", () => {
+  test("a unique violation names the thing that is already taken", () => {
+    expect(describeUniqueViolation("UNIQUE constraint failed: clubs.name")).toBe("A club with this name already exists.");
+    expect(describeUniqueViolation("UNIQUE constraint failed: tournaments.name")).toBe("A tournament with this name already exists.");
+    expect(describeUniqueViolation("UNIQUE constraint failed: players.cbx_id")).toBe("A player with this cbx id already exists.");
+    expect(describeUniqueViolation("UNIQUE constraint failed: announcements.year, announcements.number")).toBe(
+      "An announcement with the same year and number already exists.",
+    );
+    expect(describeUniqueViolation("UNIQUE constraint failed: players_to_titles.player_id, players_to_titles.title_id")).toBe(
+      "A link with the same player id and title id already exists.",
+    );
+  });
+
+  test("anything it cannot read falls back to a generic sentence", () => {
+    expect(describeUniqueViolation("UNIQUE constraint failed: index 'tournament_podiums_overall'")).toBe(
+      "The submitted data conflicts with an existing record.",
+    );
   });
 });

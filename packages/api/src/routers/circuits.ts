@@ -11,6 +11,7 @@ import { circuitFinalPodiums as rankFinalPodiums } from "../circuit-standings";
 import type { Context } from "../context";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
+import { assertDeletable } from "../services/delete-impact";
 import { idInput, isoDate, nameText, points, positiveInt, seasonYear, sortOrder } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
@@ -144,16 +145,7 @@ export const circuitsRouter = router({
   delete: adminProcedure
     .input(idInput)
     .mutation(async ({ ctx, input }) => {
-      const finished = await ctx.db.query.circuitFinalPodiums.findFirst({
-        where: eq(circuitFinalPodiums.circuitId, input.id),
-        columns: { id: true },
-      });
-      if (finished) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "This circuit has final podiums. Reopen it before deleting it.",
-        });
-      }
+      await assertDeletable(ctx.db, "circuit", input.id);
       return requireMutationRows(
         await ctx.db.delete(circuits).where(eq(circuits.id, input.id)).returning({ id: circuits.id }),
         "Circuit",

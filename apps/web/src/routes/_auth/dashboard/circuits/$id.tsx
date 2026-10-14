@@ -50,10 +50,6 @@ function RouteComponent() {
     onSuccess: () => navigate({ to: "/dashboard/circuits" }),
   });
 
-  const resultCount =
-    circuit.circuitPodiums.length +
-    circuit.circuitPhases.reduce((sum, phase) => sum + phase.circuitPodiums.length, 0);
-
   return (
     <>
       <AdminPageHeader
@@ -67,7 +63,8 @@ function RouteComponent() {
               label="Delete circuit"
               title="Delete this circuit?"
               itemName={circuit.name}
-              description={`“${circuit.name}”, its ${circuit.circuitPhases.length} stage(s), and ${resultCount} result(s) will be permanently deleted. To start a new season, create a new circuit instead. This cannot be undone.`}
+              target={{ entity: "circuit", id }}
+              description="To start a new season, create a new circuit instead of deleting this one. This cannot be undone."
               pending={deleteMutation.isPending}
               onConfirm={() => deleteMutation.mutate({ id })}
             />

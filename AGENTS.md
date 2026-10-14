@@ -1,6 +1,6 @@
 # Project Context
 
-This project was migrated from Next.js + Supabase + PostgreSQL to Better-T-Stack (TanStack Start, tRPC, Better Auth, SQLite/D1). See `REWRITING.md` for architecture decisions and best practices. The `source-project/` directory contains the old codebase as reference.
+This project was migrated from Next.js + Supabase + PostgreSQL to Better-T-Stack (TanStack Start, tRPC, Better Auth, SQLite/D1). Architecture decisions and conventions live in the Fumadocs site (`apps/fumadocs/content/docs/architecture`, `reference`, and `decisions`). The `source-project/` directory contains the old codebase as reference.
 
 ## Database
 
@@ -62,7 +62,7 @@ Local Dev D1 gotchas:
   field errors use `FormField` with `error={fieldError(f, mutation.error)}`. Every collection is a
   `DataTable` (bordered frame from `Table`, paginated) with `DataTableRowActions` (pass `noun`); records that belong to a
   parent (links, circuit stages and podiums, rating results) are edited in the parent page with
-  `EntityFormDialog`. Every delete or removal is confirmed in a dialog that names the record.
+  `EntityFormDialog`. Every delete or removal is confirmed in a `DeleteDialog` that names the record, shows what it blocks or removes, and asks for a typed phrase when it takes other records with it.
 - **Default to zero comments.** Add a comment only when it explains a non-obvious "why" or a
   gotcha that a reader could not infer from the code itself. Never restate what the code does,
   never narrate intent that is obvious, and never leave explanatory/doc-style prose. If a comment

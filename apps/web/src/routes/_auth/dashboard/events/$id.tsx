@@ -56,7 +56,7 @@ function RouteComponent() {
             label="Delete event"
             title="Delete this event?"
             itemName={event.name}
-            description={`“${event.name}” and its links will be permanently deleted. This cannot be undone.`}
+            target={{ entity: "event", id }}
             pending={deleteMutation.isPending}
             onConfirm={() => deleteMutation.mutate({ id })}
           />
@@ -78,8 +78,10 @@ function RouteComponent() {
         submitLabel="Save changes"
         cancelTo="/dashboard/events"
         onSubmit={async ({ name, startDate, links }) => {
+          let detailsSaved = false;
           try {
             await updateMutation.mutateAsync({ id, name, startDate });
+            detailsSaved = true;
             await setLinksMutation.mutateAsync({
               eventId: id,
               links: links.map(({ id: linkId, type, href, sortOrder }) => ({
@@ -89,10 +91,15 @@ function RouteComponent() {
                 sortOrder,
               })),
             });
-            void invalidateAdmin("events");
             toast.success("Event updated");
           } catch (error) {
-            showMutationError(error, "Failed to update event", () => window.location.reload());
+            showMutationError(
+              error,
+              detailsSaved ? "The name and date were saved, but the links were not" : "Failed to update event",
+              () => window.location.reload(),
+            );
+          } finally {
+            void invalidateAdmin("events");
           }
         }}
       />

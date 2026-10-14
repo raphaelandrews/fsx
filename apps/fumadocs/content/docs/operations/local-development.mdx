@@ -42,6 +42,12 @@ Stop `bun dev` first (a running dev server keeps a stale D1 connection), then:
 bun run db:seed
 ```
 
+To work with real data instead of the sample rows, restore a copy of production
+(without logins or sessions) over the local database: `bun run db:seed:remote`
+exports the remote D1 (after `wrangler login`), and `bun run db:seed:latest` uses the
+newest backup in `~/Backups`. Both wipe the local D1. See
+[Local data from a backup](/operations/runbook#local-data-from-a-backup).
+
 If seeded data does not appear, check that the `miniflare` pin in `@fsx/db`
 matches Alchemy's (`bun run check:runtime`); a mismatch writes to a different
 SQLite file.
@@ -82,3 +88,14 @@ process that is not part of the current `bun dev`, then restart `bun dev`.
 | `bun run measure` | D1 queries and rows per procedure and route on synthetic data |
 
 CI (`.github/workflows/quality.yml`) runs these on pull requests and pushes to `main`.
+
+## Other commands
+
+| Command | What it does |
+| ------- | ------------ |
+| `bun run dev:web` | Starts only the web app, without the docs site. `bun dev` starts both. |
+| `bun run hooks:setup` | Installs the Git hooks. |
+| `bun run staged` | Runs the formatter and lint fixes on the staged files; the pre-commit hook calls it. |
+| `bun run deploy` | Deploys with Alchemy, then runs the [deploy smoke test](/operations/runbook#deploy-smoke-test). |
+| `bun run destroy` | Tears down the Alchemy-managed Cloudflare resources (Worker, D1, R2). Destructive: never part of a routine deploy. |
+

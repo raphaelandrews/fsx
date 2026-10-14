@@ -4,16 +4,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete03Icon, Edit01Icon, EllipsisIcon } from "@hugeicons/core-free-icons";
 
 import { Button } from "@fsx/ui/components/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@fsx/ui/components/alert-dialog";
+
+import { DeleteDialog, impactTarget, type DeleteTarget } from "@/components/admin/delete-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +33,10 @@ interface DataTableRowActionsProps {
   deleteLabel?: string;
   /** Replaces the default "will be permanently deleted" confirmation text. */
   deleteDescription?: string;
+  /** Ask the API what the delete blocks or takes with it; shown in the confirmation. */
+  deleteTarget?: DeleteTarget;
+  /** A phrase to type before the confirm button enables. */
+  confirmText?: string;
 }
 
 export function DataTableRowActions({
@@ -55,6 +51,8 @@ export function DataTableRowActions({
   editLabel = "Edit",
   deleteLabel = "Delete",
   deleteDescription,
+  deleteTarget,
+  confirmText,
 }: DataTableRowActionsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -97,32 +95,20 @@ export function DataTableRowActions({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {deleteLabel} this {noun}?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {deleteDescription ??
-                `${displayName ? `“${displayName}” will be permanently deleted. ` : ""}This cannot be undone.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isDeleting}
-              variant="destructive"
-              onClick={() => {
-                onDelete?.();
-                setShowDeleteDialog(false);
-              }}
-            >
-              {deleteLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title={`${deleteLabel} this ${noun}?`}
+        description={
+          deleteDescription ??
+          `${displayName ? `“${displayName}” will be permanently deleted. ` : ""}This cannot be undone.`
+        }
+        target={deleteTarget ?? impactTarget(noun, id)}
+        confirmText={confirmText}
+        confirmLabel={deleteLabel}
+        pending={isDeleting}
+        onConfirm={() => onDelete?.()}
+      />
     </>
   );
 }

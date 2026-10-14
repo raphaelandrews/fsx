@@ -46,6 +46,7 @@ export function EventForm({
 
   return (
     <AdminForm
+      error={error}
       onSubmit={() => {
         setAttempted(true);
         void form.handleSubmit();

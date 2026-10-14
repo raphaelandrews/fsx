@@ -2,12 +2,12 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, exists, not, or } from "drizzle-orm";
 
-import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
 import { playersToTournaments } from "@fsx/db/schema/players-to-tournaments";
 import { tournaments, insertTournamentSchema } from "@fsx/db/schema/tournaments";
 import type { Context } from "../context";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
+import { assertDeletable } from "../services/delete-impact";
 import { httpUrl, idInput, isoDate, nameText, positiveInt, ratingTypeSchema, searchText } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 import { COMPETITION_TIERS } from "../circuit-types";
@@ -99,21 +99,7 @@ export const tournamentsRouter = router({
       return requireMutationRows(rows, "Tournament");
     }),
   delete: adminProcedure.input(idInput).mutation(async ({ ctx, input }) => {
-    const result = await ctx.db.query.playersToTournaments.findFirst({
-      where: eq(playersToTournaments.tournamentId, input.id),
-      columns: { id: true },
-    });
-    if (result) throw new TRPCError({ code: "CONFLICT", message: RATED_TOURNAMENT_MESSAGE });
-    const podium = await ctx.db.query.tournamentPodiums.findFirst({
-      where: eq(tournamentPodiums.tournamentId, input.id),
-      columns: { id: true },
-    });
-    if (podium) {
-      throw new TRPCError({
-        code: "CONFLICT",
-        message: "This tournament has podiums. Remove them before deleting it.",
-      });
-    }
+    await assertDeletable(ctx.db, "tournament", input.id);
     return requireMutationRows(
       await ctx.db
         .delete(tournaments)

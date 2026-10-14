@@ -5,6 +5,7 @@ import {
   getAdminErrorMessage,
   getErrorCode,
   getFieldError,
+  getFieldErrorList,
   getUserErrorMessage,
   isAdminPath,
   isExpectedQueryError,
@@ -77,5 +78,22 @@ describe("user-facing error mapping", () => {
     expect(fieldError(field(["Too short"]), serverError)).toBe("Too short");
     expect(fieldError(field([undefined]), serverError)).toBe("Invalid URL");
     expect(fieldError(field([]), null)).toBeUndefined();
+  });
+});
+
+describe("field error list", () => {
+  test("names each rejected field in words and keeps its first message", () => {
+    const error = {
+      data: { code: "BAD_REQUEST", zodError: { fieldErrors: { birthDate: ["Invalid date", "ignored"], name: ["Too small"], skipped: [] } } },
+    };
+    expect(getFieldErrorList(error)).toEqual([
+      { field: "Birth date", message: "Invalid date" },
+      { field: "Name", message: "Too small" },
+    ]);
+  });
+
+  test("is empty without field details", () => {
+    expect(getFieldErrorList(undefined)).toEqual([]);
+    expect(getFieldErrorList({ data: { code: "CONFLICT", zodError: null } })).toEqual([]);
   });
 });

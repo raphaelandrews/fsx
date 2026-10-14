@@ -170,7 +170,7 @@ spreadsheet text automatically.
 To size the gaps that player achievements depend on (undated tournaments,
 breaks in rating history, podiums without results, the peak rating
 distribution), run `packages/db/src/audits/gamification-readiness.sql` against
-production D1 (read-only) and record the results in `GAMIFICATION.md`.
+production D1 (read-only) and compare the results with the table in [Gamification](/reference/gamification#existing-data).
 
 The records page, club standings, and home feed are stored in `computed_results`
 and recomputed after any admin change ([ADR 0008](/decisions/0008-stored-computations)).
@@ -243,3 +243,20 @@ run history records the date of the last successful drill.
   `CLOUDFLARE_API_TOKEN` (Account Analytics:Read, Zone Analytics:Read),
   `CLOUDFLARE_ACCOUNT_ID`, and `CLOUDFLARE_ZONE_ID`. Thresholds are environment
   variables in `scripts/check-production-health.mjs`.
+
+## Pending production checks
+
+Open items that need production access; tick them off here when done.
+
+- [ ] Validate the per-data-center cache tradeoff ([ADR 0003](/decisions/0003-edge-cache-consistency))
+  with the `[cache] public query` hit and miss logs after a deploy.
+- [ ] Set the zone's **Browser Cache TTL** to **Respect Existing Headers**. Production
+  cache hits currently tell browsers to cache API responses for 4 hours, although
+  the code sends `no-store`.
+- [ ] Measure the edge cache hit rate and request volume before widening route
+  preloading.
+- [ ] Run the [restore drill](#restore-drill) once on a production backup, manually
+  or by adding the `Restore drill` workflow secrets.
+- [ ] Run the new `Production health` query against live analytics once its
+  secrets exist; it has not run against production yet.
+

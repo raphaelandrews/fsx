@@ -28,7 +28,9 @@ data. Backups require the single-owner administrator check;
 authenticated/mutation tRPC responses use `Cache-Control: no-store`. The Swiss
 Manager export, which includes birth dates, is public by the federation's
 decision (see [ADR 0001](/decisions/0001-single-owner-admin)); remove a player's
-birth date in the admin panel to keep it out of the export. The public API
+birth date in the admin panel to keep it out of the export. The export covers
+children, so it is worth confirming whether arbiters need the full date or only the
+birth year, which the public API already publishes. The public API
 (`/api/v1/players/{id}`) publishes only the birth year, with the club and titles.
 Backups are stored outside the repository with owner-only filesystem permissions
 and a 90-day default retention window.

@@ -2,6 +2,9 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
 
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Loading03Icon } from "@hugeicons/core-free-icons"
+
 import { cn } from "@fsx/ui/lib/utils"
 
 
@@ -50,19 +53,29 @@ function Button({
   variant = "default",
   size = "default",
   static: isStatic,
+  loading = false,
+  disabled,
+  children,
   ...props
 }: ButtonPrimitive.Props &
-  VariantProps<typeof buttonVariants> & { static?: boolean }) {
+  VariantProps<typeof buttonVariants> & { static?: boolean; loading?: boolean }) {
   return (
     <ButtonPrimitive
       data-slot="button"
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       className={cn(
         buttonVariants({ variant, size }),
         !isStatic && "active:not-aria-[haspopup]:scale-[0.96]",
         className,
       )}
       {...props}
-    />
+    >
+      {loading ? (
+        <HugeiconsIcon icon={Loading03Icon} strokeWidth={2} className="animate-spin" data-icon="inline-start" aria-hidden />
+      ) : null}
+      {children}
+    </ButtonPrimitive>
   )
 }
 

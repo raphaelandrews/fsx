@@ -195,24 +195,54 @@ test("deletes a record from its edit page after confirming", async ({ page }) =>
 });
 
 test("shows server validation next to the field, keeps entered values, and explains conflicts", async ({ page }) => {
-  // Passes the client's required check but exceeds the server's 160-character limit.
-  const tooLong = "C".repeat(161);
+  // The browser enforces the 160-character limit, so a server-side rejection is simulated.
+  await page.route("**/api/trpc/clubs.create**", (route) =>
+    route.fulfill({
+      status: 400,
+      contentType: "application/json",
+      body: JSON.stringify([
+        {
+          error: {
+            message: "Invalid input",
+            code: -32600,
+            data: {
+              code: "BAD_REQUEST",
+              httpStatus: 400,
+              path: "clubs.create",
+              zodError: { formErrors: [], fieldErrors: { name: ["Too long for the server"] } },
+              userMessage: null,
+            },
+          },
+        },
+      ]),
+    }),
+  );
   await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
-  await page.getByLabel("Name").fill(tooLong);
+  await page.getByLabel("Name").fill("Clube Rejeitado");
   await page.getByRole("button", { name: "Create Club" }).click();
 
-  await expect(page.getByText("Check the highlighted fields and try again.")).toBeVisible();
-  await expect(page.locator("#field-name-error")).toBeVisible();
+  await expect(page.locator("#field-name-error")).toContainText("Too long for the server");
   await expect(page.getByLabel("Name")).toHaveAttribute("aria-invalid", "true");
-  await expect(page.getByLabel("Name")).toHaveValue(tooLong);
+  await expect(page.getByLabel("Name")).toHaveValue("Clube Rejeitado");
+  const summary = page.getByRole("alert").filter({ hasText: "Check these fields and save again" });
+  await expect(summary).toContainText("Name: Too long for the server");
+  await page.unroute("**/api/trpc/clubs.create**");
 
-  await page.getByLabel("Name").fill("Clube Validação");
+await page.getByLabel("Name").fill("Clube Validação");
   await page.getByRole("button", { name: "Create Club" }).click();
   await expect(page.getByText("Club created")).toBeVisible();
 
   await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
   await page.getByLabel("Name").fill("Clube Validação");
   await page.getByRole("button", { name: "Create Club" }).click();
-  await expect(page.getByText(/conflicts with an existing record/)).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "A club with this name already exists." })).toBeVisible();
   await expect(page.getByLabel("Name")).toHaveValue("Clube Validação");
+});
+
+test("a missing dashboard record shows an English 404 inside the admin shell", async ({ page }) => {
+  const response = await page.goto("/dashboard/clubs/999999", { waitUntil: "networkidle" });
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole("heading", { level: 1, name: "Not found" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to clubs" })).toHaveAttribute("href", "/dashboard/clubs");
+  await expect(page.getByRole("button", { name: "Toggle Sidebar" }).first()).toBeVisible();
 });

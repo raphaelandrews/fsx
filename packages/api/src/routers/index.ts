@@ -5,6 +5,7 @@ import { championsRouter } from "./champions";
 import { circuitsRouter } from "./circuits";
 import { clubsRouter } from "./clubs";
 import { cupsRouter } from "./cups";
+import { deletionRouter } from "./deletion";
 import { eventsRouter } from "./events";
 import { imagesRouter } from "./images";
 import { insigniaRouter } from "./insignias";
@@ -35,6 +36,7 @@ export const appRouter = router({
   circuits: circuitsRouter,
   clubs: clubsRouter,
   cups: cupsRouter,
+  deletion: deletionRouter,
   events: eventsRouter,
   images: imagesRouter,
   insignias: insigniaRouter,

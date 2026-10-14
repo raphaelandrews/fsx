@@ -21,7 +21,13 @@ export function SectionButton({ href, target, label, className }: SectionButtonP
         className={cn(buttonVariants({ size: "pill" }), "w-full active:scale-[0.96] sm:w-fit", className)}
       >
         {label}
-        <HugeiconsIcon icon={ArrowRight01Icon} data-icon="inline-end" strokeWidth={2} aria-hidden />
+        <HugeiconsIcon
+          icon={ArrowRight01Icon}
+          data-icon="inline-end"
+          strokeWidth={2}
+          className="transition-transform duration-200 ease-out group-hover/button:translate-x-0.5"
+          aria-hidden
+        />
       </Link>
     </div>
   );

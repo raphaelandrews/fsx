@@ -143,7 +143,12 @@ function LinkAction({ link, primary = false }: { link: EventLink; primary?: bool
       className={cn(buttonVariants({ variant: primary ? "default" : "outline", size: "lg" }), "w-full active:scale-[0.96]")}
     >
       {link.label}
-      <HugeiconsIcon icon={ArrowUpRight01Icon} data-icon="inline-end" className="size-4" aria-hidden />
+      <HugeiconsIcon
+        icon={ArrowUpRight01Icon}
+        data-icon="inline-end"
+        className="size-4 transition-transform duration-200 ease-out group-hover/button:-translate-y-px group-hover/button:translate-x-px"
+        aria-hidden
+      />
       <span className="sr-only"> (abre em nova aba)</span>
     </a>
   );

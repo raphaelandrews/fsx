@@ -22,7 +22,7 @@ Every procedure can return these codes (see [Runtime](/architecture/runtime#erro
 | `UNAUTHORIZED` | Admin procedure without a session. |
 | `FORBIDDEN` | Admin procedure with a session that is not the owner. |
 | `NOT_FOUND` | `byId`, `bySlug`, `forEdit`, `update`, or `delete` matched no row. |
-| `CONFLICT` | A unique or foreign-key constraint failed: a duplicate name, or a delete blocked by references (see [deletion behavior](/architecture/domain-model#deletion-behavior)). |
+| `CONFLICT` | A unique or foreign-key constraint failed: a duplicate name ("A club with this name already exists."), or a delete blocked by references, whose message names them ("Club “X” cannot be deleted yet: it is still used by 14 players. Reassign them to another record or remove them first."). See [deletion behavior](/architecture/domain-model#deletion-behavior). |
 | HTTP `429` | Not a tRPC error: the HTTP handler rejects the request before tRPC runs when the per-IP limit for uncached reads or mutations is exceeded. |
 | `INTERNAL_SERVER_ERROR` | Anything else; the message is generic and the details are in the Worker log. |
 
@@ -76,12 +76,14 @@ the affected rows (`.returning()`), except where noted.
 | `players.page` | admin | `{ page, limit, name? }` | `{ players, pagination }` for the dashboard list | — |
 | `players.forEdit` | admin | `{ id }` | Every editable column, including birth date and sex | — |
 | `players.create` | admin | Player fields; `name` and `sex` required | Created row | — |
-| `players.update` | admin | `{ id, ...fields }` | Updated row; renaming also updates `normalized_name` | — |
+| `players.update` | admin | `{ id, ...fields }` | Updated row; renaming also updates `normalized_name`. Changing a rating here does not write rating history; use **Rebuild ratings** afterwards if the history disagrees | — |
+| `players.merge` | admin | `{ sourceId, targetId }` | `{ id }` of the kept player, which is the one with the lowest ID. Folds a duplicate record into the other in one D1 batch ([Merging players](/architecture/domain-model#merging-players)). `BAD_REQUEST` for the same player twice, `NOT_FOUND` for an unknown one, `CONFLICT` naming each overlap (both have a rating result in the same tournament, a podium in the same tournament and category, a final podium in the same circuit and category, or a School Games result in the same age group) | — |
+| `players.rebuildRatings` | admin | `{ id }` | `{ id, classic, rapid, blitz }`. Replays each rating type's history chain in `id` order: every row's `old_rating` is rewritten to follow the previous row, and the player's current rating becomes the chain's end. A type without history keeps its rating. `NOT_FOUND` for an unknown player | — |
 | `topPlayers.list` | public | — | `{ topClassic, topRapid, topBlitz }`, 10 active players each | 300 s |
 | `titledPlayers.list` | public | — | Players with at least one title, by rapid rating | 300 s |
 | `swissManager.list` | public | — | Every player with sex, birth date, ratings, and club | 300 s |
 
-There is no player delete procedure; set `active: false` instead.
+There is no player delete procedure; set `active: false` instead, or merge a duplicate into the record to keep.
 
 ### Player links
 
@@ -116,7 +118,7 @@ has history for the tournament). Corrections keep the history chain intact; see
 | Procedure | Access | Input | Output | Edge TTL |
 | --------- | ------ | ----- | ------ | -------- |
 | `tournaments.list` | public | — | Tournaments with championship | 300 s |
-| `tournaments.search` | public | `{ query }` | Matching `{ id, name }` for pickers | 30 s |
+| `tournaments.search` | public | `{ query }` | Up to 10 matching `{ id, name }` for pickers, newest first; ignores case and accents | 30 s |
 | `tournaments.byId` | public | `{ id }` | Tournament with podiums | 120 s |
 | `tournaments.create` / `update` / `delete` | admin | `name`, `ratingType`, `date?`, `chessResults?` (`httpUrl`), `championshipId?`, `tier?` (`S`, `A`, `B`, `school`; default `B`) | Rows; `CONFLICT` when deleting a tournament that has rating results or podiums, or changing the rating type of one with rating results | — |
 | `tournamentPodiums.list` | public | — | Podiums with category, player, and tournament | 300 s |
@@ -147,7 +149,7 @@ has history for the tournament). Corrections keep the history chain intact; see
 | Procedure | Access | Input | Output | Edge TTL |
 | --------- | ------ | ----- | ------ | -------- |
 | `clubs.list` | public | — | `{ id, name, logoUrl }` | 300 s |
-| `clubs.search` | public | `{ query }` | Matching clubs for pickers | 30 s |
+| `clubs.search` | public | `{ query }` | Up to 10 matching clubs for pickers, by name; ignores case and accents | 30 s |
 | `locations.list` | public | — | `{ id, name, type, flagUrl }` | 300 s |
 | `titles.list` | public | — | Titles with `tier` | 300 s |
 | `roles.list` | public | — | Roles | 300 s |
@@ -155,6 +157,9 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `norms.list` | public | — | Norms | 300 s |
 | `insignias.list` | public | — | Insignias | 300 s |
 | `<router>.create` / `update` / `delete` | admin | Entity fields (`name` is unique) | Rows; delete returns `CONFLICT` while referenced | — |
+| `roles.create` / `update` / `delete` | admin | `name`, `shortName` (1–4 characters), `type` (`management` \| `referee` \| `teacher`) | Rows | — |
+| `insignias.create` / `update` / `delete` | admin | `name`, `level` (1–100) | Rows | — |
+| `norms.create` / `update` / `delete` | admin | `name` | Rows | — |
 | `titles.create` / `update` / `delete` | admin | `name`, `shortName`, `type`, `tier` (1–4; default 1), `losesAtAge?` (null or 1–120) | Rows; `BAD_REQUEST` for a tier outside 1–4 | — |
 | `clubs.create` / `update` / `delete`, `locations.create` / `update` / `delete` | admin | `name`, `logoUrl?` / `flagUrl?` (`emblemUrl`), `type` for locations | Rows; delete returns `{ id }` and also deletes the uploaded image, which is kept when the delete fails with `CONFLICT` | — |
 
@@ -199,5 +204,6 @@ do not match `mime`. See [Media](/architecture/media).
 | Procedure | Access | Output |
 | --------- | ------ | ------ |
 | `stats.counts` | admin | Row counts of players, posts, announcements, events, tournaments, circuits, School Games results, and clubs |
+| `deletion.impact` | admin | `{ entity, id }` with `entity` one of `club`, `location`, `championship`, `title`, `role`, `norm`, `insignia`, `tournament`, `circuit`, `event` | `{ name, blockedBy, alsoDeletes }`: what stops the delete until it is moved or removed, and what disappears with it, each as `{ singular, plural, count, fix? }`. The dashboard shows it in the delete confirmation; the matching `delete` procedures refuse with the same information. `NOT_FOUND` for an unknown record |
 | `cache.status` | admin | `{ purgeConfigured }` |
 | `cache.purgePublic` | admin | Purges the zone cache; `PRECONDITION_FAILED` when the zone ID or purge token is missing |

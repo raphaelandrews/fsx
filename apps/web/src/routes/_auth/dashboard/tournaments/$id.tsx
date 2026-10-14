@@ -68,7 +68,7 @@ function RouteComponent() {
             label="Delete tournament"
             title="Delete this tournament?"
             itemName={tournament.name}
-            description={`“${tournament.name}” and its podiums will be permanently deleted. A tournament with rating results must have them reverted first. This cannot be undone.`}
+            target={{ entity: "tournament", id }}
             pending={deleteMutation.isPending}
             onConfirm={() => deleteMutation.mutate({ id })}
           />

@@ -1,16 +1,51 @@
-import type { FormEvent, ReactNode } from "react";
+import { useEffect, useRef, type FormEvent, type ReactNode } from "react";
 import { Link, type LinkProps } from "@tanstack/react-router";
 
 import { Button, buttonVariants } from "@fsx/ui/components/button";
+
+import { InlineAlert } from "@/components/admin/inline-alert";
+import { getAdminErrorMessage, getFieldErrorList } from "@/lib/errors";
 
 interface AdminFormProps {
   onSubmit: () => void;
   children: ReactNode;
   /** Bottom bar: usually <FormActions />. */
   actions: ReactNode;
+  /** The mutation error, summarized above the actions so it stays on the page. */
+  error?: unknown;
 }
 
-export function AdminForm({ onSubmit, children, actions }: AdminFormProps) {
+/** What went wrong with the last save, in words; focused when it appears so it is announced and in view. */
+export function FormErrorSummary({ error }: { error: unknown }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!error) return;
+    ref.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    ref.current?.focus({ preventScroll: true });
+  }, [error]);
+  if (!error) return null;
+
+  const fields = getFieldErrorList(error);
+  return (
+    <div ref={ref} tabIndex={-1} className="mt-6 outline-none">
+      <InlineAlert tone="error" title={fields.length > 0 ? "Check these fields and save again" : "Could not save"}>
+        {fields.length > 0 ? (
+          <ul className="list-disc space-y-0.5 pl-4">
+            {fields.map(({ field, message }) => (
+              <li key={field}>
+                <strong className="font-medium">{field}:</strong> {message}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          getAdminErrorMessage(error, "The changes were not saved. Try again.")
+        )}
+      </InlineAlert>
+    </div>
+  );
+}
+
+export function AdminForm({ onSubmit, children, actions, error }: AdminFormProps) {
   return (
     <form
       noValidate
@@ -20,6 +55,7 @@ export function AdminForm({ onSubmit, children, actions }: AdminFormProps) {
       }}
     >
       <div className="divide-y">{children}</div>
+      <FormErrorSummary error={error} />
       {actions}
     </form>
   );
@@ -92,7 +128,7 @@ export function FormActions({
       <Link to={cancelTo} className={buttonVariants({ variant: "outline" })}>
         Cancel
       </Link>
-      <Button type="submit" disabled={pending || disabled}>
+      <Button type="submit" loading={pending} disabled={disabled}>
         {pending ? pendingLabel : submitLabel}
       </Button>
     </div>

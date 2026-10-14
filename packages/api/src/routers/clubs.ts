@@ -7,6 +7,7 @@ import { loadClubStandings } from "../gamification/clubs";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { emblemUrl, idInput, nameText, positiveInt, searchText } from "../input-schemas";
+import { assertDeletable } from "../services/delete-impact";
 import { deleteMediaUrl, deleteReplacedMedia } from "../services/media-storage";
 import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 import { matchesAllWords, SEARCH_RESULT_LIMIT, SEARCH_SCAN_LIMIT, searchWords } from "../lib/name-search";
@@ -82,6 +83,7 @@ export const clubsRouter = router({
       return updated;
     }),
   delete: adminProcedure.input(idInput).mutation(async ({ ctx, input }) => {
+    await assertDeletable(ctx.db, "club", input.id);
     // Delete the row first: if a foreign key blocks it, the logo must survive.
     const deleted = requireMutationRows(
       await ctx.db

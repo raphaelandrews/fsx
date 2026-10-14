@@ -7,6 +7,7 @@ import { EmptyCollection } from "@/components/admin/empty-collection";
 import { EntityForm, type EntitySection, type ImageTracking } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
+import { impactTarget } from "@/components/admin/delete-dialog";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
@@ -69,6 +70,7 @@ export function EntityCreatePage({
 }
 
 export function EntityEditPage({
+  id,
   noun,
   basePath,
   backLabel,
@@ -83,6 +85,7 @@ export function EntityEditPage({
   deleting,
   images,
 }: EntityPageBase & {
+  id: number;
   description: string;
   /** Record name, shown as the page title and in the delete confirmation. */
   name: string;
@@ -107,6 +110,7 @@ export function EntityEditPage({
             label={`Delete ${noun}`}
             title={`Delete this ${noun}?`}
             itemName={name}
+            target={impactTarget(noun, id)}
             pending={deleting}
             onConfirm={onDelete}
           />

@@ -1,16 +1,8 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Button } from "@fsx/ui/components/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@fsx/ui/components/alert-dialog";
+
+import { DeleteDialog, type DeleteTarget } from "@/components/admin/delete-dialog";
 
 interface ConfirmDeleteButtonProps {
   onConfirm: () => void;
@@ -18,9 +10,13 @@ interface ConfirmDeleteButtonProps {
   itemName?: string;
   label?: string;
   title?: string;
-  description?: string;
+  description?: ReactNode;
   confirmLabel?: string;
   className?: string;
+  /** Ask the API what the delete blocks or takes with it. */
+  target?: DeleteTarget;
+  /** A phrase to type before the confirm button enables. */
+  confirmText?: string;
 }
 
 export function ConfirmDeleteButton({
@@ -32,6 +28,8 @@ export function ConfirmDeleteButton({
   description,
   confirmLabel = "Delete",
   className,
+  target,
+  confirmText,
 }: ConfirmDeleteButtonProps) {
   const [open, setOpen] = useState(false);
 
@@ -39,7 +37,7 @@ export function ConfirmDeleteButton({
     <>
       <Button
         className={className}
-        disabled={pending}
+        loading={pending}
         onClick={() => setOpen(true)}
         size="sm"
         type="button"
@@ -47,29 +45,19 @@ export function ConfirmDeleteButton({
       >
         {label}
       </Button>
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{title}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {description ?? `${itemName ? `“${itemName}” will be permanently deleted. ` : ""}This cannot be undone.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={pending}
-              variant="destructive"
-              onClick={() => {
-                onConfirm();
-                setOpen(false);
-              }}
-            >
-              {confirmLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDialog
+        open={open}
+        onOpenChange={setOpen}
+        title={title}
+        description={
+          description ?? `${itemName ? `“${itemName}” will be permanently deleted. ` : ""}This cannot be undone.`
+        }
+        target={target}
+        confirmText={confirmText}
+        confirmLabel={confirmLabel}
+        pending={pending}
+        onConfirm={onConfirm}
+      />
     </>
   );
 }

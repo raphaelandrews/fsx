@@ -42,7 +42,7 @@ are `snake_case` in SQL and `camelCase` in Drizzle. Every table has an integer
   One-off tournaments have no championship.
 - **Tier** (`tournaments.tier`, `circuits.tier`): `S` for the Sergipano
   championships, `A` and `B` for other events by importance, `school` for school
-  events. Planned to weight achievements (`GAMIFICATION.md` at the repository root).
+  events. Weights podium XP and groups achievements; see [Gamification](/reference/gamification).
 - **Tournament** (`tournaments`): one event with a `rating_type`, a tier, an
   optional `date` and Chess-Results URL, and an optional championship.
 - **Tournament podium** (`tournament_podiums`): a player's final `place` in a
@@ -238,6 +238,29 @@ of 0–4000 is rejected and changes nothing.
 
 The [K-factor rules](/guide/rating-variation) decide the variation; the site
 stores the result and does not compute it.
+
+## Merging players
+
+`players.merge` folds a duplicate record into another (the lowest ID survives)
+in one D1 batch, so a failure leaves both records untouched.
+
+1. It refuses when the two players overlap on a unique key: a rating result in the
+   same tournament, a tournament podium in the same tournament and category, a
+   final circuit podium in the same circuit and category, or a School Games result
+   in the same age group and sex.
+2. It clears the other record's `nickname`, `cbx_id`, and `fide_id` (unique
+   columns) before the kept record inherits any profile field that is empty.
+3. It re-points rating history, tournament and circuit podiums, final podiums, cup
+   players, School Games results, announcements, and cup matches and games to the
+   kept player. Titles, roles, norms, insignias, and defending championships move
+   unless the kept player already has the same one; the rest are deleted with the
+   other record.
+4. It rebuilds each rating type's chain from both histories in `id` order and sets
+   the kept player's ratings to the chain's end.
+5. After the batch it deletes the other record's uploaded photo from R2, unless the
+   kept player inherited it.
+
+`players.rebuildRatings` runs step 4 alone for one player.
 
 ## School Games scoring
 

@@ -25,7 +25,7 @@ const placeXp = (table: Record<1 | 2 | 3, number>, place: number | null) =>
 
 const categoryFactor = (category: string | null) => (category === null ? 1 : XP.categoryPodiumFactor);
 
-// The weights live in constants.ts (XP); GAMIFICATION.md "Phase 2" explains them.
+// The weights live in constants.ts (XP); docs/reference/gamification explains them.
 export function playerLevel(input: LevelInput, stats: PlayerStats): PlayerLevel {
   const tournamentPodiumIds = new Set(input.tournamentPodiums.map((podium) => podium.tournament.id));
 

@@ -37,7 +37,7 @@ breadcrumb JSON-LD. **Sitemap** marks URLs listed in `/sitemap.xml`.
 | `/sobre` | [About](/guide/about) | — | — | Sitemap; **prerendered** |
 | `/normas-tecnicas` | Technical norms | — | — | Sitemap; **prerendered** |
 | `/swiss-manager` | Swiss Manager export | `swissManager.list`, fetched on click | — | `noindex`, not in the sitemap; not linked from navigation |
-| any other path | Not found | — | — | `$.tsx` throws `notFound()` → 404, `noindex` |
+| any other path | Not found | — | — | `_public/$.tsx` throws `notFound()` → 404 (the status keeps it out of search results; a thrown not-found skips the route's `head`, so it has no page-specific title). Any 404 inside the public site (an unknown record too) keeps the header and footer and links to the section the address pointed at; dashboard 404s stay in the admin shell, in English |
 
 ## Private pages
 

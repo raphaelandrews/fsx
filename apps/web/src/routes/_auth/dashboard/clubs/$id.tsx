@@ -47,6 +47,7 @@ function RouteComponent() {
 
   return (
     <EntityEditPage
+      id={id}
       noun="club"
       basePath="/dashboard/clubs"
       backLabel="Clubs"

@@ -28,6 +28,7 @@ Environment files (all variables are explained in `apps/web/.env.example`):
 ```bash
 bun run dev       # web on http://localhost:3001, docs on http://localhost:4000
 bun run db:seed   # in another terminal, after dev has started: sample data
+                  # (or `bun run db:seed:remote` for a copy of the real data)
 ```
 
 `bun run dev` creates the local D1 database and applies the migrations. If the

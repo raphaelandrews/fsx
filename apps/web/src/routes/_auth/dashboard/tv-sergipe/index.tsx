@@ -4,18 +4,9 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "@fsx/ui/components/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@fsx/ui/components/alert-dialog";
 
 import { useTRPC } from "@/lib/trpc";
+import { DeleteDialog } from "@/components/admin/delete-dialog";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
@@ -113,7 +104,7 @@ function RouteComponent() {
         description="TV Sergipe School Games results by school, category, and modality."
         actions={
           <div className="flex gap-2">
-            <Button disabled={deleteAllMutation.isPending} variant="destructive" onClick={() => setConfirmDeleteAll(true)}>
+            <Button loading={deleteAllMutation.isPending} disabled={data.length === 0} variant="destructive" onClick={() => setConfirmDeleteAll(true)}>
               Delete all
             </Button>
             <Link to="/dashboard/tv-sergipe/create">
@@ -132,20 +123,16 @@ function RouteComponent() {
         pagination={(table) => <DataTablePagination table={table} />}
       />
 
-      <AlertDialog open={confirmDeleteAll} onOpenChange={setConfirmDeleteAll}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete every School Games result?</AlertDialogTitle>
-            <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteAllMutation.isPending}>Cancel</AlertDialogCancel>
-            <AlertDialogAction disabled={deleteAllMutation.isPending} variant="destructive" onClick={() => deleteAllMutation.mutate()}>
-              Delete all
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDialog
+        open={confirmDeleteAll}
+        onOpenChange={setConfirmDeleteAll}
+        title="Delete every School Games result?"
+        description={`All ${data.length} result${data.length === 1 ? "" : "s"} will be permanently deleted, including the school standings built from them. Individual results can also be deleted one at a time from the table. This cannot be undone.`}
+        confirmText="delete all"
+        confirmLabel="Delete all results"
+        pending={deleteAllMutation.isPending}
+        onConfirm={() => deleteAllMutation.mutate()}
+      />
     </div>
   );
 }

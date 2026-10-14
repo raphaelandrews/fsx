@@ -1,4 +1,4 @@
--- How much of the gamification plan (GAMIFICATION.md) the existing data can
+-- How much of the gamification plan (reference/gamification in the docs) the existing data can
 -- support retroactively. Achievements are derived from history, so these counts
 -- size the gaps: undated tournaments, broken rating chains, chains that start
 -- mid-career, and podiums without a matching rating result. Read-only.

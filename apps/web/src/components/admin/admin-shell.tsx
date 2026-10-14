@@ -14,9 +14,18 @@ export function AdminShell({ user, children }: { user?: SidebarUser; children: R
       <AdminSidebar user={user} />
       <SidebarInset className="min-w-0 md:peer-data-[variant=inset]:rounded-4xl md:peer-data-[variant=inset]:shadow-none">
         <AdminTopbar />
-        <div className="mx-auto w-full max-w-[1120px] flex-1 px-4 pb-8 sm:px-6">{children}</div>
+        <AdminContent>{children}</AdminContent>
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+function AdminContent({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  return (
+    <div key={pathname} className="fade-in-0 mx-auto w-full max-w-[1120px] flex-1 animate-in px-4 pb-8 duration-150 sm:px-6">
+      {children}
+    </div>
   );
 }
 

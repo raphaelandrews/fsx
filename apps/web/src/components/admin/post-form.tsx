@@ -52,6 +52,7 @@ export function PostForm({
 
   return (
     <AdminForm
+      error={error}
       onSubmit={() => form.handleSubmit()}
       actions={<FormActions cancelTo={cancelTo} submitLabel={submitLabel} pending={pending} />}
     >

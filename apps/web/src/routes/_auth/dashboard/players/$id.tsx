@@ -94,7 +94,7 @@ function RouteComponent() {
             <Button
               type="button"
               variant="outline"
-              disabled={rebuildMutation.isPending}
+              loading={rebuildMutation.isPending}
               onClick={() => rebuildMutation.mutate({ id })}
             >
               Rebuild ratings

@@ -42,6 +42,7 @@ function RouteComponent() {
 
   return (
     <EntityEditPage
+      id={id}
       noun="norm"
       basePath="/dashboard/norms"
       backLabel="Norms"

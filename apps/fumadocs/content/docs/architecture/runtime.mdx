@@ -68,7 +68,8 @@ reach the client:
 | ----- | ------------- |
 | `TRPCError` thrown by a procedure | unchanged |
 | Zod input validation | `BAD_REQUEST`, with `zodError` field details |
-| SQLite unique or foreign-key violation | `CONFLICT` |
+| SQLite unique violation | `CONFLICT` naming what is taken ("A club with this name already exists.") |
+| SQLite foreign-key violation | `CONFLICT`: "still used by other data" when the procedure removes rows (`delete`, `remove`, `unlink`, `revert`), otherwise "a selected record no longer exists" |
 | SQLite check or not-null violation | `BAD_REQUEST` |
 | anything else | `INTERNAL_SERVER_ERROR` with a generic message |
 

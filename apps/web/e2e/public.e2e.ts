@@ -121,3 +121,15 @@ test("another website can read players and ratings from the public API", async (
   expect(result.oneStatus).toBe(200);
   expect(result.player).toMatchObject({ id: PLAYER.id, name: PLAYER.name });
 });
+
+test("an unknown record keeps the site navigation and points to the right section", async ({ page }) => {
+  const response = await page.goto("/jogadores/999999", { waitUntil: "networkidle" });
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole("heading", { level: 1, name: "Página não encontrada" })).toBeFocused();
+  await expect(page.getByText("Não encontramos este jogador.")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Federação Sergipana de Xadrez — início/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Ver ratings" })).toHaveAttribute("href", "/ratings");
+
+  await page.getByRole("link", { name: "Voltar ao início" }).click();
+  await expect(page).toHaveURL(/\/$/);
+});

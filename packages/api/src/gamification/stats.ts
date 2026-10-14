@@ -3,7 +3,7 @@ import { RATING_TYPES, type RatingType } from "../rating-types";
 import { sergipanoKind, type SergipanoKind } from "./sergipano";
 import { COMEBACK_AFTER, DECADE_YEARS, GAIN_STEPS, POSITIVE_STREAK_STEPS, RATING_THRESHOLDS, STARTING_RATING } from "./constants";
 
-// Implements the Data rules of GAMIFICATION.md. Pure: callers load the rows.
+// Implements the Data rules in apps/fumadocs/content/docs/reference/gamification.mdx. Pure: callers load the rows.
 
 export interface Competition {
   id: number;

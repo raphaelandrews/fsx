@@ -27,7 +27,7 @@ would have to be backfilled once and then kept in sync with every correction.
   records. A date is never invented.
 - `players.stats` loads a player's whole career in one D1 batch (up to 500
   results; the largest career is 78) and is edge-cached like `players.byId`.
-- The rules for gaps and edge cases are the Data rules in `GAMIFICATION.md`,
+- The rules for gaps and edge cases are the [Data rules](/reference/gamification#data-rules),
   each covered by a unit test in `stats.test.ts`.
 - Exceptions are stored only when they cannot be recomputed or are an official
   record: ranking snapshots ([ADR 0007](/decisions/0007-ranking-snapshots)),

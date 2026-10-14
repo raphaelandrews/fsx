@@ -11,7 +11,7 @@ in English.
 ## Sections
 
 - **Dashboard**: counts of players, posts, announcements, and events.
-- **Players**: create and edit players, with personal data, club, and ratings. **Rating history** on the edit page corrects or removes a tournament result and keeps the rating in sync. **Players → Titles** assigns titles.
+- **Players**: create and edit players, with personal data, club, and ratings. **Rating history** on the edit page corrects or removes a tournament result and keeps the rating in sync. **Players → Titles** assigns titles. **Rebuild ratings** replays the rating history and sets the current ratings from it, for when a rating was edited by hand. **Merge with…** folds a duplicate record into this one (see [Merging duplicate players](#merging-duplicate-players)).
 - **Posts**: publish and edit news posts.
 - **Announcements**: manage official announcements. Link the player an announcement is about, so it is listed on their profile; when none is linked, the edit page suggests players whose full name appears in the text.
 - **Events**: manage chess events and their links (regulations, registration form, results).
@@ -27,7 +27,7 @@ in English.
 - **Roles**: board, arbiter, and teacher roles assigned to players.
 - **Norms**: norms toward state titles.
 - **Insignias**: insignias awarded to players.
-- **Rating update** (`/rating-update`): apply tournament rating variations in bulk from an Excel sheet exported by Swiss Manager. After each import, players without a tournament in three years are marked inactive (a message says how many) and the ranking positions are recorded; a player who plays again is active automatically. Youth titles (Mestre Mirim, Mestre Júnior) whose holder reaches the title's age limit that year are removed at the same time; a warning counts youth titles that cannot expire because the holder has no birth date. **Update rankings now** does the same without an import. A player kept active by hand is marked inactive again at the next update if they still have no recent tournament.
+- **Rating update** (`/rating-update`): apply tournament rating variations in bulk from an Excel sheet exported by Swiss Manager, in three steps. **Upload** reads the file without saving anything (a template and the column guide are on the page). **Review** shows what the file would do: rating results, new players, profile updates, the tournaments and rating types it touches, and every row with a problem (bad ID or date, a missing tournament column, the same player and tournament twice), which will be skipped. **Import** applies the valid rows one at a time with a progress bar and a Stop button, then reports: what applied, what failed and why, and what was skipped, with a CSV of the problems and a Retry for failed or unrun rows. The report is kept in the browser until you start another import. After each import, players without a tournament in three years are marked inactive (a message says how many) and the ranking positions are recorded; a player who plays again is active automatically. Youth titles (Mestre Mirim, Mestre Júnior) whose holder reaches the title's age limit that year are removed at the same time; a warning counts youth titles that cannot expire because the holder has no birth date. **Update rankings now** does the same without an import. A player kept active by hand is marked inactive again at the next update if they still have no recent tournament.
 - **Swiss Manager**: export player data for the Swiss Manager pairing software. The same export is public at `/swiss-manager`.
 - **Cache**: the public cache freshness window and a purge button (or manual purge steps).
 - **Backup**: instructions for exporting and restoring the D1 database.
@@ -47,6 +47,46 @@ in English.
   deleted. A tournament with rating results, or a school with School Games
   results, cannot be deleted until those are removed; a finished circuit season
   must be reopened first.
+
+## Deleting records
+
+Deleting always goes through a confirmation that names the record, so nothing is
+removed by a single click.
+
+- **Before you confirm**, the dialog asks the server what the delete affects. If
+  other records still depend on it (a club with players, a tournament with rating
+  results, a finished circuit season), it says what they are and how to clear
+  them, and the Delete button stays disabled.
+- **When a delete also removes other records** (a title held by players, a circuit
+  with its stages and points, an event with its links), the dialog lists them and
+  asks you to type the record's name before the button enables.
+- **Bulk or irreversible actions** need a typed phrase: deleting every School Games
+  result asks for "delete all", and merging players asks for "merge" after showing
+  which record is kept and which is deleted.
+- **If a save or delete fails**, the page keeps what you typed and shows the reason
+  next to the form (or in a banner above the buttons), not only in a toast. Duplicate
+  names say which name is taken, and field errors name the field.
+
+## Merging duplicate players
+
+When the same person was registered twice, open one of the records and choose
+**Merge with…**, then search for the other. The two records become one and the
+player with the lowest ID is kept, so links to the older profile keep working.
+
+- Results, podiums, circuit and cup records, School Games results, and
+  announcements move to the kept player. Titles, roles, norms, insignias, and
+  defending championships move too, unless the kept player already has the same one.
+- Empty profile fields (photo, birth date, club, location, IDs, description) are
+  filled from the other record; fields that are already set are not overwritten.
+  The player is active and verified if either record was.
+- The rating history of both players is combined in order and the ratings are
+  rebuilt from it.
+- The merge is refused, naming the overlap, when both players have a result in the
+  same tournament, a podium in the same tournament and category, a final podium in
+  the same circuit and category, or a School Games result in the same age group.
+  Remove one of the two entries first.
+- The other record is deleted, and so is its photo unless the kept player now uses it.
+  This cannot be undone.
 
 Changes are visible in the panel immediately. Anonymous visitors may see the
 previous version for up to five minutes; see

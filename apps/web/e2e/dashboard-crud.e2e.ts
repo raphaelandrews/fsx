@@ -288,7 +288,11 @@ test("circuits: stage, result, finish the season, correct final podiums, reopen"
   await expect(page.getByText("Season reopened")).toBeVisible();
 
   await page.getByRole("button", { name: "Delete circuit" }).click();
-  await page.getByRole("alertdialog").getByRole("button", { name: /delete/i }).click();
+  const dialog = page.getByRole("alertdialog");
+  await expect(dialog).toContainText("This also deletes other records");
+  await expect(dialog.getByRole("button", { name: "Delete", exact: true })).toBeDisabled();
+  await dialog.getByLabel("Type Circuito Final CRUD 2033 to confirm").fill("Circuito Final CRUD 2033");
+  await dialog.getByRole("button", { name: "Delete", exact: true }).click();
   await expect(page.getByText("Circuit deleted")).toBeVisible();
 });
 
@@ -353,4 +357,72 @@ test("rating update: snapshot button records the rankings", async ({ page }) => 
   await page.goto("/rating-update", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Update rankings now" }).click();
   await expect(page.getByText(/ranking/i).filter({ hasText: /updated|snapshot|recorded/i }).first()).toBeVisible();
+});
+
+test("a club that players still use cannot be deleted, and the dialog says why", async ({ page }) => {
+  await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
+  await fill(page, { Name: "Clube Com Jogadores" });
+  await page.getByRole("button", { name: /^create club/i }).click();
+  await expect(page).toHaveURL(/\/dashboard\/clubs$/);
+
+  await page.goto("/dashboard/players/create", { waitUntil: "networkidle" });
+  await fill(page, { Name: "Atleta Do Clube" });
+  await pick(page, "Search club...", "Clube Com", /Clube Com Jogadores/);
+  await page.getByRole("button", { name: /^create player/i }).click();
+  await expect(page.getByText(/Player created/)).toBeVisible();
+
+  await page.goto("/dashboard/clubs", { waitUntil: "networkidle" });
+  await rowMenu(page, "Clube Com Jogadores", "Delete");
+  const dialog = page.getByRole("alertdialog");
+  await expect(dialog).toContainText("It cannot be deleted yet");
+  await expect(dialog).toContainText("still used by 1 player");
+  await expect(dialog.getByRole("button", { name: "Delete", exact: true })).toBeDisabled();
+});
+
+test("School Games 'Delete all' needs a typed confirmation", async ({ page }) => {
+  await page.goto("/dashboard/tv-sergipe", { waitUntil: "networkidle" });
+  const deleteAll = page.getByRole("button", { name: "Delete all", exact: true });
+  test.skip(await deleteAll.isDisabled(), "no School Games results to delete");
+  await deleteAll.click();
+  const dialog = page.getByRole("alertdialog");
+  const confirm = dialog.getByRole("button", { name: "Delete all results" });
+  await expect(confirm).toBeDisabled();
+  await dialog.getByLabel("Type delete all to confirm").fill("delete all");
+  await expect(confirm).toBeEnabled();
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+});
+
+test("rating update: review the file first, then apply the valid rows and keep a report", async ({ page }) => {
+  const XLSX = await import("xlsx");
+  const sheet = XLSX.utils.aoa_to_sheet([
+    ["id", "name", "sex"],
+    [0, "Importada Um", "F"],
+    ["abc", "Linha Inválida", "F"],
+    [0, "Importada Dois", "F"],
+  ]);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, sheet, "Sheet1");
+  const buffer = Buffer.from(XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }));
+
+  await page.goto("/rating-update", { waitUntil: "networkidle" });
+  await page.getByLabel(/Drop a Swiss Manager export/).setInputFiles({
+    name: "import.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer,
+  });
+
+  await expect(page.getByRole("heading", { name: "Review before importing" })).toBeVisible();
+  await expect(page.getByText("1 row will be skipped")).toBeVisible();
+  await expect(page.getByText("Row 3: Invalid or missing 'id'. ID must be 0 or positive.").first()).toBeVisible();
+  await page.getByRole("button", { name: "Apply 2 changes" }).click();
+
+  await expect(page.getByText("2 applied, 1 need attention")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText("Linha Inválida", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Applied (2)" }).click();
+  await expect(page.getByText("Importada Um", { exact: true })).toBeVisible();
+
+  await page.reload({ waitUntil: "networkidle" });
+  await expect(page.getByText("Report from your last import")).toBeVisible();
+  await page.getByRole("button", { name: "Import another file" }).click();
+  await expect(page.getByText("Drop a Swiss Manager export here")).toBeVisible();
 });

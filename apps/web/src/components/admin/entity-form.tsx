@@ -16,7 +16,7 @@ import {
 import { Input } from "@fsx/ui/components/input";
 import { Textarea } from "@fsx/ui/components/textarea";
 
-import { AdminForm, FormActions, FormSection } from "@/components/admin/form-layout";
+import { AdminForm, FormActions, FormErrorSummary, FormSection } from "@/components/admin/form-layout";
 import { DatePicker } from "@/components/form/date-picker";
 import { FormField } from "@/components/form/form-field";
 import { ImageUpload } from "@/components/media/image-upload";
@@ -141,6 +141,7 @@ export function EntityForm({
 
   return (
     <AdminForm
+      error={error}
       onSubmit={() => form.handleSubmit()}
       actions={
         <form.Subscribe selector={(state) => state.isSubmitting}>
@@ -315,9 +316,10 @@ function DialogForm({
       className="space-y-4"
     >
       <EntityFields form={form} fields={fields} error={error} idPrefix="dialog" />
+      <FormErrorSummary error={error} />
       <DialogFooter>
         <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" loading={pending}>
           {pending ? "Saving..." : submitLabel}
         </Button>
       </DialogFooter>
