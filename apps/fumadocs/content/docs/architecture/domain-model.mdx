@@ -153,12 +153,12 @@ foreign-key error, which the API returns as `CONFLICT`.
 
 | Deleting a… | Also deletes | Blocked while referenced by |
 | ----------- | ------------ | --------------------------- |
-| player (no API procedure) | title, role, norm, and insignia links; ranking snapshots | announcements, rating history, tournament podiums, circuit results and final podiums, defending champions, cup players and matches |
+| player (no API procedure) | title, role, norm, and insignia links; ranking snapshots | announcements, rating history, tournament podiums, circuit results and final podiums, defending champions, cup players and matches, School Games results |
 | club | — | players, circuit phases, School Games results |
 | location | — | players |
 | title, role, norm, insignia | its player links | — |
 | championship | its defending champions | tournaments, cups, circuits |
-| tournament | its podiums | rating history (revert it first), circuit phases |
+| tournament | — | rating history (revert it first), podiums (remove them first), circuit phases |
 | circuit | its phases and their results, and its own results | final podiums (reopen the season first) |
 | circuit phase | its results | — |
 | cup | groups, players, rounds, brackets, playoffs, matches, games | — |

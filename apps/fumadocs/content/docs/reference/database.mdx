@@ -60,6 +60,7 @@ Indexes follow the public queries:
 
 - `players`: `active`, `sex`, `club_id`, `location_id`, `name`, each rating,
   `(active, rating)` for each rating, and `(active, birth_date)` for age groups.
+- `players_to_tournaments (tournament_id)`, `tournaments (championship_id)`, `circuit_phases (tournament_id)`.
 - `circuit_phases (circuit_id, sort_order)`, `circuit_podiums (circuit_phase_id)` and `(circuit_id)`.
 - `ranking_snapshots (player_id, rating_type, snapshot_at)` and `(rating_type, snapshot_at)`, `announcements (player_id)`.
 - `tournament_podiums (tournament_id, place)`, `circuit_final_podiums (player_id)`, `cup_games (cup_match_id, game_number)`.

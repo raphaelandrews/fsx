@@ -20,6 +20,8 @@ import { tvSergipe } from "@fsx/db/schema/tvSergipe";
 
 import type { createDb } from "@fsx/db";
 
+import { deleteMediaUrl } from "./images";
+
 type Database = ReturnType<typeof createDb>;
 
 const PROFILE_FIELDS = ["nickname", "imageUrl", "cbxId", "fideId", "birthDate", "clubId", "locationId", "description"] as const;
@@ -185,6 +187,9 @@ export async function mergePlayers(db: Database, input: { sourceId: number; targ
     db.delete(defendingChampions).where(eq(defendingChampions.playerId, sourceId)),
     db.delete(players).where(eq(players.id, sourceId)),
   ]);
+
+  if (source.imageUrl && source.imageUrl !== (inherited.imageUrl ?? target.imageUrl))
+    await deleteMediaUrl(source.imageUrl);
 
   return { id: targetId };
 }

@@ -6,6 +6,7 @@ import { AdminForm, FormActions, FormSection } from "@/components/admin/form-lay
 import { FormField } from "@/components/form/form-field";
 import { SearchableSelect } from "@/components/searchable-select";
 import { fieldError } from "@/lib/errors";
+import { submitThenChange } from "@/lib/field-rules";
 import { useTRPC } from "@/utils/trpc";
 import {
   AGE_GROUPS,
@@ -45,7 +46,11 @@ export function TvSergipeForm({
   cancelTo,
 }: TvSergipeFormProps) {
   const trpc = useTRPC();
-  const form = useForm({ defaultValues, onSubmit: ({ value }) => onSubmit(value) });
+  const form = useForm({
+    defaultValues,
+    validationLogic: submitThenChange,
+    onSubmit: ({ value }) => onSubmit(value),
+  });
 
   return (
     <AdminForm
@@ -58,7 +63,7 @@ export function TvSergipeForm({
       >
         <form.Field
           name="clubId"
-          validators={{ onSubmit: ({ value }) => (value ? undefined : "School is required") }}
+          validators={{ onDynamic: ({ value }) => (value ? undefined : "School is required") }}
         >
           {(f) => (
             <FormField
@@ -108,7 +113,7 @@ export function TvSergipeForm({
               <form.Field
                 name="playerId"
                 validators={{
-                  onSubmit: ({ value, fieldApi }) =>
+                  onDynamic: ({ value, fieldApi }) =>
                     fieldApi.form.getFieldValue("modality") === "individual" && !value
                       ? "Player is required"
                       : undefined,

@@ -8,6 +8,7 @@ import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 
 import { NATIVE_SELECT_CLASS } from "@/components/admin/entity-form";
+import { URL_MAX } from "@/lib/field-rules";
 
 export interface EventLinkDraft {
   id?: number;
@@ -19,6 +20,8 @@ export interface EventLinkDraft {
 interface EventLinksEditorProps {
   value: EventLinkDraft[];
   onChange: (links: EventLinkDraft[]) => void;
+  /** One message per row, in the same order as `value`. */
+  errors?: (string | undefined)[];
 }
 
 const TYPE_LABELS: Record<EventLinkType, string> = {
@@ -28,7 +31,7 @@ const TYPE_LABELS: Record<EventLinkType, string> = {
 };
 
 // An event has at most one link of each type; rows are shown in list order.
-export function EventLinksEditor({ value, onChange }: EventLinksEditorProps) {
+export function EventLinksEditor({ value, onChange, errors = [] }: EventLinksEditorProps) {
   const reorder = (links: EventLinkDraft[]) =>
     links.map((link, index) => ({ ...link, sortOrder: index }));
   const update = (index: number, patch: Partial<EventLinkDraft>) =>
@@ -71,10 +74,19 @@ export function EventLinksEditor({ value, onChange }: EventLinksEditorProps) {
             <Input
               id={`event-link-url-${index}`}
               type="url"
+              inputMode="url"
+              maxLength={URL_MAX}
               placeholder="Empty shows “coming soon”"
               value={link.href}
+              aria-invalid={errors[index] ? true : undefined}
+              aria-describedby={errors[index] ? `event-link-url-${index}-error` : undefined}
               onChange={(e) => update(index, { href: e.target.value })}
             />
+            {errors[index] ? (
+              <p id={`event-link-url-${index}-error`} className="text-destructive text-sm" role="alert">
+                {errors[index]}
+              </p>
+            ) : null}
           </div>
           <Button
             type="button"

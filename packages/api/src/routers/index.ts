@@ -7,8 +7,8 @@ import { clubsRouter } from "./clubs";
 import { cupsRouter } from "./cups";
 import { eventsRouter } from "./events";
 import { imagesRouter } from "./images";
-import { insigniaRouter } from "./insignia";
-import { linkGroupsRouter } from "./linkGroups";
+import { insigniaRouter } from "./insignias";
+import { linkGroupsRouter } from "./link-groups";
 import { locationsRouter } from "./locations";
 import { normsRouter } from "./norms";
 import { playersRouter } from "./players";
@@ -20,7 +20,6 @@ import { postsRouter } from "./posts";
 import { recordsRouter } from "./records";
 import { rolesRouter } from "./roles";
 import { tvSergipeRouter } from "./tv-sergipe";
-import { seedRouter } from "./seed";
 import { statsRouter } from "./stats";
 import { swissManagerRouter } from "./swiss-manager";
 import { titledPlayersRouter } from "./titled-players";
@@ -51,7 +50,6 @@ export const appRouter = router({
   records: recordsRouter,
   roles: rolesRouter,
   tvSergipe: tvSergipeRouter,
-  seed: seedRouter,
   stats: statsRouter,
   swissManager: swissManagerRouter,
   titledPlayers: titledPlayersRouter,

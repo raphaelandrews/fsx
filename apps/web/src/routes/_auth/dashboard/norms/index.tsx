@@ -1,19 +1,9 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
 
-import { Button } from "@fsx/ui/components/button";
-
-import { useTRPC } from "@/utils/trpc";
-import { AdminPageHeader } from "@/components/admin/page-header";
-import { DataTable } from "@/components/data-table/data-table";
-import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { DataTablePagination } from "@/components/data-table/data-table-pagination";
-import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
-import { RowLink } from "@/components/data-table/row-link";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { EntityListPage, entityMessages } from "@/components/admin/entity-pages";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { EmptyCollection } from "@/components/admin/empty-collection";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/norms/")({
   head: () => ({ meta: [{ title: "Norms - Admin - FSX" }] }),
@@ -21,64 +11,29 @@ export const Route = createFileRoute("/_auth/dashboard/norms/")({
   component: RouteComponent,
 });
 
+function useRows() {
+  const trpc = useTRPC();
+  return useSuspenseQuery(trpc.norms.list.queryOptions()).data;
+}
+
 function RouteComponent() {
   const trpc = useTRPC();
-
-  const { data = [] } = useSuspenseQuery(trpc.norms.list.queryOptions());
-
+  const rows = useRows();
   const deleteMutation = useAdminMutation(trpc.norms.delete.mutationOptions(), {
     invalidates: "norms",
-    success: "Norm deleted",
-    failure: "Failed to delete norm",
+    ...entityMessages("norm").delete,
   });
 
-  const columns: ColumnDef<(typeof data)[number]>[] = [
-    {
-      accessorKey: "id",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
-      cell: ({ row }) => <span className="tabular-nums">{row.getValue("id")}</span>,
-    },
-    {
-      accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
-      cell: ({ row }) => <RowLink to="/dashboard/norms/$id" id={row.original.id}>{row.getValue("name")}</RowLink>,
-    },
-    {
-      id: "actions",
-      header: () => <span className="sr-only">Actions</span>,
-      cell: ({ row }) => (
-        <DataTableRowActions
-          id={row.original.id}
-          isDeleting={deleteMutation.isPending}
-          editTo="/dashboard/norms/$id"
-          noun="norm"
-          onDelete={() => deleteMutation.mutate({ id: row.original.id })}
-          displayName={row.original.name}
-        />
-      ),
-    },
-  ];
-
   return (
-    <div>
-      <AdminPageHeader
-        title="Norms"
-        description="Manage technical norms."
-        actions={
-          <Link to="/dashboard/norms/create">
-            <Button>New norm</Button>
-          </Link>
-        }
-      />
-      <DataTable
-        emptyState={<EmptyCollection noun="norms" createTo="/dashboard/norms/create" />}
-        columns={columns}
-        data={data}
-        toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search norm..." />
-        )}
-        pagination={(table) => <DataTablePagination table={table} />}
-      />
-    </div>
+    <EntityListPage
+      noun="norm"
+      plural="norms"
+      basePath="/dashboard/norms"
+      title="Norms"
+      description="Manage technical norms."
+      rows={rows}
+      deleting={deleteMutation.isPending}
+      onDelete={(id) => deleteMutation.mutate({ id })}
+    />
   );
 }

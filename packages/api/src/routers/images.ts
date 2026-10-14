@@ -34,7 +34,18 @@ export function urlToKey(url: string): string | null {
 /** Best-effort removal of an uploaded image; external URLs and missing objects are ignored. */
 export async function deleteMediaUrl(url: string | null | undefined): Promise<void> {
   const key = url ? urlToKey(url) : null;
-  if (key) await env.IMAGES.delete(key).catch(() => {});
+  if (!key) return;
+  try {
+    await env.IMAGES.delete(key);
+  } catch {}
+}
+
+/** Removes the previous image after an update replaced or cleared it; `next === undefined` means the field was untouched. */
+export async function deleteReplacedMedia(
+  previous: string | null | undefined,
+  next: string | null | undefined,
+): Promise<void> {
+  if (next !== undefined && previous && previous !== next) await deleteMediaUrl(previous);
 }
 
 function badRequest(message: string): never {

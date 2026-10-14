@@ -289,10 +289,6 @@ function RatingUpdatePage() {
         }
 
         try {
-          // Simulated processing delay so each row's result streams into the logs
-          // progressively, matching the source project's behaviour.
-          await new Promise((resolve) => setTimeout(resolve, Math.random() * 500 + 100));
-
           if (isTournamentUpdate && id > 0) {
             const linked = await linkMutation.mutateAsync({
               playerId: id,

@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { EntityForm } from "@/components/admin/entity-form";
-import { AdminPageHeader } from "@/components/admin/page-header";
+import { EntityCreatePage, entityMessages } from "@/components/admin/entity-pages";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { CHAMPIONSHIP_SECTIONS } from "@/lib/admin-forms";
 import { useTRPC } from "@/utils/trpc";
@@ -17,28 +16,25 @@ function RouteComponent() {
 
   const createMutation = useAdminMutation(trpc.champions.create.mutationOptions(), {
     invalidates: "champions",
-    success: "Championship created",
-    failure: "Failed to create championship",
+    ...entityMessages("championship").create,
     onSuccess: () => navigate({ to: "/dashboard/championships" }),
   });
 
   return (
-    <>
-      <AdminPageHeader
-        backTo="/dashboard/championships"
-        backLabel="Championships"
-        title="New championship"
-        description="Add a recurring competition."
-      />
-      <EntityForm
-        sections={CHAMPIONSHIP_SECTIONS}
-        defaultValues={{ name: "" }}
-        onSubmit={(values) => createMutation.mutate({ name: values.name! })}
-        error={createMutation.error}
-        pending={createMutation.isPending}
-        submitLabel="Create championship"
-        cancelTo="/dashboard/championships"
-      />
-    </>
+    <EntityCreatePage
+      noun="championship"
+      basePath="/dashboard/championships"
+      backLabel="Championships"
+      description="Add a recurring competition."
+      sections={CHAMPIONSHIP_SECTIONS}
+      defaultValues={{ name: "" }}
+      onSubmit={(values) =>
+        createMutation.mutate({
+          name: values.name!,
+        })
+      }
+      error={createMutation.error}
+      pending={createMutation.isPending}
+    />
   );
 }

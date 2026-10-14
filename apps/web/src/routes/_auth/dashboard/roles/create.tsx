@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { EntityForm } from "@/components/admin/entity-form";
-import { AdminPageHeader } from "@/components/admin/page-header";
+import { EntityCreatePage, entityMessages } from "@/components/admin/entity-pages";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { ROLE_SECTIONS } from "@/lib/admin-forms";
 import { useTRPC } from "@/utils/trpc";
@@ -17,34 +16,27 @@ function RouteComponent() {
 
   const createMutation = useAdminMutation(trpc.roles.create.mutationOptions(), {
     invalidates: "roles",
-    success: "Role created",
-    failure: "Failed to create role",
+    ...entityMessages("role").create,
     onSuccess: () => navigate({ to: "/dashboard/roles" }),
   });
 
   return (
-    <>
-      <AdminPageHeader
-        backTo="/dashboard/roles"
-        backLabel="Roles"
-        title="New role"
-        description="Add a board, arbiter, or teacher position."
-      />
-      <EntityForm
-        sections={ROLE_SECTIONS}
-        defaultValues={{ name: "", shortName: "", type: "management" }}
-        onSubmit={(values) =>
-          createMutation.mutate({
-            name: values.name!,
-            shortName: values.shortName!,
-            type: values.type as "management" | "referee" | "teacher",
-          })
-        }
-        error={createMutation.error}
-        pending={createMutation.isPending}
-        submitLabel="Create role"
-        cancelTo="/dashboard/roles"
-      />
-    </>
+    <EntityCreatePage
+      noun="role"
+      basePath="/dashboard/roles"
+      backLabel="Roles"
+      description="Add a board, arbiter, or teacher position."
+      sections={ROLE_SECTIONS}
+      defaultValues={{ name: "", shortName: "", type: "management" }}
+      onSubmit={(values) =>
+        createMutation.mutate({
+          name: values.name!,
+          shortName: values.shortName!,
+          type: values.type as "management" | "referee" | "teacher",
+        })
+      }
+      error={createMutation.error}
+      pending={createMutation.isPending}
+    />
   );
 }

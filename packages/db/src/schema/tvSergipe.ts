@@ -28,8 +28,10 @@ export const tvSergipe = sqliteTable(
   "tv_sergipe",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    clubId: integer("club_id").notNull().references(() => clubs.id, { onDelete: "restrict" }),
-    playerId: integer("player_id").references(() => players.id, { onDelete: "set null" }),
+    clubId: integer("club_id")
+      .notNull()
+      .references(() => clubs.id, { onDelete: "restrict" }),
+    playerId: integer("player_id").references(() => players.id, { onDelete: "restrict" }),
     teamName: text("team_name"),
     ageGroup: text("age_group").notNull(),
     sex: text("sex").notNull(),

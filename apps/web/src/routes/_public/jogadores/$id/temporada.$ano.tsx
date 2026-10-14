@@ -23,6 +23,7 @@ import { StatTile } from "@/components/gamification/stat-tile";
 import { orNotFound } from "@/lib/errors";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/utils/trpc";
+import { ProfileSkeleton } from "@/components/skeletons/profile-skeleton";
 
 // The federation's calendar year; a future season has nothing to show.
 const currentYear = () =>
@@ -62,6 +63,7 @@ export const Route = createFileRoute("/_public/jogadores/$id/temporada/$ano")({
       ]),
     });
   },
+  pendingComponent: () => <ProfileSkeleton />,
   component: RouteComponent,
 });
 

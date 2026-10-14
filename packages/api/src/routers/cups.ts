@@ -4,10 +4,18 @@ import { eq } from "drizzle-orm";
 import { cups } from "@fsx/db/schema/cups";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
-import { idInput, imageUrl, nameText, positiveInt, points } from "../input-schemas";
+import { idInput, imageUrl, isoDate, nameText, positiveInt, points } from "../input-schemas";
+import { deleteMediaUrl, deleteReplacedMedia } from "./images";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
 
 const ratingTypeEnum = z.enum(["blitz", "rapid", "classic"]);
+
+const endsAfterStart = (value: { startDate?: string; endDate?: string }) =>
+  value.startDate === undefined || value.endDate === undefined || value.endDate >= value.startDate;
+const DATE_ORDER_MESSAGE = {
+  message: "The end date cannot be before the start date.",
+  path: ["endDate"],
+};
 
 export const cupsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -92,43 +100,58 @@ export const cupsRouter = router({
     ),
 
   create: adminProcedure
-    .input(z.object({
-      name: nameText,
-      imageUrl: imageUrl,
-      startDate: z.string().max(40),
-      endDate: z.string().max(40),
-      prizePool: points,
-       ratingType: ratingTypeEnum,
-      championshipId: positiveInt.nullable().optional(),
-    }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.insert(cups).values(input).returning()
-    ),
+    .input(
+      z
+        .object({
+          name: nameText,
+          imageUrl: imageUrl,
+          startDate: isoDate,
+          endDate: isoDate,
+          prizePool: points,
+          ratingType: ratingTypeEnum,
+          championshipId: positiveInt.nullable().optional(),
+        })
+        .refine(endsAfterStart, DATE_ORDER_MESSAGE),
+    )
+    .mutation(({ ctx, input }) => ctx.db.insert(cups).values(input).returning()),
 
   update: adminProcedure
-    .input(z.object({
-      id: positiveInt,
-      name: nameText.optional(),
-      imageUrl: imageUrl.optional(),
-      startDate: z.string().max(40).optional(),
-      endDate: z.string().max(40).optional(),
-      prizePool: points.optional(),
-       ratingType: ratingTypeEnum.optional(),
-      championshipId: positiveInt.nullable().optional(),
-    }))
-    .mutation(async ({ ctx, input }) =>
-      requireMutationRows(
+    .input(
+      z
+        .object({
+          id: positiveInt,
+          name: nameText.optional(),
+          imageUrl: imageUrl.optional(),
+          startDate: isoDate.optional(),
+          endDate: isoDate.optional(),
+          prizePool: points.optional(),
+          ratingType: ratingTypeEnum.optional(),
+          championshipId: positiveInt.nullable().optional(),
+        })
+        .refine(endsAfterStart, DATE_ORDER_MESSAGE),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const previous = await ctx.db.query.cups.findFirst({
+        where: eq(cups.id, input.id),
+        columns: { imageUrl: true },
+      });
+      const updated = requireMutationRows(
         await ctx.db.update(cups).set(input).where(eq(cups.id, input.id)).returning(),
         "Cup",
-      )
-    ),
+      );
+      await deleteReplacedMedia(previous?.imageUrl, input.imageUrl);
+      return updated;
+    }),
 
-  delete: adminProcedure
-    .input(idInput)
-    .mutation(async ({ ctx, input }) =>
-      requireMutationRows(
-        await ctx.db.delete(cups).where(eq(cups.id, input.id)).returning({ id: cups.id }),
-        "Cup",
-      )
-    ),
+  delete: adminProcedure.input(idInput).mutation(async ({ ctx, input }) => {
+    const deleted = requireMutationRows(
+      await ctx.db
+        .delete(cups)
+        .where(eq(cups.id, input.id))
+        .returning({ id: cups.id, imageUrl: cups.imageUrl }),
+      "Cup",
+    );
+    await deleteMediaUrl(deleted[0]?.imageUrl);
+    return deleted.map(({ id }) => ({ id }));
+  }),
 });

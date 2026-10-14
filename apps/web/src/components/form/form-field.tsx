@@ -37,10 +37,10 @@ export function FormField({
         {label}
         {required && <span className="ml-0.5 text-destructive">*</span>}
       </Label>
-      {error && htmlFor && isValidElement(children)
+      {htmlFor && (error || hint) && isValidElement(children)
         ? cloneElement(children as ReactElement<Record<string, unknown>>, {
-            "aria-invalid": true,
-            "aria-describedby": `${htmlFor}-error`,
+            ...(error ? { "aria-invalid": true } : {}),
+            "aria-describedby": [error && `${htmlFor}-error`, hint && `${htmlFor}-hint`].filter(Boolean).join(" "),
           })
         : children}
       {hint && <p id={htmlFor ? `${htmlFor}-hint` : undefined} className="text-sm text-muted-foreground">{hint}</p>}

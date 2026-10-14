@@ -1,12 +1,4 @@
-// NOTE: project-customized — kept in sync with `@fsx/ui/components/pagination`.
-// This is the TanStack-Table variant of the pagination control: it accepts a
-// `Table<TData>` (so it can read pagination state and wire onChange to
-// TanStack's setters) and adds a rows-per-page Select. Visually it matches
-// the server-side `Pagination` primitive — same control sizing, same smart
-// truncation, same first/last/prev/next look — but lives at app level because
-// it depends on TanStack's `Table` type.
-
-import { HugeiconsIcon } from "@hugeicons/react"
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
   ArrowLeftDoubleIcon,

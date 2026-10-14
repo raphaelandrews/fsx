@@ -94,7 +94,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   notFoundComponent: () => <NotFound />,
   errorComponent: ({ error }) => {
     if (typeof document !== "undefined") console.error(error);
-    return <ErrorFallback />;
+    return <ErrorFallback error={error} />;
   },
   component: RootDocument,
 });

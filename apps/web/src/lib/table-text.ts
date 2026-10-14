@@ -19,6 +19,13 @@ const TABLE_TEXT = {
     clearFilters: "Limpar filtros",
     toggleColumns: "Alternar colunas",
     view: "Exibir",
+    searching: "Buscando…",
+    searchFailed: "Não foi possível buscar. Tente novamente.",
+    clearSort: "Limpar",
+    hideColumn: "Esconder",
+    columnsHideable: true,
+    noMatches: "Sem resultados.",
+    selected: (count: number) => `${count} selecionados`,
   },
   en: {
     pagination: "Pagination",
@@ -36,6 +43,13 @@ const TABLE_TEXT = {
     clearFilters: "Clear filters",
     toggleColumns: "Toggle columns",
     view: "View",
+    searching: "Searching…",
+    searchFailed: "Search failed. Try again.",
+    clearSort: "Clear",
+    hideColumn: "Hide",
+    columnsHideable: false,
+    noMatches: "No results. Adjust the search or filters.",
+    selected: (count: number) => `${count} selected`,
   },
 };
 

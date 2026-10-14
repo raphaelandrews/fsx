@@ -11,3 +11,16 @@ export function toIsoDate(value: string): string {
   const [, day, month, year] = match
   return `${year}-${month!.padStart(2, "0")}-${day!.padStart(2, "0")}`
 }
+
+// D1 stores CURRENT_TIMESTAMP as "YYYY-MM-DD HH:MM:SS" in UTC with no zone, which
+// browsers would read as local time.
+export function parseDbTimestamp(value: string | Date): Date {
+  if (value instanceof Date) return value;
+  return new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(value) ? value : `${value.replace(" ", "T")}Z`);
+}
+
+export function toIsoTimestamp(value: string | null | undefined): string | undefined {
+  if (!value) return undefined;
+  const date = parseDbTimestamp(value);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+}

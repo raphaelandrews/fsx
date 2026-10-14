@@ -1,5 +1,10 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowDown01Icon, ArrowUp01Icon, ArrowUpDownIcon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  ArrowUpDownIcon,
+  ViewOffIcon,
+} from "@hugeicons/core-free-icons";
 import type { Column } from "@tanstack/react-table";
 
 import { Button } from "@fsx/ui/components/button";
@@ -12,8 +17,9 @@ import {
 } from "@fsx/ui/components/dropdown-menu";
 import { cn } from "@fsx/ui/lib/utils";
 
-interface DataTableColumnHeaderProps<TData, TValue>
-  extends React.HTMLAttributes<HTMLDivElement> {
+import { useTableText } from "@/lib/table-text";
+
+interface DataTableColumnHeaderProps<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>;
   title: string;
   align?: "left" | "center";
@@ -25,6 +31,7 @@ export function DataTableColumnHeader<TData, TValue>({
   className,
   align = "left",
 }: DataTableColumnHeaderProps<TData, TValue>) {
+  const text = useTableText();
   if (!column.getCanSort()) {
     return (
       <div className={cn("w-full", align === "center" && "text-center", className)}>
@@ -77,8 +84,20 @@ export function DataTableColumnHeader<TData, TValue>({
             className="cursor-pointer focus:bg-accent/50"
             onClick={() => column.clearSorting()}
           >
-            Clear
+            {text.clearSort}
           </DropdownMenuItem>
+          {text.columnsHideable && column.getCanHide() ? (
+            <DropdownMenuItem
+              className="cursor-pointer focus:bg-accent/50"
+              onClick={() => column.toggleVisibility(false)}
+            >
+              <HugeiconsIcon
+                icon={ViewOffIcon}
+                className="me-2 size-3.5 text-muted-foreground/70"
+              />
+              {text.hideColumn}
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

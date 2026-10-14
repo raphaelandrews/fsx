@@ -1,3 +1,5 @@
+import { toIsoTimestamp } from "../utils/format";
+
 export const SITE_URL = "https://www.fsx.org.br";
 export const SITE_NAME = "Federação Sergipana de Xadrez";
 export const SITE_SHORT_NAME = "FSX";
@@ -94,10 +96,16 @@ export function buildSeo(options: SeoOptions) {
   ];
 
   if (publishedTime) {
-    meta.push({ property: "article:published_time", content: publishedTime });
+    meta.push({
+      property: "article:published_time",
+      content: toIsoTimestamp(publishedTime) ?? publishedTime,
+    });
   }
   if (modifiedTime) {
-    meta.push({ property: "article:modified_time", content: modifiedTime });
+    meta.push({
+      property: "article:modified_time",
+      content: toIsoTimestamp(modifiedTime) ?? modifiedTime,
+    });
   }
 
   const scripts: SeoScript[] = [];
@@ -170,8 +178,8 @@ export function articleJsonLd(options: {
     description: options.description,
     image: [imageUrl],
     mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl(options.path) },
-    datePublished: options.datePublished ?? undefined,
-    dateModified: options.dateModified ?? options.datePublished ?? undefined,
+    datePublished: toIsoTimestamp(options.datePublished),
+    dateModified: toIsoTimestamp(options.dateModified ?? options.datePublished),
     author: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
     publisher: { "@id": `${SITE_URL}/#organization` },
   };

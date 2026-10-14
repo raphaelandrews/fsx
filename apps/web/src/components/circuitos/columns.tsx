@@ -1,18 +1,12 @@
-import type { ColumnDef, RowData } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { cn } from "@fsx/ui/lib/utils";
 
 import { PlayerActions } from "@/components/campeoes/actions";
-import { DataTableColumnHeader } from "@/components/home/ratings/data-table-column-header";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { avatarGradientFor } from "@/components/avatar-gradient";
 
 import type { ClubRow, PlayerRow } from "./types";
-
-declare module "@tanstack/react-table" {
-  interface ColumnMeta<TData extends RowData, TValue> {
-    className?: string;
-  }
-}
 
 function indexColumn<T>(): ColumnDef<T> {
   return {

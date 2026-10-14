@@ -1,12 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { PostForm } from "@/components/admin/post-form";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
-import { showMutationError } from "@/lib/errors";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/create")({
@@ -17,21 +14,18 @@ export const Route = createFileRoute("/_auth/dashboard/posts/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const invalidateAdmin = useInvalidateAdmin();
   const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
 
-  const createMutation = useMutation({
-    ...trpc.posts.create.mutationOptions(),
+  const createMutation = useAdminMutation(trpc.posts.create.mutationOptions(), {
+    invalidates: "posts",
+    awaitInvalidation: true,
+    success: "Post created",
+    failure: "Failed to create post",
     onSuccess: async () => {
-      await invalidateAdmin("posts");
       await commit();
-      toast.success("Post created");
       await navigate({ to: "/dashboard/posts" });
     },
-    onError: (error, variables) => {
-      void discard(variables.imageUrl);
-      showMutationError(error, "Failed to create post");
-    },
+    onError: (_error, variables) => discard(variables.imageUrl),
   });
 
   return (

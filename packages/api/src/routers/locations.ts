@@ -4,7 +4,7 @@ import { eq, asc } from "drizzle-orm";
 import { locations, insertLocationSchema } from "@fsx/db/schema/locations";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { emblemUrl, nameText, positiveInt } from "../input-schemas";
-import { deleteMediaUrl } from "./images";
+import { deleteMediaUrl, deleteReplacedMedia } from "./images";
 import { requireMutationRows } from "../errors";
 import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 
@@ -25,22 +25,36 @@ export const locationsRouter = router({
       ctx.db.insert(locations).values(input).returning()
     ),
   update: adminProcedure
-    .input(z.object({ id: positiveInt, name: nameText, type: locationTypeEnum, flagUrl: emblemUrl("locations").nullable().optional() }))
-    .mutation(async ({ ctx, input }) =>
-      requireMutationRows(
+    .input(
+      z.object({
+        id: positiveInt,
+        name: nameText,
+        type: locationTypeEnum,
+        flagUrl: emblemUrl("locations").nullable().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const previous = await ctx.db.query.locations.findFirst({
+        where: eq(locations.id, input.id),
+        columns: { flagUrl: true },
+      });
+      const updated = requireMutationRows(
         await ctx.db.update(locations).set(input).where(eq(locations.id, input.id)).returning(),
         "Location",
-      )
-    ),
-  delete: adminProcedure
-    .input(z.object({ id: positiveInt }))
-    .mutation(async ({ ctx, input }) => {
-      // Delete the row first: if a foreign key blocks it, the flag must survive.
-      const deleted = requireMutationRows(
-        await ctx.db.delete(locations).where(eq(locations.id, input.id)).returning({ id: locations.id, flagUrl: locations.flagUrl }),
-        "Location",
       );
-      await deleteMediaUrl(deleted[0]?.flagUrl);
-      return deleted.map(({ id }) => ({ id }));
+      await deleteReplacedMedia(previous?.flagUrl, input.flagUrl);
+      return updated;
     }),
+  delete: adminProcedure.input(z.object({ id: positiveInt })).mutation(async ({ ctx, input }) => {
+    // Delete the row first: if a foreign key blocks it, the flag must survive.
+    const deleted = requireMutationRows(
+      await ctx.db
+        .delete(locations)
+        .where(eq(locations.id, input.id))
+        .returning({ id: locations.id, flagUrl: locations.flagUrl }),
+      "Location",
+    );
+    await deleteMediaUrl(deleted[0]?.flagUrl);
+    return deleted.map(({ id }) => ({ id }));
+  }),
 });

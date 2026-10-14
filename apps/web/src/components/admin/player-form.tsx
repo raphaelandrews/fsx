@@ -12,6 +12,7 @@ import { FormField } from "@/components/form/form-field";
 import { ImageUpload } from "@/components/image-upload";
 import { SearchableSelect } from "@/components/searchable-select";
 import { fieldError } from "@/lib/errors";
+import { integerError, maxLengthError, requiredText, submitThenChange, TEXT_MAX } from "@/lib/field-rules";
 import { useTRPC } from "@/utils/trpc";
 
 export type RatingType = "classic" | "rapid" | "blitz";
@@ -74,6 +75,7 @@ export function PlayerForm({
   const trpc = useTRPC();
   const form = useForm({
     defaultValues,
+    validationLogic: submitThenChange,
     onSubmit: ({ value }) =>
       onSubmit(
         value,
@@ -86,7 +88,13 @@ export function PlayerForm({
   }
 
   const numberInput = (field: "cbxId" | "fideId", label: string) => (
-    <form.Field name={field}>
+    <form.Field
+      name={field}
+      validators={{
+        onDynamic: ({ value }) =>
+          value === null ? undefined : integerError(label, value, 1, Number.MAX_SAFE_INTEGER),
+      }}
+    >
       {(f) => (
         <FormField
           label={label}
@@ -97,6 +105,8 @@ export function PlayerForm({
             id={`player-${field}`}
             type="number"
             inputMode="numeric"
+            min={1}
+            step={1}
             value={f.state.value?.toString() ?? ""}
             onBlur={f.handleBlur}
             onChange={(e) => f.handleChange(e.target.value ? Number(e.target.value) : null)}
@@ -140,7 +150,7 @@ export function PlayerForm({
       >
         <form.Field
           name="name"
-          validators={{ onSubmit: ({ value }) => (value.trim() ? undefined : "Name is required") }}
+          validators={{ onDynamic: requiredText("Name") }}
         >
           {(f) => (
             <FormField
@@ -151,6 +161,7 @@ export function PlayerForm({
             >
               <Input
                 id="player-name"
+                maxLength={TEXT_MAX}
                 value={f.state.value}
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
@@ -158,7 +169,10 @@ export function PlayerForm({
             </FormField>
           )}
         </form.Field>
-        <form.Field name="nickname">
+        <form.Field
+          name="nickname"
+          validators={{ onDynamic: ({ value }) => maxLengthError("Nickname", value, TEXT_MAX) }}
+        >
           {(f) => (
             <FormField
               label="Nickname"
@@ -168,6 +182,7 @@ export function PlayerForm({
             >
               <Input
                 id="player-nickname"
+                maxLength={TEXT_MAX}
                 value={f.state.value}
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
@@ -286,10 +301,7 @@ export function PlayerForm({
               key={ratingType}
               name={ratingType}
               validators={{
-                onSubmit: ({ value }) =>
-                  Number.isInteger(value) && value >= 0 && value <= 4000
-                    ? undefined
-                    : "Use a whole number from 0 to 4000",
+                onDynamic: ({ value }) => integerError(RATING_LABELS[ratingType], value, 0, 4000),
               }}
             >
               {(f) => (
@@ -303,9 +315,12 @@ export function PlayerForm({
                     id={`player-${ratingType}`}
                     type="number"
                     inputMode="numeric"
-                    value={String(f.state.value)}
+                    min={0}
+                    max={4000}
+                    step={1}
+                    value={Number.isNaN(f.state.value) ? "" : String(f.state.value)}
                     onBlur={f.handleBlur}
-                    onChange={(e) => f.handleChange(Number(e.target.value))}
+                    onChange={(e) => f.handleChange(e.target.value === "" ? Number.NaN : Number(e.target.value))}
                   />
                 </FormField>
               )}

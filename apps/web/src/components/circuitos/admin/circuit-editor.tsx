@@ -120,6 +120,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
       kind: "number",
       required: true,
       min: 0,
+      max: 100_000,
       hint: "Stages are shown in this order.",
     },
   ];

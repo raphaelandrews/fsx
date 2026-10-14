@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
-import { DataTableColumnHeader } from "@/components/home/ratings/data-table-column-header"
-import { PlayerActions } from "@/components/campeoes/actions"
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { PlayerActions } from "@/components/campeoes/actions";
 
 export interface TitledPlayer {
   id: number

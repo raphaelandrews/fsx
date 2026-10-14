@@ -1,0 +1,135 @@
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { and, eq, isNull } from "drizzle-orm";
+
+import { linkGroups, insertLinkGroupSchema } from "@fsx/db/schema/linkGroups";
+import { links, insertLinkSchema } from "@fsx/db/schema/links";
+import type { Context } from "../context";
+import { adminProcedure, publicProcedure, router } from "../index";
+import { requireFound, requireMutationRows } from "../errors";
+import { nameText, optionalHttpUrl, positiveInt, sortOrder } from "../input-schemas";
+import { isKnownLinkIcon } from "../link-icons";
+import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
+
+const linkTypeEnum = z.enum(["link", "regulation", "form", "results"]);
+
+async function requireStandaloneGroup(db: Context["db"], id: number) {
+  const group = await db.query.linkGroups.findFirst({
+    where: eq(linkGroups.id, id),
+    columns: { id: true, eventId: true },
+  });
+  if (!group) throw new TRPCError({ code: "NOT_FOUND", message: "Link group not found" });
+  if (group.eventId !== null) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Event links are edited on the event page.",
+    });
+  }
+}
+
+const linkIcon = z.string().max(5_000).refine(isKnownLinkIcon, "Unknown link icon");
+
+export const linkGroupsRouter = router({
+  list: publicProcedure.query(({ ctx }) =>
+    ctx.db.query.linkGroups.findMany({
+      columns: { id: true, label: true, eventId: true },
+      // Event-owned groups are included so their links also surface on the
+      // public /links page; the event name is exposed for the group label.
+      with: {
+        event: { columns: { name: true } },
+        links: {
+          limit: PUBLIC_NESTED_COLLECTION_LIMIT,
+          columns: { id: true, href: true, label: true, icon: true, sortOrder: true },
+          orderBy: (l, { asc }) => [asc(l.sortOrder), asc(l.id)],
+        },
+      },
+      orderBy: (lg, { asc }) => asc(lg.id),
+      limit: PUBLIC_COLLECTION_LIMIT,
+    }),
+  ),
+  create: adminProcedure
+    .input(
+      insertLinkGroupSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
+        label: nameText,
+        eventId: positiveInt.nullable().optional(),
+      }),
+    )
+    .mutation(({ ctx, input }) => ctx.db.insert(linkGroups).values(input).returning()),
+  createLink: adminProcedure
+    .input(
+      insertLinkSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
+        href: optionalHttpUrl.nullable().optional(),
+        label: nameText,
+        icon: linkIcon,
+        type: linkTypeEnum.optional(),
+        sortOrder,
+        linkGroupId: positiveInt,
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await requireStandaloneGroup(ctx.db, input.linkGroupId);
+      return ctx.db
+        .insert(links)
+        .values({ ...input, href: input.href || null })
+        .returning();
+    }),
+  updateLink: adminProcedure
+    .input(
+      z.object({
+        id: positiveInt,
+        href: optionalHttpUrl.nullable().optional(),
+        label: nameText.optional(),
+        icon: linkIcon.optional(),
+        type: linkTypeEnum.optional(),
+        sortOrder: sortOrder.optional(),
+        linkGroupId: positiveInt.optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const current = requireFound(
+        await ctx.db.query.links.findFirst({
+          where: eq(links.id, input.id),
+          columns: { linkGroupId: true },
+        }),
+        "Link",
+      );
+      await requireStandaloneGroup(ctx.db, current.linkGroupId);
+      if (input.linkGroupId !== undefined) await requireStandaloneGroup(ctx.db, input.linkGroupId);
+      const patch = { ...input, href: input.href === undefined ? undefined : input.href || null };
+      return requireMutationRows(
+        await ctx.db.update(links).set(patch).where(eq(links.id, input.id)).returning(),
+        "Link",
+      );
+    }),
+  deleteLink: adminProcedure
+    .input(z.object({ id: positiveInt }))
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.delete(links).where(eq(links.id, input.id)).returning({ id: links.id }),
+        "Link",
+      ),
+    ),
+  deleteGroup: adminProcedure
+    .input(z.object({ id: positiveInt }))
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db
+          .delete(linkGroups)
+          .where(and(eq(linkGroups.id, input.id), isNull(linkGroups.eventId)))
+          .returning({ id: linkGroups.id }),
+        "Link group",
+      ),
+    ),
+  updateGroup: adminProcedure
+    .input(z.object({ id: positiveInt, label: nameText }))
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db
+          .update(linkGroups)
+          .set({ label: input.label })
+          .where(and(eq(linkGroups.id, input.id), isNull(linkGroups.eventId)))
+          .returning(),
+        "Link group",
+      ),
+    ),
+});

@@ -1,12 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { PlayerForm } from "@/components/admin/player-form";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
-import { showMutationError } from "@/lib/errors";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/players/create")({
@@ -19,22 +17,18 @@ export const Route = createFileRoute("/_auth/dashboard/players/create")({
 function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const invalidateAdmin = useInvalidateAdmin();
   const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
   const { data: locations } = useSuspenseQuery(trpc.locations.list.queryOptions());
 
-  const createMutation = useMutation({
-    ...trpc.players.create.mutationOptions(),
+  const createMutation = useAdminMutation(trpc.players.create.mutationOptions(), {
+    invalidates: "players",
+    success: "Player created",
+    failure: "Failed to create player",
     onSuccess: async () => {
-      void invalidateAdmin("players");
       await commit();
-      toast.success("Player created");
       await navigate({ to: "/dashboard/players" });
     },
-    onError: (error, variables) => {
-      void discard(variables.imageUrl);
-      showMutationError(error, "Failed to create player");
-    },
+    onError: (_error, variables) => discard(variables.imageUrl),
   });
 
   return (

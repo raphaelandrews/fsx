@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { ThemeProvider } from "next-themes";
 
 import { NotFound } from "./components/not-found";
-import { PageSkeleton } from "./components/skeletons/page-skeleton";
+import { RoutePending } from "./components/skeletons/route-pending";
 import { routeTree } from "./routeTree.gen";
 import { TRPCProvider } from "./utils/trpc";
 import { getUserErrorMessage, isAdminPath, isExpectedQueryError } from "./lib/errors";
@@ -21,7 +21,9 @@ function createQueryClient() {
   return new QueryClient({
     queryCache: new QueryCache({
       onError: (error, query) => {
-        if (isExpectedQueryError(error)) return;
+        // A suspending query without data is already explained by the route's error boundary.
+        const suspended = query.state.data === undefined && query.observers.some((observer) => observer.options.suspense);
+        if (suspended || isExpectedQueryError(error)) return;
         const admin = typeof window !== "undefined" && isAdminPath(window.location.pathname);
         toast.error(
           admin
@@ -82,7 +84,7 @@ export const getRouter = () => {
     // `view-transition-name` morph between pages (shared-element transitions).
     defaultViewTransition: true,
     context: { trpc, queryClient },
-    defaultPendingComponent: () => <PageSkeleton />,
+    defaultPendingComponent: () => <RoutePending />,
     defaultNotFoundComponent: () => <NotFound />,
     Wrap: ({ children }) => (
       <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>

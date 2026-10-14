@@ -1,17 +1,6 @@
-// NOTE: project-customized — URL-driven controlled faceted filter.
-// Adapted from `apps/web/src/components/titulados/data-table-faceted-filter.tsx`
-// (which is TanStack-Table coupled). This version accepts plain `value` and
-// `onChange` props so it can be wired to any state container — TanStack Router
-// search params, useState, server actions, etc. The internal trigger/popover
-// markup matches the titulados pattern for visual consistency.
-
-import * as React from "react"
-import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  Add01Icon,
-  Cancel01Icon,
-  Tick02Icon,
-} from "@hugeicons/core-free-icons"
+import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Add01Icon, Cancel01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 
 import { cn } from "@fsx/ui/lib/utils"
 import { Badge } from "@fsx/ui/components/badge"
@@ -49,8 +38,10 @@ interface DataTableFacetedFilterProps {
    * When true, `onChange` is called with a 0-or-1-length array (single
    * selection). The option still toggles normally (click again to clear).
    */
-  singleSelect?: boolean
-  className?: string
+  singleSelect?: boolean;
+  /** Rows per option value, from `column.getFacetedUniqueValues()`. */
+  counts?: Map<unknown, number>;
+  className?: string;
 }
 
 export function DataTableFacetedFilter({
@@ -59,6 +50,7 @@ export function DataTableFacetedFilter({
   value,
   onChange,
   singleSelect = false,
+  counts,
   className,
 }: DataTableFacetedFilterProps) {
   const text = useTableText()
@@ -93,11 +85,8 @@ export function DataTableFacetedFilter({
             </Badge>
             <div className="hidden flex-wrap items-center gap-1 lg:flex">
               {selectedCount > 2 ? (
-                <Badge
-                  className="rounded-full px-1.5 font-normal"
-                  variant="secondary"
-                >
-                  {selectedCount} selecionados
+                <Badge className="rounded-full px-1.5 font-normal" variant="secondary">
+                  {text.selected(selectedCount)}
                 </Badge>
               ) : (
                 options
@@ -162,6 +151,11 @@ export function DataTableFacetedFilter({
                     </div>
                     {Icon ? <Icon className="mr-2 size-4 text-muted-foreground" /> : null}
                     <span className="truncate whitespace-nowrap">{option.label}</span>
+                    {counts?.get(option.value) ? (
+                      <span className="ml-auto flex size-4 items-center justify-center font-mono text-muted-foreground text-xs">
+                        {counts.get(option.value)}
+                      </span>
+                    ) : null}
                   </CommandItem>
                 )
               })}

@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type RowData,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -24,6 +25,14 @@ import {
   TableRow,
 } from "@fsx/ui/components/table";
 
+import { useTableText } from "@/lib/table-text";
+
+declare module "@tanstack/react-table" {
+  interface ColumnMeta<TData extends RowData, TValue> {
+    className?: string;
+  }
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -35,6 +44,7 @@ interface DataTableProps<TData, TValue> {
   emptyState?: ReactNode;
   /** False when the server already returns a single page (e.g. players). */
   clientPagination?: boolean;
+  pageSize?: number;
 }
 
 export function DataTable<TData, TValue>({
@@ -44,7 +54,9 @@ export function DataTable<TData, TValue>({
   pagination,
   emptyState,
   clientPagination = true,
+  pageSize,
 }: DataTableProps<TData, TValue>) {
+  const text = useTableText();
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -54,6 +66,7 @@ export function DataTable<TData, TValue>({
     data,
     columns,
     state: { sorting, columnVisibility, rowSelection, columnFilters },
+    ...(pageSize ? { initialState: { pagination: { pageSize } } } : {}),
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -85,7 +98,7 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead className={header.column.columnDef.meta?.className} key={header.id}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
@@ -99,7 +112,7 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell className={cell.column.columnDef.meta?.className} key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -107,8 +120,11 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell className="h-24 text-center text-muted-foreground" colSpan={columns.length}>
-                  {data.length === 0 && emptyState ? emptyState : "No results. Adjust the search or filters."}
+                <TableCell
+                  className="h-24 text-center text-muted-foreground"
+                  colSpan={columns.length}
+                >
+                  {data.length === 0 && emptyState ? emptyState : text.noMatches}
                 </TableCell>
               </TableRow>
             )}

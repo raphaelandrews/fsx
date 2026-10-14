@@ -88,9 +88,15 @@ renders the upload control.
 - After a failed save, the upload currently in the form is kept so a retry still
   points at a live object.
 
-Deleting a post, club, or location also deletes its uploaded image. Clubs and
-locations delete the row first: when a player still references the record, the
-delete fails with `CONFLICT` and the image is kept.
+The server owns the final cleanup, so a closed tab cannot leave an orphan:
+`clubs.update`, `locations.update`, `posts.update`, `players.update` and
+`cups.update` delete the previous image once the row is saved with a different
+one (`deleteReplacedMedia`), and merging players deletes the source player's
+photo unless the target inherited it.
+
+Deleting a post, club, location, or cup also deletes its uploaded image. The row
+is deleted first: when another record still references it, the delete fails with
+`CONFLICT` and the image is kept.
 
 `images.delete` accepts a media URL, converts it back to its key, and deletes the
 object. Failed deletes are not retried; see the orphan check in the

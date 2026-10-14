@@ -12,12 +12,27 @@ import { normalizeName } from "@fsx/db/normalize";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { AGE_GROUPS, getBirthDateRange } from "../age-groups";
-import { contentText, filterArray, idInput, imageUrl, isoDate, limit, nameText, page, positiveInt, rating, searchText, seasonYear } from "../input-schemas";
+import {
+  contentText,
+  filterArray,
+  idInput,
+  imageUrl,
+  isoDate,
+  limit,
+  nameText,
+  page,
+  positiveInt,
+  rating,
+  searchText,
+  seasonYear,
+} from "../input-schemas";
+import { paginate } from "../pagination";
 import { escapeLike, like } from "../sql-like";
 import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../resource-bounds";
 import { loadPlayerCircuits } from "../gamification/circuits";
 import { loadPlayerCareer, loadPlayerStats } from "../gamification/load";
 import { playerSeason } from "../gamification/season";
+import { deleteReplacedMedia } from "./images";
 import { mergePlayers, rebuildPlayerRatings } from "./players-merge";
 import { loadPlayerRanking, movementsFor } from "../gamification/ranking";
 
@@ -35,32 +50,36 @@ export const playersRouter = router({
         ? like(playersTable.normalizedName, `%${escapeLike(normalizeName(input.name))}%`)
         : undefined;
 
-      const countResult = await ctx.db.select({ value: count() }).from(playersTable).where(where);
-      const totalItems = countResult[0]?.value ?? 0;
-      const totalPages = Math.max(1, Math.ceil(totalItems / limit));
-
-      const players = await ctx.db.query.players.findMany({
-        columns: { id: true, name: true, nickname: true, blitz: true, rapid: true, classic: true, imageUrl: true },
-        with: {
-          club: { columns: { name: true } },
-          location: { columns: { name: true } },
-        },
-        where,
-         orderBy: (p, { asc }) => [asc(p.name), asc(p.id)],
-        limit,
-        offset,
-      });
+      const [countResult, players] = await Promise.all([
+        ctx.db.select({ value: count() }).from(playersTable).where(where),
+        ctx.db.query.players.findMany({
+          columns: {
+            id: true,
+            name: true,
+            nickname: true,
+            blitz: true,
+            rapid: true,
+            classic: true,
+            imageUrl: true,
+          },
+          with: {
+            club: { columns: { name: true } },
+            location: { columns: { name: true } },
+          },
+          where,
+          orderBy: (p, { asc }) => [asc(p.name), asc(p.id)],
+          limit,
+          offset,
+        }),
+      ]);
 
       return {
         players,
-        pagination: {
-          currentPage: input.page,
-          totalPages,
-          totalItems,
-          itemsPerPage: limit,
-          hasNextPage: input.page < totalPages,
-          hasPreviousPage: input.page > 1,
-        },
+        pagination: paginate({
+          page: input.page,
+          perPage: limit,
+          totalItems: countResult[0]?.value ?? 0,
+        }),
       };
     }),
 
@@ -257,7 +276,11 @@ export const playersRouter = router({
     }))
     .mutation(async ({ ctx, input }) => {
       const { id, ...rest } = input;
-      return requireMutationRows(
+      const previous = await ctx.db.query.players.findFirst({
+        where: eq(playersTable.id, id),
+        columns: { imageUrl: true },
+      });
+      const updated = requireMutationRows(
         await ctx.db
           .update(playersTable)
           .set({
@@ -268,6 +291,8 @@ export const playersRouter = router({
           .returning(),
         "Player",
       );
+      await deleteReplacedMedia(previous?.imageUrl, rest.imageUrl);
+      return updated;
     }),
 
   merge: adminProcedure
@@ -354,7 +379,6 @@ export const playersRouter = router({
         .from(playersTable)
         .where(where);
       const totalItems = countResult[0]?.value ?? 0;
-      const totalPages = Math.max(1, Math.ceil(totalItems / limit));
       const offset = (page - 1) * limit;
 
       const sortColumn = playersTable[sortBy];
@@ -369,14 +393,7 @@ export const playersRouter = router({
         .limit(limit)
         .offset(offset);
 
-      const pagination = {
-        currentPage: page,
-        totalPages,
-        totalItems,
-        itemsPerPage: limit,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      };
+      const pagination = paginate({ page, perPage: limit, totalItems });
 
       if (pageIds.length === 0) {
         return { players: [], pagination };

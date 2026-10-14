@@ -7,6 +7,7 @@ import { players } from "@fsx/db/schema/players";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { contentText, idInput, page, positiveInt } from "../input-schemas";
+import { paginate } from "../pagination";
 import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 
 const SUGGESTION_LIMIT = 5;
@@ -37,32 +38,24 @@ export const announcementsRouter = router({
       with: { player: { columns: { id: true, name: true, nickname: true } } },
     }), "Announcement"),
   ),
-  byPage: publicProcedure
-    .input(z.object({ page }))
-    .query(async ({ ctx, input }) => {
-      const validPage = Math.max(1, input.page);
-      const perPage = 12;
-      const data = await ctx.db.query.announcements.findMany({
+  byPage: publicProcedure.input(z.object({ page })).query(async ({ ctx, input }) => {
+    const validPage = Math.max(1, input.page);
+    const perPage = 12;
+    const [data, countResult] = await Promise.all([
+      ctx.db.query.announcements.findMany({
         columns: { id: true, year: true, number: true, content: true },
         orderBy: [desc(announcements.year), desc(announcements.number), desc(announcements.id)],
         limit: perPage,
         offset: (validPage - 1) * perPage,
-      });
-      const countResult = await ctx.db.select({ value: count() }).from(announcements);
-      const totalItems = countResult[0]?.value ?? 0;
-      const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
-      return {
-        announcements: data,
-        pagination: {
-          currentPage: validPage,
-          totalPages,
-          totalItems,
-          itemsPerPage: perPage,
-          hasNextPage: validPage < totalPages,
-          hasPreviousPage: validPage > 1,
-        },
-      };
-    }),
+      }),
+      ctx.db.select({ value: count() }).from(announcements),
+    ]);
+    const totalItems = countResult[0]?.value ?? 0;
+    return {
+      announcements: data,
+      pagination: paginate({ page: validPage, perPage, totalItems }),
+    };
+  }),
   fresh: publicProcedure.query(({ ctx }) =>
     ctx.db
       .select({

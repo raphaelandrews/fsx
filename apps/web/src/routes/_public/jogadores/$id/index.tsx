@@ -5,6 +5,7 @@ import { PlayerProfile } from "@/components/player/player-profile";
 import { breadcrumbJsonLd, buildSeo, personJsonLd, withBrand } from "@/lib/seo";
 import { orNotFound } from "@/lib/errors";
 import { useTRPC } from "@/utils/trpc";
+import { ProfileSkeleton } from "@/components/skeletons/profile-skeleton";
 
 export const Route = createFileRoute("/_public/jogadores/$id/")({
   loader: async ({ context, params }) => {
@@ -44,6 +45,7 @@ export const Route = createFileRoute("/_public/jogadores/$id/")({
       ],
     });
   },
+  pendingComponent: () => <ProfileSkeleton />,
   component: RouteComponent,
 });
 

@@ -4,6 +4,7 @@ import { eq, asc } from "drizzle-orm";
 import { titles, insertTitleSchema } from "@fsx/db/schema/titles";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { nameText, positiveInt } from "../input-schemas";
+import { deleteById } from "../crud";
 import { requireMutationRows } from "../errors";
 import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 
@@ -43,10 +44,5 @@ export const titlesRouter = router({
     ),
   delete: adminProcedure
     .input(z.object({ id: positiveInt }))
-    .mutation(async ({ ctx, input }) =>
-      requireMutationRows(
-        await ctx.db.delete(titles).where(eq(titles.id, input.id)).returning({ id: titles.id }),
-        "Title",
-      )
-    ),
+    .mutation(({ ctx, input }) => deleteById(ctx.db, titles, input.id, "Title")),
 });

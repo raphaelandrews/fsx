@@ -6,7 +6,7 @@ import { ErrorFallback } from "@/components/not-found";
 
 export const Route = createFileRoute("/_public")({
   component: PublicLayout,
-  errorComponent: () => <ErrorFallback homeHref="/" homeLabel="Voltar ao início" />,
+  errorComponent: ({ error }) => <ErrorFallback error={error} />,
 });
 
 function PublicLayout() {

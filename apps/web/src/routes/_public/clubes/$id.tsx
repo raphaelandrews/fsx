@@ -13,6 +13,7 @@ import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { orNotFound } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
 import { useTRPC } from "@/utils/trpc";
+import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 
 const FORMATS = [
   ["classic", "Clássico"],
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/_public/clubes/$id")({
       ]),
     });
   },
+  pendingComponent: () => <TableSkeleton />,
   component: RouteComponent,
 });
 

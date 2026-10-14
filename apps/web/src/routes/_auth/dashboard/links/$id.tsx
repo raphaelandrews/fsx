@@ -51,6 +51,7 @@ const LINK_FIELDS: EntityField[] = [
     kind: "number",
     required: true,
     min: 0,
+    max: 100_000,
     hint: "Lower numbers come first.",
   },
 ];

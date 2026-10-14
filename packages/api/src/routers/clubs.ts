@@ -7,7 +7,7 @@ import { loadClubStandings } from "../gamification/clubs";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { emblemUrl, idInput, nameText, positiveInt, searchText } from "../input-schemas";
-import { deleteMediaUrl } from "./images";
+import { deleteMediaUrl, deleteReplacedMedia } from "./images";
 import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
 import { escapeLike, like } from "../sql-like";
 
@@ -72,22 +72,35 @@ export const clubsRouter = router({
       ctx.db.insert(clubs).values(input).returning()
     ),
   update: adminProcedure
-    .input(z.object({ id: positiveInt, name: nameText, logoUrl: emblemUrl("clubs").nullable().optional() }))
-    .mutation(async ({ ctx, input }) =>
-      requireMutationRows(
+    .input(
+      z.object({
+        id: positiveInt,
+        name: nameText,
+        logoUrl: emblemUrl("clubs").nullable().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const previous = await ctx.db.query.clubs.findFirst({
+        where: eq(clubs.id, input.id),
+        columns: { logoUrl: true },
+      });
+      const updated = requireMutationRows(
         await ctx.db.update(clubs).set(input).where(eq(clubs.id, input.id)).returning(),
         "Club",
-      )
-    ),
-  delete: adminProcedure
-    .input(z.object({ id: positiveInt }))
-    .mutation(async ({ ctx, input }) => {
-      // Delete the row first: if a foreign key blocks it, the logo must survive.
-      const deleted = requireMutationRows(
-        await ctx.db.delete(clubs).where(eq(clubs.id, input.id)).returning({ id: clubs.id, logoUrl: clubs.logoUrl }),
-        "Club",
       );
-      await deleteMediaUrl(deleted[0]?.logoUrl);
-      return deleted.map(({ id }) => ({ id }));
+      await deleteReplacedMedia(previous?.logoUrl, input.logoUrl);
+      return updated;
     }),
+  delete: adminProcedure.input(z.object({ id: positiveInt })).mutation(async ({ ctx, input }) => {
+    // Delete the row first: if a foreign key blocks it, the logo must survive.
+    const deleted = requireMutationRows(
+      await ctx.db
+        .delete(clubs)
+        .where(eq(clubs.id, input.id))
+        .returning({ id: clubs.id, logoUrl: clubs.logoUrl }),
+      "Club",
+    );
+    await deleteMediaUrl(deleted[0]?.logoUrl);
+    return deleted.map(({ id }) => ({ id }));
+  }),
 });

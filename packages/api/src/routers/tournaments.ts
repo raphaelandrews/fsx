@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, exists, not, or, sql } from "drizzle-orm";
 
+import { tournamentPodiums } from "@fsx/db/schema/tournamentPodiums";
 import { playersToTournaments } from "@fsx/db/schema/playersToTournaments";
 import { tournaments, insertTournamentSchema } from "@fsx/db/schema/tournaments";
 import { normalizeName } from "@fsx/db/normalize";
@@ -100,19 +101,30 @@ export const tournamentsRouter = router({
       }
       return requireMutationRows(rows, "Tournament");
     }),
-  delete: adminProcedure
-    .input(z.object({ id: positiveInt }))
-    .mutation(async ({ ctx, input }) => {
-      const result = await ctx.db.query.playersToTournaments.findFirst({
-        where: eq(playersToTournaments.tournamentId, input.id),
-        columns: { id: true },
+  delete: adminProcedure.input(z.object({ id: positiveInt })).mutation(async ({ ctx, input }) => {
+    const result = await ctx.db.query.playersToTournaments.findFirst({
+      where: eq(playersToTournaments.tournamentId, input.id),
+      columns: { id: true },
+    });
+    if (result) throw new TRPCError({ code: "CONFLICT", message: RATED_TOURNAMENT_MESSAGE });
+    const podium = await ctx.db.query.tournamentPodiums.findFirst({
+      where: eq(tournamentPodiums.tournamentId, input.id),
+      columns: { id: true },
+    });
+    if (podium) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "This tournament has podiums. Remove them before deleting it.",
       });
-      if (result) throw new TRPCError({ code: "CONFLICT", message: RATED_TOURNAMENT_MESSAGE });
-      return requireMutationRows(
-        await ctx.db.delete(tournaments).where(eq(tournaments.id, input.id)).returning({ id: tournaments.id }),
-        "Tournament",
-      );
-    }),
+    }
+    return requireMutationRows(
+      await ctx.db
+        .delete(tournaments)
+        .where(eq(tournaments.id, input.id))
+        .returning({ id: tournaments.id }),
+      "Tournament",
+    );
+  }),
 });
 
 async function tournamentExists(db: Context["db"], id: number) {

@@ -1,3 +1,4 @@
+import { parseDbTimestamp } from "../utils/format";
 import { SITE_URL } from "./seo";
 
 const STATIC_PATHS = [
@@ -25,7 +26,7 @@ export interface SitemapPost {
 
 function formatLastModified(value: string | Date | null): string | undefined {
   if (!value) return undefined;
-  const date = value instanceof Date ? value : new Date(value);
+  const date = parseDbTimestamp(value);
   if (Number.isNaN(date.getTime())) return undefined;
   return date.toISOString().slice(0, 10);
 }

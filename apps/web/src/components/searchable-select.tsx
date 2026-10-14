@@ -5,6 +5,8 @@ import { Cancel01Icon, SearchIcon } from "@hugeicons/core-free-icons";
 
 import { Command, CommandEmpty, CommandItem, CommandList } from "@fsx/ui/components/command";
 
+import { useTableText } from "@/lib/table-text";
+
 export interface SearchableOption {
   id: number;
   name: string;
@@ -52,7 +54,8 @@ export function SearchableSelect({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  const { data: options = [], isFetching } = useQuery(getQueryOptions(debounced));
+  const text = useTableText();
+  const { data: options = [], isFetching, isError } = useQuery(getQueryOptions(debounced));
 
   const handleSelect = (opt: SearchableOption) => {
     onChange(String(opt.id));
@@ -109,7 +112,11 @@ export function SearchableSelect({
           <Command shouldFilter={false}>
             <CommandList>
               {isFetching ? (
-                <div className="px-2 py-3 text-sm text-muted-foreground">Buscando…</div>
+                <div className="px-2 py-3 text-sm text-muted-foreground">{text.searching}</div>
+              ) : isError ? (
+                <div className="px-2 py-3 text-sm text-destructive" role="alert">
+                  {text.searchFailed}
+                </div>
               ) : options.length === 0 ? (
                 <CommandEmpty>{emptyText}</CommandEmpty>
               ) : (

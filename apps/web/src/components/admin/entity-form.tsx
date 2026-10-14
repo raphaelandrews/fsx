@@ -22,6 +22,7 @@ import { FormField } from "@/components/form/form-field";
 import { ImageUpload } from "@/components/image-upload";
 import { SearchableSelect } from "@/components/searchable-select";
 import { fieldError } from "@/lib/errors";
+import { httpUrlError, LONG_TEXT_MAX, maxLengthError, submitThenChange, TEXT_MAX, URL_MAX } from "@/lib/field-rules";
 
 export const NATIVE_SELECT_CLASS =
   "h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
@@ -32,6 +33,8 @@ type BaseField = {
   required?: boolean;
   hint?: string;
   placeholder?: string;
+  /** Longest accepted text; defaults to the API limit for the field kind. */
+  maxLength?: number;
 };
 
 export type EntityField = BaseField &
@@ -78,22 +81,40 @@ interface EntityFormProps {
   images?: ImageTracking;
 }
 
+function maxLengthOf(field: EntityField) {
+  if (field.maxLength) return field.maxLength;
+  if (field.kind === "textarea") return LONG_TEXT_MAX;
+  if (field.kind === "url") return URL_MAX;
+  return TEXT_MAX;
+}
+
 function validate(field: EntityField, value: string): string | undefined {
   const trimmed = value.trim();
   if (!trimmed) return field.required ? `${field.label} is required` : undefined;
-  if (field.kind === "number") {
-    const number = Number(trimmed);
-    if (!Number.isInteger(number)) return `${field.label} must be a whole number`;
-    if (field.min !== undefined && number < field.min)
-      return `${field.label} must be at least ${field.min}`;
-    if (field.max !== undefined && number > field.max)
-      return `${field.label} must be at most ${field.max}`;
+  switch (field.kind) {
+    case "number": {
+      const number = Number(trimmed);
+      if (!Number.isInteger(number)) return `${field.label} must be a whole number`;
+      if (field.min !== undefined && number < field.min) return `${field.label} must be at least ${field.min}`;
+      if (field.max !== undefined && number > field.max) return `${field.label} must be at most ${field.max}`;
+      return undefined;
+    }
+    case "url":
+      return httpUrlError(field.label, trimmed);
+    case "text":
+    case "textarea":
+      return maxLengthError(field.label, trimmed, maxLengthOf(field));
+    default:
+      return undefined;
   }
-  return undefined;
 }
 
 function useValuesForm(defaultValues: Values, onSubmit: (values: Values) => void) {
-  return useForm({ defaultValues, onSubmit: ({ value }) => onSubmit(value) });
+  return useForm({
+    defaultValues,
+    validationLogic: submitThenChange,
+    onSubmit: ({ value }) => onSubmit(value),
+  });
 }
 
 function EntityFields({
@@ -113,7 +134,7 @@ function EntityFields({
     <form.Field
       key={field.name}
       name={field.name}
-      validators={{ onSubmit: ({ value }) => validate(field, value) }}
+      validators={{ onDynamic: ({ value }) => validate(field, value) }}
     >
       {(f) => {
         const id = `${idPrefix}-${field.name}`;
@@ -183,6 +204,7 @@ function renderControl(
         <Textarea
           id={id}
           rows={6}
+          maxLength={maxLengthOf(field)}
           placeholder={field.placeholder}
           value={value}
           onBlur={onBlur}
@@ -245,7 +267,12 @@ function renderControl(
         <Input
           id={id}
           type={field.kind === "number" ? "number" : field.kind === "url" ? "url" : "text"}
-          inputMode={field.kind === "number" ? "numeric" : undefined}
+          inputMode={field.kind === "number" ? "numeric" : field.kind === "url" ? "url" : undefined}
+          min={field.kind === "number" ? field.min : undefined}
+          max={field.kind === "number" ? field.max : undefined}
+          step={field.kind === "number" ? 1 : undefined}
+          maxLength={field.kind === "number" ? undefined : maxLengthOf(field)}
+          autoComplete="off"
           placeholder={field.placeholder ?? (field.kind === "url" ? "https://..." : undefined)}
           value={value}
           onBlur={onBlur}

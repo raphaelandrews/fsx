@@ -9,7 +9,7 @@ import { BadgeCensus } from "@/components/gamification/badge-census";
 import { StatTile } from "@/components/gamification/stat-tile";
 import { PageHeader } from "@/components/page-header";
 import { RecordCard } from "@/components/recordes/record-card";
-import { TableSkeleton } from "@/components/skeletons/table-skeleton";
+import { StatsSkeleton } from "@/components/skeletons/stats-skeleton";
 import { StatisticsCharts } from "@/components/statistics-charts";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/utils/trpc";
@@ -43,7 +43,7 @@ export const Route = createFileRoute("/_public/estatisticas")({
       context.queryClient.ensureQueryData(context.trpc.records.statistics.queryOptions()),
       context.queryClient.ensureQueryData(context.trpc.records.badgeStats.queryOptions()),
     ]),
-  pendingComponent: () => <TableSkeleton />,
+  pendingComponent: () => <StatsSkeleton />,
   component: RouteComponent,
 });
 

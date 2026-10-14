@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { EntityForm } from "@/components/admin/entity-form";
-import { AdminPageHeader } from "@/components/admin/page-header";
+import { EntityCreatePage, entityMessages } from "@/components/admin/entity-pages";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { INSIGNIA_SECTIONS } from "@/lib/admin-forms";
 import { useTRPC } from "@/utils/trpc";
@@ -17,30 +16,26 @@ function RouteComponent() {
 
   const createMutation = useAdminMutation(trpc.insignias.create.mutationOptions(), {
     invalidates: "insignias",
-    success: "Insignia created",
-    failure: "Failed to create insignia",
+    ...entityMessages("insignia").create,
     onSuccess: () => navigate({ to: "/dashboard/insignias" }),
   });
 
   return (
-    <>
-      <AdminPageHeader
-        backTo="/dashboard/insignias"
-        backLabel="Insignias"
-        title="New insignia"
-        description="Add a badge players can earn."
-      />
-      <EntityForm
-        sections={INSIGNIA_SECTIONS}
-        defaultValues={{ name: "", level: "1" }}
-        onSubmit={(values) =>
-          createMutation.mutate({ name: values.name!, level: Number(values.level) })
-        }
-        error={createMutation.error}
-        pending={createMutation.isPending}
-        submitLabel="Create insignia"
-        cancelTo="/dashboard/insignias"
-      />
-    </>
+    <EntityCreatePage
+      noun="insignia"
+      basePath="/dashboard/insignias"
+      backLabel="Insignias"
+      description="Add a badge players can earn."
+      sections={INSIGNIA_SECTIONS}
+      defaultValues={{ name: "", level: "1" }}
+      onSubmit={(values) =>
+        createMutation.mutate({
+          name: values.name!,
+          level: Number(values.level),
+        })
+      }
+      error={createMutation.error}
+      pending={createMutation.isPending}
+    />
   );
 }

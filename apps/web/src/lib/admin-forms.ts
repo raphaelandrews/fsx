@@ -85,6 +85,7 @@ export const TITLE_SECTIONS: EntitySection[] = [
         kind: "text",
         required: true,
         placeholder: "MSE",
+        maxLength: 10,
         hint: "Up to 10 characters.",
       },
       {
@@ -134,6 +135,7 @@ export const ROLE_SECTIONS: EntitySection[] = [
         kind: "text",
         required: true,
         placeholder: "PRES",
+        maxLength: 4,
         hint: "Up to 4 characters.",
       },
       {
@@ -222,7 +224,7 @@ export function announcementSections(trpc: TRPC, playerLabel?: string): EntitySe
       description: "Announcements are numbered per year, e.g. 001/2026.",
       fields: [
         { name: "year", label: "Year", kind: "number", required: true, min: 1900, max: 2200 },
-        { name: "number", label: "Number", kind: "number", required: true, min: 1 },
+        { name: "number", label: "Number", kind: "number", required: true, min: 1, max: 100_000 },
       ],
     },
     {

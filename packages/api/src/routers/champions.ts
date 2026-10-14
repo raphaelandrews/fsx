@@ -9,6 +9,7 @@ import { locations } from "@fsx/db/schema/locations";
 import { playersToTitles } from "@fsx/db/schema/playersToTitles";
 import { titles } from "@fsx/db/schema/titles";
 import { adminProcedure, publicProcedure, router } from "../index";
+import { deleteById } from "../crud";
 import { requireMutationRows } from "../errors";
 import { nameText, positiveInt } from "../input-schemas";
 import { PUBLIC_COLLECTION_LIMIT } from "../resource-bounds";
@@ -50,72 +51,66 @@ export const championsRouter = router({
         asc(tournamentPodiums.place),
         asc(tournamentPodiums.id),
         asc(players.id),
+        asc(titles.id),
       )
       .limit(PUBLIC_COLLECTION_LIMIT * 20);
 
-    return rawData.reduce<
-      Array<{
+    type Podium = {
+      place: number;
+      player: {
+        id: number;
         name: string;
-        tournaments: Array<{
-          name: string;
-          date: string | null;
-          tournamentPodiums: Array<{
-            place: number;
-            player: {
-              id: number;
-              name: string;
-              nickname: string | null;
-              imageUrl: string | null;
-              location: { name: string };
-              playersToTitles: Array<{
-                title: { shortTitle: string; type: string };
-              }>;
-            };
-          }>;
-        }>;
-      }>
-    >((acc, row) => {
-      let championship = acc.find((c) => c.name === row.championshipName);
+        nickname: string | null;
+        imageUrl: string | null;
+        location: { name: string };
+        playersToTitles: Array<{ title: { shortTitle: string; type: string } }>;
+      };
+    };
+    type Tournament = { name: string; date: string | null; tournamentPodiums: Podium[] };
+    type Championship = { name: string; tournaments: Tournament[] };
+
+    const championshipsByName = new Map<string, Championship>();
+    const tournamentsByName = new Map<string, Tournament>();
+    const podiumsByKey = new Map<string, Podium>();
+
+    for (const row of rawData) {
+      let championship = championshipsByName.get(row.championshipName);
       if (!championship) {
         championship = { name: row.championshipName, tournaments: [] };
-        acc.push(championship);
+        championshipsByName.set(row.championshipName, championship);
       }
 
-      let tournament = championship.tournaments.find(
-        (t) => t.name === row.tournamentName
-      );
+      let tournament = tournamentsByName.get(row.tournamentName);
       if (!tournament) {
         tournament = { name: row.tournamentName, date: row.tournamentDate, tournamentPodiums: [] };
+        tournamentsByName.set(row.tournamentName, tournament);
         championship.tournaments.push(tournament);
       }
 
-      const existingPodium = tournament.tournamentPodiums.find(
-        (p) => p.place === row.podiumPlace && p.player.id === row.playerId
-      );
+      const podiumKey = `${row.tournamentName}|${row.podiumPlace}|${row.playerId}`;
+      if (podiumsByKey.has(podiumKey)) continue;
+      const podium: Podium = {
+        place: row.podiumPlace,
+        player: {
+          id: row.playerId,
+          name: row.playerName,
+          nickname: row.playerNickname ?? null,
+          imageUrl: row.playerImageUrl ?? null,
+          location: { name: row.locationName ?? "N/A" },
+          playersToTitles:
+            row.playerTitleShort && row.playerTitleType
+              ? [{ title: { shortTitle: row.playerTitleShort, type: row.playerTitleType } }]
+              : [],
+        },
+      };
+      podiumsByKey.set(podiumKey, podium);
+      tournament.tournamentPodiums.push(podium);
+    }
 
-      if (!existingPodium) {
-        tournament.tournamentPodiums.push({
-          place: row.podiumPlace,
-          player: {
-            id: row.playerId,
-            name: row.playerName,
-            nickname: row.playerNickname ?? null,
-            imageUrl: row.playerImageUrl ?? null,
-            location: { name: row.locationName ?? "N/A" },
-            playersToTitles:
-              row.playerTitleShort && row.playerTitleType
-                ? [{ title: { shortTitle: row.playerTitleShort, type: row.playerTitleType } }]
-                : [],
-          },
-        });
-      }
-
-      return acc;
-    }, [])
-      .map((championship) => ({
-        ...championship,
-        tournaments: [...championship.tournaments].reverse(),
-      }));
+    return [...championshipsByName.values()].map((championship) => ({
+      ...championship,
+      tournaments: [...championship.tournaments].reverse(),
+    }));
   }),
   create: adminProcedure
     .input(insertChampionshipSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({ name: nameText }))
@@ -132,10 +127,5 @@ export const championsRouter = router({
     ),
   delete: adminProcedure
     .input(z.object({ id: positiveInt }))
-    .mutation(async ({ ctx, input }) =>
-      requireMutationRows(
-        await ctx.db.delete(championships).where(eq(championships.id, input.id)).returning({ id: championships.id }),
-        "Championship",
-      )
-    ),
+    .mutation(({ ctx, input }) => deleteById(ctx.db, championships, input.id, "Championship")),
 });

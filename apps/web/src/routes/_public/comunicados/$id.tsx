@@ -8,6 +8,7 @@ import { padNumber } from "@/utils/format";
 import { breadcrumbJsonLd, buildSeo, truncate, withBrand } from "@/lib/seo";
 import { getErrorCode } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
+import { ArticleSkeleton } from "@/components/skeletons/article-skeleton";
 
 export const Route = createFileRoute("/_public/comunicados/$id")({
   params: idParams,
@@ -49,6 +50,7 @@ export const Route = createFileRoute("/_public/comunicados/$id")({
       ]),
     });
   },
+  pendingComponent: () => <ArticleSkeleton cover={false} />,
   component: RouteComponent,
 });
 

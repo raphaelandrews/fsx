@@ -9,6 +9,7 @@ import { FormField } from "@/components/form/form-field";
 import { ImageUpload } from "@/components/image-upload";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { fieldError, getFieldError } from "@/lib/errors";
+import { LONG_TEXT_MAX, requiredText, submitThenChange, TEXT_MAX } from "@/lib/field-rules";
 import { sanitizeTitle, slugify } from "@/utils/slugify";
 
 export interface PostValues {
@@ -26,14 +27,11 @@ interface PostFormProps {
   pending: boolean;
   submitLabel: string;
   cancelTo: LinkProps["to"];
+  /** Keep the stored address when the title changes (published posts). */
+  lockSlug?: boolean;
   onImageReplaced: (url: string) => void;
   onImageUploaded: (url: string) => void;
 }
-
-const required =
-  (label: string) =>
-  ({ value }: { value: string }) =>
-    value.trim() ? undefined : `${label} is required`;
 
 export function PostForm({
   defaultValues,
@@ -42,18 +40,26 @@ export function PostForm({
   pending,
   submitLabel,
   cancelTo,
+  lockSlug = false,
   onImageReplaced,
   onImageUploaded,
 }: PostFormProps) {
-  const form = useForm({ defaultValues, onSubmit: ({ value }) => onSubmit(value) });
+  const form = useForm({
+    defaultValues,
+    validationLogic: submitThenChange,
+    onSubmit: ({ value }) => onSubmit(value),
+  });
 
   return (
     <AdminForm
       onSubmit={() => form.handleSubmit()}
       actions={<FormActions cancelTo={cancelTo} submitLabel={submitLabel} pending={pending} />}
     >
-      <FormSection title="Article" description="The title also sets the article's address.">
-        <form.Field name="title" validators={{ onSubmit: required("Title") }}>
+      <FormSection
+        title="Article"
+        description="The title sets the address of a new article; saved articles keep theirs."
+      >
+        <form.Field name="title" validators={{ onDynamic: requiredText("Title") }}>
           {(f) => (
             <FormField
               label="Title"
@@ -63,12 +69,13 @@ export function PostForm({
             >
               <Input
                 id="post-title"
+                maxLength={TEXT_MAX}
                 value={f.state.value}
                 onBlur={f.handleBlur}
                 onChange={(e) => {
                   const value = sanitizeTitle(e.target.value);
                   f.handleChange(value);
-                  form.setFieldValue("slug", slugify(value));
+                  if (!lockSlug) form.setFieldValue("slug", slugify(value));
                 }}
               />
             </FormField>
@@ -81,7 +88,7 @@ export function PostForm({
             </FormField>
           )}
         </form.Subscribe>
-        <form.Field name="content" validators={{ onSubmit: required("Content") }}>
+        <form.Field name="content" validators={{ onDynamic: requiredText("Content", LONG_TEXT_MAX) }}>
           {(f) => (
             <FormField
               label="Content"

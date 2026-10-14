@@ -118,7 +118,7 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `tournaments.list` | public | — | Tournaments with championship | 300 s |
 | `tournaments.search` | public | `{ query }` | Matching `{ id, name }` for pickers | 30 s |
 | `tournaments.byId` | public | `{ id }` | Tournament with podiums | 120 s |
-| `tournaments.create` / `update` / `delete` | admin | `name`, `ratingType`, `date?`, `chessResults?` (`httpUrl`), `championshipId?`, `tier?` (`S`, `A`, `B`, `school`; default `B`) | Rows; `CONFLICT` when deleting, or changing the rating type of, a tournament with rating results | — |
+| `tournaments.create` / `update` / `delete` | admin | `name`, `ratingType`, `date?`, `chessResults?` (`httpUrl`), `championshipId?`, `tier?` (`S`, `A`, `B`, `school`; default `B`) | Rows; `CONFLICT` when deleting a tournament that has rating results or podiums, or changing the rating type of one with rating results | — |
 | `tournamentPodiums.list` | public | — | Podiums with category, player, and tournament | 300 s |
 | `tournamentPodiums.listByTournament` | admin | `{ tournamentId }` | A tournament's podiums with players, for its edit page | — |
 | `tournamentPodiums.createMany` | admin | `{ tournamentId, podiums: { playerId, place (1–100000), category? }[] }` (1–50) | New podium ids, inserted in one `db.batch`; `BAD_REQUEST` for a player repeated in a category, `CONFLICT` (nothing saved) when any row duplicates an existing podium | — |
@@ -136,11 +136,11 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `circuits.podiums.create` / `update` / `delete` | admin | `{ playerId, circuitId? XOR circuitPhaseId?, category?, place? (1–1000), points }` | Rows; `BAD_REQUEST` unless exactly one target is set | — |
 | `cups.list` | public | — | Cup summaries | 300 s |
 | `cups.byId` | public | `{ id }` | Cup with groups, players, rounds, brackets, playoffs, matches, and games | 120 s |
-| `cups.create` / `update` / `delete` | admin | `name`, `imageUrl`, `startDate`, `endDate`, `prizePool`, `ratingType`, `championshipId?` | Rows; delete cascades to the whole cup tree | — |
+| `cups.create` / `update` / `delete` | admin | `name`, `imageUrl`, `startDate`, `endDate` (ISO dates, end not before start), `prizePool`, `ratingType`, `championshipId?` | Rows; delete cascades to the whole cup tree and removes the image. No dashboard page uses these yet | — |
 | `tvSergipe.list` | public | — | Every School Games result with school and player | 300 s |
 | `tvSergipe.leaderboard` | public | `{ ageGroup?, sex?, modality? }` | Per school: `{ clubId, name, logoUrl, points, gold, silver, bronze }`, by points | 300 s |
 | `tvSergipe.create` / `update` | admin | `{ clubId, playerId? \| teamName?, ageGroup, sex, modality, place (1–8) }` | Row; points are derived from place | — |
-| `tvSergipe.delete` / `deleteAll` | admin | `{ id }` / — | Deleted rows; a school (club) with results cannot be deleted until they are | — |
+| `tvSergipe.delete` / `deleteAll` | admin | `{ id }` / — | Deleted rows (`deleteAll` returns `{ deleted }`); a school (club) with results cannot be deleted until they are | — |
 
 ## Directory data
 
@@ -177,11 +177,11 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `announcements.suggestPlayers` | admin | `{ content }` | Up to 5 players whose full name (two words or more) appears in the text, ignoring accents and case, by whole words | — |
 | `announcements.create` / `update` / `delete` | admin | `{ year (1900–2200), number, content, playerId? }` | Rows; `CONFLICT` for a duplicate `(year, number)` or an unknown player | — |
 | `events.list` | public | — | Events by start date, with their links | 60 s |
-| `events.create` / `update` / `delete` | admin | `{ name, startDate }` | Rows; delete removes the event's links | — |
+| `events.create` / `update` / `delete` | admin | `{ name, startDate }` | Rows; deleting an event cascades to its links (one statement) | — |
 | `events.setLinks` | admin | `{ eventId, links: [{ id?, type: regulation\|form\|results, href? }] }` | Replaces the event's links in one D1 batch; labels and icons are derived from the type | — |
 | `links.list` | public | — | Link groups with links | 300 s |
-| `links.create` / `updateGroup` / `deleteGroup` | admin | `{ label, eventId? }` | Group rows | — |
-| `links.createLink` / `updateLink` / `deleteLink` | admin | `{ linkGroupId, label, href?, icon, type?, sortOrder }` | Link rows; `icon` must be in the allowlist (`link-icons.ts`) | — |
+| `links.create` / `updateGroup` / `deleteGroup` | admin | `{ label, eventId? }` | Group rows; `updateGroup` and `deleteGroup` only touch groups without an event (`NOT_FOUND` otherwise) | — |
+| `links.createLink` / `updateLink` / `deleteLink` | admin | `{ linkGroupId, label, href?, icon, type?, sortOrder }` | Link rows; `icon` must be in the allowlist (`link-icons.ts`); `BAD_REQUEST` when the link or target group belongs to an event (edit those with `events.setLinks`) | — |
 
 ## Media
 
@@ -200,4 +200,3 @@ do not match `mime`. See [Media](/architecture/media).
 | `stats.counts` | admin | Row counts of players, posts, announcements, events, tournaments, circuits, School Games results, and clubs |
 | `cache.status` | admin | `{ purgeConfigured }` |
 | `cache.purgePublic` | admin | Purges the zone cache; `PRECONDITION_FAILED` when the zone ID or purge token is missing |
-| `seed.run` | admin | No-op kept for compatibility; returns `{ seeded: true }`. Seed locally with `bun run db:seed`. |

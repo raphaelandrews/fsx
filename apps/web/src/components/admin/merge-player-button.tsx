@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 import { Button } from "@fsx/ui/components/button";
 import {
@@ -14,26 +12,24 @@ import {
 } from "@fsx/ui/components/dialog";
 
 import { SearchableSelect } from "@/components/searchable-select";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
-import { showMutationError } from "@/lib/errors";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/utils/trpc";
 
 export function MergePlayerButton({ playerId, playerName }: { playerId: number; playerName: string }) {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const invalidateAdmin = useInvalidateAdmin();
   const [open, setOpen] = useState(false);
   const [targetId, setTargetId] = useState("");
 
-  const mutation = useMutation({
-    ...trpc.players.merge.mutationOptions(),
-    onSuccess: async (result) => {
-      await invalidateAdmin("players");
-      toast.success("Players merged");
+  const mutation = useAdminMutation(trpc.players.merge.mutationOptions(), {
+    invalidates: "players",
+    awaitInvalidation: true,
+    success: "Players merged",
+    failure: "Failed to merge players",
+    onSuccess: (result) => {
       setOpen(false);
-      navigate({ to: "/dashboard/players/$id", params: { id: result.id } });
+      return navigate({ to: "/dashboard/players/$id", params: { id: result.id } });
     },
-    onError: (error) => showMutationError(error, "Failed to merge players"),
   });
 
   return (

@@ -9,6 +9,7 @@ import { DatePicker } from "@/components/date-picker";
 import { EventLinksEditor, type EventLinkDraft } from "@/components/event-links-editor";
 import { FormField } from "@/components/form/form-field";
 import { fieldError } from "@/lib/errors";
+import { httpUrlError, requiredText, submitThenChange, TEXT_MAX } from "@/lib/field-rules";
 
 export interface EventValues {
   name: string;
@@ -32,14 +33,23 @@ export function EventForm({
   cancelTo,
 }: EventFormProps) {
   const [links, setLinks] = useState(defaultValues.links);
+  const [attempted, setAttempted] = useState(false);
+  const linkErrors = links.map((link) => httpUrlError("URL", link.href));
   const form = useForm({
     defaultValues: { name: defaultValues.name, startDate: defaultValues.startDate },
-    onSubmit: ({ value }) => onSubmit({ ...value, links }),
+    validationLogic: submitThenChange,
+    onSubmit: ({ value }) => {
+      if (linkErrors.some(Boolean)) return;
+      return onSubmit({ ...value, links });
+    },
   });
 
   return (
     <AdminForm
-      onSubmit={() => form.handleSubmit()}
+      onSubmit={() => {
+        setAttempted(true);
+        void form.handleSubmit();
+      }}
       actions={
         <form.Subscribe selector={(state) => state.isSubmitting}>
           {(isSubmitting) => (
@@ -54,7 +64,7 @@ export function EventForm({
       >
         <form.Field
           name="name"
-          validators={{ onSubmit: ({ value }) => (value.trim() ? undefined : "Name is required") }}
+          validators={{ onDynamic: requiredText("Name") }}
         >
           {(f) => (
             <FormField
@@ -65,6 +75,7 @@ export function EventForm({
             >
               <Input
                 id="event-name"
+                maxLength={TEXT_MAX}
                 value={f.state.value}
                 onBlur={f.handleBlur}
                 onChange={(e) => f.handleChange(e.target.value)}
@@ -74,7 +85,7 @@ export function EventForm({
         </form.Field>
         <form.Field
           name="startDate"
-          validators={{ onSubmit: ({ value }) => (value ? undefined : "Start date is required") }}
+          validators={{ onDynamic: ({ value }) => (value ? undefined : "Start date is required") }}
         >
           {(f) => (
             <FormField
@@ -97,7 +108,7 @@ export function EventForm({
         title="Links"
         description="Buttons shown with the event. A link without a URL appears as “coming soon”."
       >
-        <EventLinksEditor value={links} onChange={setLinks} />
+        <EventLinksEditor value={links} onChange={setLinks} errors={attempted ? linkErrors : []} />
       </FormSection>
     </AdminForm>
   );

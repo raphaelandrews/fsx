@@ -1,19 +1,11 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { Button } from "@fsx/ui/components/button";
-
-import { useTRPC } from "@/utils/trpc";
-import { AdminPageHeader } from "@/components/admin/page-header";
-import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { DataTablePagination } from "@/components/data-table/data-table-pagination";
-import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
-import { RowLink } from "@/components/data-table/row-link";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { EntityListPage, entityMessages } from "@/components/admin/entity-pages";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { EmptyCollection } from "@/components/admin/empty-collection";
+import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/locations/")({
   head: () => ({ meta: [{ title: "Locations - Admin - FSX" }] }),
@@ -21,63 +13,40 @@ export const Route = createFileRoute("/_auth/dashboard/locations/")({
   component: RouteComponent,
 });
 
+type Row = ReturnType<typeof useRows>[number];
+
+const columns: ColumnDef<Row>[] = [
+  {
+    accessorKey: "type",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
+  },
+];
+
+function useRows() {
+  const trpc = useTRPC();
+  return useSuspenseQuery(trpc.locations.list.queryOptions()).data;
+}
+
 function RouteComponent() {
   const trpc = useTRPC();
-
-  const { data = [] } = useSuspenseQuery(trpc.locations.list.queryOptions());
-
+  const rows = useRows();
   const deleteMutation = useAdminMutation(trpc.locations.delete.mutationOptions(), {
     invalidates: "locations",
-    success: "Location deleted",
-    failure: "Failed to delete location",
+    ...entityMessages("location").delete,
   });
 
-  const columns: ColumnDef<(typeof data)[number]>[] = [
-    {
-      accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
-      cell: ({ row }) => <RowLink to="/dashboard/locations/$id" id={row.original.id}>{row.getValue("name")}</RowLink>,
-    },
-    {
-      accessorKey: "type",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
-    },
-    {
-      id: "actions",
-      header: () => <span className="sr-only">Actions</span>,
-      cell: ({ row }) => (
-        <DataTableRowActions
-          id={row.original.id}
-          isDeleting={deleteMutation.isPending}
-          editTo="/dashboard/locations/$id"
-          noun="location"
-          onDelete={() => deleteMutation.mutate({ id: row.original.id })}
-          displayName={row.original.name}
-        />
-      ),
-    },
-  ];
-
   return (
-    <div>
-      <AdminPageHeader
-        title="Locations"
-        description="Manage cities and states."
-        actions={
-          <Link to="/dashboard/locations/create">
-            <Button>New location</Button>
-          </Link>
-        }
-      />
-      <DataTable
-        emptyState={<EmptyCollection noun="locations" createTo="/dashboard/locations/create" />}
-        columns={columns}
-        data={data}
-        toolbar={(table) => (
-          <DataTableToolbar table={table} searchKey="name" searchPlaceholder="Search location..." />
-        )}
-        pagination={(table) => <DataTablePagination table={table} />}
-      />
-    </div>
+    <EntityListPage
+      noun="location"
+      plural="locations"
+      basePath="/dashboard/locations"
+      title="Locations"
+      description="Manage cities and states."
+      rows={rows}
+      columns={columns}
+      showId={false}
+      deleting={deleteMutation.isPending}
+      onDelete={(id) => deleteMutation.mutate({ id })}
+    />
   );
 }

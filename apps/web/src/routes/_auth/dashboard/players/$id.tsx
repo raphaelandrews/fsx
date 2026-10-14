@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { Button, buttonVariants } from "@fsx/ui/components/button";
 
@@ -15,8 +14,8 @@ import {
 } from "@/components/admin/player-relations";
 import { RatingHistoryEditor } from "@/components/rating-update/rating-history-editor";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
-import { useInvalidateAdmin } from "@/lib/admin-mutations";
-import { orNotFound, showMutationError } from "@/lib/errors";
+import { useAdminMutation } from "@/lib/admin-mutations";
+import { orNotFound } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
 import { useTRPC } from "@/utils/trpc";
 
@@ -55,7 +54,6 @@ export const Route = createFileRoute("/_auth/dashboard/players/$id")({
 function RouteComponent() {
   const { id } = Route.useParams();
   const trpc = useTRPC();
-  const invalidateAdmin = useInvalidateAdmin();
   const { trackReplaced, trackCreated, commit, discard } = usePendingImageDeletes();
   const setRatingRef = useRef<((ratingType: RatingType, rating: number) => void) | null>(null);
 
@@ -63,32 +61,25 @@ function RouteComponent() {
   const { data: clubs } = useSuspenseQuery(trpc.clubs.list.queryOptions());
   const { data: locations } = useSuspenseQuery(trpc.locations.list.queryOptions());
 
-  const updateMutation = useMutation({
-    ...trpc.players.update.mutationOptions(),
-    onSuccess: async () => {
-      void invalidateAdmin("players");
-      await commit();
-      toast.success("Player updated");
-    },
-    onError: (error, variables) => {
-      void discard(variables.imageUrl);
-      showMutationError(error, "Failed to update player", () => window.location.reload());
-    },
+  const updateMutation = useAdminMutation(trpc.players.update.mutationOptions(), {
+    invalidates: "players",
+    success: "Player updated",
+    failure: "Failed to update player",
+    reloadOnConflict: true,
+    onSuccess: () => commit(),
+    onError: (_error, variables) => discard(variables.imageUrl),
   });
 
-  const rebuildMutation = useMutation({
-    ...trpc.players.rebuildRatings.mutationOptions(),
-    onSuccess: async (result) => {
-      await Promise.all([
-        invalidateAdmin("players"),
-        invalidateAdmin("playersTournament"),
-      ]);
+  const rebuildMutation = useAdminMutation(trpc.players.rebuildRatings.mutationOptions(), {
+    invalidates: ["players", "playersTournament"],
+    awaitInvalidation: true,
+    success: "Rating history rebuilt",
+    failure: "Failed to rebuild rating history",
+    onSuccess: (result) => {
       for (const ratingType of ["classic", "rapid", "blitz"] as const) {
         setRatingRef.current?.(ratingType, result[ratingType]);
       }
-      toast.success("Rating history rebuilt");
     },
-    onError: (error) => showMutationError(error, "Failed to rebuild rating history"),
   });
 
   return (

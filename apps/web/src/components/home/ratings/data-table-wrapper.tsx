@@ -1,5 +1,7 @@
-import * as React from "react"
-import { DataTable } from "./data-table"
+import { Suspense } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
+
+import { DataTable } from "@/components/data-table/data-table";
 
 const SKELETON_KEYS = Array.from({ length: 8 }, (_, i) => `skeleton-${i}`)
 
@@ -16,10 +18,16 @@ function TableLoadingSkeleton() {
 	)
 }
 
-export function DataTableWrapper({ columns, data }: any) {
-	return (
-		<React.Suspense fallback={<TableLoadingSkeleton />}>
-			<DataTable columns={columns} data={data} />
-		</React.Suspense>
-	)
+export function DataTableWrapper<TData, TValue>({
+  columns,
+  data,
+}: {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+}) {
+  return (
+    <Suspense fallback={<TableLoadingSkeleton />}>
+      <DataTable columns={columns} data={data} />
+    </Suspense>
+  );
 }

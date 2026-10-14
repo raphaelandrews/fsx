@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { EntityForm, optional } from "@/components/admin/entity-form";
-import { AdminPageHeader } from "@/components/admin/page-header";
+import { optional } from "@/components/admin/entity-form";
+import { EntityCreatePage, entityMessages } from "@/components/admin/entity-pages";
 import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { CLUB_SECTIONS } from "@/lib/admin-forms";
@@ -19,8 +19,7 @@ function RouteComponent() {
 
   const createMutation = useAdminMutation(trpc.clubs.create.mutationOptions(), {
     invalidates: "clubs",
-    success: "Club created",
-    failure: "Failed to create club",
+    ...entityMessages("club").create,
     onSuccess: async () => {
       await commit();
       await navigate({ to: "/dashboard/clubs" });
@@ -29,25 +28,22 @@ function RouteComponent() {
   });
 
   return (
-    <>
-      <AdminPageHeader
-        backTo="/dashboard/clubs"
-        backLabel="Clubs"
-        title="New club"
-        description="Add a club or school."
-      />
-      <EntityForm
-        sections={CLUB_SECTIONS}
-        defaultValues={{ name: "", logoUrl: "" }}
-        onSubmit={(values) =>
-          createMutation.mutate({ name: values.name!, logoUrl: optional(values.logoUrl!) })
-        }
-        error={createMutation.error}
-        pending={createMutation.isPending}
-        submitLabel="Create club"
-        cancelTo="/dashboard/clubs"
-        images={tracking}
-      />
-    </>
+    <EntityCreatePage
+      noun="club"
+      basePath="/dashboard/clubs"
+      backLabel="Clubs"
+      description="Add a club or school."
+      sections={CLUB_SECTIONS}
+      defaultValues={{ name: "", logoUrl: "" }}
+      onSubmit={(values) =>
+        createMutation.mutate({
+          name: values.name!,
+          logoUrl: optional(values.logoUrl!),
+        })
+      }
+      error={createMutation.error}
+      pending={createMutation.isPending}
+      images={tracking}
+    />
   );
 }

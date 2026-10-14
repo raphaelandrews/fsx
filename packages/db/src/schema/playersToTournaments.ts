@@ -1,6 +1,6 @@
-import { createInsertSchema } from "drizzle-zod"
-import { relations, sql } from "drizzle-orm"
-import { check, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
+import { createInsertSchema } from "drizzle-zod";
+import { relations, sql } from "drizzle-orm";
+import { check, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 import { players, tournaments } from "./index"
 
@@ -15,6 +15,7 @@ export const playersToTournaments = sqliteTable("players_to_tournaments", {
 	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 }, (t) => [
     uniqueIndex("player_tournament").on(t.playerId, t.tournamentId),
+    index("players_to_tournaments_tournament_idx").on(t.tournamentId),
     check("players_to_tournaments_old_rating_check", sql`${t.oldRating} BETWEEN 0 AND 4000`),
     check("players_to_tournaments_variation_check", sql`${t.variation} BETWEEN -4000 AND 4000`),
     check("players_to_tournaments_rating_type_check", sql`${t.ratingType} IN ('blitz', 'rapid', 'classic')`),

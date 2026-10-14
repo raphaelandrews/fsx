@@ -13,8 +13,8 @@ interface TopPlayer {
 	defendingChampions?: Array<{ championshipId: number; championship: { name: string } }> | null
 }
 
-import { DataTableColumnHeader } from "./data-table-column-header"
-import { Actions } from "./actions"
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { Actions } from "./actions";
 
 export const columnsClassic: ColumnDef<TopPlayer>[] = [
 	{

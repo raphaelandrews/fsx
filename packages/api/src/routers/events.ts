@@ -55,19 +55,12 @@ export const eventsRouter = router({
     ),
   delete: adminProcedure
     .input(z.object({ id: positiveInt }))
-    .mutation(async ({ ctx, input }) => {
-      const group = await ctx.db.query.linkGroups.findFirst({
-        where: eq(linkGroups.eventId, input.id),
-      });
-      if (group) {
-        await ctx.db.delete(links).where(eq(links.linkGroupId, group.id));
-        await ctx.db.delete(linkGroups).where(eq(linkGroups.id, group.id));
-      }
-      return requireMutationRows(
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
         await ctx.db.delete(events).where(eq(events.id, input.id)).returning({ id: events.id }),
         "Event",
-      );
-    }),
+      ),
+    ),
   // Reconcile the full set of links that belong to an event. The event owns a
   // single link_groups row; its regulation/form/results URLs live as links.
   setLinks: adminProcedure

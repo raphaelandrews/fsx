@@ -1,5 +1,7 @@
 import { env } from "@fsx/env/server";
 
+import { MEDIA_KEY_PATTERN } from "./media-kinds";
+
 const MEDIA_PREFIX = "/api/media/";
 
 // Opening an uploaded SVG directly would otherwise render it as a document in
@@ -25,7 +27,7 @@ function decodeKey(pathname: string): string | null {
 // needed and the same route works locally (miniflare R2) and in production.
 export async function handleMediaRequest(request: Request): Promise<Response> {
   const key = decodeKey(new URL(request.url).pathname);
-  if (!key || key.includes("..")) return notFound();
+  if (!key || !MEDIA_KEY_PATTERN.test(key)) return notFound();
 
   // A failed precondition makes R2 return metadata without a body.
   const etag = request.headers.get("If-None-Match")?.replace(/^W\//, "").replaceAll('"', "").trim();

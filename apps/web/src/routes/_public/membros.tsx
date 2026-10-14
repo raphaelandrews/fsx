@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
 
 import { Announcement } from "@/components/announcement";
 import { PageHeader } from "@/components/page-header";
-import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
+import { ListSkeleton } from "@/components/skeletons/list-skeleton";
 import { getGradient } from "@/lib/gradients";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/utils/trpc";
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_public/membros")({
     }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.roles.listWithPlayers.queryOptions()),
-  pendingComponent: () => <CardGridSkeleton />,
+  pendingComponent: () => <ListSkeleton />,
   component: RouteComponent,
 });
 

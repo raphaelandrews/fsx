@@ -146,5 +146,8 @@ export const tvSergipeRouter = router({
         "School result",
       )
     ),
-  deleteAll: adminProcedure.mutation(({ ctx }) => ctx.db.delete(tvSergipe)),
+  deleteAll: adminProcedure.mutation(async ({ ctx }) => {
+    const deleted = await ctx.db.delete(tvSergipe).returning({ id: tvSergipe.id });
+    return { deleted: deleted.length };
+  }),
 });

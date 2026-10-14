@@ -2,48 +2,47 @@ import { useEffect, useMemo, useState } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Calendar01Icon } from "@hugeicons/core-free-icons"
 
-function formatDate(date: Date) {
-  const currentDate = new Date()
-  const targetDate = new Date(date)
-  targetDate.setUTCHours(targetDate.getUTCHours() + 3)
+import { parseDbTimestamp } from "@/utils/format";
 
-  const diffTime = Math.abs(currentDate.getTime() - targetDate.getTime())
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+const TIME_ZONE = "America/Sao_Paulo";
 
-  let months = (currentDate.getFullYear() - targetDate.getFullYear()) * 12
-  months += currentDate.getMonth() - targetDate.getMonth()
+const dayParts = new Intl.DateTimeFormat("en-CA", {
+  timeZone: TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
-  if (currentDate.getDate() < targetDate.getDate()) {
-    months--
-  }
+function calendarDay(date: Date) {
+  const [year = 0, month = 0, day = 0] = dayParts.format(date).split("-").map(Number);
+  return { year, month, day, ordinal: Date.UTC(year, month - 1, day) / 86_400_000 };
+}
 
-  const years = Math.floor(months / 12)
-  const remainingMonths = months % 12
-
-  let formattedDate = ""
-
+function elapsedLabel(target: Date, now: Date) {
+  const from = calendarDay(target);
+  const to = calendarDay(now);
+  let months = (to.year - from.year) * 12 + (to.month - from.month);
+  if (to.day < from.day) months--;
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
   if (years > 0) {
-    formattedDate = `${years} ano${years > 1 ? "s" : ""}`
-    if (remainingMonths > 0) {
-      formattedDate += ` e ${remainingMonths} ${
-        remainingMonths > 1 ? "meses" : "mês"
-      }`
-    }
-  } else if (months > 0) {
-    formattedDate = `${months} ${months > 1 ? "meses" : "mês"}`
-  } else if (diffDays > 0) {
-    formattedDate = `${diffDays} dia${diffDays > 1 ? "s" : ""}`
-  } else {
-    formattedDate = "Hoje"
+    const label = `${years} ano${years > 1 ? "s" : ""}`;
+    return remainingMonths > 0
+      ? `${label} e ${remainingMonths} ${remainingMonths > 1 ? "meses" : "mês"}`
+      : label;
   }
+  if (months > 0) return `${months} ${months > 1 ? "meses" : "mês"}`;
+  const days = to.ordinal - from.ordinal;
+  return days > 0 ? `${days} dia${days > 1 ? "s" : ""}` : "Hoje";
+}
 
-  const fullDate = targetDate.toLocaleString("pt-BR", {
-    timeZone: "UTC",
+function PostDate({ date, elapsed }: { date: Date; elapsed: string }) {
+  const fullDate = date.toLocaleString("pt-BR", {
+    timeZone: TIME_ZONE,
     month: "long",
     day: "numeric",
     year: "numeric",
-  })
-
+  });
   return (
     <>
       <p className="flex items-center gap-2">
@@ -51,39 +50,18 @@ function formatDate(date: Date) {
         <span className="mt-[1px]">{fullDate}</span>
       </p>
       <div className="h-1 w-1 rounded-full bg-muted-foreground" />
-      <p>{formattedDate}</p>
+      <p>{elapsed}</p>
     </>
   )
 }
 
 export function PostTimeAgo({ date }: { date: Date | string }) {
-  const [mounted, setMounted] = useState(false)
-
-  const targetDate = useMemo(() => new Date(date), [date])
+  const [now, setNow] = useState<Date | null>(null);
+  const target = useMemo(() => parseDbTimestamp(date), [date]);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setNow(new Date());
+  }, []);
 
-  const fullDateString = targetDate.toLocaleString("pt-BR", {
-    timeZone: "UTC",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  })
-
-  if (!mounted) {
-    return (
-      <>
-        <p className="flex items-center gap-2">
-          <HugeiconsIcon icon={Calendar01Icon} className="size-4" />
-          <span className="mt-[1px]">{fullDateString}</span>
-        </p>
-        <div className="h-1 w-1 rounded-full bg-muted-foreground" />
-        <p>...</p>
-      </>
-    )
-  }
-
-  return formatDate(targetDate)
+  return <PostDate date={target} elapsed={now ? elapsedLabel(target, now) : "..."} />;
 }

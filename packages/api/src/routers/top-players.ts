@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 
 import { players } from "@fsx/db/schema/players";
+import type { Context } from "../context";
 import { publicProcedure, router } from "../index";
 
 const baseConfig = {
@@ -25,29 +26,22 @@ const baseConfig = {
   },
 } as const;
 
+const topBy = (db: Context["db"], format: "classic" | "rapid" | "blitz") =>
+  db.query.players.findMany({
+    orderBy: (players, { desc, asc }) => [desc(players[format]), asc(players.id)],
+    limit: 10,
+    where: eq(players.active, true),
+    columns: baseConfig.columns,
+    with: baseConfig.with,
+  });
+
 export const topPlayersRouter = router({
   list: publicProcedure.query(async ({ ctx }) => {
-    const topClassic = await ctx.db.query.players.findMany({
-      orderBy: (players, { desc: d, asc }) => [d(players.classic), asc(players.id)],
-      limit: 10,
-      where: eq(players.active, true),
-      columns: baseConfig.columns,
-      with: baseConfig.with,
-    });
-    const topRapid = await ctx.db.query.players.findMany({
-      orderBy: (players, { desc: d, asc }) => [d(players.rapid), asc(players.id)],
-      limit: 10,
-      where: eq(players.active, true),
-      columns: baseConfig.columns,
-      with: baseConfig.with,
-    });
-    const topBlitz = await ctx.db.query.players.findMany({
-      orderBy: (players, { desc: d, asc }) => [d(players.blitz), asc(players.id)],
-      limit: 10,
-      where: eq(players.active, true),
-      columns: baseConfig.columns,
-      with: baseConfig.with,
-    });
+    const [topClassic, topRapid, topBlitz] = await Promise.all([
+      topBy(ctx.db, "classic"),
+      topBy(ctx.db, "rapid"),
+      topBy(ctx.db, "blitz"),
+    ]);
     return { topClassic, topRapid, topBlitz };
   }),
 });
