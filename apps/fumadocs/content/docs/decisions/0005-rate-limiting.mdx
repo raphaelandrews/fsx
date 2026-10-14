@@ -12,8 +12,8 @@ Auth requests and tRPC mutations were rate-limited with a D1 `rate_limits`
 counter: one upsert per checked request, plus a cron Worker deleting expired
 windows every 15 minutes. Better Auth's `get-session` runs on ordinary page
 loads, so the limiter's D1 writes grew with public traffic rather than with
-edits. The site is read-heavy, has a single administrator, and runs within D1's
-daily row-write quota, which should be spent on content changes.
+edits. The site is read-heavy and has a single administrator, so D1 writes should
+match content changes, not page views.
 
 Anonymous tRPC GETs that miss the edge cache already used the native binding
 (`PUBLIC_READ_RATE_LIMIT`).

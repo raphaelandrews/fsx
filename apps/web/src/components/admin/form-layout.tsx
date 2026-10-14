@@ -48,13 +48,14 @@ export function FormErrorSummary({ error }: { error: unknown }) {
 export function AdminForm({ onSubmit, children, actions, error }: AdminFormProps) {
   return (
     <form
+      className="mx-auto w-full max-w-170"
       noValidate
       onSubmit={(event: FormEvent) => {
         event.preventDefault();
         onSubmit();
       }}
     >
-      <div className="divide-y">{children}</div>
+      <div className="space-y-8">{children}</div>
       <FormErrorSummary error={error} />
       {actions}
     </form>
@@ -67,12 +68,12 @@ interface FormSectionProps {
   children: ReactNode;
 }
 
-/** A titled group of fields: title and description on the left, controls on the right. */
+/** A titled group of fields: title and description above, one column of controls below. */
 export function FormSection({ title, description, children }: FormSectionProps) {
   return (
-    <section className="grid gap-x-10 gap-y-4 py-6 first:pt-0 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+    <section className="space-y-4">
       <div>
-        <h2 className="font-medium text-sm">{title}</h2>
+        <h2 className="font-semibold text-lg">{title}</h2>
         {description ? <p className="mt-1 text-muted-foreground text-sm">{description}</p> : null}
       </div>
       <div className="min-w-0 space-y-4">{children}</div>
@@ -124,11 +125,11 @@ export function FormActions({
   disabled,
 }: FormActionsProps) {
   return (
-    <div className="flex items-center justify-end gap-2 border-t pt-4">
-      <Link to={cancelTo} className={buttonVariants({ variant: "outline" })}>
+    <div className="grid grid-cols-2 gap-3 pt-6">
+      <Link to={cancelTo} className={buttonVariants({ variant: "secondary", size: "pill" })}>
         Cancel
       </Link>
-      <Button type="submit" loading={pending} disabled={disabled}>
+      <Button type="submit" size="pill" loading={pending} disabled={disabled}>
         {pending ? pendingLabel : submitLabel}
       </Button>
     </div>

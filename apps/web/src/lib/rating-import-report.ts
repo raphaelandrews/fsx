@@ -2,6 +2,8 @@ export type ImportResultStatus = "applied" | "failed" | "skipped";
 
 export interface ImportResult {
   sheetRow: number;
+  /** Names the step when it is not a Results row, e.g. "Tournament" or "Podium row 2". */
+  where?: string;
   status: ImportResultStatus;
   /** Who or what the row was about, e.g. the player's name. */
   title: string;
@@ -28,7 +30,7 @@ export function failuresToCsv(results: ImportResult[]): string {
     .filter((result) => result.status !== "applied")
     .sort((a, b) => a.sheetRow - b.sheetRow)
     .map((result) =>
-      [result.sheetRow, result.status, result.title, result.summary, result.detail, result.input].map(csvCell).join(","),
+      [result.where ?? result.sheetRow, result.status, result.title, result.summary, result.detail, result.input].map(csvCell).join(","),
     );
   return [header.join(","), ...lines].join("\r\n");
 }

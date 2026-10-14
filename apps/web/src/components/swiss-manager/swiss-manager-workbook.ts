@@ -26,10 +26,8 @@ interface SwissManagerRow {
   Rtg_Int: number;
 }
 
-function formatDate(value: string | null): string {
-  const day = value?.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
-  return day ?? "";
-}
+// Only the year is public; Swiss Manager still wants a full date, so month and day are 00.
+const formatBirthday = (year: number | null) => (year === null ? "" : `${year}-00-00`);
 
 /**
  * Build a Swiss Manager–compatible .xlsx file from the given players, using the
@@ -48,7 +46,7 @@ export async function buildSwissManagerWorkbook(
     Fed: "BRA",
     ClubNo: player.club?.id ?? "",
     ClubName: player.club?.name ?? "",
-    Birthday: formatDate(player.birthDate),
+    Birthday: formatBirthday(player.birthYear),
     Fide_No: player.id,
     Rtg_Int: player[ratingType] ?? 0,
   }));

@@ -1,0 +1,1 @@
+ALTER TABLE `player_update_requests` ADD `photo_key` text;

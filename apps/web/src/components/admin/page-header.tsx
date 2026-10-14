@@ -3,7 +3,6 @@ import { Link, type LinkProps } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 
-import { Separator } from "@fsx/ui/components/separator";
 import { cn } from "@fsx/ui/lib/utils";
 
 interface AdminPageHeaderProps {
@@ -38,14 +37,13 @@ export function AdminPageHeader({
       ) : null}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h1 className="truncate font-semibold text-xl tracking-tight sm:text-2xl">{title}</h1>
+          <h1 className="truncate font-bold text-xl tracking-tight sm:text-2xl">{title}</h1>
           {description ? <p className="mt-1 text-muted-foreground text-sm">{description}</p> : null}
         </div>
         {actions ? (
           <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
         ) : null}
       </div>
-      <Separator className="mt-4" />
     </div>
   );
 }

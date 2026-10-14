@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { HelpCircleIcon } from "@hugeicons/core-free-icons";
 
 import { Section } from "./section";
@@ -65,14 +66,9 @@ const FAQ_ITEMS = [
     answer: (
       <>
         Acesse nosso{" "}
-        <a
-          className="link-inline"
-          href="https://docs.google.com/spreadsheets/d/1FqWEWcpcRzW0r4wnsjLOIFmrwFkcqd9gnA7Lk1ZZ5uM"
-          rel="noreferrer"
-          target="_blank"
-        >
+        <Link className="link-inline" to="/calendario">
           Calendário
-        </a>
+        </Link>
         . Os torneios são divulgados no site e no Instagram (
         <a
           className="link-inline"

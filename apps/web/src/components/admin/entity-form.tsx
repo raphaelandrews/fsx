@@ -26,7 +26,7 @@ import { maxLengthOf, validateField } from "@/lib/entity-validation";
 import { submitThenChange } from "@/lib/field-rules";
 
 export const NATIVE_SELECT_CLASS =
-  "h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
+  "h-12 w-full rounded-xl border border-input bg-background px-3 text-base transition-[border-color,box-shadow] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20";
 
 type BaseField = {
   name: string;
@@ -283,7 +283,7 @@ export function EntityFormDialog({
 }: EntityFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-170">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description ? <DialogDescription>{description}</DialogDescription> : null}
@@ -318,8 +318,8 @@ function DialogForm({
       <EntityFields form={form} fields={fields} error={error} idPrefix="dialog" />
       <FormErrorSummary error={error} />
       <DialogFooter>
-        <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
-        <Button type="submit" loading={pending}>
+        <DialogClose render={<Button type="button" variant="secondary" size="pill" />}>Cancel</DialogClose>
+        <Button type="submit" size="pill" loading={pending}>
           {pending ? "Saving..." : submitLabel}
         </Button>
       </DialogFooter>

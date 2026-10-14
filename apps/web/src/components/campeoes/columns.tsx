@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router"
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { PlayerSheetButton } from "@/components/player/player-sheet-button"
@@ -14,6 +15,7 @@ export interface ChampionPodiumPlayer {
 }
 
 export interface ChampionTournament {
+  id: number
   name: string
   date: string | null
   tournamentPodiums: Array<{
@@ -28,7 +30,16 @@ export const championColumns: ColumnDef<ChampionTournament>[] = [
     header: "Ano",
     cell: ({ row }) => {
       const date = row.original.date
-      return <div className="tabular-nums">{date ? date.slice(0, 4) : "-"}</div>
+      return (
+        <Link
+          to="/torneios/$id"
+          params={{ id: row.original.id }}
+          aria-label={`${row.original.name}${date ? ` (${date.slice(0, 4)})` : ""}`}
+          className="tabular-nums underline-offset-4 hover:underline"
+        >
+          {date ? date.slice(0, 4) : "Ver"}
+        </Link>
+      )
     },
   },
   {

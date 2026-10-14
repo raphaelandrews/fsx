@@ -1,19 +1,22 @@
 import { z } from "zod";
-import { eq, desc, and, count } from "drizzle-orm";
+import { eq, desc, and, count, sql } from "drizzle-orm";
 
 import { posts, insertPostSchema } from "@fsx/db/schema/posts";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { contentText, idInput, imageUrl, nameText, page, positiveInt, searchText } from "../input-schemas";
 import { requireFound, requireMutationRows } from "../errors";
 import { paginate } from "../lib/pagination";
+import { publiclyVisiblePost, toDbTimestamp } from "../lib/post-visibility";
 import { deleteMediaUrl, deleteReplacedMedia } from "../services/media-storage";
+
+const scheduleInstant = z.iso.datetime();
 
 export const postsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
     ctx.db
       .select({ id: posts.id, title: posts.title, imageUrl: posts.imageUrl, slug: posts.slug })
       .from(posts)
-      .where(eq(posts.published, true))
+      .where(publiclyVisiblePost())
       .orderBy(desc(posts.createdAt), desc(posts.id))
       .limit(24)
   ),
@@ -25,6 +28,7 @@ export const postsRouter = router({
         slug: posts.slug,
         imageUrl: posts.imageUrl,
         published: posts.published,
+        publishAt: posts.publishAt,
         createdAt: posts.createdAt,
         updatedAt: posts.updatedAt,
       })
@@ -40,7 +44,7 @@ export const postsRouter = router({
     .input(z.object({ slug: searchText.max(200) }))
     .query(async ({ ctx, input }) =>
       requireFound(await ctx.db.query.posts.findFirst({
-        where: and(eq(posts.slug, input.slug), eq(posts.published, true)),
+        where: and(eq(posts.slug, input.slug), publiclyVisiblePost()),
         columns: { id: true, title: true, imageUrl: true, content: true, slug: true, createdAt: true, updatedAt: true },
       }), "Post")
     ),
@@ -56,12 +60,12 @@ export const postsRouter = router({
           createdAt: true,
           updatedAt: true,
         },
-        where: eq(posts.published, true),
+        where: publiclyVisiblePost(),
         orderBy: [desc(posts.createdAt), desc(posts.id)],
         limit: perPage,
         offset: (input.page - 1) * perPage,
       }),
-      ctx.db.select({ value: count() }).from(posts).where(eq(posts.published, true)),
+      ctx.db.select({ value: count() }).from(posts).where(publiclyVisiblePost()),
     ]);
     const totalItems = countResult[0]?.value ?? 0;
     return {
@@ -73,21 +77,25 @@ export const postsRouter = router({
     ctx.db
       .select({ id: posts.id, title: posts.title, imageUrl: posts.imageUrl, slug: posts.slug })
       .from(posts)
-      .where(eq(posts.published, true))
+      .where(publiclyVisiblePost())
       .orderBy(desc(posts.createdAt), desc(posts.id))
       .limit(8)
   ),
   create: adminProcedure
-    .input(insertPostSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
+    .input(insertPostSchema.omit({ id: true, createdAt: true, updatedAt: true, publishAt: true }).extend({
       title: nameText,
       imageUrl: imageUrl.nullable().optional(),
       content: contentText,
       slug: z.string().trim().min(1).max(200),
       published: z.boolean(),
+      publishAt: scheduleInstant.nullable().optional(),
     }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.insert(posts).values(input).returning()
-    ),
+    .mutation(({ ctx, input }) => {
+      const { publishAt, ...values } = input;
+      const at = publishAt ? toDbTimestamp(publishAt) : null;
+      // The schedule is the publication date everywhere the site shows or sorts by one.
+      return ctx.db.insert(posts).values({ ...values, publishAt: at, ...(at ? { createdAt: at } : {}) }).returning();
+    }),
   update: adminProcedure
     .input(
       z.object({
@@ -97,15 +105,27 @@ export const postsRouter = router({
         content: contentText.optional(),
         slug: z.string().trim().min(1).max(200).optional(),
         published: z.boolean().optional(),
+        publishAt: scheduleInstant.nullable().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const previous = await ctx.db.query.posts.findFirst({
         where: eq(posts.id, input.id),
-        columns: { imageUrl: true },
+        columns: { imageUrl: true, publishAt: true, createdAt: true },
       });
+      const { publishAt, ...values } = input;
+      const schedule =
+        publishAt === undefined
+          ? {}
+          : publishAt
+            ? { publishAt: toDbTimestamp(publishAt), createdAt: toDbTimestamp(publishAt) }
+            : {
+                publishAt: null,
+                // Taking a post off its schedule publishes it now, not at the date it was waiting for.
+                ...(previous?.publishAt && previous.publishAt === previous.createdAt ? { createdAt: sql`(CURRENT_TIMESTAMP)` } : {}),
+              };
       const updated = requireMutationRows(
-        await ctx.db.update(posts).set(input).where(eq(posts.id, input.id)).returning(),
+        await ctx.db.update(posts).set({ ...values, ...schedule }).where(eq(posts.id, input.id)).returning(),
         "Post",
       );
       await deleteReplacedMedia(previous?.imageUrl, input.imageUrl);

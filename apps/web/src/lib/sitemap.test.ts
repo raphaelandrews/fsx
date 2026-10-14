@@ -7,6 +7,7 @@ describe("renderSitemap", () => {
     const sitemap = renderSitemap({
       posts: [{ slug: "xadrez & cultura", updatedAt: "2026-09-30T12:00:00Z" }],
       playerIds: [42],
+      tournamentIds: [11],
       announcementIds: [7],
       clubIds: [3],
     });
@@ -15,6 +16,9 @@ describe("renderSitemap", () => {
     expect(sitemap).toContain("https://www.fsx.org.br/noticias/xadrez%20%26%20cultura");
     expect(sitemap).toContain("<lastmod>2026-09-30</lastmod>");
     expect(sitemap).toContain("https://www.fsx.org.br/jogadores/42");
+    expect(sitemap).toContain("https://www.fsx.org.br/torneios");
+    expect(sitemap).toContain("https://www.fsx.org.br/calendario");
+    expect(sitemap).toContain("https://www.fsx.org.br/torneios/11");
     expect(sitemap).toContain("https://www.fsx.org.br/comunicados/7");
     expect(sitemap).toContain("https://www.fsx.org.br/estatisticas");
     expect(sitemap).toContain("https://www.fsx.org.br/clubes/3");
@@ -22,7 +26,7 @@ describe("renderSitemap", () => {
   });
 
   test("omits invalid modification dates", () => {
-    const sitemap = renderSitemap({ posts: [{ slug: "noticia", updatedAt: "invalid" }], playerIds: [], announcementIds: [], clubIds: [] });
+    const sitemap = renderSitemap({ posts: [{ slug: "noticia", updatedAt: "invalid" }], playerIds: [], tournamentIds: [], announcementIds: [], clubIds: [] });
 
     expect(sitemap).not.toContain("<lastmod>");
   });

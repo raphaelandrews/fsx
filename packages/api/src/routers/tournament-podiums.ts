@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 
 import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
 import { adminProcedure, publicProcedure, router } from "../index";
-import { idInput, positiveInt } from "../input-schemas";
+import { bulkIds, idInput, positiveInt } from "../input-schemas";
 import { requireMutationRows } from "../errors";
 import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 import { COMPETITION_CATEGORIES } from "../circuit-types";
@@ -60,6 +60,13 @@ export const tournamentPodiumsRouter = router({
         limit: PUBLIC_COLLECTION_LIMIT,
       })
     ),
+  bulkDelete: adminProcedure.input(z.object({ ids: bulkIds })).mutation(async ({ ctx, input }) => {
+    const deleted = await ctx.db
+      .delete(tournamentPodiums)
+      .where(inArray(tournamentPodiums.id, input.ids))
+      .returning({ id: tournamentPodiums.id });
+    return { deleted: requireMutationRows(deleted, "Podiums").length, requested: input.ids.length };
+  }),
   createMany: adminProcedure
     .input(bulkPodiumsInput)
     .mutation(async ({ ctx, input }) => {

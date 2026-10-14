@@ -123,15 +123,15 @@ describe("admin create/update round-trips", () => {
     }
   });
 
-  test("treats LIKE wildcards literally and validates age groups and dates", async () => {
+  test("treats LIKE wildcards literally and validates age groups and birth years", async () => {
     const { miniflare, binding } = await createTestD1("fsx-admin-filters");
 
     try {
       const caller = await adminCaller(createDb(binding));
       const year = new Date().getUTCFullYear();
       const base = { blitz: 1500, rapid: 1500, classic: 1500, sex: "male" as const, active: true };
-      await caller.players.create({ ...base, name: "Ana_Maria", birthDate: `${year - 9}-06-01` });
-      await caller.players.create({ ...base, name: "Anaxmaria", birthDate: `${year - 30}-06-01` });
+      await caller.players.create({ ...base, name: "Ana_Maria", birthYear: year - 9 });
+      await caller.players.create({ ...base, name: "Anaxmaria", birthYear: year - 30 });
 
       const underscore = await caller.players.page({ name: "ana_" });
       expect(underscore.players.map((player) => player.name)).toEqual(["Ana_Maria"]);
@@ -144,7 +144,7 @@ describe("admin create/update round-trips", () => {
       ).rejects.toMatchObject({ code: "BAD_REQUEST" });
 
       await expect(
-        caller.players.create({ ...base, name: "Data BR", birthDate: "01/06/2015" }),
+        caller.players.create({ ...base, name: "Ano Futuro", birthYear: year + 1 }),
       ).rejects.toMatchObject({ code: "BAD_REQUEST" });
     } finally {
       await miniflare.dispose();

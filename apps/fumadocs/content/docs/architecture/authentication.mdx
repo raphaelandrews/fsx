@@ -49,8 +49,7 @@ The rule is enforced twice:
 exists, then rely on `adminProcedure` for data. The route guard is a
 convenience; the procedure check is the security boundary.
 
-Private data includes birth dates (`players.forEdit`; the public Swiss Manager
-export is the deliberate exception),
+Private data includes `players.forEdit` (birth year, sex, description),
 unpublished posts (`posts.listAdmin`, `posts.forEdit`), and operational status
 (`stats.counts`, `cache.status`).
 

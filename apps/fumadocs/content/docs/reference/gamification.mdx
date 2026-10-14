@@ -56,7 +56,7 @@ See also [ADR 0006](/decisions/0006-derived-achievements),
 | Insignias | Out of scope until the insignia model is reworked. |
 | Cups | No head-to-head, rivals, cup stats, or cup XP, except the Bullet Grand Final winner for one emblem. |
 | Rating thresholds | 2000 / 2100 / 2200 / 2300 / 2400, the rating requirements of the title ladder on `/normas-tecnicas` (MMS 2000, MJS 2100, CMS 2200, MSE 2300, GMS 2400), all above the 1900 starting rating. |
-| Records computation | Stored in `computed_results` and recomputed once per admin change ([ADR 0008](/decisions/0008-stored-computations)): computing every career costs about 50 ms of CPU, above the free plan's 10 ms. |
+| Records computation | Stored in `computed_results` and recomputed once per admin change ([ADR 0008](/decisions/0008-stored-computations)): computing every career costs about 50 ms of CPU, and one stored row is far cheaper to read ([ADR 0009](/decisions/0009-workers-paid-plan) explains why this stays on the paid plan). |
 | Youngest champion record | Dropped: 64% of players have no birth date, so the record would be wrong. Age-based records do not exist. |
 | Profile routes | `routes/_public/jogadores/$id/` holds `route.tsx` (validates `idParams`, renders `<Outlet/>`) and `index.tsx`; the season recap is the sibling `temporada.$ano.tsx`. |
 | Competition data | Tournaments and circuits have a `tier` (`S` Sergipanos, `A`, `B`, `school`). Tournament podiums have an optional `category`, so any tournament can record overall and per-category champions. Circuits are kept per season (`year`, optional championship linking the seasons); finishing a season stores its official top 3 per category in `circuit_final_podiums`. |
@@ -259,9 +259,10 @@ holding it (`records.badges`, from the same stored computation as the records).
 ## Deferred
 
 - **Season recap OG image.** Rendering images at the edge (Satori or resvg) costs
-  hundreds of milliseconds of CPU, far above the free plan's 10 ms; revisit on the
-  paid plan. The recap uses the player's photo as its preview, and the page draws
-  a shareable card in the browser.
+  hundreds of milliseconds of CPU. That was too much for the free plan's 10 ms and is
+  allowed on the paid plan the site now uses; the planned design renders on demand and
+  caches in R2 (`IMPLEMENTATION.md`, Phase 6). Until then the recap uses the player's
+  photo as its preview, and the page draws a shareable card in the browser.
 - **Insignias.** Reworked before being shown; then they plug into the achievement
   badge and the XP table.
 - **Placements from the rating import.** Podiums can be entered by hand for any

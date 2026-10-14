@@ -24,6 +24,7 @@ export const championsRouter = router({
     const rawData = await ctx.db
       .select({
         championshipName: championships.name,
+        tournamentId: tournaments.id,
         tournamentName: tournaments.name,
         tournamentDate: tournaments.date,
         podiumPlace: tournamentPodiums.place,
@@ -67,7 +68,7 @@ export const championsRouter = router({
         playersToTitles: Array<{ title: { shortTitle: string; type: string } }>;
       };
     };
-    type Tournament = { name: string; date: string | null; tournamentPodiums: Podium[] };
+    type Tournament = { id: number; name: string; date: string | null; tournamentPodiums: Podium[] };
     type Championship = { name: string; tournaments: Tournament[] };
 
     const championshipsByName = new Map<string, Championship>();
@@ -83,7 +84,7 @@ export const championsRouter = router({
 
       let tournament = tournamentsByName.get(row.tournamentName);
       if (!tournament) {
-        tournament = { name: row.tournamentName, date: row.tournamentDate, tournamentPodiums: [] };
+        tournament = { id: row.tournamentId, name: row.tournamentName, date: row.tournamentDate, tournamentPodiums: [] };
         tournamentsByName.set(row.tournamentName, tournament);
         championship.tournaments.push(tournament);
       }

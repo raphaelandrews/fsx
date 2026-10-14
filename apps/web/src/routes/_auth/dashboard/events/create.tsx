@@ -29,14 +29,21 @@ function RouteComponent() {
         description="Add an upcoming event and its links."
       />
       <EventForm
-        defaultValues={{ name: "", startDate: "", links: [] }}
+        defaultValues={{ name: "", startDate: "", endDate: "", venue: "", venueUrl: "", tournamentId: "", links: [] }}
         error={createMutation.error ?? setLinksMutation.error}
         submitLabel="Create event"
         cancelTo="/dashboard/events"
-        onSubmit={async ({ name, startDate, links }) => {
+        onSubmit={async ({ name, startDate, endDate, venue, venueUrl, tournamentId, links }) => {
           let createdId: number | undefined;
           try {
-            const [created] = await createMutation.mutateAsync({ name, startDate });
+            const [created] = await createMutation.mutateAsync({
+              name,
+              startDate,
+              endDate: endDate || null,
+              venue: venue.trim() || null,
+              venueUrl: venueUrl.trim() || null,
+              tournamentId: tournamentId ? Number(tournamentId) : null,
+            });
             createdId = created?.id;
             if (created && links.length > 0)
               await setLinksMutation.mutateAsync({ eventId: created.id, links });

@@ -53,7 +53,7 @@ function careerQueries(db: Context["db"], scope?: number | number[]) {
   return [
     db.query.players.findMany({
       where: only(players.id),
-      columns: { id: true, name: true, nickname: true, active: true, classic: true, rapid: true, blitz: true, sex: true, birthDate: true },
+      columns: { id: true, name: true, nickname: true, active: true, classic: true, rapid: true, blitz: true, sex: true, birthYear: true },
       limit: typeof scope === "number" ? 1 : ALL_CAREERS_LIMIT,
     }),
     db.query.playersToTournaments.findMany({
@@ -236,7 +236,7 @@ export async function loadPlayerStats(db: Context["db"], playerId: number) {
       stats,
       podiums: career.input.tournamentPodiums,
       sex: career.player.sex,
-      birthDate: career.player.birthDate,
+      birthYear: career.player.birthYear,
       heldShortNames: career.titleShortNames,
       year: federationYear(),
     }),

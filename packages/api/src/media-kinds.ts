@@ -50,6 +50,10 @@ export const MEDIA_POLICIES: Record<MediaKind, MediaPolicy> = {
   locations: EMBLEM_POLICY,
 };
 
+// Photos sent through the public update form wait here, outside the public media routes, until reviewed.
+export const PENDING_PHOTO_MAX_BYTES = 2 * 1024 * 1024;
+export const PENDING_KEY_PATTERN = /^pending\/[a-f0-9-]+\.(?:jpg|png|webp)$/;
+
 export const MAX_MEDIA_BYTES = Math.max(...Object.values(MEDIA_POLICIES).map((policy) => policy.maxBytes));
 
 const UUID = "[a-f0-9-]+";

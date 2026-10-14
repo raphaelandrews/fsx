@@ -23,7 +23,8 @@ export const players = sqliteTable(
 		cbxId: integer("cbx_id").unique(),
 		fideId: integer("fide_id").unique(),
 		verified: integer("verified", { mode: "boolean" }).default(false).notNull(),
-		birthDate: text("birth_date"),
+		// Only the year is stored: age groups and youth titles use nothing finer, and many players are children.
+		birthYear: integer("birth_year"),
 		sex: text("sex").notNull().default("male"),
 		clubId: integer("club_id").references(() => clubs.id),
 		locationId: integer("location_id").references(() => locations.id),
@@ -33,8 +34,8 @@ export const players = sqliteTable(
 		index("players_sex_idx").on(table.sex),
 		index("players_club_idx").on(table.clubId),
 		index("players_location_idx").on(table.locationId),
-		// Group/age filters combine `active = true` with a birth_date range.
-		index("players_active_birth_date_idx").on(table.active, table.birthDate),
+		// Group/age filters combine `active = true` with a birth_year range.
+		index("players_active_birth_year_idx").on(table.active, table.birthYear),
 		// Rating sorts (top-players, /ratings, /titulados) scan the whole table
 		// without these; the index lets ORDER BY + LIMIT avoid a full scan.
 		index("players_classic_idx").on(table.classic),

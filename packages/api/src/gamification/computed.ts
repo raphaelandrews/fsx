@@ -10,9 +10,9 @@ const DATA_CHANGED = "data_changed";
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 // Returns the stored result when it was computed after the last data change,
-// otherwise computes, stores, and returns it. Computing every career exceeds
-// the Workers free plan's 10 ms of CPU, so it should happen once per change,
-// not once per request.
+// otherwise computes, stores, and returns it. Computing every career takes about
+// 50 ms of CPU (over the old free-plan limit, and still far slower than one stored
+// row), so it should happen once per change, not once per request.
 export async function storedOrComputed<T>(db: Context["db"], key: string, compute: () => Promise<T>): Promise<T> {
   const rows = await db
     .select()

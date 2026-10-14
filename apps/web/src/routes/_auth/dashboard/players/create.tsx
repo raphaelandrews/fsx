@@ -43,7 +43,7 @@ function RouteComponent() {
         defaultValues={{
           name: "",
           nickname: "",
-          birthDate: "",
+          birthYear: "",
           sex: "male",
           imageUrl: "",
           clubId: null,
@@ -60,7 +60,7 @@ function RouteComponent() {
           createMutation.mutate({
             ...values,
             nickname: values.nickname || null,
-            birthDate: values.birthDate || null,
+            birthYear: values.birthYear ? Number(values.birthYear) : null,
             imageUrl: values.imageUrl || null,
           })
         }

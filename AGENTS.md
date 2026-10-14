@@ -41,6 +41,9 @@ Local Dev D1 gotchas:
 - **CSP** (`packages/api/src/http/security-headers.ts`) adds `unsafe-eval` only in dev (Vite tooling
   needs it); production stays strict. The Cloudflare analytics beacon is gated on
   `VITE_CLOUDFLARE_ANALYTICS_TOKEN`.
+- **Resized images** go through Cloudflare's `/cdn-cgi/image/` only when `VITE_IMAGE_TRANSFORMATIONS=true` at
+  build time (`lib/media-image.ts`); locally and in e2e the originals are used. Share images
+  (`/api/og/...`) are rendered by `server/og-render.tsx`, with the data shown defined once in `lib/og.ts`.
 - Routes sharing a URL prefix (e.g. `/noticias` list + `/noticias/$slug` detail) must use the
   `route.tsx` (layout with `<Outlet/>`) + `index.tsx` + `$param.tsx` directory structure. A flat
   `foo.tsx` + `foo.$id.tsx` pair makes `$id` a child of the list route, which then needs an

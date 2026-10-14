@@ -147,6 +147,10 @@ describe("D1 migrations", () => {
         await db.prepare("SELECT COUNT(*) AS missing FROM circuits WHERE year IS NULL").first<{ missing: number }>(),
       ).toEqual({ missing: 0 });
       expect(await db.prepare("SELECT tier FROM titles WHERE id = 1").first<{ tier: number }>()).toEqual({ tier: 3 });
+      expect((await db.prepare("SELECT id, birth_year FROM players ORDER BY id").all()).results).toEqual([
+        { id: 1, birth_year: 2008 },
+        { id: 2, birth_year: null },
+      ]);
     });
   });
 

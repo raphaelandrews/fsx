@@ -5,6 +5,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@fsx/ui/components/badge";
 import { Button } from "@fsx/ui/components/button";
 
+import { formatSchedule, isScheduledInFuture } from "@/lib/schedule";
 import { useTRPC } from "@/lib/trpc";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/data-table/data-table";
@@ -49,7 +50,7 @@ function RouteComponent() {
       header: ({ column }) => <DataTableColumnHeader column={column} title="Published" />,
       cell: ({ row }) => (
         <Badge variant={row.original.published ? "default" : "outline"}>
-          {row.original.published ? "Yes" : "No"}
+          {row.original.published ? (isScheduledInFuture(row.original.publishAt) ? `Scheduled · ${formatSchedule(row.original.publishAt!)}` : "Yes") : "No"}
         </Badge>
       ),
     },

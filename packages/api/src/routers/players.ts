@@ -5,19 +5,21 @@ import type { SQL } from "drizzle-orm";
 
 import { players as playersTable, insertPlayerSchema } from "@fsx/db/schema/players";
 import { clubs } from "@fsx/db/schema/clubs";
+import { rankingSnapshots } from "@fsx/db/schema/ranking-snapshots";
 import { locations } from "@fsx/db/schema/locations";
 import { titles } from "@fsx/db/schema/titles";
 import { playersToTitles } from "@fsx/db/schema/players-to-titles";
 import { normalizeName } from "@fsx/db/normalize";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
-import { AGE_GROUPS, getBirthDateRange } from "../age-groups";
+import { AGE_GROUPS, getBirthYearRange } from "../age-groups";
 import {
+  bulkIds,
+  birthYear,
   contentText,
   filterArray,
   idInput,
   imageUrl,
-  isoDate,
   limit,
   nameText,
   page,
@@ -27,11 +29,13 @@ import {
   seasonYear,
   sexSchema,
 } from "../input-schemas";
+import type { RatingType } from "../rating-types";
 import { federationYear } from "../lib/dates";
 import { paginate } from "../lib/pagination";
 import { containsText, escapeLike, like } from "../lib/sql-like";
 import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 import { loadPlayerCircuits } from "../gamification/circuits";
+import { comparePlayers } from "../gamification/compare";
 import { loadPlayerCareer, loadPlayerStats } from "../gamification/load";
 import { playerSeason } from "../gamification/season";
 import { deleteReplacedMedia } from "../services/media-storage";
@@ -43,11 +47,13 @@ const profileFields = {
   imageUrl: imageUrl.nullable().optional(),
   cbxId: positiveInt.nullable().optional(),
   fideId: positiveInt.nullable().optional(),
-  birthDate: isoDate.nullable().optional(),
+  birthYear: birthYear.nullable().optional(),
   clubId: positiveInt.nullable().optional(),
   locationId: positiveInt.nullable().optional(),
   description: contentText.nullable().optional(),
 };
+
+const RANKING_HISTORY_POINTS = 60;
 
 export const playersRouter = router({
   page: adminProcedure
@@ -126,7 +132,7 @@ export const playersRouter = router({
             limit: PUBLIC_NESTED_COLLECTION_LIMIT,
             orderBy: (history, { desc }) => [desc(history.id)],
             columns: { oldRating: true, variation: true },
-            with: { tournament: { columns: { name: true, ratingType: true } } },
+            with: { tournament: { columns: { id: true, name: true, ratingType: true } } },
           },
           playersToRoles: {
             limit: PUBLIC_NESTED_COLLECTION_LIMIT,
@@ -138,7 +144,7 @@ export const playersRouter = router({
             columns: { place: true, category: true },
             with: {
               tournament: {
-                columns: { name: true, date: true, championshipId: true },
+                columns: { id: true, name: true, date: true, championshipId: true },
                 with: { championship: { columns: { name: true } } },
               },
             },
@@ -157,6 +163,39 @@ export const playersRouter = router({
     .input(idInput)
     .query(async ({ ctx, input }) => requireFound(await loadPlayerStats(ctx.db, input.id), "Player")),
 
+  // Bulk list actions: one statement over at most MAX_BULK_IDS records, so each is atomic.
+  bulkSetActive: adminProcedure
+    .input(z.object({ ids: bulkIds, active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const updated = await ctx.db
+        .update(playersTable)
+        .set({ active: input.active })
+        .where(inArray(playersTable.id, input.ids))
+        .returning({ id: playersTable.id });
+      return { updated: requireMutationRows(updated, "Players").length, requested: input.ids.length };
+    }),
+
+  bulkSetClub: adminProcedure
+    .input(z.object({ ids: bulkIds, clubId: positiveInt.nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.clubId !== null) {
+        requireFound(await ctx.db.query.clubs.findFirst({ where: eq(clubs.id, input.clubId), columns: { id: true } }), "Club");
+      }
+      const updated = await ctx.db
+        .update(playersTable)
+        .set({ clubId: input.clubId })
+        .where(inArray(playersTable.id, input.ids))
+        .returning({ id: playersTable.id });
+      return { updated: requireMutationRows(updated, "Players").length, requested: input.ids.length };
+    }),
+
+  compare: publicProcedure
+    .input(z.object({ a: positiveInt, b: positiveInt }))
+    .query(async ({ ctx, input }) => {
+      if (input.a === input.b) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose two different players" });
+      return requireFound(await comparePlayers(ctx.db, input.a, input.b), "Player");
+    }),
+
   season: publicProcedure
     .input(z.object({ id: positiveInt, year: seasonYear }))
     .query(async ({ ctx, input }) => {
@@ -172,6 +211,26 @@ export const playersRouter = router({
   ranking: publicProcedure
     .input(idInput)
     .query(async ({ ctx, input }) => requireFound(await loadPlayerRanking(ctx.db, input.id), "Player")),
+
+  // Position and rating after each recorded import, oldest first, up to HISTORY_POINTS per format.
+  rankingHistory: publicProcedure.input(idInput).query(async ({ ctx, input }) => {
+    const pointsOf = (ratingType: RatingType) =>
+      ctx.db
+        .select({ at: rankingSnapshots.snapshotAt, position: rankingSnapshots.position, rating: rankingSnapshots.rating })
+        .from(rankingSnapshots)
+        .where(and(eq(rankingSnapshots.playerId, input.id), eq(rankingSnapshots.ratingType, ratingType)))
+        .orderBy(desc(rankingSnapshots.snapshotAt))
+        .limit(RANKING_HISTORY_POINTS);
+    const [player, classic, rapid, blitz] = await ctx.db.batch([
+      ctx.db.select({ id: playersTable.id }).from(playersTable).where(eq(playersTable.id, input.id)),
+      pointsOf("classic"),
+      pointsOf("rapid"),
+      pointsOf("blitz"),
+    ]);
+    requireFound(player[0], "Player");
+    const oldestFirst = (rows: typeof classic) => rows.reverse().map((row) => ({ ...row, at: row.at.slice(0, 10) }));
+    return { classic: oldestFirst(classic), rapid: oldestFirst(rapid), blitz: oldestFirst(blitz) };
+  }),
 
   circuitSeasons: publicProcedure
     .input(idInput)
@@ -230,7 +289,7 @@ export const playersRouter = router({
           cbxId: true,
           fideId: true,
           verified: true,
-          birthDate: true,
+          birthYear: true,
           sex: true,
           clubId: true,
           locationId: true,
@@ -349,8 +408,8 @@ export const playersRouter = router({
       if (groupFilters.length) {
         const year = federationYear();
         const groupConditions = groupFilters.map((group) => {
-          const [from, to] = getBirthDateRange(group, year);
-          return and(gte(playersTable.birthDate, from), lte(playersTable.birthDate, to));
+          const [from, to] = getBirthYearRange(group, year);
+          return and(gte(playersTable.birthYear, from), lte(playersTable.birthYear, to));
         });
         const condition = groupConditions.length === 1 ? groupConditions[0] : or(...groupConditions);
         if (condition) whereConditions.push(condition);

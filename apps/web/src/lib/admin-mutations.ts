@@ -40,7 +40,8 @@ export const ADMIN_QUERY_DEPENDENTS = {
   links: ["links", "events"],
   locations: ["locations", "players", "swissManager", "records"],
   norms: ["norms"],
-  players: [...PLAYER_VIEWS, "stats"],
+  players: [...PLAYER_VIEWS, "stats", "history"],
+  playerRequests: [...PLAYER_VIEWS, "playerRequests", "stats", "history"],
   playersToInsignias: ["playersToInsignias", "players"],
   playersToRoles: ["playersToRoles", "roles", "players"],
   playersToTitles: ["playersToTitles", "titledPlayers", "topPlayers", "players", "records"],
@@ -48,8 +49,8 @@ export const ADMIN_QUERY_DEPENDENTS = {
   posts: ["posts", "stats"],
   roles: ["roles", "playersToRoles", "players"],
   titles: ["titles", "playersToTitles", "titledPlayers", "topPlayers", "players", "records"],
-  tournamentPodiums: ["tournamentPodiums", "tournaments", "champions", "players", "records", "clubs"],
-  tournaments: ["tournaments", "tournamentPodiums", "champions", "circuits", "players", "records", "stats"],
+  tournamentPodiums: ["tournamentPodiums", "tournaments", "champions", "players", "records", "clubs", "history"],
+  tournaments: ["tournaments", "tournamentPodiums", "champions", "circuits", "players", "records", "stats", "history"],
   tvSergipe: ["tvSergipe", "stats"],
 } as const satisfies Partial<Record<RouterKey, readonly RouterKey[]>>;
 

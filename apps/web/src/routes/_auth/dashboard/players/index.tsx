@@ -4,9 +4,11 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import z from "zod";
 
-import { buttonVariants } from "@fsx/ui/components/button";
+import { Button, buttonVariants } from "@fsx/ui/components/button";
 import { DropdownMenuItem } from "@fsx/ui/components/dropdown-menu";
 
+import { BulkClubDialog } from "@/components/admin/bulk-club-dialog";
+import { DeleteDialog } from "@/components/admin/delete-dialog";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { EmptyCollection } from "@/components/admin/empty-collection";
 import { DataTable } from "@/components/data-table/data-table";
@@ -14,6 +16,7 @@ import { DataTableRowActions } from "@/components/data-table/data-table-row-acti
 import { Pagination } from "@/components/data-table/pagination";
 import { RowLink } from "@/components/data-table/row-link";
 import { SearchInput } from "@/components/data-table/search-input";
+import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/lib/trpc";
 
 const PER_PAGE = 20;
@@ -46,6 +49,18 @@ function RouteComponent() {
   const { players, pagination } = data;
 
   const [searchInput, setSearchInput] = useState(name ?? "");
+  const [bulk, setBulk] = useState<{ action: "active" | "inactive" | "club"; ids: number[]; clear: () => void } | null>(null);
+
+  const setActive = useAdminMutation(trpc.players.bulkSetActive.mutationOptions(), {
+    invalidates: "players",
+    failure: "Failed to update the players",
+    success: "Players updated",
+  });
+  const setClub = useAdminMutation(trpc.players.bulkSetClub.mutationOptions(), {
+    invalidates: "players",
+    failure: "Failed to update the players",
+    success: "Players updated",
+  });
 
   const submitSearch = (event: FormEvent) => {
     event.preventDefault();
@@ -128,6 +143,21 @@ function RouteComponent() {
         columns={columns}
         data={players}
         clientPagination={false}
+        bulkActions={(selected, clear) => (
+          <>
+            {(["active", "inactive", "club"] as const).map((action) => (
+              <Button
+                key={action}
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setBulk({ action, ids: selected.map((player) => player.id), clear })}
+              >
+                {{ active: "Mark active", inactive: "Mark inactive", club: "Set club…" }[action]}
+              </Button>
+            ))}
+          </>
+        )}
         emptyState={
           name ? (
             `No players match “${name}”.`
@@ -163,6 +193,41 @@ function RouteComponent() {
             }
           />
         )}
+      />
+      <DeleteDialog
+        open={bulk?.action === "active" || bulk?.action === "inactive"}
+        onOpenChange={(open) => !open && setBulk(null)}
+        title={`Mark ${bulk?.ids.length ?? 0} ${bulk?.ids.length === 1 ? "player" : "players"} as ${bulk?.action === "active" ? "active" : "inactive"}?`}
+        description={
+          bulk?.action === "active"
+            ? "They appear in the public ratings again."
+            : "They leave the public ratings and rankings. Their history is kept, and playing again reactivates them."
+        }
+        confirmLabel={bulk?.action === "active" ? "Mark active" : "Mark inactive"}
+        pending={setActive.isPending}
+        onConfirm={() => {
+          if (!bulk) return;
+          setActive.mutate({ ids: bulk.ids, active: bulk.action === "active" });
+          bulk.clear();
+        }}
+      />
+      <BulkClubDialog
+        open={bulk?.action === "club"}
+        onOpenChange={(open) => !open && setBulk(null)}
+        count={bulk?.ids.length ?? 0}
+        pending={setClub.isPending}
+        onConfirm={(clubId) => {
+          if (!bulk) return;
+          setClub.mutate(
+            { ids: bulk.ids, clubId },
+            {
+              onSuccess: () => {
+                bulk.clear();
+                setBulk(null);
+              },
+            },
+          );
+        }}
       />
     </>
   );

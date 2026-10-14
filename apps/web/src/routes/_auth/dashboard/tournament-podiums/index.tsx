@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -5,6 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@fsx/ui/components/button";
 
 import { useTRPC } from "@/lib/trpc";
+import { DeleteDialog } from "@/components/admin/delete-dialog";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
@@ -30,6 +32,13 @@ function RouteComponent() {
     invalidates: "tournamentPodiums",
     success: "Podium deleted",
     failure: "Failed to delete podium",
+  });
+
+  const [bulk, setBulk] = useState<{ ids: number[]; clear: () => void } | null>(null);
+  const bulkDelete = useAdminMutation(trpc.tournamentPodiums.bulkDelete.mutationOptions(), {
+    invalidates: "tournamentPodiums",
+    success: "Podiums deleted",
+    failure: "Failed to delete the podiums",
   });
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
@@ -84,10 +93,29 @@ function RouteComponent() {
         emptyState={<EmptyCollection noun="tournament podiums" createTo="/dashboard/tournament-podiums/create" />}
         columns={columns}
         data={data}
+        bulkActions={(selected, clear) => (
+          <Button type="button" size="sm" variant="outline" onClick={() => setBulk({ ids: selected.map((podium) => podium.id), clear })}>
+            Delete selected…
+          </Button>
+        )}
         toolbar={(table) => (
           <DataTableToolbar table={table} searchPlaceholder="Search player..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
+      />
+      <DeleteDialog
+        open={bulk !== null}
+        onOpenChange={(open) => !open && setBulk(null)}
+        title={`Delete ${bulk?.ids.length ?? 0} ${bulk?.ids.length === 1 ? "podium" : "podiums"}?`}
+        description="The podiums leave their tournaments, the champions gallery, and the players’ medal counts. This cannot be undone."
+        confirmText={(bulk?.ids.length ?? 0) > 1 ? "delete" : undefined}
+        confirmLabel="Delete podiums"
+        pending={bulkDelete.isPending}
+        onConfirm={() => {
+          if (!bulk) return;
+          bulkDelete.mutate({ ids: bulk.ids });
+          bulk.clear();
+        }}
       />
     </div>
   );

@@ -30,7 +30,7 @@ export function columnsError(headerMap: Record<string, number>): string | null {
 export interface ImportRow {
   id: number;
   name?: string;
-  birth?: string;
+  birthYear?: number;
   sex?: "male" | "female";
   clubId?: number;
   locationId?: number;
@@ -46,6 +46,8 @@ export function parseImportRow(cells: unknown[], headerMap: Record<string, numbe
   const id = Number.parseInt(String(cells[headerMap["id"]!]), 10);
   const name = text("name");
   const birthRaw = text("birth");
+  // A full date is accepted, but only the year is kept.
+  const birthYear = birthRaw ? Number(/(?:^|\D)((?:19|20)\d{2})(?:\D|$)/.exec(toIsoDate(birthRaw))?.[1]) : undefined;
   const sexRaw = text("sex")?.toLowerCase();
   const clubId = integer(text("clubid"));
   const locationId = integer(text("locationid"));
@@ -64,12 +66,15 @@ export function parseImportRow(cells: unknown[], headerMap: Record<string, numbe
   const row: ImportRow = {
     id,
     name,
-    birth: birthRaw === undefined ? undefined : toIsoDate(birthRaw),
+    birthYear: birthYear !== undefined && Number.isInteger(birthYear) ? birthYear : undefined,
     sex,
     clubId,
     locationId,
   };
 
+  if (birthRaw && row.birthYear === undefined) {
+    return { ...row, error: `Invalid birth '${birthRaw}'. Use a year (2012) or a date (DD/MM/YYYY).` };
+  }
   const isTournamentUpdate = Boolean(tournamentIdRaw || variationRaw || ratingTypeRaw);
   if (isTournamentUpdate) {
     if (tournamentId === undefined || variation === undefined || !ratingTypeRaw || !isRatingType(ratingTypeRaw)) {
@@ -111,7 +116,7 @@ export interface PlanRow {
   input: string;
 }
 
-const hasProfileData = (row: ImportRow) => Boolean(row.name || row.birth || row.sex || row.clubId || row.locationId);
+const hasProfileData = (row: ImportRow) => Boolean(row.name || row.birthYear || row.sex || row.clubId || row.locationId);
 
 function actionFor(row: ImportRow): { action: ImportAction } | { issue: string } {
   if (row.tournament) {

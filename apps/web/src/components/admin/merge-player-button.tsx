@@ -26,7 +26,7 @@ type PlayerSummary = {
   id: number;
   name: string;
   nickname: string | null;
-  birthDate: string | null;
+  birthYear: number | null;
   classic: number;
   rapid: number;
   blitz: number;
@@ -47,10 +47,10 @@ function PlayerCard({ player, outcome }: { player: PlayerSummary; outcome: "kept
         <dd>
           {player.classic} classic · {player.rapid} rapid · {player.blitz} blitz
         </dd>
-        {player.birthDate ? (
+        {player.birthYear ? (
           <>
             <dt>Born</dt>
-            <dd>{player.birthDate}</dd>
+            <dd>{player.birthYear}</dd>
           </>
         ) : null}
         {player.cbxId || player.fideId ? (

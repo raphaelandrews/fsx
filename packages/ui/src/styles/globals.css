@@ -76,7 +76,7 @@
   --destructive-fill: oklch(0.64 0.21 18);
   --warning: oklch(0.78 0.18 85);
   --warning-foreground: oklch(0.32 0.12 75);
-  --highlight: oklch(0.74 0.19 330);
+  --highlight: oklch(0.78 0.18 85);
 
   /* Semantic hue families: strong color, soft fill, and readable foreground. */
   --pink: oklch(0.68 0.20 330);

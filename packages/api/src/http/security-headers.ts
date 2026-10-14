@@ -1,7 +1,9 @@
 // Dev tooling (Vite HMR / React Refresh) relies on eval, so allow it in dev
 // only. Production builds keep a strict script-src with no `unsafe-eval`.
 const IS_DEV = (import.meta as { env?: Record<string, unknown> }).env?.DEV === true
-const scriptSrc = `'self' 'unsafe-inline' https://static.cloudflareinsights.com${IS_DEV ? " 'unsafe-eval'" : ""}`
+// Turnstile's script and iframe are allowed only on deployments that configure its site key.
+const TURNSTILE = (import.meta as { env?: Record<string, unknown> }).env?.VITE_TURNSTILE_SITE_KEY ? " https://challenges.cloudflare.com" : ""
+const scriptSrc = `'self' 'unsafe-inline' https://static.cloudflareinsights.com${TURNSTILE}${IS_DEV ? " 'unsafe-eval'" : ""}`
 
 export const SECURITY_HEADERS: Record<string, string> = {
   "Content-Security-Policy": [
@@ -16,6 +18,7 @@ export const SECURITY_HEADERS: Record<string, string> = {
     "worker-src 'self' blob:",
     "connect-src 'self' https:",
     "form-action 'self'",
+    ...(TURNSTILE ? [`frame-src${TURNSTILE}`] : []),
   ].join("; "),
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",

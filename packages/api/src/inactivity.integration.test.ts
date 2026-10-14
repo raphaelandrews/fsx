@@ -100,17 +100,17 @@ describe("youth titles", () => {
     const mjs = idOf(await caller.titles.create({ name: "Mestre Júnior Sergipano", shortName: "MJS", type: "internal", tier: 1, losesAtAge: 19 }));
     const mse = idOf(await caller.titles.create({ name: "Mestre Sergipano", shortName: "MSE", type: "internal", tier: 3 }));
 
-    const holder = async (name: string, birthDate: string | undefined, titleId: number) => {
-      const id = idOf(await caller.players.create({ name, blitz: 1900, rapid: 1900, classic: 1900, sex: "male", active: true, birthDate }));
+    const holder = async (name: string, birthYear: number | undefined, titleId: number) => {
+      const id = idOf(await caller.players.create({ name, blitz: 1900, rapid: 1900, classic: 1900, sex: "male", active: true, birthYear }));
       await caller.playersToTitles.link({ playerId: id, titleId });
       return id;
     };
-    const turns15ThisYear = await holder("Mirim 15", `${year - 15}-12-31`, mms);
-    const turns14ThisYear = await holder("Mirim 14", `${year - 14}-01-01`, mms);
-    const turns19ThisYear = await holder("Júnior 19", `${year - 19}-06-15`, mjs);
-    const turns18ThisYear = await holder("Júnior 18", `${year - 18}-06-15`, mjs);
+    const turns15ThisYear = await holder("Mirim 15", year - 15, mms);
+    const turns14ThisYear = await holder("Mirim 14", year - 14, mms);
+    const turns19ThisYear = await holder("Júnior 19", year - 19, mjs);
+    const turns18ThisYear = await holder("Júnior 18", year - 18, mjs);
     const noBirthDate = await holder("Mirim Sem Data", undefined, mms);
-    const adult = await holder("Mestre Adulto", `${year - 40}-01-01`, mse);
+    const adult = await holder("Mestre Adulto", year - 40, mse);
 
     const result = await caller.playersTournament.snapshotRankings({ ratingTypes: ["rapid"] });
     expect(result).toMatchObject({ titlesRemoved: 2, youthTitlesWithoutBirthDate: 1 });

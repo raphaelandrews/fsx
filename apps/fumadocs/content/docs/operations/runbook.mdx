@@ -162,7 +162,7 @@ edited by hand after the last result. Fix each player from **Rating history**
 rating and reconcile by hand; rerun the audit until it returns no rows.
 
 Before deploying stricter date validation, run `packages/db/src/audits/date-formats.sql`
-against production D1. Rewrite each listed `birth_date`, tournament `date`, or event
+against production D1. Rewrite each listed tournament `date` or event
 `start_date` as `YYYY-MM-DD`; otherwise the record cannot be saved from the
 dashboard and age-group filters skip it. The rating import converts `DD/MM/YYYY`
 spreadsheet text automatically.

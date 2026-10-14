@@ -20,7 +20,7 @@ import { federationToday, federationYear } from "../lib/dates";
 import { RATING_TYPES } from "../rating-types";
 
 // Records and emblem rarity come from the same pass over every career, stored
-// once per data change (computing every career exceeds the free plan's CPU).
+// once per data change (computing every career is slower than reading one stored row).
 function gamificationSummary(db: Context["db"]) {
   const year = federationYear();
   return storedOrComputed(db, `gamification:v3:${year}`, async () => {

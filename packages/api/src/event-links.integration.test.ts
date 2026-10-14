@@ -1,3 +1,4 @@
+import { DEFAULT_LINK_ICON } from "./link-icons";
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 
 import { createDb } from "@fsx/db";
@@ -64,5 +65,30 @@ describe("upcoming events", () => {
     expect(ids).not.toContain(past);
     expect(ids.indexOf(sooner)).toBeLessThan(ids.indexOf(later));
     expect(ids).toContain(later);
+  });
+});
+
+describe("the public links page", () => {
+  test("shows every standalone group but only the next three events that have links", async () => {
+    const group = idOf(await caller.links.create({ label: "Federações" }));
+    await caller.links.createLink({ linkGroupId: group, label: "CBX", href: "https://www.cbx.org.br", icon: DEFAULT_LINK_ICON, sortOrder: 1 });
+    await caller.links.create({ label: "Grupo Vazio" });
+
+    const dated = async (name: string, startDate: string, withLinks = true) => {
+      const id = idOf(await caller.events.create({ name, startDate }));
+      if (withLinks) await caller.events.setLinks({ eventId: id, links: [{ type: "form", href: "https://example.com/f" }] });
+      return id;
+    };
+    await dated("Já Passou", "2001-01-01");
+    await dated("Sem Links", "2990-01-01", false);
+    await dated("Primeiro", "2990-02-01");
+    await dated("Segundo", "2990-03-01");
+    await dated("Terceiro", "2990-04-01");
+    await dated("Quarto", "2990-05-01");
+
+    const page = await caller.links.page();
+    expect(page.groups.map((item) => item.label)).toEqual(["Federações"]);
+    expect(page.events.map((event) => event.name)).toEqual(["Primeiro", "Segundo", "Terceiro"]);
+    expect(page.events[0]!.linkGroup!.links[0]).toMatchObject({ label: "Formulário" });
   });
 });

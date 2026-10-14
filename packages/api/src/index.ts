@@ -9,6 +9,7 @@ import { env } from "@fsx/env/server";
 
 import type { Context } from "./context";
 import { markDataChanged } from "./gamification/computed";
+import { captureBefore, isTracked, writeChanges } from "./services/change-log";
 import { PUBLIC_COLLECTION_LIMIT } from "./lib/resource-bounds";
 
 // Workers have no NODE_ENV, so tRPC's default would treat production as dev and
@@ -234,4 +235,28 @@ const markComputedStale = t.middleware(async ({ ctx, next, type }) => {
   return result;
 });
 
-export const adminProcedure = t.procedure.use(errorBoundary).use(requireAdmin).use(markComputedStale);
+// The history is written after the change, not in its batch: a failure to record is logged and never
+// undoes or blocks what the administrator did.
+const recordChanges = t.middleware(async ({ ctx, next, type, path, getRawInput }) => {
+  if (type !== "mutation" || !isTracked(path)) return next();
+  let pending: Awaited<ReturnType<typeof captureBefore>> | undefined;
+  let input: unknown;
+  try {
+    input = await getRawInput();
+    pending = await captureBefore(ctx.db, path, input);
+  } catch (error) {
+    console.error("[change-log] could not read the record before the change", { path, requestId: ctx.requestId, error: String(error) });
+  }
+  const result = await next();
+  if (result.ok && pending) {
+    try {
+      const user = ctx.session?.user;
+      await writeChanges(ctx.db, pending, { actor: user?.name || user?.email || "unknown", path, input, result: result.data });
+    } catch (error) {
+      console.error("[change-log] could not record the change", { path, requestId: ctx.requestId, error: String(error) });
+    }
+  }
+  return result;
+});
+
+export const adminProcedure = t.procedure.use(errorBoundary).use(requireAdmin).use(markComputedStale).use(recordChanges);

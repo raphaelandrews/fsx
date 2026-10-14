@@ -6,6 +6,7 @@ import { Button, buttonVariants } from "@fsx/ui/components/button";
 
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { MergePlayerButton } from "@/components/admin/merge-player-button";
+import { ChangeHistory } from "@/components/admin/change-history";
 import { PlayerForm, type RatingType } from "@/components/admin/player-form";
 import {
   PlayerInsigniasSection,
@@ -114,7 +115,7 @@ function RouteComponent() {
         defaultValues={{
           name: player.name,
           nickname: player.nickname ?? "",
-          birthDate: player.birthDate ?? "",
+          birthYear: player.birthYear ? String(player.birthYear) : "",
           sex: player.sex as "male" | "female",
           imageUrl: player.imageUrl ?? "",
           clubId: player.clubId,
@@ -134,7 +135,7 @@ function RouteComponent() {
             id,
             ...rest,
             nickname: rest.nickname || null,
-            birthDate: rest.birthDate || null,
+            birthYear: rest.birthYear ? Number(rest.birthYear) : null,
             imageUrl: rest.imageUrl || null,
             ...Object.fromEntries(
               editedRatings.map((ratingType) => [ratingType, ratings[ratingType]]),
@@ -159,6 +160,7 @@ function RouteComponent() {
       <PlayerTitlesSection playerId={id} />
       <PlayerRolesSection playerId={id} />
       <PlayerInsigniasSection playerId={id} />
+      <ChangeHistory entity="player" recordId={id} />
     </>
   );
 }

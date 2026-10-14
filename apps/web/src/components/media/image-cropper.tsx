@@ -74,6 +74,8 @@ interface ImageCropperProps {
   outputWidth?: number;
   title?: string;
   description?: string;
+  /** Button and error texts; English by default, for the public form in Portuguese. */
+  labels?: { cancel: string; apply: string; processing: string; previewFailed: string; previewFailedHint: string };
 }
 
 function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
@@ -93,6 +95,13 @@ export function ImageCropper({
   outputWidth = 400,
   title = "Crop Image",
   description = "Adjust the crop area.",
+  labels = {
+    cancel: "Cancel",
+    apply: "Apply Crop",
+    processing: "Processing...",
+    previewFailed: "Could not preview this image",
+    previewFailedHint: "The file may be in a format your browser cannot display (e.g. HEIC). Try another image.",
+  },
 }: ImageCropperProps) {
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<CropArea | null>(null);
@@ -156,11 +165,8 @@ export function ImageCropper({
         <div className="flex items-center justify-center overflow-hidden rounded-lg bg-muted">
           {didImageFail ? (
             <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-2 p-6 text-center">
-              <p className="text-sm font-medium text-destructive">Could not preview this image</p>
-              <p className="text-xs text-muted-foreground">
-                The file may be in a format your browser cannot display (e.g. HEIC). Try another
-                image.
-              </p>
+              <p className="text-sm font-medium text-destructive">{labels.previewFailed}</p>
+              <p className="text-xs text-muted-foreground">{labels.previewFailedHint}</p>
             </div>
           ) : (
             <ReactCrop
@@ -184,10 +190,10 @@ export function ImageCropper({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel} disabled={isProcessing}>
-            Cancel
+            {labels.cancel}
           </Button>
           <Button onClick={handleApply} disabled={isProcessing || !completedCrop || didImageFail}>
-            {isProcessing ? "Processing..." : "Apply Crop"}
+            {isProcessing ? labels.processing : labels.apply}
           </Button>
         </DialogFooter>
       </DialogContent>

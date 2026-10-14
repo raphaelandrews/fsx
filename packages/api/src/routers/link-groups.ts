@@ -9,6 +9,7 @@ import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { idInput, nameText, optionalHttpUrl, positiveInt, sortOrder } from "../input-schemas";
 import { isKnownLinkIcon } from "../link-icons";
+import { listEvents, UPCOMING_EVENTS_LIMIT } from "./events";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const linkTypeEnum = z.enum(["link", "regulation", "form", "results"]);
@@ -29,7 +30,32 @@ async function requireStandaloneGroup(db: Context["db"], id: number) {
 
 const linkIcon = z.string().max(5_000).refine(isKnownLinkIcon, "Unknown link icon");
 
+// The public links page shows every standalone group but only the next few events, so the page stays short.
+const LINKS_PAGE_EVENTS = 3;
+
 export const linkGroupsRouter = router({
+  page: publicProcedure.query(async ({ ctx }) => {
+    const [groups, upcoming] = await Promise.all([
+      ctx.db.query.linkGroups.findMany({
+        where: isNull(linkGroups.eventId),
+        columns: { id: true, label: true },
+        with: {
+          links: {
+            limit: PUBLIC_NESTED_COLLECTION_LIMIT,
+            columns: { id: true, href: true, label: true, icon: true, sortOrder: true },
+            orderBy: (l, { asc }) => [asc(l.sortOrder), asc(l.id)],
+          },
+        },
+        orderBy: (lg, { asc }) => asc(lg.id),
+        limit: PUBLIC_COLLECTION_LIMIT,
+      }),
+      listEvents(ctx.db, { upcoming: true, limit: UPCOMING_EVENTS_LIMIT }),
+    ]);
+    return {
+      groups: groups.filter((group) => group.links.length > 0),
+      events: upcoming.filter((event) => (event.linkGroup?.links.length ?? 0) > 0).slice(0, LINKS_PAGE_EVENTS),
+    };
+  }),
   list: publicProcedure.query(({ ctx }) =>
     ctx.db.query.linkGroups.findMany({
       columns: { id: true, label: true, eventId: true },

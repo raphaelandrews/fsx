@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import type { PlayerById } from "./player-profile";
@@ -9,9 +10,13 @@ export const tournamentHistoryColumns: ColumnDef<HistoryRow>[] = [
     accessorKey: "tournament.name",
     header: () => <div className="text-left">Evento</div>,
     cell: ({ row }) => (
-      <p className="whitespace-nowrap font-medium text-foreground text-left">
+      <Link
+        to="/torneios/$id"
+        params={{ id: row.original.tournament.id }}
+        className="whitespace-nowrap text-left font-medium text-foreground underline-offset-4 hover:underline"
+      >
         {row.original.tournament.name}
-      </p>
+      </Link>
     ),
   },
   {
@@ -41,7 +46,7 @@ export const tournamentHistoryColumns: ColumnDef<HistoryRow>[] = [
 export function formatVariationColor(variation: number | null | undefined) {
   if (variation == null) return "text-muted-foreground";
   if (variation > 0) return "text-success";
-  if (variation === 0) return "text-highlight";
+  if (variation === 0) return "text-warning-foreground";
   if (variation < 0) return "text-destructive";
   return "text-muted-foreground";
 }

@@ -5,6 +5,7 @@ import { cn } from "@fsx/ui/lib/utils";
 
 import { InlineAlert } from "@/components/admin/inline-alert";
 import type { ImportAction, PlanRow, PlanSummary } from "@/lib/rating-import";
+import type { PodiumDraft, TournamentDraft } from "@/lib/tournament-import";
 
 const PAGE = 50;
 const ACTION_LABELS: Record<ImportAction, string> = {
@@ -25,13 +26,13 @@ function Tile({ label, value, tone }: { label: string; value: number; tone?: "ba
   );
 }
 
-function details(entry: PlanRow) {
+function details(entry: PlanRow, draft: TournamentDraft | null) {
   if (entry.issue) return <span className="text-destructive">{entry.issue}</span>;
   const { tournament } = entry.row;
   if (!tournament) return <span className="text-muted-foreground">—</span>;
   return (
     <span className="tabular-nums">
-      Tournament {tournament.tournamentId} · {TYPE_LABELS[tournament.ratingType]}{" "}
+      {draft ? "New tournament" : `Tournament ${tournament.tournamentId}`} · {TYPE_LABELS[tournament.ratingType]}{" "}
       <strong className={cn("font-semibold", tournament.variation >= 0 ? "text-success" : "text-destructive")}>
         {signed(tournament.variation)}
       </strong>
@@ -42,12 +43,16 @@ function details(entry: PlanRow) {
 export function ImportReview({
   fileName,
   plan,
+  draft = null,
+  podium = [],
   summary,
   onImport,
   onCancel,
 }: {
   fileName: string;
   plan: PlanRow[];
+  draft?: TournamentDraft | null;
+  podium?: PodiumDraft[];
   summary: PlanSummary;
   onImport: () => void;
   onCancel: () => void;
@@ -74,7 +79,27 @@ export function ImportReview({
         <Tile label="Rows with problems" value={summary.problems} tone="bad" />
       </div>
 
-      {summary.tournamentIds.length > 0 ? (
+      {draft ? (
+        <section aria-labelledby="draft-heading" className="space-y-2 rounded-2xl border bg-background p-4">
+          <h3 id="draft-heading" className="font-semibold">
+            New tournament: {draft.name}
+          </h3>
+          <p className="text-muted-foreground text-sm">
+            {TYPE_LABELS[draft.ratingType]} · tier {draft.tier} · {draft.date ? draft.date.split("-").reverse().join("/") : "no date"}
+            {draft.championshipId ? ` · championship ${draft.championshipId}` : ""}. It is created first; then the results, then the
+            podiums.
+          </p>
+          <p className="text-sm">
+            <span className="font-medium tabular-nums">{podium.filter((item) => !item.error).length}</span> podium
+            {podium.filter((item) => !item.error).length === 1 ? "" : "s"}
+            {podium.some((item) => item.error) ? (
+              <span className="text-destructive"> · {podium.filter((item) => item.error).length} with problems: {podium.filter((item) => item.error).map((item) => `row ${item.sheetRow} (${item.error})`).join("; ")}</span>
+            ) : null}
+          </p>
+        </section>
+      ) : null}
+
+      {!draft && summary.tournamentIds.length > 0 ? (
         <p className="text-muted-foreground text-sm">
           Touches {summary.tournamentIds.length === 1 ? "tournament" : "tournaments"}{" "}
           <span className="font-medium text-foreground tabular-nums">{summary.tournamentIds.join(", ")}</span> ·{" "}
@@ -156,7 +181,7 @@ export function ImportReview({
                   <td className="px-3 py-2">
                     {entry.action ? ACTION_LABELS[entry.action] : <span className="font-medium text-destructive">Skipped</span>}
                   </td>
-                  <td className="px-3 py-2">{details(entry)}</td>
+                  <td className="px-3 py-2">{details(entry, draft)}</td>
                 </tr>
               ))}
             </tbody>
@@ -174,7 +199,7 @@ export function ImportReview({
           Choose another file
         </Button>
         <Button type="button" disabled={summary.runnable === 0} onClick={onImport}>
-          Apply {summary.runnable} change{summary.runnable === 1 ? "" : "s"}
+          {draft ? "Create the tournament and apply" : "Apply"} {summary.runnable} change{summary.runnable === 1 ? "" : "s"}
         </Button>
       </div>
     </div>

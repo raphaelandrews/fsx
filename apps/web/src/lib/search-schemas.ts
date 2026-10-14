@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { isAgeGroup } from "@fsx/api/age-groups";
+import { COMPETITION_TIERS } from "@fsx/api/circuit-types";
 import { RATING_TYPES } from "@fsx/api/rating-types";
 
 import { AGE_GROUPS } from "@/components/tv-sergipe/constants";
@@ -56,3 +57,26 @@ export const circuitsSearchSchema = z.object({
   ano: z.number().int().optional().catch(undefined),
   circuito: z.string().max(120).optional().catch(undefined),
 });
+
+export const tournamentsSearchSchema = z.object({
+  page: pageParam,
+  ano: z.number().int().min(1900).max(2200).optional().catch(undefined),
+  nivel: z.enum(COMPETITION_TIERS).optional().catch(undefined),
+  ritmo: z.enum(RATING_TYPES).optional().catch(undefined),
+  campeonato: z.number().int().positive().max(100_000).optional().catch(undefined),
+});
+
+export const calendarSearchSchema = z.object({
+  mes: z.number().int().min(1).max(12).optional().catch(undefined),
+  // Without `mes` or `ver`, the calendar shows the next events; `ver=ano` shows the whole current year.
+  ver: z.literal("ano").optional().catch(undefined),
+});
+
+export const ratingArchiveSearchSchema = z.object({
+  ritmo: ratingTypeParam,
+  page: pageParam,
+});
+
+const playerIdParam = z.number().int().positive().safe().optional().catch(undefined);
+
+export const compareSearchSchema = z.object({ a: playerIdParam, b: playerIdParam });

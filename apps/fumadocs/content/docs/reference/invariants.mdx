@@ -10,14 +10,14 @@ marked **convention**; breaking it will not fail a test, so review for it.
 
 | Rule | Enforced by |
 | ---- | ----------- |
-| Every mutation is an `adminProcedure`. | **convention**; review new routers |
+| Every mutation is an `adminProcedure`, except `playerRequests.submit`, which only stores a proposal. It is bounded by consent, a honeypot field, at most 3 open requests per player, 300 overall, and the per-IP mutation limit; nothing it stores reaches a public page without an administrator approving it. | **convention** for the rule; `player-requests.integration.test.ts` for the exception |
 | Every query that is not in `PROCEDURE_CACHE_POLICY` rejects anonymous callers. | `procedure-caller.test.ts` ("every query without a registry entry rejects anonymous callers") |
 | Every `PROCEDURE_CACHE_POLICY` entry names an existing query. | `procedure-caller.test.ts` |
 | A request with a session cookie never reads or writes the edge cache. | `trpc-handler.ts`; `fetch-handlers.integration.test.ts` |
 | Only `200` responses whose every batch entry succeeded are cached. | `isSuccessfulTrpcPayload`; `cache-policy.test.ts` |
 | Browsers never receive a cacheable API response (`no-store`). | `trpc-handler.ts`; `fetch-handlers.integration.test.ts` |
 | Only the configured owner can sign in and administer. | `mapProfileToUser`, `requireAdmin`; `owner.test.ts`, `admin-mutations.integration.test.ts`, `fetch-handlers.integration.test.ts` |
-| Public projections never include `birth_date`, `description`, drafts, or auth data, and show `sex` only where the profile uses it (the Feminino ranking and titles). The Swiss Manager export is the deliberate exception and includes birth dates. | explicit `columns` in each public procedure; **convention** |
+| Public projections never include `description`, drafts, or auth data, and show `sex` only where the profile uses it (the Feminino ranking and titles). The Swiss Manager export is the deliberate exception for `sex`; the full birth date is never stored, only the year. | explicit `columns` in each public procedure; **convention** |
 | Raw SQL and stack traces never reach the client in production. | `errorBoundary`, `errorFormatter`; `error-boundary.integration.test.ts` |
 | Logs never contain IP addresses or request payloads. | **convention** |
 

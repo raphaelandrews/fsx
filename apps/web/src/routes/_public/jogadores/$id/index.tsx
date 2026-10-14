@@ -4,6 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { PlayerProfile } from "@/components/player/player-profile";
 import { breadcrumbJsonLd, buildSeo, personJsonLd, withBrand } from "@/lib/seo";
 import { orNotFound } from "@/lib/errors";
+import { ogImagePath, playerCard } from "@/lib/og";
 import { useTRPC } from "@/lib/trpc";
 import { ProfileSkeleton } from "@/components/skeletons/profile-skeleton";
 
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/_public/jogadores/$id/")({
       orNotFound(context.queryClient.ensureQueryData(context.trpc.players.circuitSeasons.queryOptions({ id: params.id }))),
       context.queryClient.ensureQueryData(context.trpc.announcements.byPlayer.queryOptions({ playerId: params.id })),
       orNotFound(context.queryClient.ensureQueryData(context.trpc.players.ranking.queryOptions({ id: params.id }))),
+      context.queryClient.ensureQueryData(context.trpc.players.rankingHistory.queryOptions({ id: params.id })),
       // After the player resolves, so a 404 page does not carry every club.
       player.then(() => context.queryClient.ensureQueryData(context.trpc.clubs.leaderboard.queryOptions())),
     ]);
@@ -33,7 +35,7 @@ export const Route = createFileRoute("/_public/jogadores/$id/")({
       title: withBrand(player.name),
       description,
       path,
-      image: player.imageUrl,
+      image: ogImagePath("player", player.id, playerCard(player)),
       type: "profile",
       jsonLd: [
         personJsonLd({ name: player.name, path, image: player.imageUrl, description }),

@@ -1,26 +1,48 @@
 import { z } from "zod";
-import { and, asc, eq, gte, sql } from "drizzle-orm";
+import { and, asc, eq, gte, lte, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 import { events, insertEventSchema } from "@fsx/db/schema/events";
 import { linkGroups } from "@fsx/db/schema/link-groups";
 import { links } from "@fsx/db/schema/links";
+import { tournaments } from "@fsx/db/schema/tournaments";
 import { EVENT_LINK_TYPES } from "../event-link-types";
 import { iconForLinkLabel } from "../link-icons";
 import { adminProcedure, publicProcedure, router } from "../index";
 import type { Context } from "../context";
-import { requireMutationRows } from "../errors";
+import { requireFound, requireMutationRows } from "../errors";
 import { requireOwnedEventLink, validateEventLinkTypes } from "../services/event-links";
-import { idInput, isoDate, nameText, optionalHttpUrl, positiveInt, sortOrder } from "../input-schemas";
+import { idInput, isoDate, nameText, optionalHttpUrl, positiveInt, searchText, seasonYear, sortOrder } from "../input-schemas";
 import { federationToday } from "../lib/dates";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
-const UPCOMING_EVENTS_LIMIT = 12;
+export const UPCOMING_EVENTS_LIMIT = 12;
+const CALENDAR_LIMIT = 200;
 
-const listEvents = (db: Context["db"], options: { upcoming: boolean; limit: number }) =>
+const eventDetails = {
+  endDate: isoDate.nullable().optional(),
+  venue: searchText.nullable().optional(),
+  venueUrl: optionalHttpUrl.nullable().optional().transform((value) => (value === undefined ? undefined : value || null)),
+  tournamentId: positiveInt.nullable().optional(),
+};
+
+function assertValidEvent(event: { startDate: string; endDate?: string | null }) {
+  if (event.endDate && event.endDate < event.startDate) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "The end date cannot be before the start date" });
+  }
+}
+
+async function assertTournamentExists(db: Context["db"], tournamentId: number | null | undefined) {
+  if (!tournamentId) return;
+  const found = await db.query.tournaments.findFirst({ where: eq(tournaments.id, tournamentId), columns: { id: true } });
+  if (!found) throw new TRPCError({ code: "BAD_REQUEST", message: "Tournament not found" });
+}
+
+export const listEvents = (db: Context["db"], options: { upcoming: boolean; limit: number; from?: string; to?: string }) =>
   db.query.events.findMany({
-    columns: { id: true, name: true, startDate: true },
+    columns: { id: true, name: true, startDate: true, endDate: true, venue: true, venueUrl: true, tournamentId: true },
     with: {
+      tournament: { columns: { name: true } },
       linkGroup: {
         columns: { id: true },
         with: {
@@ -32,7 +54,11 @@ const listEvents = (db: Context["db"], options: { upcoming: boolean; limit: numb
         },
       },
     },
-    where: options.upcoming ? gte(events.startDate, federationToday()) : undefined,
+    where: options.from && options.to
+      ? and(lte(events.startDate, options.to), gte(sql`coalesce(${events.endDate}, ${events.startDate})`, options.from))
+      : options.upcoming
+        ? gte(sql`coalesce(${events.endDate}, ${events.startDate})`, federationToday())
+        : undefined,
     orderBy: (e, { asc }) => [asc(e.startDate), asc(e.id)],
     limit: options.limit,
   });
@@ -40,26 +66,53 @@ const listEvents = (db: Context["db"], options: { upcoming: boolean; limit: numb
 export const eventsRouter = router({
   upcoming: publicProcedure.query(({ ctx }) => listEvents(ctx.db, { upcoming: true, limit: UPCOMING_EVENTS_LIMIT })),
   list: publicProcedure.query(({ ctx }) => listEvents(ctx.db, { upcoming: false, limit: PUBLIC_COLLECTION_LIMIT })),
+  calendar: publicProcedure
+    .input(z.object({ year: seasonYear, month: z.number().int().min(1).max(12).optional() }))
+    .query(({ ctx, input }) => {
+      const month = input.month ? String(input.month).padStart(2, "0") : null;
+      const prefix = month ? `${input.year}-${month}` : String(input.year);
+      return listEvents(ctx.db, {
+        upcoming: false,
+        limit: CALENDAR_LIMIT,
+        from: month ? `${prefix}-01` : `${prefix}-01-01`,
+        to: month ? `${prefix}-31` : `${prefix}-12-31`,
+      });
+    }),
   create: adminProcedure
     .input(insertEventSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
       name: nameText,
       startDate: isoDate,
+      ...eventDetails,
     }))
-    .mutation(({ ctx, input }) =>
-      ctx.db.insert(events).values(input).returning()
-    ),
+    .mutation(async ({ ctx, input }) => {
+      assertValidEvent(input);
+      await assertTournamentExists(ctx.db, input.tournamentId);
+      return ctx.db.insert(events).values(input).returning();
+    }),
   update: adminProcedure
     .input(z.object({
       id: positiveInt,
       name: nameText.optional(),
       startDate: isoDate.optional(),
+      ...eventDetails,
     }))
-    .mutation(async ({ ctx, input }) =>
-      requireMutationRows(
+    .mutation(async ({ ctx, input }) => {
+      if (input.startDate !== undefined || input.endDate !== undefined) {
+        const current = requireFound(
+          await ctx.db.query.events.findFirst({ where: eq(events.id, input.id), columns: { startDate: true, endDate: true } }),
+          "Event",
+        );
+        assertValidEvent({
+          startDate: input.startDate ?? current.startDate,
+          endDate: input.endDate === undefined ? current.endDate : input.endDate,
+        });
+      }
+      await assertTournamentExists(ctx.db, input.tournamentId);
+      return requireMutationRows(
         await ctx.db.update(events).set(input).where(eq(events.id, input.id)).returning(),
         "Event",
-      )
-    ),
+      );
+    }),
   delete: adminProcedure
     .input(idInput)
     .mutation(async ({ ctx, input }) =>

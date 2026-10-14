@@ -12,6 +12,7 @@ in English.
 
 - **Dashboard**: counts of players, posts, announcements, and events.
 - **Players**: create and edit players, with personal data, club, and ratings. **Rating history** on the edit page corrects or removes a tournament result and keeps the rating in sync. **Players → Titles** assigns titles. **Rebuild ratings** replays the rating history and sets the current ratings from it, for when a rating was edited by hand. **Merge with…** folds a duplicate record into this one (see [Merging duplicate players](#merging-duplicate-players)).
+- **Update requests** (Players → Update requests): corrections that players or guardians send from the site's *Atualizar cadastro* form (see [Update requests](#update-requests)).
 - **Posts**: publish and edit news posts.
 - **Announcements**: manage official announcements. Link the player an announcement is about, so it is listed on their profile; when none is linked, the edit page suggests players whose full name appears in the text.
 - **Events**: manage chess events and their links (regulations, registration form, results).
@@ -19,7 +20,7 @@ in English.
 - **Championships**: manage championships, the recurring competitions that group tournaments, cups, and circuit seasons. One-off tournaments need none.
 - **Clubs**: manage chess clubs and upload their logos (SVG, PNG, WebP, or JPEG).
 - **Locations**: manage cities, states, and countries and upload their flags (SVG, PNG, WebP, or JPEG).
-- **Links**: link groups shown on the `/links` page.
+- **Links**: link groups shown on the `/links` page, after the next three events that have links (those come from the event form).
 - **Circuits**: one circuit per season, with its stages and their points. **Final podiums** finishes the season, stores its champions and runners-up per category, and lets you correct them.
 - **TV Sergipe**: School Games results by school, category, and modality.
 - **Tournament podiums**: record each player's place in a tournament, overall or in a category. The tournament edit page also lists its podiums and adds several at once.
@@ -28,6 +29,14 @@ in English.
 - **Norms**: norms toward state titles.
 - **Insignias**: insignias awarded to players.
 - **Rating update** (`/rating-update`): apply tournament rating variations in bulk from an Excel sheet exported by Swiss Manager, in three steps. **Upload** reads the file without saving anything (a template and the column guide are on the page). **Review** shows what the file would do: rating results, new players, profile updates, the tournaments and rating types it touches, and every row with a problem (bad ID or date, a missing tournament column, the same player and tournament twice), which will be skipped. **Import** applies the valid rows one at a time with a progress bar and a Stop button, then reports: what applied, what failed and why, and what was skipped, with a CSV of the problems and a Retry for failed or unrun rows. The report is kept in the browser until you start another import. After each import, players without a tournament in three years are marked inactive (a message says how many) and the ranking positions are recorded; a player who plays again is active automatically. Youth titles (Mestre Mirim, Mestre Júnior) whose holder reaches the title's age limit that year are removed at the same time; a warning counts youth titles that cannot expire because the holder has no birth date. **Update rankings now** does the same without an import. A player kept active by hand is marked inactive again at the next update if they still have no recent tournament.
+
+  **A whole new tournament from one file.** A workbook with a *Tournament* sheet (name, ratingType, and
+  optionally date, tier, championshipId, chessResults as field/value rows) creates the tournament first, then
+  applies its *Results* sheet like any rating import (without tournamentId and ratingType columns), then adds
+  the optional *Podium* sheet (place, category, and either playerId or the Results row of a player the import
+  creates). The review shows the tournament, the results, and the podiums before anything is saved, and the
+  report lists each step. If the tournament was created but a result failed, Retry continues with the same
+  tournament; a failed podium batch is listed with a pointer to the Podiums page. A template is on the page.
 - **Swiss Manager**: export player data for the Swiss Manager pairing software. The same export is public at `/swiss-manager`.
 - **Cache**: the public cache freshness window and a purge button (or manual purge steps).
 - **Backup**: instructions for exporting and restoring the D1 database.
@@ -43,10 +52,44 @@ in English.
 - **Records inside a record** (a group's links, a circuit's stages, results, and final podiums,
   a player's titles, roles, insignias, and rating history) are tables on the
   parent's edit page, added and edited in a dialog.
+- **Bulk actions.** Lists of players and podiums have a checkbox column. Selecting rows shows a bar
+  above the table: players can be marked active or inactive or given a club, podiums deleted, at most
+  200 at a time, after a confirmation that shows the count. Selection covers the rows on screen and
+  clears when the list changes (another page, a search).
+- **History.** The edit pages of players and tournaments end with a History section, and
+  **System → History** lists every recorded change with filters. Each entry shows who changed what and
+  the values before and after, for players, tournaments, and podiums (including bulk actions and merges).
+  Entries are kept for 2 years. Rating results have their own history on each player.
 - **Every delete or removal asks for confirmation** and names what will be
   deleted. A tournament with rating results, or a school with School Games
   results, cannot be deleted until those are removed; a finished circuit season
   must be reopened first.
+
+## Scheduling news
+
+A post can be published immediately or at a chosen time. Tick **Published**, fill **Publish at** (Brasília
+time), and save: the post stays hidden from the site, the news feed, and the sitemap until then and uses that
+time as its publication date. Public pages are cached for a couple of minutes, so it can appear that much
+after the time. **Preview** on the edit page shows the article as readers will see it, including drafts and
+scheduled posts. Clearing the time publishes it right away.
+
+## Update requests
+
+The header's *Atualizar cadastro* button opens a public form (`/atualizar-cadastro`) where a player or
+guardian picks the player and proposes a birth year, club, city, CBX ID, or FIDE ID (the nickname is not asked: only administrators set it), with an
+optional photo and a consent checkbox. Nothing changes on the site yet.
+
+- Each request appears under **Players → Update requests** (and as a count on the dashboard), pending
+  first. The review page shows each proposed field next to its current value, and the photo when one was sent. Photos are private until you approve; the visitor crops them to a square in the browser, which
+  also strips the location from the file.
+- **Approve** applies the proposed fields and marks the player verified, in one step; a photo becomes the player's picture and replaces the current one. If the CBX ID, FIDE
+  or ID already belongs to another player, nothing is applied and the message says which; the
+  request stays pending so you can reject it or fix the clash first.
+- **Reject** keeps the player as is; the reason you type is kept for your records and is not sent to anyone.
+- Delete decided requests when you no longer need them: its proposed data go with them. **Delete old decisions** (shown when there are any) clears every approved or rejected request decided more than 90 days ago in one step; pending requests are never touched.
+- The pending count shows as a badge on **Players → Update requests** in the sidebar, so you see new requests without opening the dashboard.
+- Photos are not part of the form; people are told to email the president.
+- The form accepts at most three open requests per player and 300 overall, so a flood cannot fill the table. Setting `VITE_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` (see `apps/web/.env.example`) adds a Cloudflare Turnstile challenge, which the server then verifies; without them the form relies on a hidden honeypot field and those caps.
 
 ## Deleting records
 
@@ -76,7 +119,7 @@ player with the lowest ID is kept, so links to the older profile keep working.
 - Results, podiums, circuit and cup records, School Games results, and
   announcements move to the kept player. Titles, roles, norms, insignias, and
   defending championships move too, unless the kept player already has the same one.
-- Empty profile fields (photo, birth date, club, location, IDs, description) are
+- Empty profile fields (photo, birth year, club, location, IDs, description) are
   filled from the other record; fields that are already set are not overwritten.
   The player is active and verified if either record was.
 - The rating history of both players is combined in order and the ratings are

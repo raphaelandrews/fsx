@@ -3,6 +3,7 @@ import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon, SearchIcon } from "@hugeicons/core-free-icons";
 
+import { cn } from "@fsx/ui/lib/utils";
 import { Command, CommandEmpty, CommandItem, CommandList } from "@fsx/ui/components/command";
 
 import { useTableText } from "@/hooks/use-table-text";
@@ -76,10 +77,10 @@ export function SearchableSelect({
       <div className="relative">
         <HugeiconsIcon
           icon={SearchIcon}
-          className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 opacity-50"
+          className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 opacity-50"
         />
         <input
-          className="w-full rounded-md border border-input bg-background py-2 pr-8 pl-8 text-sm outline-hidden focus-visible:border-ring"
+          className={cn("h-12 w-full rounded-xl border border-input bg-background py-2 pr-8 pl-9 text-base outline-hidden transition-[border-color,box-shadow] focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20")}
           value={open ? (query || selectedLabel) : selectedLabel}
           id={id}
           placeholder={placeholder}

@@ -290,8 +290,8 @@ function expireYouthTitles(db: RatingDatabase, year: number) {
       SELECT pt.id FROM players_to_titles pt
       JOIN titles t ON t.id = pt.title_id
       JOIN players p ON p.id = pt.player_id
-      WHERE t.loses_at_age IS NOT NULL AND p.birth_date IS NOT NULL
-        AND CAST(substr(p.birth_date, 1, 4) AS INTEGER) + t.loses_at_age <= ${year})`)
+      WHERE t.loses_at_age IS NOT NULL AND p.birth_year IS NOT NULL
+        AND p.birth_year + t.loses_at_age <= ${year})`)
     .returning({ id: playersToTitles.id });
 }
 
@@ -300,7 +300,7 @@ function youthTitlesWithoutBirthDate(db: RatingDatabase) {
   return db.all<{ total: number }>(sql`
     SELECT COUNT(*) AS total FROM players_to_titles pt
     JOIN titles t ON t.id = pt.title_id JOIN players p ON p.id = pt.player_id
-    WHERE t.loses_at_age IS NOT NULL AND p.birth_date IS NULL`);
+    WHERE t.loses_at_age IS NOT NULL AND p.birth_year IS NULL`);
 }
 
 // Applies the FSX maintenance rules, then records the ranking, all in one batch:

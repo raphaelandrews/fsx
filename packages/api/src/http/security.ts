@@ -41,8 +41,8 @@ export const RATE_LIMITS = {
   trpcMutation: { binding: "TRPC_MUTATION_RATE_LIMIT", limit: 300, period: 60 },
 } as const satisfies Record<string, RateLimitConfig>;
 
-// Cloudflare's native limiter keeps request checks off D1, whose daily write
-// quota is reserved for admin edits. Counters are per location and approximate,
+// Cloudflare's native limiter keeps request checks off D1, so D1 writes follow
+// content changes, not page views. Counters are per location and approximate,
 // which still stops a single client hammering an endpoint.
 export async function rateLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
   const limiter: RateLimit | undefined = env[config.binding];

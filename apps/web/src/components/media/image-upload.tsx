@@ -332,11 +332,11 @@ export function ImageUpload({
           htmlFor={inputId}
           aria-describedby={descriptionId}
           className={cn(
-            "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring",
-            policy.processing === "crop" ? "aspect-video" : "h-32",
+            "flex flex-col items-center justify-center gap-1 rounded-2xl border border-dashed text-center transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring",
+            policy.processing === "crop" ? "h-44" : "h-32",
             isDragging
               ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25 hover:border-primary/50",
+              : "hover:border-primary/50 hover:bg-primary/5",
             (disabled || isUploading) && "pointer-events-none opacity-50",
           )}
           onDrop={handleDrop}
@@ -355,11 +355,11 @@ export function ImageUpload({
           ) : (
             <>
               <HugeiconsIcon
-                className="size-8 text-muted-foreground"
+                className="mb-1 size-10 text-muted-foreground"
                 icon={ImageUploadIcon}
                 strokeWidth={2}
               />
-              <span className="text-sm text-muted-foreground">Drag an image here or choose a file</span>
+              <span className="font-semibold text-base">Click to choose an image or drag the file</span>
             </>
           )}
         </label>

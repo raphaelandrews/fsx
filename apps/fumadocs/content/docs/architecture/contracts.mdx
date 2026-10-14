@@ -17,7 +17,7 @@ domain or database logic.
 - Administrative procedures use the single-owner model and verify the configured
   identity on every request.
 - The Swiss Manager export (`swissManager.list`) is public by the federation's
-  decision: arbiters need it, birth dates included, to pair tournaments. It is
+  decision: arbiters need it to pair tournaments. It carries only the birth year. It is
   edge-cached and covered by the uncached-read rate limit.
 - Unknown procedures are never included in the edge cache.
 - Authenticated requests, mutations, and failed/uncacheable tRPC responses use
@@ -47,4 +47,5 @@ Decisions that change security or operational behavior are recorded as
 [D1 migration ownership](/decisions/0002-d1-migrations),
 [anonymous edge cache consistency](/decisions/0003-edge-cache-consistency),
 [atomic D1 rating updates](/decisions/0004-d1-rating-batch), and
-[rate limiting backends](/decisions/0005-rate-limiting).
+[rate limiting backends](/decisions/0005-rate-limiting). The [Workers Paid plan](/decisions/0009-workers-paid-plan)
+record lists which limits no longer apply and which decisions deliberately stay.

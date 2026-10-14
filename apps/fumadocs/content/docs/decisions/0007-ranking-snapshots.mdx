@@ -65,3 +65,16 @@ reports it.
   earlier, so the title goes from 1 January of the year the player turns that age.
 - Holders without a birth date cannot be checked; the update reports how many,
   so the birth date can be filled in.
+
+## Update 2026-10-14: user-facing history
+
+- Snapshots now feed two public views: the player's position chart
+  (`players.rankingHistory`, the latest 60 per format) and the rating list
+  archive (`ratings.lists`, `ratings.snapshot`).
+- Imports on the same day collapse to the last snapshot of that day, so the
+  archive has one list per day. Days are in UTC, because `snapshot_at` is.
+- The list of days walks the `(rating_type, snapshot_at)` index with a recursive
+  query that reads one row per import, not one per ranked player.
+- The stored history is now product data. Snapshots are never pruned; if the
+  table grows past what the archive needs, thin out old days rather than
+  deleting the newest.

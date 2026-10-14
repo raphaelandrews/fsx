@@ -59,7 +59,7 @@ export function DatePicker({
             variant="outline"
             disabled={disabled}
             className={cn(
-              "w-full justify-start gap-2 text-left font-normal",
+              "h-12 w-full justify-start gap-2 rounded-xl px-3 text-left font-normal text-base",
               !value && "text-muted-foreground",
               className,
             )}

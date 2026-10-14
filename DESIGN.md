@@ -48,7 +48,7 @@ components. Decorative gradients (`avatar-gradient.tsx`) are the only exception.
 | `destructive` | crimson | light crimson | Red text and icons: errors, deletion, losses, drops |
 | `destructive-fill` | candy red | candy red | Red fills next to a label (status dots, chart losses); 3:1, not for text |
 | `warning` / `warning-foreground` | yellow / dark amber | dark gold / bright yellow | Warnings, title abbreviations, "this week" |
-| `highlight` | magenta | yellow | Small accents only |
+| `highlight` | yellow | bright yellow | Small accents and fills only (the live dot), never text |
 | `pink`, `red`, `yellow`, `orange`, `cyan`, `green`, `teal`, `blue`, `indigo`, `purple`, `violet` and their `-fill` / `-foreground` tokens | Strong hue / pale fill / dark foreground | Same semantic hues | Reusable color families; e.g. `text-pink`, `bg-pink-fill`, `text-pink-foreground` |
 | `neutral`, `neutral-fill`, `neutral-foreground` | Pale cool gray / lighter cool gray / dark cool gray | Same neutral palette | Neutral labeled treatments |
 | `chart-1`…`chart-6` | burple, deep burple, green, yellow, magenta, orange | burple, light deep burple, light magenta, bright amber, light blue, light peach | Neutral chart series and categories. Pair yellow with a labeled legend; other fills keep ≥3:1 against the chart surface. |
@@ -78,8 +78,7 @@ pair it with a sign, arrow, icon, or label.
 
 ### Contrast
 
-All text pairs meet WCAG AA (4.5:1) in both themes. `highlight` is 3.7:1 on white: use it only on
-bold or large text, never for body copy. When adding a token, check text/background pairs before
+All text pairs meet WCAG AA (4.5:1) in both themes. `highlight` is a yellow fill: never use it for text (a zero rating change uses `warning-foreground`). When adding a token, check text/background pairs before
 using it.
 
 ## Typography
@@ -120,7 +119,7 @@ Base `--radius` is 8px, so the scale lands on 8 / 16 / 24:
 | `rounded-full` | pill | Buttons, tabs and their track, search field, nav triggers, badges, icon circles, list highlights |
 | `rounded-avatar` | 31.25% of the side | Player and member photos (`Avatar` default): 10px at 32px, 14px at 44px, 20px at 64px, 30px at 96px. Rounded, never a full circle. |
 | `rounded-md` / `rounded-lg` | 6 / 8px | Hover rows, small chips, medal pills, inner rows of a card |
-| `rounded-xl` | 12px | Podium medal buttons |
+| `rounded-xl` | 12px | Form fields, podium medal buttons |
 | `rounded-2xl` | 16px | Tiles, cards, and table frames (`StatTile`, rating and ID boxes, `RecordCard`, `Table`), large avatars |
 | `rounded-4xl` | 24px | Dialogs and highlight blocks |
 
@@ -427,8 +426,41 @@ ellipsis always hides at least two pages.
 ### Inputs
 
 Pills inside search-like contexts (command menu, 40px). The header search trigger is a
-`secondary` pill with a 1px `border-border` outline so it reads as a field. Form inputs follow the shadcn input with
-`border-input`; labels are always visible; errors use `destructive` next to the field.
+`secondary` pill with a 1px `border-border` outline so it reads as a field.
+
+**Form fields** (public and dashboard) share one look, set once in the shared components: 48px tall
+(`h-12`), `rounded-xl`, 1px `border-input` on `bg-background`, `px-3`, 16px text, no shadow. Focus
+turns the border `primary` and adds a 4px `primary/20` ring (`focus-visible:ring-4`); an invalid
+field uses `destructive` for both. This applies to `Input`, `Textarea`, `SelectTrigger` with
+`size="lg"` (the compact `default`/`sm` sizes stay for filters), native `<select>`s
+(`NATIVE_SELECT_CLASS`), `SearchableSelect`, and `DatePicker`. Don't hand-size a field in a form.
+
+- Labels are always visible, above the field, `text-sm font-medium` (`FormField`). Hints are
+  `text-sm` muted and errors `destructive`, both under the field.
+- Numbers that are identifiers or years (birth year, CBX and FIDE IDs) use `DigitsInput`, which drops
+  anything that is not a digit; validate on blur as well as on submit.
+- An upload area is a `rounded-2xl` dashed box: a 40px icon, a semibold line ("Click to choose…"),
+  and a `text-sm` hint with the accepted types and limit; it highlights with `primary/5` on hover and
+  while dragging.
+
+### Forms and dialogs
+
+One column of fields, `gap-4`, with a title above each group.
+
+- **Dashboard pages** (`AdminForm`): a centered column no wider than 680px (`max-w-170`). Each
+  `FormSection` is a `text-lg font-semibold` title, an optional muted `text-sm` description, and its
+  fields below, 32px between sections. `FormActions` closes the form: two equal-width `pill` (48px)
+  buttons side by side, Cancel as `secondary` and the save action as the burple default, 24px below
+  the last field, no divider line.
+- **Dialogs** (`EntityFormDialog` and every `Dialog`): `rounded-4xl`, 24–32px padding, up to 680px
+  wide for forms, scrolling inside at 85vh. The title is `font-semibold`, `text-2xl sm:text-3xl`,
+  `tracking-tight`. The footer is two equal-width pills, Cancel (`secondary`) first and the primary
+  action second; on phones they stack with the primary on top.
+- **Public step-by-step forms** (`/atualizar-cadastro`): a full-page flow outside the site layout (no
+  header or footer), one column up to 600px, progress dots on top, then the step icon in a 44–56px
+  `bg-muted` circle, the small form name, an `h1` (`text-3xl sm:text-4xl`) and a muted `text-sm` hint.
+  Cancel or Back and Continue sit in two equal `pill` buttons pinned to the bottom; the last step's
+  button says what it sends ("Enviar 2 alterações"). Steps fade in over 200ms.
 
 ### Icons
 
@@ -458,7 +490,7 @@ dashboard (`/dashboard`, `/rating-update`) is English.
 | Cool blue-gray structure `#F5F7FA` / `#E2E7F1` | `muted`/`secondary` (`#F5F7FA`) and `border`/`input` (`#E4E9F1`) |
 | A distinctive geometric sans for titles | Fustat for all text, including body and secondary text |
 | Headline weight 600, tight tracking | Headings `font-semibold tracking-tight`, header and footer 600 |
-| Pills (999px) for buttons, 16px cards, 24px highlight blocks | `rounded-full` controls, `rounded-2xl` tiles, `rounded-4xl` dialogs |
+| Pills (999px) for buttons, 16px cards, 24px highlight blocks | `rounded-full` controls, `rounded-2xl` tiles, `rounded-4xl` dialogs, `rounded-xl` form fields |
 | Primary button: brand fill, 600 weight, pill, 48px with trailing icon | `Button` `default` + `size="pill"`, `SectionButton` |
 | Flat hierarchy, shadow only for floating layers | Muted surfaces, no shadows on tiles or cards |
 | 40px desktop / 44px touch targets | Header controls 40px, badges and medal buttons 44px |

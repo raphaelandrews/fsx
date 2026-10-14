@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -25,6 +25,8 @@ import {
   TableRow,
 } from "@fsx/ui/components/table";
 
+import { Checkbox } from "@fsx/ui/components/checkbox";
+
 import { useTableText } from "@/hooks/use-table-text";
 
 declare module "@tanstack/react-table" {
@@ -45,6 +47,11 @@ interface DataTableProps<TData, TValue> {
   /** False when the server already returns a single page (e.g. players). */
   clientPagination?: boolean;
   pageSize?: number;
+  /**
+   * Adds a selection column; rendered above the table while rows are selected. Selection is of the rows on
+   * screen only and resets when the data changes (another page, a refetch after the action).
+   */
+  bulkActions?: (selected: TData[], clear: () => void) => ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -55,6 +62,7 @@ export function DataTable<TData, TValue>({
   emptyState,
   clientPagination = true,
   pageSize,
+  bulkActions,
 }: DataTableProps<TData, TValue>) {
   const text = useTableText();
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
@@ -62,9 +70,36 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
 
+  useEffect(() => setRowSelection({}), [data]);
+
+  const allColumns = useMemo<ColumnDef<TData, TValue>[]>(
+    () =>
+      bulkActions
+        ? [
+            {
+              id: "select",
+              header: ({ table: current }) => (
+                <Checkbox
+                  aria-label="Select all rows on this page"
+                  checked={current.getIsAllPageRowsSelected()}
+                  indeterminate={current.getIsSomePageRowsSelected()}
+                  onCheckedChange={(checked) => current.toggleAllPageRowsSelected(checked === true)}
+                />
+              ),
+              cell: ({ row }) => (
+                <Checkbox aria-label="Select row" checked={row.getIsSelected()} onCheckedChange={(checked) => row.toggleSelected(checked === true)} />
+              ),
+              meta: { className: "w-10" },
+            },
+            ...columns,
+          ]
+        : columns,
+    [bulkActions, columns],
+  );
+
   const table = useReactTable({
     data,
-    columns,
+    columns: allColumns,
     state: { sorting, columnVisibility, rowSelection, columnFilters },
     ...(pageSize ? { initialState: { pagination: { pageSize } } } : {}),
     enableRowSelection: true,
@@ -89,9 +124,17 @@ export function DataTable<TData, TValue>({
     );
   }
 
+  const selected = bulkActions ? table.getSelectedRowModel().rows.map((row) => row.original) : [];
+
   return (
     <div className="space-y-4">
       {toolbar?.(table)}
+      {bulkActions && selected.length > 0 ? (
+        <div role="region" aria-label="Bulk actions" className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2 text-sm">
+          <span className="font-medium tabular-nums">{selected.length} selected</span>
+          {bulkActions(selected, () => setRowSelection({}))}
+        </div>
+      ) : null}
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -122,7 +165,7 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell
                   className="h-24 text-center text-muted-foreground"
-                  colSpan={columns.length}
+                  colSpan={allColumns.length}
                 >
                   {data.length === 0 && emptyState ? emptyState : text.noMatches}
                 </TableCell>

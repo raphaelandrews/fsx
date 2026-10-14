@@ -18,6 +18,8 @@ export interface PostValues {
   imageUrl: string;
   content: string;
   published: boolean;
+  /** `datetime-local` value in Brasília time, empty to publish immediately. */
+  publishAt: string;
 }
 
 interface PostFormProps {
@@ -128,7 +130,7 @@ export function PostForm({
           )}
         </form.Field>
       </FormSection>
-      <FormSection title="Publishing" description="Drafts are only visible in the dashboard.">
+      <FormSection title="Publishing" description="Drafts are only visible in the dashboard. A schedule keeps a published article hidden until then.">
         <form.Field name="published">
           {(f) => (
             <div className="flex items-center gap-2">
@@ -143,6 +145,30 @@ export function PostForm({
             </div>
           )}
         </form.Field>
+        <form.Subscribe selector={(state) => state.values.published}>
+          {(published) =>
+            published ? (
+              <form.Field name="publishAt">
+                {(f) => (
+                  <FormField
+                    label="Publish at"
+                    htmlFor="post-publish-at"
+                    hint="Brasília time. Leave empty to publish now. Public pages are cached for about two minutes, so it can go live that much later."
+                    error={fieldError(f, error)}
+                  >
+                    <Input
+                      id="post-publish-at"
+                      type="datetime-local"
+                      value={f.state.value}
+                      onBlur={f.handleBlur}
+                      onChange={(e) => f.handleChange(e.target.value)}
+                    />
+                  </FormField>
+                )}
+              </form.Field>
+            ) : null
+          }
+        </form.Subscribe>
       </FormSection>
     </AdminForm>
   );

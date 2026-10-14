@@ -4,7 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@fsx/ui/components/select";
 import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 
-import { CircuitChampions, CircuitStatus } from "@/components/circuitos/circuit-champions";
+import { CircuitChampions, CircuitStages, CircuitStatus } from "@/components/circuitos/circuit-champions";
 import { CircuitView } from "@/components/circuitos/circuit-view";
 import { selectSeason } from "@/components/circuitos/season";
 import { Medal01Icon } from "@hugeicons/core-free-icons";
@@ -123,6 +123,7 @@ function CircuitDetail({ id }: { id: number }) {
   return (
     <>
       <CircuitStatus circuit={circuit} />
+      <CircuitStages circuit={circuit} />
       <CircuitChampions circuit={circuit} />
       <CircuitView circuit={circuit} />
     </>

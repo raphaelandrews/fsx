@@ -1,4 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { buttonVariants } from "@fsx/ui/components/button";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { AdminPageHeader } from "@/components/admin/page-header";
@@ -8,6 +9,8 @@ import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { orNotFound } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
+import { isScheduledInFuture, scheduleToInput } from "@/lib/schedule";
+import { scheduleToInstant } from "@/lib/schedule";
 import { useTRPC } from "@/lib/trpc";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/$id")({
@@ -52,16 +55,25 @@ function RouteComponent() {
         backLabel="Posts"
         title={post.title}
         description={
-          post.published ? "Published article." : "Draft: only visible in the dashboard."
+          post.published
+            ? isScheduledInFuture(post.publishAt)
+              ? "Scheduled: hidden from the site until its publish time."
+              : "Published article."
+            : "Draft: only visible in the dashboard."
         }
         actions={
-          <ConfirmDeleteButton
+          <>
+            <Link to="/dashboard/post-preview/$id" params={{ id }} className={buttonVariants({ variant: "outline" })}>
+              Preview
+            </Link>
+            <ConfirmDeleteButton
             label="Delete post"
             title="Delete this post?"
             itemName={post.title}
             pending={deleteMutation.isPending}
             onConfirm={() => deleteMutation.mutate({ id })}
           />
+          </>
         }
       />
       <PostForm
@@ -71,9 +83,10 @@ function RouteComponent() {
           imageUrl: post.imageUrl ?? "",
           content: post.content,
           published: post.published,
+          publishAt: scheduleToInput(post.publishAt),
         }}
         onSubmit={(values) =>
-          updateMutation.mutate({ id, ...values, imageUrl: values.imageUrl || null })
+          updateMutation.mutate({ id, ...values, imageUrl: values.imageUrl || null, publishAt: values.published ? scheduleToInstant(values.publishAt) : null })
         }
         error={updateMutation.error}
         pending={updateMutation.isPending}

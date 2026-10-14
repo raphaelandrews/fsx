@@ -5,7 +5,10 @@ const STATIC_PATHS = [
   "/",
   "/noticias",
   "/ratings",
+  "/ratings/lista",
   "/campeoes",
+  "/torneios",
+  "/calendario",
   "/circuitos",
   "/estatisticas",
   "/clubes",
@@ -37,17 +40,19 @@ function urlEntry(path: string, lastModified?: string): string {
 export interface SitemapEntries {
   posts: SitemapPost[];
   playerIds: number[];
+  tournamentIds: number[];
   announcementIds: number[];
   clubIds: number[];
 }
 
-export function renderSitemap({ posts, playerIds, announcementIds, clubIds }: SitemapEntries): string {
+export function renderSitemap({ posts, playerIds, tournamentIds, announcementIds, clubIds }: SitemapEntries): string {
   const entries = [
     ...STATIC_PATHS.map((path) => urlEntry(path)),
     ...posts.map((post) =>
       urlEntry(`/noticias/${encodeURIComponent(post.slug)}`, toIsoTimestamp(post.updatedAt)?.slice(0, 10)),
     ),
     ...playerIds.map((id) => urlEntry(`/jogadores/${id}`)),
+    ...tournamentIds.map((id) => urlEntry(`/torneios/${id}`)),
     ...announcementIds.map((id) => urlEntry(`/comunicados/${id}`)),
     ...clubIds.map((id) => urlEntry(`/clubes/${id}`)),
   ];

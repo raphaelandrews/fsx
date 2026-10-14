@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 
 import { cn } from "@fsx/ui/lib/utils";
 
+import { coverImage } from "@/lib/media-image";
+
 interface FreshPost {
   title: string;
   imageUrl: string | null;
@@ -44,7 +46,7 @@ export function PostCard({
             decoding="async"
             height={675}
             loading="lazy"
-            src={imageUrl}
+            {...coverImage(imageUrl, main ? "(min-width: 768px) 66vw, 100vw" : "(min-width: 768px) 33vw, 100vw")}
             width={1200}
           />
         ) : null}

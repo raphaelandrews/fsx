@@ -10,6 +10,7 @@ const footerLinks = [
   { label: "Notícias", to: "/noticias" },
   { label: "Rating", to: "/ratings" },
   { label: "Campeões", to: "/campeoes" },
+  { label: "Torneios", to: "/torneios" },
   { label: "Circuitos", to: "/circuitos" },
   { label: "Estatísticas", to: "/estatisticas" },
   { label: "Clubes", to: "/clubes" },

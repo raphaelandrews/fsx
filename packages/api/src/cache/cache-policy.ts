@@ -10,6 +10,10 @@ export const PROCEDURE_CACHE_POLICY: Record<string, ProcedureCachePolicy> = {
   "players.byId": { classification: "public", ttlSeconds: 120 },
   "players.stats": { classification: "public", ttlSeconds: 120 },
   "players.circuitSeasons": { classification: "public", ttlSeconds: 120 },
+  "ratings.lists": { classification: "public", ttlSeconds: 300 },
+  "ratings.snapshot": { classification: "public", ttlSeconds: 300 },
+  "players.rankingHistory": { classification: "public", ttlSeconds: 300 },
+  "players.compare": { classification: "public", ttlSeconds: 300 },
   "players.ranking": { classification: "public", ttlSeconds: 120 },
   "players.season": { classification: "public", ttlSeconds: 300 },
   "records.all": { classification: "public", ttlSeconds: 300 },
@@ -36,6 +40,7 @@ export const PROCEDURE_CACHE_POLICY: Record<string, ProcedureCachePolicy> = {
   "swissManager.list": { classification: "public", ttlSeconds: 300 },
   "events.upcoming": { classification: "public", ttlSeconds: 60 },
   "events.list": { classification: "public", ttlSeconds: 60 },
+  "events.calendar": { classification: "public", ttlSeconds: 60 },
   "posts.list": { classification: "public", ttlSeconds: 120 },
   "posts.bySlug": { classification: "public", ttlSeconds: 120 },
   "posts.byPage": { classification: "public", ttlSeconds: 120 },
@@ -48,6 +53,8 @@ export const PROCEDURE_CACHE_POLICY: Record<string, ProcedureCachePolicy> = {
   "tvSergipe.leaderboard": { classification: "public", ttlSeconds: 300 },
   "tournaments.list": { classification: "public", ttlSeconds: 300 },
   "tournaments.search": { classification: "public", ttlSeconds: 30 },
+  "tournaments.page": { classification: "public", ttlSeconds: 120 },
+  "tournaments.results": { classification: "public", ttlSeconds: 120 },
   "tournaments.byId": { classification: "public", ttlSeconds: 120 },
   "cups.list": { classification: "public", ttlSeconds: 300 },
   "cups.byId": { classification: "public", ttlSeconds: 120 },
@@ -57,6 +64,7 @@ export const PROCEDURE_CACHE_POLICY: Record<string, ProcedureCachePolicy> = {
   "norms.list": { classification: "public", ttlSeconds: 300 },
   "insignias.list": { classification: "public", ttlSeconds: 300 },
   "links.list": { classification: "public", ttlSeconds: 300 },
+  "links.page": { classification: "public", ttlSeconds: 300 },
 };
 
 export function getProcedureCachePolicy(pathname: string): ProcedureCachePolicy {

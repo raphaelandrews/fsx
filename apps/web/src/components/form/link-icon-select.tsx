@@ -11,7 +11,7 @@ export function LinkIconSelect({ value, onChange }: LinkIconSelectProps) {
   return (
     <select
       aria-label="Icon"
-      className="h-8 w-24 rounded-md border border-input bg-background px-2 text-sm"
+      className="h-12 w-full rounded-xl border border-input bg-background px-3 text-base transition-[border-color,box-shadow] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
       value={matchingPreset?.label ?? LINK_ICON_PRESETS[0]?.label}
       onChange={(e) => {
         const preset = LINK_ICON_PRESETS.find((p) => p.label === e.target.value);

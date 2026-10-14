@@ -6,7 +6,9 @@ import type { RatingType } from "@fsx/api/rating-types";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
 import { getUserErrorMessage } from "@/lib/errors";
 import { planImport, summarizePlan, type PlanRow } from "@/lib/rating-import";
-import { readImportSheet } from "@/lib/rating-import-file";
+import { readImportSheet, readWorkbook, toImportSheet } from "@/lib/rating-import-file";
+import { columnsError } from "@/lib/rating-import";
+import { parsePodium, parseTournamentMeta, PODIUM_SHEET, RESULTS_SHEET, TOURNAMENT_SHEET, withTournamentColumns, type PodiumDraft, type TournamentDraft } from "@/lib/tournament-import";
 import { describeError, reportMaintenance, type MaintenanceResult } from "@/lib/rating-import-feedback";
 import type { ImportResult } from "@/lib/rating-import-report";
 import { useTRPC } from "@/lib/trpc";
@@ -48,6 +50,8 @@ export function useRatingImport() {
   const createPlayer = useMutation(trpc.players.create.mutationOptions());
   const updatePlayer = useMutation(trpc.players.update.mutationOptions());
   const snapshot = useMutation(trpc.playersTournament.snapshotRankings.mutationOptions());
+  const createTournament = useMutation(trpc.tournaments.create.mutationOptions());
+  const createPodiums = useMutation(trpc.tournamentPodiums.createMany.mutationOptions());
 
   const [phase, setPhase] = useState<ImportPhase>("upload");
   const [reading, setReading] = useState(false);
@@ -59,10 +63,16 @@ export function useRatingImport() {
   const [progress, setProgress] = useState({ done: 0, total: 0, current: "" });
   const [maintenance, setMaintenance] = useState<MaintenanceResult | null>(null);
   const [restored, setRestored] = useState(false);
+  // A tournament file creates its tournament first and adds podiums last; the plan holds the results rows.
+  const [draft, setDraft] = useState<TournamentDraft | null>(null);
+  const [podium, setPodium] = useState<PodiumDraft[]>([]);
 
   const abortRef = useRef(false);
   const createdPlayers = useRef(new Map<number, number>());
   const ratedTypes = useRef(new Set<RatingType>());
+  const tournamentId = useRef<number | null>(null);
+  const podiumsDone = useRef(false);
+  const resultPlayers = useRef(new Map<number, number>());
 
   useEffect(() => {
     const stored = readStored();
@@ -104,14 +114,39 @@ export function useRatingImport() {
     setReading(true);
     setLoadError(null);
     try {
-      const sheet = await readImportSheet(file);
-      setPlan(planImport(sheet.rows, sheet.headerMap));
+      const { sheets } = await readWorkbook(file);
+      const meta = sheets.get(TOURNAMENT_SHEET);
+      let planned: PlanRow[];
+      let nextDraft: TournamentDraft | null = null;
+      let nextPodium: PodiumDraft[] = [];
+      if (meta) {
+        const parsed = parseTournamentMeta(meta);
+        if ("error" in parsed) throw new Error(parsed.error);
+        nextDraft = parsed.draft;
+        const results = sheets.get(RESULTS_SHEET);
+        if (!results) throw new Error("A tournament file needs a 'Results' sheet next to the 'Tournament' sheet.");
+        const resultSheet = withTournamentColumns(toImportSheet(results, { checkColumns: false }), nextDraft.ratingType);
+        if (resultSheet.headerMap["variation"] === undefined) throw new Error("The Results sheet needs a 'variation' column.");
+        const problem = columnsError(resultSheet.headerMap);
+        if (problem) throw new Error(problem);
+        planned = planImport(resultSheet.rows, resultSheet.headerMap);
+        nextPodium = parsePodium(sheets.get(PODIUM_SHEET) ?? []);
+      } else {
+        const sheet = await readImportSheet(file);
+        planned = planImport(sheet.rows, sheet.headerMap);
+      }
+      setPlan(planned);
+      setDraft(nextDraft);
+      setPodium(nextPodium);
       setFileName(file.name);
       setResults([]);
       setMaintenance(null);
       setRestored(false);
       createdPlayers.current.clear();
       ratedTypes.current.clear();
+      resultPlayers.current.clear();
+      tournamentId.current = null;
+      podiumsDone.current = false;
       writeStored(null);
       setPhase("review");
     } catch (error) {
@@ -125,7 +160,7 @@ export function useRatingImport() {
     async (entry: PlanRow): Promise<ImportResult> => {
       const { row, sheetRow, input } = entry;
       const base = { sheetRow, input, title: row.name || `Player ${row.id}` };
-      const profile = { name: row.name, birthDate: row.birth || undefined, sex: row.sex, clubId: row.clubId, locationId: row.locationId };
+      const profile = { name: row.name, birthYear: row.birthYear, sex: row.sex, clubId: row.clubId, locationId: row.locationId };
       let playerId = row.id;
       let created = false;
       try {
@@ -136,7 +171,7 @@ export function useRatingImport() {
           } else {
             const [player] = await createPlayer.mutateAsync({
               name: row.name!,
-              birthDate: row.birth || null,
+              birthYear: row.birthYear ?? null,
               sex: row.sex ?? "male",
               clubId: row.clubId,
               locationId: row.locationId,
@@ -158,7 +193,7 @@ export function useRatingImport() {
           ratedTypes.current.add(ratingType);
           const change = `${TYPE_LABELS[ratingType]} ${signed(variation)}${linked ? ` (${linked.oldRating} → ${linked.oldRating + variation})` : ""}`;
           let detail: string | undefined;
-          if (entry.action === "rate" && (row.name || row.birth || row.sex || row.clubId || row.locationId)) {
+          if (entry.action === "rate" && (row.name || row.birthYear || row.sex || row.clubId || row.locationId)) {
             try {
               await updatePlayer.mutateAsync({ id: playerId, ...profile });
             } catch (error) {
@@ -166,11 +201,13 @@ export function useRatingImport() {
             }
           }
           createdPlayers.current.delete(sheetRow);
+          resultPlayers.current.set(sheetRow, playerId);
           return { ...base, status: "applied", summary: created || entry.action === "create-and-rate" ? `Created player ${playerId} · ${change}` : change, detail };
         }
 
         if (entry.action === "update") await updatePlayer.mutateAsync({ id: playerId, ...profile });
         createdPlayers.current.delete(sheetRow);
+        resultPlayers.current.set(sheetRow, playerId);
         return { ...base, status: "applied", summary: entry.action === "create" ? `Created player ${playerId}` : "Profile updated" };
       } catch (error) {
         const { message, detail } = describeError(error);
@@ -196,15 +233,77 @@ export function useRatingImport() {
       setSnapshotError(null);
       setProgress({ done: 0, total: rows.length, current: "" });
       const finished: ImportResult[] = [];
-
-      for (const [index, entry] of rows.entries()) {
-        if (abortRef.current) break;
-        setProgress({ done: index, total: rows.length, current: `Row ${entry.sheetRow}: ${entry.row.name || `player ${entry.row.id}`}` });
-        const result = await applyRow(entry);
+      const record = (result: ImportResult) => {
         finished.push(result);
         setResults((previous) => [...previous.filter((item) => item.sheetRow !== result.sheetRow), result]);
+      };
+
+      if (draft && tournamentId.current === null) {
+        setProgress({ done: 0, total: rows.length, current: `Creating the tournament “${draft.name}”` });
+        try {
+          const [created] = await createTournament.mutateAsync({
+            name: draft.name,
+            date: draft.date,
+            ratingType: draft.ratingType,
+            tier: draft.tier,
+            championshipId: draft.championshipId,
+            chessResults: draft.chessResults,
+          });
+          tournamentId.current = created!.id;
+          record({ sheetRow: 0, where: "Tournament", status: "applied", title: draft.name, summary: `Tournament created (ID ${created!.id})` });
+        } catch (error) {
+          const { message, detail } = describeError(error);
+          record({ sheetRow: 0, where: "Tournament", status: "failed", title: draft.name, summary: message, detail: `${detail ? `${detail} · ` : ""}No result or podium was applied.` });
+          setPhase("done");
+          return;
+        }
+      }
+
+      for (const [index, planned] of rows.entries()) {
+        if (abortRef.current) break;
+        const entry =
+          tournamentId.current !== null && planned.row.tournament
+            ? { ...planned, row: { ...planned.row, tournament: { ...planned.row.tournament, tournamentId: tournamentId.current } } }
+            : planned;
+        setProgress({ done: index, total: rows.length, current: `Row ${entry.sheetRow}: ${entry.row.name || `player ${entry.row.id}`}` });
+        record(await applyRow(entry));
       }
       setProgress((current) => ({ ...current, done: finished.length, current: "" }));
+
+      if (draft && tournamentId.current !== null && !podiumsDone.current && !abortRef.current) {
+        podiumsDone.current = true;
+        const valid = podium.filter((item) => !item.error);
+        for (const item of podium.filter((entry) => entry.error)) {
+          record({ sheetRow: 10_000 + item.sheetRow, where: `Podium row ${item.sheetRow}`, status: "skipped", title: `Place ${item.place}`, summary: item.error! });
+        }
+        const resolved = valid.map((item) => ({ item, playerId: item.playerId ?? resultPlayers.current.get(item.resultRow!) }));
+        for (const { item, playerId } of resolved) {
+          if (playerId === undefined) {
+            record({ sheetRow: 10_000 + item.sheetRow, where: `Podium row ${item.sheetRow}`, status: "failed", title: `Place ${item.place}`, summary: `The player of Results row ${item.resultRow} was not imported.` });
+          }
+        }
+        const ready = resolved.filter((entry): entry is { item: PodiumDraft; playerId: number } => entry.playerId !== undefined);
+        for (let start = 0; start < ready.length; start += 50) {
+          const chunk = ready.slice(start, start + 50);
+          try {
+            await createPodiums.mutateAsync({
+              tournamentId: tournamentId.current,
+              podiums: chunk.map(({ item, playerId }) => ({ playerId, place: item.place, category: item.category })),
+            });
+            for (const { item, playerId } of chunk) {
+              record({ sheetRow: 10_000 + item.sheetRow, where: `Podium row ${item.sheetRow}`, status: "applied", title: `Player ${playerId}`, summary: `${item.place}º place${item.category ? ` · ${item.category}` : ""}` });
+            }
+          } catch (error) {
+            const { message, detail } = describeError(error);
+            for (const { item } of chunk) {
+              record({ sheetRow: 10_000 + item.sheetRow, where: `Podium row ${item.sheetRow}`, status: "failed", title: `Place ${item.place}`, summary: message, detail: `${detail ? `${detail} · ` : ""}Add this podium on the Podiums page.` });
+            }
+          }
+        }
+        void invalidateAdmin(["tournaments", "tournamentPodiums"]);
+      } else if (draft && tournamentId.current !== null) {
+        void invalidateAdmin("tournaments");
+      }
 
       const applied = finished.filter((result) => result.status === "applied").length;
       if (applied > 0) {
@@ -223,7 +322,7 @@ export function useRatingImport() {
       }
       setPhase("done");
     },
-    [applyRow, invalidateAdmin, snapshot],
+    [applyRow, createPodiums, createTournament, draft, invalidateAdmin, podium, snapshot],
   );
 
   // Rows from the plan that still need to run: never started, or failed last time.
@@ -255,6 +354,11 @@ export function useRatingImport() {
     setMaintenance(null);
     setRestored(false);
     createdPlayers.current.clear();
+    resultPlayers.current.clear();
+    tournamentId.current = null;
+    podiumsDone.current = false;
+    setDraft(null);
+    setPodium([]);
     writeStored(null);
   }, []);
 
@@ -264,6 +368,8 @@ export function useRatingImport() {
     loadError,
     fileName,
     plan,
+    draft,
+    podium,
     summary,
     results,
     skipped,

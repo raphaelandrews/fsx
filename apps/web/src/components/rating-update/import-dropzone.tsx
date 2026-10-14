@@ -6,7 +6,7 @@ import { Button } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
 import { InlineAlert } from "@/components/admin/inline-alert";
-import { downloadImportTemplate, IMPORT_COLUMNS } from "@/lib/rating-import-file";
+import { downloadImportTemplate, downloadTournamentTemplate, IMPORT_COLUMNS } from "@/lib/rating-import-file";
 
 export function ImportDropzone({
   onFile,
@@ -91,6 +91,37 @@ export function ImportDropzone({
           <Button type="button" variant="outline" size="sm" onClick={() => void downloadImportTemplate()}>
             <HugeiconsIcon icon={Download01Icon} data-icon="inline-start" aria-hidden />
             Download a template
+          </Button>
+        </div>
+      </details>
+
+      <details className="rounded-xl border bg-background">
+        <summary className="flex cursor-pointer items-center justify-between gap-3 px-4 py-3 font-medium text-sm">
+          Importing a whole new tournament from one file
+        </summary>
+        <div className="space-y-3 border-t px-4 py-4 text-sm">
+          <p className="text-muted-foreground">
+            A workbook with a <strong className="font-medium text-foreground">Tournament</strong> sheet creates the tournament,
+            then applies the <strong className="font-medium text-foreground">Results</strong> sheet, then adds the optional{" "}
+            <strong className="font-medium text-foreground">Podium</strong> sheet.
+          </p>
+          <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
+            <li>
+              Tournament: two columns, field and value: <span className="font-mono">name</span>,{" "}
+              <span className="font-mono">ratingType</span> (required), <span className="font-mono">date</span>,{" "}
+              <span className="font-mono">tier</span>, <span className="font-mono">championshipId</span>,{" "}
+              <span className="font-mono">chessResults</span>.
+            </li>
+            <li>Results: the columns above without tournamentId and ratingType, which come from the Tournament sheet.</li>
+            <li>
+              Podium: <span className="font-mono">place</span>, <span className="font-mono">category</span> (optional), and either{" "}
+              <span className="font-mono">playerId</span> or <span className="font-mono">row</span>, the Results row of a player
+              the import creates.
+            </li>
+          </ul>
+          <Button type="button" variant="outline" size="sm" onClick={() => void downloadTournamentTemplate()}>
+            <HugeiconsIcon icon={Download01Icon} data-icon="inline-start" aria-hidden />
+            Download the tournament template
           </Button>
         </div>
       </details>

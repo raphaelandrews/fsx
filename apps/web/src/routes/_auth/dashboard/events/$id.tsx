@@ -66,6 +66,11 @@ function RouteComponent() {
         defaultValues={{
           name: event.name,
           startDate: event.startDate,
+          endDate: event.endDate ?? "",
+          venue: event.venue ?? "",
+          venueUrl: event.venueUrl ?? "",
+          tournamentId: event.tournamentId ? String(event.tournamentId) : "",
+          tournamentName: event.tournament?.name,
           links:
             event.linkGroup?.links.map((link) => ({
               id: link.id,
@@ -77,10 +82,18 @@ function RouteComponent() {
         error={updateMutation.error ?? setLinksMutation.error}
         submitLabel="Save changes"
         cancelTo="/dashboard/events"
-        onSubmit={async ({ name, startDate, links }) => {
+        onSubmit={async ({ name, startDate, endDate, venue, venueUrl, tournamentId, links }) => {
           let detailsSaved = false;
           try {
-            await updateMutation.mutateAsync({ id, name, startDate });
+            await updateMutation.mutateAsync({
+              id,
+              name,
+              startDate,
+              endDate: endDate || null,
+              venue: venue.trim() || null,
+              venueUrl: venueUrl.trim() || null,
+              tournamentId: tournamentId ? Number(tournamentId) : null,
+            });
             detailsSaved = true;
             await setLinksMutation.mutateAsync({
               eventId: id,

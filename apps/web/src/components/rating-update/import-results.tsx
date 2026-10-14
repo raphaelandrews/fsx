@@ -119,7 +119,7 @@ export function ImportResults({
           <ul className="divide-y overflow-hidden rounded-2xl border bg-background">
             {list.slice(0, shown).map((result) => (
               <li key={result.sheetRow} className="flex gap-3 px-4 py-3 text-sm">
-                <span className="w-12 shrink-0 text-muted-foreground tabular-nums">Row {result.sheetRow}</span>
+                <span className="w-20 shrink-0 text-muted-foreground tabular-nums">{result.where ?? `Row ${result.sheetRow}`}</span>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">{result.title}</p>
                   <p className={cn(tab === "attention" ? "text-destructive" : "text-muted-foreground")}>{result.summary}</p>

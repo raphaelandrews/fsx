@@ -16,12 +16,12 @@ const serverDir = join(distDir, "server");
 // Bundles keep dynamic import() calls that Miniflare cannot statically follow,
 // so every module is listed up front (the same as Wrangler's no_bundle mode).
 function serverModules() {
+  const assets = readdirSync(join(serverDir, "assets"));
   return [
-    "index.js",
-    ...readdirSync(join(serverDir, "assets"))
-      .filter((file) => file.endsWith(".js"))
-      .map((file) => `assets/${file}`),
-  ].map((file) => ({ type: "ESModule" as const, path: join(serverDir, file) }));
+    { type: "ESModule" as const, path: join(serverDir, "index.js") },
+    ...assets.filter((file) => file.endsWith(".js")).map((file) => ({ type: "ESModule" as const, path: join(serverDir, "assets", file) })),
+    ...assets.filter((file) => file.endsWith(".wasm")).map((file) => ({ type: "CompiledWasm" as const, path: join(serverDir, "assets", file) })),
+  ];
 }
 
 const productionCounts = (): SyntheticCounts =>
@@ -82,7 +82,7 @@ export async function startWorker(options: {
 async function seedFixtureRows(db: D1Database) {
   await db.batch([
     db.prepare(
-      "INSERT INTO players (id, name, normalized_name, sex, active, rapid, blitz, classic, birth_date) VALUES (?, ?, 'jogadora teste', 'female', 1, 1800, 1700, 1750, '2012-03-04')",
+      "INSERT INTO players (id, name, normalized_name, sex, active, rapid, blitz, classic, birth_year) VALUES (?, ?, 'jogadora teste', 'female', 1, 1800, 1700, 1750, 2012)",
     ).bind(PLAYER.id, PLAYER.name),
     db.prepare(
       "INSERT INTO posts (id, title, slug, content, published) VALUES (1, ?, ?, 'Conteúdo da notícia.', 1)",
@@ -101,7 +101,11 @@ async function seedFixtureRows(db: D1Database) {
     db.prepare(
       "INSERT INTO circuit_podiums (player_id, circuit_phase_id, category, place, points) VALUES (?, 1, 'Sub 18 Feminino', 1, 10)",
     ).bind(PLAYER.id),
-    db.prepare("INSERT INTO events (id, name, start_date) VALUES (1, 'Evento Fixture', '2099-01-01')"),
+    db.prepare(
+      `INSERT INTO ranking_snapshots (player_id, rating_type, position, rating, snapshot_at)
+       VALUES (?, 'rapid', 3, 1790, '2026-03-02 10:00:00.000'), (?, 'rapid', 2, 1800, '2026-04-02 10:00:00.000')`,
+    ).bind(PLAYER.id, PLAYER.id),
+    db.prepare("INSERT INTO events (id, name, start_date) VALUES (1, 'Evento Fixture', strftime('%Y', 'now') || '-12-30')"),
     db.prepare("INSERT INTO link_groups (id, label, event_id) VALUES (1, 'Links úteis', NULL)"),
     db.prepare(
       "INSERT INTO links (label, href, icon, type, sort_order, link_group_id) VALUES ('CBX', 'https://www.cbx.org.br', 'link', 'link', 0, 1)",

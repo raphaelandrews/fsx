@@ -13,6 +13,7 @@ import {
   NewsIcon,
   Route01Icon,
   SchoolIcon,
+  CheckmarkBadge01Icon,
   User02Icon,
   UserGroupIcon,
 } from "@hugeicons/core-free-icons";
@@ -87,6 +88,7 @@ function RouteComponent() {
       tone: "text-emerald-500",
       items: [
         { title: "Players", to: "/dashboard/players", icon: UserGroupIcon, description: "Manage athletes.", count: stats.players, tag: "Players", statusTone: "text-emerald-500" },
+        { title: "Update requests", to: "/dashboard/update-requests", icon: CheckmarkBadge01Icon, description: "Corrections sent by players, waiting for review.", count: stats.pendingRequests, tag: "Players", statusTone: "text-emerald-500" },
         { title: "Clubs", to: "/dashboard/clubs", icon: User02Icon, description: "Member clubs.", count: stats.clubs, tag: "Players", statusTone: "text-emerald-500" },
         { title: "Titles", to: "/dashboard/titles", icon: Award01Icon, description: "Chess titles.", tag: "Players", statusTone: "text-emerald-500" },
       ],

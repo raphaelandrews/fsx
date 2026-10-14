@@ -20,15 +20,16 @@ describe("swissManager.list", () => {
       const db = createDb(binding);
       const [club] = await db.insert(clubs).values({ name: "Clube Suíço" }).returning();
       await db.insert(players).values([
-        { name: "Ana Rápida", normalizedName: "ana rapida", sex: "female", birthDate: "2010-04-02", rapid: 1900, clubId: club!.id },
+        { name: "Ana Rápida", normalizedName: "ana rapida", sex: "female", birthYear: 2010, rapid: 1900, clubId: club!.id },
         { name: "Beto", normalizedName: "beto", sex: "male", rapid: 1500 },
       ]);
 
       const anonymous = callerAs(appRouter.createCaller, db, null);
       expect(await anonymous.swissManager.list()).toEqual([
-        expect.objectContaining({ name: "Ana Rápida", sex: "female", birthDate: "2010-04-02", rapid: 1900, club: { id: club!.id, name: "Clube Suíço" } }),
-        expect.objectContaining({ name: "Beto", birthDate: null, club: null }),
+        expect.objectContaining({ name: "Ana Rápida", sex: "female", birthYear: 2010, rapid: 1900, club: { id: club!.id, name: "Clube Suíço" } }),
+        expect.objectContaining({ name: "Beto", birthYear: null, club: null }),
       ]);
+      expect(JSON.stringify(await anonymous.swissManager.list())).not.toContain("birthDate");
       expect(getProcedureCachePolicy("/api/trpc/swissManager.list")).toEqual({ classification: "public", ttlSeconds: 300 });
     } finally {
       await miniflare.dispose();

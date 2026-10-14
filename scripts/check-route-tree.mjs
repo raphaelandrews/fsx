@@ -43,13 +43,16 @@ const SITEMAP_EXCLUDED = new Map([
   ["/login", "admin sign-in"],
   ["/$", "catch-all not-found page"],
   ["/swiss-manager", "noindex export tool, reached by direct link"],
+  ["/atualizar-cadastro", "noindex utility form, reached from the header"],
+  ["/ratings/lista/$data", "archived rating lists, noindex and reached from the archive index"],
+  ["/comparar", "noindex: every pair of players is user-generated, linked from each profile"],
   ["/recordes", "permanent redirect to /estatisticas"],
   ["/jogadores/$id/temporada/$ano", "season recaps, linked from each profile, which is the page to index"],
 ]);
 
 function urlPathOf(file) {
   const relativePath = relative(routesDirectory, file).replaceAll("\\", "/");
-  if (relativePath.startsWith("_auth/") || relativePath.startsWith("api/") || relativePath.startsWith("sitemap")) {
+  if (relativePath.startsWith("_auth/") || relativePath.startsWith("api/") || relativePath.startsWith("sitemap") || relativePath.startsWith("rss")) {
     return null;
   }
   const withoutExtension = relativePath.slice(0, -extname(relativePath).length);

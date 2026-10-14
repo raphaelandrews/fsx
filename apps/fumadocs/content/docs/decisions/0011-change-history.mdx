@@ -1,0 +1,37 @@
+---
+title: "ADR 0011: Change History"
+description: Admin changes to players, tournaments, and podiums are recorded after the change, kept for two years.
+---
+
+- Status: Accepted
+- Date: 2026-10-14
+
+## Context
+
+Admin edits overwrite rows. After a wrong edit or a bulk action there was no
+way to see what a value used to be. The rating history already records rating
+changes from tournaments and is deliberately not part of this.
+
+## Decision
+
+- A `change_log` table stores actor, entity (player, tournament, podium), record
+  id, a label, the action, the procedure, and a JSON `{ field: [before, after] }`.
+  It has no foreign keys, so a deleted record's history outlives it.
+- It is written by a middleware on `adminProcedure` for an allowlist of
+  mutations (`services/change-log.ts`). The middleware reads the affected rows
+  before the call and after it, and stores only the fields that changed.
+  Procedures are untouched; adding a mutation to the allowlist is one entry.
+- The entry is written **after** the change, in its own batch, not in the
+  change's batch. D1 has no interactive transactions and the allowlisted
+  mutations are single statements or service calls with their own atomicity.
+  A failure to record is logged as an error and never blocks or undoes the
+  change.
+- Retention is two years, enforced by deleting old rows in the same batch as
+  every write, so no scheduled job exists.
+
+## Consequences
+
+A crash between the change and its entry loses that entry; the change stays.
+Each tracked mutation costs two extra reads and one write. Rating results,
+merges' moved history, and other entities (clubs, titles, posts) are not
+covered; add them to the allowlist when they need it.

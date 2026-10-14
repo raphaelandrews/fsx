@@ -14,7 +14,7 @@ are `snake_case` in SQL and `camelCase` in Drizzle. Every table has an integer
 - **Player** (`players`): a registered chess player. Holds the three FSX
   ratings (`blitz`, `rapid`, `classic`, default 1900, range 0–4000), `active`
   (only active players appear in rankings), `verified`, optional `nickname`
-  (unique), `cbx_id` and `fide_id` (unique), `birth_date` (`YYYY-MM-DD`), `sex`
+  (unique), `cbx_id` and `fide_id` (unique), `birth_year` (integer; the full date is never stored), `sex`
   (`male` or `female`), photo, club, and location. `normalized_name` is the
   name lowercased without accents, used for search; the API keeps it in sync.
 - **Club** (`clubs`): a chess club or school, with an optional logo (uploaded to R2 or an external URL). Schools
@@ -286,11 +286,9 @@ modality:
 
 | Data | Public | Admin only |
 | ---- | ------ | ---------- |
-| Players | name, nickname, ratings, photo, club, location, titles, roles, podiums, rating history, FSX/CBX/FIDE IDs, `active`, `verified` | `birth_date`, `sex` (used for filters but never returned), `description`, inactive players in rankings |
+| Players | name, nickname, ratings, photo, club, location, titles, roles, podiums, rating history, FSX/CBX/FIDE IDs, `active`, `verified` | `sex` (used for filters but never returned), `description`, inactive players in rankings |
 | Posts | published posts | drafts |
 | Everything else | yes | — |
 | Auth, counts, cache status | — | yes |
 
-Age-group and sex filters on `/ratings` run in SQL, so birth dates never leave
-the server. The Swiss Manager export is the only bulk output with birth dates;
-it is public by the federation's decision. See [Governance and privacy](/operations/governance-and-privacy).
+Only the birth year is stored. The public API and the Swiss Manager export carry it (the export writes it as `YYYY-00-00`, which Swiss Manager requires); age-group and sex filters on `/ratings` run in SQL. See [Governance and privacy](/operations/governance-and-privacy).

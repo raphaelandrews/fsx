@@ -19,6 +19,29 @@ export function CircuitStatus({ circuit }: { circuit: Circuit }) {
   );
 }
 
+/** The stages of the season, each a link to its tournament page. */
+export function CircuitStages({ circuit }: { circuit: Circuit }) {
+  const stages = [...circuit.circuitPhases]
+    .filter((phase) => phase.tournament)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+  if (stages.length === 0) return null;
+
+  return (
+    <nav aria-label="Etapas" className="mb-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-base">
+      {stages.map((phase, index) => (
+        <Link
+          key={phase.id}
+          to="/torneios/$id"
+          params={{ id: phase.tournament!.id }}
+          className="link-inline"
+        >
+          {index + 1}ª etapa: {phase.tournament!.name}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 export function CircuitChampions({ circuit }: { circuit: Circuit }) {
   if (!circuit.finishedAt || circuit.circuitFinalPodiums.length === 0) return null;
 

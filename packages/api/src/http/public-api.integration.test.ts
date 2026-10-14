@@ -59,7 +59,7 @@ beforeAll(async () => {
   const [club] = await db.insert(clubs).values({ name: "Clube Público" }).returning({ id: clubs.id });
   clubId = club!.id;
   const inserted = await db.insert(players).values([
-    { name: "Ana Ativa", normalizedName: "ana ativa", active: true, classic: 2010, rapid: 1990, blitz: 1950, birthDate: "2010-04-17", cbxId: 123, clubId },
+    { name: "Ana Ativa", normalizedName: "ana ativa", active: true, classic: 2010, rapid: 1990, blitz: 1950, birthYear: 2010, cbxId: 123, clubId },
     { name: "Bruno Inativo", normalizedName: "bruno inativo", active: false },
     { name: "Caio Sem Dados", normalizedName: "caio sem dados", active: true },
   ]).returning({ id: players.id });

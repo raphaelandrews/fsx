@@ -24,7 +24,7 @@ function path(overrides: Partial<StatsInput> & Partial<Omit<TitlePathInput, "sta
     stats: playerStats(input),
     podiums: input.tournamentPodiums,
     sex: overrides.sex ?? "male",
-    birthDate: overrides.birthDate ?? null,
+    birthYear: overrides.birthYear ?? null,
     heldShortNames: overrides.heldShortNames ?? [],
     year: overrides.year ?? 2026,
   });
@@ -69,8 +69,8 @@ describe("titlePath", () => {
   });
 
   test("youth titles: hidden past the age limit, unknown without a birth date", () => {
-    expect(path({ birthDate: "2000-01-01" }).map((goal) => goal.shortName)).not.toContain("MMS");
-    const mms = path({ birthDate: "2014-03-01" }).find((goal) => goal.shortName === "MMS")!;
+    expect(path({ birthYear: 2000 }).map((goal) => goal.shortName)).not.toContain("MMS");
+    const mms = path({ birthYear: 2014 }).find((goal) => goal.shortName === "MMS")!;
     expect(mms.all[1]).toMatchObject({ current: 12, met: true });
     const unknown = path().find((goal) => goal.shortName === "MJS")!;
     expect(unknown.all[1]!.met).toBeNull();

@@ -13,7 +13,7 @@ The database is Cloudflare D1 (SQLite). The schema is defined with Drizzle in
 - Primary keys are `integer` autoincrement `id`.
 - Timestamps are `text` in SQLite's `CURRENT_TIMESTAMP` format (UTC);
   `updated_at` is refreshed by Drizzle on update.
-- Dates without time (`birth_date`, `tournaments.date`, `events.start_date`,
+- Dates without time (`tournaments.date`, `events.start_date`,
   cup dates) are `YYYY-MM-DD` text.
 - Booleans are `integer` with Drizzle `mode: "boolean"`.
 - Enumerations are `text` with a `CHECK` constraint, mirrored by a Zod enum in
@@ -23,9 +23,11 @@ The database is Cloudflare D1 (SQLite). The schema is defined with Drizzle in
 
 | Table | Unique | Check |
 | ----- | ------ | ----- |
-| `players` | `nickname`, `cbx_id`, `fide_id` | ratings 0–4000; `sex` in `male`, `female` |
+| `players` | `nickname`, `cbx_id`, `fide_id` | `birth_year` is an integer (the full birth date is never stored); ratings 0–4000; `sex` in `male`, `female` |
 | `players_to_titles`, `_roles`, `_norms`, `_insignias` | `(player, other)` | — |
 | `players_to_tournaments` | `(player_id, tournament_id)` | `old_rating` 0–4000; `variation` −4000–4000; `rating_type` in `blitz`, `rapid`, `classic` |
+| `player_update_requests` | — | `status` in `pending`, `approved`, `rejected`; a player's proposed `birth_year`, club, location, `cbx_id`, `fide_id` (null = unchanged), and the `photo_key` of a photo waiting under `pending/`. No contact details are collected. Deleted with its player |
+| `change_log` | — | `entity` in `player`, `tournament`, `podium`; `action` in `create`, `update`, `delete`. No foreign keys: a deleted record's history stays. Entries older than 2 years are deleted on the next write |
 | `ranking_snapshots` | — | `rating_type` in `blitz`, `rapid`, `classic`; `position` ≥ 1 |
 | `computed_results` | `key` | Stored JSON results and the `data_changed` marker ([ADR 0008](/decisions/0008-stored-computations)) |
 | `tournament_podiums` | `(player_id, tournament_id)` for overall podiums; `(player_id, tournament_id, category)` for category podiums (two partial indexes, since a `NULL` category never collides) | `place` 1–100000; `category` null (overall) or a known category |
@@ -59,13 +61,13 @@ Foreign keys and their `ON DELETE` actions are summarized in
 Indexes follow the public queries:
 
 - `players`: `active`, `sex`, `club_id`, `location_id`, `name`, each rating,
-  `(active, rating)` for each rating, and `(active, birth_date)` for age groups.
+  `(active, rating)` for each rating, and `(active, birth_year)` for age groups.
 - `players_to_tournaments (tournament_id)`, `tournaments (championship_id)`, `tournaments (date)` (month highlight), `circuit_phases (tournament_id)`.
 - Covering indexes for the hot player scans: `players (active, sex, classic, rapid, blitz)` (ranking counts) and `players (normalized_name, active, name, rapid)` (name search scans the index, not the wide rows).
 - `circuit_phases (circuit_id, sort_order)`, `circuit_podiums (circuit_phase_id)` and `(circuit_id)`.
-- `ranking_snapshots (player_id, rating_type, snapshot_at)` and `(rating_type, snapshot_at)`, `announcements (player_id)`.
+- `ranking_snapshots (player_id, rating_type, snapshot_at)` and `(rating_type, snapshot_at)`, `change_log (entity, record_id, created_at)` and `(created_at)`, `announcements (player_id)`, `player_update_requests (status, created_at)` and `(player_id, status)`.
 - `tournament_podiums (tournament_id, place)`, `circuit_final_podiums (player_id)`, `cup_games (cup_match_id, game_number)`.
-- `events (start_date)`, `links (link_group_id)`.
+- `events (start_date)`, `events (tournament_id)`, `links (link_group_id)`.
 - `tv_sergipe (age_group, sex, modality)` and `(club_id, age_group)`.
 
 Before adding an index, compare plans on production-sized data

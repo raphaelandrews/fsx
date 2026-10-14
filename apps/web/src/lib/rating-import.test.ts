@@ -23,13 +23,15 @@ describe("parseImportRow", () => {
 
   test("parses a player update", () => {
     const row = parseImportRow(["12", " Ana ", "", "", ""], headers("id", "name", "birth", "sex", "clubid"));
-    expect(row).toMatchObject({ id: 12, name: "Ana", birth: "", sex: undefined, clubId: undefined });
+    expect(row).toMatchObject({ id: 12, name: "Ana", birthYear: undefined, sex: undefined, clubId: undefined });
     expect(row.error).toBeUndefined();
   });
 
-  test("converts Brazilian dates and the boolean sex flag", () => {
+  test("keeps only the year of a date or a year, and the boolean sex flag", () => {
     const row = parseImportRow(["1", "05/03/2010", "F", "7"], headers("id", "birth", "sex", "clubid"));
-    expect(row).toMatchObject({ birth: "2010-03-05", sex: "female", clubId: 7 });
+    expect(row).toMatchObject({ birthYear: 2010, sex: "female", clubId: 7 });
+    expect(parseImportRow(["1", "2011"], headers("id", "birth")).birthYear).toBe(2011);
+    expect(parseImportRow(["1", "ontem"], headers("id", "birth")).error).toContain("Invalid birth");
     expect(parseImportRow(["1", "T"], headers("id", "sex")).sex).toBe("male");
   });
 

@@ -1,3 +1,4 @@
+import { ChangeHistory } from "@/components/admin/change-history";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
@@ -102,6 +103,7 @@ function RouteComponent() {
       />
       <TournamentPodiums tournamentId={id} />
       <TournamentRatingResults tournamentId={id} />
+      <ChangeHistory entity="tournament" recordId={id} />
     </>
   );
 }

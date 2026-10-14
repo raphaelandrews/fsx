@@ -69,14 +69,18 @@ export async function seedSyntheticData(db: D1Database, counts: SyntheticCounts 
     `INSERT INTO titles (id, name, short_name, type) ${series(c.titles)} SELECT i, 'Título ' || i, 'T' || i, CASE WHEN i % 2 THEN 'internal' ELSE 'external' END FROM n`,
     `INSERT INTO roles (id, name, short_name, type) ${series(c.roles)} SELECT i, 'Cargo ' || i, 'R' || i, CASE i % 3 WHEN 0 THEN 'management' WHEN 1 THEN 'referee' ELSE 'teacher' END FROM n`,
     `INSERT INTO championships (id, name) ${series(c.championships)} SELECT i, 'Campeonato ' || i FROM n`,
-    `INSERT INTO players (id, name, normalized_name, sex, active, blitz, rapid, classic, birth_date, club_id, location_id)
+    `INSERT INTO players (id, name, normalized_name, sex, active, blitz, rapid, classic, birth_year, club_id, location_id)
       ${series(c.players)} SELECT i, 'Jogador Sintético ' || i, 'jogador sintetico ' || i,
         CASE WHEN i % 3 = 0 THEN 'female' ELSE 'male' END,
         CASE WHEN i <= ${c.activePlayers} THEN 1 ELSE 0 END,
         1000 + (i * 37) % 1500, 1000 + (i * 53) % 1500, 1000 + (i * 71) % 1500,
-        printf('%04d-%02d-%02d', 1950 + (i * 13) % 70, 1 + (i * 7) % 12, 1 + (i * 11) % 28),
+        1950 + (i * 13) % 70,
         ${pick("i * 7", c.clubs)}, ${pick("i * 5", c.locations)}
       FROM n`,
+    ...["2026-03-02", "2026-04-02"].map(
+      (day) => `INSERT INTO ranking_snapshots (player_id, rating_type, position, rating, snapshot_at)
+        SELECT id, 'rapid', RANK() OVER (ORDER BY rapid DESC), rapid, '${day} 10:00:00.000' FROM players WHERE active = 1`,
+    ),
     `INSERT INTO tournaments (id, name, date, rating_type, championship_id) ${series(c.tournaments)}
       SELECT i, 'Torneio ' || i, printf('%04d-%02d-%02d', 2015 + i % 11, 1 + i % 12, 1 + i % 28),
         CASE i % 3 WHEN 0 THEN 'blitz' WHEN 1 THEN 'rapid' ELSE 'classic' END,

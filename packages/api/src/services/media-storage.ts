@@ -25,6 +25,14 @@ export async function deleteMediaUrl(url: string | null | undefined): Promise<vo
   } catch {}
 }
 
+/** Best-effort removal of a photo waiting under `pending/` for an update request. */
+export async function deletePendingPhoto(key: string | null | undefined): Promise<void> {
+  if (!key) return;
+  try {
+    await env.IMAGES.delete(key);
+  } catch {}
+}
+
 /** Removes the previous image after an update replaced or cleared it; `next === undefined` means the field was untouched. */
 export async function deleteReplacedMedia(
   previous: string | null | undefined,

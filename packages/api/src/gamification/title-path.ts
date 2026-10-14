@@ -31,7 +31,7 @@ export interface TitlePathInput {
   stats: PlayerStats;
   podiums: StatsInput["tournamentPodiums"];
   sex: string;
-  birthDate: string | null;
+  birthYear: number | null;
   heldShortNames: string[];
   year: number;
 }
@@ -47,7 +47,7 @@ const count = (current: number, target: number, label: string): TitleCheck => ({
   met: current >= target,
 });
 
-export function titlePath({ stats, podiums, sex, birthDate, heldShortNames, year }: TitlePathInput): TitleGoal[] {
+export function titlePath({ stats, podiums, sex, birthYear, heldShortNames, year }: TitlePathInput): TitleGoal[] {
   const peak = Math.max(0, ...Object.values(stats.formats).map((format) => format?.peak.rating ?? 0));
   const listed = podiums.filter(
     (podium) => podium.category === null && podium.tournament.championshipId !== null && LISTED_CHAMPIONSHIPS.has(podium.tournament.championshipId),
@@ -55,7 +55,7 @@ export function titlePath({ stats, podiums, sex, birthDate, heldShortNames, year
   const topThree = listed.filter((podium) => podium.place <= 3).length;
   const wins = listed.filter((podium) => podium.place === 1).length;
   const absolutoWins = listed.filter((podium) => podium.place === 1 && podium.tournament.championshipId === ABSOLUTO).length;
-  const age = birthDate ? year - Number(birthDate.slice(0, 4)) : null;
+  const age = birthYear ? year - birthYear : null;
 
   const rating = (target: number) => count(peak, target, `Rating ${target} em qualquer ritmo`);
   const ageAtMost = (limit: number): TitleCheck => ({

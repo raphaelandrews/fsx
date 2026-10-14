@@ -7,7 +7,8 @@ import { Label } from "@fsx/ui/components/label";
 
 import { NATIVE_SELECT_CLASS } from "@/components/admin/entity-form";
 import { AdminForm, FormActions, FormSection } from "@/components/admin/form-layout";
-import { DatePicker } from "@/components/form/date-picker";
+import { federationYear } from "@fsx/api/lib/dates";
+import { DigitsInput } from "@/components/form/digits-input";
 import { FormField } from "@/components/form/form-field";
 import { ImageUpload } from "@/components/media/image-upload";
 import { SearchableSelect } from "@/components/form/searchable-select";
@@ -21,7 +22,7 @@ const RATING_TYPES: RatingType[] = ["classic", "rapid", "blitz"];
 export interface PlayerValues {
   name: string;
   nickname: string;
-  birthDate: string;
+  birthYear: string;
   sex: "male" | "female";
   imageUrl: string;
   clubId: number | null;
@@ -192,18 +193,24 @@ export function PlayerForm({
           )}
         </form.Field>
         <div className="grid gap-4 sm:grid-cols-2">
-          <form.Field name="birthDate">
+          <form.Field
+            name="birthYear"
+            validators={{
+              onDynamic: ({ value }) =>
+                value && (!/^\d{4}$/.test(value.trim()) || Number(value) < 1900 || Number(value) > federationYear())
+                  ? `Birth year must be four digits, from 1900 to ${federationYear()}`
+                  : undefined,
+            }}
+          >
             {(f) => (
-              <FormField
-                label="Birth date"
-                htmlFor="player-birthDate"
-                error={fieldError(f, error)}
-              >
-                <DatePicker
-                  id="player-birthDate"
+              <FormField label="Birth year" htmlFor="player-birthYear" hint="Only the year is stored." error={fieldError(f, error)}>
+                <DigitsInput
+                  id="player-birthYear"
+                  maxLength={4}
+                  placeholder="2012"
                   value={f.state.value}
-                  onChange={f.handleChange}
-                  placeholder="Select a date"
+                  onBlur={f.handleBlur}
+                  onValueChange={f.handleChange}
                 />
               </FormField>
             )}

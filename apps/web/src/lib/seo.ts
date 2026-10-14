@@ -152,6 +152,25 @@ export function websiteJsonLd(): Record<string, unknown> {
   };
 }
 
+export function tournamentJsonLd(options: {
+  name: string;
+  path: string;
+  startDate?: string | null;
+  description?: string;
+}): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    name: options.name,
+    description: options.description,
+    sport: "Chess",
+    startDate: options.startDate ?? undefined,
+    url: absoluteUrl(options.path),
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    organizer: { "@type": "SportsOrganization", name: SITE_NAME, url: SITE_URL },
+  };
+}
+
 export function breadcrumbJsonLd(items: { name: string; path: string }[]): Record<string, unknown> {
   return {
     "@context": "https://schema.org",

@@ -9,6 +9,8 @@ export const posts = sqliteTable("posts", {
 	content: text("content").notNull(),
 	slug: text("slug").unique().notNull(),
 	published: integer("published", { mode: "boolean" }).default(false).notNull(),
+	// UTC "YYYY-MM-DD HH:MM:SS" like CURRENT_TIMESTAMP; a published post stays hidden until then.
+	publishAt: text("publish_at"),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 })

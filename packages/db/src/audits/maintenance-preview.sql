@@ -22,14 +22,14 @@ WHERE p.active = 1 AND p.created_at < date('now', '-3 years')
 ORDER BY p.name;
 
 -- Youth titles that would be removed, and those that cannot be checked.
-SELECT CASE WHEN p.birth_date IS NULL THEN 'cannot expire: no birth date' ELSE 'title would be removed' END AS change,
-  p.id, p.name, t.short_name AS title, p.birth_date
+SELECT CASE WHEN p.birth_year IS NULL THEN 'cannot expire: no birth year' ELSE 'title would be removed' END AS change,
+  p.id, p.name, t.short_name AS title, p.birth_year
 FROM players_to_titles pt
 JOIN titles t ON t.id = pt.title_id
 JOIN players p ON p.id = pt.player_id
 WHERE t.loses_at_age IS NOT NULL
-  AND (p.birth_date IS NULL
-    OR CAST(substr(p.birth_date, 1, 4) AS INTEGER) + t.loses_at_age <= CAST(strftime('%Y', 'now') AS INTEGER))
+  AND (p.birth_year IS NULL
+    OR p.birth_year + t.loses_at_age <= CAST(strftime('%Y', 'now') AS INTEGER))
 ORDER BY change, p.name;
 
 -- The title settings the migrations filled in by name; check them before the

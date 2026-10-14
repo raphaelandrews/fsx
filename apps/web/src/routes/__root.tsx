@@ -88,6 +88,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
         { rel: "manifest", href: "/site.webmanifest" },
         { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
+        { rel: "alternate", type: "application/rss+xml", title: "FSX: notícias e comunicados", href: "/rss.xml" },
       ],
       scripts,
     };

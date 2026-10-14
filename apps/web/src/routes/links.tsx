@@ -3,6 +3,7 @@ import { ArrowUpRight01Icon, FoldersIcon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
+import { orderedEventLinks } from "@/components/events/event-links";
 import { SectionHeading } from "@/components/section-heading";
 import { FlickeringGrid } from "@/components/links/flickering-grid";
 import { Footer } from "@/components/footer";
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/links")({
       ]),
     }),
   loader: ({ context }) =>
-    context.queryClient.ensureQueryData(context.trpc.links.list.queryOptions()),
+    context.queryClient.ensureQueryData(context.trpc.links.page.queryOptions()),
   component: RouteComponent,
 });
 
@@ -70,7 +71,7 @@ function LinkItem({ href, label, icon }: { href: string | null; label: string; i
 
 function RouteComponent() {
   const trpc = useTRPC();
-  const { data: linkGroups = [] } = useSuspenseQuery(trpc.links.list.queryOptions());
+  const { data } = useSuspenseQuery(trpc.links.page.queryOptions());
 
   return (
     <div className="relative flex min-h-dvh flex-col overflow-x-hidden">
@@ -93,20 +94,31 @@ function RouteComponent() {
               <Logo className="h-5 text-foreground" />
             </div>
 
-            {linkGroups
-              .filter((item) => (item.links?.length ?? 0) > 0)
-              .map((item) => (
-                <section className="mb-6" key={item.id}>
-                  <SectionHeading icon={FoldersIcon} label={item.event?.name ?? item.label} />
-                  <ul className="flex flex-col">
-                    {item.links?.map((link) => (
-                      <li key={link.id} className="m-1">
-                        <LinkItem href={link.href} icon={link.icon} label={link.label} />
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ))}
+            {data.groups.map((group) => (
+              <section className="mb-6" key={group.id}>
+                <SectionHeading icon={FoldersIcon} label={group.label} />
+                <ul className="flex flex-col">
+                  {group.links.map((link) => (
+                    <li key={link.id} className="m-1">
+                      <LinkItem href={link.href} icon={link.icon} label={link.label} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+
+            {data.events.map((event) => (
+              <section className="mb-6" key={`event-${event.id}`}>
+                <SectionHeading icon={FoldersIcon} label={event.name} />
+                <ul className="flex flex-col">
+                  {orderedEventLinks(event.linkGroup?.links).map((link) => (
+                    <li key={link.id} className="m-1">
+                      <LinkItem href={link.href} icon={link.icon} label={link.label} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
           </div>
         </section>
       </main>

@@ -18,6 +18,7 @@ import {
   Download01Icon,
   Database01Icon,
   User02Icon,
+  CheckmarkBadge01Icon,
 } from "@hugeicons/core-free-icons";
 
 export type AdminNavItem = {
@@ -25,6 +26,8 @@ export type AdminNavItem = {
   to: string;
   icon: ComponentProps<typeof HugeiconsIcon>["icon"];
   items?: AdminNavItem[];
+  /** Utilities shown below a divider, after the main groups. */
+  secondary?: boolean;
 };
 
 export const ADMIN_NAV: AdminNavItem[] = [
@@ -58,6 +61,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
     icon: User02Icon,
     items: [
       { label: "Players", to: "/dashboard/players", icon: User02Icon },
+      { label: "Update requests", to: "/dashboard/update-requests", icon: CheckmarkBadge01Icon },
       { label: "Titles", to: "/dashboard/titles", icon: Award01Icon },
       { label: "Roles", to: "/dashboard/roles", icon: UserGroupIcon },
       { label: "Norms", to: "/dashboard/norms", icon: File01Icon },
@@ -76,10 +80,12 @@ export const ADMIN_NAV: AdminNavItem[] = [
   },
   {
     label: "System",
+    secondary: true,
     to: "/dashboard/user",
     icon: Database01Icon,
     items: [
       { label: "Swiss Manager", to: "/dashboard/swiss-manager", icon: Download01Icon },
+      { label: "History", to: "/dashboard/history", icon: File01Icon },
       { label: "Cache", to: "/dashboard/cache", icon: Database01Icon },
       { label: "Backup", to: "/dashboard/backup", icon: Download01Icon },
       { label: "Account", to: "/dashboard/user", icon: User02Icon },

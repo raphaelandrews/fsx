@@ -9,6 +9,7 @@ import { cupGames } from "@fsx/db/schema/cup-games";
 import { cupMatches } from "@fsx/db/schema/cup-matches";
 import { cupPlayers } from "@fsx/db/schema/cup-players";
 import { defendingChampions } from "@fsx/db/schema/defending-champions";
+import { playerUpdateRequests } from "@fsx/db/schema/player-update-requests";
 import { players } from "@fsx/db/schema/players";
 import { playersToInsignias } from "@fsx/db/schema/players-to-insignias";
 import { playersToNorms } from "@fsx/db/schema/players-to-norms";
@@ -21,11 +22,11 @@ import { tvSergipe } from "@fsx/db/schema/tv-sergipe";
 import type { createDb } from "@fsx/db";
 
 import { RATING_TYPES, type RatingType } from "../rating-types";
-import { deleteMediaUrl } from "./media-storage";
+import { deleteMediaUrl, deletePendingPhoto } from "./media-storage";
 
 type Database = ReturnType<typeof createDb>;
 
-const PROFILE_FIELDS = ["nickname", "imageUrl", "cbxId", "fideId", "birthDate", "clubId", "locationId", "description"] as const;
+const PROFILE_FIELDS = ["nickname", "imageUrl", "cbxId", "fideId", "birthYear", "clubId", "locationId", "description"] as const;
 
 const key = (...parts: unknown[]) => parts.join("|");
 
@@ -158,6 +159,12 @@ export async function mergePlayers(db: Database, input: { sourceId: number; targ
       ));
   };
 
+  // The source's update requests go with it (cascade), so the photos waiting for them must not be left behind.
+  const sourcePhotos = await db
+    .select({ photoKey: playerUpdateRequests.photoKey })
+    .from(playerUpdateRequests)
+    .where(eq(playerUpdateRequests.playerId, sourceId));
+
   await db.batch([
     db.update(players).set({ nickname: null, cbxId: null, fideId: null }).where(eq(players.id, sourceId)),
     db.update(players).set({
@@ -187,6 +194,7 @@ export async function mergePlayers(db: Database, input: { sourceId: number; targ
     db.delete(players).where(eq(players.id, sourceId)),
   ]);
 
+  await Promise.all(sourcePhotos.map((row) => deletePendingPhoto(row.photoKey)));
   if (source.imageUrl && source.imageUrl !== (inherited.imageUrl ?? target.imageUrl))
     await deleteMediaUrl(source.imageUrl);
 

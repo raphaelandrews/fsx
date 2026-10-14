@@ -1,0 +1,47 @@
+---
+title: "ADR 0009: Workers Paid Plan"
+description: The site runs on the Workers Paid plan; what that allows, and which earlier free-plan decisions deliberately stay.
+---
+
+- Status: Accepted
+- Date: 2026-10-14
+
+## Context
+
+Several earlier decisions were sized for the Workers free plan: a CPU budget of
+10 ms per request, and D1's daily row-read and row-write allowances. The project
+moved to the Workers Paid plan, so the docs and comments that call those limits
+"current" are wrong, and some features that were ruled out for cost can be
+reconsidered.
+
+Check Cloudflare's pricing and limits pages before relying on an exact number
+here; they change.
+
+## Decision
+
+The plan changes what is *allowed*, not what the design *does*:
+
+| Area | Free plan | Paid plan | Effect on FSX |
+| ---- | --------- | --------- | ------------- |
+| CPU time per request | 10 ms | 30 s by default, configurable | Rendering share images and parsing large files in a request is possible. |
+| D1 usage | Daily read and write allowances | Larger monthly included usage | Public submissions (update requests) and a change log can write to D1 without competing with admin edits. |
+| Worker size | Smaller limit | Larger limit | Bundling a WASM image renderer and fonts is possible; `bun run check:bundle` still guards size. |
+
+What does **not** change:
+
+- [ADR 0008](/decisions/0008-stored-computations) stays. Recomputing every career on a
+  cache miss is still slower and reads far more rows than reading one stored row, and
+  it no longer risks failing at a CPU limit.
+- [ADR 0005](/decisions/0005-rate-limiting) stays. A limiter that wrote to D1 on
+  every request would still add a write per page view; the native binding costs
+  nothing.
+- The edge cache policy ([ADR 0003](/decisions/0003-edge-cache-consistency)), the
+  response size budgets, and the query cost measurements (`bun run measure`) stay.
+  A larger allowance is not a reason to read more rows than a page needs.
+
+## Consequences
+
+Work that was deferred only for CPU reasons is unblocked, starting with
+on-demand share images (see `IMPLEMENTATION.md`, Phase 6). New features still have to
+justify their D1 reads and writes with `bun run measure` and the integration tests, not
+with the plan's headroom.

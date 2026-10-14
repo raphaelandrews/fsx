@@ -43,7 +43,7 @@ export async function getPublicPlayers(db = createDb(env.DB)): Promise<PublicPla
 export async function getPublicPlayer(id: number, db = createDb(env.DB)): Promise<PublicPlayerDetail | undefined> {
   const row = await db.query.players.findFirst({
     where: and(eq(players.id, id), eq(players.active, true)),
-    columns: { id: true, name: true, classic: true, rapid: true, blitz: true, birthDate: true },
+    columns: { id: true, name: true, classic: true, rapid: true, blitz: true, birthYear: true },
     with: {
       club: { columns: { id: true, name: true } },
       playersToTitles: {
@@ -54,11 +54,10 @@ export async function getPublicPlayer(id: number, db = createDb(env.DB)): Promis
     },
   });
   if (!row) return undefined;
-  const { birthDate, playersToTitles, club, ...ratings } = row;
-  const year = birthDate ? Number(birthDate.slice(0, 4)) : Number.NaN;
+  const { birthYear, playersToTitles, club, ...ratings } = row;
   return {
     ...ratings,
-    birthYear: Number.isInteger(year) ? year : null,
+    birthYear: birthYear ?? null,
     club: club ?? null,
     // FSX (internal) titles first, as on the profile page.
     titles: playersToTitles

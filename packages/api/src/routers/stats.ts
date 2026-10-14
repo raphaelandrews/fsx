@@ -6,6 +6,7 @@ import { circuits } from "@fsx/db/schema/circuits";
 import { clubs } from "@fsx/db/schema/clubs";
 import { events } from "@fsx/db/schema/events";
 import { players } from "@fsx/db/schema/players";
+import { playerUpdateRequests } from "@fsx/db/schema/player-update-requests";
 import { posts } from "@fsx/db/schema/posts";
 import { tournaments } from "@fsx/db/schema/tournaments";
 import { tvSergipe } from "@fsx/db/schema/tv-sergipe";
@@ -27,6 +28,7 @@ export const statsRouter = router({
         circuits: total(circuits),
         tvSergipe: total(tvSergipe),
         clubs: total(clubs),
+        pendingRequests: sql<number>`(select count(*) from ${playerUpdateRequests} where ${playerUpdateRequests.status} = 'pending')`,
       })
       .from(sql`(select 1)`);
     return counts!;

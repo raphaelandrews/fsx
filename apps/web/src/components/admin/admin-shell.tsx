@@ -1,20 +1,25 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@fsx/ui/components/sidebar";
 
 import { AdminSidebar, type SidebarUser } from "@/components/admin/admin-sidebar";
 import { findActiveNav } from "@/components/admin/admin-nav-data";
 
+// A gray canvas with a white sidebar on the left and the page as a white rounded panel, under a breadcrumb bar.
 export function AdminShell({ user, children }: { user?: SidebarUser; children: ReactNode }) {
   return (
-    <SidebarProvider style={{ "--sidebar-width-icon": "3.5rem" } as CSSProperties}>
+    <SidebarProvider
+      className="bg-muted"
+      style={{ "--sidebar-width": "16.5rem", "--sidebar-width-icon": "3.5rem", "--sidebar": "var(--background)" } as CSSProperties}
+    >
       <AdminSidebar user={user} />
-      <SidebarInset className="min-w-0 md:peer-data-[variant=inset]:rounded-4xl md:peer-data-[variant=inset]:shadow-none">
+      <SidebarInset className="min-w-0 bg-transparent">
         <AdminTopbar />
-        <AdminContent>{children}</AdminContent>
+        <div className="mb-6 flex min-h-0 flex-1 flex-col rounded-t-4xl bg-background md:mx-6 md:rounded-4xl">
+          <AdminContent>{children}</AdminContent>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
@@ -23,7 +28,7 @@ export function AdminShell({ user, children }: { user?: SidebarUser; children: R
 function AdminContent({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   return (
-    <div key={pathname} className="fade-in-0 mx-auto w-full max-w-[1120px] flex-1 animate-in px-4 pb-8 duration-150 sm:px-6">
+    <div key={pathname} className="fade-in-0 mx-auto w-full max-w-[1120px] flex-1 animate-in p-4 pb-8 duration-150 sm:p-6">
       {children}
     </div>
   );
@@ -34,26 +39,21 @@ function AdminTopbar() {
   const { group, item } = findActiveNav(pathname);
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 px-4 sm:px-6">
+    <header className="flex shrink-0 items-center gap-2 p-4 sm:p-6">
       <SidebarTrigger className="-ml-2 size-10 text-muted-foreground md:hidden" size="icon-lg" />
       {item ? (
-        <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-base">
+        <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2.5 font-medium text-base text-muted-foreground">
           {group && group.label !== item.label ? (
             <>
-              <span className="flex items-center gap-1.5 text-muted-foreground">
-                <HugeiconsIcon className="size-4" icon={group.icon} strokeWidth={2} />
+              <span className="flex items-center gap-2">
+                <HugeiconsIcon className="size-5 shrink-0" icon={group.icon} strokeWidth={2} />
                 {group.label}
               </span>
-              <HugeiconsIcon
-                aria-hidden
-                className="size-4 shrink-0 text-muted-foreground"
-                icon={ArrowRight01Icon}
-                strokeWidth={2}
-              />
+              <span aria-hidden>/</span>
             </>
           ) : null}
-          <span aria-current="page" className="flex min-w-0 items-center gap-1.5 font-semibold text-title">
-            <HugeiconsIcon className="size-4 shrink-0" icon={item.icon} strokeWidth={2} />
+          <span aria-current="page" className="flex min-w-0 items-center gap-2 text-title">
+            <HugeiconsIcon className="size-5 shrink-0" icon={item.icon} strokeWidth={2} />
             <span className="truncate">{item.label}</span>
           </span>
         </nav>

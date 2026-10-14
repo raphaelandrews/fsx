@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -39,7 +39,7 @@ import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 type SortBy = "classic" | "rapid" | "blitz";
 
 
-export const Route = createFileRoute("/_public/ratings")({
+export const Route = createFileRoute("/_public/ratings/")({
   validateSearch: ratingsSearchSchema,
   search: { middlewares: [stripSearchParams({ page: 1, ordenar: "rapid", local: [], clube: [], titulo: [], grupo: [] })] },
   loaderDeps: ({ search }) => ({
@@ -153,6 +153,16 @@ function RouteComponent() {
   return (
     <>
       <PageHeader icon={BarChartIcon} title="Ratings" />
+
+      <p className="mb-4 text-center text-muted-foreground text-sm">
+        <Link to="/ratings/lista" search={{ ritmo: search.ordenar }} className="link-inline">
+          Ver listas anteriores
+        </Link>
+        {" · "}
+        <Link to="/comparar" className="link-inline">
+          Comparar jogadores
+        </Link>
+      </p>
 
       {/* Rating tabs — drive which rating column is rendered below */}
       <Tabs

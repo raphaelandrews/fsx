@@ -23,7 +23,7 @@ async function expectNoSeriousViolations(page: Page, label: string) {
   expect(serious, `${label} accessibility violations`).toEqual([]);
 }
 
-const publicPages = ["/", "/ratings", "/noticias", `/noticias/${POST.slug}`, `/jogadores/${PLAYER.id}`, `/jogadores/${PLAYER.id}/temporada/2026`, "/comunicados", "/comunicados/1", "/titulados", "/membros", "/circuitos", "/campeoes", "/estatisticas", "/clubes", "/clubes/3", "/tv-sergipe", "/links", "/normas-tecnicas", "/sobre", "/swiss-manager", "/login"];
+const publicPages = ["/", "/ratings", "/comparar?a=1&b=2", "/ratings/lista", "/ratings/lista/2026-04-02", "/noticias", `/noticias/${POST.slug}`, `/jogadores/${PLAYER.id}`, `/jogadores/${PLAYER.id}/temporada/2026`, "/comunicados", "/comunicados/1", "/titulados", "/membros", "/circuitos", "/campeoes", "/torneios", "/torneios/1", "/calendario", "/estatisticas", "/clubes", "/clubes/3", "/tv-sergipe", "/links", "/normas-tecnicas", "/sobre", "/swiss-manager", "/atualizar-cadastro", "/login"];
 
 for (const path of publicPages) {
   test(`public page ${path} has no serious accessibility violations`, async ({ page }) => {
@@ -58,6 +58,9 @@ test.describe("dashboard", () => {
     "/dashboard/events/1",
     "/dashboard/links/1",
     "/dashboard/tv-sergipe/1",
+    "/dashboard/update-requests",
+    "/dashboard/history",
+    "/dashboard/post-preview/1",
     "/dashboard/backup",
     "/dashboard/cache",
     "/dashboard/swiss-manager",

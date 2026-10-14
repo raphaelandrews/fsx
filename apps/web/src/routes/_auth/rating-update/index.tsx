@@ -63,6 +63,8 @@ function RatingUpdatePage() {
           <ImportReview
             fileName={flow.fileName}
             plan={flow.plan}
+            draft={flow.draft}
+            podium={flow.podium}
             summary={flow.summary}
             onImport={() => void flow.start()}
             onCancel={flow.reset}

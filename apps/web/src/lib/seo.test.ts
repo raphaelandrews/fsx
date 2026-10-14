@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { articleJsonLd, buildSeo, personJsonLd, serializeJsonLd, stripMarkdown, truncate } from "./seo";
+import { articleJsonLd, buildSeo, personJsonLd, serializeJsonLd, stripMarkdown, tournamentJsonLd, truncate } from "./seo";
 
 describe("meta descriptions", () => {
   test("strip Markdown syntax before truncating", () => {
@@ -31,5 +31,13 @@ describe("JSON-LD serialization", () => {
     expect(scripts[0]!.children).not.toContain("<");
     expect(JSON.parse(scripts[0]!.children)).toEqual(JSON.parse(JSON.stringify(block)));
     expect(serializeJsonLd({ a: "<b>" })).toBe('{"a":"\\u003cb>"}');
+  });
+});
+
+describe("tournament structured data", () => {
+  test("describes a chess event with an absolute URL and omits a missing date", () => {
+    const dated = tournamentJsonLd({ name: "Aberto 2026", path: "/torneios/5", startDate: "2026-03-10" });
+    expect(dated).toMatchObject({ "@type": "SportsEvent", sport: "Chess", startDate: "2026-03-10", url: "https://www.fsx.org.br/torneios/5" });
+    expect(tournamentJsonLd({ name: "Sem data", path: "/torneios/6", startDate: null }).startDate).toBeUndefined();
   });
 });

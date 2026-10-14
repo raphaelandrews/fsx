@@ -1,3 +1,4 @@
+import type { RatingType } from "@fsx/api/rating-types";
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -26,12 +27,13 @@ import { DataTablePagination } from "@/components/data-table/data-table-paginati
 import { tournamentHistoryColumns } from "./tournament-history-columns";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
+import { avatarImage } from "@/lib/media-image";
 import { Badge } from "@fsx/ui/components/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@fsx/ui/components/popover";
 import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 import { VerifiedBadge } from "@/components/player/verified-badge";
 import { SectionHeading } from "@/components/section-heading";
-import { TotalRatingChart, VariationChart } from "@/components/player/player-charts";
+import { RankingHistoryChart, TotalRatingChart, VariationChart } from "@/components/player/player-charts";
 import { cn } from "@fsx/ui/lib/utils";
 import { avatarGradient, avatarGradientFor } from "@/components/avatar-gradient";
 import { PlayerLevel } from "@/components/gamification/player-level";
@@ -115,6 +117,7 @@ export function PlayerProfile({
   // it can trigger the all-careers recompute, which must never delay the profile.
   const trpc = useTRPC();
   const { data: badges } = useQuery(trpc.records.badges.queryOptions());
+  const { data: rankingHistory } = useQuery(trpc.players.rankingHistory.queryOptions({ id: player.id }));
   const heldRecords = badges?.recordHolders[player.id];
   const achievements = React.useMemo(
     () => (heldRecords ? [...stats.achievements, recordHolderAchievement(heldRecords)] : stats.achievements),
@@ -159,7 +162,7 @@ export function PlayerProfile({
         <div className="px-4 pb-4">
           <div className="mb-4 flex justify-center pt-12">
             <Avatar className="size-24 after:border-0 after:mix-blend-normal">
-              <AvatarImage alt={player.name} src={player.imageUrl ?? ""} />
+              <AvatarImage alt={player.name} {...avatarImage(player.imageUrl, 96)} />
               <AvatarFallback className={avatarGradient(player.id)} />
             </Avatar>
           </div>
@@ -180,6 +183,9 @@ export function PlayerProfile({
             </div>
 
             <PlayerLevel level={stats.level} />
+            <Link to="/comparar" search={{ a: player.id }} className="link-inline text-sm">
+              Comparar com outro jogador
+            </Link>
             <div className="flex flex-wrap items-center justify-center gap-2">
               {titleEmblems.map(({ title }) => (
                 <span
@@ -275,6 +281,9 @@ export function PlayerProfile({
                                 {podium.tournament.date && (
                                   <p className="text-muted-foreground tabular-nums">{formatIsoDate(podium.tournament.date)}</p>
                                 )}
+                                <Link to="/torneios/$id" params={{ id: podium.tournament.id }} className="link-inline mt-1">
+                                  Ver torneio
+                                </Link>
                               </PopoverContent>
                             </Popover>
                           </li>
@@ -427,6 +436,9 @@ export function PlayerProfile({
             <div className="grid gap-4">
               <VariationChart player={player} selectedRatingType={selectedRatingType} />
               <TotalRatingChart player={player} selectedRatingType={selectedRatingType} />
+              {player.active && rankingHistory ? (
+                <RankingHistoryChart points={rankingHistory[selectedRatingType as RatingType]} />
+              ) : null}
             </div>
           </div>
         </section>

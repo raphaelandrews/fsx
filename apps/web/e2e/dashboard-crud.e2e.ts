@@ -426,3 +426,129 @@ test("rating update: review the file first, then apply the valid rows and keep a
   await page.getByRole("button", { name: "Import another file" }).click();
   await expect(page.getByText("Drop a Swiss Manager export here")).toBeVisible();
 });
+
+test("update request: a visitor sends a correction and the admin approves it", async ({ page }) => {
+  await page.goto("/atualizar-cadastro", { waitUntil: "networkidle" });
+  // A focused page: no site header or footer.
+  await expect(page.getByRole("link", { name: /Federação Sergipana de Xadrez — início/ })).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1, name: "Nome do jogador" })).toBeVisible();
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await expect(page.getByText("Escolha o jogador.")).toBeVisible();
+
+  await pick(page, "Busque pelo nome...", "Jogadora", /Jogadora Teste/);
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Dados" })).toBeVisible();
+
+  await page.getByLabel("Ano de nascimento").pressSequentially("20a1b2x9");
+  await expect(page.getByLabel("Ano de nascimento")).toHaveValue("2012");
+  await page.getByLabel("Ano de nascimento").fill("");
+  await page.getByLabel("ID CBX").pressSequentially("9-1 8e2");
+  await expect(page.getByLabel("ID CBX")).toHaveValue("9182");
+  await page.getByLabel("ID CBX").fill("");
+  await page.getByLabel("Ano de nascimento").fill("1800");
+  await page.getByLabel("ID CBX").focus();
+  await expect(page.getByText("Use quatro dígitos, entre 1900 e")).toBeVisible();
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Dados" })).toBeVisible();
+  await page.getByLabel("Ano de nascimento").fill("");
+  await page.getByLabel("ID CBX").fill("918273");
+  await page.getByRole("button", { name: "Continuar" }).click();
+
+  await expect(page.getByRole("heading", { level: 1, name: "Foto" })).toBeVisible();
+  await page.locator("#request-photo").setInputFiles("public/android-chrome-192x192.png");
+  await page.getByRole("button", { name: "Usar esta foto" }).click();
+  await expect(page.getByAltText("Pré-visualização da foto")).toBeVisible();
+  await page.getByRole("button", { name: /^Enviar .*alteraç/ }).click();
+  await expect(page.getByText("Confirme que as informações são verdadeiras")).toBeVisible();
+
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: /^Enviar .*alteraç/ }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Solicitação enviada" })).toBeVisible();
+
+  await page.goto("/dashboard/update-requests", { waitUntil: "networkidle" });
+  await expect(page.getByRole("link", { name: /Update requests.*pending/ })).toBeVisible();
+  await page.getByRole("link", { name: "Jogadora Teste" }).first().click();
+  await expect(page.getByRole("cell", { name: "918273" })).toBeVisible();
+  await expect(page.getByAltText("Photo sent for Jogadora Teste")).toBeVisible();
+  await page.getByRole("button", { name: "Approve" }).click();
+  await expect(page.getByText("Request approved. The player is now verified.")).toBeVisible();
+  await expect(page).toHaveURL(/\/dashboard\/update-requests$/);
+  await expect(page.getByRole("link", { name: /Update requests.*pending/ })).toBeHidden();
+});
+
+test("players: the history records an edit, and a bulk action changes only the selected rows", async ({ page }) => {
+  await page.goto("/dashboard/players/create", { waitUntil: "networkidle" });
+  await fill(page, { Name: "Jogador Lote" });
+  await page.getByRole("button", { name: /^create player/i }).click();
+  await expect(page.getByText(/Player created/)).toBeVisible();
+
+  await page.goto("/dashboard/players?name=Jogador%20Lote", { waitUntil: "networkidle" });
+  const row = page.getByRole("row", { name: /Jogador Lote/ });
+  await row.getByRole("checkbox", { name: "Select row" }).check();
+  await expect(page.getByRole("region", { name: "Bulk actions" })).toContainText("1 selected");
+  await page.getByRole("button", { name: "Mark inactive" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Mark inactive" }).click();
+  await expect(page.getByText("Players updated")).toBeVisible();
+
+  await rowMenu(page, "Jogador Lote", "Edit");
+  await expect(page.getByRole("heading", { name: "History", exact: true })).toBeVisible();
+  await expect(page.getByText("players.bulkSetActive")).toBeVisible();
+  await expect(page.getByText("true → false")).toBeVisible();
+
+  await page.goto("/dashboard/history", { waitUntil: "networkidle" });
+  await expect(page.getByText("Jogador Lote").first()).toBeVisible();
+});
+
+test("posts: a scheduled article is hidden from the site until its time, and can be previewed", async ({ page, request }) => {
+  await page.goto("/dashboard/posts/create", { waitUntil: "networkidle" });
+  await fill(page, { Title: "Post Agendado", Content: "Corpo agendado" });
+  await page.getByLabel("Published").check();
+  await page.getByLabel("Publish at").fill("2099-01-01T09:00");
+  await page.getByRole("button", { name: /^create post/i }).click();
+  await expect(page.getByText(/Post created/)).toBeVisible();
+
+  await page.goto("/dashboard/posts", { waitUntil: "networkidle" });
+  await expect(page.getByText(/Scheduled · 01\/01\/2099/)).toBeVisible();
+  expect((await request.get("/noticias/post-agendado")).status()).toBe(404);
+  expect(await (await request.get("/rss.xml")).text()).not.toContain("Post Agendado");
+
+  await rowMenu(page, "Post Agendado", "Edit");
+  await page.getByRole("link", { name: "Preview" }).click();
+  await expect(page.getByRole("heading", { name: "Post Agendado" })).toBeVisible();
+  await expect(page.getByText(/Goes live on 01\/01\/2099 at 09:00/)).toBeVisible();
+});
+
+test("rating update: one file creates a tournament, its results and its podium", async ({ page }) => {
+  const XLSX = await import("xlsx");
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([["name", "Torneio de Um Arquivo"], ["ratingType", "rapid"], ["date", "15/11/2026"]]), "Tournament");
+  XLSX.utils.book_append_sheet(
+    workbook,
+    XLSX.utils.aoa_to_sheet([
+      ["id", "name", "sex", "variation"],
+      [0, "Campeã do Arquivo", "F", 14],
+      [0, "Vice do Arquivo", "F", 6],
+    ]),
+    "Results",
+  );
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([["place", "category", "playerId", "row"], [1, "", "", 2], [2, "", "", 3]]), "Podium");
+  const buffer = Buffer.from(XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }));
+
+  await page.goto("/rating-update", { waitUntil: "networkidle" });
+  await page.getByLabel(/Drop a Swiss Manager export/).setInputFiles({
+    name: "torneio.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer,
+  });
+  await expect(page.getByRole("heading", { name: "New tournament: Torneio de Um Arquivo" })).toBeVisible();
+  await expect(page.getByText("15/11/2026")).toBeVisible();
+  await page.getByRole("button", { name: "Create the tournament and apply 2 changes" }).click();
+
+  await expect(page.getByText("All 5 changes were applied")).toBeVisible({ timeout: 20_000 });
+  await page.getByRole("button", { name: /Applied \(5\)/ }).click();
+  await expect(page.getByText(/Tournament created \(ID \d+\)/)).toBeVisible();
+  await expect(page.getByText("1º place")).toBeVisible();
+
+  await page.goto("/dashboard/tournaments", { waitUntil: "networkidle" });
+  await expect(page.getByText("Torneio de Um Arquivo")).toBeVisible();
+});

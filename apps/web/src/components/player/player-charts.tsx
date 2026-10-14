@@ -168,3 +168,57 @@ export function TotalRatingChart({
     </figure>
   );
 }
+
+interface RankingPoint {
+  at: string;
+  position: number;
+}
+
+export function RankingHistoryChart({ points }: { points: RankingPoint[] }) {
+  if (points.length < 2) return null;
+
+  const data = points.map((point, index) => ({
+    index,
+    label: point.at.split("-").reverse().join("/"),
+    position: point.position,
+  }));
+  const worst = Math.max(...data.map((entry) => entry.position));
+  const best = Math.min(...data.map((entry) => entry.position));
+  const curve = d3Curve(curveMonotoneX);
+  const positionChart = defineChart({
+    marks: [
+      lineY(data, {
+        x: "label",
+        y: "position",
+        stroke: "var(--chart-1)",
+        strokeWidth: 2,
+        curve,
+        points: true,
+      }),
+    ],
+    x: { scale: () => scaleBand().padding(0.2), axis: false },
+    // Position 1 is the best, so it sits at the top.
+    y: { scale: () => scaleLinear().domain([worst + 1, Math.max(1, best - 1)]), grid: true },
+    tooltip: {
+      use: tooltip,
+      format: (point) => `${point.datum.label}: ${point.datum.position}º lugar`,
+    },
+  });
+
+  return (
+    <figure className="min-w-0 rounded-2xl border bg-background p-4">
+      <figcaption>
+        <h3 className="font-semibold text-base">Posição no ranking</h3>
+        <p className="text-muted-foreground text-sm">
+          Colocação após cada atualização, de {data[0]!.label} a {data[data.length - 1]!.label}.
+        </p>
+      </figcaption>
+      <Chart
+        definition={positionChart}
+        height={200}
+        ariaLabel={`Posição no ranking: ${data.map((entry) => `${entry.label}, ${entry.position}º`).join("; ")}`}
+        className="mt-2 w-full text-muted-foreground"
+      />
+    </figure>
+  );
+}

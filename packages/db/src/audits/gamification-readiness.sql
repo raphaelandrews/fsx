@@ -10,7 +10,7 @@ WITH checks(check_name, value) AS (
   ('players.with_history', (SELECT COUNT(DISTINCT player_id) FROM players_to_tournaments)),
   ('players.active_without_history', (SELECT COUNT(*) FROM players p WHERE p.active = 1
     AND NOT EXISTS (SELECT 1 FROM players_to_tournaments h WHERE h.player_id = p.id))),
-  ('players.without_birth_date', (SELECT COUNT(*) FROM players WHERE birth_date IS NULL OR birth_date = '')),
+  ('players.without_birth_year', (SELECT COUNT(*) FROM players WHERE birth_year IS NULL)),
   ('tournaments.total', (SELECT COUNT(*) FROM tournaments)),
   ('tournaments.without_date', (SELECT COUNT(*) FROM tournaments WHERE date IS NULL OR date = '')),
   ('tournaments.bad_date_format', (SELECT COUNT(*) FROM tournaments

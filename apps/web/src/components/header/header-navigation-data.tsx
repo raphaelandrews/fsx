@@ -14,6 +14,7 @@ import {
   Link01Icon,
   BookBookmark01Icon,
   Analytics01Icon,
+  Trophy,
 } from "@hugeicons/core-free-icons"
 
 type NavigationItem = {
@@ -47,6 +48,12 @@ export const NAVIGATION: NavigationItem[] = [
         label: "Rating",
         href: "/ratings",
         icon: BarChartIcon,
+        target: "_self",
+      },
+      {
+        label: "Torneios",
+        href: "/torneios",
+        icon: Trophy,
         target: "_self",
       },
       {
@@ -115,9 +122,9 @@ export const NAVIGATION: NavigationItem[] = [
   },
   {
     label: "Calendário",
-    href: "https://docs.google.com/spreadsheets/d/1FqWEWcpcRzW0r4wnsjLOIFmrwFkcqd9gnA7Lk1ZZ5uM",
+    href: "/calendario",
     icon: Calendar01Icon,
-    target: "_blank",
+    target: "_self",
   },
   {
     label: "Links",

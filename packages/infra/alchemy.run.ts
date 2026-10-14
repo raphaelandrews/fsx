@@ -28,6 +28,14 @@ const db = await D1Database("database", {
 const images = await R2Bucket("images", {
   name: "fsx-images",
   adopt: true,
+  // Photos sent through the public update form wait under pending/ until reviewed; anything left over expires.
+  lifecycle: [
+    {
+      id: "expire-pending-photos",
+      conditions: { prefix: "pending/" },
+      deleteObjectsTransition: { condition: { type: "Age", maxAge: 30 * 24 * 60 * 60 } },
+    },
+  ],
 });
 
 // Keep each limit in sync with RATE_LIMITS in packages/api/src/http/security.ts.
@@ -80,6 +88,7 @@ export const web = await TanStackStart("web", {
     ...(process.env.CLOUDFLARE_CACHE_PURGE_TOKEN
       ? { CLOUDFLARE_CACHE_PURGE_TOKEN: alchemy.secret(process.env.CLOUDFLARE_CACHE_PURGE_TOKEN) }
       : {}),
+    ...(process.env.TURNSTILE_SECRET_KEY ? { TURNSTILE_SECRET_KEY: alchemy.secret(process.env.TURNSTILE_SECRET_KEY) } : {}),
     GITHUB_USER_ID: alchemy.env.GITHUB_USER_ID ?? "",
     GITHUB_USERNAME: alchemy.env.GITHUB_USERNAME ?? "",
     DISABLE_SIGNUP: alchemy.env.DISABLE_SIGNUP ?? "",

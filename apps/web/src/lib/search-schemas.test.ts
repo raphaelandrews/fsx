@@ -5,6 +5,7 @@ import {
   clubsSearchSchema,
   pageSearchSchema,
   ratingsSearchSchema,
+  tournamentsSearchSchema,
   tvSergipeSearchSchema,
 } from "./search-schemas";
 
@@ -59,5 +60,23 @@ describe("public search params", () => {
   test("list params are bounded", () => {
     const parsed = ratingsSearchSchema.parse({ local: Array.from({ length: 51 }, () => "x") });
     expect(parsed.local).toEqual([]);
+  });
+});
+
+describe("tournament archive search params", () => {
+  test("default to the first page with no filters", () => {
+    expect(tournamentsSearchSchema.parse({})).toEqual({ page: 1 });
+  });
+
+  test("keep valid filters and drop malformed ones instead of failing the route", () => {
+    expect(tournamentsSearchSchema.parse({ page: 2, ano: 2026, nivel: "S", ritmo: "blitz", campeonato: 4 })).toEqual({
+      page: 2,
+      ano: 2026,
+      nivel: "S",
+      ritmo: "blitz",
+      campeonato: 4,
+    });
+    expect(tournamentsSearchSchema.parse({ page: "x", ano: "abc", nivel: "Z", ritmo: "bullet", campeonato: -1 })).toEqual({ page: 1 });
+    expect(tournamentsSearchSchema.parse({ ano: 3000, campeonato: 1.5 })).toEqual({ page: 1 });
   });
 });

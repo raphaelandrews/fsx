@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router"
+
 import { Button, buttonVariants } from "@fsx/ui/components/button"
 import {
   Popover,
@@ -55,25 +57,23 @@ export function UpdateRegister() {
         </div>
         <div className="mt-2 space-y-2">
           <p className="font-medium text-base">
-            Preencha o formulário para atualizar seus dados e obtenha o selo de
-            verificado em seu perfil e outras informações!
+            Envie seus dados para a FSX conferir e receba o selo de verificado no
+            seu perfil.
           </p>
           <p className="font-medium text-base">
-            Também será possível adicionar uma foto de perfil.
+            Você pode corrigir data de nascimento, clube, cidade e os IDs da CBX e da FIDE.
           </p>
         </div>
-        <a
+        <Link
           className={buttonVariants({
             variant: "default",
             size: "lg",
             className: "mt-3 w-full active:scale-[0.96]",
           })}
-          href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
-          rel="noopener noreferrer"
-          target="_blank"
+          to="/atualizar-cadastro"
         >
           Obter Verificação
-        </a>
+        </Link>
       </PopoverContent>
     </Popover>
   )
