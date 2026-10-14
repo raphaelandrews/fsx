@@ -53,7 +53,7 @@ export function RatingUpdateToolbar({
       {activePanel === "rules" ? <RulesPanel /> : null}
       {activePanel === "info" ? <InfoPanel /> : null}
 
-      <div className="bg-background dark:bg-[#0F0F0F] shadow-md rounded-2xl flex items-center justify-center px-3 py-2">
+      <div className="bg-background shadow-md rounded-2xl flex items-center justify-center px-3 py-2">
         <Tooltip>
           <TooltipTrigger render={<Button aria-label="Home" size="sm" variant="ghost" className="p-2" />}>
             <HugeiconsIcon className="size-4" icon={Home01Icon} strokeWidth={2} />

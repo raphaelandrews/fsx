@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 
 import { players } from "@fsx/db/schema/players";
 import { rankingSnapshots } from "@fsx/db/schema/ranking-snapshots";
@@ -17,13 +17,20 @@ export interface FormatRanking {
   female?: { position: number; players: number };
 }
 
-const latestTwo = (db: Context["db"], ratingType: RatingType) =>
-  db
-    .selectDistinct({ snapshotAt: rankingSnapshots.snapshotAt })
-    .from(rankingSnapshots)
-    .where(eq(rankingSnapshots.ratingType, ratingType))
-    .orderBy(desc(rankingSnapshots.snapshotAt))
-    .limit(2);
+// Two index probes, not DISTINCT ... LIMIT 2: that scans every row of the latest
+// snapshot (one per ranked player) before it can see the second date.
+const latestTwo = (db: Context["db"], ratingType: RatingType) => {
+  const latest = sql`(select max(${rankingSnapshots.snapshotAt}) from ${rankingSnapshots} where ${rankingSnapshots.ratingType} = ${ratingType})`;
+  return db
+    .select({
+      latest: sql<string | null>`${latest}`,
+      previous: sql<string | null>`(select max(${rankingSnapshots.snapshotAt}) from ${rankingSnapshots} where ${rankingSnapshots.ratingType} = ${ratingType} and ${rankingSnapshots.snapshotAt} < ${latest})`,
+    })
+    .from(sql`(select 1)`);
+};
+
+const snapshotsOf = (rows: { latest: string | null; previous: string | null }[]) =>
+  [rows[0]?.latest, rows[0]?.previous].flatMap((snapshotAt) => (snapshotAt ? [{ snapshotAt }] : []));
 
 // Movement between the two latest snapshots of a format, which is the change
 // the last rating import made; positions themselves are computed live.
@@ -33,7 +40,7 @@ export async function movementsFor(
   playerIds: number[],
   snapshots?: { snapshotAt: string }[],
 ): Promise<Map<number, Movement>> {
-  const [latest, previous] = snapshots ?? (await latestTwo(db, ratingType));
+  const [latest, previous] = snapshots ?? snapshotsOf(await latestTwo(db, ratingType));
   const movements = new Map<number, Movement>();
   if (!latest || !previous || playerIds.length === 0) return movements;
   const rows = await db
@@ -59,68 +66,57 @@ export async function loadPlayerRanking(
   db: Context["db"],
   playerId: number,
 ): Promise<Record<RatingType, FormatRanking | null> | undefined> {
-  const [[player], [ranked]] = await db.batch([
-    db.query.players.findMany({
-      where: eq(players.id, playerId),
-      columns: { active: true, sex: true, classic: true, rapid: true, blitz: true },
-      limit: 1,
-    }),
-    db.select({ value: count() }).from(players).where(eq(players.active, true)),
-  ]);
+  const [player] = await db.query.players.findMany({
+    where: eq(players.id, playerId),
+    columns: { active: true, sex: true, classic: true, rapid: true, blitz: true },
+    limit: 1,
+  });
   if (!player) return undefined;
   if (!player.active) return { classic: null, rapid: null, blitz: null };
 
-  // Position = active players rated higher + 1, so equal ratings share it.
-  const above = (type: RatingType) =>
-    db.select({ value: count() }).from(players).where(and(eq(players.active, true), gt(players[type], player[type])));
-  const femaleRankingQuery = player.sex === "female"
-    ? db
-        .select({
-          players: count(),
-          blitzAbove: sql<number>`count(case when ${players.blitz} > ${player.blitz} then 1 end)`,
-          rapidAbove: sql<number>`count(case when ${players.rapid} > ${player.rapid} then 1 end)`,
-          classicAbove: sql<number>`count(case when ${players.classic} > ${player.classic} then 1 end)`,
-        })
-        .from(players)
-        .where(and(eq(players.active, true), eq(players.sex, "female")))
-    : Promise.resolve(null);
-  const [rankingRows, femaleRows] = await Promise.all([
-    db.batch([
-      above("blitz"),
-      above("rapid"),
-      above("classic"),
-      latestTwo(db, "blitz"),
-      latestTwo(db, "rapid"),
-      latestTwo(db, "classic"),
-    ]),
-    femaleRankingQuery,
+  // Position = active players rated higher + 1, so equal ratings share it. One
+  // pass over the covering index answers the overall and the women's ranking.
+  const above = (type: RatingType, female = false) =>
+    sql<number>`coalesce(sum(case when ${players[type]} > ${player[type]}${female ? sql` and ${players.sex} = 'female'` : sql``} then 1 else 0 end), 0)`;
+  const [[totals], blitzSnapshots, rapidSnapshots, classicSnapshots] = await db.batch([
+    db
+      .select({
+        players: count(),
+        blitzAbove: above("blitz"),
+        rapidAbove: above("rapid"),
+        classicAbove: above("classic"),
+        femalePlayers: sql<number>`coalesce(sum(case when ${players.sex} = 'female' then 1 else 0 end), 0)`,
+        femaleBlitzAbove: above("blitz", true),
+        femaleRapidAbove: above("rapid", true),
+        femaleClassicAbove: above("classic", true),
+      })
+      .from(players)
+      .where(eq(players.active, true)),
+    latestTwo(db, "blitz"),
+    latestTwo(db, "rapid"),
+    latestTwo(db, "classic"),
   ]);
-  const [[blitzAbove], [rapidAbove], [classicAbove], blitzSnapshots, rapidSnapshots, classicSnapshots] = rankingRows;
-  const femaleRanking = femaleRows?.[0];
   const formats = {
-    blitz: { above: blitzAbove?.value ?? 0, snapshots: blitzSnapshots },
-    rapid: { above: rapidAbove?.value ?? 0, snapshots: rapidSnapshots },
-    classic: { above: classicAbove?.value ?? 0, snapshots: classicSnapshots },
+    blitz: { above: totals?.blitzAbove ?? 0, snapshots: snapshotsOf(blitzSnapshots) },
+    rapid: { above: totals?.rapidAbove ?? 0, snapshots: snapshotsOf(rapidSnapshots) },
+    classic: { above: totals?.classicAbove ?? 0, snapshots: snapshotsOf(classicSnapshots) },
   };
   const movements = await Promise.all(
     RATING_TYPES.map((type) => movementsFor(db, type, [playerId], formats[type].snapshots)),
   );
-  const femaleAbove: Record<RatingType, number> | null = femaleRanking
-    ? {
-        blitz: femaleRanking.blitzAbove,
-        rapid: femaleRanking.rapidAbove,
-        classic: femaleRanking.classicAbove,
-      }
-    : null;
+  const femaleAbove: Record<RatingType, number> | null =
+    player.sex === "female" && totals
+      ? { blitz: totals.femaleBlitzAbove, rapid: totals.femaleRapidAbove, classic: totals.femaleClassicAbove }
+      : null;
   return Object.fromEntries(
     RATING_TYPES.map((type, index) => [
       type,
       {
         position: formats[type].above + 1,
-        players: ranked?.value ?? 0,
+        players: totals?.players ?? 0,
         movement: movements[index]!.get(playerId) ?? null,
-        ...(femaleRanking && femaleAbove
-          ? { female: { position: femaleAbove[type] + 1, players: femaleRanking.players } }
+        ...(femaleAbove && totals
+          ? { female: { position: femaleAbove[type] + 1, players: totals.femalePlayers } }
           : {}),
       },
     ]),

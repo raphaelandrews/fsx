@@ -26,6 +26,7 @@ export const tournaments = sqliteTable(
   },
   (table) => [
     index("tournaments_championship_idx").on(table.championshipId),
+    index("tournaments_date_idx").on(table.date),
     check(
       "tournaments_rating_type_check",
       sql`${table.ratingType} IN ('blitz', 'rapid', 'classic')`,

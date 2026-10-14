@@ -1,6 +1,10 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-export const columns: ColumnDef<any>[] = [
+import type { PlayerById } from "./player-profile";
+
+type HistoryRow = PlayerById["playersToTournaments"][number];
+
+export const tournamentHistoryColumns: ColumnDef<HistoryRow>[] = [
   {
     accessorKey: "tournament.name",
     header: () => <div className="text-left">Evento</div>,

@@ -1,22 +1,19 @@
 import { createFileRoute, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Megaphone01Icon } from "@hugeicons/core-free-icons";
-import { z } from "zod";
 
 import { AnnouncementRow } from "@/components/announcements/announcement-row";
 import { Pagination } from "@/components/data-table/pagination";
 
 import { PageHeader } from "@/components/page-header";
 import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
+import { pageSearchSchema } from "@/lib/search-schemas";
 import { useTRPC } from "@/lib/trpc";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
-const searchSchema = z.object({
-  page: z.number().int().positive().max(1_000).default(1),
-});
 
 export const Route = createFileRoute("/_public/comunicados/")({
-  validateSearch: searchSchema,
+  validateSearch: pageSearchSchema,
   search: { middlewares: [stripSearchParams({ page: 1 })] },
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context, deps }) =>

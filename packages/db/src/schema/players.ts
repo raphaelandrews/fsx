@@ -49,6 +49,8 @@ export const players = sqliteTable(
 		index("players_active_blitz_idx").on(table.active, table.blitz),
 		// Admin players list orders by name for pagination.
         index("players_name_idx").on(table.name),
+		index("players_active_sex_ratings_idx").on(table.active, table.sex, table.classic, table.rapid, table.blitz),
+		index("players_search_idx").on(table.normalizedName, table.active, table.name, table.rapid),
         check("players_rating_range_check", sql`${table.blitz} BETWEEN 0 AND 4000 AND ${table.rapid} BETWEEN 0 AND 4000 AND ${table.classic} BETWEEN 0 AND 4000`),
         check("players_sex_check", sql`${table.sex} IN ('male', 'female')`),
 	],

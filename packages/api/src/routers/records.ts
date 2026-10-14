@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, lt, max, min, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, lt, max, min, sql } from "drizzle-orm";
 
 import { circuits } from "@fsx/db/schema/circuits";
 import { clubs } from "@fsx/db/schema/clubs";
@@ -65,7 +65,14 @@ export async function monthHighlight(db: Context["db"], day: string) {
     .from(playersToTournaments)
     .innerJoin(tournaments, eq(tournaments.id, playersToTournaments.tournamentId))
     .innerJoin(players, eq(players.id, playersToTournaments.playerId))
-    .where(and(gte(tournaments.date, start), lt(tournaments.date, end)))
+    .where(
+      and(
+        inArray(
+          playersToTournaments.tournamentId,
+          db.select({ id: tournaments.id }).from(tournaments).where(and(gte(tournaments.date, start), lt(tournaments.date, end))),
+        ),
+      ),
+    )
     .orderBy(desc(playersToTournaments.variation), playersToTournaments.id)
     .limit(1);
   return best && best.variation > 0 ? { ...best, month: start.slice(0, 7) } : null;

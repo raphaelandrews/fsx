@@ -13,6 +13,7 @@ import {
 
 import { cn } from "@fsx/ui/lib/utils"
 
+import { avatarGradient } from "@/components/avatar-gradient"
 import { useTRPC } from "@/lib/trpc"
 
 import { Button } from "@fsx/ui/components/button"
@@ -32,24 +33,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@fsx/ui/components/dialog"
-
-function getGradient(id: number): React.CSSProperties {
-  const gradients = [
-    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-    "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-    "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
-    "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-    "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
-    "linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)",
-    "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
-    "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
-    "linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)",
-  ]
-  return {
-    background: gradients[id % gradients.length],
-  }
-}
 
 const LoadingSkeleton = () => (
   <div className="grid gap-1">
@@ -86,7 +69,7 @@ const CommandResults = React.memo(
     const playersWithGradients = React.useMemo(() => {
       return players.map((player) => ({
         ...player,
-        gradient: getGradient(player.id),
+        gradient: avatarGradient(player.id),
       }))
     }, [players])
 
@@ -117,7 +100,7 @@ const CommandResults = React.memo(
             onSelect={() => onSelect(player.id)}
             value={player.name}
           >
-            <div className="size-5 rounded-avatar" style={player.gradient} />
+            <div className={cn("size-5 rounded-avatar", player.gradient)} />
             {player.name}
           </CommandMenuItem>
         ))}

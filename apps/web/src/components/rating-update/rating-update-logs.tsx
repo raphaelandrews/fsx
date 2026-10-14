@@ -88,8 +88,8 @@ export function RatingUpdateLogs({ updates }: { updates: RatingUpdateProps[] }) 
                     className={cn(
                       "text-xs font-medium p-2 rounded-lg",
                       update.success
-                        ? "bg-[#E8F5E9] text-[#388E3C] dark:bg-[#022C22] dark:text-[#1BC994]"
-                        : "bg-[#FFEBEE] text-[#D32F2F] dark:bg-[#4D0217] dark:text-[#FF6982]",
+                        ? "bg-success/10 text-success"
+                        : "bg-destructive/10 text-destructive",
                     )}
                   >
                     {update.status}

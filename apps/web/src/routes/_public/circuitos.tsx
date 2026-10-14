@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { z } from "zod";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@fsx/ui/components/select";
 import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
@@ -12,17 +11,14 @@ import { Medal01Icon } from "@hugeicons/core-free-icons";
 
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
+import { circuitsSearchSchema } from "@/lib/search-schemas";
 import { useTRPC } from "@/lib/trpc";
 import { slugify } from "@/lib/slugify";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
-const searchSchema = z.object({
-  ano: z.number().int().optional().catch(undefined),
-  circuito: z.string().optional(),
-});
 
 export const Route = createFileRoute("/_public/circuitos")({
-  validateSearch: searchSchema,
+  validateSearch: circuitsSearchSchema,
   loaderDeps: ({ search }) => ({ ano: search.ano, circuito: search.circuito }),
   loader: async ({ context, deps }) => {
     const circuits = await context.queryClient.ensureQueryData(

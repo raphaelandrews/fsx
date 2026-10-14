@@ -1,23 +1,27 @@
 
 import React from "react"
+import type { inferRouterOutputs } from "@trpc/server"
 import { AnalyticsUpIcon } from "@hugeicons/core-free-icons"
 
 import { DataTableWrapper } from "./data-table-wrapper"
 import { columnsBlitz, columnsClassic, columnsRapid } from "./columns"
 
+import type { AppRouter } from "@fsx/api/routers/index"
 import { Section } from "@/components/home/section"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@fsx/ui/components/tabs"
 import { SectionButton } from "@/components/section-button"
 
+type TopPlayersData = inferRouterOutputs<AppRouter>["topPlayers"]["list"]
+
 type TabValue = "rapid" | "classic" | "blitz"
 
-const tabMap: Record<TabValue, string> = {
+const tabMap: Record<TabValue, keyof TopPlayersData> = {
   blitz: "topBlitz",
   rapid: "topRapid",
   classic: "topClassic",
 } as const
 
-export function TopPlayers({ topPlayers }: any) {
+export function TopPlayers({ topPlayers }: { topPlayers: TopPlayersData }) {
   const [currentTab, setCurrentTab] = React.useState<TabValue>("rapid")
   const currentData = topPlayers[tabMap[currentTab]]
 

@@ -22,7 +22,8 @@ import { FormField } from "@/components/form/form-field";
 import { ImageUpload } from "@/components/media/image-upload";
 import { SearchableSelect } from "@/components/form/searchable-select";
 import { fieldError } from "@/lib/errors";
-import { httpUrlError, LONG_TEXT_MAX, maxLengthError, submitThenChange, TEXT_MAX, URL_MAX } from "@/lib/field-rules";
+import { maxLengthOf, validateField } from "@/lib/entity-validation";
+import { submitThenChange } from "@/lib/field-rules";
 
 export const NATIVE_SELECT_CLASS =
   "h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
@@ -81,34 +82,6 @@ interface EntityFormProps {
   images?: ImageTracking;
 }
 
-function maxLengthOf(field: EntityField) {
-  if (field.maxLength) return field.maxLength;
-  if (field.kind === "textarea") return LONG_TEXT_MAX;
-  if (field.kind === "url") return URL_MAX;
-  return TEXT_MAX;
-}
-
-function validate(field: EntityField, value: string): string | undefined {
-  const trimmed = value.trim();
-  if (!trimmed) return field.required ? `${field.label} is required` : undefined;
-  switch (field.kind) {
-    case "number": {
-      const number = Number(trimmed);
-      if (!Number.isInteger(number)) return `${field.label} must be a whole number`;
-      if (field.min !== undefined && number < field.min) return `${field.label} must be at least ${field.min}`;
-      if (field.max !== undefined && number > field.max) return `${field.label} must be at most ${field.max}`;
-      return undefined;
-    }
-    case "url":
-      return httpUrlError(field.label, trimmed);
-    case "text":
-    case "textarea":
-      return maxLengthError(field.label, trimmed, maxLengthOf(field));
-    default:
-      return undefined;
-  }
-}
-
 function useValuesForm(defaultValues: Values, onSubmit: (values: Values) => void) {
   return useForm({
     defaultValues,
@@ -134,7 +107,7 @@ function EntityFields({
     <form.Field
       key={field.name}
       name={field.name}
-      validators={{ onDynamic: ({ value }) => validate(field, value) }}
+      validators={{ onDynamic: ({ value }) => validateField(field, value) }}
     >
       {(f) => {
         const id = `${idPrefix}-${field.name}`;

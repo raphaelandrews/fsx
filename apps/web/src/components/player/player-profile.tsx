@@ -2,6 +2,9 @@ import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
+import type { inferRouterOutputs } from "@trpc/server";
+
+import type { AppRouter } from "@fsx/api/routers/index";
 import { RECORD_HOLDER_ID, recordHolderAchievement } from "@fsx/api/gamification/badges";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -18,8 +21,9 @@ import {
   Medal01Icon,
 } from "@hugeicons/core-free-icons";
 
-import { columns } from "@/components/sheets/player/columns";
-import { DataTable } from "@/components/sheets/player/data-table";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
+import { tournamentHistoryColumns } from "./tournament-history-columns";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
 import { Badge } from "@fsx/ui/components/badge";
@@ -67,68 +71,7 @@ function FormatPodiumTitle(place: number | null | undefined) {
 const medalButton =
   "inline-flex size-11 items-center justify-center rounded-xl bg-muted text-foreground shadow-[inset_0_0_0_1px_var(--border)] hover:shadow-[inset_0_0_0_1px_var(--muted-foreground)] outline-offset-2 transition-[scale,box-shadow] duration-150 ease-out focus-visible:outline-2 focus-visible:outline-ring active:scale-[0.96]";
 
-export interface PlayerById {
-  id: number;
-  name: string;
-  nickname?: string | null;
-  sex?: string;
-  imageUrl?: string | null;
-  verified?: boolean | null;
-  active?: boolean | null;
-  classic?: number | null;
-  rapid?: number | null;
-  blitz?: number | null;
-  cbxId?: number | null;
-  fideId?: number | null;
-  playersToTournaments?: Array<{
-    variation: number;
-    oldRating: number;
-    tournament: {
-      name: string;
-      ratingType: string;
-      championshipId?: number | null;
-    };
-  }>;
-  playersToRoles?: Array<{
-    role: {
-      type: string;
-      name: string;
-    };
-  }>;
-  playersToTitles?: Array<{
-    title: {
-      type: string;
-      shortName: string;
-      name: string;
-      tier?: number;
-    };
-  }>;
-  tournamentPodiums?: Array<{
-    place: number | null;
-    category?: string | null;
-    tournament: {
-      name: string;
-      date?: string | null;
-      championshipId?: number | null;
-      championship?: { name: string } | null;
-    };
-  }>;
-  defendingChampions?: Array<{
-    championshipId: number;
-    championship: {
-      name: string;
-    };
-  }>;
-  club?: {
-    id?: number;
-    name: string;
-    logoUrl?: string | null;
-  } | null;
-  location?: {
-    name: string;
-    flagUrl?: string | null;
-  } | null;
-}
+export type PlayerById = NonNullable<inferRouterOutputs<AppRouter>["players"]["byId"]>;
 
 const TITLE_TIER_BADGES = { 1: "bronze", 2: "silver", 3: "gold", 4: "platinum" } as const;
 
@@ -493,7 +436,12 @@ export function PlayerProfile({
         <section className="mb-0">
           <Announcement icon={Calendar01Icon} label="Histórico de Torneios" />
           <div className="py-4">
-            <DataTable columns={columns} data={tournaments} />
+            <DataTable
+              columns={tournamentHistoryColumns}
+              data={tournaments}
+              pagination={(table) => <DataTablePagination table={table} />}
+              pageSize={10}
+            />
           </div>
         </section>
       )}

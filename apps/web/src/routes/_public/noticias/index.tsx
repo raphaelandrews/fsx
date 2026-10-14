@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { z } from "zod";
 
 import { Pagination } from "@/components/data-table/pagination";
 
@@ -10,11 +9,9 @@ import { PageHeader } from "@/components/page-header";
 import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
 import { PostCard } from "@/components/noticias/post-card";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
+import { pageSearchSchema } from "@/lib/search-schemas";
 import { useTRPC } from "@/lib/trpc";
 
-const searchSchema = z.object({
-  page: z.number().int().positive().max(1_000).default(1),
-});
 
 // Keep content short-lived so admin edits appear fast on revisit; matches the
 // short server-side cache TTL (see routes/api/trpc/$.ts) instead of the global
@@ -22,7 +19,7 @@ const searchSchema = z.object({
 const PUBLICATION_STALE_TIME = 60_000;
 
 export const Route = createFileRoute("/_public/noticias/")({
-  validateSearch: searchSchema,
+  validateSearch: pageSearchSchema,
   search: { middlewares: [stripSearchParams({ page: 1 })] },
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ context, deps }) =>

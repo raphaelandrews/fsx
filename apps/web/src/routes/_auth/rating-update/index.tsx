@@ -23,9 +23,11 @@ import { RatingUpdateMonitor } from "@/components/rating-update/rating-update-mo
 import { RatingUpdateToolbar } from "@/components/rating-update/rating-update-toolbar";
 import type { AnimationState } from "@/components/rating-update/motion-grid-states";
 import type { RatingUpdateProps } from "@/components/rating-update/rating-update-types";
-import { getAdminErrorMessage, getErrorCode, getUserErrorMessage, showMutationError } from "@/lib/errors";
+import { getErrorCode, getUserErrorMessage, showMutationError } from "@/lib/errors";
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
-import { toIsoDate } from "@/lib/format";
+import { LogPagination, LogTitle } from "@/components/rating-update/import-log-parts";
+import { columnsError, parseImportRow } from "@/lib/rating-import";
+import { describeError, reportMaintenance } from "@/lib/rating-import-feedback";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { useAdminMutation } from "@/lib/admin-mutations";
 
@@ -102,36 +104,6 @@ function RatingUpdatePage() {
     }
   }, [successLog, errorLog, hasLoadedInitialData]);
 
-  const validateExcel = (headerMap: Record<string, number>) => {
-    const available = Object.keys(headerMap);
-    const hasPlayerData = ["name", "sex", "birth", "locationid", "clubid"].some(
-      (c) => c in headerMap,
-    );
-    const hasAllTournament = ["tournamentid", "variation", "ratingtype"].every(
-      (c) => c in headerMap,
-    );
-    const hasPartialTournament = ["tournamentid", "variation", "ratingtype"].some(
-      (c) => c in headerMap,
-    );
-
-    if (available.length === 1 && available[0] === "id") {
-      setMotionGridStatus("Error: Only 'id' column present", "x");
-      throw new Error("File contains only the 'id' column. Additional data columns are required.");
-    }
-    if (hasPartialTournament && !hasAllTournament) {
-      setMotionGridStatus("Error: Incomplete tournament columns", "x");
-      throw new Error(
-        "If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be included.",
-      );
-    }
-    if (!hasPlayerData && !hasAllTournament) {
-      setMotionGridStatus("Error: No valid data columns found", "x");
-      throw new Error(
-        "File must contain either player data columns or complete tournament columns.",
-      );
-    }
-  };
-
   const handleProcess = async () => {
     if (!file) {
       toast.error("Please select a file to upload.");
@@ -163,7 +135,11 @@ function RatingUpdatePage() {
         headerMap[h] = i;
       });
 
-      validateExcel(headerMap);
+      const columnProblem = columnsError(headerMap);
+      if (columnProblem) {
+        setMotionGridStatus("Error: Invalid columns", "x");
+        throw new Error(columnProblem);
+      }
 
       if (headerMap["id"] === undefined) {
         setMotionGridStatus("Error: 'id' column missing", "x");
@@ -200,53 +176,12 @@ function RatingUpdatePage() {
         setMotionGridStatus(`Processing row ${i + 1} of ${dataRows.length}`, "busy");
 
         const { cells: row, sheetRow } = dataRows[i];
-        const id = Number.parseInt(String(row[headerMap["id"]]), 10);
-        const name =
-          headerMap["name"] !== undefined ? String(row[headerMap["name"]] ?? "").trim() : undefined;
-        const birth =
-          headerMap["birth"] !== undefined
-            ? toIsoDate(String(row[headerMap["birth"]] ?? ""))
-            : undefined;
-        const sexRaw =
-          headerMap["sex"] !== undefined
-            ? String(row[headerMap["sex"]] ?? "")
-                .trim()
-                .toLowerCase()
-            : undefined;
-        const clubIdRaw =
-          headerMap["clubid"] !== undefined
-            ? String(row[headerMap["clubid"]] ?? "").trim()
-            : undefined;
-        const locationIdRaw =
-          headerMap["locationid"] !== undefined
-            ? String(row[headerMap["locationid"]] ?? "").trim()
-            : undefined;
-        const tournamentIdRaw =
-          headerMap["tournamentid"] !== undefined
-            ? String(row[headerMap["tournamentid"]] ?? "").trim()
-            : undefined;
-        const variationRaw =
-          headerMap["variation"] !== undefined
-            ? String(row[headerMap["variation"]] ?? "").trim()
-            : undefined;
-        const ratingTypeRaw =
-          headerMap["ratingtype"] !== undefined
-            ? String(row[headerMap["ratingtype"]] ?? "")
-                .trim()
-                .toLowerCase()
-            : undefined;
-
-        const sex =
-          sexRaw === "true" || sexRaw === "1" || sexRaw === "t"
-            ? "male"
-            : sexRaw === "false" || sexRaw === "0" || sexRaw === "f"
-              ? "female"
-              : undefined;
-        const clubId = clubIdRaw ? Number.parseInt(clubIdRaw, 10) : undefined;
-        const locationId = locationIdRaw ? Number.parseInt(locationIdRaw, 10) : undefined;
-        const tournamentId = tournamentIdRaw ? Number.parseInt(tournamentIdRaw, 10) : undefined;
-        const variation = variationRaw ? Number.parseInt(variationRaw, 10) : undefined;
-        const ratingType = ratingTypeRaw;
+        const parsed = parseImportRow(row, headerMap);
+        const { id, name, birth, sex, clubId, locationId, tournament } = parsed;
+        const tournamentId = tournament?.tournamentId;
+        const variation = tournament?.variation;
+        const ratingType = tournament?.ratingType;
+        const isTournamentUpdate = tournament !== undefined;
 
         const input = Object.entries(headerMap)
           .map(([column, index]) => `${column}=${String(row[index] ?? "")}`)
@@ -259,36 +194,8 @@ function RatingUpdatePage() {
             error: { message, row: sheetRow, input, detail },
           });
 
-        const validRatingTypes = ["blitz", "rapid", "classic"] as const;
-        const isTournamentUpdate =
-          tournamentId !== undefined || variation !== undefined || ratingType !== undefined;
-        const hasValidTournamentData =
-          tournamentId !== undefined &&
-          variation !== undefined &&
-          ratingType &&
-          validRatingTypes.includes(ratingType as (typeof validRatingTypes)[number]);
-
-        if (isTournamentUpdate && !hasValidTournamentData) {
-          pushRowError("If any tournament-related column is present, all three (tournamentId, variation, ratingType) must be valid.", 400);
-          continue;
-        }
-        if (tournamentId !== undefined && (!Number.isInteger(tournamentId) || tournamentId <= 0)) {
-          pushRowError(`Invalid tournament ID '${tournamentIdRaw}'. Must be a positive integer.`, 400);
-          continue;
-        }
-        if (
-          variation !== undefined &&
-          (!Number.isInteger(variation) || variation < -100 || variation > 100)
-        ) {
-          pushRowError(`Invalid variation value '${variationRaw}'. Must be an integer between -100 and 100.`, 400);
-          continue;
-        }
-        if (Number.isNaN(id) || id < 0) {
-          pushRowError("Invalid or missing 'id'. ID must be 0 or positive.", 400);
-          continue;
-        }
-        if (id === 0 && !name) {
-          pushRowError("Missing or empty 'name' for new player.", 400);
+        if (parsed.error) {
+          pushRowError(parsed.error, 400);
           continue;
         }
 
@@ -647,79 +554,4 @@ function RatingUpdatePage() {
       </div>
     </>
   );
-}
-
-function LogTitle({ title, length, success }: { title: string; length: number; success: boolean }) {
-  return (
-    <div className="flex w-fit items-center gap-2 rounded-md border px-3 py-2">
-      <p className={success ? "font-medium text-success" : "font-medium text-destructive"}>{title}</p>
-      <span
-        className={`text-xs rounded-sm px-1.5 py-0.5 ${success ? "bg-[#E8F5E9] text-[#388E3C] dark:bg-[#022C22] dark:text-[#1BC994]" : "bg-[#FFEBEE] text-[#D32F2F] dark:bg-[#4D0217] dark:text-[#FF6982]"}`}
-      >
-        {length}
-      </span>
-    </div>
-  );
-}
-
-function LogPagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-}: {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (p: number) => void;
-}) {
-  return (
-    <div className="mt-2 flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={currentPage === 1}
-        onClick={() => onPageChange(currentPage - 1)}
-      >
-        Previous
-      </Button>
-      <span className="text-sm text-muted-foreground">
-        Page {currentPage} of {totalPages}
-      </span>
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={currentPage === totalPages}
-        onClick={() => onPageChange(currentPage + 1)}
-      >
-        Next
-      </Button>
-    </div>
-  );
-}
-
-function describeError(err: unknown): { message: string; detail?: string } {
-  const message = getAdminErrorMessage(err, "Could not update this player.");
-  const fieldErrors = (
-    err as { data?: { zodError?: { fieldErrors?: Record<string, string[] | undefined> } | null } }
-  )?.data?.zodError?.fieldErrors;
-  const fields = Object.entries(fieldErrors ?? {})
-    .map(([field, issues]) => `${field}: ${issues?.join(", ")}`)
-    .join("; ");
-  const raw = err instanceof Error ? err.message : undefined;
-  const detail = [fields, raw && raw !== message ? raw : undefined].filter(Boolean).join(" | ");
-  return { message, detail: detail || undefined };
-}
-
-function reportMaintenance(result: { deactivated: number; titlesRemoved: number; youthTitlesWithoutBirthDate: number }) {
-  const plural = (count: number, noun: string) => `${count} ${noun}${count === 1 ? "" : "s"}`;
-  if (result.deactivated > 0) {
-    toast.info(`${plural(result.deactivated, "player")} marked inactive: no tournament in the last 3 years.`);
-  }
-  if (result.titlesRemoved > 0) {
-    toast.info(`${plural(result.titlesRemoved, "youth title")} removed: the holder reaches the title's age limit this year.`);
-  }
-  if (result.youthTitlesWithoutBirthDate > 0) {
-    toast.warning(
-      `${plural(result.youthTitlesWithoutBirthDate, "youth title")} cannot expire automatically: the holder has no birth date.`,
-    );
-  }
 }

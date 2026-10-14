@@ -334,8 +334,8 @@ function PrizeTable({ cup }: { cup: Cup }) {
           <TableRow key={position}>
             <TableCell
               className={`w-10 rounded-md p-0 !pl-0 tabular-nums
-                ${position === 1 && "bg-yellow-500 text-white"}
-                ${position === 2 && "bg-gray-500 text-white"}
+                ${position === 1 && "bg-warning text-warning-foreground"}
+                ${position === 2 && "bg-muted-foreground text-background"}
                 ${position === 3 && "bg-orange-500 text-white"}
               `}
             >

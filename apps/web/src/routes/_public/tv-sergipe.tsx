@@ -1,8 +1,6 @@
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
-import { z } from "zod";
 
 import { TvSergipeView } from "@/components/tv-sergipe/tv-sergipe-view";
-import { AGE_GROUPS } from "@/components/tv-sergipe/constants";
 import {
   resolveTvSergipeFilters,
   tvSergipeLeaderboardOptions,
@@ -12,27 +10,12 @@ import { SchoolIcon } from "@hugeicons/core-free-icons";
 
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
+import { tvSergipeSearchSchema } from "@/lib/search-schemas";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 
-const searchSchema = z.object({
-  view: z.enum(["medals", "points"]).default("medals"),
-  idade: z.enum(AGE_GROUPS).optional(),
-  escopo: z
-    .enum([
-      "geral",
-      "male-individual",
-      "female-individual",
-      "male-team",
-      "female-team",
-      "male-all",
-      "female-all",
-    ])
-    .optional(),
-  escola: z.coerce.number().int().positive().max(100_000).optional(),
-});
 
 export const Route = createFileRoute("/_public/tv-sergipe")({
-  validateSearch: searchSchema,
+  validateSearch: tvSergipeSearchSchema,
   search: { middlewares: [stripSearchParams({ view: "medals" })] },
   head: () =>
     buildSeo({

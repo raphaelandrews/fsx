@@ -1,6 +1,5 @@
 import { Link, createFileRoute, stripSearchParams, useNavigate, useRouter } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { z } from "zod";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fsx/ui/components/table";
 import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
@@ -14,17 +13,14 @@ import { UserGroupIcon } from "@hugeicons/core-free-icons";
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
+import { clubsSearchSchema } from "@/lib/search-schemas";
 import { useTRPC } from "@/lib/trpc";
 
-const searchSchema = z.object({
-  ritmo: z.enum(["classic", "rapid", "blitz"]).default("rapid"),
-  page: z.number().int().positive().max(1_000).default(1),
-});
 
 const PAGE_SIZE = 20;
 
 export const Route = createFileRoute("/_public/clubes/")({
-  validateSearch: searchSchema,
+  validateSearch: clubsSearchSchema,
   search: { middlewares: [stripSearchParams({ ritmo: "rapid", page: 1 })] },
   head: () =>
     buildSeo({
