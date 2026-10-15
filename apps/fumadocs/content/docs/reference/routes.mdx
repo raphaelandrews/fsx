@@ -21,8 +21,6 @@ breadcrumb JSON-LD. **Sitemap** marks URLs listed in `/sitemap.xml`.
 | `/titulados` | [Titled players](/guide/titled-players) | `titledPlayers.list` | — | Sitemap |
 | `/calendario` | [Calendar](/guide/calendar) | `events.upcoming` (default), `events.calendar` for `mes` or `ver=ano` | `mes`, `ver` | Sitemap. Default view is the next events; the month and whole-year views are always the current federation year |
 | `/comparar` | [Players](/guide/players) | `players.compare` (both chosen), `players.byId` (one chosen) | `a`, `b` | `noindex`, not in the sitemap (every pair is user-generated). Same player twice drops the second; unknown id → 404 |
-| `/ratings/lista` | [Ratings](/guide/ratings) | `ratings.lists` | `ritmo` | Sitemap |
-| `/ratings/lista/$data` | [Ratings](/guide/ratings) | `ratings.snapshot` | `ritmo`, `page` | `noindex`, not in the sitemap. A malformed or unrecorded date → 404 |
 | `/campeoes` | [Champions](/guide/champions) | `champions.gallery` | — | Sitemap |
 | `/torneios` | [Tournaments](/guide/tournaments) | `tournaments.page`, `champions.list` | `page`, `ano`, `nivel`, `ritmo`, `campeonato` | Sitemap |
 | `/torneios/$id` | [Tournaments](/guide/tournaments) | `tournaments.byId`, `tournaments.results` | — | Sitemap. SportsEvent JSON-LD. Invalid or unknown ID → 404 |

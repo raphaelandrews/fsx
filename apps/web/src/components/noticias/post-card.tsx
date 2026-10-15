@@ -45,7 +45,8 @@ export function PostCard({
             className="h-full w-full object-cover object-top outline-none transition-transform duration-300 group-hover:scale-105"
             decoding="async"
             height={675}
-            loading="lazy"
+            fetchPriority={main ? "high" : undefined}
+            loading={main ? "eager" : "lazy"}
             {...coverImage(imageUrl, main ? "(min-width: 768px) 66vw, 100vw" : "(min-width: 768px) 33vw, 100vw")}
             width={1200}
           />

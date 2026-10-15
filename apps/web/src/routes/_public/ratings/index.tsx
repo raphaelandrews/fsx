@@ -155,10 +155,6 @@ function RouteComponent() {
       <PageHeader icon={BarChartIcon} title="Ratings" />
 
       <p className="mb-4 text-center text-muted-foreground text-sm">
-        <Link to="/ratings/lista" search={{ ritmo: search.ordenar }} className="link-inline">
-          Ver listas anteriores
-        </Link>
-        {" · "}
         <Link to="/comparar" className="link-inline">
           Comparar jogadores
         </Link>

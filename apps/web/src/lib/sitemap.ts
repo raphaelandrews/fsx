@@ -5,7 +5,6 @@ const STATIC_PATHS = [
   "/",
   "/noticias",
   "/ratings",
-  "/ratings/lista",
   "/campeoes",
   "/torneios",
   "/calendario",

@@ -181,16 +181,7 @@ test("the calendar lists this year's events by month", async ({ page }) => {
   await expect(page.getByText(/^Nenhum evento em fevereiro de \d{4}\.$/)).toBeVisible();
 });
 
-test("browses past rating lists and sees the ranking history on a profile", async ({ page }) => {
-  await page.goto("/ratings");
-  await page.getByRole("link", { name: "Ver listas anteriores" }).click();
-  await expect(page).toHaveURL(/\/ratings\/lista/);
-  await expect(page.getByText(/O arquivo começa em 02\/03\/2026/)).toBeVisible();
-
-  await page.getByRole("link", { name: "02/04/2026" }).click();
-  await expect(page).toHaveURL(/\/ratings\/lista\/2026-04-02/);
-  await expect(page.getByRole("link", { name: PLAYER.name })).toBeVisible();
-
+test("shows the ranking history on a profile", async ({ page }) => {
   await page.goto(`/jogadores/${PLAYER.id}`);
   await expect(page.getByRole("heading", { name: "Posição no ranking" })).toBeVisible();
 });
