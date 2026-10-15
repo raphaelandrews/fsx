@@ -1,0 +1,31 @@
+{
+  "name": "@fsx/db",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:seed": "bun run src/seed.ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@libsql/client": "catalog:",
+    "dotenv": "catalog:",
+    "drizzle-orm": "^0.45.2",
+    "drizzle-zod": "^0.7.1",
+    "libsql": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@fsx/config": "workspace:*",
+    "drizzle-kit": "^0.31.10",
+    "miniflare": "4.20260424.0",
+    "typescript": "catalog:"
+  }
+}

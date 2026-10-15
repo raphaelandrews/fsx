@@ -1,0 +1,40 @@
+---
+title: "ADR 0004: Atomic D1 Rating Updates"
+description: Compare-and-set rating writes and tournament history in D1.
+---
+
+- Status: Accepted
+- Date: 2026-10-01
+
+## Context
+
+Cloudflare D1 rejects explicit `BEGIN` transactions from the Worker API. A
+rating write and its tournament-history row must nevertheless succeed or fail
+together, and two concurrent requests must not overwrite one another.
+
+## Decision
+
+Read the stored rating and validate the requested tournament, then submit the
+compare-and-set player update and conditional history insert together with
+Drizzle's D1 `batch()` API. The update predicate requires the rating value used
+for the calculation; the following history insert is guarded by SQLite's
+`changes()` result. D1 rolls the entire batch back when the history insert
+violates a constraint. A zero-row update returns `CONFLICT`.
+
+## Consequences
+
+This uses a D1-supported atomic batch rather than a Drizzle `transaction()`
+that emits unsupported `BEGIN` statements. A real Miniflare D1 integration test
+covers success, duplicate-registration rollback, and concurrent updates.
+
+## Update 2026-10-02
+
+- Corrections (`correctVariation`, `remove`, `revertTournament`) use the same
+  one-batch rule. Instead of compare-and-swap they apply relative updates whose
+  delta is read from the stored history row inside the batch, so a concurrent
+  change cannot desynchronize the rating and the history.
+- The history of one player and rating type is a chain in insertion order; a
+  correction shifts the current rating and every later row's `old_rating`.
+- `players_to_tournaments.tournament_id` is now `ON DELETE restrict`, and a
+  tournament with results cannot change its rating type. Deleting a tournament
+  used to delete its history while leaving the ratings changed.

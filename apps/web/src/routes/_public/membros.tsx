@@ -1,0 +1,184 @@
+import { useMemo } from "react";
+import type { inferRouterOutputs } from "@trpc/server";
+import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { CrownIcon, Flag01Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
+
+import type { AppRouter } from "@fsx/api/routers/index";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
+
+import { SectionHeading } from "@/components/section-heading";
+import { PageHeader } from "@/components/page-header";
+import { ListSkeleton } from "@/components/skeletons/list-skeleton";
+import { getGradient } from "@/lib/gradients";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
+import { useTRPC } from "@/lib/trpc";
+
+export const Route = createFileRoute("/_public/membros")({
+  head: () =>
+    buildSeo({
+      title: withBrand("Membros e Árbitros"),
+      description:
+        "Diretoria e árbitros da Federação Sergipana de Xadrez — quem organiza e apita o xadrez em Sergipe.",
+      path: "/membros",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Membros", path: "/membros" },
+      ]),
+    }),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.roles.listWithPlayers.queryOptions()),
+  pendingComponent: () => <ListSkeleton />,
+  component: RouteComponent,
+});
+
+type RolesWithPlayers = inferRouterOutputs<AppRouter>["roles"]["listWithPlayers"];
+
+interface Member {
+  id: number;
+  name: string;
+  imageUrl: string | null;
+  role: string;
+}
+
+function flattenMembers(roles: RolesWithPlayers, type: "management" | "referee"): Member[] {
+  const members = roles
+    .filter((r) => r.type === type)
+    .flatMap((role) =>
+      role.playersToRoles.map((pr) => ({
+        id: pr.player.id,
+        name: pr.player.name,
+        imageUrl: pr.player.imageUrl,
+        role: role.name,
+      })),
+    );
+
+  if (type === "management") {
+    return members.sort(
+      (a, b) =>
+        roleOrderIndex(DIRETORIA_ROLE_ORDER, a.role) -
+          roleOrderIndex(DIRETORIA_ROLE_ORDER, b.role) || a.name.localeCompare(b.name, "pt-BR"),
+    );
+  }
+
+  return members.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+}
+
+const REFEREE_ROLE_ORDER = ["Árbitro Nacional", "Árbitro Auxiliar", "Árbitro Estadual"];
+
+const DIRETORIA_ROLE_ORDER = [
+  "Presidente",
+  "Vice-Presidente",
+  "Vice-Presidente Financeiro",
+  "Vice-Presidente Técnico",
+  "Vice-Presidente Administrativo",
+];
+
+function roleOrderIndex(order: readonly string[], name: string): number {
+  const lower = name.toLowerCase();
+  const index = order.findIndex((entry) => lower === entry.toLowerCase());
+  return index === -1 ? order.length : index;
+}
+
+function groupRefereeRoles(roles: RolesWithPlayers): { name: string; members: Member[] }[] {
+  return roles
+    .filter((r) => r.type === "referee" && r.playersToRoles.length > 0)
+    .map((role) => ({
+      name: role.name,
+      members: role.playersToRoles
+        .map((pr) => ({
+          id: pr.player.id,
+          name: pr.player.name,
+          imageUrl: pr.player.imageUrl,
+          role: role.name,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+    }))
+    .sort(
+      (a, b) =>
+        roleOrderIndex(REFEREE_ROLE_ORDER, a.name) - roleOrderIndex(REFEREE_ROLE_ORDER, b.name) ||
+        a.name.localeCompare(b.name, "pt-BR"),
+    );
+}
+
+function RouteComponent() {
+  const trpc = useTRPC();
+  const { data: roles = [] } = useSuspenseQuery(trpc.roles.listWithPlayers.queryOptions());
+
+  const diretoria = useMemo(() => flattenMembers(roles, "management"), [roles]);
+  const refereeGroups = useMemo(() => groupRefereeRoles(roles), [roles]);
+
+  return (
+    <>
+      <PageHeader icon={UserGroupIcon}
+        title="Membros"
+        description="Diretoria e árbitros da Federação Sergipana de Xadrez."
+      />
+
+      <section className="mb-8">
+        <SectionHeading label="Diretoria" icon={CrownIcon} />
+        {diretoria.length === 0 ? (
+          <EmptyState message="Nenhum membro da diretoria cadastrado." />
+        ) : (
+          <MemberList members={diretoria} />
+        )}
+      </section>
+
+      <section>
+        <SectionHeading label="Árbitros" icon={Flag01Icon} />
+        {refereeGroups.length === 0 ? (
+          <EmptyState message="Nenhum árbitro cadastrado." />
+        ) : (
+          <div className="flex flex-col gap-6">
+            {refereeGroups.map((group) => (
+              <section key={group.name} aria-label={group.name}>
+                <h3 className="px-3 pb-1 font-medium text-muted-foreground text-sm">{group.name}</h3>
+                <MemberList members={group.members} />
+              </section>
+            ))}
+          </div>
+        )}
+      </section>
+    </>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return <p className="px-3 text-base text-muted-foreground">{message}</p>;
+}
+
+function MemberList({ members }: { members: Member[] }) {
+  return (
+    <ul className="grid sm:grid-cols-2">
+      {members.map((member) => (
+        <MemberCard key={member.id} member={member} />
+      ))}
+    </ul>
+  );
+}
+
+function MemberCard({ member }: { member: Member }) {
+  const gradient = getGradient(member.id);
+  const initials = member.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+
+  return (
+    <li className="flex items-center gap-3 p-3">
+      <Avatar className="size-11">
+        <AvatarImage alt="" src={member.imageUrl ?? undefined} />
+        <AvatarFallback style={gradient}>
+          {initials ? <span className="font-bold text-foreground text-xs uppercase">{initials}</span> : null}
+        </AvatarFallback>
+      </Avatar>
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <span className="font-semibold text-base leading-tight">{member.name}</span>
+        <span className="text-muted-foreground text-sm">{member.role}</span>
+      </span>
+    </li>
+  );
+}

@@ -1,0 +1,15 @@
+{
+  "title": "Reference",
+  "pages": [
+    "index",
+    "procedures",
+    "routes",
+    "public-api",
+    "api-reference",
+    "database",
+    "gamification",
+    "invariants",
+    "recipes",
+    "glossary"
+  ]
+}

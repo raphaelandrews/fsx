@@ -1,0 +1,275 @@
+---
+title: Gamification
+description: How achievements, levels, rankings, records, clubs, and the news feed are derived from existing data, with the rules for gaps and edge cases.
+---
+
+Player profiles and the public site surface achievements, records, and progress
+derived from data the federation already records, so every player received what
+they already qualified for on launch day. Public text is Portuguese; this page is
+English like all docs.
+
+All phases are shipped. The only open item is the season recap's server-rendered
+OG image (see [Deferred](#deferred)).
+
+## Principles
+
+1. **Derive, don't store.** Badges, levels, streaks, and records are computed on
+   read from `players_to_tournaments`, `tournament_podiums`, `circuit_podiums`, and
+   `players_to_titles`. Nothing is "awarded", so there is no backfill: past
+   achievements appear automatically, and fixing a data error fixes the
+   achievement. Storage is added only where the data cannot be reconstructed
+   (ranking snapshots) or is an official record or judgment (title tier,
+   competition tier, final circuit podiums). A correction can therefore remove an
+   achievement; that is intended. If notifications or permanent badges are ever
+   needed, a `player_achievements` table can record first awards from the same
+   module.
+2. **One definition per concept.** Every derived value (peak, threshold crossing,
+   streak, XP, "tournaments played") is defined once, in the pure TypeScript module
+   `packages/api/src/gamification/`. The profile, statistics page, feed, and season
+   recap all call it. SQL is used only for values whose definition is trivially
+   identical (counts, `MAX`).
+3. **Every achievement has a provenance.** `{ id, earnedAt: string | null,
+   tournamentId: number | null, legacy: boolean }`. `earnedAt` is the source
+   tournament's date, `null` when unknown. `legacy` marks achievements earned
+   before the recorded history began. The UI shows "Conquista anterior" for legacy
+   and "Data desconhecida" for a missing date, never an invented one.
+4. **Whole history, not capped lists.** `players.byId` caps nested collections at
+   `PUBLIC_NESTED_COLLECTION_LIMIT` (100). Aggregates come from dedicated queries.
+5. **Active versus all players, per feature.** Features about the present (current
+   ranking, club strength) use active players. Historical features (records, Hall
+   of Fame, all-time medals, the feed) include everyone; inactive holders get an
+   "inativo" label.
+6. **Code-defined catalogs.** Badge definitions and XP weights live in code:
+   versioned, testable, no admin UI.
+
+See also [ADR 0006](/decisions/0006-derived-achievements),
+[ADR 0007](/decisions/0007-ranking-snapshots), and
+[ADR 0008](/decisions/0008-stored-computations).
+
+## Decisions
+
+| Topic | Decision |
+| --- | --- |
+| Norms | Not part of the model. A norm is a title requirement published on `/normas-tecnicas` (a rating plus podiums or wins in listed championships); the federation grants the title after the player proves it. The `norms` and `players_to_norms` tables are unused (0 rows) and give no XP. The unofficial derived title path is the "Caminho para títulos" profile section. |
+| Announcements | An announcement may name the one player it is about (`announcements.player_id`). The profile lists them under "Comunicados"; the admin edit page suggests players whose full name appears in the text. |
+| Title weight | `titles.tier` (1–4) orders emblems and sets title XP, instead of a flat internal/external value. |
+| Insignias | Out of scope until the insignia model is reworked. |
+| Cups | No head-to-head, rivals, cup stats, or cup XP, except the Bullet Grand Final winner for one emblem. |
+| Rating thresholds | 2000 / 2100 / 2200 / 2300 / 2400, the rating requirements of the title ladder on `/normas-tecnicas` (MMS 2000, MJS 2100, CMS 2200, MSE 2300, GMS 2400), all above the 1900 starting rating. |
+| Records computation | Stored in `computed_results` and recomputed once per admin change ([ADR 0008](/decisions/0008-stored-computations)): computing every career costs about 50 ms of CPU, and one stored row is far cheaper to read ([ADR 0009](/decisions/0009-workers-paid-plan) explains why this stays on the paid plan). |
+| Youngest champion record | Dropped: 64% of players have no birth date, so the record would be wrong. Age-based records do not exist. |
+| Profile routes | `routes/_public/jogadores/$id/` holds `route.tsx` (validates `idParams`, renders `<Outlet/>`) and `index.tsx`; the season recap is the sibling `temporada.$ano.tsx`. |
+| Competition data | Tournaments and circuits have a `tier` (`S` Sergipanos, `A`, `B`, `school`). Tournament podiums have an optional `category`, so any tournament can record overall and per-category champions. Circuits are kept per season (`year`, optional championship linking the seasons); finishing a season stores its official top 3 per category in `circuit_final_podiums`. |
+
+## Data rules
+
+How the derivations treat each case. These are the contract the stats module
+implements; each rule has a unit test in `stats.test.ts`.
+
+| Situation | Rule |
+| --- | --- |
+| Order of results | A rating chain (one player, one rating type) is ordered by `players_to_tournaments.id`, as the rating update writes it. Dates are display and year-bucketing data only; an inversion never reorders a chain. |
+| Starting rating | 1900 is the default starting rating. A chain whose first `old_rating` is 1900 started from scratch; every threshold is above 1900. |
+| Chain starts above a threshold | A threshold `T` with `first.old_rating >= T` is earned with `legacy: true` and `earnedAt: null` ("Conquista anterior"). |
+| Threshold reached | A threshold `T` is earned exactly when the peak is `>= T`, so a badge never contradicts the peak. Walking the chain in order: a row whose recorded variation crosses `T` (`old_rating < T <= old_rating + variation`) dates it at that tournament; if a row already starts at or above `T` without a crossing (a gap), or only the current rating reaches `T` (a manual edit), it is earned with `earnedAt: null`. |
+| Gap in the chain | Streaks and best gain use each row's `variation` as recorded. |
+| No rating history | A format with no results and the 1900 starting rating has no stats. A rating above 1900 without history predates the records: its thresholds are legacy. |
+| Current rating differs from chain end | Peak is the max of every row end, every row `old_rating`, and the current rating. A peak is never below today's rating. |
+| Tournament without date | Counts with `earnedAt: null`; excluded from per-year features and the feed. |
+| Podium without a rating result | "Tournaments played" is the distinct tournament ids across rating history and tournament podiums. |
+| Shared podium place | Every player sharing a place gets the medal. Team championships record each team member at the team's place. |
+| Tournament placements | Medals come only from recorded podiums (`tournament_podiums`), overall or per category. Tournaments without podiums count for participation and rating achievements only; no placement is inferred. |
+| Circuit stage results | Each `circuit_podiums` row with `circuit_phase_id` is a stage result (despite the table name these are points rows, one per player per stage). Place 1–3 is a stage medal, with its category; any place counts as a stage played. A stage medal earns no XP when the same player also has a tournament podium for that stage's tournament. |
+| Circuit final podiums | Read from `circuit_final_podiums`, which exist only for finished seasons. They are snapshotted from the summed points when a season is finished (`circuits.finish`; top 3 per category for `categories` and `school` layouts, shared places for ties) and may be corrected by admins, so they are the official record. Seasons in progress give no final medal and no final XP. |
+| Tier | Every podium inherits the tier of its tournament or circuit, which scales its XP and groups S-tier titles apart in the trophy cabinet. |
+| Tournament without championship | Counts for medals and XP; excluded from dynasties until an admin links the championship. |
+| Missing birth date | Not used. Only the "Caminho para títulos" checks for MMS and MJS use age, and only when a birth date exists. |
+
+## Existing data
+
+`packages/db/src/audits/gamification-readiness.sql` measures every gap the
+derivations depend on. Run it read-only against production (see the
+[runbook](/operations/runbook#monitoring-and-media-cleanup)). The 2026-10-03 run:
+
+| Check | Value | Finding |
+| --- | --- | --- |
+| Players (active) | 5,384 (2,368) | |
+| Players with rating history | 2,126 | 362 active players have no results yet, so empty states and level 1 must look intentional. |
+| Tournaments | 173, from 1972-12-01 to 2026-09-12 | |
+| Tournaments without date | 0 | Every achievement can be dated; the unknown-date rule stays for robustness. |
+| Tournaments without championship | 99 (57%) | Dynasties are incomplete until admins link championships: the main cleanup item. |
+| Tournaments without rating results | 58 | Historical tournaments recorded only through podiums. |
+| Rating history rows | 8,511 | Small enough for the stats module to run on read. |
+| Rating chains starting at 1900 | 2,169 of 2,611 (83%) | Thresholds at or below 1900 would be free. |
+| Chains starting at 2000 or more | 119 | History began mid-career for strong players, so the legacy rule is needed and visible. |
+| Chain gaps / current rating differs | 54 / 4 | Rare; handled by the rules. `rating-history-sync.sql` lists the rows. |
+| Date order inversions | 53 | Confirms chains are ordered by id, not by date. |
+| Tournament podiums | 165, Sergipano championships only | 121 have no rating result, so "tournaments played" includes podiums. |
+| Shared podium places | 20 | All in the Campeonato Sergipano de Equipes; team members share places. Not errors. |
+| Circuit points rows (`circuit_podiums`) | 546 | 514 stage rows (321 in a stage's top 3) plus 32 for phase-less `geral` circuits. |
+| Results per player | max 78, average 4.0 | One query loads a whole career. |
+| Peak rapid rating at or above 2000 / 2100 / 2200 / 2300 / 2400 | 169 / 99 / 46 / 21 / 11 of 1,992 chains | Rating badges are prestige; about 9% reach the first step. |
+| Players without birth date | 3,470 (64%) | Age-based records dropped. |
+| Titles (internal / external) | 13 / 3, 149 awards | |
+
+### Cleanup that enriches the output (admin data entry)
+
+The rules keep the output correct without cleanup:
+
+1. Link the 99 tournaments without a championship, starting with those that have
+   podiums (the only gap with a visible effect: incomplete dynasties).
+2. Optionally fix the 54 chain gaps and 4 rating mismatches.
+3. Set `tier` on each title.
+
+### Launch behavior
+
+- Retroactive by default: every player sees their full trophy cabinet, badges,
+  and level, including podiums back to 1972.
+- The "Novidades" feed starts empty. It lists only achievements whose source row
+  was recorded after `GAMIFICATION_LAUNCH_DATE` (compared to the row's
+  `created_at`), within the last 60 days, so launch does not publish 50 years of
+  history as news. `GAMIFICATION_LAUNCH_DATE` stays `null` (feed off) until the
+  release day.
+- Per-year features (season recap, most active of the year, best gain of the
+  year) reset annually, so new players are not locked out.
+
+## What shipped
+
+| Feature | Where |
+| --- | --- |
+| Stats module, badge catalog, constants | `gamification/stats.ts`, `badges.ts`, `constants.ts`; `players.stats` |
+| Ranking snapshots | `ranking_snapshots`; `playersTournament.snapshotRankings` ([ADR 0007](/decisions/0007-ranking-snapshots)) |
+| Profile achievements: trophy cabinet (tournaments and circuits counted separately, grouped by championship), peak rating, threshold badges, entry-level badges, best performance, streaks, activity, dynasties | `components/player/`, `components/gamification/` |
+| Circuits block on the profile | `gamification/circuits.ts`; `players.circuitSeasons` |
+| Title emblems ordered by `titles.tier` | `titles.tier`; admin title form |
+| Player level (XP) | `gamification/level.ts`; `players.stats` |
+| Ranking position and movement | `gamification/ranking.ts`; `players.ranking`; movement in `players.withFilters` |
+| Records and Hall of Fame, statistics overview and charts | `gamification/records.ts`; `records.all`, `records.statistics`; `/estatisticas` (`/recordes` redirects) |
+| Clubs: strength, medal table, club pages | `gamification/clubs.ts`; `clubs.leaderboard`, `clubs.byId`; `/clubes` |
+| Activity graph and season recap, shareable card drawn in the browser | `gamification/season.ts`; `players.season`; `/jogadores/$id/temporada/$ano` |
+| "Novidades" feed | `gamification/feed.ts`; `records.recent` |
+| Progress on locked emblems, emblem rarity | `upcomingOf`; `records.badges`, `records.badgeStats` |
+| Path to title (unofficial) | `gamification/title-path.ts` |
+| "Destaque do mês" | `records.monthHighlight` |
+
+Behaviors worth knowing:
+
+- Positions are live: `count(active players with a higher rating) + 1` per
+  format, so equal ratings share a place and inactive players get none. Movement
+  is the change between the two latest snapshots of a format (the last import),
+  hidden until a player has two. Female profiles also show the active Feminino
+  rank beside the Absoluto one.
+- A club is ranked by the average of its five best active members per format;
+  clubs with fewer than five active members are unranked, so one strong player
+  cannot carry a club. Medals count the club's current members' careers
+  (tournament podiums, overall and category, and finished-circuit podiums; stage
+  results are left out as too frequent). The data has no club history.
+- Records show the top 10 per record with equal values sharing a place and
+  inactive holders flagged: peak per format, most wins and podiums, most titles
+  per championship, longest streak, biggest single gain, most active this year
+  (São Paulo year), and highest levels. The bulk loader feeds every career to the
+  same `playerStats` and `playerLevel` as the profile, so a record can never
+  disagree with a profile.
+- The season recap filters the stats module's output to one year. XP gained is
+  the level XP of the career up to the end of the year minus up to the end of the
+  previous year; ratings at each point are the chain's rating then. `NOT_FOUND`
+  for an unknown player or a year without dated activity. Dates are plain
+  `YYYY-MM-DD`, read without `Date` to avoid time zone shifts.
+- "Caminho para títulos" shows only the next major-title goal (CMS, MSE, GMS)
+  plus eligible youth and female-title goals. Requirements come from
+  `/normas-tecnicas`: peak rating, top-3 finishes and wins in the listed
+  Sergipanos, sex for MFS, and age for MMS and MJS when a birth date exists. It
+  is marked unofficial: the federation grants titles, top-5 finishes are not
+  recorded, and championships approved case by case are not counted.
+
+## Player level (XP)
+
+A pure function in `gamification/level.ts` over the stats input, including legacy
+achievements, so players are credited for their whole career.
+
+| Source | XP | Rationale |
+| --- | --- | --- |
+| Tournament played | 15 | Participation is the base; a regular plays 5–15 a year. |
+| Tournament podium: 1st / 2nd / 3rd | 60 / 40 / 25 × tier | A tier-S win is worth about 6 tournaments. |
+| Circuit final podium (finished seasons): 1st / 2nd / 3rd | 40 / 25 / 15 × tier | A whole circuit season. |
+| Circuit stage podium: 1st / 2nd / 3rd | 15 / 10 / 5 | Frequent, mostly per age category, so worth little each. Not counted when the same result is a tournament podium. |
+| Rating threshold reached (per format) | 30 | Rewards improvement; the steps match the title ladder. |
+| Highest title held, by `titles.tier` 1 / 2 / 3 / 4 | 50 / 100 / 200 / 300 | Only the highest counts, so two top titles do not outweigh decades of tournaments. |
+
+Tier multiplier for podiums: S × 1, A × 0.7, B × 0.5, School × 0.4. A category
+podium counts at half the overall podium of the same event. Badges give no XP:
+they come from the same rows and would double-count. Youth titles are lost the
+year the player turns 15 (MMS) or 19 (MJS), and XP follows the titles held now,
+so it drops when an admin removes an expired title. XP mirrors the official
+record.
+
+Cumulative XP to reach level *n* is `25 × n × (n − 1)`:
+
+| Level | 2 | 3 | 5 | 8 | 10 | 15 | 20 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| XP | 50 | 150 | 500 | 1,400 | 2,250 | 5,250 | 9,500 |
+
+### Production distribution
+
+Checked on a production backup of 2026-10-04 with
+`packages/api/scripts/xp-distribution.ts` (see the
+[runbook](/operations/runbook#monitoring-and-media-cleanup)). The first run, with 10 XP per
+tournament and every title counting, put a player with 6 tournaments at level 7 on
+titles alone; the weights above are the rebalanced ones (15 XP per tournament, only
+the highest title).
+
+| | Players | XP p50 | p90 | p99 | max | Level 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| All | 5,384 | 0 | 75 | 550 | 2,080 | 4,600 | 481 | 159 | 74 | 37 | 19 | 10 | 2 | 2 |
+| Active | 2,368 | 15 | 165 | 840 | 2,080 | 1,775 | 332 | 129 | 65 | 34 | 19 | 10 | 2 | 2 |
+
+Half of the top 10 are high-volume regulars, titles add at most 300 XP, and level
+2 takes 4 tournaments. With 4 results per player on average, most players sit at
+levels 1–2.
+
+## Emblem catalog
+
+Defined in `gamification/badges.ts`, each derived from data already recorded
+(tiers are bronze, silver, gold, platinum):
+
+| Emblem | Rule | Tiers |
+| --- | --- | --- |
+| Veterano | Seasons with at least one result | 5 / 10 / 20 |
+| Maratonista | Tournaments in a single year | 6 / 10 / 15 |
+| Tríplice | All three formats played in the same year | single |
+| Tríplice 2000 | Peak 2000 or more in rapid, blitz, and classic | platinum |
+| Volta por cima | A positive result right after 3+ results without gain, same format | single |
+| Grande salto | Single-tournament gain of +30 / +50 / +80 | 3 |
+| Circuito completo | Played every stage of a circuit season | single |
+| Pódio de etapa | Circuit stage podiums | 3 / 10 / 25 |
+| Campeão de categoria | First place in a tournament category (Sub-14, Feminino, …) | one per category |
+| Década | A result 10+ years after the first recorded tournament | single |
+| Recordista | Holds first place in a `/estatisticas` record list | single |
+| Campeão(ã) Sergipano · Absoluto / Feminino / Rápido / Blitz / Bullet / Equipes | First overall win of a tier-S championship of that kind. The kind comes from the championship name (`gamification/sergipano.ts`: "feminin", "equipe", "bullet", "blitz", "rapid", "absolut"), so name Sergipano championships accordingly | gold (Absoluto, Feminino), silver (others) |
+| Tríplice Coroa Sergipana | One Sergipano win in each of classic (Absoluto or Feminino), rapid, and blitz | gold |
+| Tríplice Coroa em dobro | Two wins in each of those three | platinum |
+| Grand Slam Sergipano | A win in classic, rapid, blitz, Bullet, and Equipes. The Bullet win comes from the Grand Final winner of a cup whose name or championship matches "bullet" (cups record no tournament podium) | platinum |
+| Campeão(ã) · Sergipano / Tier A / Tier B / Escolar | First places (overall or category) per competition tier | 1 / 3 / 5 wins |
+| Pódio em todos os níveis | A podium in tier S, A, B, and school | platinum |
+
+Locked emblems show their progress (`upcomingOf` returns
+`progress: { current, target }`), and every emblem shows the share of players
+holding it (`records.badges`, from the same stored computation as the records).
+
+## Deferred
+
+- **Season recap OG image.** Rendering images at the edge (Satori or resvg) costs
+  hundreds of milliseconds of CPU. That was too much for the free plan's 10 ms and is
+  allowed on the paid plan the site now uses; the planned design renders on demand and
+  caches in R2 (`IMPLEMENTATION.md`, Phase 6). Until then the recap uses the player's
+  photo as its preview, and the page draws a shareable card in the browser.
+- **Insignias.** Reworked before being shown; then they plug into the achievement
+  badge and the XP table.
+- **Placements from the rating import.** Podiums can be entered by hand for any
+  tournament. An optional rank column in the Swiss Manager spreadsheet, stored as a
+  nullable `players_to_tournaments.place`, would fill them automatically and add
+  "top 10 finishes". Not retroactive.
+- **Defending champions.** `defending_champions` is maintained by hand; it could be
+  derived as the overall winner of each championship's latest tournament.
+- **Cups.** Head-to-head, rivals, cup records, and cup XP. First confirm whether
+  `cup_matches.winner_id = null` means a draw or an unplayed match.

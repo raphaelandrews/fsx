@@ -1,0 +1,43 @@
+import { describe, expect, test } from "bun:test";
+
+import { articleJsonLd, buildSeo, personJsonLd, serializeJsonLd, stripMarkdown, tournamentJsonLd, truncate } from "./seo";
+
+describe("meta descriptions", () => {
+  test("strip Markdown syntax before truncating", () => {
+    const markdown = "## Torneio **Aberto**\n\n> Inscrições [aqui](https://x.org) até *sexta*.\n\n![Cartaz](/a.png)\n\n- Rodada 1\n- Rodada 2";
+    expect(truncate(markdown)).toBe("Torneio Aberto Inscrições aqui até sexta. Cartaz Rodada 1 Rodada 2");
+    expect(stripMarkdown("| A | B |\n| --- | --- |\n| 1 | 2 |").replace(/\s+/g, " ").trim()).toBe("A B 1 2");
+  });
+
+  test("fall back to the default description for empty or syntax-only content", () => {
+    expect(truncate("***")).not.toBe("");
+    expect(truncate(null)).toBe(truncate(""));
+  });
+});
+
+describe("structured data", () => {
+  test("only describes a player image when the player has one", () => {
+    expect(personJsonLd({ name: "Ana", path: "/jogadores/1" }).image).toBeUndefined();
+    expect(personJsonLd({ name: "Ana", path: "/jogadores/1", image: "/api/media/players/a.webp" }).image).toBe(
+      "https://www.fsx.org.br/api/media/players/a.webp",
+    );
+  });
+});
+
+describe("JSON-LD serialization", () => {
+  test("cannot close the script element from user text", () => {
+    const block = articleJsonLd({ title: "</script><script>alert(1)</script>", path: "/noticias/x" });
+    const { scripts } = buildSeo({ title: "x", jsonLd: block });
+    expect(scripts[0]!.children).not.toContain("<");
+    expect(JSON.parse(scripts[0]!.children)).toEqual(JSON.parse(JSON.stringify(block)));
+    expect(serializeJsonLd({ a: "<b>" })).toBe('{"a":"\\u003cb>"}');
+  });
+});
+
+describe("tournament structured data", () => {
+  test("describes a chess event with an absolute URL and omits a missing date", () => {
+    const dated = tournamentJsonLd({ name: "Aberto 2026", path: "/torneios/5", startDate: "2026-03-10" });
+    expect(dated).toMatchObject({ "@type": "SportsEvent", sport: "Chess", startDate: "2026-03-10", url: "https://www.fsx.org.br/torneios/5" });
+    expect(tournamentJsonLd({ name: "Sem data", path: "/torneios/6", startDate: null }).startDate).toBeUndefined();
+  });
+});

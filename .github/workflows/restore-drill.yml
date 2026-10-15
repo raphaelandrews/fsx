@@ -1,0 +1,44 @@
+name: Restore drill
+
+# Monthly proof that a production backup restores into D1 and serves the app.
+# Exports production (read-only) into the ephemeral runner, restores it into
+# Miniflare D1, applies pending migrations, and checks row counts and public
+# pages. Nothing is uploaded: the backup holds personal data and is discarded
+# with the runner. The run history is the record of the last successful drill.
+# Needs repository secrets CLOUDFLARE_API_TOKEN (D1:Read) and CLOUDFLARE_ACCOUNT_ID.
+on:
+  schedule:
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+
+concurrency:
+  group: restore-drill
+  cancel-in-progress: false
+
+jobs:
+  drill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      BACKUP_ROOT: ${{ runner.temp }}/backups
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: sudo apt-get install -y sqlite3
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun run db:backup
+      - name: Restore and verify
+        run: |
+          backup="$(ls -1 "$BACKUP_ROOT"/fsx-*/fsx-*.sql | tail -n 1)"
+          bun run db:backup:verify "$backup"
+          bun run db:restore-drill "$backup" | tee drill.log
+          {
+            echo "### Restore drill $(date -u +%F)"
+            echo
+            tail -n 4 drill.log
+          } >> "$GITHUB_STEP_SUMMARY"

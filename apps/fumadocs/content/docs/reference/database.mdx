@@ -1,0 +1,121 @@
+---
+title: Database
+description: D1 tables, constraints, indexes, and how migrations are made and applied.
+---
+
+The database is Cloudflare D1 (SQLite). The schema is defined with Drizzle in
+`packages/db/src/schema`, one file per table, and exported from
+`schema/index.ts`. What the tables mean is in the
+[domain model](/architecture/domain-model).
+
+## Conventions
+
+- Primary keys are `integer` autoincrement `id`.
+- Timestamps are `text` in SQLite's `CURRENT_TIMESTAMP` format (UTC);
+  `updated_at` is refreshed by Drizzle on update.
+- Dates without time (`tournaments.date`, `events.start_date`,
+  cup dates) are `YYYY-MM-DD` text.
+- Booleans are `integer` with Drizzle `mode: "boolean"`.
+- Enumerations are `text` with a `CHECK` constraint, mirrored by a Zod enum in
+  the API.
+
+## Constraints
+
+| Table | Unique | Check |
+| ----- | ------ | ----- |
+| `players` | `nickname`, `cbx_id`, `fide_id` | `birth_year` is an integer (the full birth date is never stored); ratings 0–4000; `sex` in `male`, `female` |
+| `players_to_titles`, `_roles`, `_norms`, `_insignias` | `(player, other)` | — |
+| `players_to_tournaments` | `(player_id, tournament_id)` | `old_rating` 0–4000; `variation` −4000–4000; `rating_type` in `blitz`, `rapid`, `classic` |
+| `player_update_requests` | — | `status` in `pending`, `approved`, `rejected`; a player's proposed `birth_year`, club, location, `cbx_id`, `fide_id` (null = unchanged), and the `photo_key` of a photo waiting under `pending/`. No contact details are collected. Deleted with its player |
+| `change_log` | — | `entity` in `player`, `tournament`, `podium`; `action` in `create`, `update`, `delete`. No foreign keys: a deleted record's history stays. Entries older than 2 years are deleted on the next write |
+| `ranking_snapshots` | — | `rating_type` in `blitz`, `rapid`, `classic`; `position` ≥ 1 |
+| `computed_results` | `key` | Stored JSON results and the `data_changed` marker ([ADR 0008](/decisions/0008-stored-computations)) |
+| `tournament_podiums` | `(player_id, tournament_id)` for overall podiums; `(player_id, tournament_id, category)` for category podiums (two partial indexes, since a `NULL` category never collides) | `place` 1–100000; `category` null (overall) or a known category |
+| `defending_champions` | `(player_id, championship_id)` | — |
+| `tournaments`, `cups` | `name` | `rating_type` in `blitz`, `rapid`, `classic`; `prize_pool` ≥ 0 |
+| `circuits` | `name` | `type` in `default`, `categories`, `school`, `geral` |
+| `circuit_final_podiums` | `(circuit_id, player_id)` overall; `(circuit_id, category, player_id)` per category | `place` 1–1000; `points` null or 0–1000000; `category` null (overall) or a known category |
+| `circuit_podiums` | — | exactly one of `circuit_id`, `circuit_phase_id`; `points` 0–1000000; `place` null or 1–1000; `category` null or a known category |
+| `cup_brackets` | — | `bracket_type` in `UB`, `LB`, `GF` |
+| `cup_playoffs` | — | `phase_type` in a fixed list of upper/lower bracket phases and `Grande Final` |
+| `tv_sergipe` | individual `(player, age, sex)`; team `(club, age, sex, team_name)` | age group, sex, modality, team letter `A`–`J`, place 1–8, points 1–10; individual ↔ player, team ↔ team name |
+| `announcements` | `content`; `(year, number)` | `year` 1900–2200; `number` > 0 |
+| `posts` | `slug` | — |
+| `roles` | `name`, `short_name` | `type` in `management`, `referee`, `teacher` |
+| `titles` | `name` | `type` in `internal`, `external`; `tier` 1–4 and `loses_at_age` (null or 1–120) validated by the API (no `CHECK`: referenced table) |
+| `locations` | `name` | `type` in `city`, `state`, `country` |
+| `links` | — | `type` in `link`, `regulation`, `form`, `results` |
+| `link_groups` | `event_id` | — |
+| `clubs`, `championships`, `events`, `insignias`, `norms` | `name` | — |
+
+`tournaments.tier` and `circuits.tier` (`S`, `A`, `B`, `school`) and `circuits.year`
+have no `CHECK`: they were added to tables other tables reference, where a
+`CHECK` would force a table rebuild. The API validates them (`COMPETITION_TIERS`
+in `@fsx/db/competition`), and requires `year` on every circuit write.
+
+Foreign keys and their `ON DELETE` actions are summarized in
+[deletion behavior](/architecture/domain-model#deletion-behavior).
+
+## Indexes
+
+Indexes follow the public queries:
+
+- `players`: `active`, `sex`, `club_id`, `location_id`, `name`, each rating,
+  `(active, rating)` for each rating, and `(active, birth_year)` for age groups.
+- `players_to_tournaments (tournament_id)`, `tournaments (championship_id)`, `tournaments (date)` (month highlight), `circuit_phases (tournament_id)`.
+- Covering indexes for the hot player scans: `players (active, sex, classic, rapid, blitz)` (ranking counts) and `players (normalized_name, active, name, rapid)` (name search scans the index, not the wide rows).
+- `circuit_phases (circuit_id, sort_order)`, `circuit_podiums (circuit_phase_id)` and `(circuit_id)`.
+- `ranking_snapshots (player_id, rating_type, snapshot_at)` and `(rating_type, snapshot_at)`, `change_log (entity, record_id, created_at)` and `(created_at)`, `announcements (player_id)`, `player_update_requests (status, created_at)` and `(player_id, status)`.
+- `tournament_podiums (tournament_id, place)`, `circuit_final_podiums (player_id)`, `cup_games (cup_match_id, game_number)`.
+- `events (start_date)`, `events (tournament_id)`, `links (link_group_id)`.
+- `tv_sergipe (age_group, sex, modality)` and `(club_id, age_group)`.
+
+Before adding an index, compare plans on production-sized data
+(`packages/db/src/audits/query-plans.sql`, [Query cost baseline](/operations/query-cost-baseline)).
+
+## Migrations
+
+1. Edit the schema file.
+2. Run `bun run db:generate`. Drizzle writes `packages/db/src/migrations/NNNN_<name>.sql`
+   and updates `meta/`. Commit both.
+3. Restart `bun dev`: Alchemy applies pending migrations to the local D1 and
+   records them in `d1_migrations`.
+4. `bun run deploy` applies them to production the same way.
+
+Never apply a migration with `sqlite3` or `wrangler d1 execute`: the tracker would
+not record it and the next run fails with `table … already exists`
+([ADR 0002](/decisions/0002-d1-migrations)).
+
+### Rebuilding tables safely on D1
+
+Changing a constraint makes SQLite rebuild the table. Drizzle generates the
+rebuild between `PRAGMA foreign_keys=OFF` and `ON`, but **D1 applies each
+migration as one transaction with foreign keys enforced, so that PRAGMA does
+nothing.** Dropping a table that other tables reference then either fails
+(`RESTRICT`) or silently deletes child rows (`CASCADE`). `PRAGMA
+defer_foreign_keys = on` does not help: cascades still run.
+
+- **Leaf table** (nothing references it, e.g. `circuit_podiums`): Drizzle's
+  generated rebuild is safe as is.
+- **Referenced table** (e.g. `players`, `tournaments`, `clubs`): rewrite the
+  migration like `0021_blushing_stature.sql`: copy every affected table and
+  every table that references it to a plain `__bak_` copy, drop children before
+  parents, recreate parents before children, copy the rows back, recreate the
+  indexes, and drop the backups.
+
+`migrations.integration.test.ts` applies every migration the way production
+does (one transaction per file) to a database with rows in every table, checks
+that no row is lost, and fails if a new migration drops a referenced table.
+Before deploying a migration that rebuilds tables, also run the
+[pre-migration audit](/operations/runbook#deployment-order) and the
+[restore drill](/operations/runbook#restore-drill) against a fresh production
+backup.
+
+D1 specifics that shape the code:
+
+- No interactive transactions (`BEGIN` is rejected). Use `db.batch([...])`, which
+  runs atomically.
+- Foreign keys are always enforced; `PRAGMA foreign_keys=OFF` has no effect in a
+  migration or batch.
+- A compound `SELECT` may have at most 5 terms.
+- Bound parameters per statement are limited; batch large inserts.

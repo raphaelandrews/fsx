@@ -1,0 +1,73 @@
+---
+title: Governance and Privacy
+description: FSX personal data, administrative access, and retention rules.
+---
+
+Player profiles may contain a name, nickname, birth year (never the full date), sex, location,
+FIDE/CBX identifiers, image, and rating history. Public projections include the
+player's name, rating, title, club/location, image, active/verified state, and
+CBX/FIDE IDs displayed on the profile. Sex and description are
+administrator-only; the birth year is published only by the public API and the Swiss
+Manager export. Public ratings filters apply birth-year/sex predicates on
+the server.
+
+The configured GitHub identity is the sole administrator. That administrator
+may correct identity/profile fields and manage ratings; only rating changes that
+come from a tournament workflow are written to the rating-history table. Never
+delete or rewrite rating history to make a correction. Before deleting a player,
+check tournament, circuit, cup, and event relationships; retain the player record
+when a historical relationship requires it.
+
+Update requests (`player_update_requests`) hold personal data that a visitor typed: a
+proposed birth year and IDs, and optionally a photo. The form collects no contact details or message. They are visible
+only to the administrator, are included in D1 backups like every other table, and are never published
+unless approved. Delete a request once it is decided; deleting it removes its proposed data and any pending photo. The
+requests page offers "Delete old decisions" for anything decided more than 90 days ago.
+
+A photo sent with a request (often of a child) sits in R2 under `pending/`, which no public URL serves; only
+the review page reads it. It moves to the public `players/` key on approval and is deleted on rejection or
+when the request is deleted. An R2 lifecycle rule also deletes anything left under `pending/` after 30 days.
+The form has the visitor crop the photo to a 400 px square (tens of KB) in the browser, which also drops its
+EXIF data (camera, location), before upload. At most 100 photos wait at once; approving one photo deletes the
+others waiting for the same player, rejecting or deleting a request deletes its photo, and merging two players
+deletes the photos waiting for the removed record, so unused objects do not accumulate.
+
+The change history (`change_log`) records the administrator's name or email, the record, and the values before
+and after for players, tournaments, and podiums, so it can include a player's birth year, IDs, and photo
+address. It is visible only in the dashboard. Entries are deleted after 2 years, automatically with the next
+recorded change. Deleting a record does not delete its history, because the history exists to explain such
+changes; remove an entry by hand only to honour a request to erase a person's data.
+
+Better Auth sessions expire after seven days and refresh their expiry after one
+day of use. Expired sessions are not retained as active credentials. Accounts
+are not removed automatically; review dormant accounts annually and remove an
+account only after confirming the owner request and invalidating its sessions.
+
+Logs must use request IDs, procedure names, and safe metadata without payloads,
+tokens, IP addresses, secret URLs, spreadsheet contents, or unnecessary personal
+data. Backups require the single-owner administrator check;
+authenticated/mutation tRPC responses use `Cache-Control: no-store`. The Swiss
+Manager export is public by the federation's decision (see
+[ADR 0001](/decisions/0001-single-owner-admin)). Like the public API, it carries only the
+birth year (`swissManager.list` never returns the full date); the file writes the
+birthday as `YYYY-00-00`, because the export covers children. The public API
+(`/api/v1/players/{id}`) publishes only the birth year, with the club and titles.
+Backups are stored outside the repository with owner-only filesystem permissions
+and a 90-day default retention window.
+Rate limiting keys Cloudflare's native limiter by client IP; the application
+stores no rate-limit records.
+The rating-import screen stores its local result history (player name/ID and safe
+error category) in browser `localStorage`; the administrator can clear it from
+that screen. Server request/error logs do not store this history.
+
+Rating corrections must preserve history. Profile removal or correction must be
+authorized by the administrator and checked against historical relationships
+before data is deleted. Keep a documented reason for manual identity/profile
+corrections in the operational record, not in public fields or request logs.
+
+## Backups in CI
+
+The monthly restore drill exports production into a GitHub-hosted runner, restores
+it in memory, and discards it with the runner. The workflow uploads no artifacts and
+prints only row counts and route status codes. Remove the workflow's secrets to
+opt out.

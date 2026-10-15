@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /api/
+
+Sitemap: https://www.fsx.org.br/sitemap.xml

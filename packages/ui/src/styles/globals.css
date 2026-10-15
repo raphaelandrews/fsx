@@ -1,0 +1,586 @@
+@import "@fontsource-variable/jetbrains-mono";
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@source "../../../apps/**/*.{ts,tsx}";
+@source "../**/*.{ts,tsx}";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Fustat's own metrics leave 30% of the em above capitals but 42% below the baseline, so
+   centered labels (pills, tabs, badges) sit ~1px high. These overrides balance the space
+   (36% / 36%) without changing the total line box. Latin subsets only: the site is Portuguese. */
+@font-face {
+  font-family: "Fustat";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url("../../node_modules/@fontsource-variable/fustat/files/fustat-latin-ext-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  ascent-override: 106%;
+  descent-override: 36%;
+}
+
+@font-face {
+  font-family: "Fustat";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url("../../node_modules/@fontsource-variable/fustat/files/fustat-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  ascent-override: 106%;
+  descent-override: 36%;
+}
+
+/* Palette: burple for actions on neutral text and cool gray surfaces, with status and semantic
+   hue families. Every token is defined for both themes in the same order. */
+
+:root {
+  /* Surfaces and text */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.21 0.006 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.006 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.006 265);
+  --title: oklch(0.17 0.006 265);
+  /* Long-form text (posts, announcements): a softer cool gray than foreground. */
+  --reading: oklch(0.44 0.02 265);
+
+  /* Brand burple. Inverse is the hover state of primary pills. */
+  --primary: oklch(0.57 0.22 267);
+  --primary-foreground: oklch(1 0 0);
+  --primary-inverse: oklch(0.3 0.13 268);
+  --primary-inverse-foreground: oklch(0.87 0.08 267);
+  --link: oklch(0.5 0.22 267);
+  --link-hover: oklch(0.36 0.17 272);
+  --ring: oklch(0.57 0.22 267);
+  --selection: oklch(0.57 0.22 267);
+  --selection-foreground: oklch(1 0 0);
+
+  /* Cool grays */
+  --secondary: #f5f7fa;
+  --secondary-foreground: oklch(0.21 0.006 265);
+  --muted: #f5f7fa;
+  --muted-foreground: oklch(0.5 0.012 265);
+  --accent: oklch(0.95 0.006 265);
+  --accent-foreground: oklch(0.17 0.006 265);
+  --border: #e4e9f1;
+  --input: #e4e9f1;
+
+  /* Status colors */
+  --success: oklch(0.5 0.14 150);
+  --destructive: oklch(0.5 0.2 22);
+  /* Red fills next to a label (dots, chart bars). */
+  --destructive-fill: oklch(0.64 0.21 18);
+  --warning: oklch(0.78 0.18 85);
+  --warning-foreground: oklch(0.32 0.12 75);
+  --highlight: oklch(0.78 0.18 85);
+
+  /* Semantic hue families: strong color, soft fill, and readable foreground. */
+  --pink: oklch(0.68 0.20 330);
+  --pink-fill: oklch(0.94 0.075 330);
+  --pink-foreground: oklch(0.38 0.13 330);
+  --red: oklch(0.64 0.21 18);
+  --red-fill: oklch(0.94 0.075 18);
+  --red-foreground: oklch(0.38 0.14 18);
+  --yellow: oklch(0.78 0.18 85);
+  --yellow-fill: oklch(0.95 0.085 85);
+  --yellow-foreground: oklch(0.36 0.10 75);
+  --orange: oklch(0.72 0.20 35);
+  --orange-fill: oklch(0.94 0.075 35);
+  --orange-foreground: oklch(0.39 0.13 35);
+  --cyan: oklch(0.70 0.15 195);
+  --cyan-fill: oklch(0.94 0.065 195);
+  --cyan-foreground: oklch(0.34 0.10 195);
+  --green: oklch(0.70 0.19 150);
+  --green-fill: oklch(0.94 0.075 150);
+  --green-foreground: oklch(0.32 0.11 150);
+  --teal: oklch(0.67 0.16 175);
+  --teal-fill: oklch(0.94 0.065 175);
+  --teal-foreground: oklch(0.32 0.10 175);
+  --blue: oklch(0.60 0.20 250);
+  --blue-fill: oklch(0.94 0.065 250);
+  --blue-foreground: oklch(0.36 0.13 250);
+  --indigo: oklch(0.55 0.21 275);
+  --indigo-fill: oklch(0.94 0.06 275);
+  --indigo-foreground: oklch(0.35 0.14 275);
+  --purple: oklch(0.59 0.21 295);
+  --purple-fill: oklch(0.94 0.065 295);
+  --purple-foreground: oklch(0.37 0.14 295);
+  --violet: oklch(0.57 0.22 315);
+  --violet-fill: oklch(0.94 0.07 315);
+  --violet-foreground: oklch(0.36 0.14 315);
+  --neutral: oklch(0.94 0.012 267);
+  --neutral-foreground: oklch(0.28 0.025 267);
+  --neutral-fill: oklch(0.97 0.008 267);
+
+  /* Categorical chart series: burple, deep burple, green, yellow, magenta, orange. */
+  --chart-1: oklch(0.57 0.22 267);
+  --chart-2: oklch(0.42 0.19 267);
+  --chart-3: oklch(0.72 0.20 155);
+  --chart-4: oklch(0.78 0.18 85);
+  --chart-5: oklch(0.68 0.22 330);
+  --chart-6: oklch(0.72 0.20 35);
+
+  /* Sidebar */
+  --sidebar: #f5f7fa;
+  --sidebar-foreground: oklch(0.21 0.006 265);
+  --sidebar-primary: oklch(0.57 0.22 267);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.95 0.006 265);
+  --sidebar-accent-foreground: oklch(0.17 0.006 265);
+  --sidebar-border: #e4e9f1;
+  --sidebar-ring: oklch(0.57 0.22 267);
+
+  /* Achievement tiers: tint + text/icon color, at least 4.5:1 apart. */
+  --tier-bronze: oklch(0.94 0.075 35);
+  --tier-bronze-foreground: oklch(0.39 0.13 35);
+  --tier-silver: oklch(0.95 0.005 260);
+  --tier-silver-foreground: oklch(0.41 0.02 260);
+  --tier-gold: oklch(0.95 0.085 85);
+  --tier-gold-foreground: oklch(0.36 0.10 75);
+  --tier-platinum: oklch(0.94 0.065 175);
+  --tier-platinum-foreground: oklch(0.32 0.10 175);
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* Surfaces and text */
+  --background: oklch(0.16 0.012 267);
+  --foreground: oklch(0.95 0.004 265);
+  --card: oklch(0.19 0.014 267);
+  --card-foreground: oklch(0.95 0.004 265);
+  --popover: oklch(0.19 0.014 267);
+  --popover-foreground: oklch(0.95 0.004 265);
+  --title: oklch(0.98 0.003 265);
+  --reading: oklch(0.82 0.01 265);
+
+  /* Brand burple */
+  --primary: oklch(0.7 0.15 267);
+  --primary-foreground: oklch(0.2 0.06 267);
+  --primary-inverse: oklch(0.3 0.08 267);
+  --primary-inverse-foreground: oklch(0.86 0.1 267);
+  --link: oklch(0.79 0.1 267);
+  --link-hover: oklch(0.9 0.05 267);
+  --ring: oklch(0.7 0.15 267);
+  --selection: oklch(0.7 0.15 267);
+  --selection-foreground: oklch(0.2 0.06 267);
+
+  /* Cool grays */
+  --secondary: oklch(0.24 0.016 267);
+  --secondary-foreground: oklch(0.95 0.004 265);
+  --muted: oklch(0.24 0.016 267);
+  --muted-foreground: oklch(0.72 0.01 265);
+  --accent: oklch(0.27 0.01 265);
+  --accent-foreground: oklch(0.98 0.003 265);
+  --border: oklch(0.28 0.018 267);
+  --input: oklch(0.3 0.02 267);
+
+  /* Status */
+  --success: oklch(0.76 0.15 152);
+  --destructive: oklch(0.7 0.17 22);
+  --destructive-fill: oklch(0.72 0.16 18);
+  --warning: oklch(0.3 0.06 85);
+  --warning-foreground: oklch(0.87 0.13 90);
+  --highlight: oklch(0.86 0.15 88);
+
+  /* Semantic hue families */
+  --pink: oklch(0.68 0.20 330);
+  --pink-fill: oklch(0.94 0.075 330);
+  --pink-foreground: oklch(0.38 0.13 330);
+  --red: oklch(0.64 0.21 18);
+  --red-fill: oklch(0.94 0.075 18);
+  --red-foreground: oklch(0.38 0.14 18);
+  --yellow: oklch(0.78 0.18 85);
+  --yellow-fill: oklch(0.95 0.085 85);
+  --yellow-foreground: oklch(0.36 0.10 75);
+  --orange: oklch(0.72 0.20 35);
+  --orange-fill: oklch(0.94 0.075 35);
+  --orange-foreground: oklch(0.39 0.13 35);
+  --cyan: oklch(0.70 0.15 195);
+  --cyan-fill: oklch(0.94 0.065 195);
+  --cyan-foreground: oklch(0.34 0.10 195);
+  --green: oklch(0.70 0.19 150);
+  --green-fill: oklch(0.94 0.075 150);
+  --green-foreground: oklch(0.32 0.11 150);
+  --teal: oklch(0.67 0.16 175);
+  --teal-fill: oklch(0.94 0.065 175);
+  --teal-foreground: oklch(0.32 0.10 175);
+  --blue: oklch(0.60 0.20 250);
+  --blue-fill: oklch(0.94 0.065 250);
+  --blue-foreground: oklch(0.36 0.13 250);
+  --indigo: oklch(0.55 0.21 275);
+  --indigo-fill: oklch(0.94 0.06 275);
+  --indigo-foreground: oklch(0.35 0.14 275);
+  --purple: oklch(0.59 0.21 295);
+  --purple-fill: oklch(0.94 0.065 295);
+  --purple-foreground: oklch(0.37 0.14 295);
+  --violet: oklch(0.57 0.22 315);
+  --violet-fill: oklch(0.94 0.07 315);
+  --violet-foreground: oklch(0.36 0.14 315);
+  --neutral: oklch(0.94 0.012 267);
+  --neutral-foreground: oklch(0.28 0.025 267);
+  --neutral-fill: oklch(0.97 0.008 267);
+
+  /* Charts */
+  --chart-1: var(--primary);
+  --chart-2: oklch(0.78 0.14 267);
+  --chart-3: oklch(0.76 0.15 325);
+  --chart-4: oklch(0.86 0.13 85);
+  --chart-5: oklch(0.74 0.14 235);
+  --chart-6: oklch(0.75 0.14 35);
+
+  /* Sidebar */
+  --sidebar: oklch(0.19 0.014 267);
+  --sidebar-foreground: oklch(0.95 0.004 265);
+  --sidebar-primary: oklch(0.7 0.15 267);
+  --sidebar-primary-foreground: oklch(0.2 0.06 267);
+  --sidebar-accent: oklch(0.27 0.01 265);
+  --sidebar-accent-foreground: oklch(0.98 0.003 265);
+  --sidebar-border: oklch(0.28 0.018 267);
+  --sidebar-ring: oklch(0.7 0.15 267);
+
+  /* Achievement tiers */
+  --tier-bronze: oklch(0.94 0.075 35);
+  --tier-bronze-foreground: oklch(0.39 0.13 35);
+  --tier-silver: oklch(0.29 0.01 260);
+  --tier-silver-foreground: oklch(0.89 0.01 260);
+  --tier-gold: oklch(0.95 0.085 85);
+  --tier-gold-foreground: oklch(0.36 0.10 75);
+  --tier-platinum: oklch(0.94 0.065 175);
+  --tier-platinum-foreground: oklch(0.32 0.10 175);
+}
+
+@theme inline {
+  /* Fustat for all text, JetBrains Mono for code. */
+  --font-sans: "Fustat", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-title: var(--title);
+  --color-reading: var(--reading);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-inverse: var(--primary-inverse);
+  --color-primary-inverse-foreground: var(--primary-inverse-foreground);
+  --color-link: var(--link);
+  --color-link-hover: var(--link-hover);
+  --color-ring: var(--ring);
+  --color-selection: var(--selection);
+  --color-selection-foreground: var(--selection-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+
+  --color-success: var(--success);
+  --color-destructive: var(--destructive);
+  --color-destructive-fill: var(--destructive-fill);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-highlight: var(--highlight);
+
+  --color-pink: var(--pink);
+  --color-pink-fill: var(--pink-fill);
+  --color-pink-foreground: var(--pink-foreground);
+  --color-red: var(--red);
+  --color-red-fill: var(--red-fill);
+  --color-red-foreground: var(--red-foreground);
+  --color-yellow: var(--yellow);
+  --color-yellow-fill: var(--yellow-fill);
+  --color-yellow-foreground: var(--yellow-foreground);
+  --color-orange: var(--orange);
+  --color-orange-fill: var(--orange-fill);
+  --color-orange-foreground: var(--orange-foreground);
+  --color-cyan: var(--cyan);
+  --color-cyan-fill: var(--cyan-fill);
+  --color-cyan-foreground: var(--cyan-foreground);
+  --color-green: var(--green);
+  --color-green-fill: var(--green-fill);
+  --color-green-foreground: var(--green-foreground);
+  --color-teal: var(--teal);
+  --color-teal-fill: var(--teal-fill);
+  --color-teal-foreground: var(--teal-foreground);
+  --color-blue: var(--blue);
+  --color-blue-fill: var(--blue-fill);
+  --color-blue-foreground: var(--blue-foreground);
+  --color-indigo: var(--indigo);
+  --color-indigo-fill: var(--indigo-fill);
+  --color-indigo-foreground: var(--indigo-foreground);
+  --color-purple: var(--purple);
+  --color-purple-fill: var(--purple-fill);
+  --color-purple-foreground: var(--purple-foreground);
+  --color-violet: var(--violet);
+  --color-violet-fill: var(--violet-fill);
+  --color-violet-foreground: var(--violet-foreground);
+  --color-neutral: var(--neutral);
+  --color-neutral-foreground: var(--neutral-foreground);
+  --color-neutral-fill: var(--neutral-fill);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-tier-bronze: var(--tier-bronze);
+  --color-tier-bronze-foreground: var(--tier-bronze-foreground);
+  --color-tier-silver: var(--tier-silver);
+  --color-tier-silver-foreground: var(--tier-silver-foreground);
+  --color-tier-gold: var(--tier-gold);
+  --color-tier-gold-foreground: var(--tier-gold-foreground);
+  --color-tier-platinum: var(--tier-platinum);
+  --color-tier-platinum-foreground: var(--tier-platinum-foreground);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  ::selection {
+    @apply bg-selection text-selection-foreground;
+  }
+
+  html {
+    @apply font-sans scroll-smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Regular text is medium (500): Fustat at 400 reads too light at body sizes. */
+  body {
+    @apply font-sans font-medium bg-background text-foreground;
+  }
+
+  /* Headings balance to avoid orphaned words; short body text avoids a lonely
+     last word. Long-form prose is excluded by the browser's own line limits. */
+  :is(h1, h2, h3, h4, h5, h6) {
+    color: var(--title);
+    text-wrap: balance;
+  }
+
+  :is(p, li, figcaption, blockquote, dd) {
+    text-wrap: pretty;
+  }
+
+  /* Neutral 1px separator so images read consistently against any surface.
+     Pure black/white at low opacity — never a tinted neutral — and inset so it
+     doesn't affect layout. Avatars already render their own ring. */
+  img:not([data-slot="avatar-image"]) {
+    outline: 1px solid oklch(0 0 0 / 0.1);
+    outline-offset: -1px;
+  }
+
+  .dark img:not([data-slot="avatar-image"]) {
+    outline-color: oklch(1 0 0 / 0.1);
+  }
+
+  body::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  body::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  body::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-lg;
+  }
+
+  .container {
+    @apply mx-auto px-8;
+  }
+
+  @media (max-width: 640px) {
+    .container {
+      @apply px-3;
+    }
+  }
+}
+
+/* ===== Inline links =====
+   Links inside running text (FAQ answers, posts, announcements, credits): burple with a
+   matching underline, deepening on hover like the primary button does. Navigation, buttons, and row links keep
+   their own styles. */
+@utility link-inline {
+  color: var(--link);
+  font-weight: 600;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: currentColor;
+  transition: color 150ms ease-out;
+  &:hover {
+    color: var(--link-hover);
+  }
+}
+
+@utility underline-reveal {
+  position: relative;
+  display: inline-block;
+  --underline-reveal-height: 2px;
+  --underline-reveal-color: currentColor;
+  &::after {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: var(--underline-reveal-height);
+    background-color: var(--underline-reveal-color);
+    content: "";
+    transition-property: left, width;
+    transition-duration: 200ms;
+    transition-timing-function: ease-out;
+  }
+  &:is(:hover, :focus-visible)::after {
+    left: 0;
+    width: 100%;
+  }
+}
+
+@utility underline-reveal-primary {
+  --underline-reveal-height: 1px;
+  --underline-reveal-color: var(--primary);
+}
+
+/* ===== Prose ===== */
+.prose {
+  --tw-prose-body: var(--reading);
+  --tw-prose-headings: var(--title);
+  --tw-prose-lead: var(--muted-foreground);
+  --tw-prose-links: var(--link);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted-foreground);
+  --tw-prose-bullets: var(--border);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--foreground);
+  --tw-prose-quote-borders: var(--border);
+  --tw-prose-captions: var(--muted-foreground);
+  --tw-prose-kbd: var(--foreground);
+  --tw-prose-kbd-shadows: var(--border);
+  --tw-prose-code: var(--foreground);
+  --tw-prose-pre-code: var(--foreground);
+  --tw-prose-pre-bg: var(--muted);
+  --tw-prose-th-borders: var(--border);
+  --tw-prose-td-borders: var(--border);
+}
+
+.prose :where(h1, h2, h3, h4) {
+  @apply font-semibold tracking-tight;
+}
+
+.prose :where(a) {
+  @apply link-inline;
+}
+
+/* ===== Avatars =====
+   Rounded, not round: the radius is 31.25% of the side (20px on 64px), so it scales with
+   the avatar's size (10px at 32px, 30px at 96px). Avatars are square, so % stays even. */
+@utility rounded-avatar {
+  border-radius: 31.25%;
+}
+
+/* ===== Motion =====
+   Entrances run once, on infrequent moments only: a page title on load and home sections as
+   they scroll into view. Everything here is CSS, so it also works before hydration, and it is
+   switched off for prefers-reduced-motion. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes fill-x {
+  from {
+    scale: 0 1;
+  }
+}
+
+/* Load entrance; stagger siblings with style={{ "--rise-delay": "60ms" }}. */
+@utility animate-rise {
+  animation: rise 500ms cubic-bezier(0.2, 0, 0, 1) var(--rise-delay, 0ms) both;
+}
+
+/* Scroll entrance, tied to the element entering the viewport. Browsers without scroll-driven
+   animations (Firefox today) show the content as is. */
+@utility reveal-on-scroll {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+
+@utility animate-fill-x {
+  transform-origin: left;
+  animation: fill-x 800ms cubic-bezier(0.2, 0, 0, 1) 150ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===== Utilities ===== */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ===== View transitions ===== */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}

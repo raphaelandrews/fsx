@@ -1,0 +1,94 @@
+---
+title: Code Layout
+description: Where each kind of code lives in the API and web packages, the conventions that keep it there, and where tests go.
+---
+
+Use this page to decide where new code belongs. The dependency direction between
+packages is in [Contracts](/architecture/contracts); the worked examples are in
+[Recipes](/reference/recipes).
+
+## `packages/api/src`
+
+| Folder or file | Holds |
+| --- | --- |
+| `index.ts`, `context.ts` | tRPC setup: the error boundary middleware, `publicProcedure`, `protectedProcedure`, `adminProcedure` (which also marks stored computations stale after a mutation), and the per-request context (database, D1 meter, session, request ID). |
+| `routers/` | One file per namespace, merged in `routers/index.ts`. A router declares inputs, access, and the queries it needs, and nothing else. |
+| `services/` | Logic that is too large for a procedure or shared between procedures: `rating-update.ts` (apply, correct, remove, and revert results; maintenance and ranking snapshots), `players-merge.ts`, `event-links.ts`, `delete-impact.ts` (what a delete blocks or takes with it), and `media-storage.ts` (R2 object cleanup). A service takes a database handle and never imports a router. |
+| `gamification/` | Pure derivation modules (`stats.ts`, `badges.ts`, `level.ts`, `records.ts`, `season.ts`, `title-path.ts`) plus the code that loads rows for them (`load.ts`, `ranking.ts`, `clubs.ts`, `circuits.ts`, `feed.ts`) and `computed.ts` for stored results. See [Gamification](/reference/gamification). |
+| `http/` | Request handlers outside tRPC or around it: `trpc-handler.ts`, `media-handler.ts`, `public-api.ts`, `openapi.ts`, `sitemap.ts`, plus `security.ts`, `security-headers.ts`, and `request-origin.ts`. |
+| `cache/` | `cache-policy.ts` (the procedure registry), `edge-cache.ts`, and `d1-meter.ts`. |
+| `lib/` | Small helpers with no domain knowledge: pagination, `LIKE` escaping, accent-insensitive name search, federation dates (`lib/dates.ts`), SVG and image validation, response-size limits. |
+| `backup/` | SQL dump splitting and the restore loader shared by the restore drill and `db:restore-local`. |
+| Root files | `input-schemas.ts` (shared Zod fields), `errors.ts` (`requireFound` and friends), `crud.ts`, and the domain constants below. |
+| `scripts/` | `measure.ts`, `restore-local.ts`, and `xp-distribution.ts`, run with Bun. |
+
+### Constants the web app imports
+
+The web app imports a few root modules directly through the package's `./*`
+export (for example `@fsx/api/rating-types`): `age-groups`, `circuit-types`,
+`event-link-types`, `link-icons`, `media-kinds`, `rating-types`, and
+`lib/dates`. They are shipped to the browser, so they must stay free of server-only
+imports (database, environment, Workers APIs). Anything that needs the database
+stays out of this list.
+
+## `apps/web/src`
+
+| Folder | Holds |
+| --- | --- |
+| `routes/` | TanStack file routes. `_public` is the Portuguese site, `_auth` the English dashboard (`/dashboard`, `/rating-update`), `api/` the server endpoints. A URL prefix shared by a list and a detail page uses `route.tsx` (layout with `<Outlet/>`) + `index.tsx` + `$param.tsx`. |
+| `components/` | Grouped by feature (`player/`, `circuitos/`, `home/`, `gamification/`, `rating-update/`, and so on) and by role: `admin/` (shell, sidebar, `EntityForm`, `DeleteDialog` and `ConfirmDeleteButton`, `InlineAlert`, `admin-nav-data.tsx`), `data-table/`, `form/`, `header/`, `skeletons/`, `media/`, `markdown/`. Components used across features sit at the top level (`page-header`, `section-heading`, `section-button`, `footer`, `logo`, `social-links`, `not-found`). |
+| `lib/` | Non-visual logic: `trpc.ts`, `errors.ts`, `seo.ts`, `sitemap.ts`, `format.ts`, `slugify.ts`; `admin-mutations.ts` (`useAdminMutation` and `ADMIN_QUERY_DEPENDENTS`); `admin-forms.ts` (field definitions for `EntityForm`); `entity-routes.ts`, `entity-validation.ts`, and `field-rules.ts` (admin form helpers); `search-schemas.ts` (URL search parameters); `route-params.ts` (`idParams`); `rating-import.ts` (parsing a Swiss Manager sheet). |
+| `hooks/` | React hooks that are not tied to one component: `use-table-text`, `use-pending-image-deletes`, and `use-rating-import` (the upload, review, import state machine behind `/rating-update`). |
+| `server/` | `createServerFn` functions and server middleware (`get-user`, `auth-middleware`), and the share-image handler and renderer (`og-handler.ts`, `og-render.tsx`; what an image shows is defined in `lib/og.ts`). |
+
+Next to `src`: `e2e/` (Playwright), `scripts/` (`check-ssr.ts`, the e2e server and
+worker harness, the restore drill), and `public/`.
+
+## Conventions
+
+- **Prefetch what a route suspends on.** Every `useSuspenseQuery` reachable on
+  first render is primed in the route `loader` (`Promise.all` of `ensureQueryData`,
+  keyed by `loaderDeps` for search parameters). Queries that depend on a user
+  choice live in a child component that renders only once the choice exists.
+- **Detail procedures throw `NOT_FOUND`** (`requireFound`); loaders turn it into a
+  404 with `orNotFound` (`lib/errors.ts`).
+- **URL search parameters** are validated with the Zod schemas in
+  `lib/search-schemas.ts`. Each field has a default and a `.catch`, so a malformed
+  value falls back to the default instead of failing the route. Numeric `$id`
+  segments use `idParams`.
+- **Admin mutations** go through `useAdminMutation`, which invalidates the routers
+  listed for the mutated domain in `ADMIN_QUERY_DEPENDENTS`, toasts success, and
+  maps failures to English messages. Add the domain there whenever a mutation
+  changes rows another router returns.
+- **Admin pages** start with `AdminPageHeader`. Forms use `EntityForm` with the
+  definitions in `lib/admin-forms.ts`, or `AdminForm` with `FormSection` and
+  `FormActions` when a form needs custom controls. Every collection is a
+  `DataTable`, and every delete is confirmed in a `DeleteDialog` that names the record, shows what it blocks or removes, and asks for a typed phrase when it takes other records with it.
+- **Language.** The public site is Portuguese, the dashboard English. Shared table
+  controls pick their language from the route (`useTableText`).
+- **Time zones.** Always pass an explicit `timeZone` to `Intl.DateTimeFormat` and
+  `toLocaleString`: the Worker runs in UTC and the browser in the visitor's zone,
+  so omitting it causes hydration mismatches. For "today" and "this year" use
+  `federationToday` and `federationYear` from `@fsx/api/lib/dates`.
+- **Base UI triggers render a `<button>`.** Wrap a `Button` with the `render` prop
+  (`<TooltipTrigger render={<Button/>}>`) instead of nesting it.
+- **Design tokens.** Use the theme tokens in `packages/ui`, never raw hex or
+  Tailwind palette colors; the avatar gradients are the one exception. Spacing,
+  typography, and component patterns are in `DESIGN.md` at the repository root.
+- **Comments.** None by default. Add one only for a non-obvious reason: an
+  invariant, a time zone or SSR pitfall, or a decision that contradicts what the
+  code suggests.
+
+## Where tests go
+
+| Kind of test | Where | Use it for |
+| --- | --- | --- |
+| Unit (`*.test.ts`) | Beside the code | Pure functions: validation, formatting, cache policy, gamification rules, SQL helpers. |
+| Procedure and database (`*.integration.test.ts`) | `packages/api/src` | A procedure end to end against a real Miniflare D1 with every migration applied, using `test-d1.ts`, `test-env.ts`, and `test-admin.ts`. Cover the failure paths too (`NOT_FOUND`, `CONFLICT`, `BAD_REQUEST`). |
+| HTTP handlers | `packages/api/src/http` and `fetch-handlers.integration.test.ts` | Real `Request` and `Response` objects: origin checks, cache headers, rate limits, signed session cookies. |
+| Rendering | `bun run build` then `bun run check:ssr` | Status codes, titles, canonical URLs, and HTML size budgets for the built Worker. |
+| Browser | `apps/web/e2e` (`bun run test:e2e`) | Only what needs a browser: forms, dialogs, keyboard navigation, uploads, accessibility (axe), request budgets, layout shift. |
+| Cost | `bun run measure` | D1 queries, rows read, and response size per procedure, to catch a query regression. |
+
+New procedures need a test of their own; new public routes also need an entry in
+the sitemap, `check-ssr.ts`, and `e2e/a11y.e2e.ts`.

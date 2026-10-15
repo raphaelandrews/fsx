@@ -1,0 +1,194 @@
+
+import type { ColumnDef } from "@tanstack/react-table"
+
+interface TopPlayer {
+	id: number
+	name: string
+	nickname?: string | null
+	imageUrl?: string | null
+	classic?: number | null
+	rapid?: number | null
+	blitz?: number | null
+	playersToTitles?: Array<{ title: { shortName: string } }>
+	defendingChampions?: Array<{ championshipId: number; championship: { name: string } }> | null
+}
+
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { Actions } from "./actions";
+
+export const columnsClassic: ColumnDef<TopPlayer>[] = [
+	{
+		id: "index",
+		header: ({ column }) => <DataTableColumnHeader align="center" column={column} title="#" />,
+		cell: ({ row, table }) => (
+			<span className="text-muted-foreground">
+				{(table.getSortedRowModel()?.flatRows?.findIndex((flatRow) => flatRow.id === row.id) || 0) + 1}
+			</span>
+		),
+		enableSorting: false,
+		enableHiding: false,
+		meta: { className: "w-12 text-center tabular-nums" },
+	},
+	{
+		accessorKey: "name",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Nome" />
+		),
+		cell: ({ row }) => {
+			const playerTitles = row.original.playersToTitles
+			if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
+				const shortName = playerTitles[0].title.shortName
+				return (
+					<Actions
+						defendingChampions={row.original.defendingChampions}
+						id={row.original.id}
+						image={row.original.imageUrl}
+						name={row.original.name}
+						nickname={row.original.nickname}
+						shortName={shortName}
+					/>
+				)
+			}
+			return (
+				<Actions
+					defendingChampions={row.original.defendingChampions}
+					id={row.original.id}
+					image={row.original.imageUrl}
+					name={row.original.name}
+					nickname={row.original.nickname}
+				/>
+			)
+		},
+		enableSorting: false,
+		enableHiding: false,
+	},
+	{
+		accessorKey: "classic",
+		header: ({ column }) => (
+			<DataTableColumnHeader align="center" column={column} title="Clássico" />
+		),
+		cell: ({ row }) => {
+			return <div className="text-center font-medium tabular-nums">{row.original.classic}</div>
+		},
+		enableSorting: false,
+		enableHiding: false,
+	},
+]
+
+export const columnsRapid: ColumnDef<TopPlayer>[] = [
+	{
+		id: "index",
+		header: ({ column }) => <DataTableColumnHeader align="center" column={column} title="#" />,
+		cell: ({ row, table }) => (
+			<span className="text-muted-foreground">
+				{(table.getSortedRowModel()?.flatRows?.findIndex((flatRow) => flatRow.id === row.id) || 0) + 1}
+			</span>
+		),
+		enableSorting: false,
+		enableHiding: false,
+		meta: { className: "w-12 text-center tabular-nums" },
+	},
+	{
+		accessorKey: "name",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Nome" />
+		),
+		cell: ({ row }) => {
+			const playerTitles = row.original.playersToTitles
+			if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
+				const shortName = playerTitles[0].title.shortName
+				return (
+					<Actions
+						defendingChampions={row.original.defendingChampions}
+						id={row.original.id}
+						image={row.original.imageUrl}
+						name={row.original.name}
+						nickname={row.original.nickname}
+						shortName={shortName}
+					/>
+				)
+			}
+			return (
+				<Actions
+					defendingChampions={row.original.defendingChampions}
+					id={row.original.id}
+					image={row.original.imageUrl}
+					name={row.original.name}
+					nickname={row.original.nickname}
+				/>
+			)
+		},
+		enableSorting: false,
+		enableHiding: false,
+	},
+	{
+		accessorKey: "rapid",
+		header: ({ column }) => (
+			<DataTableColumnHeader align="center" column={column} title="Rápido" />
+		),
+		cell: ({ row }) => {
+			return <div className="text-center font-medium tabular-nums">{row.original.rapid}</div>
+		},
+		enableSorting: false,
+		enableHiding: false,
+	},
+]
+
+export const columnsBlitz: ColumnDef<TopPlayer>[] = [
+	{
+		id: "index",
+		header: ({ column }) => <DataTableColumnHeader align="center" column={column} title="#" />,
+		cell: ({ row, table }) => (
+			<span className="text-muted-foreground">
+				{(table.getSortedRowModel()?.flatRows?.findIndex((flatRow) => flatRow.id === row.id) || 0) + 1}
+			</span>
+		),
+		enableSorting: false,
+		enableHiding: false,
+		meta: { className: "w-12 text-center tabular-nums" },
+	},
+	{
+		accessorKey: "name",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Nome" />
+		),
+		cell: ({ row }) => {
+			const playerTitles = row.original.playersToTitles
+			if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
+				const shortName = playerTitles[0].title.shortName
+				return (
+					<Actions
+						defendingChampions={row.original.defendingChampions}
+						id={row.original.id}
+						image={row.original.imageUrl}
+						name={row.original.name}
+						nickname={row.original.nickname}
+						shortName={shortName}
+					/>
+				)
+			}
+			return (
+				<Actions
+					defendingChampions={row.original.defendingChampions}
+					id={row.original.id}
+					image={row.original.imageUrl}
+					name={row.original.name}
+					nickname={row.original.nickname}
+				/>
+			)
+		},
+		enableSorting: false,
+		enableHiding: false,
+	},
+	{
+		accessorKey: "blitz",
+		header: ({ column }) => (
+			<DataTableColumnHeader align="center" column={column} title="Blitz" />
+		),
+		cell: ({ row }) => {
+			return <div className="text-center font-medium tabular-nums">{row.original.blitz}</div>
+		},
+		enableSorting: false,
+		enableHiding: false,
+	},
+]

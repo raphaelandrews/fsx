@@ -1,0 +1,49 @@
+---
+title: "ADR 0005: Rate Limiting Backends"
+description: Every rate-limited request uses Cloudflare's native rate-limit binding; D1 holds no limiter state.
+---
+
+- Status: Accepted (revised)
+- Date: 2026-10-02
+
+## Context
+
+Auth requests and tRPC mutations were rate-limited with a D1 `rate_limits`
+counter: one upsert per checked request, plus a cron Worker deleting expired
+windows every 15 minutes. Better Auth's `get-session` runs on ordinary page
+loads, so the limiter's D1 writes grew with public traffic rather than with
+edits. The site is read-heavy and has a single administrator, so D1 writes should
+match content changes, not page views.
+
+Anonymous tRPC GETs that miss the edge cache already used the native binding
+(`PUBLIC_READ_RATE_LIMIT`).
+
+## Decision
+
+- Every rate limit uses a Cloudflare `RateLimit` binding, keyed by client IP:
+
+  | Binding | Scope | Limit |
+  | ------- | ----- | ----- |
+  | `PUBLIC_READ_RATE_LIMIT` | tRPC GETs and [public API](/reference/public-api) requests not served from the edge cache (one shared budget) | 600 / 60 s |
+  | `AUTH_MUTATION_RATE_LIMIT` | `/api/auth/*` POSTs | 20 / 60 s |
+  | `AUTH_READ_RATE_LIMIT` | `/api/auth/*` GETs | 120 / 60 s |
+  | `TRPC_MUTATION_RATE_LIMIT` | tRPC POSTs | 300 / 60 s |
+
+- The `rate_limits` table, its cleanup Worker (`fsx-rate-limit-cleanup`), and
+  the `security.rateLimitStats` procedure are removed (migration `0027`).
+- The read limit also applies to cookie-bearing GETs, because the session-cookie
+  check only inspects the cookie name.
+
+## Consequences
+
+Counters are per Cloudflare location and approximate. That is enough against a
+single client hammering an endpoint: one IP is almost always routed to one
+location. Sign-in is GitHub OAuth for a single allowlisted account, so there is
+no password to brute-force and exact global counts buy little.
+
+Rate limiting adds no D1 reads or writes. Each limit lives in two places
+(`RATE_LIMITS` in `packages/api/src/http/security.ts` and the binding in
+`packages/infra/alchemy.run.ts`) and must change together. The binding period
+can only be 10 or 60 seconds. Large shared networks (e.g. a school lab behind
+one IP) share one budget; raise the limit if 429s appear in
+`[security] rate limit exceeded` logs.

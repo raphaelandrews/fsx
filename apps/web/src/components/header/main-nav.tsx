@@ -1,0 +1,100 @@
+import type { ComponentProps, ComponentPropsWithoutRef } from "react";
+
+import { Link, useLocation } from "@tanstack/react-router";
+import { cn } from "@fsx/ui/lib/utils";
+import { HugeiconsIcon } from "@hugeicons/react";
+
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@fsx/ui/components/navigation-menu";
+
+import { NAVIGATION } from "./header-navigation-data";
+import { Logo } from "../logo";
+import { LogoContextMenu } from "./logo-context-menu";
+
+export function MainNav() {
+  const pathname = useLocation().pathname;
+
+  return (
+    <div className="flex flex-1 items-center">
+      {pathname === "/" ? (
+        <div className="mr-4 flex items-center space-x-2">
+          <LogoContextMenu>
+            <Logo className="h-4 text-foreground" />
+          </LogoContextMenu>
+        </div>
+      ) : (
+        <Link to="/" aria-label="Federação Sergipana de Xadrez — início" className="mr-4 flex items-center space-x-2">
+          <LogoContextMenu>
+            <Logo className="h-4 text-foreground hover:text-primary transition-colors" />
+          </LogoContextMenu>
+        </Link>
+      )}
+      <NavigationMenu className="mx-auto hidden xl:block">
+        <NavigationMenuList>
+          {NAVIGATION.map(({ label, items, href, target }) => {
+            const hasItems = Boolean(items?.length);
+
+            if (hasItems) {
+              return (
+                <NavigationMenuItem key={label}>
+                  <NavigationMenuTrigger>{label}</NavigationMenuTrigger>
+                  <NavigationMenuContent className="p-0">
+                    <ul className="m-0 flex w-64 list-none flex-col gap-1.5 p-2">
+                      {items?.map(({ href, icon, label }) => (
+                        <ListItem key={label} href={href} icon={icon} title={label} />
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              );
+            }
+
+            return (
+              <NavigationMenuItem key={label}>
+                <NavigationMenuLink
+                  className={cn(navigationMenuTriggerStyle(), "aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground aria-[current=page]:transition-none aria-[current=page]:hover:bg-primary aria-[current=page]:hover:text-primary-foreground aria-[current=page]:focus:bg-primary")}
+                  render={
+                    <Link to={href} target={target} activeOptions={{ exact: href === "/" }}>
+                      {label}
+                    </Link>
+                  }
+                />
+              </NavigationMenuItem>
+            );
+          })}
+        </NavigationMenuList>
+      </NavigationMenu>
+    </div>
+  );
+}
+
+function ListItem({
+  title,
+  href,
+  icon,
+  ...props
+}: ComponentPropsWithoutRef<"li"> & {
+  href: string;
+  icon: ComponentProps<typeof HugeiconsIcon>["icon"];
+}) {
+  return (
+    <li {...props}>
+      <NavigationMenuLink
+        className="group w-full justify-start gap-2 rounded-lg p-2 text-muted-foreground transition-colors duration-200 select-none hover:bg-accent aria-[current=page]:bg-primary/10 aria-[current=page]:transition-none aria-[current=page]:hover:bg-primary/10 aria-[current=page]:focus:bg-primary/10"
+        render={
+          <Link to={href}>
+            <HugeiconsIcon className="size-4 text-muted-foreground group-aria-[current=page]:text-primary" icon={icon} />
+            <span className="text-base font-semibold text-foreground group-aria-[current=page]:text-primary">{title}</span>
+          </Link>
+        }
+      />
+    </li>
+  );
+}

@@ -1,0 +1,262 @@
+---
+title: Runbook
+description: Backups, restoration, deployment, smoke tests, monitoring, media cleanup, and toolchain upgrades.
+---
+
+## Backup
+
+Run `bun run db:backup` from the repository root. The remote backup is written
+outside the repository under `~/Backups`, with private permissions, a manifest,
+and a checksum when `sha256sum` is available. Backups older than 90 days are
+removed after a successful export; set `BACKUP_RETENTION_DAYS` to a value from
+1 to 3650 to change the retention window. Do not include backup files in
+commits, support tickets, or logs.
+
+## Restoration
+
+Run `bash scripts/verify-d1-backup.sh <backup.sql>` at least quarterly and before
+any destructive migration. It imports the SQL into an isolated SQLite database
+and checks database and foreign-key integrity. For a full D1 recovery exercise,
+restore to a separate staging D1 database, apply compatible migrations, then run
+row-count and smoke checks before promoting that database. Never use a recovery
+exercise as a direct production overwrite.
+
+## Local data from a backup
+
+To develop against real data, replace the local dev D1 with a backup:
+
+```bash
+# stop bun dev first
+bun run db:restore-local ~/Backups/fsx-<stamp>/fsx-<stamp>.sql
+bun dev
+```
+
+Three commands fill the local database with real data. All of them leave out
+logins, OAuth tokens and sessions (sign in with GitHub locally), and none of them
+copies uploaded images, which stay in R2, so photos and logos do not load locally.
+
+| Command | Data | Needs |
+| --- | --- | --- |
+| `bun run db:seed:remote` | Current: exports the remote D1 into a private temporary directory and deletes the dump afterwards | `wrangler login` or `CLOUDFLARE_API_TOKEN`, and network |
+| `bun run db:seed:latest` | As old as the newest `fsx-*/fsx-*.sql` in `~/Backups` (`BACKUP_ROOT` changes the folder) | Only the file |
+| `bun packages/db/src/seed.ts --backup <file.sql>` | As old as that file | Only the file |
+
+Prefer `db:seed:remote` when you have Cloudflare access. If the export fails,
+it warns and falls back to the newest local backup. On a machine without access, or
+offline, copy a file made by `bun run db:backup` into `~/Backups/fsx-<stamp>/` (keep
+the `fsx-<stamp>.sql` name) and run `db:seed:latest`. A backup is about 4 MB (350 KB
+gzipped). It holds players' names and birth dates, many of them minors, so keep it
+in a private place and never commit it. `D1_DATABASE` picks another remote database.
+Plain `bun run db:seed` still inserts the small sample data set.
+
+`db:restore-local` itself wipes `.alchemy/miniflare/v3/d1`, restores the dump with the restore drill's
+loader, applies the migrations the backup predates, rebuilds `d1_migrations` in
+the shape Alchemy's local migrator expects (production's tracker requires an
+`applied_at` that Alchemy does not insert, so the next migration would fail), and
+clears `computed_results`. Don't run `bun run db:seed` afterwards. Run directly,
+it keeps production accounts (the seed commands pass `--no-accounts`); either way
+the local database holds personal data, so keep it on your machine. To go back to seed data, stop dev, `rm -rf .alchemy/miniflare/v3/d1`,
+start `bun dev`, and run `bun run db:seed`.
+
+## Deploy Smoke Test
+
+Set `BASE_URL` and `MEDIA_SMOKE_URL` to the deployment origin and a known public
+media URL, then run `bash scripts/deploy-smoke-test.sh`. The test covers the
+login/session endpoint, a public page, a public tRPC query, the unauthenticated
+admin guard, and media delivery. Run it after each production deployment.
+
+## Deployment Order
+
+1. Validate code, tests, types, lint, build, and migrations.
+2. If the deploy includes migrations that add constraints or rebuild tables,
+   check production first (read-only, with the repository's pinned Wrangler):
+   ```bash
+   apps/web/node_modules/.bin/wrangler d1 execute fsx-database-raphael --remote \
+     --command "$(grep -v '^--' packages/db/src/audits/pre-migration-data-checks.sql)"
+   ```
+   Every listed check is a row the new constraints would reject; fix the data or
+   the rule first. Then take a backup and run the restore drill on it, which
+   applies the pending migrations to a copy of production data.
+3. Apply compatible migrations through Alchemy/D1.
+4. Deploy the Worker that consumes the new schema.
+5. Run smoke tests for login, a public route, a public tRPC query, the admin
+   guard, and media delivery.
+
+Application rollback does not automatically undo a D1 migration. Destructive
+migrations require a restoration plan before deployment.
+
+## Gamification release (one time)
+
+1. Restore drill on a fresh backup (it applies migrations 0028–0034 to a copy).
+2. Deploy as above (migrations, then Worker).
+3. Before any rating import or **Update rankings now**, run
+   `packages/db/src/audits/maintenance-preview.sql` against production (read-only,
+   as in step 2 of the deployment order). It lists the players the 3-year rule
+   would make inactive and the youth titles that would be removed, and shows the
+   tier and age limit of every title. Fix any player who should stay active
+   (record the missing result or podium) before the first update.
+4. Click **Update rankings now** once: it applies both rules and records the first
+   ranking snapshot, so movement arrows appear after the next import.
+5. `DELETE FROM computed_results`, so records and club standings are computed with
+   the deployed code.
+6. Set `GAMIFICATION_LAUNCH_DATE` in `packages/api/src/gamification/constants.ts`
+   to the release day and deploy again, to turn on the home "Novidades" feed.
+7. Over the following weeks: link existing announcements to their players
+   (the edit page suggests them) and link tournaments to championships (only
+   linked tournaments count toward repeated titles).
+
+## Docs site
+
+The docs (`apps/fumadocs`) are a static Astro build deployed by the same
+`bun run deploy` as the web app: `packages/infra/alchemy.run.ts` declares an
+`Astro` resource (`output: "static"`) that runs `astro build` and uploads `dist/`
+as Worker static assets. It has no bindings and no server code.
+
+- **Domain:** `DOCS_DOMAIN` in `apps/web/.env.prod` (`docs.fsx.org.br`) attaches a
+  Cloudflare custom domain; the `fsx.org.br` zone must be on the same account.
+  Alchemy creates the DNS record and certificate on the first deploy. Without
+  `DOCS_DOMAIN`, the site is served at its `workers.dev` URL.
+- **Local:** `bun dev` also starts the docs at `http://localhost:4000`. If Alchemy
+  logs "Another astro dev server is already running" for a process that no longer
+  exists, run `bunx astro dev stop` in `apps/fumadocs` and restart `bun dev`.
+- **Security headers:** `apps/fumadocs/public/_headers` sets CSP, HSTS,
+  `X-Frame-Options`, and nosniff on every response. `connect-src` allows only
+  the site itself and `https://www.fsx.org.br` (the API Reference "Send"); add a
+  host there before the docs fetch from anywhere else. `astro preview` ignores
+  this file; test it with `wrangler dev --assets ./dist`.
+- **Build alone:** `cd apps/fumadocs && bun run build`, then `bunx astro preview`.
+- The API Reference page is generated from `packages/api/src/http/openapi.ts` at
+  build time; redeploy the docs when the public API changes.
+
+## Monitoring and Media Cleanup
+
+Keep Worker observability enabled and alert on deployment/migration failures,
+elevated 5xx responses, and rate-limit spikes. Rate-limit logs contain only the
+scope, request ID, and retry window. Never add IP addresses or request payloads
+to operational logs.
+
+When deleting or replacing player/post images, use the admin workflow so the
+record and R2 object are reconciled. Periodically compare the `players.image_url`
+and `posts.image_url` values with keys listed in the `fsx-images` R2 bucket; only
+delete objects that are absent from both tables and older than the review window.
+Take a backup before bulk cleanup and record the number of objects removed.
+
+For query-plan review, run `packages/db/src/audits/query-plans.sql` against a
+production-like D1 clone and record row counts and response sizes with the plan
+results. Do not add indexes from a small local seed; compare realistic
+cardinality and D1 read/CPU metrics first.
+
+To find player names left stale by the old rename bug and stored URLs that the
+current API validators reject, run `packages/db/src/audits/player-names-and-urls.sql`
+against production D1 (read-only). Re-enter each listed player's name in the
+dashboard; `normalized_name` holds the intended name without accents or casing,
+so do not copy it back. Change any listed URL to an `https://` address or a new
+upload before editing that record.
+
+To find players whose rating no longer matches their rating history, run
+`packages/db/src/audits/rating-history-sync.sql` against production D1
+(read-only). A `gap before result` row means an earlier result was deleted or
+edited outside the history; a `current rating differs` row means the rating was
+edited by hand after the last result. Fix each player from **Rating history**
+(correct or remove the result that is off), or record the intended starting
+rating and reconcile by hand; rerun the audit until it returns no rows.
+
+Before deploying stricter date validation, run `packages/db/src/audits/date-formats.sql`
+against production D1. Rewrite each listed tournament `date` or event
+`start_date` as `YYYY-MM-DD`; otherwise the record cannot be saved from the
+dashboard and age-group filters skip it. The rating import converts `DD/MM/YYYY`
+spreadsheet text automatically.
+
+To size the gaps that player achievements depend on (undated tournaments,
+breaks in rating history, podiums without results, the peak rating
+distribution), run `packages/db/src/audits/gamification-readiness.sql` against
+production D1 (read-only) and compare the results with the table in [Gamification](/reference/gamification#existing-data).
+
+The records page, club standings, and home feed are stored in `computed_results`
+and recomputed after any admin change ([ADR 0008](/decisions/0008-stored-computations)).
+After a manual SQL fix, a migration that changes their data, or a deploy that
+changes the XP weights or record rules, run `DELETE FROM computed_results` (or
+wait a day). The home "Novidades" feed stays
+off until `GAMIFICATION_LAUNCH_DATE` in `packages/api/src/gamification/constants.ts`
+is set to the release day.
+
+Before changing the XP weights in `packages/api/src/gamification/constants.ts`,
+check the level distribution on real data:
+
+```bash
+bun run db:backup
+bun packages/api/scripts/xp-distribution.ts ~/Backups/fsx-<stamp>/fsx-<stamp>.sql
+```
+
+It restores the backup into a local Miniflare D1 (the same loader as the restore
+drill), computes every player's level with the code the profile uses, and
+prints the level histogram, XP percentiles, and the top ten breakdowns, with no
+names. Most players should sit at the first levels and the most active ones
+around level 10; adjust the weights, not the formula.
+
+## Upgrading the Cloudflare toolchain
+
+Alchemy, Miniflare, workerd, Wrangler, and the Worker compatibility date move
+together; `bun run check:runtime` (also in CI) fails when they drift.
+
+1. Bump the `alchemy` catalog version in the root `package.json` (exact version).
+2. Set every workspace `miniflare` pin (`packages/api`, `packages/db`, `apps/web`)
+   to the Miniflare version that Alchemy release depends on. A mismatch makes the
+   seed script and tests use a different local SQLite file than `alchemy dev`.
+3. Update the root `workerd` override to a release at least as new as the
+   compatibility date, and pin `wrangler` in `apps/web` exactly.
+4. Change `COMPATIBILITY_DATE` in `packages/infra/alchemy.run.ts` only on purpose,
+   after reading the Workers compatibility-flag changelog; update the test
+   harnesses (`packages/api/src/test-d1.ts`, `apps/web/scripts/worker-harness.ts`,
+   `packages/api/scripts/xp-distribution.ts`) to the same date.
+5. `bun install`, then run `bun run check:runtime`, `bun test`, `bun run build`,
+   `bun run check:ssr`, and `bun run test:e2e` before deploying.
+
+## Restore drill
+
+`bun run db:backup:verify` only proves a dump is valid SQLite. The restore drill
+proves the application runs on it:
+
+```bash
+bun run build
+bun run db:restore-drill ~/Backups/fsx-<stamp>/fsx-<stamp>.sql
+```
+
+It loads the dump into a fresh Miniflare D1 (parents before children, since D1
+rejects `PRAGMA foreign_keys=OFF`), applies any migrations the backup predates,
+compares every table's row count with the dump, and renders public pages,
+including a real player and news post, against the restored data. The
+`Restore drill` GitHub workflow runs this monthly (and on demand) once the
+`CLOUDFLARE_API_TOKEN` (D1 read) and `CLOUDFLARE_ACCOUNT_ID` secrets exist; its
+run history records the date of the last successful drill.
+
+## Deploy verification and alerts
+
+- `bun run deploy` runs `scripts/deploy-smoke-test.sh` after a successful deploy
+  (auth, public pages and API, admin guard, sitemap, 404 status, `no-store` on API
+  responses; set `MEDIA_SMOKE_URL` to also check R2 media). A failed smoke test
+  fails the deploy command; roll back as described in [Incident response](/operations/incident-response#roll-back-a-deploy).
+- The `Production health` workflow runs hourly and fails, which notifies the
+  repository owner, when the last hour shows more than 2% 5xx responses (with at
+  least 50 requests), more than 200 rate-limited responses, or any uncaught Worker
+  exception. It needs
+  `CLOUDFLARE_API_TOKEN` (Account Analytics:Read, Zone Analytics:Read),
+  `CLOUDFLARE_ACCOUNT_ID`, and `CLOUDFLARE_ZONE_ID`. Thresholds are environment
+  variables in `scripts/check-production-health.mjs`.
+
+## Pending production checks
+
+Open items that need production access; tick them off here when done.
+
+- [ ] Validate the per-data-center cache tradeoff ([ADR 0003](/decisions/0003-edge-cache-consistency))
+  with the `[cache] public query` hit and miss logs after a deploy.
+- [ ] Set the zone's **Browser Cache TTL** to **Respect Existing Headers**. Production
+  cache hits currently tell browsers to cache API responses for 4 hours, although
+  the code sends `no-store`.
+- [ ] Measure the edge cache hit rate and request volume before widening route
+  preloading.
+- [ ] Run the [restore drill](#restore-drill) once on a production backup, manually
+  or by adding the `Restore drill` workflow secrets.
+- [ ] Run the new `Production health` query against live analytics once its
+  secrets exist; it has not run against production yet.
+

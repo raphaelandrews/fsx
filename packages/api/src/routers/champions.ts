@@ -1,0 +1,136 @@
+import { z } from "zod";
+import { and, asc, eq, isNull } from "drizzle-orm";
+
+import { championships, insertChampionshipSchema } from "@fsx/db/schema/championships";
+import { tournaments } from "@fsx/db/schema/tournaments";
+import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
+import { players } from "@fsx/db/schema/players";
+import { locations } from "@fsx/db/schema/locations";
+import { playersToTitles } from "@fsx/db/schema/players-to-titles";
+import { titles } from "@fsx/db/schema/titles";
+import { adminProcedure, publicProcedure, router } from "../index";
+import { deleteById } from "../crud";
+import { requireMutationRows } from "../errors";
+import { assertDeletable } from "../services/delete-impact";
+import { idInput, nameText, positiveInt } from "../input-schemas";
+import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
+
+export const championsRouter = router({
+  list: publicProcedure.query(({ ctx }) =>
+    ctx.db.select({ id: championships.id, name: championships.name })
+      .from(championships).orderBy(asc(championships.name), asc(championships.id)).limit(PUBLIC_COLLECTION_LIMIT)
+  ),
+  gallery: publicProcedure.query(async ({ ctx }) => {
+    const rawData = await ctx.db
+      .select({
+        championshipName: championships.name,
+        tournamentId: tournaments.id,
+        tournamentName: tournaments.name,
+        tournamentDate: tournaments.date,
+        podiumPlace: tournamentPodiums.place,
+        playerId: players.id,
+        playerName: players.name,
+        playerNickname: players.nickname,
+        playerImageUrl: players.imageUrl,
+        locationName: locations.name,
+        playerTitleShort: titles.shortName,
+        playerTitleType: titles.type,
+      })
+      .from(championships)
+      .innerJoin(tournaments, eq(tournaments.championshipId, championships.id))
+      .innerJoin(
+        tournamentPodiums,
+        and(eq(tournamentPodiums.tournamentId, tournaments.id), isNull(tournamentPodiums.category)),
+      )
+      .innerJoin(players, eq(players.id, tournamentPodiums.playerId))
+      .leftJoin(locations, eq(locations.id, players.locationId))
+      .leftJoin(playersToTitles, eq(playersToTitles.playerId, players.id))
+      .leftJoin(titles, eq(titles.id, playersToTitles.titleId))
+      .orderBy(
+        asc(championships.name),
+        asc(tournaments.date),
+        asc(tournaments.id),
+        asc(tournamentPodiums.place),
+        asc(tournamentPodiums.id),
+        asc(players.id),
+        asc(titles.id),
+      )
+      .limit(PUBLIC_COLLECTION_LIMIT * 20);
+
+    type Podium = {
+      place: number;
+      player: {
+        id: number;
+        name: string;
+        nickname: string | null;
+        imageUrl: string | null;
+        location: { name: string };
+        playersToTitles: Array<{ title: { shortTitle: string; type: string } }>;
+      };
+    };
+    type Tournament = { id: number; name: string; date: string | null; tournamentPodiums: Podium[] };
+    type Championship = { name: string; tournaments: Tournament[] };
+
+    const championshipsByName = new Map<string, Championship>();
+    const tournamentsByName = new Map<string, Tournament>();
+    const podiumsByKey = new Map<string, Podium>();
+
+    for (const row of rawData) {
+      let championship = championshipsByName.get(row.championshipName);
+      if (!championship) {
+        championship = { name: row.championshipName, tournaments: [] };
+        championshipsByName.set(row.championshipName, championship);
+      }
+
+      let tournament = tournamentsByName.get(row.tournamentName);
+      if (!tournament) {
+        tournament = { id: row.tournamentId, name: row.tournamentName, date: row.tournamentDate, tournamentPodiums: [] };
+        tournamentsByName.set(row.tournamentName, tournament);
+        championship.tournaments.push(tournament);
+      }
+
+      const podiumKey = `${row.tournamentName}|${row.podiumPlace}|${row.playerId}`;
+      if (podiumsByKey.has(podiumKey)) continue;
+      const podium: Podium = {
+        place: row.podiumPlace,
+        player: {
+          id: row.playerId,
+          name: row.playerName,
+          nickname: row.playerNickname ?? null,
+          imageUrl: row.playerImageUrl ?? null,
+          location: { name: row.locationName ?? "N/A" },
+          playersToTitles:
+            row.playerTitleShort && row.playerTitleType
+              ? [{ title: { shortTitle: row.playerTitleShort, type: row.playerTitleType } }]
+              : [],
+        },
+      };
+      podiumsByKey.set(podiumKey, podium);
+      tournament.tournamentPodiums.push(podium);
+    }
+
+    return [...championshipsByName.values()].map((championship) => ({
+      ...championship,
+      tournaments: [...championship.tournaments].reverse(),
+    }));
+  }),
+  create: adminProcedure
+    .input(insertChampionshipSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({ name: nameText }))
+    .mutation(async ({ ctx, input }) =>
+      ctx.db.insert(championships).values(input).returning()
+    ),
+  update: adminProcedure
+    .input(z.object({ id: positiveInt, name: nameText }))
+    .mutation(async ({ ctx, input }) =>
+      requireMutationRows(
+        await ctx.db.update(championships).set({ name: input.name }).where(eq(championships.id, input.id)).returning(),
+        "Championship",
+      )
+    ),
+  delete: adminProcedure
+    .input(idInput)
+    .mutation(async ({ ctx, input }) => {
+      await assertDeletable(ctx.db, "championship", input.id);
+      return deleteById(ctx.db, championships, input.id, "Championship");
+    }),
+});

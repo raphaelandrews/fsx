@@ -1,69 +1,75 @@
 # Federação Sergipana de Xadrez
 
-This project is built with [Next.js](https://nextjs.org), [Drizzle](https://orm.drizzle.team/docs/get-started) and [Supabase](https://supabase.com/).
+Website of the Sergipe State Chess Federation: news, ratings, player profiles,
+tournament results, and an admin dashboard. Production: [fsx.org.br](https://www.fsx.org.br).
 
-It's built to post news, display rating tables, showcase champions, manage documents, and, most importantly, provide fast rating updates.
+**Stack:** TanStack Start, tRPC, Better Auth (GitHub OAuth), Drizzle on
+Cloudflare D1, R2 for images, deployed to Cloudflare Workers with
+[Alchemy](https://alchemy.run). Docs: Fumadocs on Astro. Package manager: bun.
 
-## Getting Started
+## Run locally
 
-### 1. Environment variables
-
-Copy the example file and fill in your credentials:
-
-```bash
-cp .env.example .env.local
-```
-
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | Postgres connection string (from Supabase → Project Settings → Database) |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
-| `NEXT_PUBLIC_APP_URL` | Base URL of the app (e.g. `http://localhost:3000`) |
-| `NEXT_PUBLIC_API_URL` | API base URL (e.g. `http://localhost:3000/api`) |
-
-### 2. Install dependencies
+Requirements: [bun](https://bun.sh) 1.3+ and a GitHub OAuth app (callback
+`http://localhost:3001/api/auth/callback/github`).
 
 ```bash
 bun install
 ```
 
-### 3. Run database migrations
+Environment files (all variables are explained in `apps/web/.env.example`):
+
+| File | Holds |
+| ---- | ----- |
+| `apps/web/.env.common` | Shared secrets: `BETTER_AUTH_SECRET`, `GITHUB_USER_ID` (the only account that can sign in) |
+| `apps/web/.env` | Dev URLs (`BETTER_AUTH_URL` and `CORS_ORIGIN` = `http://localhost:3001`) and the dev GitHub OAuth app (`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`) |
+| `apps/web/.env.prod` | Production URLs and the production GitHub OAuth app (`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`) |
+| `packages/infra/.env` | `ALCHEMY_PASSWORD` (any stable string) |
 
 ```bash
-bun db:generate
-bun db:migrate
+bun run dev       # web on http://localhost:3001, docs on http://localhost:4000
+bun run db:seed   # in another terminal, after dev has started: sample data
+                  # (or `bun run db:seed:remote` for a copy of the real data)
 ```
 
-> Use `bun db:push` to push schema changes directly without generating migration files (useful during development).
+`bun run dev` creates the local D1 database and applies the migrations. If the
+local database gets into a bad state, see `AGENTS.md` → "Local Dev D1 gotchas".
 
-### 4. Seed the database
+## Public API
 
-```bash
-bun db:seed
+Other websites can read players' data as JSON, with no key and CORS enabled:
+
+| Endpoint | Returns |
+| -------- | ------- |
+| `GET /api/v1/players` | Every active player: `id`, `name`, `classic`, `rapid`, `blitz` |
+| `GET /api/v1/players/{id}` | One player, plus `birthYear`, `club`, and `titles` |
+| `GET /api/v1/openapi.json` | The OpenAPI 3.1 description |
+
+Responses are cached for 5 minutes. Reference with a "Send" playground:
+**Docs → Reference → API Reference**; contract and limits: **Reference → Public API**.
+
+## Common commands
+
+| Command | Does |
+| ------- | ---- |
+| `bun run dev` | Start web and docs with a local D1 |
+| `bun test` | Unit and D1 integration tests |
+| `bun run check-types` / `bun run lint` | Type check / lint |
+| `bun run build && bun run test:e2e` | Production build and Playwright tests |
+| `bun run db:generate` | Create a migration after editing `packages/db/src/schema` |
+| `bun run deploy` | Deploy web, docs, D1, and R2 to Cloudflare (needs `apps/web/.env.prod`) |
+
+## Repository
+
+```
+apps/web         Website and admin dashboard (TanStack Start)
+apps/fumadocs    Documentation site (Astro + Fumadocs), deployed to DOCS_DOMAIN
+packages/api     tRPC routers, public API, OpenAPI document
+packages/db      Drizzle schema, migrations, seed
+packages/infra   Cloudflare resources (Alchemy)
 ```
 
-This inserts initial data for locations, clubs, roles, titles, and players.
+## Documentation
 
-### 5. Start the development server
-
-```bash
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Database scripts
-
-| Command | Description |
-|---|---|
-| `bun db:generate` | Generate migration files from schema changes |
-| `bun db:migrate` | Run pending migrations |
-| `bun db:push` | Push schema directly to the database |
-| `bun db:pull` | Pull schema from the database |
-| `bun db:studio` | Open Drizzle Studio to browse data |
-| `bun db:seed` | Seed the database with initial data |
-
-# 🏝️
-
-Built by [Andrews](https://andrews.sh/)
+The docs (`apps/fumadocs/content/docs`, in English) cover architecture,
+procedures, routes, the database, operations (deploy, backups, incident
+response), and decisions. Contributor rules are in `AGENTS.md`.

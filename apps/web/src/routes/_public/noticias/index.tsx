@@ -1,0 +1,85 @@
+import { createFileRoute, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+
+import { Pagination } from "@/components/data-table/pagination";
+
+import { NewsIcon } from "@hugeicons/core-free-icons";
+
+import { PageHeader } from "@/components/page-header";
+import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
+import { PostCard } from "@/components/noticias/post-card";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
+import { pageSearchSchema } from "@/lib/search-schemas";
+import { useTRPC } from "@/lib/trpc";
+
+
+// Keep content short-lived so admin edits appear fast on revisit; matches the
+// short server-side cache TTL (see routes/api/trpc/$.ts) instead of the global
+// 5m staleTime.
+const PUBLICATION_STALE_TIME = 60_000;
+
+export const Route = createFileRoute("/_public/noticias/")({
+  validateSearch: pageSearchSchema,
+  search: { middlewares: [stripSearchParams({ page: 1 })] },
+  loaderDeps: ({ search }) => ({ page: search.page }),
+  loader: ({ context, deps }) =>
+    context.queryClient.ensureQueryData(
+      context.trpc.posts.byPage.queryOptions(
+        { page: deps.page },
+        { staleTime: PUBLICATION_STALE_TIME },
+      ),
+    ),
+  head: ({ loaderData }) => {
+    const page = loaderData?.pagination.currentPage ?? 1;
+    return buildSeo({
+      title: page > 1 ? withBrand(`Notícias — Página ${page}`) : withBrand("Notícias"),
+      description:
+        "Últimas notícias, torneios e novidades do xadrez em Sergipe, pela Federação Sergipana de Xadrez.",
+      path: page > 1 ? `/noticias?page=${page}` : "/noticias",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Notícias", path: "/noticias" },
+      ]),
+    });
+  },
+  pendingComponent: () => <CardGridSkeleton />,
+  component: RouteComponent,
+});
+
+function RouteComponent() {
+  const trpc = useTRPC();
+  const navigate = useNavigate();
+  const router = useRouter();
+  const { page } = Route.useSearch();
+  const { data } = useSuspenseQuery(
+    trpc.posts.byPage.queryOptions({ page }, { staleTime: PUBLICATION_STALE_TIME }),
+  );
+
+  return (
+    <>
+      <PageHeader icon={NewsIcon} title="Notícias" />
+
+      {data.posts.length === 0 ? (
+        <p className="text-muted-foreground">Nenhuma notícia publicada.</p>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {data.posts.map((post) => (
+            <PostCard key={post.id} title={post.title} imageUrl={post.imageUrl} slug={post.slug} />
+          ))}
+        </div>
+      )}
+
+      <div className="mt-6">
+        <Pagination
+          currentPage={data.pagination.currentPage}
+          hasNextPage={data.pagination.hasNextPage}
+          hasPreviousPage={data.pagination.hasPreviousPage}
+          totalPages={data.pagination.totalPages}
+          onPageChange={(newPage) => navigate({ to: "/noticias", search: { page: newPage } })}
+          onPagePreload={(page) => void router.preloadRoute({ to: "/noticias", search: { page } })}
+          getPageHref={(page) => router.buildLocation({ to: "/noticias", search: { page } }).href}
+        />
+      </div>
+    </>
+  );
+}

@@ -1,0 +1,360 @@
+import { useState } from "react";
+import { createFileRoute, Link, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon, BarChartIcon } from "@hugeicons/core-free-icons";
+
+import { Button } from "@fsx/ui/components/button";
+import { Pagination } from "@/components/data-table/pagination";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@fsx/ui/components/table";
+import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
+
+import { DataTableFacetedFilter } from "@/components/data-table/data-table-faceted-filter";
+import { SearchInput } from "@/components/data-table/search-input";
+import { PageHeader } from "@/components/page-header";
+import { TableSkeleton } from "@/components/skeletons/table-skeleton";
+import { PlayerSheetButton } from "@/components/player/player-sheet-button";
+import { Movement } from "@/components/gamification/movement";
+import {
+  ratingGroups,
+  ratingSexes,
+  ratingSortLabels,
+  ratingTitles,
+} from "@/components/home/ratings/data-options";
+import { useTRPC } from "@/lib/trpc";
+import { isAgeGroup } from "@fsx/api/age-groups";
+import { cn } from "@fsx/ui/lib/utils";
+import { avatarGradientFor } from "@/components/avatar-gradient";
+import { ratingsSearchSchema } from "@/lib/search-schemas";
+import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
+
+type SortBy = "classic" | "rapid" | "blitz";
+
+
+export const Route = createFileRoute("/_public/ratings/")({
+  validateSearch: ratingsSearchSchema,
+  search: { middlewares: [stripSearchParams({ page: 1, ordenar: "rapid", local: [], clube: [], titulo: [], grupo: [] })] },
+  loaderDeps: ({ search }) => ({
+    page: search.page,
+    sortBy: search.ordenar,
+    sex: search.sexo,
+    name: search.nome,
+    titles: search.titulo,
+    clubs: search.clube,
+    locations: search.local,
+    groups: search.grupo,
+  }),
+  loader: async ({ context, deps }) => {
+    // Prime the main data + lookup lists so the route renders with everything
+    // in cache. The component re-uses the same keys via useSuspenseQuery.
+    await Promise.all([
+      context.queryClient.ensureQueryData(
+        context.trpc.players.withFilters.queryOptions({
+          page: deps.page,
+          sortBy: deps.sortBy,
+          sex: deps.sex,
+          name: deps.name,
+          titles: deps.titles,
+          clubs: deps.clubs,
+          locations: deps.locations,
+          groups: deps.groups,
+        }),
+      ),
+      context.queryClient.ensureQueryData(context.trpc.clubs.list.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.locations.list.queryOptions()),
+    ]);
+  },
+  pendingComponent: () => <TableSkeleton cols={5} />,
+  head: ({ match }) => {
+    const { page, ordenar, sexo, nome, local, clube, titulo, grupo } = match.search;
+    const filtered =
+      ordenar !== "rapid" || Boolean(sexo || nome) || [local, clube, titulo, grupo].some((list) => list.length > 0);
+    // Each unfiltered page is its own canonical; filtered views fold into the base list.
+    const ownPage = page > 1 && !filtered;
+    return buildSeo({
+      title: withBrand(ownPage ? `Ratings de Xadrez — Página ${page}` : "Ratings de Xadrez"),
+      description:
+        "Ranking de ratings (clássico, rápido e blitz) dos jogadores filiados à Federação Sergipana de Xadrez. Filtre por clube, cidade, título e categoria.",
+      path: ownPage ? `/ratings?page=${page}` : "/ratings",
+      jsonLd: breadcrumbJsonLd([
+        { name: "Início", path: "/" },
+        { name: "Ratings", path: "/ratings" },
+      ]),
+    });
+  },
+  component: RouteComponent,
+});
+
+function RouteComponent() {
+  const trpc = useTRPC();
+  const navigate = useNavigate();
+  const router = useRouter();
+  const search = Route.useSearch();
+
+  const { data } = useSuspenseQuery(
+    trpc.players.withFilters.queryOptions({
+      page: search.page,
+      sortBy: search.ordenar,
+      sex: search.sexo,
+      name: search.nome,
+      titles: search.titulo,
+      clubs: search.clube,
+      locations: search.local,
+      groups: search.grupo,
+    }),
+  );
+
+  const { data: clubs = [] } = useSuspenseQuery(trpc.clubs.list.queryOptions());
+  const { data: locations = [] } = useSuspenseQuery(trpc.locations.list.queryOptions());
+
+  const [nameInput, setNameInput] = useState(search.nome ?? "");
+
+  const updateSearch = (partial: Partial<typeof search>) => {
+    navigate({ to: "/ratings", search: { ...search, ...partial, page: 1 } });
+  };
+
+  const clearFilters = () => {
+    setNameInput("");
+    navigate({
+      to: "/ratings",
+      search: {
+        ...search,
+        page: 1,
+        sexo: undefined,
+        nome: undefined,
+        local: [],
+        clube: [],
+        titulo: [],
+        grupo: [],
+      },
+    });
+  };
+
+  const isFiltered =
+    Boolean(search.sexo) ||
+    Boolean(search.nome) ||
+    search.local.length > 0 ||
+    search.clube.length > 0 ||
+    search.titulo.length > 0 ||
+    search.grupo.length > 0 ||
+    nameInput.length > 0;
+
+  const { players, pagination } = data;
+  const ratingColumn = ratingSortLabels[search.ordenar];
+
+  return (
+    <>
+      <PageHeader icon={BarChartIcon} title="Ratings" />
+
+      <p className="mb-4 text-center text-muted-foreground text-sm">
+        <Link to="/ratings/lista" search={{ ritmo: search.ordenar }} className="link-inline">
+          Ver listas anteriores
+        </Link>
+        {" · "}
+        <Link to="/comparar" className="link-inline">
+          Comparar jogadores
+        </Link>
+      </p>
+
+      {/* Rating tabs — drive which rating column is rendered below */}
+      <Tabs
+        className="mb-4 w-full"
+        onValueChange={(value) => updateSearch({ ordenar: value as SortBy })}
+        value={search.ordenar}
+      >
+        <div className="flex justify-center">
+          <TabsList>
+            <TabsTrigger value="classic">Clássico</TabsTrigger>
+            <TabsTrigger value="rapid">Rápido</TabsTrigger>
+            <TabsTrigger value="blitz">Blitz</TabsTrigger>
+          </TabsList>
+        </div>
+      </Tabs>
+
+      {/* Faceted filters + search */}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        <DataTableFacetedFilter
+          options={locations.map((l) => ({
+            label: l.name,
+            value: l.name,
+          }))}
+          title="Local"
+          value={search.local}
+          onChange={(v) => updateSearch({ local: v })}
+        />
+
+        <DataTableFacetedFilter
+          options={clubs.map((c) => ({
+            label: c.name,
+            value: c.name,
+          }))}
+          title="Clubes"
+          value={search.clube}
+          onChange={(v) => updateSearch({ clube: v })}
+        />
+
+        <DataTableFacetedFilter
+          options={ratingTitles.map((t) => ({
+            label: t.label,
+            value: t.value,
+          }))}
+          title="Títulos"
+          value={search.titulo}
+          onChange={(v) => updateSearch({ titulo: v })}
+        />
+
+        <DataTableFacetedFilter
+          options={ratingGroups.map((g) => ({
+            label: g.label,
+            value: g.value,
+          }))}
+          title="Grupo"
+          value={search.grupo}
+          onChange={(v) => updateSearch({ grupo: v.filter(isAgeGroup) })}
+        />
+
+        <DataTableFacetedFilter
+          options={ratingSexes.map((s) => ({
+            label: s.label,
+            value: s.value,
+          }))}
+          singleSelect
+          title="Categoria"
+          value={search.sexo ? [search.sexo] : []}
+          onChange={(v) =>
+            updateSearch({
+              sexo: (v[0] as typeof search.sexo | undefined) ?? undefined,
+            })
+          }
+        />
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            updateSearch({ nome: nameInput.trim() || undefined });
+          }}
+        >
+          <SearchInput
+            placeholder="Nome do jogador..."
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+          />
+        </form>
+
+        {isFiltered ? (
+          <Button className="h-8 px-2 lg:px-3" onClick={clearFilters} variant="ghost">
+            Limpar
+            <HugeiconsIcon className="ml-2 size-4" icon={Cancel01Icon} strokeWidth={2} />
+          </Button>
+        ) : null}
+      </div>
+
+      {/* Table — column order: # / Nome / [rating] / Local (flag) / Clube (logo) */}
+      <div className="overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12 text-center">#</TableHead>
+              <TableHead>Jogador</TableHead>
+              <TableHead className="text-center">{ratingColumn}</TableHead>
+              <TableHead>Local</TableHead>
+              <TableHead>Clube</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {players.map((player, index) => (
+              <TableRow key={player.id}>
+                <TableCell className="text-center text-muted-foreground tabular-nums">
+                  <span className="inline-flex items-baseline gap-1">
+                    {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
+                    <Movement value={player.movement} />
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <PlayerSheetButton
+                    id={player.id}
+                    image={player.imageUrl}
+                    name={player.name}
+                    nickname={player.nickname}
+                    shortTitle={player.playersToTitles?.[0]?.title.shortName ?? null}
+                  />
+                </TableCell>
+                <TableCell className="text-center tabular-nums font-medium">
+                  {player[search.ordenar]}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {player.location?.flagUrl ? (
+                      <span className="relative flex shrink-0 size-4 overflow-hidden rounded object-contain">
+                        <img
+                          alt=""
+                          decoding="async"
+                          height={16}
+                          loading="lazy"
+                          width={16}
+                          className="aspect-square size-4 rounded object-contain"
+                          src={player.location.flagUrl}
+                        />
+                      </span>
+                    ) : null}
+                    <span className="text-muted-foreground">{player.location?.name ?? "—"}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {player.club?.logoUrl ? (
+                      <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded">
+                        <img
+                          alt=""
+                          decoding="async"
+                          height={20}
+                          loading="lazy"
+                          width={20}
+                          className="aspect-square size-full object-contain"
+                          src={player.club.logoUrl}
+                        />
+                      </span>
+                    ) : player.club?.name ? (
+                      <span
+                        className={cn(
+                          "relative flex shrink-0 h-5 w-5 overflow-hidden rounded",
+                          avatarGradientFor(player.club.name),
+                        )}
+                      />
+                    ) : null}
+                    <span className="text-muted-foreground">{player.club?.name ?? "—"}</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="mt-6 flex justify-center">
+        <Pagination
+          currentPage={pagination.currentPage}
+          hasNextPage={pagination.hasNextPage}
+          hasPreviousPage={pagination.hasPreviousPage}
+          totalPages={pagination.totalPages}
+          onPageChange={(newPage) =>
+            navigate({
+              to: "/ratings",
+              search: { ...search, page: newPage },
+            })
+          }
+          onPagePreload={(page) => void router.preloadRoute({ to: "/ratings", search: { ...search, page } })}
+          getPageHref={(page) => router.buildLocation({ to: "/ratings", search: { ...search, page } }).href}
+        />
+      </div>
+    </>
+  );
+}

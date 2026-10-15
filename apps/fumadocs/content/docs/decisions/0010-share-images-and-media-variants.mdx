@@ -1,0 +1,43 @@
+---
+title: "ADR 0010: Share Images and Media Variants"
+description: Share images are rendered on demand and stored in R2; resized images come from Cloudflare transformations.
+---
+
+- Status: Accepted
+- Date: 2026-10-14
+
+## Context
+
+Shared links showed the same default image, and profile photos and news covers
+were served at full size to every list. The site is on the Workers Paid plan
+([ADR 0009](/decisions/0009-workers-paid-plan)), which allows CPU-heavy work and
+a larger Worker bundle.
+
+## Decision
+
+- **Share images** (`/api/og/<kind>/<id>.png`) are rendered on first request with
+  Satori and a WASM PNG encoder (`@cf-wasm/og`) and stored in R2 under
+  `og/<kind>/<id>-<version>.png`. The version is a hash of exactly what the image
+  shows (`lib/og.ts`); the page head computes it from the same procedure result,
+  so the image URL changes when the content does and nothing is purged. The
+  renderer is loaded with a dynamic import, so its WASM is instantiated only
+  when an image is rendered. Only profiles and news without a cover use it;
+  anything else keeps `/og-image.png`, which is also the fallback when rendering
+  fails.
+- **Resized images** use Cloudflare Image Transformations through
+  `/cdn-cgi/image/<options>/api/media/<key>`, not variants stored in R2. Nothing
+  changes at upload time and existing photos work at once. The URLs are built
+  only when `VITE_IMAGE_TRANSFORMATIONS=true` at build time, because the path
+  does not exist locally or in the e2e Worker.
+- **Photos from the public form** wait under `pending/` in R2, outside the
+  `/api/media` key pattern, until approved ([Governance and
+  privacy](/operations/governance-and-privacy)).
+
+## Consequences
+
+The Worker bundle grows by about 0.8 MB of JavaScript and 1.4 MB of WASM. The
+first request for a new profile version pays a render (hundreds of
+milliseconds); later ones read R2. Transformations are billed per unique
+transformation beyond the plan's free allowance, and the `quality` and widths
+are fixed in `lib/media-image.ts` to keep that count small. The renderer ships
+one regular-weight font, so the card relies on size and color, not bold.

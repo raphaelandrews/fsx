@@ -1,0 +1,4 @@
+{
+  "title": "Architecture",
+  "pages": ["index", "code-layout", "domain-model", "runtime", "rendering-and-caching", "media", "authentication", "contracts"]
+}

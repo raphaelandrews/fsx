@@ -1,0 +1,565 @@
+import type { RatingType } from "@fsx/api/rating-types";
+import * as React from "react";
+import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+
+import type { inferRouterOutputs } from "@trpc/server";
+
+import type { AppRouter } from "@fsx/api/routers/index";
+import { RECORD_HOLDER_ID, recordHolderAchievement } from "@fsx/api/gamification/badges";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowUpRight01Icon,
+  Calendar01Icon,
+  Link02Icon,
+  InformationCircleIcon,
+  Target01Icon,
+  BarChartIcon,
+  ChartBarLineIcon,
+  Analytics01Icon,
+  Route01Icon,
+  ScrollIcon,
+  Medal01Icon,
+} from "@hugeicons/core-free-icons";
+
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
+import { tournamentHistoryColumns } from "./tournament-history-columns";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@fsx/ui/components/avatar";
+import { avatarImage } from "@/lib/media-image";
+import { Badge } from "@fsx/ui/components/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@fsx/ui/components/popover";
+import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
+import { VerifiedBadge } from "@/components/player/verified-badge";
+import { SectionHeading } from "@/components/section-heading";
+import { RankingHistoryChart, TotalRatingChart, VariationChart } from "@/components/player/player-charts";
+import { cn } from "@fsx/ui/lib/utils";
+import { avatarGradient, avatarGradientFor } from "@/components/avatar-gradient";
+import { PlayerLevel } from "@/components/gamification/player-level";
+import { championshipIcon, podiumIcon } from "@/components/gamification/championship-icons";
+import { TIER_CLASSES, formatIsoDate } from "@/components/gamification/tier";
+import { AchievementGrid, Subheading, TrophyCabinet } from "@/components/player/player-achievements";
+import { PlayerAnnouncements } from "@/components/player/player-announcements";
+import { PlayerCircuits } from "@/components/player/player-circuits";
+import { PlayerStats } from "@/components/player/player-stats";
+import { byTitleTier } from "@/components/player/title-emblems";
+import type { ClubStanding, PlayerAnnouncement, PlayerCircuitSeason, PlayerRanking, PlayerStatsResult } from "@/components/player/types";
+import { Movement } from "@/components/gamification/movement";
+import { StatTile } from "@/components/gamification/stat-tile";
+import { PlayerTitlePath } from "@/components/player/player-title-path";
+import { useTRPC } from "@/lib/trpc";
+
+function FormatPodium(place: number | null | undefined, championshipId: number) {
+  const icon = podiumIcon(place, championshipId);
+  return icon ? <HugeiconsIcon icon={icon} className="size-5" strokeWidth={1.75} aria-hidden /> : null;
+}
+
+const podiumLabel = (podium: { category?: string | null; tournament: { name: string } }) =>
+  podium.category ? `${podium.tournament.name} · ${podium.category}` : podium.tournament.name;
+
+function FormatPodiumTitle(place: number | null | undefined) {
+  if (place === 1) {
+    return "Campeão(ã)";
+  }
+  if (place === 2) {
+    return "Vice-Campeão(ã)";
+  }
+  if (place === 3) {
+    return "3º lugar";
+  }
+}
+
+const medalButton =
+  "inline-flex size-11 items-center justify-center rounded-xl bg-muted text-foreground shadow-[inset_0_0_0_1px_var(--border)] hover:shadow-[inset_0_0_0_1px_var(--muted-foreground)] outline-offset-2 transition-[scale,box-shadow] duration-150 ease-out focus-visible:outline-2 focus-visible:outline-ring active:scale-[0.96]";
+
+export type PlayerById = NonNullable<inferRouterOutputs<AppRouter>["players"]["byId"]>;
+
+const TITLE_TIER_BADGES = { 1: "bronze", 2: "silver", 3: "gold", 4: "platinum" } as const;
+
+export function PlayerProfile({
+  player,
+  stats,
+  circuitSeasons,
+  announcements,
+  ranking,
+  clubStanding,
+}: {
+  player: PlayerById;
+  clubStanding: ClubStanding | null;
+  stats: PlayerStatsResult;
+  ranking: PlayerRanking;
+  circuitSeasons: PlayerCircuitSeason[];
+  announcements: PlayerAnnouncement[];
+}) {
+  // Championship groups (most titles first) with their podiums newest first;
+  // podiums of one-off tournaments close the list.
+  const podiumGroups = React.useMemo(() => {
+    const groups = new Map<string, NonNullable<PlayerById["tournamentPodiums"]>>();
+    for (const podium of player?.tournamentPodiums ?? []) {
+      const name = podium.tournament.championship?.name ?? "Outros torneios";
+      groups.set(name, [...(groups.get(name) ?? []), podium]);
+    }
+    return [...groups]
+      .map(([name, podiums]) => ({
+        name,
+        titles: podiums.filter((podium) => podium.place === 1 && !podium.category).length,
+        podiums: podiums.sort((a, b) => (b.tournament.date ?? "").localeCompare(a.tournament.date ?? "")),
+      }))
+      .sort((a, b) =>
+        a.name === "Outros torneios" ? 1 : b.name === "Outros torneios" ? -1 : b.titles - a.titles || a.name.localeCompare(b.name, "pt-BR"),
+      );
+  }, [player?.tournamentPodiums]);
+
+  const titleEmblems = React.useMemo(() => byTitleTier(player?.playersToTitles ?? []), [player?.playersToTitles]);
+
+  // Site-wide emblem data (rarity, record holders). Loaded after the page renders:
+  // it can trigger the all-careers recompute, which must never delay the profile.
+  const trpc = useTRPC();
+  const { data: badges } = useQuery(trpc.records.badges.queryOptions());
+  const { data: rankingHistory } = useQuery(trpc.players.rankingHistory.queryOptions({ id: player.id }));
+  const heldRecords = badges?.recordHolders[player.id];
+  const achievements = React.useMemo(
+    () => (heldRecords ? [...stats.achievements, recordHolderAchievement(heldRecords)] : stats.achievements),
+    [stats.achievements, heldRecords],
+  );
+  const rarity = React.useCallback(
+    (id: string) => {
+      if (!badges || badges.players === 0) return undefined;
+      const holders = id === RECORD_HOLDER_ID ? Object.keys(badges.recordHolders).length : badges.holders[id];
+      return holders === undefined ? undefined : holders / badges.players;
+    },
+    [badges],
+  );
+
+  const medalCount = Object.values(stats.stats.medals).reduce((sum, m) => sum + m.gold + m.silver + m.bronze, 0);
+
+  const tournaments = React.useMemo(() => {
+    return player?.playersToTournaments ? [...player.playersToTournaments].reverse() : [];
+  }, [player?.playersToTournaments]);
+
+  const managementRole = React.useMemo(() => {
+    return player?.playersToRoles?.find((role) => role.role.type === "management");
+  }, [player?.playersToRoles]);
+
+  const refereeRole = React.useMemo(() => {
+    return player?.playersToRoles?.find((role) => role.role.type === "referee");
+  }, [player?.playersToRoles]);
+
+  const internalTitle = React.useMemo(() => {
+    return player?.playersToTitles?.find((title) => title.title.type === "internal");
+  }, [player?.playersToTitles]);
+
+  const externalTitle = React.useMemo(() => {
+    return player?.playersToTitles?.find((title) => title.title.type === "external");
+  }, [player?.playersToTitles]);
+
+  const [selectedRatingType, setSelectedRatingType] = React.useState("rapid");
+
+  return (
+    <>
+      <div className="relative">
+        <div className="px-4 pb-4">
+          <div className="mb-4 flex justify-center pt-12">
+            <Avatar className="size-24 after:border-0 after:mix-blend-normal">
+              <AvatarImage alt={player.name} {...avatarImage(player.imageUrl, 96)} />
+              <AvatarFallback className={avatarGradient(player.id)} />
+            </Avatar>
+          </div>
+
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-lg font-semibold tracking-tight">
+                {internalTitle && (
+                  <span className="mr-1.5 text-warning-foreground">{internalTitle.title.shortName}</span>
+                )}
+                {player.nickname || player.name}
+              </h1>
+              <VerifiedBadge
+                playerId={player.id}
+                roles={player.playersToRoles ?? []}
+                verified={player.verified ?? false}
+              />
+            </div>
+
+            <PlayerLevel level={stats.level} />
+            <Link to="/comparar" search={{ a: player.id }} className="link-inline text-sm">
+              Comparar com outro jogador
+            </Link>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {titleEmblems.map(({ title }) => (
+                <span
+                  key={title.name}
+                  className={cn(
+                    "rounded-md px-2 py-0.5 font-semibold text-xs",
+                    TIER_CLASSES[TITLE_TIER_BADGES[(title.tier ?? 1) as keyof typeof TITLE_TIER_BADGES] ?? "bronze"],
+                  )}
+                  title={title.name}
+                >
+                  <span aria-hidden>{title.shortName}</span>
+                  <span className="sr-only">{title.name}</span>
+                </span>
+              ))}
+              {(managementRole || refereeRole) && (
+                <>
+                  {managementRole && <Badge variant="secondary">{managementRole.role.name}</Badge>}
+                  {refereeRole && <Badge variant="default">{refereeRole.role.name}</Badge>}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section className="mb-0">
+        <SectionHeading icon={ChartBarLineIcon} label="Ratings" />
+
+        <div className="grid grid-cols-3 gap-2 px-2 sm:gap-4 sm:px-4">
+          <RatingBox label="Clássico" value={player.classic} peak={stats.stats.formats.classic?.peak.rating} />
+          <RatingBox label="Rápido" value={player.rapid} peak={stats.stats.formats.rapid?.peak.rating} />
+          <RatingBox label="Blitz" value={player.blitz} peak={stats.stats.formats.blitz?.peak.rating} />
+        </div>
+        {player.active && <RankingPositions ranking={ranking} showFemale={player.sex === "female"} />}
+      </section>
+
+      {(podiumGroups.length > 0 ||
+        medalCount > 0 ||
+        stats.achievements.length > 0 ||
+        stats.upcoming.length > 0 ||
+        (player.defendingChampions && player.defendingChampions?.length > 0)) && (
+          <section className="mb-0">
+            <SectionHeading icon={Target01Icon} label="Conquistas" />
+            <div className="grid gap-6 px-3 pt-1 pb-4">
+              <TrophyCabinet medals={stats.stats.medals} />
+              <AchievementGrid achievements={achievements} upcoming={stats.upcoming} rarity={rarity} />
+              {player.defendingChampions && player.defendingChampions.length > 0 && (
+                <section aria-labelledby="player-defending">
+                  <Subheading id="player-defending">Atual campeão</Subheading>
+                  <ul className="flex flex-wrap gap-2">
+                    {player.defendingChampions.map(({ championshipId, championship }) => {
+                      const label = `Atual campeão(ã) · ${championship.name}`;
+                      return (
+                        <li key={championshipId}>
+                          <Popover>
+                            <PopoverTrigger aria-label={label} className={medalButton}>
+                              <HugeiconsIcon icon={championshipIcon(championshipId)} className="size-5" strokeWidth={1.75} aria-hidden />
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-2 text-sm font-medium">{label}</PopoverContent>
+                          </Popover>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              )}
+
+              {podiumGroups.length > 0 && (
+                <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3">
+                  {podiumGroups.map((group) => (
+                    <section
+                      key={group.name}
+                      aria-label={`Pódios · ${group.name}`}
+                      className={cn(group.podiums.length > 4 && "col-span-full")}
+                    >
+                      <Subheading aside={group.titles > 0 ? `${group.titles} título${group.titles === 1 ? "" : "s"}` : undefined}>
+                        {group.name}
+                      </Subheading>
+                      <ul className="flex flex-wrap gap-2">
+                        {group.podiums.map((podium) => (
+                          <li key={`${podium.place}-${podium.category ?? ""}-${podium.tournament.name}`}>
+                            <Popover>
+                              <PopoverTrigger
+                                aria-label={`${FormatPodiumTitle(podium.place) ?? "Colocação"}: ${podiumLabel(podium)}`}
+                                className={medalButton}
+                              >
+                                {FormatPodium(podium.place, podium.category ? 0 : (podium.tournament.championshipId ?? 0))}
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto max-w-64 gap-0.5 p-2 text-sm">
+                                <p className="font-medium">
+                                  {FormatPodiumTitle(podium.place)} · {podiumLabel(podium)}
+                                </p>
+                                {podium.tournament.date && (
+                                  <p className="text-muted-foreground tabular-nums">{formatIsoDate(podium.tournament.date)}</p>
+                                )}
+                                <Link to="/torneios/$id" params={{ id: podium.tournament.id }} className="link-inline mt-1">
+                                  Ver torneio
+                                </Link>
+                              </PopoverContent>
+                            </Popover>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+      {stats.titlePath.length > 0 && (
+        <section aria-label="Caminho para títulos">
+          <SectionHeading icon={Medal01Icon} label="Caminho para títulos" />
+          <PlayerTitlePath goals={stats.titlePath} />
+        </section>
+      )}
+
+      <section className="mb-0">
+        <SectionHeading icon={InformationCircleIcon} label="Informações" />
+
+        <dl className="flex flex-col divide-y px-3">
+          <InfoItem label="Nome Completo" value={player.name} />
+
+          {internalTitle && <InfoItem label="Titulação FSX" value={internalTitle.title.name} />}
+
+          {externalTitle && (
+            <InfoItem label="Titulação CBX/FIDE" value={externalTitle.title.name} />
+          )}
+
+          {player.club && (
+            <InfoItem label="Clube">
+              <div className="flex items-center gap-2">
+                {player.club.logoUrl ? (
+                  <span className="relative flex shrink-0 h-5 w-5 overflow-hidden rounded">
+                    <img
+                      alt=""
+                      decoding="async"
+                      height={20}
+                      loading="lazy"
+                      width={20}
+                      className="aspect-square size-full object-contain"
+                      src={player.club.logoUrl}
+                    />
+                  </span>
+                ) : (
+                  <span className={cn("relative flex shrink-0 h-5 w-5 overflow-hidden rounded", avatarGradientFor(player.club.name))} />
+                )}
+                {player.club.id ? (
+                  <Link to="/clubes/$id" params={{ id: player.club.id }} className="hover:underline">
+                    {player.club.name}
+                  </Link>
+                ) : (
+                  <span>{player.club.name}</span>
+                )}
+                {clubStanding?.rank.rapid && (
+                  <span className="text-muted-foreground text-sm">#{clubStanding.rank.rapid} entre os clubes</span>
+                )}
+              </div>
+            </InfoItem>
+          )}
+
+          {player.location && (
+            <InfoItem label="Localização">
+              <div className="flex items-center gap-2">
+                {player.location.flagUrl ? (
+                  <span className="relative flex shrink-0 size-4 overflow-hidden rounded object-contain">
+                    <img
+                      alt=""
+                      className="aspect-square size-4 rounded object-contain"
+                      decoding="async"
+                      height={16}
+                      loading="lazy"
+                      src={player.location.flagUrl}
+                      width={16}
+                    />
+                  </span>
+                ) : null}
+                <span>{player.location.name}</span>
+              </div>
+            </InfoItem>
+          )}
+
+          <InfoItem label="Status">
+            <span className="flex items-center gap-2">
+              <span className={cn("size-2 rounded-full", player.active ? "bg-success" : "bg-destructive-fill")} aria-hidden />
+              {player.active ? "Ativo" : "Inativo"}
+            </span>
+          </InfoItem>
+        </dl>
+      </section>
+
+
+      {stats.stats.tournamentsPlayed > 0 && (
+        <section className="mb-0">
+          <SectionHeading icon={Analytics01Icon} label="Estatísticas" />
+          <PlayerStats playerId={player.id} stats={stats.stats} tournaments={stats.tournaments} />
+        </section>
+      )}
+
+      {circuitSeasons.length > 0 && (
+        <section className="mb-0">
+          <SectionHeading icon={Route01Icon} label="Circuitos" />
+          <PlayerCircuits seasons={circuitSeasons} />
+        </section>
+      )}
+
+      {announcements.length > 0 && (
+        <section className="mb-0">
+          <SectionHeading icon={ScrollIcon} label="Comunicados" />
+          <PlayerAnnouncements announcements={announcements} />
+        </section>
+      )}
+
+      <section className="mb-0">
+        <SectionHeading icon={Link02Icon} label="IDs" />
+
+        <div className="grid grid-cols-3 gap-2 px-2 sm:gap-4 sm:px-4">
+          <IdBox label="ID FSX" value={String(player.id)} />
+          <IdBox
+            label="ID CBX"
+            value={player.cbxId ? String(player.cbxId) : "—"}
+            href={player.cbxId ? `https://www.cbx.org.br/jogador/${player.cbxId}` : undefined}
+          />
+          <IdBox
+            label="ID FIDE"
+            value={player.fideId ? String(player.fideId) : "—"}
+            href={player.fideId ? `https://ratings.fide.com/profile/${player.fideId}` : undefined}
+          />
+        </div>
+      </section>
+
+      {tournaments.length > 0 && (
+        <section className="mb-0">
+          <SectionHeading icon={BarChartIcon} label="Performance" />
+
+          <div className="p-4 space-y-6">
+            <Tabs value={selectedRatingType} onValueChange={(value) => setSelectedRatingType(value as string)}>
+              <div className="flex justify-center">
+                <TabsList aria-label="Tipo de rating">
+                  <TabsTrigger value="classic">Clássico</TabsTrigger>
+                  <TabsTrigger value="rapid">Rápido</TabsTrigger>
+                  <TabsTrigger value="blitz">Blitz</TabsTrigger>
+                </TabsList>
+              </div>
+            </Tabs>
+
+            <div className="grid gap-4">
+              <VariationChart player={player} selectedRatingType={selectedRatingType} />
+              <TotalRatingChart player={player} selectedRatingType={selectedRatingType} />
+              {player.active && rankingHistory ? (
+                <RankingHistoryChart points={rankingHistory[selectedRatingType as RatingType]} />
+              ) : null}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {tournaments && tournaments.length > 0 && (
+        <section className="mb-0">
+          <SectionHeading icon={Calendar01Icon} label="Histórico de Torneios" />
+          <div className="py-4">
+            <DataTable
+              columns={tournamentHistoryColumns}
+              data={tournaments}
+              pagination={(table) => <DataTablePagination table={table} />}
+              pageSize={10}
+            />
+          </div>
+        </section>
+      )}
+    </>
+  );
+}
+
+function InfoItem({
+  label,
+  value,
+  children,
+}: {
+  label: string;
+  value?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <dt className="text-muted-foreground text-sm">{label}</dt>
+      <dd className="font-medium text-base">{children ?? value}</dd>
+    </div>
+  );
+}
+
+function RatingBox({
+  label,
+  value,
+  peak,
+}: {
+  label: string;
+  value?: number | null;
+  peak?: number;
+}) {
+  const showPeak = peak !== undefined && value != null && peak > value;
+  return (
+    <StatTile
+      label={label}
+      value={value ?? "—"}
+      valueClassName="text-xl sm:text-2xl"
+      hint={showPeak ? <span className="tabular-nums">Pico {peak}</span> : undefined}
+    />
+  );
+}
+
+function RankingPositions({ ranking, showFemale }: { ranking: PlayerRanking; showFemale: boolean }) {
+  const formats = [
+    { label: "Clássico", rank: ranking.classic },
+    { label: "Rápido", rank: ranking.rapid },
+    { label: "Blitz", rank: ranking.blitz },
+  ];
+
+  return (
+    <div className="mt-4 px-2 sm:px-4">
+      <Subheading>Posições no ranking</Subheading>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {formats.map(({ label, rank }) => (
+          <StatTile
+            key={label}
+            label={label}
+            className="p-2 sm:p-3"
+            valueClassName="text-base sm:text-base"
+            value={
+              <span className="flex flex-col items-center gap-0.5">
+                <span className="inline-flex items-baseline gap-1">
+                  Absoluto {rank ? `#${rank.position}` : "—"}
+                  {rank && (
+                    <>
+                      <span className="sr-only"> de {rank.players} jogadores ativos</span>
+                      <Movement value={rank.movement} />
+                    </>
+                  )}
+                </span>
+                {showFemale && (
+                  <span className="text-muted-foreground">
+                    Feminino {rank?.female ? `#${rank.female.position}` : "—"}
+                    {rank?.female && <span className="sr-only"> de {rank.female.players} jogadoras ativas</span>}
+                  </span>
+                )}
+              </span>
+            }
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function IdBox({ label, value, href }: { label: string; value: string; href?: string }) {
+  if (!href) return <StatTile label={label} value={value} />;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="group block h-full rounded-2xl outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
+    >
+      <StatTile
+        label={label}
+        className="transition-colors duration-200 group-hover:bg-accent"
+        value={
+          <span className="inline-flex items-center gap-1.5 group-hover:underline">
+            {value}
+            <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3.5 text-muted-foreground" aria-hidden />
+          </span>
+        }
+      />
+    </a>
+  );
+}

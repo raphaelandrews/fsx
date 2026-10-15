@@ -1,0 +1,80 @@
+import type { ColumnDef } from "@tanstack/react-table"
+
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { PlayerSheetButton } from "@/components/player/player-sheet-button";
+
+export interface TitledPlayer {
+  id: number
+  name: string
+  imageUrl: string | null
+  rapid: number
+  playersToTitles: Array<{
+    title: { name: string; shortName: string; type: string }
+  }>
+}
+
+export const titledPlayersColumns: ColumnDef<TitledPlayer>[] = [
+  {
+    id: "index",
+    header: ({ column }) => <DataTableColumnHeader align="center" column={column} title="#" />,
+    cell: ({ row, table }) => (
+      <span className="text-muted-foreground">
+        {(table.getSortedRowModel()?.flatRows?.findIndex((flatRow) => flatRow.id === row.id) || 0) + 1}
+      </span>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+    meta: { className: "w-12 text-center tabular-nums" },
+  },
+  {
+    accessorKey: "name",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+    cell: ({ row }) => {
+      const shortTitle = row.original.playersToTitles?.find((t) => t.title)?.title.shortName
+      return (
+        <PlayerSheetButton
+          id={row.original.id}
+          image={row.original.imageUrl}
+          name={row.original.name}
+          shortTitle={shortTitle}
+        />
+      )
+    },
+  },
+  {
+    accessorKey: "internalTitle",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Título FSX" />,
+    cell: ({ row }) => {
+      const internalTitle = row.original.playersToTitles?.find(
+        (title) => title.title.type === "internal"
+      )
+      return <p className="whitespace-nowrap">{internalTitle?.title.name}</p>
+    },
+    filterFn: (row, _id, value) => {
+      const internalTitle = row.original.playersToTitles?.find(
+        (title) => title.title.type === "internal"
+      )
+      return (value as string[]).includes(internalTitle?.title.shortName as string)
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "externalTitle",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Título CBX/FIDE" />,
+    cell: ({ row }) => {
+      const externalTitle = row.original.playersToTitles?.find(
+        (title) => title.title.type === "external"
+      )
+      return <p className="whitespace-nowrap">{externalTitle?.title.name || "-"}</p>
+    },
+    filterFn: (row, _id, value) => {
+      const externalTitle = row.original.playersToTitles?.find(
+        (title) => title.title.type === "external"
+      )
+      return (value as string[]).includes(externalTitle?.title.shortName as string)
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+]

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `announcements_content_unique` ON `announcements` (`content`);
