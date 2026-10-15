@@ -1,4 +1,5 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -15,6 +16,7 @@ import { RowLink } from "@/components/data-table/row-link";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
+import { CircuitCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/")({
   head: () => ({ meta: [{ title: "Circuits - Admin - FSX" }] }),
@@ -24,6 +26,7 @@ export const Route = createFileRoute("/_auth/dashboard/circuits/")({
 });
 
 function RouteComponent() {
+  const [creating, setCreating] = useState(false);
   const trpc = useTRPC();
 
   const { data = [] } = useSuspenseQuery(trpc.circuits.listSimple.queryOptions());
@@ -89,13 +92,11 @@ function RouteComponent() {
         title="Circuits"
         description="One circuit per season. Finished seasons keep their final podiums."
         actions={
-          <Link to="/dashboard/circuits/create">
-            <Button>New circuit</Button>
-          </Link>
+          <Button onClick={() => setCreating(true)}>New circuit</Button>
         }
       />
       <DataTable
-        emptyState={<EmptyCollection noun="circuits" createTo="/dashboard/circuits/create" />}
+        emptyState={<EmptyCollection noun="circuits" onCreate={() => setCreating(true)} />}
         columns={columns}
         data={data}
         toolbar={(table) => (
@@ -103,6 +104,7 @@ function RouteComponent() {
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />
+      <CircuitCreateDialog open={creating} onOpenChange={setCreating} />
     </div>
   );
 }

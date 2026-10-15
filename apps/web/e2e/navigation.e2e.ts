@@ -3,6 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { PLAYER } from "./fixtures";
 import { signInAsOwner } from "./session";
+import { openCreateDialog } from "./dialog";
 
 async function focusRingVisible(page: Page): Promise<boolean> {
   return page.evaluate(() => {
@@ -21,7 +22,7 @@ test.describe("dashboard keyboard and layout", () => {
   });
 
   test("row menus close on Escape and return focus to their trigger", async ({ page }) => {
-    await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
+    await openCreateDialog(page, "clubs", "club");
     await page.getByLabel("Name").fill("Clube Teclado");
     await page.getByRole("button", { name: "Create Club" }).click();
     await expect(page).toHaveURL(/\/dashboard\/clubs$/);
@@ -36,11 +37,11 @@ test.describe("dashboard keyboard and layout", () => {
     expect(await focusRingVisible(page)).toBe(true);
   });
 
-  test("empty collections explain themselves and link to the create form", async ({ page }) => {
+  test("empty collections explain themselves and open the create form", async ({ page }) => {
     await page.goto("/dashboard/norms", { waitUntil: "networkidle" });
     await expect(page.getByRole("heading", { name: "No norms yet" })).toBeVisible();
-    await page.getByRole("link", { name: "Create", exact: true }).click();
-    await expect(page).toHaveURL(/\/dashboard\/norms\/create$/);
+    await page.getByRole("button", { name: "Create", exact: true }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
   });
 
   for (const path of ["/dashboard/clubs", "/dashboard/players", "/dashboard/tournaments", "/dashboard/tv-sergipe"]) {

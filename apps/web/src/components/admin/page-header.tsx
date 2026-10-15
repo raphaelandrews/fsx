@@ -3,47 +3,47 @@ import { Link, type LinkProps } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 
+import { buttonVariants } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
+
+import { HEADER_SLOT_ID } from "@/components/admin/admin-slots";
 
 interface AdminPageHeaderProps {
   title: string;
   description?: string;
-  /** Right-aligned actions, e.g. a "New" link or a delete button. */
+  /** Right-aligned actions, e.g. a "New" link. */
   actions?: ReactNode;
-  /** Parent page, shown as a back link above the title on create and edit pages. */
+  /** Parent page. A page with one is a create or edit page: a back button leads the title. */
   backTo?: LinkProps["to"];
   backLabel?: string;
+  /** Status next to the title, e.g. a published badge. */
+  badge?: ReactNode;
   className?: string;
 }
 
-export function AdminPageHeader({
-  title,
-  description,
-  actions,
-  backTo,
-  backLabel,
-  className,
-}: AdminPageHeaderProps) {
+export function AdminPageHeader({ title, description, actions, backTo, backLabel, badge, className }: AdminPageHeaderProps) {
   return (
     <div className={cn("mb-6", className)}>
-      {backTo ? (
-        <Link
-          to={backTo}
-          className="mb-3 inline-flex items-center gap-1 rounded-sm text-muted-foreground text-sm hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
-        >
-          <HugeiconsIcon className="size-4" icon={ArrowLeft01Icon} strokeWidth={2} />
-          {backLabel ?? "Back"}
-        </Link>
-      ) : null}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="truncate font-bold text-xl tracking-tight sm:text-2xl">{title}</h1>
-          {description ? <p className="mt-1 text-muted-foreground text-sm">{description}</p> : null}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
+          {backTo ? (
+            <Link
+              to={backTo}
+              aria-label={`Back to ${backLabel ?? "the list"}`}
+              className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+            >
+              <HugeiconsIcon className="size-5" icon={ArrowLeft01Icon} strokeWidth={2} />
+            </Link>
+          ) : null}
+          <h1 className={cn("truncate tracking-tight", backTo ? "font-semibold text-2xl @md:text-3xl" : "font-bold text-xl sm:text-2xl")}>{title}</h1>
+          {badge}
         </div>
-        {actions ? (
-          <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
-        ) : null}
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
+          {actions}
+          {backTo ? <div id={HEADER_SLOT_ID} className="contents" /> : null}
+        </div>
       </div>
+      {description ? <p className="mt-2 text-muted-foreground text-sm">{description}</p> : null}
     </div>
   );
 }

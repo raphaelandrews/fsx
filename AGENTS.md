@@ -58,9 +58,8 @@ Local Dev D1 gotchas:
   is English. Admin mutation errors go through `showMutationError` (English). Shared table controls
   (`DataTablePagination`, `Pagination`, search, filters) pick their language from the route via
   `useTableText`.
-- **Admin page layout** (`components/admin/`): every page starts with `AdminPageHeader` (create and edit
-  pages pass `backTo`/`backLabel`; edit pages put a `ConfirmDeleteButton` in `actions` when the record can
-  be deleted). Forms use `EntityForm` with field definitions in `lib/admin-forms.ts`, or `AdminForm` +
+- **Admin page layout** (`components/admin/`): every page starts with `AdminPageHeader` (edit pages pass
+  `backTo`/`backLabel`; their Save goes in the header and a `ConfirmDeleteButton` at the bottom, via slots; records are created in a dialog over the list, never on a create page). Forms use `EntityForm` with field definitions in `lib/admin-forms.ts`, or `AdminForm` +
   `FormSection` + `FormActions` when a form needs custom controls (players, posts, events, TV Sergipe);
   field errors use `FormField` with `error={fieldError(f, mutation.error)}`. Every collection is a
   `DataTable` (bordered frame from `Table`, paginated) with `DataTableRowActions` (pass `noun`); records that belong to a

@@ -4,13 +4,14 @@ import { expect, test } from "@playwright/test";
 
 import { PLAYER } from "./fixtures";
 import { signInAsOwner } from "./session";
+import { openCreateDialog } from "./dialog";
 
 test.beforeEach(async ({ context }) => {
   await signInAsOwner(context);
 });
 
 test("creates, edits, and deletes a club with validation, toasts, and a cancellable dialog", async ({ page }) => {
-  await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "clubs", "club");
   await page.getByRole("button", { name: "Create Club" }).click();
   await expect(page.getByText("Name is required")).toBeVisible();
 
@@ -95,7 +96,7 @@ test("uploads a cropped player photo and saves the player", async ({ page }) => 
 });
 
 test("uploads an SVG club logo without cropping and rejects unsafe SVGs", async ({ page }) => {
-  await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "clubs", "club");
   await page.getByLabel("Name").fill("Clube Logo SVG");
   const input = page.getByLabel("Image to upload");
 
@@ -112,7 +113,7 @@ test("uploads an SVG club logo without cropping and rejects unsafe SVGs", async 
     buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="20"><rect width="40" height="20" fill="#0a5"/></svg>'),
   });
   await expect(page.getByText("Image uploaded.")).toBeAttached();
-  await expect(page.getByRole("dialog")).toBeHidden();
+  await expect(page.getByRole("dialog", { name: "Crop Image" })).toBeHidden();
   const preview = page.getByAltText("Uploaded image preview");
   await expect(preview).toHaveAttribute("src", /^\/api\/media\/clubs\/[a-f0-9-]+\.svg$/);
 
@@ -126,7 +127,7 @@ test("uploads an SVG club logo without cropping and rejects unsafe SVGs", async 
 });
 
 test("downscales a raster location flag instead of cropping it", async ({ page }) => {
-  await page.goto("/dashboard/locations/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "locations", "location");
   await page.getByLabel("Name").fill("Local Bandeira");
   await page.getByLabel("Image to upload").setInputFiles({
     name: "bandeira.png",
@@ -134,7 +135,7 @@ test("downscales a raster location flag instead of cropping it", async ({ page }
     buffer: noisePng(600),
   });
   await expect(page.getByText("Image uploaded.")).toBeAttached();
-  await expect(page.getByRole("dialog")).toBeHidden();
+  await expect(page.getByRole("dialog", { name: "Crop Image" })).toBeHidden();
   const preview = page.getByAltText("Uploaded image preview");
   await expect(preview).toHaveAttribute("src", /^\/api\/media\/locations\/[a-f0-9-]+\.webp$/);
   expect(await preview.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(256);
@@ -144,7 +145,7 @@ test("downscales a raster location flag instead of cropping it", async ({ page }
 });
 
 test("assigns and removes a title from the title assignment page", async ({ page }) => {
-  await page.goto("/dashboard/titles/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "titles", "title");
   await page.getByLabel("Name").fill("Título E2E");
   await page.getByLabel("Abbreviation").fill("TE2E");
   await page.getByRole("button", { name: "Create title" }).click();
@@ -153,7 +154,7 @@ test("assigns and removes a title from the title assignment page", async ({ page
   await page.goto("/dashboard/players/titles", { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Assign titles" })).toBeVisible();
 
-  await page.getByLabel("Player").fill("jogadora");
+  await page.getByRole("textbox", { name: "Player" }).fill("jogadora");
   await page.getByRole("option", { name: PLAYER.name }).click();
   await expect(page).toHaveURL(new RegExp(`playerId=${PLAYER.id}`));
   await expect(page.getByText("No titles assigned.")).toBeVisible();
@@ -176,7 +177,7 @@ test("assigns and removes a title from the title assignment page", async ({ page
 });
 
 test("deletes a record from its edit page after confirming", async ({ page }) => {
-  await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "clubs", "club");
   await page.getByLabel("Name").fill("Clube Para Excluir");
   await page.getByRole("button", { name: "Create club" }).click();
   await expect(page).toHaveURL(/\/dashboard\/clubs$/);
@@ -217,11 +218,11 @@ test("shows server validation next to the field, keeps entered values, and expla
       ]),
     }),
   );
-  await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "clubs", "club");
   await page.getByLabel("Name").fill("Clube Rejeitado");
   await page.getByRole("button", { name: "Create Club" }).click();
 
-  await expect(page.locator("#field-name-error")).toContainText("Too long for the server");
+  await expect(page.locator("#dialog-name-error")).toContainText("Too long for the server");
   await expect(page.getByLabel("Name")).toHaveAttribute("aria-invalid", "true");
   await expect(page.getByLabel("Name")).toHaveValue("Clube Rejeitado");
   const summary = page.getByRole("alert").filter({ hasText: "Check these fields and save again" });
@@ -232,7 +233,7 @@ await page.getByLabel("Name").fill("Clube Validação");
   await page.getByRole("button", { name: "Create Club" }).click();
   await expect(page.getByText("Club created")).toBeVisible();
 
-  await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "clubs", "club");
   await page.getByLabel("Name").fill("Clube Validação");
   await page.getByRole("button", { name: "Create Club" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "A club with this name already exists." })).toBeVisible();

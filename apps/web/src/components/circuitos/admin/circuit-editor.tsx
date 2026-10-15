@@ -226,6 +226,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
                         Edit stage
                       </Button>
                       <ConfirmDeleteButton
+                        inline
                         label="Delete stage"
                         title="Delete this stage?"
                         itemName={`Stage ${phase.sortOrder} · ${phase.tournament?.name ?? ""}`}

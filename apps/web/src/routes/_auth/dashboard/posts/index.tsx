@@ -1,4 +1,5 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -16,6 +17,7 @@ import { RowLink } from "@/components/data-table/row-link";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
+import { PostCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/")({
   head: () => ({ meta: [{ title: "Posts - Admin - FSX" }] }),
@@ -24,6 +26,7 @@ export const Route = createFileRoute("/_auth/dashboard/posts/")({
 });
 
 function RouteComponent() {
+  const [creating, setCreating] = useState(false);
   const trpc = useTRPC();
 
   const { data = [] } = useSuspenseQuery(trpc.posts.listAdmin.queryOptions());
@@ -76,13 +79,11 @@ function RouteComponent() {
         title="Posts"
         description="Manage site posts."
         actions={
-          <Link to="/dashboard/posts/create">
-            <Button>New post</Button>
-          </Link>
+          <Button onClick={() => setCreating(true)}>New post</Button>
         }
       />
       <DataTable
-        emptyState={<EmptyCollection noun="posts" createTo="/dashboard/posts/create" />}
+        emptyState={<EmptyCollection noun="posts" onCreate={() => setCreating(true)} />}
         columns={columns}
         data={data}
         toolbar={(table) => (
@@ -90,6 +91,7 @@ function RouteComponent() {
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />
+      <PostCreateDialog open={creating} onOpenChange={setCreating} />
     </div>
   );
 }

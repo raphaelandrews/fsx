@@ -5,6 +5,9 @@ import { EntityListPage } from "@/components/admin/entity-pages";
 import { entityMessages } from "@/lib/entity-routes";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/lib/trpc";
+import { CLUB_SECTIONS } from "@/lib/admin-forms";
+import { optional } from "@/components/admin/entity-form";
+import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 
 export const Route = createFileRoute("/_auth/dashboard/clubs/")({
   head: () => ({ meta: [{ title: "Clubs - Admin - FSX" }] }),
@@ -25,6 +28,16 @@ function RouteComponent() {
     ...entityMessages("club").delete,
   });
 
+  const { tracking, commit, discard } = usePendingImageDeletes();
+  const createMutation = useAdminMutation(trpc.clubs.create.mutationOptions(), {
+    invalidates: "clubs",
+    ...entityMessages("club").create,
+    onSuccess: async () => {
+      await commit();
+    },
+    onError: (_error, variables) => discard(variables.logoUrl),
+  });
+
   return (
     <EntityListPage
       noun="club"
@@ -35,6 +48,22 @@ function RouteComponent() {
       rows={rows}
       deleting={deleteMutation.isPending}
       onDelete={(id) => deleteMutation.mutate({ id })}
+      create={{
+        description: "Add a club or school.",
+        sections: CLUB_SECTIONS,
+        defaultValues: { name: "", logoUrl: "" },
+        onSubmit: (values, close) =>
+          createMutation.mutate(
+            {
+              name: values.name!,
+              logoUrl: optional(values.logoUrl!),
+            },
+            { onSuccess: close },
+          ),
+        error: createMutation.error,
+        pending: createMutation.isPending,
+        images: tracking,
+      }}
     />
   );
 }

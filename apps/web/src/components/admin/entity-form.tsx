@@ -16,7 +16,7 @@ import {
 import { Input } from "@fsx/ui/components/input";
 import { Textarea } from "@fsx/ui/components/textarea";
 
-import { AdminForm, FormActions, FormErrorSummary, FormSection } from "@/components/admin/form-layout";
+import { AdminForm, FormActions, FormAsideCard, FormErrorSummary, FormSection } from "@/components/admin/form-layout";
 import { DatePicker } from "@/components/form/date-picker";
 import { FormField } from "@/components/form/form-field";
 import { ImageUpload } from "@/components/media/image-upload";
@@ -143,6 +143,14 @@ export function EntityForm({
     <AdminForm
       error={error}
       onSubmit={() => form.handleSubmit()}
+      aside={sections
+        .flatMap((section) => section.fields)
+        .filter((field) => field.kind === "image")
+        .map((field) => (
+          <FormAsideCard key={field.name}>
+            <EntityFields form={form} fields={[field]} error={error} idPrefix="field" images={images} />
+          </FormAsideCard>
+        ))}
       actions={
         <form.Subscribe selector={(state) => state.isSubmitting}>
           {(isSubmitting) => (
@@ -155,11 +163,16 @@ export function EntityForm({
         </form.Subscribe>
       }
     >
-      {sections.map((section) => (
-        <FormSection key={section.title} title={section.title} description={section.description}>
-          <EntityFields form={form} fields={section.fields} error={error} idPrefix="field" images={images} />
-        </FormSection>
-      ))}
+      {sections.flatMap((section) => {
+        const fields = section.fields.filter((field) => field.kind !== "image");
+        return fields.length > 0
+          ? [
+              <FormSection key={section.title} title={section.title} description={section.description}>
+                <EntityFields form={form} fields={fields} error={error} idPrefix="field" images={images} />
+              </FormSection>,
+            ]
+          : [];
+      })}
     </AdminForm>
   );
 }
@@ -271,6 +284,7 @@ interface EntityFormDialogProps {
   error: unknown;
   pending: boolean;
   submitLabel: string;
+  images?: ImageTracking;
 }
 
 /** Add or edit a child record (a link, a podium) without leaving its parent page. */
@@ -301,9 +315,10 @@ function DialogForm({
   error,
   pending,
   submitLabel,
+  images,
 }: Pick<
   EntityFormDialogProps,
-  "fields" | "defaultValues" | "onSubmit" | "error" | "pending" | "submitLabel"
+  "fields" | "defaultValues" | "onSubmit" | "error" | "pending" | "submitLabel" | "images"
 >) {
   const form = useValuesForm(defaultValues, onSubmit);
   return (
@@ -315,7 +330,7 @@ function DialogForm({
       }}
       className="space-y-4"
     >
-      <EntityFields form={form} fields={fields} error={error} idPrefix="dialog" />
+      <EntityFields form={form} fields={fields} error={error} idPrefix="dialog" images={images} />
       <FormErrorSummary error={error} />
       <DialogFooter>
         <DialogClose render={<Button type="button" variant="secondary" size="pill" />}>Cancel</DialogClose>

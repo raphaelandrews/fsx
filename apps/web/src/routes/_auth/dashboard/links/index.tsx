@@ -1,8 +1,9 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { buttonVariants } from "@fsx/ui/components/button";
+import { Button } from "@fsx/ui/components/button";
 
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { EmptyCollection } from "@/components/admin/empty-collection";
@@ -14,6 +15,7 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { RowLink } from "@/components/data-table/row-link";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/lib/trpc";
+import { LinkGroupCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/links/")({
   head: () => ({ meta: [{ title: "Links - Admin - FSX" }] }),
@@ -23,6 +25,7 @@ export const Route = createFileRoute("/_auth/dashboard/links/")({
 });
 
 function RouteComponent() {
+  const [creating, setCreating] = useState(false);
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.links.list.queryOptions());
   const groups = data.filter((group) => group.eventId == null);
@@ -80,20 +83,19 @@ function RouteComponent() {
         title="Links"
         description="Link groups shown on the public /links page. Event links are edited with their event."
         actions={
-          <Link to="/dashboard/links/create" className={buttonVariants()}>
-            New group
-          </Link>
+          <Button onClick={() => setCreating(true)}>New group</Button>
         }
       />
       <DataTable
         columns={columns}
         data={groups}
-        emptyState={<EmptyCollection noun="link groups" createTo="/dashboard/links/create" />}
+        emptyState={<EmptyCollection noun="link groups" onCreate={() => setCreating(true)} />}
         toolbar={(table) => (
           <DataTableToolbar table={table} searchKey="label" searchPlaceholder="Search group..." />
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />
+      <LinkGroupCreateDialog open={creating} onOpenChange={setCreating} />
     </>
   );
 }

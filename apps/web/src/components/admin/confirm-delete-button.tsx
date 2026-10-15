@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 
 import { Button } from "@fsx/ui/components/button";
 
+import { DANGER_SLOT_ID, InSlot } from "@/components/admin/admin-slots";
 import { DeleteDialog, type DeleteTarget } from "@/components/admin/delete-dialog";
 
 interface ConfirmDeleteButtonProps {
@@ -17,6 +18,7 @@ interface ConfirmDeleteButtonProps {
   target?: DeleteTarget;
   /** A phrase to type before the confirm button enables. */
   confirmText?: string;
+  inline?: boolean;
 }
 
 export function ConfirmDeleteButton({
@@ -30,21 +32,25 @@ export function ConfirmDeleteButton({
   className,
   target,
   confirmText,
+  inline = false,
 }: ConfirmDeleteButtonProps) {
   const [open, setOpen] = useState(false);
 
+  const button = (
+    <Button className={className} loading={pending} onClick={() => setOpen(true)} size="lg" type="button" variant="destructive">
+      {label}
+    </Button>
+  );
+
   return (
     <>
-      <Button
-        className={className}
-        loading={pending}
-        onClick={() => setOpen(true)}
-        size="sm"
-        type="button"
-        variant="destructive"
-      >
-        {label}
-      </Button>
+      {inline ? (
+        button
+      ) : (
+        <InSlot id={DANGER_SLOT_ID} fallback={button}>
+          {button}
+        </InSlot>
+      )}
       <DeleteDialog
         open={open}
         onOpenChange={setOpen}

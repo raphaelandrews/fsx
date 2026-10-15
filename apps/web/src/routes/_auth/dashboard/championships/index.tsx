@@ -5,6 +5,7 @@ import { EntityListPage } from "@/components/admin/entity-pages";
 import { entityMessages } from "@/lib/entity-routes";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/lib/trpc";
+import { CHAMPIONSHIP_SECTIONS } from "@/lib/admin-forms";
 
 export const Route = createFileRoute("/_auth/dashboard/championships/")({
   head: () => ({ meta: [{ title: "Championships - Admin - FSX" }] }),
@@ -26,6 +27,11 @@ function RouteComponent() {
     ...entityMessages("championship").delete,
   });
 
+  const createMutation = useAdminMutation(trpc.champions.create.mutationOptions(), {
+    invalidates: "champions",
+    ...entityMessages("championship").create,
+  });
+
   return (
     <EntityListPage
       noun="championship"
@@ -36,6 +42,20 @@ function RouteComponent() {
       rows={rows}
       deleting={deleteMutation.isPending}
       onDelete={(id) => deleteMutation.mutate({ id })}
+      create={{
+        description: "Add a recurring competition.",
+        sections: CHAMPIONSHIP_SECTIONS,
+        defaultValues: { name: "" },
+        onSubmit: (values, close) =>
+          createMutation.mutate(
+            {
+              name: values.name!,
+            },
+            { onSuccess: close },
+          ),
+        error: createMutation.error,
+        pending: createMutation.isPending,
+      }}
     />
   );
 }

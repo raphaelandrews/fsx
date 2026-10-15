@@ -7,6 +7,9 @@ import { EntityListPage } from "@/components/admin/entity-pages";
 import { entityMessages } from "@/lib/entity-routes";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/lib/trpc";
+import { LOCATION_SECTIONS } from "@/lib/admin-forms";
+import { optional } from "@/components/admin/entity-form";
+import { usePendingImageDeletes } from "@/hooks/use-pending-image-deletes";
 
 export const Route = createFileRoute("/_auth/dashboard/locations/")({
   head: () => ({ meta: [{ title: "Locations - Admin - FSX" }] }),
@@ -36,6 +39,16 @@ function RouteComponent() {
     ...entityMessages("location").delete,
   });
 
+  const { tracking, commit, discard } = usePendingImageDeletes();
+  const createMutation = useAdminMutation(trpc.locations.create.mutationOptions(), {
+    invalidates: "locations",
+    ...entityMessages("location").create,
+    onSuccess: async () => {
+      await commit();
+    },
+    onError: (_error, variables) => discard(variables.flagUrl),
+  });
+
   return (
     <EntityListPage
       noun="location"
@@ -48,6 +61,23 @@ function RouteComponent() {
       showId={false}
       deleting={deleteMutation.isPending}
       onDelete={(id) => deleteMutation.mutate({ id })}
+      create={{
+        description: "Add a city, state, or country.",
+        sections: LOCATION_SECTIONS,
+        defaultValues: { name: "", type: "city", flagUrl: "" },
+        onSubmit: (values, close) =>
+          createMutation.mutate(
+            {
+              name: values.name!,
+              type: values.type as "city" | "state" | "country",
+              flagUrl: optional(values.flagUrl!),
+            },
+            { onSuccess: close },
+          ),
+        error: createMutation.error,
+        pending: createMutation.isPending,
+        images: tracking,
+      }}
     />
   );
 }

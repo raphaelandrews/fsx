@@ -4,7 +4,7 @@ import { useForm } from "@tanstack/react-form";
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 
-import { AdminForm, FormActions, FormSection } from "@/components/admin/form-layout";
+import { AdminForm, FormActions, FormAsideCard, FormSection } from "@/components/admin/form-layout";
 import { FormField } from "@/components/form/form-field";
 import { ImageUpload } from "@/components/media/image-upload";
 import { MarkdownEditor } from "@/components/markdown/markdown-editor";
@@ -28,7 +28,7 @@ interface PostFormProps {
   error: unknown;
   pending: boolean;
   submitLabel: string;
-  cancelTo: LinkProps["to"];
+  cancelTo?: LinkProps["to"];
   /** Keep the stored address when the title changes (published posts). */
   lockSlug?: boolean;
   onImageReplaced: (url: string) => void;
@@ -56,6 +56,29 @@ export function PostForm({
     <AdminForm
       error={error}
       onSubmit={() => form.handleSubmit()}
+      aside={
+        <FormAsideCard>
+          <div>
+            <h2 className="font-medium text-sm">Cover image</h2>
+            <p className="mt-1 text-muted-foreground text-xs">Shown on the news list and when the article is shared. Cropped to 16:9.</p>
+          </div>
+        <form.Field name="imageUrl">
+          {(f) => (
+            <ImageUpload
+              kind="posts"
+              value={f.state.value || null}
+              onChange={(url) => f.handleChange(url ?? "")}
+              onImageReplaced={onImageReplaced}
+              onUploaded={onImageUploaded}
+              aspectRatio={16 / 9}
+              outputWidth={896}
+              title="Crop cover image"
+              description="Adjust the crop area to fit a 16:9 aspect ratio."
+            />
+          )}
+        </form.Field>
+        </FormAsideCard>
+      }
       actions={<FormActions cancelTo={cancelTo} submitLabel={submitLabel} pending={pending} />}
     >
       <FormSection
@@ -107,26 +130,6 @@ export function PostForm({
                 onChange={f.handleChange}
               />
             </FormField>
-          )}
-        </form.Field>
-      </FormSection>
-      <FormSection
-        title="Cover image"
-        description="Shown on the news list and when the article is shared. Cropped to 16:9."
-      >
-        <form.Field name="imageUrl">
-          {(f) => (
-            <ImageUpload
-              kind="posts"
-              value={f.state.value || null}
-              onChange={(url) => f.handleChange(url ?? "")}
-              onImageReplaced={onImageReplaced}
-              onUploaded={onImageUploaded}
-              aspectRatio={16 / 9}
-              outputWidth={896}
-              title="Crop cover image"
-              description="Adjust the crop area to fit a 16:9 aspect ratio."
-            />
           )}
         </form.Field>
       </FormSection>

@@ -171,7 +171,7 @@ export function PlayerProfile({
             <div className="flex items-center gap-1.5">
               <h1 className="text-lg font-semibold tracking-tight">
                 {internalTitle && (
-                  <span className="mr-1.5 text-warning">{internalTitle.title.shortName}</span>
+                  <span className="mr-1.5 text-warning-foreground">{internalTitle.title.shortName}</span>
                 )}
                 {player.nickname || player.name}
               </h1>

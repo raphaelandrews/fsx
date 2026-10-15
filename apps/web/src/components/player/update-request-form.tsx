@@ -180,21 +180,68 @@ export function UpdateRequestForm() {
   }
 
   const serverError = submit.error ? failureMessage(submit.error) : null;
-  const heading = sent
-    ? { icon: CheckmarkBadge01Icon, title: "Solicitação enviada", description: "A FSX vai conferir e atualizar o perfil. Você não precisa enviar de novo." }
-    : STEPS[step]!;
+  const heading = STEPS[step]!;
+
+  if (sent) {
+    return (
+      <main className="relative flex min-h-dvh flex-col px-5 pt-8 pb-16" data-testid="update-request-success">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(var(--border)_1px,transparent_1px)] [background-size:20px_20px] [mask-image:linear-gradient(to_bottom,black,transparent_70%)]"
+        />
+        <div className="mx-auto flex w-full max-w-[600px] flex-1 flex-col items-center sm:justify-center sm:gap-12">
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center sm:flex-none">
+            <span className="mb-2 flex size-18 items-center justify-center rounded-full bg-muted lg:size-24">
+              <HugeiconsIcon icon={CheckmarkBadge01Icon} className="size-8 lg:size-10" aria-hidden />
+            </span>
+            <h1 className="w-full text-pretty font-bold text-xl tracking-[-0.03em] lg:text-2xl">Solicitação enviada!</h1>
+            <p className="text-pretty text-muted-foreground">A FSX vai conferir e atualizar o perfil. Você não precisa enviar de novo.</p>
+            <ul className="mt-2 space-y-1 text-muted-foreground text-sm">
+              {sent.summary.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex w-full items-center gap-4">
+            <Button
+              variant="secondary"
+              size="pill"
+              className="w-full"
+              onClick={() => {
+                setValues(EMPTY);
+                setConsent(false);
+                setPhoto(null);
+                setStep(0);
+                setSent(null);
+                submit.reset();
+              }}
+            >
+              Enviar outra
+            </Button>
+            <Link to="/jogadores/$id" params={{ id: Number(sent.playerId) }} className={cn(buttonVariants({ size: "pill" }), "w-full")}>
+              Ver o perfil
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
 
   return (
     <main className="relative flex min-h-dvh flex-col px-5 pt-8 pb-8">
+      {/* A faint dot grid that fades out downwards; decorative only. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(var(--border)_1px,transparent_1px)] [background-size:20px_20px] [mask-image:linear-gradient(to_bottom,black,transparent_70%)]"
+      />
       <div className="mx-auto flex w-full max-w-[600px] flex-1 flex-col gap-8">
         <div className="flex flex-col items-center gap-3 text-center">
-          {sent ? null : (
-            <ol className="flex items-center gap-2 py-3" aria-label={`Passo ${step + 1} de ${STEPS.length}`}>
-              {STEPS.map((item, index) => (
-                <li key={item.key} className={cn("h-2 rounded-full transition-[width,background-color] duration-200", index === step ? "w-8 bg-primary" : index < step ? "w-2 bg-primary/40" : "w-2 bg-border")} />
-              ))}
-            </ol>
-          )}
+          <ol className="flex items-center gap-2 py-3" aria-label={`Passo ${step + 1} de ${STEPS.length}`}>
+            {STEPS.map((item, index) => (
+              <li key={item.key} className={cn("h-2 rounded-full transition-[width,background-color] duration-200", index === step ? "w-8 bg-primary" : index < step ? "w-2 bg-primary/40" : "w-2 bg-border")} />
+            ))}
+          </ol>
           <span className="flex size-14 items-center justify-center rounded-full bg-muted">
             <HugeiconsIcon icon={heading.icon} className="size-6" aria-hidden />
           </span>
@@ -203,34 +250,6 @@ export function UpdateRequestForm() {
           <p className="max-w-md text-muted-foreground text-sm">{heading.description}</p>
         </div>
 
-        {sent ? (
-          <div className="flex flex-1 flex-col justify-between gap-8">
-            <ul className="mx-auto w-fit space-y-1 text-muted-foreground text-sm">
-              {sent.summary.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Button
-                variant="secondary"
-                size="pill"
-                onClick={() => {
-                  setValues(EMPTY);
-                  setConsent(false);
-                  setPhoto(null);
-                  setStep(0);
-                  setSent(null);
-                  submit.reset();
-                }}
-              >
-                Enviar outra
-              </Button>
-              <Link to="/jogadores/$id" params={{ id: Number(sent.playerId) }} className={cn(buttonVariants({ size: "pill" }), "w-full")}>
-                Ver o perfil
-              </Link>
-            </div>
-          </div>
-        ) : (
           <form noValidate onSubmit={onSubmit} className="flex flex-1 flex-col justify-between gap-8">
             <div key={step} className="fade-in-0 animate-in space-y-5 duration-200">
               {step === 0 ? (
@@ -435,7 +454,6 @@ export function UpdateRequestForm() {
               )}
             </div>
           </form>
-        )}
       </div>
 
       {cropSource ? (

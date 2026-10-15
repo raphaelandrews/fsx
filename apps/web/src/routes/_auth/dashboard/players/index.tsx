@@ -4,7 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import z from "zod";
 
-import { Button, buttonVariants } from "@fsx/ui/components/button";
+import { Button } from "@fsx/ui/components/button";
 import { DropdownMenuItem } from "@fsx/ui/components/dropdown-menu";
 
 import { BulkClubDialog } from "@/components/admin/bulk-club-dialog";
@@ -18,6 +18,7 @@ import { RowLink } from "@/components/data-table/row-link";
 import { SearchInput } from "@/components/data-table/search-input";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/lib/trpc";
+import { PlayerCreateDialog } from "@/components/admin/create-dialogs";
 
 const PER_PAGE = 20;
 
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/_auth/dashboard/players/")({
 });
 
 function RouteComponent() {
+  const [creating, setCreating] = useState(false);
   const trpc = useTRPC();
   const router = useRouter();
   const navigate = useNavigate();
@@ -134,9 +136,7 @@ function RouteComponent() {
         title="Players"
         description={`${pagination.totalItems} registered players. Players are never deleted; mark them inactive instead.`}
         actions={
-          <Link to="/dashboard/players/create" className={buttonVariants()}>
-            New player
-          </Link>
+          <Button onClick={() => setCreating(true)}>New player</Button>
         }
       />
       <DataTable
@@ -162,7 +162,7 @@ function RouteComponent() {
           name ? (
             `No players match “${name}”.`
           ) : (
-            <EmptyCollection noun="players" createTo="/dashboard/players/create" />
+            <EmptyCollection noun="players" onCreate={() => setCreating(true)} />
           )
         }
         toolbar={() => (
@@ -229,6 +229,7 @@ function RouteComponent() {
           );
         }}
       />
+      <PlayerCreateDialog open={creating} onOpenChange={setCreating} />
     </>
   );
 }

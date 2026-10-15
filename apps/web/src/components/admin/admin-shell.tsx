@@ -4,6 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@fsx/ui/components/sidebar";
 
+import { DANGER_SLOT_ID } from "@/components/admin/admin-slots";
 import { AdminSidebar, type SidebarUser } from "@/components/admin/admin-sidebar";
 import { findActiveNav } from "@/components/admin/admin-nav-data";
 
@@ -17,7 +18,7 @@ export function AdminShell({ user, children }: { user?: SidebarUser; children: R
       <AdminSidebar user={user} />
       <SidebarInset className="min-w-0 bg-transparent">
         <AdminTopbar />
-        <div className="mb-6 flex min-h-0 flex-1 flex-col rounded-t-4xl bg-background md:mx-6 md:rounded-4xl">
+        <div className="@container mb-6 flex min-h-0 flex-1 flex-col rounded-t-4xl bg-background md:mx-6 md:rounded-4xl">
           <AdminContent>{children}</AdminContent>
         </div>
       </SidebarInset>
@@ -28,8 +29,9 @@ export function AdminShell({ user, children }: { user?: SidebarUser; children: R
 function AdminContent({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   return (
-    <div key={pathname} className="fade-in-0 mx-auto w-full max-w-[1120px] flex-1 animate-in p-4 pb-8 duration-150 sm:p-6">
+    <div key={pathname} className="fade-in-0 w-full flex-1 animate-in p-4 pb-24 duration-150 sm:p-6 lg:pb-8">
       {children}
+      <div id={DANGER_SLOT_ID} className="flex flex-wrap justify-end gap-3 pt-8 empty:hidden" />
     </div>
   );
 }

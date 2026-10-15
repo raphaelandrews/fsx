@@ -6,7 +6,7 @@ import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
 
 import { NATIVE_SELECT_CLASS } from "@/components/admin/entity-form";
-import { AdminForm, FormActions, FormSection } from "@/components/admin/form-layout";
+import { AdminForm, FormActions, FormAsideCard, FormSection } from "@/components/admin/form-layout";
 import { federationYear } from "@fsx/api/lib/dates";
 import { DigitsInput } from "@/components/form/digits-input";
 import { FormField } from "@/components/form/form-field";
@@ -43,7 +43,7 @@ interface PlayerFormProps {
   error: unknown;
   pending: boolean;
   submitLabel: string;
-  cancelTo: LinkProps["to"];
+  cancelTo?: LinkProps["to"];
   locations: { id: number; name: string }[];
   clubName?: string;
   ratingsHint?: string;
@@ -144,6 +144,25 @@ export function PlayerForm({
     <AdminForm
       error={error}
       onSubmit={() => form.handleSubmit()}
+      aside={
+        <FormAsideCard>
+          <div>
+            <h2 className="font-medium text-sm">Photo</h2>
+            <p className="mt-1 text-muted-foreground text-xs">Cropped to a square.</p>
+          </div>
+        <form.Field name="imageUrl">
+          {(f) => (
+            <ImageUpload
+              kind="players"
+              value={f.state.value || null}
+              onChange={(url) => f.handleChange(url ?? "")}
+              onImageReplaced={onImageReplaced}
+              onUploaded={onImageUploaded}
+            />
+          )}
+        </form.Field>
+        </FormAsideCard>
+      }
       actions={<FormActions cancelTo={cancelTo} submitLabel={submitLabel} pending={pending} />}
     >
       <FormSection
@@ -239,19 +258,6 @@ export function PlayerForm({
         </div>
       </FormSection>
 
-      <FormSection title="Photo" description="Cropped to a square.">
-        <form.Field name="imageUrl">
-          {(f) => (
-            <ImageUpload
-              kind="players"
-              value={f.state.value || null}
-              onChange={(url) => f.handleChange(url ?? "")}
-              onImageReplaced={onImageReplaced}
-              onUploaded={onImageUploaded}
-            />
-          )}
-        </form.Field>
-      </FormSection>
 
       <FormSection
         title="Affiliation"

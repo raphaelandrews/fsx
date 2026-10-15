@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -16,6 +16,7 @@ import { RowLink } from "@/components/data-table/row-link";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
+import { TvSergipeCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/")({
   head: () => ({ meta: [{ title: "TV Sergipe - Admin - FSX" }] }),
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/")({
 });
 
 function RouteComponent() {
+  const [creating, setCreating] = useState(false);
   const trpc = useTRPC();
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
 
@@ -107,14 +109,12 @@ function RouteComponent() {
             <Button loading={deleteAllMutation.isPending} disabled={data.length === 0} variant="destructive" onClick={() => setConfirmDeleteAll(true)}>
               Delete all
             </Button>
-            <Link to="/dashboard/tv-sergipe/create">
-              <Button>New result</Button>
-            </Link>
+            <Button onClick={() => setCreating(true)}>New result</Button>
           </div>
         }
       />
       <DataTable
-        emptyState={<EmptyCollection noun="TV Sergipe results" createTo="/dashboard/tv-sergipe/create" />}
+        emptyState={<EmptyCollection noun="TV Sergipe results" onCreate={() => setCreating(true)} />}
         columns={columns}
         data={data}
         toolbar={(table) => (
@@ -133,6 +133,7 @@ function RouteComponent() {
         pending={deleteAllMutation.isPending}
         onConfirm={() => deleteAllMutation.mutate()}
       />
+      <TvSergipeCreateDialog open={creating} onOpenChange={setCreating} />
     </div>
   );
 }

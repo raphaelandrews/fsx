@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -16,6 +16,7 @@ import { RowLink } from "@/components/data-table/row-link";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
+import { PodiumCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/")({
   head: () => ({ meta: [{ title: "Podiums - Admin - FSX" }] }),
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/")({
 });
 
 function RouteComponent() {
+  const [creating, setCreating] = useState(false);
   const trpc = useTRPC();
 
   const { data = [] } = useSuspenseQuery(trpc.tournamentPodiums.list.queryOptions());
@@ -84,13 +86,11 @@ function RouteComponent() {
         title="Tournament podiums"
         description="Manage tournament podiums."
         actions={
-          <Link to="/dashboard/tournament-podiums/create">
-            <Button>New podium</Button>
-          </Link>
+          <Button onClick={() => setCreating(true)}>New podium</Button>
         }
       />
       <DataTable
-        emptyState={<EmptyCollection noun="tournament podiums" createTo="/dashboard/tournament-podiums/create" />}
+        emptyState={<EmptyCollection noun="tournament podiums" onCreate={() => setCreating(true)} />}
         columns={columns}
         data={data}
         bulkActions={(selected, clear) => (
@@ -117,6 +117,7 @@ function RouteComponent() {
           bulk.clear();
         }}
       />
+      <PodiumCreateDialog open={creating} onOpenChange={setCreating} />
     </div>
   );
 }

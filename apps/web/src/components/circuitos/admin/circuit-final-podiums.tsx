@@ -129,6 +129,7 @@ export function CircuitFinalPodiums({ circuit }: { circuit: Circuit }) {
                 Add final podium
               </Button>
               <ConfirmDeleteButton
+                inline
                 label="Reopen season"
                 confirmLabel="Reopen"
                 title="Reopen this season?"

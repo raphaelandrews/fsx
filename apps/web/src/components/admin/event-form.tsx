@@ -30,7 +30,7 @@ interface EventFormProps {
   onSubmit: (values: EventValues) => Promise<void>;
   error: unknown;
   submitLabel: string;
-  cancelTo: LinkProps["to"];
+  cancelTo?: LinkProps["to"];
 }
 
 export function EventForm({

@@ -1,4 +1,5 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -15,6 +16,7 @@ import { RowLink } from "@/components/data-table/row-link";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
+import { AnnouncementCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/")({
   head: () => ({ meta: [{ title: "Announcements - Admin - FSX" }] }),
@@ -23,6 +25,7 @@ export const Route = createFileRoute("/_auth/dashboard/announcements/")({
 });
 
 function RouteComponent() {
+  const [creating, setCreating] = useState(false);
   const trpc = useTRPC();
 
   const { data = [] } = useSuspenseQuery(trpc.announcements.list.queryOptions());
@@ -85,13 +88,11 @@ function RouteComponent() {
         title="Announcements"
         description="Manage the official announcements."
         actions={
-          <Link to="/dashboard/announcements/create">
-            <Button>New announcement</Button>
-          </Link>
+          <Button onClick={() => setCreating(true)}>New announcement</Button>
         }
       />
       <DataTable
-        emptyState={<EmptyCollection noun="announcements" createTo="/dashboard/announcements/create" />}
+        emptyState={<EmptyCollection noun="announcements" onCreate={() => setCreating(true)} />}
         columns={columns}
         data={data}
         toolbar={(table) => (
@@ -99,6 +100,7 @@ function RouteComponent() {
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />
+      <AnnouncementCreateDialog open={creating} onOpenChange={setCreating} />
     </div>
   );
 }

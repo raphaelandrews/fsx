@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -16,6 +16,7 @@ import { RowLink } from "@/components/data-table/row-link";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
+import { TournamentCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/tournaments/")({
   head: () => ({ meta: [{ title: "Tournaments - Admin - FSX" }] }),
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/_auth/dashboard/tournaments/")({
 });
 
 function RouteComponent() {
+  const [creating, setCreating] = useState(false);
   const trpc = useTRPC();
 
   const { data: all = [] } = useSuspenseQuery(trpc.tournaments.list.queryOptions());
@@ -89,13 +91,11 @@ function RouteComponent() {
         title="Tournaments"
         description="Manage the official tournaments."
         actions={
-          <Link to="/dashboard/tournaments/create">
-            <Button>New tournament</Button>
-          </Link>
+          <Button onClick={() => setCreating(true)}>New tournament</Button>
         }
       />
       <DataTable
-        emptyState={<EmptyCollection noun="tournaments" createTo="/dashboard/tournaments/create" />}
+        emptyState={<EmptyCollection noun="tournaments" onCreate={() => setCreating(true)} />}
         columns={columns}
         data={data}
         toolbar={(table) => (
@@ -112,6 +112,7 @@ function RouteComponent() {
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />
+      <TournamentCreateDialog open={creating} onOpenChange={setCreating} />
     </div>
   );
 }

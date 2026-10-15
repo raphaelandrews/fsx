@@ -1,8 +1,9 @@
-import { useEffect, useRef, type FormEvent, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useId, useRef, type FormEvent, type ReactNode } from "react";
 import { Link, type LinkProps } from "@tanstack/react-router";
 
 import { Button, buttonVariants } from "@fsx/ui/components/button";
 
+import { HEADER_SLOT_ID, InSlot } from "@/components/admin/admin-slots";
 import { InlineAlert } from "@/components/admin/inline-alert";
 import { getAdminErrorMessage, getFieldErrorList } from "@/lib/errors";
 
@@ -13,7 +14,13 @@ interface AdminFormProps {
   actions: ReactNode;
   /** The mutation error, summarized above the actions so it stays on the page. */
   error?: unknown;
+  /** Cards in a narrower column beside the fields, e.g. the photo. */
+  aside?: ReactNode;
 }
+
+const FormIdContext = createContext<string | undefined>(undefined);
+
+export const FormDialogContext = createContext<(() => void) | null>(null);
 
 /** What went wrong with the last save, in words; focused when it appears so it is announced and in view. */
 export function FormErrorSummary({ error }: { error: unknown }) {
@@ -45,21 +52,33 @@ export function FormErrorSummary({ error }: { error: unknown }) {
   );
 }
 
-export function AdminForm({ onSubmit, children, actions, error }: AdminFormProps) {
+export function AdminForm({ onSubmit, children, actions, error, aside }: AdminFormProps) {
+  const formId = useId();
   return (
-    <form
-      className="mx-auto w-full max-w-170"
-      noValidate
-      onSubmit={(event: FormEvent) => {
-        event.preventDefault();
-        onSubmit();
-      }}
-    >
-      <div className="space-y-8">{children}</div>
-      <FormErrorSummary error={error} />
-      {actions}
-    </form>
+    <FormIdContext.Provider value={formId}>
+      <form
+        id={formId}
+        className="w-full"
+        noValidate
+        onSubmit={(event: FormEvent) => {
+          event.preventDefault();
+          onSubmit();
+        }}
+      >
+        <div className="grid grid-cols-1 gap-6 @lg:grid-cols-3">
+          <div className="space-y-8 @lg:col-span-2">{children}</div>
+          {aside ? <div className="flex flex-col gap-4">{aside}</div> : null}
+        </div>
+        <FormErrorSummary error={error} />
+        {actions}
+      </form>
+    </FormIdContext.Provider>
   );
+}
+
+/** One card in the narrower column: a titled box around a control such as an image upload. */
+export function FormAsideCard({ children }: { children: ReactNode }) {
+  return <div className="flex flex-col gap-3 rounded-2xl border border-border p-4">{children}</div>;
 }
 
 interface FormSectionProps {
@@ -68,12 +87,12 @@ interface FormSectionProps {
   children: ReactNode;
 }
 
-/** A titled group of fields: title and description above, one column of controls below. */
+/** A titled group of fields: the title and description above, one column of controls below. */
 export function FormSection({ title, description, children }: FormSectionProps) {
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="font-semibold text-lg">{title}</h2>
+        <h2 className="font-semibold text-base">{title}</h2>
         {description ? <p className="mt-1 text-muted-foreground text-sm">{description}</p> : null}
       </div>
       <div className="min-w-0 space-y-4">{children}</div>
@@ -110,28 +129,48 @@ export function AdminSection({
 }
 
 interface FormActionsProps {
-  cancelTo: LinkProps["to"];
+  cancelTo?: LinkProps["to"];
   submitLabel: string;
   pendingLabel?: string;
   pending: boolean;
   disabled?: boolean;
 }
 
-export function FormActions({
-  cancelTo,
-  submitLabel,
-  pendingLabel = "Saving...",
-  pending,
-  disabled,
-}: FormActionsProps) {
+export function FormActions({ cancelTo, submitLabel, pendingLabel = "Saving...", pending, disabled }: FormActionsProps) {
+  const formId = useContext(FormIdContext);
+  const closeDialog = useContext(FormDialogContext);
+  const label = pending ? pendingLabel : submitLabel;
+  // On a page with a header the save button sits at its top right, and the back button is the way out.
   return (
-    <div className="grid grid-cols-2 gap-3 pt-6">
-      <Link to={cancelTo} className={buttonVariants({ variant: "secondary", size: "pill" })}>
-        Cancel
-      </Link>
-      <Button type="submit" size="pill" loading={pending} disabled={disabled}>
-        {pending ? pendingLabel : submitLabel}
-      </Button>
-    </div>
+    <InSlot
+      id={HEADER_SLOT_ID}
+      fallback={
+        <div className="mt-8 flex justify-end gap-3 border-t pt-6">
+          {closeDialog || !cancelTo ? (
+            <Button type="button" variant="secondary" size="lg" onClick={closeDialog ?? undefined}>
+              Cancel
+            </Button>
+          ) : (
+            <Link to={cancelTo} className={buttonVariants({ variant: "secondary", size: "lg" })}>
+              Cancel
+            </Link>
+          )}
+          <Button type="submit" size="lg" loading={pending} disabled={disabled}>
+            {label}
+          </Button>
+        </div>
+      }
+    >
+      <>
+        <Button type="submit" form={formId} size="xl" loading={pending} disabled={disabled} className="max-lg:hidden">
+          {label}
+        </Button>
+        <div className="fixed inset-x-0 bottom-0 z-40 flex bg-background p-4 shadow-[0_-4px_16px_rgb(0_0_0/0.08)] lg:hidden">
+          <Button type="submit" form={formId} size="xl" loading={pending} disabled={disabled} className="flex-1">
+            {label}
+          </Button>
+        </div>
+      </>
+    </InSlot>
   );
 }

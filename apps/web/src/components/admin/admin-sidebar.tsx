@@ -42,7 +42,7 @@ import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/lib/trpc";
 
 const ACTIVE_ROW =
-  "text-muted-foreground hover:bg-muted data-active:bg-primary data-active:font-semibold data-active:text-primary-foreground data-active:hover:bg-primary data-active:hover:text-primary-foreground data-active:[&_svg]:text-primary-foreground [&_svg]:size-5 [&_svg]:text-muted-foreground";
+  "text-muted-foreground hover:bg-muted hover:text-muted-foreground data-active:bg-primary data-active:font-semibold data-active:text-primary-foreground data-active:hover:bg-primary data-active:hover:text-primary-foreground data-active:[&_svg]:text-primary-foreground [&_svg]:size-5 [&_svg]:text-current";
 
 const RAIL_BUTTON =
   "group-data-[collapsible=icon]:size-10! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-xl";
@@ -165,13 +165,13 @@ export function AdminSidebar({ user }: { user?: SidebarUser }) {
           className="flex items-center gap-2 rounded-lg border bg-background p-2 outline-none focus-visible:outline-2 focus-visible:outline-ring group-data-[collapsible=icon]:hidden"
         >
           <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-            <HugeiconsIcon className="size-5 text-foreground" icon={Home01Icon} strokeWidth={2} />
+            <HugeiconsIcon className="size-5 text-muted-foreground" icon={Home01Icon} strokeWidth={2} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate font-semibold text-foreground text-sm">Federação Sergipana</span>
+            <span className="block truncate font-semibold text-muted-foreground text-sm">Federação Sergipana</span>
             <span className="block truncate text-muted-foreground text-xs">Ver o site</span>
           </span>
-          <HugeiconsIcon className="size-4 shrink-0 text-muted-foreground" icon={ArrowUpRight01Icon} strokeWidth={2} />
+          <HugeiconsIcon className="size-4 shrink-0" icon={ArrowUpRight01Icon} strokeWidth={2} />
         </Link>
       </SidebarHeader>
 
@@ -241,7 +241,7 @@ function UserMenu({ user }: { user: SidebarUser }) {
             render={
               <SidebarMenuButton
                 size="lg"
-                className={`rounded-lg p-3 text-sm data-open:bg-sidebar-accent ${RAIL_BUTTON} group-data-[collapsible=icon]:p-0!`}
+                className={`rounded-lg p-3 text-sm text-muted-foreground hover:bg-muted hover:text-muted-foreground data-open:bg-muted ${RAIL_BUTTON} group-data-[collapsible=icon]:p-0!`}
               />
             }
           >

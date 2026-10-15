@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { signInAsOwner } from "./session";
+import { openCreateDialog } from "./dialog";
 
 test.beforeEach(async ({ context }) => {
   await signInAsOwner(context);
@@ -112,9 +113,11 @@ async function rowMenu(page: Page, name: string, item: "Edit" | "Delete") {
 
 for (const entity of ENTITIES) {
   test(`${entity.path}: create, edit and delete`, async ({ page }) => {
-    await page.goto(`/dashboard/${entity.path}/create`, { waitUntil: "networkidle" });
-    await fill(page, entity.fields);
-    await page.getByRole("button", { name: new RegExp(`^create ${entity.noun}`, "i") }).click();
+    await page.goto(`/dashboard/${entity.path}`, { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: new RegExp(`^new ${entity.noun}`, "i") }).click();
+    const dialog = page.getByRole("dialog");
+    await fill(dialog, entity.fields);
+    await dialog.getByRole("button", { name: new RegExp(`^create ${entity.noun}`, "i") }).click();
     await expect(page.getByText(new RegExp(`${entity.noun} created|Circuit created|Group created`))).toBeVisible();
 
     await page.goto(`/dashboard/${entity.path}`, { waitUntil: "networkidle" });
@@ -143,7 +146,7 @@ async function pick(page: Page | Locator, placeholder: string, query: string, op
 }
 
 test("announcements: create, link a suggested player, delete", async ({ page }) => {
-  await page.goto("/dashboard/announcements/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "announcements", "announcement");
   await fill(page, { Year: "2098", Number: "1", Text: "Parabéns a Jogadora Teste pelo título." });
   await page.getByRole("button", { name: /^create announcement/i }).click();
   await expect(page.getByText("Announcement created")).toBeVisible();
@@ -162,12 +165,12 @@ test("announcements: create, link a suggested player, delete", async ({ page }) 
 });
 
 test("tournament podiums: create with a category, edit and delete", async ({ page }) => {
-  await page.goto("/dashboard/tournaments/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "tournaments", "tournament");
   await fill(page, { Name: "Torneio Pódio CRUD", "Rating type": "rapid", Tier: "S" });
   await page.getByRole("button", { name: /^create tournament/i }).click();
   await expect(page.getByText("Tournament created")).toBeVisible();
 
-  await page.goto("/dashboard/tournament-podiums/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "tournament-podiums", "podium");
   await pick(page, "Search tournament...", "Pódio CRUD", /Torneio Pódio CRUD/);
   await pick(page, "Search player...", "Jogadora", /Jogadora Teste/);
   await fill(page, { Place: "1", Category: "Sub 14 Masculino" });
@@ -192,7 +195,7 @@ test("tournament podiums: create with a category, edit and delete", async ({ pag
 });
 
 test("events: create, edit and delete", async ({ page }) => {
-  await page.goto("/dashboard/events/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "events", "event");
   await fill(page, { Name: "Evento CRUD" });
   await page.locator("#event-start-date").click();
   await page.locator('[role="grid"] button:not([disabled])').nth(10).click();
@@ -211,7 +214,7 @@ test("events: create, edit and delete", async ({ page }) => {
 });
 
 test("posts: create, edit and delete", async ({ page }) => {
-  await page.goto("/dashboard/posts/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "posts", "post");
   await fill(page, { Title: "Post CRUD", Content: "Corpo do post CRUD" });
   await page.getByRole("button", { name: /^create post/i }).click();
   await expect(page.getByText(/Post created/)).toBeVisible();
@@ -228,7 +231,7 @@ test("posts: create, edit and delete", async ({ page }) => {
 });
 
 test("players: create, edit and delete", async ({ page }) => {
-  await page.goto("/dashboard/players/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "players", "player");
   await fill(page, { Name: "Jogador CRUD" });
   await page.getByRole("button", { name: /^create player/i }).click();
   await expect(page.getByText(/Player created/)).toBeVisible();
@@ -241,12 +244,12 @@ test("players: create, edit and delete", async ({ page }) => {
 });
 
 test("circuits: stage, result, finish the season, correct final podiums, reopen", async ({ page }) => {
-  await page.goto("/dashboard/tournaments/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "tournaments", "tournament");
   await fill(page, { Name: "Etapa Circuito CRUD", "Rating type": "rapid", Tier: "B" });
   await page.getByRole("button", { name: /^create tournament/i }).click();
   await expect(page.getByText("Tournament created")).toBeVisible();
 
-  await page.goto("/dashboard/circuits/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "circuits", "circuit");
   await fill(page, { Name: "Circuito Final CRUD 2033", Season: "2033", Layout: "categories", Tier: "A" });
   await page.getByRole("button", { name: /^create circuit/i }).click();
   await expect(page.getByText(/Circuit created/)).toBeVisible();
@@ -297,7 +300,7 @@ test("circuits: stage, result, finish the season, correct final podiums, reopen"
 });
 
 test("links: add, edit and delete a link inside a group", async ({ page }) => {
-  await page.goto("/dashboard/links/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "links", "group");
   await fill(page, { Name: "Grupo Links CRUD" });
   await page.getByRole("button", { name: /^create group/i }).click();
   await expect(page.getByText(/Group created/)).toBeVisible();
@@ -323,12 +326,12 @@ test("links: add, edit and delete a link inside a group", async ({ page }) => {
 });
 
 test("tv sergipe: create, edit and delete a result", async ({ page }) => {
-  await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "clubs", "club");
   await fill(page, { Name: "Escola TV CRUD" });
   await page.getByRole("button", { name: /^create club/i }).click();
   await expect(page.getByText("Club created")).toBeVisible();
 
-  await page.goto("/dashboard/tv-sergipe/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "tv-sergipe", "result");
   await pick(page, "Search school...", "Escola TV", /Escola TV CRUD/);
   const selects = page.locator("select");
   for (let i = 0; i < (await selects.count()); i++) {
@@ -360,12 +363,12 @@ test("rating update: snapshot button records the rankings", async ({ page }) => 
 });
 
 test("a club that players still use cannot be deleted, and the dialog says why", async ({ page }) => {
-  await page.goto("/dashboard/clubs/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "clubs", "club");
   await fill(page, { Name: "Clube Com Jogadores" });
   await page.getByRole("button", { name: /^create club/i }).click();
-  await expect(page).toHaveURL(/\/dashboard\/clubs$/);
+  await expect(page.getByText("Club created")).toBeVisible();
 
-  await page.goto("/dashboard/players/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "players", "player");
   await fill(page, { Name: "Atleta Do Clube" });
   await pick(page, "Search club...", "Clube Com", /Clube Com Jogadores/);
   await page.getByRole("button", { name: /^create player/i }).click();
@@ -477,7 +480,7 @@ test("update request: a visitor sends a correction and the admin approves it", a
 });
 
 test("players: the history records an edit, and a bulk action changes only the selected rows", async ({ page }) => {
-  await page.goto("/dashboard/players/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "players", "player");
   await fill(page, { Name: "Jogador Lote" });
   await page.getByRole("button", { name: /^create player/i }).click();
   await expect(page.getByText(/Player created/)).toBeVisible();
@@ -500,7 +503,7 @@ test("players: the history records an edit, and a bulk action changes only the s
 });
 
 test("posts: a scheduled article is hidden from the site until its time, and can be previewed", async ({ page, request }) => {
-  await page.goto("/dashboard/posts/create", { waitUntil: "networkidle" });
+  await openCreateDialog(page, "posts", "post");
   await fill(page, { Title: "Post Agendado", Content: "Corpo agendado" });
   await page.getByLabel("Published").check();
   await page.getByLabel("Publish at").fill("2099-01-01T09:00");

@@ -68,6 +68,7 @@ export function TournamentRatingResults({ tournamentId }: { tournamentId: number
       actions={
         results.length > 0 ? (
           <ConfirmDeleteButton
+            inline
             label="Revert all"
             confirmLabel="Revert all results"
             title="Revert every rating result of this tournament?"

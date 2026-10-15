@@ -7,6 +7,7 @@ import { EntityListPage } from "@/components/admin/entity-pages";
 import { entityMessages } from "@/lib/entity-routes";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/lib/trpc";
+import { ROLE_SECTIONS } from "@/lib/admin-forms";
 
 export const Route = createFileRoute("/_auth/dashboard/roles/")({
   head: () => ({ meta: [{ title: "Roles - Admin - FSX" }] }),
@@ -40,6 +41,11 @@ function RouteComponent() {
     ...entityMessages("role").delete,
   });
 
+  const createMutation = useAdminMutation(trpc.roles.create.mutationOptions(), {
+    invalidates: "roles",
+    ...entityMessages("role").create,
+  });
+
   return (
     <EntityListPage
       noun="role"
@@ -51,6 +57,22 @@ function RouteComponent() {
       columns={columns}
       deleting={deleteMutation.isPending}
       onDelete={(id) => deleteMutation.mutate({ id })}
+      create={{
+        description: "Add a board, arbiter, or teacher position.",
+        sections: ROLE_SECTIONS,
+        defaultValues: { name: "", shortName: "", type: "management" },
+        onSubmit: (values, close) =>
+          createMutation.mutate(
+            {
+              name: values.name!,
+              shortName: values.shortName!,
+              type: values.type as "management" | "referee" | "teacher",
+            },
+            { onSuccess: close },
+          ),
+        error: createMutation.error,
+        pending: createMutation.isPending,
+      }}
     />
   );
 }

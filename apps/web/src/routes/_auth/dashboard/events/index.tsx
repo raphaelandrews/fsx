@@ -1,4 +1,5 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -14,6 +15,7 @@ import { RowLink } from "@/components/data-table/row-link";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
+import { EventCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/events/")({
   head: () => ({ meta: [{ title: "Events - Admin - FSX" }] }),
@@ -23,6 +25,7 @@ export const Route = createFileRoute("/_auth/dashboard/events/")({
 });
 
 function RouteComponent() {
+  const [creating, setCreating] = useState(false);
   const trpc = useTRPC();
 
   const { data = [] } = useSuspenseQuery(trpc.events.list.queryOptions());
@@ -66,13 +69,11 @@ function RouteComponent() {
         title="Events"
         description="Manage the official events."
         actions={
-          <Link to="/dashboard/events/create">
-            <Button>New event</Button>
-          </Link>
+          <Button onClick={() => setCreating(true)}>New event</Button>
         }
       />
       <DataTable
-        emptyState={<EmptyCollection noun="events" createTo="/dashboard/events/create" />}
+        emptyState={<EmptyCollection noun="events" onCreate={() => setCreating(true)} />}
         columns={columns}
         data={data}
         toolbar={(table) => (
@@ -80,6 +81,7 @@ function RouteComponent() {
         )}
         pagination={(table) => <DataTablePagination table={table} />}
       />
+      <EventCreateDialog open={creating} onOpenChange={setCreating} />
     </div>
   );
 }

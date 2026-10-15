@@ -2,11 +2,11 @@ import { Link, useLocation, type LinkProps } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, File01Icon } from "@hugeicons/core-free-icons";
 
-import { buttonVariants } from "@fsx/ui/components/button";
+import { Button, buttonVariants } from "@fsx/ui/components/button";
 
 import { findActiveNav } from "@/components/admin/admin-nav-data";
 
-export function EmptyCollection({ noun, createTo }: { noun: string; createTo: LinkProps["to"] }) {
+export function EmptyCollection({ noun, createTo, onCreate }: { noun: string; createTo?: LinkProps["to"]; onCreate?: () => void }) {
   const { pathname } = useLocation();
   const icon = findActiveNav(pathname).item?.icon ?? File01Icon;
 
@@ -19,10 +19,17 @@ export function EmptyCollection({ noun, createTo }: { noun: string; createTo: Li
       <p className="max-w-sm text-muted-foreground text-base">
         Create the first one and it will show up here.
       </p>
-      <Link to={createTo} className={buttonVariants({ size: "xl", className: "mt-4" })}>
-        <HugeiconsIcon className="size-5" icon={Add01Icon} strokeWidth={2} />
-        Create
-      </Link>
+      {createTo ? (
+        <Link to={createTo} className={buttonVariants({ size: "xl", className: "mt-4" })}>
+          <HugeiconsIcon className="size-5" icon={Add01Icon} strokeWidth={2} />
+          Create
+        </Link>
+      ) : (
+        <Button size="xl" className="mt-4" onClick={onCreate}>
+          <HugeiconsIcon className="size-5" icon={Add01Icon} strokeWidth={2} />
+          Create
+        </Button>
+      )}
     </div>
   );
 }

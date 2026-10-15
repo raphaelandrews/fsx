@@ -53,7 +53,7 @@ All are `noindex, nofollow` and are not in the sitemap.
 | --- | ------- | ----- |
 | `/atualizar-cadastro` | [Update request](/guide/admin-panel#update-requests) form | `locations.list`; submits `playerRequests.submit` | — | Not in the sitemap; reached from the header. Anonymous visitors can use it |
 | `/login` | GitHub sign-in | Redirects to `/dashboard` when a session exists |
-| `/dashboard` and children | [Admin panel](/guide/admin-panel): list, `create`, and `$id` edit pages per entity, plus `players/titles`, `swiss-manager`, `cache`, `backup`, `user` | `_auth` `beforeLoad` redirects to `/login` without a session; data requires `adminProcedure` |
+| `/dashboard` and children | [Admin panel](/guide/admin-panel): a list and an `$id` edit page per entity, with records created in a dialog over the list, plus `players/titles`, `swiss-manager`, `cache`, `backup`, `user` | `_auth` `beforeLoad` redirects to `/login` without a session; data requires `adminProcedure` |
 | `/rating-update` | Bulk rating import from Excel | same as `/dashboard` |
 
 Dashboard list pages read the matching admin or public list procedure; edit

@@ -60,6 +60,7 @@ function RelationSection({
       cell: ({ row }) => (
         <div className="flex justify-end">
           <ConfirmDeleteButton
+            inline
             label="Remove"
             confirmLabel="Remove"
             title={`Remove this ${noun}?`}

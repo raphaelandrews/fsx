@@ -1,10 +1,11 @@
-import { Link, type LinkProps } from "@tanstack/react-router";
+import { useState } from "react";
+import { type LinkProps } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "@fsx/ui/components/button";
 
 import { EmptyCollection } from "@/components/admin/empty-collection";
-import { EntityForm, type EntitySection, type ImageTracking } from "@/components/admin/entity-form";
+import { EntityForm, EntityFormDialog, type EntityField, type EntitySection, type ImageTracking } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { impactTarget } from "@/components/admin/delete-dialog";
@@ -26,48 +27,6 @@ interface EntityPageBase {
 }
 
 const asRoute = (path: string) => path as LinkProps["to"];
-
-export function EntityCreatePage({
-  noun,
-  basePath,
-  backLabel,
-  description,
-  sections,
-  defaultValues,
-  onSubmit,
-  error,
-  pending,
-  images,
-}: EntityPageBase & {
-  description: string;
-  sections: EntitySection[];
-  defaultValues: Values;
-  onSubmit: (values: Values) => void;
-  error: unknown;
-  pending: boolean;
-  images?: ImageTracking;
-}) {
-  return (
-    <>
-      <AdminPageHeader
-        backTo={asRoute(basePath)}
-        backLabel={backLabel}
-        title={`New ${noun}`}
-        description={description}
-      />
-      <EntityForm
-        sections={sections}
-        defaultValues={defaultValues}
-        onSubmit={onSubmit}
-        error={error}
-        pending={pending}
-        submitLabel={`Create ${noun}`}
-        cancelTo={asRoute(basePath)}
-        images={images}
-      />
-    </>
-  );
-}
 
 export function EntityEditPage({
   id,
@@ -141,6 +100,7 @@ export function EntityListPage<Row extends { id: number; name: string }>({
   showId = true,
   onDelete,
   deleting,
+  create,
 }: Omit<EntityPageBase, "backLabel"> & {
   title: string;
   description: string;
@@ -152,7 +112,18 @@ export function EntityListPage<Row extends { id: number; name: string }>({
   showId?: boolean;
   onDelete: (id: number) => void;
   deleting: boolean;
+  /** The "New" form, shown in a dialog over the list. `onSubmit` closes it from the mutation's success. */
+  create: {
+    description: string;
+    sections: EntitySection[];
+    defaultValues: Values;
+    onSubmit: (values: Values, close: () => void) => void;
+    error: unknown;
+    pending: boolean;
+    images?: ImageTracking;
+  };
 }) {
+  const [creating, setCreating] = useState(false);
   const allColumns: ColumnDef<Row>[] = [
     ...(showId
       ? [
@@ -195,13 +166,26 @@ export function EntityListPage<Row extends { id: number; name: string }>({
         title={title}
         description={description}
         actions={
-          <Link to={asRoute(`${basePath}/create`)}>
-            <Button>New {noun}</Button>
-          </Link>
+          <Button size="xl" onClick={() => setCreating(true)}>
+            New {noun}
+          </Button>
         }
       />
+      <EntityFormDialog
+        open={creating}
+        onOpenChange={setCreating}
+        title={`New ${noun}`}
+        description={create.description}
+        fields={create.sections.flatMap((section) => section.fields) as EntityField[]}
+        defaultValues={create.defaultValues}
+        onSubmit={(values) => create.onSubmit(values, () => setCreating(false))}
+        error={create.error}
+        pending={create.pending}
+        submitLabel={`Create ${noun}`}
+        images={create.images}
+      />
       <DataTable
-        emptyState={<EmptyCollection noun={plural} createTo={asRoute(`${basePath}/create`)} />}
+        emptyState={<EmptyCollection noun={plural} onCreate={() => setCreating(true)} />}
         columns={allColumns}
         data={rows}
         toolbar={(table) => (

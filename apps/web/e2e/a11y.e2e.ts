@@ -47,7 +47,7 @@ test.describe("dashboard", () => {
   const dashboardPages = [
     "/dashboard",
     ...["announcements", "championships", "circuits", "clubs", "events", "insignias", "links", "locations", "norms", "players", "posts", "roles", "titles", "tournament-podiums", "tournaments", "tv-sergipe"].flatMap(
-      (section) => [`/dashboard/${section}`, `/dashboard/${section}/create`],
+      (section) => [`/dashboard/${section}`],
     ),
     `/dashboard/players/${PLAYER.id}`,
     `/dashboard/players/titles?playerId=${PLAYER.id}`,

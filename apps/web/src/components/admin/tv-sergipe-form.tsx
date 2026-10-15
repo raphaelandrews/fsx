@@ -33,7 +33,7 @@ interface TvSergipeFormProps {
   error: unknown;
   pending: boolean;
   submitLabel: string;
-  cancelTo: LinkProps["to"];
+  cancelTo?: LinkProps["to"];
 }
 
 export function TvSergipeForm({

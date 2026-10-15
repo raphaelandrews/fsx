@@ -203,18 +203,34 @@ Section CTAs use `SectionButton`: `size="pill"`, `ArrowRight01Icon` at the end, 
 phones, `sm:w-fit`. For links styled as buttons use
 `className={buttonVariants({ size, variant })}` on the `<a>` or `<Link>`.
 
-### Admin sidebar (`AdminSidebar`, `AdminShell`)
+### Admin dashboard (`AdminShell`, `AdminSidebar`, `AdminPageHeader`)
 
-The dashboard (`/dashboard`, `/rating-update`) uses the shadcn `inset` sidebar: a `sidebar` (`#F5F7FA`)
-rail with the page on a `bg-background` `rounded-4xl` panel, flat (no shadow). Menu buttons are 40px
-pills with 16px labels; the current page is a `bg-primary` pill that swaps to `primary-inverse` on
-hover, like the primary button. Groups collapse with a chevron and open on the active route's group;
-sub-items are 36px pills. The footer holds the user menu. Collapsed (`ctrl+b` or the trigger beside the logo), it becomes a
-56px icon rail: the trigger and a logo tile on top, every page as a 40px icon tile with a tooltip
-(groups flattened), and the avatar at the bottom. On phones the sidebar is a drawer opened from the
-top bar of the panel, which also carries the
-breadcrumb, built from `ADMIN_NAV`
-(`components/admin/admin-nav-data.tsx`), so add new admin pages there.
+The dashboard (`/dashboard`, `/rating-update`) is a gray canvas (`bg-muted`) with three parts:
+
+- **Sidebar:** white (`bg-background`), 264px wide, no border or shadow, `p-4`. From the top: the logo
+  with the collapse trigger; a bordered workspace card (an icon tile, "Federação Sergipana", "Ver o
+  site", an up-right arrow) that links to the public site; the main groups; a divider; the utility
+  group (`secondary` in `admin-nav-data.tsx`, today "System"); and, under a divider, the user menu. Every row
+  and the user menu use the gray text color (`text-muted-foreground`), and every icon in the sidebar takes the
+  same color as its label (`currentColor`), so icons and text always match.
+  Add new pages to `ADMIN_NAV` (`components/admin/admin-nav-data.tsx`).
+- **Menu rows:** `rounded-lg p-3 text-sm font-semibold`, 20px icons, gray text and icons; hover changes
+  only the background (`bg-muted`), never the text or icon color. The current page is a `bg-primary` row with `primary-foreground` text and icon, with no
+  hover change. Groups open with a chevron and open on the active route's group; their children are
+  the same row, indented 32px (`ml-8`) with 4px between them. The pending-requests count is a
+  `warning` badge on the group and the item.
+- **Collapsed** (`ctrl+b` or the trigger beside the logo): a 56px icon rail with a tooltip on every
+  page (groups flattened, workspace card hidden). On phones the sidebar is a drawer opened from the
+  top bar.
+- **Top bar:** on the gray canvas, above the page: a breadcrumb (icon + group, `/`, icon + page, 20px
+  icons, `font-medium`; the current page in `title`), `p-6`.
+- **Page panel:** a white `rounded-4xl` card with `md:mx-6` and 24px below it (full width with only
+  the top corners rounded on phones), holding the page at the panel's full width with `p-6`. Every
+  page (overview, tables, cards, empty states, forms) uses that same width; don't cap or center a
+  page's content. No shadow.
+- **Page header** (`AdminPageHeader`): an optional back link, the `h1` (`text-xl sm:text-2xl
+  font-bold`) on the left and the page's actions on the right (search, then the primary pill),
+  stacked on phones; a muted `text-sm` description under the title. There is no divider line.
 
 ### Header
 
@@ -447,11 +463,19 @@ field uses `destructive` for both. This applies to `Input`, `Textarea`, `SelectT
 
 One column of fields, `gap-4`, with a title above each group.
 
-- **Dashboard pages** (`AdminForm`): a centered column no wider than 680px (`max-w-170`). Each
-  `FormSection` is a `text-lg font-semibold` title, an optional muted `text-sm` description, and its
-  fields below, 32px between sections. `FormActions` closes the form: two equal-width `pill` (48px)
-  buttons side by side, Cancel as `secondary` and the save action as the burple default, 24px below
-  the last field, no divider line.
+- **Which form goes where:** every record is created in a dialog over its list (`EntityListPage`'s
+  `create`, or `FormDialog` with the entity's form in `create-dialogs.tsx` for the long ones, which scroll
+  inside the dialog and stack their aside cards). Editing is always a page.
+- **Edit pages** (`AdminPageHeader` with `backTo`, `AdminForm`), as wide as every other dashboard
+  page: a header row with a back arrow (ghost icon button), the title (`text-2xl @md:text-3xl
+  font-semibold`), an optional status badge, and the **Save** button (`xl`, burple) at the right. The body is
+  a grid of three columns at `@lg`: the form sections in the first two (each a `font-semibold` title, an
+  optional muted `text-sm` hint, and its fields, 32px apart), and `rounded-2xl border p-4` cards in the
+  third for things like the photo upload (`FormAsideCard`, via `AdminForm`'s `aside`). Delete and other
+  destructive buttons (`destructive`, `lg`) sit in a row at the bottom right, below the form. The save and
+  delete buttons are placed by slots (`admin-slots.tsx`) so a page doesn't pass them around: `FormActions`
+  renders into the header's slot and `ConfirmDeleteButton` into the page's bottom slot, each falling back
+  to an inline position on a page without them.
 - **Dialogs** (`EntityFormDialog` and every `Dialog`): `rounded-4xl`, 24–32px padding, up to 680px
   wide for forms, scrolling inside at 85vh. The title is `font-semibold`, `text-2xl sm:text-3xl`,
   `tracking-tight`. The footer is two equal-width pills, Cancel (`secondary`) first and the primary
