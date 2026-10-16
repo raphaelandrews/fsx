@@ -1,0 +1,136 @@
+---
+title: Vercel Proxy Workaround
+description: Why www.fsx.org.br is served through a Vercel rewrite in front of the Worker, how it is configured, and how to roll back to the Cloudflare-only setup.
+---
+
+Since 2026-10-15, `fsx.org.br` and `www.fsx.org.br` resolve to Vercel, which
+forwards every request to the production Worker at
+`https://fsx-web-raphael.hey-02c.workers.dev`. The Worker, D1, R2, and KV are
+unchanged. Remove this layer once the Cloudflare IPs are reachable again.
+
+## Why it exists
+
+Claro (AS28573) and Vivo, two of the largest Brazilian networks, could not open
+TCP connections to the two anycast IPs assigned to the `fsx.org.br` zone
+(`104.21.32.196` and `172.67.154.113`) on ports 80 and 443. Other Cloudflare IPs
+worked from the same connections, and a São Paulo probe on a smaller ISP reached
+the site normally. The Worker and DNS were healthy: the `workers.dev` hostname
+(`104.21.2.3`, `172.67.128.114`) loaded everywhere.
+
+Cloudflare assigns anycast IPs to a zone automatically, and the Free plan has no
+way to change them. Vercel serves from a different IP pool that is not filtered,
+and only Vercel's servers talk to Cloudflare, so the filtered path is never used
+by visitors.
+
+## How it works
+
+```
+visitor -> www.fsx.org.br (Vercel) -> rewrite -> fsx-web-raphael.hey-02c.workers.dev
+```
+
+- Vercel project `fsx-proxy` (team `raphael-andrews-projects`, Hobby plan). It
+  contains only `vercel.json`; there is no build.
+- `fsx.org.br` redirects to `www.fsx.org.br` (`308`), configured in the Vercel
+  domain settings.
+- `BETTER_AUTH_URL` and `CORS_ORIGIN` stay `https://www.fsx.org.br`, which is now
+  the host visitors use.
+
+`vercel.json`:
+
+```json
+{
+  "rewrites": [
+    { "source": "/cdn-cgi/image/:opts/:path*", "destination": "https://fsx-web-raphael.hey-02c.workers.dev/:path*" },
+    { "source": "/(.*)", "destination": "https://fsx-web-raphael.hey-02c.workers.dev/$1" }
+  ]
+}
+```
+
+The first rule exists because `/cdn-cgi/image/` resizing only works on a
+Cloudflare zone hostname. Through the proxy it would return `404`, so those URLs
+are rewritten to the original media and images load at full size.
+
+### DNS (Cloudflare, both records DNS only)
+
+| Name | Type | Content |
+| --- | --- | --- |
+| `fsx.org.br` | CNAME | `116da957e84f230d.vercel-dns-017.com` |
+| `www.fsx.org.br` | CNAME | `116da957e84f230d.vercel-dns-017.com` |
+
+Keep both records on **DNS only** (grey cloud). Proxied records send visitors
+back through the filtered IPs. The CNAME target is project-specific; copy the
+current value from the Vercel domain settings if it changes. The MX, TXT, DKIM,
+DMARC, CAA, and `docs` records are untouched, so email and docs keep working.
+
+## Known limits
+
+- **`docs.fsx.org.br` is not proxied.** It is still a Worker custom domain on the
+  filtered IPs and is unreachable from the affected networks.
+- **Resized images are served as originals** (larger downloads).
+- **Edge cache and purge behaviour through the proxy has not been verified.**
+  Check [ADR 0003](/decisions/0003-edge-cache-consistency) before relying on
+  Cloudflare cache purges for freshness.
+- **Vercel's Hobby plan is for non-commercial use.** Confirm it covers the
+  federation's use, or move to a paid plan.
+- **The `Production health` workflow is failing** on missing Cloudflare secrets
+  (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID`), so
+  nothing currently alerts on an outage of this layer.
+- Vercel is now a second point of failure in front of the Worker.
+
+## Verify
+
+```bash
+for i in $(seq 1 20); do curl -4 -sS -m 10 -o /dev/null -w "%{http_code} " https://www.fsx.org.br/; done; echo
+curl -4 -sSI https://fsx.org.br | grep -iE "^(HTTP|location)"
+```
+
+Expect `200` every time and a `308` to `https://www.fsx.org.br/`. Check the
+certificate on each Vercel IP when you see intermittent TLS errors:
+
+```bash
+echo | openssl s_client -connect 64.29.17.65:443 -servername www.fsx.org.br 2>/dev/null | openssl x509 -noout -subject -enddate
+```
+
+After the migration, an expired `*.fsx.org.br` certificate from a deleted Vercel
+project was still served by part of Vercel's edge, which made about half of the
+requests fail. It stopped being served on its own without any change on our
+side. If it appears again, remove and re-add the domains in the `fsx-proxy`
+project.
+
+## Roll back to Cloudflare only
+
+Do this if Vercel misbehaves or the Cloudflare IPs are reachable again. It
+restores the setup that existed before 2026-10-15, so Claro and Vivo users are
+blocked again unless the IPs were changed.
+
+1. **Check first.** Open `https://fsx-web-raphael.hey-02c.workers.dev` to confirm
+   the Worker itself is healthy. If it fails, this is a Worker problem, not a
+   proxy problem; use [Incident response](/operations/incident-response).
+2. **Delete the Vercel records** in Cloudflare DNS: the `fsx.org.br` and
+   `www.fsx.org.br` CNAMEs to `vercel-dns-017.com`. An apex CNAME conflicts with a
+   Worker custom domain, so do this first.
+3. **Reattach the apex.** Worker `fsx-web-raphael` → Settings → Domains & Routes →
+   Add → Custom domain → `fsx.org.br`.
+4. **Restore `www`.** Add a route `www.fsx.org.br/*` for `fsx-web-raphael`, and
+   these records, both **Proxied**:
+
+   | Name | Type | Content |
+   | --- | --- | --- |
+   | `www.fsx.org.br` | A | `192.0.2.1` |
+   | `www.fsx.org.br` | AAAA | `100::` |
+
+   The addresses are reserved placeholders: the route handles every request, so
+   no origin is contacted. Alternatively, use a Worker custom domain for
+   `www.fsx.org.br` instead of the route and placeholders.
+5. **Verify** with the commands above, replacing the expected `308` check with a
+   `301` from the Worker. Wait for DNS to propagate; resolvers may cache the
+   Vercel records for a few minutes.
+6. **Clean up Vercel** (optional): remove the domains from `fsx-proxy` so no
+   stale certificate is served for them later.
+
+## Ending the workaround
+
+When the Cloudflare IPs are reachable from Claro and Vivo again (test from both
+networks, not just a probe), follow the rollback above. Cloudflare support for
+the Free plan is the community forum; a Pro plan adds a ticket queue but, as far
+as we know, not control over the IPs.

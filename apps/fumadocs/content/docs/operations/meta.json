@@ -1,4 +1,4 @@
 {
   "title": "Operations",
-  "pages": ["index", "local-development", "runbook", "incident-response", "governance-and-privacy", "query-cost-baseline"]
+  "pages": ["index", "local-development", "runbook", "incident-response", "vercel-proxy","governance-and-privacy", "query-cost-baseline"]
 }
