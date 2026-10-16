@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
-    "@cloudflare/vite-plugin": "1.48.0",
+    "@cloudflare/vite-plugin": "1.63.1",
     "@fsx/config": "workspace:*",
     "@playwright/test": "^1.63.0",
     "@tanstack/react-query-devtools": "^5.101.4",
@@ -70,10 +70,10 @@
     "@vitejs/plugin-react": "^6.0.4",
     "alchemy": "catalog:",
     "jsdom": "^30.0.0",
-    "miniflare": "4.20260424.0",
+    "miniflare": "4.20260730.0",
     "typescript": "catalog:",
     "vite": "^8.1.5",
     "web-vitals": "^6.0.1",
-    "wrangler": "4.127.0"
+    "wrangler": "4.149.0"
   }
 }
