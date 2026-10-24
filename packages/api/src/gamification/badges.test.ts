@@ -291,7 +291,6 @@ describe("allBadges catalog", () => {
     const earnedIds = new Set<string>();
     for (const career of careers) {
       for (const achievement of achievementsOf(playerStats(career))) {
-        if (achievement.family === "dynasty") continue;
         earnedIds.add(achievement.id);
         const known = byId.get(achievement.id);
         expect(known, achievement.id).toBeDefined();

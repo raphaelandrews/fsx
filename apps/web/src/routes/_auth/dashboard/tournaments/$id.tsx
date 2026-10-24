@@ -7,6 +7,7 @@ import type { CompetitionTier } from "@fsx/api/circuit-types";
 import { EntityForm, optional, optionalNumber } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
+import { TierSuggestionNote } from "@/components/admin/tier-suggestion-note";
 import { TournamentPodiums } from "@/components/admin/tournament-podiums";
 import { TournamentRatingResults } from "@/components/rating-update/tournament-rating-results";
 import { useAdminMutation } from "@/lib/admin-mutations";
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/_auth/dashboard/tournaments/$id")({
         ),
       ),
       context.queryClient.ensureQueryData(context.trpc.champions.list.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.tournaments.suggestedTier.queryOptions({ id: params.id })),
       context.queryClient.ensureQueryData(
         context.trpc.playersTournament.listByTournament.queryOptions({ tournamentId: params.id }),
       ),
@@ -75,6 +77,7 @@ function RouteComponent() {
           />
         }
       />
+      <TierSuggestionNote tournamentId={id} />
       <EntityForm
         sections={tournamentSections(championships)}
         defaultValues={{

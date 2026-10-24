@@ -23,7 +23,8 @@ jobs:
       - run: bash -n scripts/d1-backup.sh scripts/verify-d1-backup.sh scripts/deploy-smoke-test.sh
       - run: python3 scripts/test-export-d1-csv.py
       # braces (GHSA-vfj7-8cjw-p6xm) has no fixed release; it only reaches the shadcn CLI, never the Worker or the browser.
-      - run: bun audit --audit-level=high --ignore GHSA-vfj7-8cjw-p6xm
+      # zod 3.x (GHSA-mrhx-c7xc-m3w5, shadcn CLI only) has no fixed 3.x release; launch-editor (GHSA-587h-7wmj-h5pm) is a Windows-only dev-server issue via vite-plus, which is pinned by check:runtime.
+      - run: bun audit --audit-level=high --ignore GHSA-vfj7-8cjw-p6xm --ignore GHSA-mrhx-c7xc-m3w5 --ignore GHSA-587h-7wmj-h5pm
       - name: Validate generated database migrations
         run: |
           bun run db:generate

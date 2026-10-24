@@ -29,7 +29,7 @@ The database is Cloudflare D1 (SQLite). The schema is defined with Drizzle in
 | `player_update_requests` | — | `status` in `pending`, `approved`, `rejected`; a player's proposed `birth_year`, club, location, `cbx_id`, `fide_id` (null = unchanged), and the `photo_key` of a photo waiting under `pending/`. No contact details are collected. Deleted with its player |
 | `change_log` | — | `entity` in `player`, `tournament`, `podium`; `action` in `create`, `update`, `delete`. No foreign keys: a deleted record's history stays. Entries older than 2 years are deleted on the next write |
 | `ranking_snapshots` | — | `rating_type` in `blitz`, `rapid`, `classic`; `position` ≥ 1 |
-| `computed_results` | `key` | Stored JSON results and the `data_changed` marker ([ADR 0008](/decisions/0008-stored-computations)) |
+| `computed_results` | `key` | Stored JSON results and the `data_changed` marker ([ADR 0008](/decisions/0008-stored-computations)), plus `tier-calibration`, the saved tier-suggestion lines, which is not a cache |
 | `tournament_podiums` | `(player_id, tournament_id)` for overall podiums; `(player_id, tournament_id, category)` for category podiums (two partial indexes, since a `NULL` category never collides) | `place` 1–100000; `category` null (overall) or a known category |
 | `defending_champions` | `(player_id, championship_id)` | — |
 | `tournaments`, `cups` | `name` | `rating_type` in `blitz`, `rapid`, `classic`; `prize_pool` ≥ 0 |

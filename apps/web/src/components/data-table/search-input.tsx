@@ -8,6 +8,8 @@ import {
   InputGroupInput,
 } from "@fsx/ui/components/input-group"
 
+import { cn } from "@fsx/ui/lib/utils"
+
 import { useTableText } from "@/hooks/use-table-text"
 
 interface SearchInputProps
@@ -29,7 +31,13 @@ export const SearchInput = React.forwardRef<
 ) {
   const text = useTableText()
   return (
-    <InputGroup className={`h-8 border-border bg-muted ${widthClass} ${wrapperClassName ?? ""}`.trim()}>
+    <InputGroup
+      className={cn(
+        "h-8 rounded-full border-border bg-secondary shadow-none has-[[data-slot=input-group-control]:focus-visible]:border-primary has-[[data-slot=input-group-control]:focus-visible]:ring-4 has-[[data-slot=input-group-control]:focus-visible]:ring-primary/20",
+        widthClass,
+        wrapperClassName,
+      )}
+    >
       <InputGroupAddon>
         <HugeiconsIcon
           className="size-4"
@@ -41,6 +49,7 @@ export const SearchInput = React.forwardRef<
         ref={ref}
         placeholder={placeholder ?? text.search}
         type="search"
+        className="h-full"
         {...props}
       />
     </InputGroup>

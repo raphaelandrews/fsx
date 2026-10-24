@@ -131,3 +131,58 @@ describe("the public tournament archive", () => {
     await expect(caller.tournaments.page({ page: 1, tier: "Z" as never })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });
+
+describe("tournaments.suggestedTier", () => {
+  const rated = async (tournament: number, count: number, rapid: number) => {
+    for (let i = 0; i < count; i++) {
+      const player = idOf(
+        await caller.players.create({ name: `Tier ${tournament}-${i}`, blitz: 1900, rapid, classic: 1900, sex: "male", active: true, verified: false }),
+      );
+      await caller.playersTournament.linkWithRating({ playerId: player, tournamentId: tournament, variation: 0, ratingType: "rapid" });
+    }
+  };
+
+  test("measures the field by the ratings players had before the tournament", async () => {
+    const strong = idOf(await caller.tournaments.create({ name: "Aberto Forte", ratingType: "rapid" }));
+    await rated(strong, 20, 2300);
+    expect(await caller.tournaments.suggestedTier({ id: strong })).toMatchObject({ current: "B", suggested: "A", players: 20, strength: 2300 });
+
+    const small = idOf(await caller.tournaments.create({ name: "Aberto Pequeno", ratingType: "rapid" }));
+    await rated(small, 3, 2300);
+    expect(await caller.tournaments.suggestedTier({ id: small })).toMatchObject({ suggested: "B", players: 3 });
+  });
+
+  test("has nothing to suggest without results, and refuses unknown tournaments", async () => {
+    const empty = idOf(await caller.tournaments.create({ name: "Sem Resultados", ratingType: "rapid" }));
+    expect(await caller.tournaments.suggestedTier({ id: empty })).toMatchObject({ suggested: null, strength: null });
+    await expect(caller.tournaments.suggestedTier({ id: 999_999 })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+});
+
+describe("tournaments.recalibrateTier", () => {
+  const rated = async (tournament: number, count: number, rapid: number) => {
+    for (let i = 0; i < count; i++) {
+      const player = idOf(
+        await caller.players.create({ name: `Cal ${tournament}-${i}`, blitz: 1900, rapid, classic: 1900, sex: "male", active: true, verified: false }),
+      );
+      await caller.playersTournament.linkWithRating({ playerId: player, tournamentId: tournament, variation: 0, ratingType: "rapid" });
+    }
+  };
+
+  test("moves the Tier A line to the percentile of recent fields and applies it to later suggestions", async () => {
+    expect(await caller.tournaments.tierCalibration()).toMatchObject({ calibratedAt: null, lines: { rapid: 2250 } });
+
+    const today = new Date().toISOString().slice(0, 10);
+    for (const [i, rating] of [2000, 2000, 2000, 2000, 2000, 2100, 2100, 2100].entries()) {
+      const id = idOf(await caller.tournaments.create({ name: `Pool ${i}`, ratingType: "rapid", date: today }));
+      await rated(id, 20, rating);
+    }
+    const result = await caller.tournaments.recalibrateTier();
+    expect(result).toMatchObject({ previous: { rapid: 2250 }, lines: { rapid: 2100, blitz: 2040, classic: 2010 } });
+    expect(await caller.tournaments.tierCalibration()).toMatchObject({ lines: { rapid: 2100 } });
+
+    const open = idOf(await caller.tournaments.create({ name: "Aberto Calibrado", ratingType: "rapid" }));
+    await rated(open, 20, 2150);
+    expect(await caller.tournaments.suggestedTier({ id: open })).toMatchObject({ suggested: "A" });
+  }, 60_000);
+});

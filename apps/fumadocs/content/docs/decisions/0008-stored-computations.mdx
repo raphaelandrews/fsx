@@ -35,4 +35,8 @@ The expensive computation runs about once per admin change, globally. The site
 now runs on the Workers Paid plan ([ADR 0009](/decisions/0009-workers-paid-plan)),
 so that request no longer risks the CPU limit; the design stays because reading
 one stored row is still faster and reads far fewer rows than recomputing. Changes made outside admin mutations (migrations, manual SQL) appear
-within a day, or at once after `DELETE FROM computed_results`.
+within a day, or at once after `DELETE FROM computed_results WHERE key != 'tier-calibration'`.
+
+One row is not a cache: `tier-calibration` stores the Tier A suggestion lines an admin saved with
+`tournaments.recalibrateTier`. It is read and written directly, never through `storedOrComputed`,
+ignores `data_changed`, and must survive a cache clear.

@@ -1,7 +1,31 @@
 import type { CompetitionTier } from "../circuit-types";
+import type { RatingType } from "../rating-types";
 
 // The rating every new player starts with (players.* defaults).
 export const STARTING_RATING = 1900;
+
+// A club is ranked by the average of its CLUB_STRENGTH_SIZE best active players. Empty slots
+// count as a newcomer (STARTING_RATING, or the club's weakest counted player if lower), so a club
+// needs depth to compete; with fewer than CLUB_MIN_ACTIVE active players it is left unranked.
+export const CLUB_STRENGTH_SIZE = 10;
+export const CLUB_MIN_ACTIVE = 3;
+
+// Suggested tournament tier, from the field (see tier-suggestion.ts and guide/tournaments). The
+// strength lines below are the starting values (measured on 2023-2026); an admin recalibrates them
+// from the recent results of every non-school tournament (`calibrateStrengthLines`). School events
+// are not detected: not all of them are large.
+export const TIER_SUGGESTION = {
+  fieldSize: 10,
+  minPlayersA: 20,
+  // Left out of the calibration pool: a restricted field is weaker by design.
+  restrictedChampionships: ["Feminino"],
+  calibrationYears: 3,
+  // Tier A is the strongest quarter of recent fields; with fewer events than this per rhythm a
+  // percentile means nothing, so the previous line stays.
+  calibrationPercentile: 0.75,
+  calibrationMinEvents: 8,
+  minStrengthA: { rapid: 2250, blitz: 2040, classic: 2010 } satisfies Record<RatingType, number>,
+} as const;
 
 // The rating steps of the title ladder on /normas-tecnicas (MMS 2000 … GMS 2400).
 export const RATING_THRESHOLDS = [2000, 2100, 2200, 2300, 2400] as const;

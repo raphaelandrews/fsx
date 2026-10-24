@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import { CardGridSkeleton } from "@/components/skeletons/card-grid-skeleton";
 import { hasFilters, pageInput } from "@/components/torneios/labels";
 import { TournamentFilters } from "@/components/torneios/tournament-filters";
-import { TournamentRow } from "@/components/torneios/tournament-row";
+import { TournamentTable } from "@/components/torneios/tournament-table";
 import { tournamentsSearchSchema } from "@/lib/search-schemas";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/lib/trpc";
@@ -66,11 +66,7 @@ function RouteComponent() {
       {data.tournaments.length === 0 ? (
         <p className="py-12 text-center text-muted-foreground">Nenhum torneio encontrado com esses filtros.</p>
       ) : (
-        <ul className="grid md:grid-cols-2">
-          {data.tournaments.map((tournament) => (
-            <TournamentRow key={tournament.id} tournament={tournament} />
-          ))}
-        </ul>
+        <TournamentTable tournaments={data.tournaments} />
       )}
 
       <div className="mt-6">

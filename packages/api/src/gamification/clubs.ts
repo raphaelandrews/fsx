@@ -3,10 +3,7 @@ import { sql } from "drizzle-orm";
 import type { Context } from "../context";
 import { storedOrComputed } from "./computed";
 import { RATING_TYPES, type RatingType } from "../rating-types";
-
-// A club is ranked by the average of its best active players; with fewer than
-// this many active members one strong player could carry it, so it is unranked.
-export const CLUB_STRENGTH_SIZE = 5;
+import { CLUB_MIN_ACTIVE, CLUB_STRENGTH_SIZE, STARTING_RATING } from "./constants";
 
 export interface ClubStanding {
   club: { id: number; name: string; logoUrl: string | null };
@@ -24,7 +21,8 @@ type ActiveRow = { clubId: number } & Record<RatingType, number>;
 type MedalRow = { clubId: number; place: number; total: number };
 
 export function loadClubStandings(db: Context["db"]): Promise<ClubStanding[]> {
-  return storedOrComputed(db, "club-standings", () => computeClubStandings(db));
+  // v2: the strength formula changed (top 10, empty slots padded); old stored rows must not be served.
+  return storedOrComputed(db, "club-standings:v2", () => computeClubStandings(db));
 }
 
 async function computeClubStandings(db: Context["db"]): Promise<ClubStanding[]> {
@@ -54,12 +52,15 @@ async function computeClubStandings(db: Context["db"]): Promise<ClubStanding[]> 
   for (const row of activeMembers) ratingsOf.set(row.clubId, [...(ratingsOf.get(row.clubId) ?? []), row]);
   const strengthOf = (clubId: number, type: RatingType) => {
     const best = (ratingsOf.get(clubId) ?? []).map((row) => row[type]).sort((a, b) => b - a).slice(0, CLUB_STRENGTH_SIZE);
-    return best.length === CLUB_STRENGTH_SIZE ? Math.round(best.reduce((sum, rating) => sum + rating, 0) / best.length) : null;
+    if (best.length < CLUB_MIN_ACTIVE) return null;
+    const emptySlot = Math.min(STARTING_RATING, best[best.length - 1]!);
+    const total = best.reduce((sum, rating) => sum + rating, 0) + (CLUB_STRENGTH_SIZE - best.length) * emptySlot;
+    return Math.round(total / CLUB_STRENGTH_SIZE);
   };
   const standings: ClubStanding[] = clubs.flatMap((club) => {
     const row = counts.get(club.id);
     if (!row) return [];
-    const ranked = row.activeMembers >= CLUB_STRENGTH_SIZE;
+    const ranked = row.activeMembers >= CLUB_MIN_ACTIVE;
     const medalCount = (place: number) =>
       medals.find((medal) => medal.clubId === club.id && medal.place === place)?.total ?? 0;
     return [

@@ -4,20 +4,58 @@ description: The public archive of tournaments, with podiums and rating results.
 ---
 
 The tournament archive (`/torneios`) lists every tournament the federation has
-rated, newest first, 12 per page. Each row shows the date, tier, rhythm,
-championship, and the overall winner.
+rated, newest first, 12 per page, as a table: date, tournament (with its championship), rhythm, tier, and the
+overall winner. On phones the columns collapse into the tournament cell, which then shows
+date, rhythm, tier, and winner under the name. The whole row opens the tournament.
 
 ## Filters
 
-Year, tier (Sergipano, Nível A, Nível B, Escolar), rhythm (classic, rapid,
+Year, tier (Tier S, Tier A, Tier B, Escolar), rhythm (classic, rapid,
 blitz), and championship combine freely. The filters live in the URL, so a
 filtered list can be shared, and "Limpar filtros" clears them all.
+
+## Tiers
+
+A tournament's tier says how important it is, and sets the multiplier of its podiums in a player's
+XP (S × 1, A × 0.7, B × 0.5, Escolar × 0.4; see [gamification](/reference/gamification)). The admin
+picks it; the tournament edit page suggests one from who played.
+
+| Tier | Meaning |
+| --- | --- |
+| **Tier S** | The Sergipano championships (Absoluto, Feminino, Rápido, Blitz, Bullet, Equipes). Set by the championship, never suggested. |
+| **Tier A** | A strong field: at least 20 players, and the average rating of the 10 strongest players (before the tournament) reaches 2250 in rapid, 2040 in blitz or 2010 in classic. |
+| **Tier B** | Every other rated tournament. The default. |
+| **Escolar** | School events. Never suggested: not every school event is large, so the organiser's category decides. |
+
+The strength lines are the 75th percentile of the field strengths (top-10 average) of every
+non-school tournament of the same rhythm in the last 3 years with at least 20 players, rounded up to
+10. Feminino is left out of the pool because its field is restricted; Sergipanos count like any
+other event, and Tier A can be stronger than a Sergipano. A rhythm with fewer than 8 such events
+keeps its previous line. The lines start at the values in `TIER_SUGGESTION` (rapid 2250, blitz 2040,
+classic 2010).
+
+The **Recalibrate** button on the dashboard's Tournaments page recomputes and saves them. It is a
+tool, not a step: the usual flow is to add a tournament, import its rating results, read the
+"Suggested tier" note and set the tier yourself. Recalibrate now and then (for example once a
+season) so that suggestions for new tournaments follow the current ratings. It never changes a saved
+tier, but the note on an older tournament uses whatever lines are saved when you open it. Run
+`bun packages/api/scripts/tier-review.ts <local-d1.sqlite>` to list the tournaments whose tier would
+change; it reads the file and writes nothing. Changing a tier changes every XP total derived from
+it, so review the list before editing production.
+
+The public pages show the tier names in English-style ("Tier S", "Tier A", "Tier B") even though
+the site is in Portuguese; school events are "Escolar". The "O que é o tier?" button next to the
+filters explains each tier and the XP multiplier it gives to podiums.
 
 ## Tournament page
 
 `/torneios/$id` shows:
 
-- the **podium**, overall first and then by category;
+- two summary tiles (players rated and the biggest gain);
+- the **podium**: the overall classification first, as three podium cards with the champion in the
+  middle (each with the player's photo, the rating after the tournament and its variation), then
+  places 4 and below as a list, then one tile per category. When teams share a place the
+  classification stays a list;
 - the **rating results** of every player, with the rating before, the
   variation, and the rating after, sorted by variation. Each name opens the
   [player profile](/guide/players). Tournaments without imported results say

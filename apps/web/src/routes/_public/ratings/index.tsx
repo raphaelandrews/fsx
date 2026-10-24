@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Link, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter, stripSearchParams } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -154,12 +154,6 @@ function RouteComponent() {
     <>
       <PageHeader icon={BarChartIcon} title="Ratings" />
 
-      <p className="mb-4 text-center text-muted-foreground text-sm">
-        <Link to="/comparar" className="link-inline">
-          Comparar jogadores
-        </Link>
-      </p>
-
       {/* Rating tabs — drive which rating column is rendered below */}
       <Tabs
         className="mb-4 w-full"
@@ -239,7 +233,7 @@ function RouteComponent() {
           }}
         >
           <SearchInput
-            placeholder="Nome do jogador..."
+            placeholder="Procurar jogadores..."
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
           />

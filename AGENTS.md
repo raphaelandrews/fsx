@@ -27,6 +27,9 @@ Local Dev D1 gotchas:
   table-rebuilding migration). Before starting dev or debugging local D1 errors, check
   `pgrep -af "alchemy.run.ts|vite-plus-core"` and stop anything not from the current session.
 
+- `computed_results` is a cache except for the `tier-calibration` row (the saved tier-suggestion lines,
+  an admin decision). When clearing the cache, use `DELETE FROM computed_results WHERE key != 'tier-calibration'`.
+
 ## Frontend conventions
 
 - **Design system:** follow `DESIGN.md` (palette tokens, typography, radius scale, button sizes,

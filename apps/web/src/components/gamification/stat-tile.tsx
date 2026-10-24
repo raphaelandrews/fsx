@@ -18,9 +18,9 @@ export function StatTile({
 }) {
   return (
     <div className={cn("flex h-full min-w-0 flex-col items-center justify-center gap-1 rounded-2xl bg-muted p-3 text-center sm:p-4", className)}>
-      <span className="font-medium text-foreground/70 text-base">{label}</span>
+      <span className="font-medium text-foreground/70 text-sm">{label}</span>
       <span className={cn("font-semibold text-base tabular-nums sm:text-lg", valueClassName)}>{value}</span>
-      {hint && <span className="line-clamp-2 text-pretty text-[11px] text-foreground/70">{hint}</span>}
+      {hint && <span className="line-clamp-2 text-pretty text-foreground/70 text-xs">{hint}</span>}
     </div>
   );
 }

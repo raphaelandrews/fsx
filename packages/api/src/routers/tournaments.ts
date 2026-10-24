@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { and, asc, count, desc, eq, exists, gte, inArray, isNull, lte, not, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, exists, gte, inArray, isNull, lte, ne, not, or, sql } from "drizzle-orm";
 
 import { championships } from "@fsx/db/schema/championships";
 import { circuitPhases } from "@fsx/db/schema/circuit-phases";
@@ -16,12 +16,30 @@ import { assertDeletable } from "../services/delete-impact";
 import { httpUrl, idInput, isoDate, nameText, page, positiveInt, ratingTypeSchema, searchText, seasonYear } from "../input-schemas";
 import { paginate } from "../lib/pagination";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
-import { COMPETITION_TIERS } from "../circuit-types";
+import { COMPETITION_TIERS, type CompetitionTier } from "../circuit-types";
+import { TIER_SUGGESTION } from "../gamification/constants";
+import { calibrateStrengthLines, suggestTier, type StrengthLines } from "../gamification/tier-suggestion";
+import { computedResults } from "@fsx/db/schema/computed-results";
+import { federationToday } from "../lib/dates";
+import type { RatingType } from "../rating-types";
 import { matchesAllWords, SEARCH_RESULT_LIMIT, SEARCH_SCAN_LIMIT, searchWords } from "../lib/name-search";
 
 const tierEnum = z.enum(COMPETITION_TIERS);
 
 export const TOURNAMENTS_PER_PAGE = 12;
+
+// Kept apart from storedOrComputed: a calibration is an admin decision, not a cache a data change may drop.
+// Three years of non-school results: about a hundred events of a few dozen players each.
+const CALIBRATION_RATINGS_LIMIT = 20_000;
+const TIER_CALIBRATION_KEY = "tier-calibration";
+
+async function loadStrengthLines(db: Context["db"]) {
+  const [row] = await db.select().from(computedResults).where(eq(computedResults.key, TIER_CALIBRATION_KEY)).limit(1);
+  const defaults: StrengthLines = { ...TIER_SUGGESTION.minStrengthA };
+  if (!row) return { lines: defaults, defaults, calibratedAt: null as number | null };
+  const stored = JSON.parse(row.value) as StrengthLines;
+  return { lines: stored, defaults, calibratedAt: row.computedAt as number | null };
+}
 
 const RATED_TOURNAMENT_MESSAGE =
   "This tournament has rating results. Revert them on the tournament's edit page before changing its rating type or deleting it.";
@@ -142,6 +160,67 @@ export const tournamentsRouter = router({
       .where(eq(playersToTournaments.tournamentId, input.id))
       .orderBy(desc(playersToTournaments.variation), asc(playersToTournaments.id))
       .limit(PUBLIC_COLLECTION_LIMIT);
+  }),
+  // Admin hint: the tier the field suggests (see gamification/tier-suggestion); never applied automatically.
+  suggestedTier: adminProcedure.input(idInput).query(async ({ ctx, input }) => {
+    const tournament = requireFound(
+      await ctx.db.query.tournaments.findFirst({
+        where: eq(tournaments.id, input.id),
+        columns: { tier: true, ratingType: true },
+      }),
+      "Tournament",
+    );
+    const rows = await ctx.db
+      .select({ oldRating: playersToTournaments.oldRating })
+      .from(playersToTournaments)
+      .where(eq(playersToTournaments.tournamentId, input.id))
+      .limit(PUBLIC_COLLECTION_LIMIT);
+    return {
+      current: tournament.tier as CompetitionTier,
+      ...suggestTier({
+        tier: tournament.tier as CompetitionTier,
+        ratingType: tournament.ratingType as RatingType,
+        ratings: rows.map((row) => row.oldRating),
+        lines: (await loadStrengthLines(ctx.db)).lines,
+      }),
+    };
+  }),
+  tierCalibration: adminProcedure.query(({ ctx }) => loadStrengthLines(ctx.db)),
+  // Recomputes the Tier A strength lines from the recent results of every non-school tournament. Existing tiers stay as they are.
+  recalibrateTier: adminProcedure.mutation(async ({ ctx }) => {
+    const today = federationToday();
+    const since = `${Number(today.slice(0, 4)) - TIER_SUGGESTION.calibrationYears}${today.slice(4)}`;
+    const current = await loadStrengthLines(ctx.db);
+    const events = await ctx.db
+      .select({ id: tournaments.id, ratingType: tournaments.ratingType, date: tournaments.date, championship: championships.name })
+      .from(tournaments)
+      .leftJoin(championships, eq(championships.id, tournaments.championshipId))
+      .where(and(ne(tournaments.tier, "school"), gte(tournaments.date, since)))
+      .limit(PUBLIC_COLLECTION_LIMIT);
+    const ratings = events.length
+      ? await ctx.db
+          .select({ tournamentId: playersToTournaments.tournamentId, oldRating: playersToTournaments.oldRating })
+          .from(playersToTournaments)
+          .innerJoin(tournaments, eq(tournaments.id, playersToTournaments.tournamentId))
+          .where(and(ne(tournaments.tier, "school"), gte(tournaments.date, since)))
+          .limit(CALIBRATION_RATINGS_LIMIT)
+      : [];
+    const lines = calibrateStrengthLines(
+      events.map((event) => ({
+        ratingType: event.ratingType as RatingType,
+        date: event.date,
+        championship: event.championship,
+        ratings: ratings.filter((row) => row.tournamentId === event.id).map((row) => row.oldRating),
+      })),
+      today,
+      current.defaults,
+    );
+    const now = Date.now();
+    await ctx.db
+      .insert(computedResults)
+      .values({ key: TIER_CALIBRATION_KEY, value: JSON.stringify(lines), computedAt: now })
+      .onConflictDoUpdate({ target: computedResults.key, set: { value: JSON.stringify(lines), computedAt: now } });
+    return { previous: current.lines, lines, calibratedAt: now };
   }),
   byId: publicProcedure
     .input(idInput)

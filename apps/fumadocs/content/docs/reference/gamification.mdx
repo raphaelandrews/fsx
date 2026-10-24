@@ -159,9 +159,13 @@ Behaviors worth knowing:
   is the change between the two latest snapshots of a format (the last import),
   hidden until a player has two. Female profiles also show the active Feminino
   rank beside the Absoluto one.
-- A club is ranked by the average of its five best active members per format;
-  clubs with fewer than five active members are unranked, so one strong player
-  cannot carry a club. Medals count the club's current members' careers
+- A club is ranked by the average of its ten best active members per format
+  (`CLUB_STRENGTH_SIZE`). Empty slots count as `STARTING_RATING` (1900), or as the
+  club's weakest counted member if that is lower, so a short roster never gains
+  from the padding and depth counts. Clubs with fewer than three active members
+  (`CLUB_MIN_ACTIVE`) are unranked, so one strong player cannot carry a club. The
+  stored result is keyed `club-standings:v2`; bump the key when this formula
+  changes. Medals count the club's current members' careers
   (tournament podiums, overall and category, and finished-circuit podiums; stage
   results are left out as too frequent). The data has no club history.
 - Records show the top 10 per record with equal values sharing a place and
@@ -196,7 +200,7 @@ achievements, so players are credited for their whole career.
 | Rating threshold reached (per format) | 30 | Rewards improvement; the steps match the title ladder. |
 | Highest title held, by `titles.tier` 1 / 2 / 3 / 4 | 50 / 100 / 200 / 300 | Only the highest counts, so two top titles do not outweigh decades of tournaments. |
 
-Tier multiplier for podiums: S × 1, A × 0.7, B × 0.5, School × 0.4. A category
+Tier multiplier for podiums: S × 1, A × 0.7, B × 0.5, School × 0.4. The tier is chosen by the admin; `suggestTier` (`gamification/tier-suggestion.ts`, constants in `TIER_SUGGESTION`) only advises, from the field strength against lines an admin recalibrates (`tournaments.recalibrateTier`) of the tournament (rules in the [tournaments guide](/guide/tournaments#tiers)). A category
 podium counts at half the overall podium of the same event. Badges give no XP:
 they come from the same rows and would double-count. Youth titles are lost the
 year the player turns 15 (MMS) or 19 (MJS), and XP follows the titles held now,
@@ -243,6 +247,8 @@ Defined in `gamification/badges.ts`, each derived from data already recorded
 | Circuito completo | Played every stage of a circuit season | single |
 | Pódio de etapa | Circuit stage podiums | 3 / 10 / 25 |
 | Campeão de categoria | First place in a tournament category (Sub-14, Feminino, …) | one per category |
+| Bicampeão(ã) / Tricampeão(ã) / Pentacampeão(ã) · Absoluto / Feminino / Rápido / Blitz / Bullet / Equipes | Overall wins of the same Sergipano kind (as for "Campeão(ã) Sergipano"). Every kind has the same three steps | silver / gold / platinum (2 / 3 / 5 wins) |
+| 2 / 3 títulos seguidos | Overall wins of the same championship (any) in consecutive years; the profile popover names it | gold / platinum |
 | Década | A result 10+ years after the first recorded tournament | single |
 | Recordista | Holds first place in a `/estatisticas` record list | single |
 | Campeão(ã) Sergipano · Absoluto / Feminino / Rápido / Blitz / Bullet / Equipes | First overall win of a tier-S championship of that kind. The kind comes from the championship name (`gamification/sergipano.ts`: "feminin", "equipe", "bullet", "blitz", "rapid", "absolut"), so name Sergipano championships accordingly | gold (Absoluto, Feminino), silver (others) |

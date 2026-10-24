@@ -9,6 +9,15 @@ const SOURCES: [keyof Level["breakdown"], string][] = [
   ["titles", "Títulos"],
 ];
 
+const RULES: [string, string][] = [
+  ["Torneio disputado", "15 XP"],
+  ["Pódio em torneio (1º / 2º / 3º)", "60 / 40 / 25"],
+  ["Pódio final de circuito", "40 / 25 / 15"],
+  ["Pódio de etapa de circuito", "15 / 10 / 5"],
+  ["Marca de rating (2000 a 2400)", "30 XP cada"],
+  ["Título mais alto", "50 a 300 XP"],
+];
+
 export function PlayerLevel({ level }: { level: Level }) {
   const span = level.nextLevelXp - level.levelXp;
   const progress = Math.round(((level.xp - level.levelXp) / span) * 100);
@@ -37,38 +46,49 @@ export function PlayerLevel({ level }: { level: Level }) {
           </span>
         </span>
       </PopoverTrigger>
-      <PopoverContent className="w-72 gap-3 p-3 text-base">
-        <div>
-          <p className="font-medium">Nível {level.level}</p>
-          <p className="text-muted-foreground text-sm">
-            Faltam <span className="tabular-nums">{level.nextLevelXp - level.xp}</span> XP para o nível {level.level + 1}.
-          </p>
-        </div>
-        {sources.length > 0 ? (
-          <dl className="space-y-2 text-sm">
-            {sources.map(([source, label]) => (
-              <div key={source} className="space-y-1">
-                <div className="flex justify-between gap-2">
-                  <dt className="text-muted-foreground">{label}</dt>
-                  <dd className="font-medium tabular-nums">{level.breakdown[source]} XP</dd>
+      <PopoverContent className="w-[min(22rem,calc(100vw-2rem))] gap-3 p-3 text-base sm:w-[40rem] sm:max-w-[calc(100vw-2rem)] sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] sm:gap-x-6 sm:p-4">
+        <div className="flex flex-col gap-3">
+          <div>
+            <p className="font-medium">Nível {level.level}</p>
+            <p className="text-muted-foreground text-sm">
+              Faltam <span className="tabular-nums">{level.nextLevelXp - level.xp}</span> XP para o nível {level.level + 1}.
+            </p>
+          </div>
+          {sources.length > 0 ? (
+            <dl className="space-y-2 text-sm">
+              {sources.map(([source, label]) => (
+                <div key={source} className="space-y-1">
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-muted-foreground">{label}</dt>
+                    <dd className="font-medium tabular-nums">{level.breakdown[source]} XP</dd>
+                  </div>
+                  <span className="block h-1 overflow-hidden rounded-full bg-muted" aria-hidden>
+                    <span
+                      className="block h-full rounded-full bg-primary/70"
+                      style={{ width: `${(level.breakdown[source] / level.xp) * 100}%` }}
+                    />
+                  </span>
                 </div>
-                <span className="block h-1 overflow-hidden rounded-full bg-muted" aria-hidden>
-                  <span
-                    className="block h-full rounded-full bg-primary/70"
-                    style={{ width: `${(level.breakdown[source] / level.xp) * 100}%` }}
-                  />
-                </span>
+              ))}
+            </dl>
+          ) : (
+            <p className="text-muted-foreground text-sm">Dispute o primeiro torneio para começar a ganhar XP.</p>
+          )}
+        </div>
+        <div className="border-t pt-3 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-6">
+          <p className="mb-2 font-medium text-sm">Como ganhar XP</p>
+          <dl className="space-y-1.5 text-sm">
+            {RULES.map(([label, value]) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">{label}</dt>
+                <dd className="shrink-0 whitespace-nowrap text-right font-medium tabular-nums">{value}</dd>
               </div>
             ))}
           </dl>
-        ) : (
-          <p className="text-muted-foreground text-sm">Dispute o primeiro torneio para começar a ganhar XP.</p>
-        )}
-        <p className="border-t pt-3 text-pretty text-muted-foreground text-sm">
-          15 XP por torneio; pódios valem 60/40/25 (circuitos 40/25/15, etapas 15/10/5), conforme a
-          importância do evento, e metade em categorias; 30 XP por marca de rating (2000 a 2400);
-          o título mais alto vale de 50 a 300. O XP vem do histórico registrado pela FSX.
-        </p>
+          <p className="mt-2 text-pretty text-muted-foreground text-sm">
+            Pódios valem mais em eventos de maior nível, e metade em categorias. O XP vem do histórico registrado pela FSX.
+          </p>
+        </div>
       </PopoverContent>
     </Popover>
   );

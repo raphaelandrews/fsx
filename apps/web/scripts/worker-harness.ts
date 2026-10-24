@@ -93,9 +93,11 @@ async function seedFixtureRows(db: D1Database) {
     // One record per admin edit page, so accessibility checks render real forms and tables.
     db.prepare("INSERT INTO clubs (id, name) VALUES (1, 'Clube Fixture')"),
     db.prepare("INSERT INTO tournaments (id, name, rating_type, date) VALUES (1, 'Aberto Fixture', 'rapid', '2026-03-01')"),
+    // Two earlier rapid events give the profile enough points to draw its evolution charts.
+    db.prepare("INSERT INTO tournaments (id, name, rating_type, date) VALUES (2, 'Aberto Janeiro Fixture', 'rapid', '2026-01-10'), (3, 'Aberto Fevereiro Fixture', 'rapid', '2026-02-10')"),
     db.prepare(
-      "INSERT INTO players_to_tournaments (player_id, tournament_id, old_rating, variation, rating_type) VALUES (?, 1, 1790, 10, 'rapid')",
-    ).bind(PLAYER.id),
+      "INSERT INTO players_to_tournaments (player_id, tournament_id, old_rating, variation, rating_type) VALUES (?, 2, 1760, 15, 'rapid'), (?, 3, 1775, 15, 'rapid'), (?, 1, 1790, 10, 'rapid')",
+    ).bind(PLAYER.id, PLAYER.id, PLAYER.id),
     db.prepare("INSERT INTO circuits (id, name, type) VALUES (1, 'Circuito Fixture', 'default')"),
     db.prepare("INSERT INTO circuit_phases (id, circuit_id, tournament_id, club_id, sort_order) VALUES (1, 1, 1, 1, 1)"),
     db.prepare(

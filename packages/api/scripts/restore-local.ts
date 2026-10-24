@@ -67,7 +67,7 @@ try {
     d1.prepare("DROP TABLE d1_migrations"),
     d1.prepare("ALTER TABLE d1_migrations_local RENAME TO d1_migrations"),
     // Records and club standings computed by production code; recompute them locally.
-    d1.prepare("DELETE FROM computed_results"),
+    d1.prepare("DELETE FROM computed_results WHERE key != 'tier-calibration'"),
   ]);
 
   const counts = ["players", "tournaments", "players_to_tournaments", "tournament_podiums", "posts", "announcements"]

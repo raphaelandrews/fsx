@@ -9,7 +9,7 @@ import {
   VETERAN_SEASON_STEPS,
 } from "./constants";
 import { COMPETITION_CATEGORIES, type CompetitionTier } from "../circuit-types";
-import { CROWN_FORMATS, SERGIPANO_KINDS, SERGIPANO_LABELS, type CrownFormat } from "./sergipano";
+import { CROWN_FORMATS, SERGIPANO_KINDS, SERGIPANO_LABELS, type CrownFormat, type SergipanoKind } from "./sergipano";
 import type { PlayerStats, Provenance } from "./stats";
 
 export type BadgeTier = "bronze" | "silver" | "gold" | "platinum";
@@ -39,6 +39,8 @@ export interface Achievement extends Provenance {
   description: string;
   icon: BadgeIcon;
   tier: BadgeTier;
+  // The specific championship behind a generic emblem, for the holder's own profile only.
+  detail?: string;
   // Locked emblems only: how far along the player is.
   progress?: { current: number; target: number };
 }
@@ -64,13 +66,22 @@ const THRESHOLD_TIERS: Record<number, BadgeTier> = {
 
 const STEP_TIERS: BadgeTier[] = ["bronze", "silver", "gold", "platinum"];
 
-const TITLE_COUNTS: Record<number, string> = {
-  2: "Bicampeão(ã)",
-  3: "Tricampeão(ã)",
-  4: "Tetracampeão(ã)",
-  5: "Pentacampeão(ã)",
-  6: "Hexacampeão(ã)",
-};
+// Repeat wins of the same Sergipano: every kind has the same ladder, so no emblem exists only
+// because one player did something unusual in one championship. Consecutive years are told apart
+// from the championship only on the holder's profile (`detail`).
+const DYNASTY_WIN_STEPS = [
+  { count: 2, label: "Bicampeão(ã)", tier: "silver" },
+  { count: 3, label: "Tricampeão(ã)", tier: "gold" },
+  { count: 5, label: "Pentacampeão(ã)", tier: "platinum" },
+] as const;
+const DYNASTY_RUN_STEPS = [
+  { length: 2, tier: "gold" },
+  { length: 3, tier: "platinum" },
+] as const;
+const dynastyWinLabel = (label: string, kind: SergipanoKind) => `${label} · ${SERGIPANO_LABELS[kind]}`;
+const dynastyWinText = (kind: SergipanoKind, count: number) => `Venceu o Campeonato Sergipano ${SERGIPANO_LABELS[kind]} ${count} vezes.`;
+const dynastyRunText = (length: number) => `Venceu o mesmo campeonato em ${length} anos consecutivos, qualquer um.`;
+const dynastyRunLabel = (length: number) => `${length} títulos seguidos`;
 
 // Age-less categories are not youth champions, so they earn no category emblem.
 const CATEGORIES_WITHOUT_BADGE: readonly string[] = ["Futuro", "Juvenil", "Master"];
@@ -123,6 +134,17 @@ const earliest = <T extends Provenance>(candidates: T[]) =>
   [...candidates].sort((a, b) =>
     a.earnedAt === b.earnedAt ? 0 : a.earnedAt === null ? 1 : b.earnedAt === null ? -1 : a.earnedAt < b.earnedAt ? -1 : 1,
   )[0];
+
+// The win that first completes `length` consecutive years of titles in one championship.
+function runCompletedAt(dynasty: PlayerStats["dynasties"][number], length: number): Provenance[] {
+  const byYear = new Map<number, Provenance>();
+  for (const win of dynasty.wins) if (win.year !== null && !byYear.has(win.year)) byYear.set(win.year, win);
+  const years = [...byYear.keys()].sort((a, b) => a - b);
+  for (let i = length - 1; i < years.length; i++) {
+    if (years[i]! - years[i - length + 1]! === length - 1) return [byYear.get(years[i]!)!];
+  }
+  return [];
+}
 
 export const BADGE_FAMILIES: BadgeFamily[] = [
   {
@@ -199,40 +221,45 @@ export const BADGE_FAMILIES: BadgeFamily[] = [
   },
   {
     id: "dynasty",
-    earned: (stats) =>
-      stats.dynasties.flatMap((dynasty) => {
-        const count = dynasty.wins.length;
-        if (count < 2) return [];
-        const latest = dynasty.wins[count - 1]!;
-        const titles: Achievement[] = [
+    earned: (stats) => [
+      ...SERGIPANO_KINDS.flatMap((kind) =>
+        DYNASTY_WIN_STEPS.flatMap(({ count, label, tier }) => {
+          const reached = stats.sergipanoTitles.filter((title) => title.kind === kind)[count - 1];
+          if (!reached) return [];
+          return [
+            {
+              earnedAt: reached.earnedAt,
+              tournamentId: reached.tournamentId,
+              legacy: reached.legacy,
+              id: `dynasty-${kind}-${count}`,
+              family: "dynasty",
+              label: dynastyWinLabel(label, kind),
+              description: dynastyWinText(kind, count),
+              icon: "trophy" as const,
+              tier,
+            },
+          ];
+        }),
+      ),
+      ...DYNASTY_RUN_STEPS.flatMap(({ length, tier }) => {
+        const reached = earliest(stats.dynasties.flatMap((dynasty) => runCompletedAt(dynasty, length).map((win) => ({ ...win, name: dynasty.championshipName }))));
+        if (!reached) return [];
+        return [
           {
-            earnedAt: latest.earnedAt,
-            tournamentId: latest.tournamentId,
-            legacy: latest.legacy,
-            id: `dynasty-${dynasty.championshipId}`,
+            earnedAt: reached.earnedAt,
+            tournamentId: reached.tournamentId,
+            legacy: reached.legacy,
+            id: `dynasty-run-${length}`,
             family: "dynasty",
-            label: `${TITLE_COUNTS[count] ?? `${count}× campeão(ã)`} · ${dynasty.championshipName}`,
-            description: `Venceu ${count} edições do ${dynasty.championshipName}.`,
-            icon: "trophy",
-            tier: count >= 4 ? "platinum" : count === 3 ? "gold" : "silver",
+            label: dynastyRunLabel(length),
+            description: dynastyRunText(length),
+            detail: reached.name,
+            icon: "trophy" as const,
+            tier,
           },
         ];
-        const run = dynasty.longestRun;
-        const runEnd = dynasty.wins.find((win) => win.year === run.endYear);
-        if (run.length >= 2 && runEnd) {
-          titles.push({
-            ...titles[0]!,
-            earnedAt: runEnd.earnedAt,
-            tournamentId: runEnd.tournamentId,
-            legacy: runEnd.legacy,
-            id: `dynasty-run-${dynasty.championshipId}`,
-            label: `${run.length} títulos seguidos · ${dynasty.championshipName}`,
-            description: `Venceu o ${dynasty.championshipName} em ${run.length} anos consecutivos.`,
-            tier: run.length >= 3 ? "platinum" : "gold",
-          });
-        }
-        return titles;
       }),
+    ],
   },
 ];
 
@@ -644,14 +671,7 @@ export function badgeCatalog(careers: PlayerStats[]): BadgeCatalogEntry[] {
     if (!hasRecordedCareer(stats)) continue;
     for (const { id, family, label, description, icon, tier } of achievementsOf(stats)) {
       if (!catalog.has(id)) {
-        // Dynasty text names the holder's own count, so it stays generic here.
-        const generic =
-          family !== "dynasty"
-            ? description
-            : id.startsWith("dynasty-run-")
-              ? "Venceu o mesmo campeonato em anos consecutivos."
-              : "Venceu o mesmo campeonato mais de uma vez.";
-        catalog.set(id, { id, family, label, description: generic, icon, tier });
+        catalog.set(id, { id, family, label, description, icon, tier });
       }
     }
   }
@@ -659,8 +679,7 @@ export function badgeCatalog(careers: PlayerStats[]): BadgeCatalogEntry[] {
 }
 
 // Every emblem that can exist, earned or not, so the public list can show what is
-// still out there. Mirrors BADGE_FAMILIES (badges.test.ts checks they agree);
-// dynasties are per championship, so they only appear once someone earns them.
+// still out there. Mirrors BADGE_FAMILIES (badges.test.ts checks they agree).
 // The descriptions must not mention one player's own numbers.
 export function allBadges(): BadgeCatalogEntry[] {
   const entry = (
@@ -712,6 +731,14 @@ export function allBadges(): BadgeCatalogEntry[] {
     ),
     ...COMPETITION_CATEGORIES.filter(hasCategoryBadge).map((category) =>
       entry(categoryBadgeId(category), "category", `Campeão(ã) · ${category}`, `Venceu a categoria ${category} em um torneio.`, "category", "silver"),
+    ),
+    ...SERGIPANO_KINDS.flatMap((kind) =>
+      DYNASTY_WIN_STEPS.map(({ count, label, tier }) =>
+        entry(`dynasty-${kind}-${count}`, "dynasty", dynastyWinLabel(label, kind), dynastyWinText(kind, count), "trophy", tier),
+      ),
+    ),
+    ...DYNASTY_RUN_STEPS.map(({ length, tier }) =>
+      entry(`dynasty-run-${length}`, "dynasty", dynastyRunLabel(length), dynastyRunText(length), "trophy", tier),
     ),
     entry("decade", "decade", "Década", "Continua jogando dez anos depois do primeiro torneio registrado.", "decade", "gold"),
     ...SERGIPANO_KINDS.map((kind) =>

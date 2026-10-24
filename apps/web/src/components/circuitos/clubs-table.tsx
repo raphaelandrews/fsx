@@ -27,6 +27,7 @@ import {
 } from "@fsx/ui/components/table";
 
 import { buildClubColumns } from "./columns";
+import { PhaseName } from "./phase-labels";
 import type { ClubRow, PlayerRow } from "./types";
 
 export function ClubsTable({ rows, phases }: { rows: ClubRow[]; phases: string[] }) {
@@ -140,7 +141,7 @@ function ClubPlayersDetail({ players, phases }: { players: PlayerRow[]; phases: 
             <th className="py-2 pl-2 text-right text-sm font-medium">Total</th>
             {phases.map((phase) => (
               <th className="px-2 py-2 text-right text-sm font-medium" key={phase}>
-                {phase}
+                <PhaseName phase={phase} />
               </th>
             ))}
           </tr>

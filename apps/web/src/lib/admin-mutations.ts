@@ -45,7 +45,7 @@ export const ADMIN_QUERY_DEPENDENTS = {
   playersToInsignias: ["playersToInsignias", "players"],
   playersToRoles: ["playersToRoles", "roles", "players"],
   playersToTitles: ["playersToTitles", "titledPlayers", "topPlayers", "players", "records"],
-  playersTournament: ["playersTournament", "players", "playersToTitles", "topPlayers", "titledPlayers", "swissManager", "records", "clubs"],
+  playersTournament: ["playersTournament", "tournaments", "players", "playersToTitles", "topPlayers", "titledPlayers", "swissManager", "records", "clubs"],
   posts: ["posts", "stats"],
   roles: ["roles", "playersToRoles", "players"],
   titles: ["titles", "playersToTitles", "titledPlayers", "topPlayers", "players", "records"],

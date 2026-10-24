@@ -47,7 +47,8 @@ components. Decorative gradients (`avatar-gradient.tsx`) are the only exception.
 | `success` | green | light green | Gains, won variation, rises, "Ativo", in progress, coming soon, success messages |
 | `destructive` | crimson | light crimson | Red text and icons: errors, deletion, losses, drops |
 | `destructive-fill` | candy red | candy red | Red fills next to a label (status dots, chart losses); 3:1, not for text |
-| `warning` / `warning-foreground` | yellow / dark amber | dark gold / bright yellow | Warnings, title abbreviations, "this week" |
+| `warning` / `warning-foreground` | yellow / dark amber | dark gold / bright yellow | Warnings and "this week" chips (dark text on the yellow fill) |
+| `warning-text` | golden yellow (~2.3:1 on white) | bright yellow | Yellow **text** with no fill behind it: internal title abbreviations ("CMS", "MMS") and a zero rating change. A deliberate exception to the AA rule below; do not swap it for `warning-foreground`, which reads as brown. |
 | `highlight` | yellow | bright yellow | Small accents and fills only (the live dot), never text |
 | `pink`, `red`, `yellow`, `orange`, `cyan`, `green`, `teal`, `blue`, `indigo`, `purple`, `violet` and their `-fill` / `-foreground` tokens | Strong hue / pale fill / dark foreground | Same semantic hues | Reusable color families; e.g. `text-pink`, `bg-pink-fill`, `text-pink-foreground` |
 | `neutral`, `neutral-fill`, `neutral-foreground` | Pale cool gray / lighter cool gray / dark cool gray | Same neutral palette | Neutral labeled treatments |
@@ -78,7 +79,7 @@ pair it with a sign, arrow, icon, or label.
 
 ### Contrast
 
-All text pairs meet WCAG AA (4.5:1) in both themes. `highlight` is a yellow fill: never use it for text (a zero rating change uses `warning-foreground`). When adding a token, check text/background pairs before
+All text pairs meet WCAG AA (4.5:1) in both themes, except `warning-text` on white (see Palette), which is kept for its look and only ever marks short labels or a number that also has a sign or label. `highlight` is a yellow fill: never use it for text (a zero rating change uses `warning-text`). When adding a token, check text/background pairs before
 using it.
 
 ## Typography
@@ -359,23 +360,69 @@ cards use one column on phones and at most two columns from `sm` up. Each `Recor
 for "Ver menos". Its button uses `rounded-lg` inside the `rounded-2xl` card: 8px button radius +
 8px inset = 16px outer radius.
 
+### Tournaments, circuits and statistics pages
+
+- Explanations that do not belong in the flow of a page (how the club ranking works, what a tournament
+  tier is) live behind an `InfoPopover`: a ghost `lg` button with `InformationCircleIcon` and a short
+  label that opens a popover. Don't leave them as a muted footnote under the table.
+- The tournament edit page shows a "Suggested tier" note (a `bg-muted rounded-2xl` block above the
+  form; "matches the current tier" in `success`) built from the field. It never changes the form.
+  The tournaments list carries the same block (`TierCalibrationCard`) with the Tier A lines and a
+  "Recalibrate" outline button.
+- Tournament tiers are always written "Tier S", "Tier A", "Tier B" and "Escolar" on the public pages,
+  matching the dashboard and the statistics charts, even though the site is in Portuguese.
+
+- `/torneios` is a `Table` (date, tournament with its championship, rhythm, tier, winner). Below
+  `md` only the tournament column remains and carries date, rhythm, tier, and winner as muted
+  `text-sm` lines; the name link is stretched over the whole row.
+- A tournament page opens with two `StatTile`s, then the overall classification as three
+  `bg-muted rounded-2xl` podium cards (from `sm`: 2º left, the champion in the middle, taller with an 80px
+  avatar, 3º right; each with medal, avatar, name, rating after and the signed variation in
+  `success`/`destructive`; on phones they stack in rank order). Places 4+ follow in one muted list. When
+  teams share a place and there is no single 1º/2º/3º, the whole classification stays a list.
+  Category podiums are smaller `bg-muted` tiles in two columns. No bordered cards.
+- Circuit stages are a list of rows (36px `bg-muted` "E1" circle, name, host club, arrow) under a
+  "Etapas" `SectionHeading`; the points table uses the same "E1" short labels as column headers
+  (full name in the `title`), so it stays narrow on phones.
+- The XP popover (`PlayerLevel`) is 22rem wide on phones and 40rem from `sm`, split in two columns:
+  this player's XP by source on the left, "Como ganhar XP" (label and value rows) on the right.
+- Emblemas (`BadgeCensus`) shows one tier at a time through pill `Tabs` (Platina, Ouro, Prata,
+  Bronze, each with its count), opening on the rarest. It is filtered, not paginated: the whole list
+  is ~80 short cards, and pages would hide badges from search and comparison.
+- `/estatisticas` is three pill `Tabs` in the URL (`?aba=panorama|recordes|emblemas`), each tab
+  loading only its queries, instead of one long scroll with anchor buttons.
+
 ### Player profile
 
-Order: header (photo, name, level, title emblems) → **Ratings** → Conquistas → Informações →
-Estatísticas → Circuitos → Comunicados → IDs → Performance → Histórico de torneios. Ratings come
-first because they're what most visitors look for.
+Order: header → jump links → **Ratings** → Evolução → Conquistas → Carreira (Estatísticas, Circuitos)
+→ Caminho para títulos → Comunicados → Histórico de torneios → Dados. Most visitors want to know who
+the player is and how strong they are, so identity and ratings come first, the rating's trajectory
+sits directly under it, and reference data closes the page.
 
-- Rating boxes are `StatTile`s: label, the rating at `text-xl sm:text-2xl`, and peak as the hint.
-  Below them, one compact `StatTile` per time control stacks the `Absoluto` position and, for female
-  profiles, the `Feminino` position. Position values use `text-base`. ID tiles that link out show `ArrowUpRight01Icon` and hover to
-  `bg-accent`.
-- Informações is a `dl` of static rows (label `text-sm` muted, value `text-base` medium), with no
-  hover state, since the rows aren't interactive. Status is a static dot (`bg-success` /
-  `bg-destructive`) plus the word; no pulsing animation.
-- Performance switches format with pill `Tabs` (not a select) above two full-width chart cards in a
-  single column: rating variation uses vertical columns (red for losses), and total rating uses a
-  smooth filled area with its line overlaid and a y-axis padded around the player's observed ratings.
-  Each card has a title; empty charts show a `bg-muted rounded-2xl` message.
+- Header: avatar, name (`text-2xl`), a muted line with club (logo, link, club rank), location and
+  status dot, then title emblems, roles and "Atual campeão(ã)" outline badges, the level, and a
+  secondary `lg` "Comparar" button. Status and club live here, not in a list further down.
+- Jump links (`PlayerJumpNav`) are ghost `lg` buttons in a sticky `top-0` bar (translucent
+  `background` with blur) that scrolls sideways on phones and lists every section that renders;
+  sections use `scroll-mt-16`. They are plain anchors, so the page stays one server-rendered scroll,
+  not tabs.
+- Title emblems in the header are buttons that open a popover with the full title name and whether
+  it is a FSX or CBX/FIDE title, so Dados does not repeat them.
+- Rating tiles (`RatingPicker`) are toggle buttons (`aria-pressed`) on `bg-muted rounded-2xl`: label
+  (`text-sm`), rating at `text-xl sm:text-2xl`, peak as the hint, then, after a divider, the
+  `Absoluto` position (and `Feminino` for female profiles) at `text-sm` medium. The selected tile
+  gets a 2px `primary` inset ring; the others hover to `bg-accent`. They choose the format for the
+  Evolução charts, so there is no separate tab bar.
+- Evolução is titled with the format ("Evolução · Rápido"): the rating area chart full width, then
+  variation columns and the ranking line side by side from `sm`. The rating and variation charts
+  need at least 3 tournaments in the selected format; below that one `bg-muted rounded-2xl` message
+  says how many there are (a one-point chart says nothing). The ranking chart is independent.
+- Conquistas: medal totals as one `bg-muted` card (gold/silver/bronze chips plus a one-line
+  breakdown by kind), podiums grouped by championship (own subheading with a "toque" hint), then
+  emblems by tier.
+- Dados is a `dl` of static rows (label `text-sm` muted, value `text-base` medium, right-aligned),
+  with no hover state: full name (only when a nickname is shown) and the FSX/CBX/FIDE IDs.
+  CBX and FIDE IDs are `link-inline` with `ArrowUpRight01Icon`.
 
 ### Progress and goals (gamification)
 
@@ -443,6 +490,11 @@ ellipsis always hides at least two pages.
 
 Pills inside search-like contexts (command menu, 40px). The header search trigger is a
 `secondary` pill with a 1px `border-border` outline so it reads as a field.
+
+**Table search** (`SearchInput`, used by ratings, titled players, and the dashboard lists) is a
+32px `rounded-full` pill on `bg-secondary` with a 1px `border-border` and no shadow, the height of the
+filter buttons beside it. Focus turns the border `primary` with the same 4px `primary/20` ring as
+form fields. Its placeholder is "Procurar jogadores...". Don't build a one-off search box.
 
 **Form fields** (public and dashboard) share one look, set once in the shared components: 48px tall
 (`h-12`), `rounded-xl`, 1px `border-input` on `bg-background`, `px-3`, 16px text, no shadow. Focus

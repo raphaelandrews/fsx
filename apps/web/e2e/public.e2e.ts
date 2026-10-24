@@ -40,9 +40,10 @@ test("statistics charts use grouped comparisons and a 100% tier bar", async ({ p
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-test("player ranking positions are grouped in tiles below the ratings", async ({ page }) => {
+test("player ranking positions sit in the rating tiles that pick the evolution format", async ({ page }) => {
   await page.goto(`/jogadores/${PLAYER.id}`, { waitUntil: "networkidle" });
-  await expect(page.getByRole("heading", { name: "Posições no ranking" })).toBeVisible();
+  const formatTiles = page.getByRole("group", { name: "Formato de rating" }).getByRole("button");
+  await expect(formatTiles).toHaveCount(3);
   await expect(page.getByRole("heading", { name: "Variação de rating" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Evolução de rating" })).toBeVisible();
   const evolutionChart = page.getByRole("img", { name: "Evolução do rating nos torneios recentes" });
@@ -54,7 +55,11 @@ test("player ranking positions are grouped in tiles below the ratings", async ({
   expect(Math.min(...yTicks)).toBeGreaterThan(0);
   const openPosition = page.getByText(/Absoluto #/).first();
   await expect(openPosition).toBeVisible();
-  expect(await openPosition.evaluate((element) => getComputedStyle(element).fontSize)).toBe("16px");
+  await formatTiles.nth(0).click();
+  await expect(formatTiles.nth(0)).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText("Evolução · Clássico", { exact: true })).toBeVisible();
+  await expect(page.getByText("Nenhum torneio de clássico registrado.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Evolução de rating" })).toHaveCount(0);
 });
 
 test("searches players from the keyboard command menu and opens the profile", async ({ page }) => {

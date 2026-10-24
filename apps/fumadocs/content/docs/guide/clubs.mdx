@@ -4,9 +4,12 @@ description: The club ranking on /clubes and each club's page.
 ---
 
 The clubs page (`/clubes`) ranks clubs by **strength**: the average rating of
-their five best active players, in the time control chosen at the top (classical,
-rapid, or blitz). Clubs with fewer than five active players are listed without a
-position, so one strong player cannot carry a club. Equal strengths share a place.
+their ten best active players, in the time control chosen at the top (classical,
+rapid, or blitz). A club with fewer than ten active players fills its empty
+slots with a newcomer's rating (1900, or the club's weakest counted player if
+that is lower), so depth counts: a few strong players are not enough to beat a
+full roster of good ones. A club with fewer than three active players is listed
+without a position. Equal strengths share a place.
 
 Each club also shows its **medals**: the tournament podiums (overall and
 category) and finished-circuit podiums of the players who are its members today.

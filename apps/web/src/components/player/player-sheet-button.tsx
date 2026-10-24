@@ -35,7 +35,7 @@ export function PlayerSheetButton({ id, name, nickname, image, shortTitle }: Pro
             <AvatarFallback className={avatarGradient(id)} />
           </Avatar>
           <span className="whitespace-nowrap font-semibold underline-reveal underline-reveal-primary group-hover:after:left-0 group-hover:after:w-full group-focus-visible:after:left-0 group-focus-visible:after:w-full">
-            {shortTitle && <span className="text-warning-foreground">{shortTitle}</span>} {nickname ?? name}
+            {shortTitle && <span className="text-warning-text">{shortTitle}</span>} {nickname ?? name}
           </span>
         </Button>
       }

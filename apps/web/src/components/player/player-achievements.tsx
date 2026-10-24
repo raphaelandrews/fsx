@@ -24,24 +24,26 @@ export function Subheading({ id, children, aside }: { id?: string; children: Rea
 }
 
 export function TrophyCabinet({ medals }: { medals: PlayerStatsResult["stats"]["medals"] }) {
-  const groups = MEDAL_GROUPS.filter(([key]) => medals[key].gold + medals[key].silver + medals[key].bronze > 0);
-  if (groups.length === 0) return null;
+  const total = (place: "gold" | "silver" | "bronze") => MEDAL_GROUPS.reduce((sum, [key]) => sum + medals[key][place], 0);
+  const totals = ([1, 2, 3] as const).map((place) => ({ place, count: total(place === 1 ? "gold" : place === 2 ? "silver" : "bronze") }));
+  const groups = MEDAL_GROUPS.map(([key, label]) => ({ label, count: medals[key].gold + medals[key].silver + medals[key].bronze })).filter(
+    (group) => group.count > 0,
+  );
+  const all = totals.reduce((sum, { count }) => sum + count, 0);
+  if (all === 0) return null;
   return (
     <section aria-labelledby="player-medals">
-      <Subheading id="player-medals">Quadro de medalhas</Subheading>
-      <dl className="grid gap-2 sm:grid-cols-2">
-        {groups.map(([key, label]) => (
-          <div key={key} className="flex min-h-12 items-center justify-between gap-2 rounded-2xl bg-muted px-3 py-2">
-            <dt className="font-medium text-foreground/70 text-base">{label}</dt>
-            <dd className="flex gap-1.5">
-              {([1, 2, 3] as const).map((place) => {
-                const count = medals[key][place === 1 ? "gold" : place === 2 ? "silver" : "bronze"];
-                return count > 0 ? <Medal key={place} place={place} count={count} /> : null;
-              })}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <Subheading id="player-medals" aside={`${all} medalha${all === 1 ? "" : "s"}`}>
+        Quadro de medalhas
+      </Subheading>
+      <div className="flex flex-col gap-2 rounded-2xl bg-muted px-3 py-3">
+        <div className="flex flex-wrap gap-1.5">
+          {totals.map(({ place, count }) => (count > 0 ? <Medal key={place} place={place} count={count} /> : null))}
+        </div>
+        <p className="text-muted-foreground text-sm tabular-nums">
+          {groups.map((group) => `${group.label} ${group.count}`).join(" · ")}
+        </p>
+      </div>
     </section>
   );
 }

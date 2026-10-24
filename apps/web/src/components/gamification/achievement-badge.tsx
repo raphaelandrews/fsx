@@ -99,6 +99,7 @@ export function AchievementBadge({
           <p className="font-medium leading-tight">{achievement.label}</p>
         </div>
         <p className="text-pretty text-muted-foreground">{achievement.description}</p>
+        {achievement.detail && <p className="font-medium">{achievement.detail}</p>}
         {locked && achievement.progress && (
           <div className="flex flex-col gap-1">
             <ProgressBar current={achievement.progress.current} target={achievement.progress.target} />

@@ -2,9 +2,9 @@ import type { CompetitionTier } from "@fsx/api/circuit-types";
 import type { RatingType } from "@fsx/api/rating-types";
 
 export const TIER_LABELS: Record<CompetitionTier, string> = {
-  S: "Sergipano",
-  A: "Nível A",
-  B: "Nível B",
+  S: "Tier S",
+  A: "Tier A",
+  B: "Tier B",
   school: "Escolar",
 };
 

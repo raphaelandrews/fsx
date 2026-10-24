@@ -44,7 +44,7 @@ export function PlayerStats({
       </div>
       {stats.seasons.length > 0 && (
         <section aria-labelledby="player-activity">
-          <Subheading id="player-activity" aside="Abra um ano para ver a temporada">
+          <Subheading id="player-activity" aside="Toque num ano para ver a temporada">
             Torneios por mês
           </Subheading>
           <ActivityGraph

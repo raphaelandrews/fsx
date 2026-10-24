@@ -53,7 +53,7 @@ Plain `bun run db:seed` still inserts the small sample data set.
 loader, applies the migrations the backup predates, rebuilds `d1_migrations` in
 the shape Alchemy's local migrator expects (production's tracker requires an
 `applied_at` that Alchemy does not insert, so the next migration would fail), and
-clears `computed_results`. Don't run `bun run db:seed` afterwards. Run directly,
+clears `computed_results` except `tier-calibration`. Don't run `bun run db:seed` afterwards. Run directly,
 it keeps production accounts (the seed commands pass `--no-accounts`); either way
 the local database holds personal data, so keep it on your machine. To go back to seed data, stop dev, `rm -rf .alchemy/miniflare/v3/d1`,
 start `bun dev`, and run `bun run db:seed`.
@@ -97,7 +97,7 @@ migrations require a restoration plan before deployment.
    (record the missing result or podium) before the first update.
 4. Click **Update rankings now** once: it applies both rules and records the first
    ranking snapshot, so movement arrows appear after the next import.
-5. `DELETE FROM computed_results`, so records and club standings are computed with
+5. `DELETE FROM computed_results WHERE key != 'tier-calibration'`, so records and club standings are computed with
    the deployed code.
 6. Set `GAMIFICATION_LAUNCH_DATE` in `packages/api/src/gamification/constants.ts`
    to the release day and deploy again, to turn on the home "Novidades" feed.
@@ -175,8 +175,8 @@ production D1 (read-only) and compare the results with the table in [Gamificatio
 The records page, club standings, and home feed are stored in `computed_results`
 and recomputed after any admin change ([ADR 0008](/decisions/0008-stored-computations)).
 After a manual SQL fix, a migration that changes their data, or a deploy that
-changes the XP weights or record rules, run `DELETE FROM computed_results` (or
-wait a day). The home "Novidades" feed stays
+changes the XP weights or record rules, run `DELETE FROM computed_results WHERE key != 'tier-calibration'` (or
+wait a day). Keep that row: it holds the tier-suggestion lines saved by the dashboard's Recalibrate button, which are an admin decision, not a cache. The home "Novidades" feed stays
 off until `GAMIFICATION_LAUNCH_DATE` in `packages/api/src/gamification/constants.ts`
 is set to the release day.
 

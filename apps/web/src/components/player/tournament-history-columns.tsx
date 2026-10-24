@@ -46,7 +46,7 @@ export const tournamentHistoryColumns: ColumnDef<HistoryRow>[] = [
 export function formatVariationColor(variation: number | null | undefined) {
   if (variation == null) return "text-muted-foreground";
   if (variation > 0) return "text-success";
-  if (variation === 0) return "text-warning-foreground";
+  if (variation === 0) return "text-warning-text";
   if (variation < 0) return "text-destructive";
   return "text-muted-foreground";
 }

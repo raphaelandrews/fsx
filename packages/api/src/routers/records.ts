@@ -23,7 +23,7 @@ import { RATING_TYPES } from "../rating-types";
 // once per data change (computing every career is slower than reading one stored row).
 function gamificationSummary(db: Context["db"]) {
   const year = federationYear();
-  return storedOrComputed(db, `gamification:v3:${year}`, async () => {
+  return storedOrComputed(db, `gamification:v4:${year}`, async () => {
     const careers = await loadAllPlayerStats(db);
     const records = playerRecords(
       careers.map(({ player, stats, level, tournaments }) => ({

@@ -9,10 +9,20 @@ import { DataTableFacetedFilter } from "@/components/data-table/data-table-facet
 
 import { aggregateClubs, aggregatePlayers, circuitCategories, phaseNames } from "./aggregate";
 import { ClubsTable } from "./clubs-table";
+import { PhaseLabelsProvider, phaseLabels } from "./phase-labels";
 import { PlayersTable } from "./players-table";
 import type { Circuit } from "./types";
 
 export function CircuitView({ circuit }: { circuit: Circuit }) {
+  const labels = useMemo(() => phaseLabels(circuit), [circuit]);
+  return (
+    <PhaseLabelsProvider value={labels}>
+      <CircuitViewBody circuit={circuit} />
+    </PhaseLabelsProvider>
+  );
+}
+
+function CircuitViewBody({ circuit }: { circuit: Circuit }) {
   const phases = useMemo(() => phaseNames(circuit), [circuit]);
 
   if (circuit.type === "categories") {

@@ -10,11 +10,13 @@ import { Pagination } from "@/components/data-table/pagination";
 import { Medal } from "@/components/gamification/medal";
 import { UserGroupIcon } from "@hugeicons/core-free-icons";
 
+import { InfoPopover } from "@/components/info-popover";
 import { PageHeader } from "@/components/page-header";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { clubsSearchSchema } from "@/lib/search-schemas";
 import { useTRPC } from "@/lib/trpc";
+import { CLUB_MIN_ACTIVE, CLUB_STRENGTH_SIZE, STARTING_RATING } from "@fsx/api/gamification/constants";
 
 
 const PAGE_SIZE = 20;
@@ -26,7 +28,7 @@ export const Route = createFileRoute("/_public/clubes/")({
     buildSeo({
       title: withBrand("Clubes"),
       description:
-        "Ranking dos clubes de xadrez de Sergipe pela média dos cinco melhores jogadores ativos, com o quadro de medalhas de cada clube.",
+        "Ranking dos clubes de xadrez de Sergipe pela média dos dez melhores jogadores ativos, com o quadro de medalhas de cada clube.",
       path: "/clubes",
       jsonLd: breadcrumbJsonLd([
         { name: "Início", path: "/" },
@@ -59,7 +61,7 @@ function RouteComponent() {
     <>
       <PageHeader icon={UserGroupIcon}
         title="Clubes"
-        description="Ranking pela média dos 5 melhores jogadores ativos de cada clube."
+        description={`Ranking pela média dos ${CLUB_STRENGTH_SIZE} melhores jogadores ativos de cada clube.`}
       />
 
       <Tabs
@@ -75,6 +77,22 @@ function RouteComponent() {
           </TabsList>
         </div>
       </Tabs>
+
+      <div className="mb-2 flex justify-center">
+        <InfoPopover label="Como funciona o ranking" title="Como funciona o ranking">
+          <p className="text-muted-foreground">
+            A força de um clube é a média dos {CLUB_STRENGTH_SIZE} melhores jogadores ativos no ritmo escolhido.
+          </p>
+          <ul className="list-disc space-y-1.5 pl-4 text-muted-foreground">
+            <li>
+              Vagas vazias contam como um jogador novo ({STARTING_RATING}, ou o pior jogador do clube se for menor), então ter mais
+              jogadores fortes ajuda.
+            </li>
+            <li>Clubes com menos de {CLUB_MIN_ACTIVE} jogadores ativos aparecem sem posição.</li>
+            <li>As medalhas somam os pódios em torneios e circuitos dos jogadores que hoje são do clube.</li>
+          </ul>
+        </InfoPopover>
+      </div>
 
       <Table>
         <TableHeader>
@@ -126,10 +144,6 @@ function RouteComponent() {
           getPageHref={(n) => router.buildLocation({ to: "/clubes", search: pageSearch(n) }).href}
         />
       </div>
-      <p className="mt-4 text-center text-muted-foreground text-sm">
-        {unranked.length > 0 && "Clubes com menos de 5 jogadores ativos aparecem sem posição. "}
-        As medalhas somam os pódios em torneios e circuitos dos jogadores que hoje são do clube.
-      </p>
     </>
   );
 }

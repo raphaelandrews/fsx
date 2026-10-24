@@ -1,4 +1,4 @@
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Column, ColumnDef } from "@tanstack/react-table";
 
 import { cn } from "@fsx/ui/lib/utils";
 
@@ -6,6 +6,7 @@ import { PlayerSheetButton } from "@/components/player/player-sheet-button";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { avatarGradientFor } from "@/components/avatar-gradient";
 
+import { usePhaseLabel } from "./phase-labels";
 import type { ClubRow, PlayerRow } from "./types";
 
 function indexColumn<T>(): ColumnDef<T> {
@@ -41,15 +42,17 @@ function totalColumn<T extends { total: number }>(): ColumnDef<T> {
   };
 }
 
+function PhaseHeader<T>({ column, phase }: { column: Column<T, unknown>; phase: string }) {
+  return <DataTableColumnHeader className="justify-center" column={column} title={usePhaseLabel(phase)} />;
+}
+
 function phaseColumns<T extends { pointsByPhase: Record<string, number> }>(
   phases: string[],
 ): ColumnDef<T>[] {
   return phases.map((phase) => ({
     id: phase,
     accessorFn: (row: T) => row.pointsByPhase[phase] ?? 0,
-    header: ({ column }) => (
-      <DataTableColumnHeader className="justify-center" column={column} title={phase} />
-    ),
+    header: ({ column }) => <PhaseHeader column={column} phase={phase} />,
     cell: ({ row }) => {
       const points = row.original.pointsByPhase[phase];
       return points && points > 0 ? (
@@ -58,7 +61,7 @@ function phaseColumns<T extends { pointsByPhase: Record<string, number> }>(
         <span className="text-muted-foreground">—</span>
       );
     },
-    meta: { className: "w-20 text-center" },
+    meta: { className: "w-14 px-1 text-center" },
   }));
 }
 

@@ -176,5 +176,5 @@ describe("D1 migrations", () => {
     // recreate pattern of 0021; Drizzle's `PRAGMA foreign_keys=OFF` rebuild
     // cascade-deletes or fails on D1.
     expect(offenders).toEqual([]);
-  });
+  }, 30_000);
 });

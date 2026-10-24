@@ -3,6 +3,7 @@ import { RATING_TYPES } from "@fsx/api/rating-types";
 import { Button } from "@fsx/ui/components/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@fsx/ui/components/select";
 
+import { TierInfo } from "./tier-info";
 import { hasFilters, RHYTHM_LABELS, TIER_LABELS, type TournamentSearch } from "./labels";
 
 const ALL = "all";
@@ -58,7 +59,7 @@ export function TournamentFilters({
         onChange={(value) => onChange({ ano: value === undefined ? undefined : Number(value) })}
       />
       <FilterSelect
-        label="Nível"
+        label="Tier"
         value={search.nivel}
         options={COMPETITION_TIERS.map((tier) => ({ value: tier, label: TIER_LABELS[tier] }))}
         onChange={(value) => onChange({ nivel: value as TournamentSearch["nivel"] })}
@@ -77,6 +78,7 @@ export function TournamentFilters({
           onChange={(value) => onChange({ campeonato: value === undefined ? undefined : Number(value) })}
         />
       ) : null}
+      <TierInfo />
       {hasFilters(search) ? (
         <Button type="button" variant="ghost" size="sm" onClick={onClear}>
           Limpar filtros

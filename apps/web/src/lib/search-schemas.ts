@@ -24,6 +24,12 @@ export const clubsSearchSchema = z.object({
   page: pageParam,
 });
 
+export const STATISTICS_TABS = ["panorama", "recordes", "emblemas"] as const;
+
+export const statisticsSearchSchema = z.object({
+  aba: z.enum(STATISTICS_TABS).default("panorama").catch("panorama"),
+});
+
 export const ratingsSearchSchema = z.object({
   page: pageParam,
   ordenar: ratingTypeParam,

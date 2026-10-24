@@ -11,6 +11,7 @@ import { cn } from "@fsx/ui/lib/utils";
 import { formatIsoDate } from "@/components/gamification/tier";
 import { PageHeader } from "@/components/page-header";
 import { SectionHeading } from "@/components/section-heading";
+import { StatTile } from "@/components/gamification/stat-tile";
 import { PageSkeleton } from "@/components/skeletons/page-skeleton";
 import { RHYTHM_LABELS, TIER_LABELS } from "@/components/torneios/labels";
 import { TournamentPodium } from "@/components/torneios/tournament-podium";
@@ -113,10 +114,19 @@ function RouteComponent() {
         ))}
       </div>
 
+      {results.length > 0 ? (
+        <div className="mb-8 grid grid-cols-2 gap-2 sm:gap-4">
+          <StatTile label="Jogadores" value={results.length} hint="com rating atualizado" className={results[0]!.variation > 0 ? undefined : "col-span-2"} />
+          {results[0]!.variation > 0 && (
+            <StatTile label="Maior ganho" value={`+${results[0]!.variation}`} valueClassName="text-success" hint={results[0]!.name} />
+          )}
+        </div>
+      ) : null}
+
       {tournament.tournamentPodiums.length > 0 ? (
         <section className="mb-10">
           <SectionHeading label="Pódio" icon={Trophy} className="px-0" />
-          <TournamentPodium podiums={tournament.tournamentPodiums} />
+          <TournamentPodium podiums={tournament.tournamentPodiums} results={results} />
         </section>
       ) : null}
 

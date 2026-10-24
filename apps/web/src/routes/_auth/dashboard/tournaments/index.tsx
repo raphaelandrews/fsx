@@ -17,10 +17,15 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
 import { TournamentCreateDialog } from "@/components/admin/create-dialogs";
+import { TierCalibrationCard } from "@/components/admin/tier-calibration-card";
 
 export const Route = createFileRoute("/_auth/dashboard/tournaments/")({
   head: () => ({ meta: [{ title: "Tournaments - Admin - FSX" }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.tournaments.list.queryOptions()),
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(context.trpc.tournaments.list.queryOptions()),
+      context.queryClient.ensureQueryData(context.trpc.tournaments.tierCalibration.queryOptions()),
+    ]),
   component: RouteComponent,
 });
 
@@ -94,6 +99,7 @@ function RouteComponent() {
           <Button onClick={() => setCreating(true)}>New tournament</Button>
         }
       />
+      <TierCalibrationCard />
       <DataTable
         emptyState={<EmptyCollection noun="tournaments" onCreate={() => setCreating(true)} />}
         columns={columns}

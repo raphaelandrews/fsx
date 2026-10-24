@@ -94,7 +94,7 @@ export function VariationChart({
     <figure className="min-w-0 rounded-2xl border bg-background p-4">
       <figcaption>
         <h3 className="font-semibold text-base">Variação de rating</h3>
-        <p className="text-muted-foreground text-sm">Até 12 torneios recentes no formato selecionado.</p>
+        <p className="text-muted-foreground text-sm">Até 12 torneios recentes.</p>
       </figcaption>
       <Chart
         definition={variationChart}
@@ -157,7 +157,7 @@ export function TotalRatingChart({
     <figure className="min-w-0 rounded-2xl border bg-background p-4">
       <figcaption>
         <h3 className="font-semibold text-base">Evolução de rating</h3>
-        <p className="text-muted-foreground text-sm">Rating após cada torneio recente no formato selecionado.</p>
+        <p className="text-muted-foreground text-sm">Rating após cada torneio recente.</p>
       </figcaption>
       <Chart
         definition={ratingChart}

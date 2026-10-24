@@ -13,6 +13,7 @@ import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { orNotFound } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
 import { useTRPC } from "@/lib/trpc";
+import { CLUB_MIN_ACTIVE } from "@fsx/api/gamification/constants";
 import { TableSkeleton } from "@/components/skeletons/table-skeleton";
 
 const FORMATS = [
@@ -71,7 +72,7 @@ function RouteComponent() {
             key={format}
             label={`Força · ${label}`}
             value={standing?.strength[format] ?? "—"}
-            hint={standing?.rank[format] ? `#${standing.rank[format]} entre os clubes` : "menos de 5 ativos"}
+            hint={standing?.rank[format] ? `#${standing.rank[format]} entre os clubes` : `menos de ${CLUB_MIN_ACTIVE} ativos`}
           />
         ))}
       </div>

@@ -135,7 +135,7 @@ describe("players.stats", () => {
       circuitStage: { gold: 0, silver: 1, bronze: 0 },
     });
     expect(stats.formats.classic!.thresholds.map((t) => [t.threshold, t.earnedAt])).toEqual([[2000, "2025-08-01"]]);
-    expect(achievements.find((a) => a.family === "dynasty")?.label).toBe("Bicampeão(ã) · Campeonato Sergipano Feminino");
+    expect(achievements.find((a) => a.family === "dynasty")?.label).toBe("Bicampeão(ã) · Feminino");
     // 3 tournaments, two tier-S wins, a tier-B circuit title and a stage 2nd, 2000 in classic.
     expect(level).toEqual({
       level: 3,

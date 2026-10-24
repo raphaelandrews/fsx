@@ -76,6 +76,9 @@
   --destructive-fill: oklch(0.64 0.21 18);
   --warning: oklch(0.78 0.18 85);
   --warning-foreground: oklch(0.32 0.12 75);
+  /* Yellow for text only (title abbreviations, a zero rating change). Deliberately brighter than
+     warning-foreground, which reads as brown; it is ~2.3:1 on white, an accepted AA exception. */
+  --warning-text: oklch(0.75 0.17 82);
   --highlight: oklch(0.78 0.18 85);
 
   /* Semantic hue families: strong color, soft fill, and readable foreground. */
@@ -185,6 +188,7 @@
   --destructive-fill: oklch(0.72 0.16 18);
   --warning: oklch(0.3 0.06 85);
   --warning-foreground: oklch(0.87 0.13 90);
+  --warning-text: oklch(0.86 0.15 88);
   --highlight: oklch(0.86 0.15 88);
 
   /* Semantic hue families */
@@ -292,6 +296,7 @@
   --color-destructive-fill: var(--destructive-fill);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-warning-text: var(--warning-text);
   --color-highlight: var(--highlight);
 
   --color-pink: var(--pink);

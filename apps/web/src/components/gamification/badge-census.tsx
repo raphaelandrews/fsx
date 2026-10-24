@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import type { BadgeIcon, BadgeTier } from "@fsx/api/gamification/badges";
+
+import { Tabs, TabsList, TabsTrigger } from "@fsx/ui/components/tabs";
 
 import { Subheading } from "@/components/player/player-achievements";
 import { formatShare } from "@/lib/format-share";
@@ -25,10 +28,24 @@ export function BadgeCensus({ badges, players }: { badges: CensusBadge[]; player
     tier,
     badges: badges.filter((badge) => badge.tier === tier),
   })).filter((group) => group.badges.length > 0);
+  const [selected, setSelected] = useState<BadgeTier | undefined>(groups[0]?.tier);
+  const visible = groups.filter((group) => group.tier === selected);
 
   return (
     <div className="flex flex-col gap-6">
-      {groups.map(({ tier, badges: tierBadges }) => (
+      <Tabs value={selected} onValueChange={(value) => setSelected(value as BadgeTier)} className="w-full">
+        <div className="flex justify-center">
+          <TabsList aria-label="Nível dos emblemas">
+            {groups.map(({ tier, badges: tierBadges }) => (
+              <TabsTrigger key={tier} value={tier}>
+                {TIER_LABELS[tier]}
+                <span className="ml-1.5 text-xs tabular-nums opacity-70">{tierBadges.length}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+      </Tabs>
+      {visible.map(({ tier, badges: tierBadges }) => (
         <section key={tier} aria-labelledby={`badge-census-${tier}`}>
           <Subheading
             id={`badge-census-${tier}`}

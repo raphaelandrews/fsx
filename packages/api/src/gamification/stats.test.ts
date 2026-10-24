@@ -197,7 +197,7 @@ describe("playerStats", () => {
 
   test("dynasties count overall wins per championship, with the longest run of consecutive years", () => {
     const absoluto = (id: number, year: number) =>
-      tournament(id, `${year}-07-01`, { championshipId: 1, championshipName: "Sergipano Absoluto" });
+      tournament(id, `${year}-07-01`, { tier: "S", championshipId: 1, championshipName: "Sergipano Absoluto" });
     const stats = playerStats(
       input({
         tournamentPodiums: [
@@ -213,9 +213,11 @@ describe("playerStats", () => {
     expect(stats.dynasties[0]!.wins.map((w) => w.year)).toEqual([2018, 2019, 2023]);
     expect(stats.dynasties[0]!.longestRun).toEqual({ length: 2, endYear: 2019 });
     const dynasty = achievementsOf(stats).filter((a) => a.family === "dynasty");
+    expect(dynasty.map((a) => a.detail)).toEqual([undefined, undefined, "Sergipano Absoluto"]);
     expect(dynasty.map((a) => [a.label, a.earnedAt, a.tier])).toEqual([
-      ["Tricampeão(ã) · Sergipano Absoluto", "2023-07-01", "gold"],
-      ["2 títulos seguidos · Sergipano Absoluto", "2019-07-01", "gold"],
+      ["Bicampeão(ã) · Absoluto", "2019-07-01", "silver"],
+      ["Tricampeão(ã) · Absoluto", "2023-07-01", "gold"],
+      ["2 títulos seguidos", "2019-07-01", "gold"],
     ]);
   });
 
