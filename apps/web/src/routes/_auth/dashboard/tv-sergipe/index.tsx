@@ -114,7 +114,7 @@ function RouteComponent() {
         title="TV Sergipe"
         description="TV Sergipe School Games results by school, category, and modality."
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {unassigned > 0 ? (
               <Button variant="outline" onClick={() => setAssigning(true)}>
                 Assign {unassigned} to an edition

@@ -38,7 +38,7 @@ export function AdminPageHeader({ title, description, actions, backTo, backLabel
           <h1 className={cn("truncate tracking-tight", backTo ? "font-semibold text-2xl @md:text-3xl" : "font-bold text-xl sm:text-2xl")}>{title}</h1>
           {badge}
         </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-3">
+        <div className="flex max-w-full shrink-0 flex-wrap items-center gap-3">
           {actions}
           {backTo ? <div id={HEADER_SLOT_ID} className="contents" /> : null}
         </div>
