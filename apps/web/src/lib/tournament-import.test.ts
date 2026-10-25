@@ -29,7 +29,7 @@ describe("parsePodium", () => {
       ["x", "", 10, ""],
       [1, "Inventada", 10, ""],
       [],
-    ]);
+    ], ["Sub 12 Masculino"]);
     expect(rows.map((row) => [row.sheetRow, row.error === undefined])).toEqual([[2, true], [3, true], [4, false], [5, false], [6, false]]);
     expect(rows[1]).toMatchObject({ place: 2, category: "Sub 12 Masculino", resultRow: 3 });
   });

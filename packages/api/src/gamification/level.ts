@@ -14,7 +14,7 @@ export interface PlayerLevel {
   breakdown: {
     tournaments: number;
     tournamentPodiums: number;
-    circuitPodiums: number;
+    circuitResults: number;
     ratingThresholds: number;
     titles: number;
   };
@@ -39,7 +39,7 @@ export function playerLevel(input: LevelInput, stats: PlayerStats): PlayerLevel 
           categoryFactor(podium.category),
       0,
     ),
-    circuitPodiums:
+    circuitResults:
       input.circuitFinalPodiums.reduce(
         (sum, podium) =>
           sum +

@@ -275,7 +275,7 @@ function deactivateStalePlayers(db: RatingDatabase, cutoff: string) {
         SELECT 1 FROM tournament_podiums p JOIN tournaments t ON t.id = p.tournament_id
         WHERE p.player_id = ${players.id} AND COALESCE(t.date, p.created_at) >= ${cutoff})
       AND NOT EXISTS (
-        SELECT 1 FROM circuit_podiums c
+        SELECT 1 FROM circuit_results c
         JOIN circuit_phases f ON f.id = c.circuit_phase_id JOIN tournaments t ON t.id = f.tournament_id
         WHERE c.player_id = ${players.id} AND COALESCE(t.date, c.created_at) >= ${cutoff})`)
     .returning({ id: players.id });

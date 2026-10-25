@@ -94,7 +94,8 @@ const ENTITIES: Entity[] = [
   },
 ];
 
-const field = (page: Page | Locator, label: string) => page.getByLabel(new RegExp(`^${label}`));
+const field = (page: Page | Locator, label: string) =>
+  page.locator("input, select, textarea").and(page.getByLabel(new RegExp(`^${label}`)));
 
 async function fill(page: Page | Locator, fields: Record<string, string>) {
   for (const [label, value] of Object.entries(fields)) {
@@ -261,7 +262,7 @@ test("circuits: stage, result, finish the season, correct final podiums, reopen"
   await stage.getByRole("button", { name: "Add stage" }).click();
   await expect(page.getByText("Stage created").or(page.getByText(/Stage added/))).toBeVisible();
 
-  await page.getByRole("button", { name: "Add result" }).first().click();
+  await page.getByRole("button", { name: "Add one result" }).first().click();
   const result = page.getByRole("dialog");
   await pick(result, "Search player...", "Jogadora", /Jogadora Teste/);
   await fill(result, { "Stage place": "1", Points: "50", Category: "Sub 14 Masculino" });
@@ -331,7 +332,13 @@ test("tv sergipe: create, edit and delete a result", async ({ page }) => {
   await page.getByRole("button", { name: /^create club/i }).click();
   await expect(page.getByText("Club created")).toBeVisible();
 
+  await openCreateDialog(page, "tournaments", "tournament");
+  await fill(page, { Name: "TV Sergipe CRUD", "Rating type": "rapid", Tier: "school" });
+  await page.getByRole("button", { name: /^create tournament/i }).click();
+  await expect(page.getByText("Tournament created")).toBeVisible();
+
   await openCreateDialog(page, "tv-sergipe", "result");
+  await pick(page, "Search tournament...", "TV Sergipe CRUD", /TV Sergipe CRUD/);
   await pick(page, "Search school...", "Escola TV", /Escola TV CRUD/);
   const selects = page.locator("select");
   for (let i = 0; i < (await selects.count()); i++) {
@@ -354,6 +361,11 @@ test("tv sergipe: create, edit and delete a result", async ({ page }) => {
   await rowMenu(page, "Escola TV CRUD", "Delete");
   await page.getByRole("alertdialog").getByRole("button", { name: /delete/i }).click();
   await expect(page.getByText("Result deleted")).toBeVisible();
+
+  await page.goto("/dashboard/tournaments", { waitUntil: "networkidle" });
+  await rowMenu(page, "TV Sergipe CRUD", "Delete");
+  await page.getByRole("alertdialog").getByRole("button", { name: /delete/i }).click();
+  await expect(page.getByText("Tournament deleted")).toBeVisible();
 });
 
 test("rating update: snapshot button records the rankings", async ({ page }) => {
@@ -382,16 +394,12 @@ test("a club that players still use cannot be deleted, and the dialog says why",
   await expect(dialog.getByRole("button", { name: "Delete", exact: true })).toBeDisabled();
 });
 
-test("School Games 'Delete all' needs a typed confirmation", async ({ page }) => {
+test("School Games 'Add several' needs an edition before it saves", async ({ page }) => {
   await page.goto("/dashboard/tv-sergipe", { waitUntil: "networkidle" });
-  const deleteAll = page.getByRole("button", { name: "Delete all", exact: true });
-  test.skip(await deleteAll.isDisabled(), "no School Games results to delete");
-  await deleteAll.click();
-  const dialog = page.getByRole("alertdialog");
-  const confirm = dialog.getByRole("button", { name: "Delete all results" });
-  await expect(confirm).toBeDisabled();
-  await dialog.getByLabel("Type delete all to confirm").fill("delete all");
-  await expect(confirm).toBeEnabled();
+  await page.getByRole("button", { name: "Add several" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByText("Add several results")).toBeVisible();
+  await expect(dialog.getByRole("button", { name: /^Add 0 results$/ })).toBeDisabled();
   await dialog.getByRole("button", { name: "Cancel" }).click();
 });
 

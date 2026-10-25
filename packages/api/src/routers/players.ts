@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { eq, desc, asc, and, inArray, gte, lte, or, sql, count, exists } from "drizzle-orm";
+import { eq, desc, asc, and, inArray, gte, lte, isNotNull, or, sql, count, exists } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 
 import { players as playersTable, insertPlayerSchema } from "@fsx/db/schema/players";
+import { circuitResults } from "@fsx/db/schema/circuit-results";
 import { clubs } from "@fsx/db/schema/clubs";
 import { rankingSnapshots } from "@fsx/db/schema/ranking-snapshots";
 import { locations } from "@fsx/db/schema/locations";
@@ -126,6 +127,13 @@ export const playersRouter = router({
             limit: PUBLIC_NESTED_COLLECTION_LIMIT,
             columns: { championshipId: true },
             with: { championship: { columns: { name: true } } },
+          },
+          // The category a player competed in at each circuit stage, shown beside the event in the history.
+          circuitResults: {
+            where: isNotNull(circuitResults.circuitPhaseId),
+            limit: PUBLIC_NESTED_COLLECTION_LIMIT,
+            columns: { category: true },
+            with: { circuitPhases: { columns: { tournamentId: true } } },
           },
           // Newest results in chain (id) order, so the cap drops the oldest.
           playersToTournaments: {

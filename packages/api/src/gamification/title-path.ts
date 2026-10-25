@@ -1,3 +1,4 @@
+import { isMedalPlace } from "../circuit-types";
 import type { PlayerStats, StatsInput } from "./stats";
 
 // Unofficial progress toward the FSX titles on /normas-tecnicas. The federation
@@ -52,7 +53,7 @@ export function titlePath({ stats, podiums, sex, birthYear, heldShortNames, year
   const listed = podiums.filter(
     (podium) => podium.category === null && podium.tournament.championshipId !== null && LISTED_CHAMPIONSHIPS.has(podium.tournament.championshipId),
   );
-  const topThree = listed.filter((podium) => podium.place <= 3).length;
+  const topThree = listed.filter((podium) => isMedalPlace(podium.place)).length;
   const wins = listed.filter((podium) => podium.place === 1).length;
   const absolutoWins = listed.filter((podium) => podium.place === 1 && podium.tournament.championshipId === ABSOLUTO).length;
   const age = birthYear ? year - birthYear : null;

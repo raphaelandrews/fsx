@@ -30,15 +30,18 @@ The database is Cloudflare D1 (SQLite). The schema is defined with Drizzle in
 | `change_log` | — | `entity` in `player`, `tournament`, `podium`; `action` in `create`, `update`, `delete`. No foreign keys: a deleted record's history stays. Entries older than 2 years are deleted on the next write |
 | `ranking_snapshots` | — | `rating_type` in `blitz`, `rapid`, `classic`; `position` ≥ 1 |
 | `computed_results` | `key` | Stored JSON results and the `data_changed` marker ([ADR 0008](/decisions/0008-stored-computations)), plus `tier-calibration`, the saved tier-suggestion lines, which is not a cache |
-| `tournament_podiums` | `(player_id, tournament_id)` for overall podiums; `(player_id, tournament_id, category)` for category podiums (two partial indexes, since a `NULL` category never collides) | `place` 1–100000; `category` null (overall) or a known category |
+| `tournament_podiums` | `(player_id, tournament_id)` for overall podiums; `(player_id, tournament_id, category)` for category podiums (two partial indexes, since a `NULL` category never collides) | `place` 1–100000; `category` references `categories(name)`; `circuit_result_id` set when synced from a school stage result; `category` null (overall) or references `categories(name)` |
+| `categories` | `name` | `kind` in `age`, `open`; an `age` row has a `sex` and an `age_limit` 1–100, an `open` row has neither |
+| `scoring_schemes` | `name` | — |
+| `scoring_scheme_places` | `(scheme_id, place)` | `place` 1–1000; `points` 0–1000000 |
 | `defending_champions` | `(player_id, championship_id)` | — |
-| `tournaments`, `cups` | `name` | `rating_type` in `blitz`, `rapid`, `classic`; `prize_pool` ≥ 0 |
+| `tournaments`, `cups` | `name` | `rating_type` in `blitz`, `rapid`, `classic`; `prize_pool` ≥ 0; `tournaments.has_podiums` (default true) turns podiums and synced medals off, enforced by the API |
 | `circuits` | `name` | `type` in `default`, `categories`, `school`, `geral` |
-| `circuit_final_podiums` | `(circuit_id, player_id)` overall; `(circuit_id, category, player_id)` per category | `place` 1–1000; `points` null or 0–1000000; `category` null (overall) or a known category |
-| `circuit_podiums` | — | exactly one of `circuit_id`, `circuit_phase_id`; `points` 0–1000000; `place` null or 1–1000; `category` null or a known category |
+| `circuit_final_podiums` | `(circuit_id, player_id)` overall; `(circuit_id, category, player_id)` per category | `place` 1–1000; `points` null or 0–1000000; `category` null (overall) or references `categories(name)` |
+| `circuit_results` | — | exactly one of `circuit_id`, `circuit_phase_id`; `points` 0–1000000; `place` null or 1–1000; `category` null or references `categories(name)` |
 | `cup_brackets` | — | `bracket_type` in `UB`, `LB`, `GF` |
 | `cup_playoffs` | — | `phase_type` in a fixed list of upper/lower bracket phases and `Grande Final` |
-| `tv_sergipe` | individual `(player, age, sex)`; team `(club, age, sex, team_name)` | age group, sex, modality, team letter `A`–`J`, place 1–8, points 1–10; individual ↔ player, team ↔ team name |
+| `tv_sergipe` | individual `(tournament, player, age, sex)`; team `(tournament, club, age, sex, team_name)` | age group, sex, modality, team letter `A`–`J`, place 1–8, points 0–1000; `tournament_id` is the edition (null only for results saved before editions existed); individual ↔ player, team ↔ team name |
 | `announcements` | `content`; `(year, number)` | `year` 1900–2200; `number` > 0 |
 | `posts` | `slug` | — |
 | `roles` | `name`, `short_name` | `type` in `management`, `referee`, `teacher` |
@@ -64,11 +67,11 @@ Indexes follow the public queries:
   `(active, rating)` for each rating, and `(active, birth_year)` for age groups.
 - `players_to_tournaments (tournament_id)`, `tournaments (championship_id)`, `tournaments (date)` (month highlight), `circuit_phases (tournament_id)`.
 - Covering indexes for the hot player scans: `players (active, sex, classic, rapid, blitz)` (ranking counts) and `players (normalized_name, active, name, rapid)` (name search scans the index, not the wide rows).
-- `circuit_phases (circuit_id, sort_order)`, `circuit_podiums (circuit_phase_id)` and `(circuit_id)`.
+- `circuit_phases (circuit_id, sort_order)`, `circuit_results (circuit_phase_id)` and `(circuit_id)`.
 - `ranking_snapshots (player_id, rating_type, snapshot_at)` and `(rating_type, snapshot_at)`, `change_log (entity, record_id, created_at)` and `(created_at)`, `announcements (player_id)`, `player_update_requests (status, created_at)` and `(player_id, status)`.
 - `tournament_podiums (tournament_id, place)`, `circuit_final_podiums (player_id)`, `cup_games (cup_match_id, game_number)`.
 - `events (start_date)`, `events (tournament_id)`, `links (link_group_id)`.
-- `tv_sergipe (age_group, sex, modality)` and `(club_id, age_group)`.
+- `tv_sergipe (age_group, sex, modality)`, `(club_id, age_group)`, and `(tournament_id)`.
 
 Before adding an index, compare plans on production-sized data
 (`packages/db/src/audits/query-plans.sql`, [Query cost baseline](/operations/query-cost-baseline)).
@@ -95,7 +98,7 @@ nothing.** Dropping a table that other tables reference then either fails
 (`RESTRICT`) or silently deletes child rows (`CASCADE`). `PRAGMA
 defer_foreign_keys = on` does not help: cascades still run.
 
-- **Leaf table** (nothing references it, e.g. `circuit_podiums`): Drizzle's
+- **Leaf table** (nothing references it, e.g. `circuit_results`): Drizzle's
   generated rebuild is safe as is.
 - **Referenced table** (e.g. `players`, `tournaments`, `clubs`): rewrite the
   migration like `0021_blushing_stature.sql`: copy every affected table and

@@ -57,6 +57,7 @@ export const tvSergipeSearchSchema = z.object({
     .optional()
     .catch(undefined),
   escola: z.coerce.number().int().positive().max(100_000).optional().catch(undefined),
+  edicao: z.coerce.number().int().positive().max(100_000).optional().catch(undefined),
 });
 
 export const circuitsSearchSchema = z.object({

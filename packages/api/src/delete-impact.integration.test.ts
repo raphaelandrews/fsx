@@ -78,7 +78,7 @@ describe("what a delete would affect", () => {
     const tournamentId = idOf(await caller.tournaments.create({ name: "Etapa Impacto", ratingType: "rapid" }));
     const circuitPhaseId = idOf(await caller.circuits.phases.create({ circuitId, tournamentId, sortOrder: 1 }));
     const playerId = idOf(await newPlayer("Pontuador"));
-    await caller.circuits.podiums.create({ playerId, circuitPhaseId, points: 10 });
+    await caller.circuits.results.create({ playerId, circuitPhaseId, points: 10 });
 
     const impact = await caller.deletion.impact({ entity: "circuit", id: circuitId });
     expect(impact.alsoDeletes.map(({ plural, count }) => [plural, count])).toEqual([

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { CIRCUIT_TYPES_BY_CATEGORY, type CompetitionCategory } from "@fsx/api/circuit-types";
+import { CIRCUIT_TYPES_BY_CATEGORY } from "@fsx/api/circuit-types";
 import { Button } from "@fsx/ui/components/button";
 
 import { EntityFormDialog, optionalNumber, type EntityField } from "@/components/admin/entity-form";
@@ -10,7 +10,7 @@ import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { CATEGORY_OPTIONS } from "@/lib/admin-forms";
+import { useCategoryOptions } from "@/lib/reference-options";
 import { useTRPC } from "@/lib/trpc";
 
 import { federationToday } from "@fsx/api/lib/dates";
@@ -22,6 +22,7 @@ type Editing = { podium?: FinalPodium } | null;
 
 export function CircuitFinalPodiums({ circuit }: { circuit: Circuit }) {
   const trpc = useTRPC();
+  const categoryOptions = useCategoryOptions();
   const [finishing, setFinishing] = useState<string | null>(null);
   const [editing, setEditing] = useState<Editing>(null);
 
@@ -75,7 +76,7 @@ export function CircuitFinalPodiums({ circuit }: { circuit: Circuit }) {
       name: "category",
       label: "Category",
       kind: "select",
-      options: CATEGORY_OPTIONS,
+      options: categoryOptions,
       hint: "Leave empty for the overall ranking.",
     },
     { name: "place", label: "Place", kind: "number", required: true, min: 1, max: 1000 },
@@ -183,7 +184,7 @@ export function CircuitFinalPodiums({ circuit }: { circuit: Circuit }) {
         onSubmit={(values) => {
           const payload = {
             playerId: Number(values.playerId),
-            category: (values.category || null) as CompetitionCategory | null,
+            category: values.category || null,
             place: Number(values.place),
             points: optionalNumber(values.points!),
           };

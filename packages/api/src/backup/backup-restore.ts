@@ -55,6 +55,9 @@ export async function readBackup(backupPath: string, options: { excludeRows?: re
   };
 }
 
+// Tables a migration renamed after the backup was taken, so their rows are counted under the new name.
+const RENAMED_TABLES: Record<string, string> = { circuit_podiums: "circuit_results" };
+
 // Returns the migrations applied on top of the backup and any restore failures.
 export async function restoreBackup(db: D1Database, backup: Awaited<ReturnType<typeof readBackup>>) {
   const failures: string[] = [];
@@ -72,7 +75,7 @@ export async function restoreBackup(db: D1Database, backup: Awaited<ReturnType<t
   const recordMigration = await migrationRecorder(db);
   const appliedAfterRestore: string[] = [];
   for (const file of migrationFiles.filter((name) => !applied.has(name))) {
-    const sql = await readFile(`${migrationsDir}${file}`, "utf8");
+    const sql = await readFile(`${migrationsDir}/${file}`, "utf8");
     // One transaction per file with foreign keys enforced, as Alchemy applies it to D1.
     await db.batch([
       ...sql.split("--> statement-breakpoint").map((part) => part.trim()).filter(Boolean).map((statement) => db.prepare(statement)),
@@ -81,7 +84,8 @@ export async function restoreBackup(db: D1Database, backup: Awaited<ReturnType<t
     appliedAfterRestore.push(file);
   }
 
-  for (const [table, backedUp] of backup.expectedRows) {
+  for (const [backedUpTable, backedUp] of backup.expectedRows) {
+    const table = RENAMED_TABLES[backedUpTable] ?? backedUpTable;
     const expected = table === "d1_migrations" ? backedUp + appliedAfterRestore.length : backedUp;
     const row = await db.prepare(`SELECT COUNT(*) AS count FROM "${table}"`).first<{ count: number }>();
     if (row?.count !== expected) failures.push(`${table}: ${row?.count} rows restored, ${expected} in the backup`);

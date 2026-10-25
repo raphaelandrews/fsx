@@ -105,6 +105,65 @@ migrations require a restoration plan before deployment.
    (the edit page suggests them) and link tournaments to championships (only
    linked tournaments count toward repeated titles).
 
+## Results and categories release (one time)
+
+Migrations 0045–0049 add the circuit-stage and School Games medal sync, the categories
+and scoring-scheme tables, the tournament podiums switch, and rename `circuit_podiums`
+to `circuit_results`. Migration 0047 rebuilds three tables, so a restore is the only
+way back.
+
+**Before the deploy**
+
+1. `bun run db:backup`, then `bun run db:backup:verify` on the new file. Keep it
+   until step 9 of "After the deploy".
+2. `bun test`, `bun run check-types`, `bun run lint`, `bun run build`,
+   `bun run check:ssr`, and `bun run test:e2e` (the e2e run serves the last build,
+   so build first). All must pass.
+3. Restore drill on that backup:
+   `bun apps/web/scripts/restore-drill.ts ~/Backups/fsx-<stamp>/fsx-<stamp>.sql`.
+   It must print `Migrations applied after restore: 0045…0049` and
+   `Restore drill passed`.
+4. Skip the pre-migration audit of the deployment order: it names the tables as they
+   are after 0047, so the drill in step 3 is the check for this release.
+5. Nothing is copied into podiums by the migrations: every tournament defaults to
+   podiums on, and no medal appears until you run the steps below. Decide now which
+   circuit tournaments should not give medals; you turn them off after the deploy
+   and before step 4.
+6. Commit the work.
+
+**Deploy:** `bun run deploy`. It applies the migrations through Alchemy, deploys the
+Worker, and runs the smoke test. A failed smoke test fails the command.
+
+**After the deploy**
+
+1. Open `/dashboard/categories` (15 rows), `/dashboard/scoring-schemes` (one scheme,
+   "Jogos Escolares (1º ao 8º)"), and a tournament edit page (the Podiums and Scoring
+   scheme fields, and the Circuit stages panel).
+2. `DELETE FROM computed_results WHERE key != 'tier-calibration'`, and purge the cache
+   on `/dashboard/cache`, so records and club standings use the new code.
+3. TV Sergipe: create a tournament such as "TV Sergipe 2026" (tier School, scoring scheme
+   "Jogos Escolares (1º ao 8º)"). On `/dashboard/tv-sergipe` press **Assign N to an
+   edition** and pick it. Individual places 1–3 become podiums.
+4. Circuits: for each circuit with stages, open its page. A note counts the medal-place
+   results without a podium. On the tournaments that should give no medals, set
+   Podiums to No first. Then press **Sync medals**. The note should disappear.
+5. Check the counts, read-only:
+   `SELECT COUNT(*) FROM tournament_podiums` and
+   `SELECT COUNT(*) FROM tournament_podiums WHERE circuit_result_id IS NOT NULL OR tv_sergipe_id IS NOT NULL`.
+   On the production data of 2026-10-25 they were 174 before, and 531 and 357 after,
+   when no tournament was turned off.
+6. Open one player who has circuit results: the medals carry the category, and the
+   tournament history shows "Event · Category".
+7. Set a scoring scheme on circuits that should prefill points (the school circuit got
+   the original scheme from the migration).
+8. Run the smoke test again and watch the `Production health` workflow for an hour.
+9. `bun run db:backup` for the new baseline, then retire the pre-deploy backup.
+
+**Rollback:** the Worker can be rolled back as in
+[Incident response](/operations/incident-response#roll-back-a-deploy), but 0047 cannot
+be undone. Restore the pre-deploy backup into a separate D1 database, apply the old
+migrations, and switch over only after the row-count and smoke checks.
+
 ## Docs site
 
 The docs (`apps/fumadocs`) are a static Astro build deployed by the same

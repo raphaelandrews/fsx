@@ -1,9 +1,10 @@
 import { and, asc, eq, inArray, isNotNull, type SQL } from "drizzle-orm";
 
+import { categories } from "@fsx/db/schema/categories";
 import { cupBrackets } from "@fsx/db/schema/cup-brackets";
 import { circuitFinalPodiums } from "@fsx/db/schema/circuit-final-podiums";
 import { circuitPhases } from "@fsx/db/schema/circuit-phases";
-import { circuitPodiums } from "@fsx/db/schema/circuit-podiums";
+import { circuitResults } from "@fsx/db/schema/circuit-results";
 import { players } from "@fsx/db/schema/players";
 import { playersToTitles } from "@fsx/db/schema/players-to-titles";
 import { playersToTournaments } from "@fsx/db/schema/players-to-tournaments";
@@ -67,8 +68,8 @@ function careerQueries(db: Context["db"], scope?: number | number[]) {
       columns: { playerId: true, tournamentId: true, place: true, category: true },
       limit,
     }),
-    db.query.circuitPodiums.findMany({
-      where: and(only(circuitPodiums.playerId), isNotNull(circuitPodiums.circuitPhaseId)),
+    db.query.circuitResults.findMany({
+      where: and(only(circuitResults.playerId), isNotNull(circuitResults.circuitPhaseId)),
       columns: { playerId: true, place: true, category: true },
       limit,
       with: {
@@ -116,14 +117,15 @@ function careerQueries(db: Context["db"], scope?: number | number[]) {
         },
       },
     }),
+    db.select({ name: categories.name }).from(categories).where(eq(categories.kind, "open")),
   ] as const;
 }
 
 type CareerRows = Awaited<ReturnType<typeof loadCareerRows>>;
 
 export async function loadCareerRows(db: Context["db"], scope?: number | number[]) {
-  const [people, results, podiums, stages, finals, titles, events, phases, cupRows] = await db.batch(careerQueries(db, scope));
-  return { people, results, podiums, stages, finals, titles, events, phases, cupRows };
+  const [people, results, podiums, stages, finals, titles, events, phases, cupRows, openCategories] = await db.batch(careerQueries(db, scope));
+  return { people, results, podiums, stages, finals, titles, events, phases, cupRows, openCategories };
 }
 
 export type CareerPlayer = CareerRows["people"][number];
@@ -137,6 +139,7 @@ export interface Career {
 
 function careers(rows: CareerRows): Map<number, Career> {
   const byId = new Map(rows.events.map((row) => [row.id, competition(row)]));
+  const openCategories = rows.openCategories.map((row) => row.name);
   const stageCounts = new Map<number, number>();
   for (const { circuitId } of rows.phases) stageCounts.set(circuitId, (stageCounts.get(circuitId) ?? 0) + 1);
   const byPlayer = new Map<number, Career>();
@@ -151,6 +154,7 @@ function careers(rows: CareerRows): Map<number, Career> {
         circuitFinalPodiums: [],
         cupTitles: [],
         titleTiers: [],
+        openCategories,
       },
       titleShortNames: [],
       tournaments: {},

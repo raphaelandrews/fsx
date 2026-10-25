@@ -17,7 +17,7 @@ export type SyntheticCounts = {
   defendingChampions: number;
   circuits: number;
   circuitPhases: number;
-  circuitPodiums: number;
+  circuitResults: number;
   posts: number;
   postContentChars: number;
   announcements: number;
@@ -44,7 +44,7 @@ export const DEFAULT_SYNTHETIC_COUNTS: SyntheticCounts = {
   defendingChampions: 30,
   circuits: 10,
   circuitPhases: 60,
-  circuitPodiums: 3_000,
+  circuitResults: 3_000,
   posts: 300,
   postContentChars: 3_000,
   announcements: 200,
@@ -103,7 +103,7 @@ export async function seedSyntheticData(db: D1Database, counts: SyntheticCounts 
       SELECT i, 'Circuito ' || i, CASE i % 4 WHEN 0 THEN 'default' WHEN 1 THEN 'categories' WHEN 2 THEN 'school' ELSE 'geral' END FROM n`,
     `INSERT INTO circuit_phases (id, circuit_id, tournament_id, club_id, sort_order) ${series(c.circuitPhases)}
       SELECT i, ${pick("i", c.circuits)}, ${pick("i * 3", c.tournaments)}, ${pick("i", c.clubs)}, i FROM n`,
-    `INSERT INTO circuit_podiums (player_id, circuit_phase_id, place, points) ${series(c.circuitPodiums)}
+    `INSERT INTO circuit_results (player_id, circuit_phase_id, place, points) ${series(c.circuitResults)}
       SELECT ${pick("i * 13", c.players)}, ${pick("i", c.circuitPhases)}, 1 + i % 25, (i * 17) % 100 FROM n`,
     `INSERT INTO posts (id, title, slug, content, published, created_at, updated_at) ${series(c.posts)}
       SELECT i, 'Notícia sintética ' || i, 'noticia-sintetica-' || i, ${text(c.postContentChars)}, i % 10 != 0,

@@ -2,9 +2,7 @@ import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { check, index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
 
-import { COMPETITION_CATEGORIES } from "../competition"
-import { sqlInList } from "../sql-in-list"
-import { circuits, players } from "./index"
+import { categories, circuits, players } from "./index"
 
 // Official final placings of a finished circuit, per category (NULL = overall).
 // Snapshotted from the summed stage points when the circuit is finished, then
@@ -16,7 +14,7 @@ export const circuitFinalPodiums = sqliteTable(
 		id: integer("id").primaryKey({ autoIncrement: true }),
 		circuitId: integer("circuit_id").notNull().references(() => circuits.id, { onDelete: "restrict" }),
 		playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "restrict" }),
-		category: text("category"),
+		category: text("category").references(() => categories.name, { onUpdate: "cascade", onDelete: "restrict" }),
 		place: integer("place").notNull(),
 		points: real("points"),
 		createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
@@ -28,7 +26,6 @@ export const circuitFinalPodiums = sqliteTable(
 		index("circuit_final_podiums_player_idx").on(t.playerId),
 		check("circuit_final_podiums_place_check", sql`${t.place} BETWEEN 1 AND 1000`),
 		check("circuit_final_podiums_points_check", sql`${t.points} IS NULL OR ${t.points} BETWEEN 0 AND 1000000`),
-		check("circuit_final_podiums_category_check", sql`${t.category} IS NULL OR ${t.category} IN (${sqlInList(COMPETITION_CATEGORIES)})`),
 	],
 )
 

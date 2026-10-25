@@ -1,6 +1,7 @@
 import { router } from "../index";
 import { announcementsRouter } from "./announcements";
 import { cacheRouter } from "./cache";
+import { categoriesRouter } from "./categories";
 import { championsRouter } from "./champions";
 import { circuitsRouter } from "./circuits";
 import { clubsRouter } from "./clubs";
@@ -23,6 +24,7 @@ import { postsRouter } from "./posts";
 import { ratingsRouter } from "./ratings";
 import { recordsRouter } from "./records";
 import { rolesRouter } from "./roles";
+import { scoringSchemesRouter } from "./scoring-schemes";
 import { tvSergipeRouter } from "./tv-sergipe";
 import { statsRouter } from "./stats";
 import { swissManagerRouter } from "./swiss-manager";
@@ -35,6 +37,7 @@ import { titlesRouter } from "./titles";
 export const appRouter = router({
   announcements: announcementsRouter,
   cache: cacheRouter,
+  categories: categoriesRouter,
   champions: championsRouter,
   circuits: circuitsRouter,
   clubs: clubsRouter,
@@ -57,6 +60,7 @@ export const appRouter = router({
   ratings: ratingsRouter,
   records: recordsRouter,
   roles: rolesRouter,
+  scoringSchemes: scoringSchemesRouter,
   tvSergipe: tvSergipeRouter,
   stats: statsRouter,
   swissManager: swissManagerRouter,

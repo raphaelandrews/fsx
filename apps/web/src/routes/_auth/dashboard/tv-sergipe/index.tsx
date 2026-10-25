@@ -6,7 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@fsx/ui/components/button";
 
 import { useTRPC } from "@/lib/trpc";
-import { DeleteDialog } from "@/components/admin/delete-dialog";
+import { EntityFormDialog } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
@@ -17,19 +17,21 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { EmptyCollection } from "@/components/admin/empty-collection";
 import { TvSergipeCreateDialog } from "@/components/admin/create-dialogs";
+import { TvSergipeBulkDialog } from "@/components/admin/tv-sergipe-bulk";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/")({
   head: () => ({ meta: [{ title: "TV Sergipe - Admin - FSX" }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.tvSergipe.list.queryOptions()),
+  loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.tvSergipe.listAdmin.queryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const [creating, setCreating] = useState(false);
   const trpc = useTRPC();
-  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const [bulk, setBulk] = useState(false);
 
-  const { data = [] } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
+  const { data = [] } = useSuspenseQuery(trpc.tvSergipe.listAdmin.queryOptions());
 
   const deleteMutation = useAdminMutation(trpc.tvSergipe.delete.mutationOptions(), {
     invalidates: "tvSergipe",
@@ -37,13 +39,20 @@ function RouteComponent() {
     failure: "Failed to delete result",
   });
 
-  const deleteAllMutation = useAdminMutation(trpc.tvSergipe.deleteAll.mutationOptions(), {
+  const assignMutation = useAdminMutation(trpc.tvSergipe.assignEdition.mutationOptions(), {
     invalidates: "tvSergipe",
-    success: "All results deleted",
-    failure: "Failed to delete all results",
+    success: "Results assigned",
+    failure: "Failed to assign results",
+    onSuccess: () => setAssigning(false),
   });
+  const unassigned = data.filter((result) => result.tournamentId === null).length;
 
   const columns: ColumnDef<(typeof data)[number]>[] = [
+    {
+      id: "tournament",
+      header: "Edition",
+      cell: ({ row }) => <span>{row.original.tournament?.name ?? "—"}</span>,
+    },
     {
       accessorKey: "club",
       header: ({ column }) => <DataTableColumnHeader column={column} title="School" />,
@@ -106,9 +115,12 @@ function RouteComponent() {
         description="TV Sergipe School Games results by school, category, and modality."
         actions={
           <div className="flex gap-2">
-            <Button loading={deleteAllMutation.isPending} disabled={data.length === 0} variant="destructive" onClick={() => setConfirmDeleteAll(true)}>
-              Delete all
-            </Button>
+            {unassigned > 0 ? (
+              <Button variant="outline" onClick={() => setAssigning(true)}>
+                Assign {unassigned} to an edition
+              </Button>
+            ) : null}
+            <Button variant="outline" onClick={() => setBulk(true)}>Add several</Button>
             <Button onClick={() => setCreating(true)}>New result</Button>
           </div>
         }
@@ -123,17 +135,30 @@ function RouteComponent() {
         pagination={(table) => <DataTablePagination table={table} />}
       />
 
-      <DeleteDialog
-        open={confirmDeleteAll}
-        onOpenChange={setConfirmDeleteAll}
-        title="Delete every School Games result?"
-        description={`All ${data.length} result${data.length === 1 ? "" : "s"} will be permanently deleted, including the school standings built from them. Individual results can also be deleted one at a time from the table. This cannot be undone.`}
-        confirmText="delete all"
-        confirmLabel="Delete all results"
-        pending={deleteAllMutation.isPending}
-        onConfirm={() => deleteAllMutation.mutate()}
+      <EntityFormDialog
+        open={assigning}
+        onOpenChange={setAssigning}
+        title="Assign results to an edition"
+        fields={[
+          {
+            name: "tournamentId",
+            label: "Tournament",
+            kind: "search",
+            required: true,
+            placeholder: "Search tournament...",
+            emptyText: "No tournament found.",
+            hint: `Applies to the ${unassigned} result${unassigned === 1 ? "" : "s"} saved before editions existed.`,
+            getQueryOptions: (query) => trpc.tournaments.search.queryOptions({ query }),
+          },
+        ]}
+        defaultValues={{ tournamentId: "" }}
+        onSubmit={(values) => assignMutation.mutate({ tournamentId: Number(values.tournamentId) })}
+        error={assignMutation.error}
+        pending={assignMutation.isPending}
+        submitLabel="Assign results"
       />
       <TvSergipeCreateDialog open={creating} onOpenChange={setCreating} />
+      <TvSergipeBulkDialog open={bulk} onOpenChange={setBulk} />
     </div>
   );
 }

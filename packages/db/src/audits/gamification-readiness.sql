@@ -49,8 +49,8 @@ WITH checks(check_name, value) AS (
     GROUP BY tournament_id, place HAVING COUNT(*) > 1))),
   ('podiums.player_placed_twice', (SELECT COALESCE(SUM(n - 1), 0) FROM (SELECT COUNT(*) AS n FROM tournament_podiums
     GROUP BY tournament_id, player_id HAVING COUNT(*) > 1))),
-  ('circuit_podiums.total', (SELECT COUNT(*) FROM circuit_podiums)),
-  ('circuit_podiums.without_place', (SELECT COUNT(*) FROM circuit_podiums WHERE place IS NULL)),
+  ('circuit_results.total', (SELECT COUNT(*) FROM circuit_results)),
+  ('circuit_results.without_place', (SELECT COUNT(*) FROM circuit_results WHERE place IS NULL)),
   ('titles.internal', (SELECT COUNT(*) FROM titles WHERE type = 'internal')),
   ('titles.external', (SELECT COUNT(*) FROM titles WHERE type = 'external')),
   ('players_to_titles.total', (SELECT COUNT(*) FROM players_to_titles)),
@@ -80,7 +80,7 @@ SELECT MAX(n) AS max_results_per_player, AVG(n) AS avg_results_per_player FROM (
 
 SELECT CASE WHEN circuit_id IS NOT NULL THEN 'circuit standings' ELSE 'circuit phase' END AS level,
   COUNT(*) AS podiums, SUM(place <= 3) AS top_three
-FROM circuit_podiums GROUP BY level;
+FROM circuit_results GROUP BY level;
 
 SELECT tp.tournament_id, t.name, tp.place, COUNT(*) AS players
 FROM tournament_podiums tp JOIN tournaments t ON t.id = tp.tournament_id

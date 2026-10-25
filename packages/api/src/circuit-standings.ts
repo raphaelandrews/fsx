@@ -1,16 +1,16 @@
-import { CIRCUIT_TYPES_BY_CATEGORY, type CircuitType, type CompetitionCategory } from "./circuit-types";
+import { CIRCUIT_TYPES_BY_CATEGORY, type CircuitType } from "./circuit-types";
 
 export const FINAL_PODIUM_PLACES = 3;
 
 export interface CircuitPointsRow {
   playerId: number;
   points: number;
-  category: CompetitionCategory | null;
+  category: string | null;
 }
 
 export interface CircuitPlacing {
   playerId: number;
-  category: CompetitionCategory | null;
+  category: string | null;
   place: number;
   points: number;
 }
@@ -25,7 +25,7 @@ export function circuitFinalPodiums(type: CircuitType, rows: CircuitPointsRow[])
 // Equal totals share a place (1, 1, 3).
 export function rankCircuit(type: CircuitType, rows: CircuitPointsRow[]): CircuitPlacing[] {
   const byCategory = CIRCUIT_TYPES_BY_CATEGORY.includes(type);
-  const groups = new Map<CompetitionCategory | null, Map<number, number>>();
+  const groups = new Map<string | null, Map<number, number>>();
   for (const row of rows) {
     const category = byCategory ? row.category : null;
     const totals = groups.get(category) ?? new Map<number, number>();

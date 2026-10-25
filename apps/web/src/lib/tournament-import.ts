@@ -1,4 +1,4 @@
-import { COMPETITION_CATEGORIES, COMPETITION_TIERS, type CompetitionCategory, type CompetitionTier } from "@fsx/api/circuit-types";
+import { COMPETITION_TIERS, type CompetitionTier } from "@fsx/api/circuit-types";
 import { RATING_TYPES, type RatingType } from "@fsx/api/rating-types";
 
 import { toIsoDate } from "@/lib/format";
@@ -24,7 +24,7 @@ export interface PodiumDraft {
   /** Row in the Podium sheet. */
   sheetRow: number;
   place: number;
-  category: CompetitionCategory | null;
+  category: string | null;
   /** An existing player, or `resultRow`: the Results row of a player the import creates. */
   playerId?: number;
   resultRow?: number;
@@ -66,7 +66,7 @@ export function parseTournamentMeta(rows: unknown[][]): { draft: TournamentDraft
 }
 
 /** The Podium sheet has a header row: place, category (optional), and playerId or row. */
-export function parsePodium(rows: unknown[][]): PodiumDraft[] {
+export function parsePodium(rows: unknown[][], categories: readonly string[]): PodiumDraft[] {
   const [header = [], ...body] = rows;
   const columns = new Map(header.map((cell, index) => [cellText(cell).toLowerCase(), index]));
   const read = (cells: unknown[], column: string) => (columns.has(column) ? cells[columns.get(column)!] : undefined);
@@ -81,11 +81,11 @@ export function parsePodium(rows: unknown[][]): PodiumDraft[] {
       const resultRow = isBlank(read(cells, "row")) ? undefined : Number(read(cells, "row"));
       const base = { sheetRow, place, category: null, playerId, resultRow };
       if (!Number.isInteger(place) || place < 1) return { ...base, error: "Invalid place. Use 1, 2, 3…" };
-      if (category && !isOneOf(COMPETITION_CATEGORIES, category)) return { ...base, error: `Unknown category '${category}'.` };
+      if (category && !isOneOf(categories, category)) return { ...base, error: `Unknown category '${category}'.` };
       if ((playerId === undefined) === (resultRow === undefined)) return { ...base, error: "Fill either playerId or row (a row of the Results sheet), not both." };
       if (playerId !== undefined && (!Number.isInteger(playerId) || playerId <= 0)) return { ...base, error: "Invalid playerId." };
       if (resultRow !== undefined && (!Number.isInteger(resultRow) || resultRow < 2)) return { ...base, error: "Invalid row." };
-      return { ...base, category: (category || null) as CompetitionCategory | null };
+      return { ...base, category: category || null };
     });
 }
 

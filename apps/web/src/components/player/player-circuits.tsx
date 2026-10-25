@@ -1,3 +1,4 @@
+import { isMedalPlace } from "@fsx/api/circuit-types";
 import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
@@ -47,7 +48,7 @@ export function PlayerCircuits({ seasons }: { seasons: PlayerCircuitSeason[] }) 
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {season.finalPodiums.map((podium) =>
-                  podium.place <= 3 ? (
+                  isMedalPlace(podium.place) ? (
                     <span
                       key={`${podium.category}-${podium.place}`}
                       className="inline-flex items-center gap-1.5 rounded-md bg-muted py-0.5 pr-2 pl-0.5 font-medium text-sm"

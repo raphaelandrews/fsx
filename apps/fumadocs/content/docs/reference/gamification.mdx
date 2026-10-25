@@ -14,7 +14,7 @@ OG image (see [Deferred](#deferred)).
 ## Principles
 
 1. **Derive, don't store.** Badges, levels, streaks, and records are computed on
-   read from `players_to_tournaments`, `tournament_podiums`, `circuit_podiums`, and
+   read from `players_to_tournaments`, `tournament_podiums`, `circuit_results`, and
    `players_to_titles`. Nothing is "awarded", so there is no backfill: past
    achievements appear automatically, and fixing a data error fixes the
    achievement. Storage is added only where the data cannot be reconstructed
@@ -79,7 +79,7 @@ implements; each rule has a unit test in `stats.test.ts`.
 | Podium without a rating result | "Tournaments played" is the distinct tournament ids across rating history and tournament podiums. |
 | Shared podium place | Every player sharing a place gets the medal. Team championships record each team member at the team's place. |
 | Tournament placements | Medals come only from recorded podiums (`tournament_podiums`), overall or per category. Tournaments without podiums count for participation and rating achievements only; no placement is inferred. |
-| Circuit stage results | Each `circuit_podiums` row with `circuit_phase_id` is a stage result (despite the table name these are points rows, one per player per stage). Place 1–3 is a stage medal, with its category; any place counts as a stage played. A stage medal earns no XP when the same player also has a tournament podium for that stage's tournament. |
+| Circuit stage results | Each `circuit_results` row with `circuit_phase_id` is a stage result (despite the table name these are points rows, one per player per stage). Place 1–3 is a stage medal, with its category; any place counts as a stage played. A stage medal earns no XP when the same player also has a tournament podium for that stage's tournament. |
 | Circuit final podiums | Read from `circuit_final_podiums`, which exist only for finished seasons. They are snapshotted from the summed points when a season is finished (`circuits.finish`; top 3 per category for `categories` and `school` layouts, shared places for ties) and may be corrected by admins, so they are the official record. Seasons in progress give no final medal and no final XP. |
 | Tier | Every podium inherits the tier of its tournament or circuit, which scales its XP and groups S-tier titles apart in the trophy cabinet. |
 | Tournament without championship | Counts for medals and XP; excluded from dynasties until an admin links the championship. |
@@ -106,7 +106,7 @@ derivations depend on. Run it read-only against production (see the
 | Date order inversions | 53 | Confirms chains are ordered by id, not by date. |
 | Tournament podiums | 165, Sergipano championships only | 121 have no rating result, so "tournaments played" includes podiums. |
 | Shared podium places | 20 | All in the Campeonato Sergipano de Equipes; team members share places. Not errors. |
-| Circuit points rows (`circuit_podiums`) | 546 | 514 stage rows (321 in a stage's top 3) plus 32 for phase-less `geral` circuits. |
+| Circuit points rows (`circuit_results`) | 546 | 514 stage rows (321 in a stage's top 3) plus 32 for phase-less `geral` circuits. |
 | Results per player | max 78, average 4.0 | One query loads a whole career. |
 | Peak rapid rating at or above 2000 / 2100 / 2200 / 2300 / 2400 | 169 / 99 / 46 / 21 / 11 of 1,992 chains | Rating badges are prestige; about 9% reach the first step. |
 | Players without birth date | 3,470 (64%) | Age-based records dropped. |

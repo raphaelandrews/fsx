@@ -1,5 +1,6 @@
-import { and, count, desc, eq, gte, inArray, lt, max, min, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, lt, max, min, sql } from "drizzle-orm";
 
+import { categories } from "@fsx/db/schema/categories";
 import { circuits } from "@fsx/db/schema/circuits";
 import { clubs } from "@fsx/db/schema/clubs";
 import { locations } from "@fsx/db/schema/locations";
@@ -155,10 +156,13 @@ export const recordsRouter = router({
   // Share of players holding each emblem, and who leads a record list.
   badges: publicProcedure.query(async ({ ctx }) => (await gamificationSummary(ctx.db)).badges),
   badgeStats: publicProcedure.query(async ({ ctx }) => {
-    const { badges, catalog } = await gamificationSummary(ctx.db);
+    const [{ badges, catalog }, ageCategories] = await Promise.all([
+      gamificationSummary(ctx.db),
+      ctx.db.select({ name: categories.name }).from(categories).where(eq(categories.kind, "age")).orderBy(asc(categories.sortOrder), asc(categories.id)),
+    ]);
     const recordists = Object.keys(badges.recordHolders).length;
     // Every possible emblem (these win), plus those that only exist once earned (dynasties).
-    const known = new Map<string, BadgeCatalogEntry>([...catalog, ...allBadges()].map((badge) => [badge.id, badge]));
+    const known = new Map<string, BadgeCatalogEntry>([...catalog, ...allBadges(ageCategories.map((category) => category.name))].map((badge) => [badge.id, badge]));
     const entries: (BadgeCatalogEntry & { holders: number })[] = [...known.values()].map((badge) => ({
       ...badge,
       holders: badges.holders[badge.id] ?? 0,

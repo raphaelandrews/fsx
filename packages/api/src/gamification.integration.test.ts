@@ -119,11 +119,11 @@ describe("players.stats", () => {
     const stageId = idOf(
       await caller.circuits.phases.create({
         circuitId,
-        tournamentId: idOf(await caller.tournaments.create({ name: "Etapa Feminina", ratingType: "rapid", date: "2025-03-01" })),
+        tournamentId: idOf(await caller.tournaments.create({ name: "Etapa Feminina", ratingType: "rapid", date: "2025-03-01", hasPodiums: false })),
         sortOrder: 1,
       }),
     );
-    await caller.circuits.podiums.create({ playerId, circuitPhaseId: stageId, place: 2, points: 8 });
+    await caller.circuits.results.create({ playerId, circuitPhaseId: stageId, place: 2, points: 8 });
     await caller.circuits.finish({ id: circuitId, finishedAt: "2025-12-01" });
 
     const { stats, achievements, level } = await caller.players.stats({ id: playerId });
@@ -142,7 +142,7 @@ describe("players.stats", () => {
       xp: 45 + 120 + 30 + 30,
       levelXp: 150,
       nextLevelXp: 300,
-      breakdown: { tournaments: 45, tournamentPodiums: 120, circuitPodiums: 20 + 10, ratingThresholds: 30, titles: 0 },
+      breakdown: { tournaments: 45, tournamentPodiums: 120, circuitResults: 20 + 10, ratingThresholds: 30, titles: 0 },
     });
   });
 });
@@ -161,8 +161,8 @@ describe("players.circuitSeasons", () => {
     const circuitId = idOf(await caller.circuits.create({ name: "Circuito Aberto 2026", type: "categories", year: 2026 }));
     const tournamentId = idOf(await caller.tournaments.create({ name: "Circuito Aberto · Etapa 1", ratingType: "rapid" }));
     const circuitPhaseId = idOf(await caller.circuits.phases.create({ circuitId, tournamentId, sortOrder: 1 }));
-    await caller.circuits.podiums.create({ playerId: ana!, circuitPhaseId, points: 5, category: "Sub 18 Feminino" });
-    await caller.circuits.podiums.create({ playerId: bia!, circuitPhaseId, points: 9, category: "Sub 18 Feminino" });
+    await caller.circuits.results.create({ playerId: ana!, circuitPhaseId, points: 5, category: "Sub 18 Feminino" });
+    await caller.circuits.results.create({ playerId: bia!, circuitPhaseId, points: 9, category: "Sub 18 Feminino" });
 
     const [season] = await caller.players.circuitSeasons({ id: ana! });
     expect(season).toMatchObject({

@@ -2,7 +2,7 @@ import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { check, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
 
-import { clubs, players } from "./index"
+import { clubs, players, tournaments } from "./index"
 
 export const AGE_GROUPS = ["8", "10", "12", "14", "16", "18"] as const
 
@@ -28,6 +28,8 @@ export const tvSergipe = sqliteTable(
   "tv_sergipe",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
+    // The edition. Nullable only for results saved before editions existed.
+    tournamentId: integer("tournament_id").references(() => tournaments.id, { onDelete: "restrict" }),
     clubId: integer("club_id")
       .notNull()
       .references(() => clubs.id, { onDelete: "restrict" }),
@@ -45,19 +47,21 @@ export const tvSergipe = sqliteTable(
     ageSexModalityIdx: index("tv_sergipe_age_sex_modality_idx").on(t.ageGroup, t.sex, t.modality),
     clubAgeIdx: index("tv_sergipe_club_age_idx").on(t.clubId, t.ageGroup),
     // NULL-distinct in SQLite means team rows (playerId NULL) and individual rows (teamName NULL) don't collide.
-    individualUnique: uniqueIndex("tv_sergipe_individual_unique_idx").on(t.playerId, t.ageGroup, t.sex),
+    individualUnique: uniqueIndex("tv_sergipe_individual_unique_idx").on(t.tournamentId, t.playerId, t.ageGroup, t.sex),
     // A school can't field two teams with the same suffix in the same category.
-    teamUnique: uniqueIndex("tv_sergipe_team_unique_idx").on(t.clubId, t.ageGroup, t.sex, t.teamName),
+    teamUnique: uniqueIndex("tv_sergipe_team_unique_idx").on(t.tournamentId, t.clubId, t.ageGroup, t.sex, t.teamName),
+    tournamentIdx: index("tv_sergipe_tournament_idx").on(t.tournamentId),
     teamNameCheck: check("tv_sergipe_team_name_check", sql`"team_name" IS NULL OR "team_name" IN ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J')`),
     ageGroupCheck: check("tv_sergipe_age_group_check", sql`${t.ageGroup} IN ('8', '10', '12', '14', '16', '18')`),
     sexCheck: check("tv_sergipe_sex_check", sql`${t.sex} IN ('male', 'female')`),
     modalityCheck: check("tv_sergipe_modality_check", sql`${t.modality} IN ('individual', 'team')`),
-    placePointsCheck: check("tv_sergipe_place_points_check", sql`${t.place} BETWEEN 1 AND 8 AND ${t.points} BETWEEN 1 AND 10`),
+    placePointsCheck: check("tv_sergipe_place_points_check", sql`${t.place} BETWEEN 1 AND 8 AND ${t.points} BETWEEN 0 AND 1000`),
     participantCheck: check("tv_sergipe_participant_check", sql`(${t.modality} = 'individual' AND ${t.playerId} IS NOT NULL AND ${t.teamName} IS NULL) OR (${t.modality} = 'team' AND ${t.playerId} IS NULL AND ${t.teamName} IS NOT NULL)`),
   })
 )
 
 export const tvSergipeRelations = relations(tvSergipe, ({ one }) => ({
+  tournament: one(tournaments, { fields: [tvSergipe.tournamentId], references: [tournaments.id] }),
   club: one(clubs, { fields: [tvSergipe.clubId], references: [clubs.id] }),
   player: one(players, { fields: [tvSergipe.playerId], references: [players.id] }),
 }))

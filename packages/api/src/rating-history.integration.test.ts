@@ -187,7 +187,9 @@ describe("guards against orphaned rating history", () => {
 
   test("a club with School Games results cannot be deleted", async () => {
     const clubId = idOf(await caller.clubs.create({ name: "Escola Guarda" }));
+    const tournamentId = await createTournament("Escolar Guarda");
     const resultId = idOf(await caller.tvSergipe.create({
+      tournamentId,
       clubId,
       teamName: "A",
       ageGroup: "10",

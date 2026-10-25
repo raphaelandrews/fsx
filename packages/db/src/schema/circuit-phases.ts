@@ -2,7 +2,7 @@ import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
-import { circuitPodiums, circuits, clubs, tournaments } from "./index"
+import { circuitResults, circuits, clubs, tournaments } from "./index"
 
 export const circuitPhases = sqliteTable(
   "circuit_phases",
@@ -34,7 +34,7 @@ export const circuitPhasesRelations = relations(circuitPhases, ({ one, many }) =
 	circuit: one(circuits, { fields: [circuitPhases.circuitId], references: [circuits.id] }),
 	club: one(clubs, { fields: [circuitPhases.clubId], references: [clubs.id] }),
 	tournament: one(tournaments, { fields: [circuitPhases.tournamentId], references: [tournaments.id] }),
-	circuitPodiums: many(circuitPodiums),
+	circuitResults: many(circuitResults),
 }))
 
 export const insertCircuitPhaseSchema = createInsertSchema(circuitPhases)

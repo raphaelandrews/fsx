@@ -14,7 +14,7 @@ export function phaseNames(circuit: Circuit): string[] {
 export function circuitCategories(circuit: Circuit): string[] {
   const seen = new Set<string>();
   for (const phase of circuit.circuitPhases) {
-    for (const podium of phase.circuitPodiums) {
+    for (const podium of phase.circuitResults) {
       if (podium.category) seen.add(podium.category);
     }
   }
@@ -71,13 +71,13 @@ export function aggregatePlayers(circuit: Circuit, categories?: string[]): Playe
 
   for (const phase of circuit.circuitPhases) {
     const name = phaseName(phase);
-    for (const podium of phase.circuitPodiums) {
+    for (const podium of phase.circuitResults) {
       if (!included(podium.category)) continue;
       apply(podium.player, podium.points ?? 0, podium.category, name);
     }
   }
 
-  for (const podium of circuit.circuitPodiums) {
+  for (const podium of circuit.circuitResults) {
     if (!included(podium.category)) continue;
     apply(podium.player, podium.points ?? 0, podium.category);
   }

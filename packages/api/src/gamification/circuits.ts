@@ -2,11 +2,11 @@ import { eq, inArray, or } from "drizzle-orm";
 
 import { circuitFinalPodiums } from "@fsx/db/schema/circuit-final-podiums";
 import { circuitPhases } from "@fsx/db/schema/circuit-phases";
-import { circuitPodiums } from "@fsx/db/schema/circuit-podiums";
+import { circuitResults } from "@fsx/db/schema/circuit-results";
 import { players } from "@fsx/db/schema/players";
 
 import { rankCircuit } from "../circuit-standings";
-import type { CircuitType, CompetitionCategory } from "../circuit-types";
+import type { CircuitType } from "../circuit-types";
 import type { Context } from "../context";
 import { PLAYER_RESULTS_LIMIT } from "./constants";
 
@@ -29,8 +29,8 @@ const circuitColumns = { columns: { id: true, name: true, year: true, type: true
 export async function loadPlayerCircuits(db: Context["db"], playerId: number): Promise<PlayerCircuitSeason[] | undefined> {
   const [[player], rows, finals] = await db.batch([
     db.query.players.findMany({ where: eq(players.id, playerId), columns: { id: true }, limit: 1 }),
-    db.query.circuitPodiums.findMany({
-      where: eq(circuitPodiums.playerId, playerId),
+    db.query.circuitResults.findMany({
+      where: eq(circuitResults.playerId, playerId),
       columns: { points: true, circuitPhaseId: true },
       limit: PLAYER_RESULTS_LIMIT,
       with: {
@@ -68,21 +68,21 @@ export async function loadPlayerCircuits(db: Context["db"], playerId: number): P
   if (inProgress.length > 0) {
     const points = await db
       .select({
-        playerId: circuitPodiums.playerId,
-        points: circuitPodiums.points,
-        category: circuitPodiums.category,
+        playerId: circuitResults.playerId,
+        points: circuitResults.points,
+        category: circuitResults.category,
         circuitId: circuitPhases.circuitId,
-        directCircuitId: circuitPodiums.circuitId,
+        directCircuitId: circuitResults.circuitId,
       })
-      .from(circuitPodiums)
-      .leftJoin(circuitPhases, eq(circuitPhases.id, circuitPodiums.circuitPhaseId))
+      .from(circuitResults)
+      .leftJoin(circuitPhases, eq(circuitPhases.id, circuitResults.circuitPhaseId))
       .where(
         or(
           inArray(
-            circuitPodiums.circuitPhaseId,
+            circuitResults.circuitPhaseId,
             db.select({ id: circuitPhases.id }).from(circuitPhases).where(inArray(circuitPhases.circuitId, inProgress)),
           ),
-          inArray(circuitPodiums.circuitId, inProgress),
+          inArray(circuitResults.circuitId, inProgress),
         ),
       )
       .limit(SEASON_POINTS_LIMIT);
@@ -92,7 +92,7 @@ export async function loadPlayerCircuits(db: Context["db"], playerId: number): P
         entry.circuit.type as CircuitType,
         points
           .filter((row) => (row.circuitId ?? row.directCircuitId) === id)
-          .map((row) => ({ playerId: row.playerId, points: row.points, category: row.category as CompetitionCategory | null })),
+          .map((row) => ({ playerId: row.playerId, points: row.points, category: row.category })),
       );
       for (const placing of ranking.filter((placing) => placing.playerId === playerId)) {
         entry.standings.push({

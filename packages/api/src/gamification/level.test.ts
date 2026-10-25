@@ -34,7 +34,7 @@ describe("playerLevel", () => {
       xp: 0,
       levelXp: 0,
       nextLevelXp: 50,
-      breakdown: { tournaments: 0, tournamentPodiums: 0, circuitPodiums: 0, ratingThresholds: 0, titles: 0 },
+      breakdown: { tournaments: 0, tournamentPodiums: 0, circuitResults: 0, ratingThresholds: 0, titles: 0 },
     });
   });
 
@@ -77,7 +77,7 @@ describe("playerLevel", () => {
         { place: 6, category: null, tournamentId: 10, date: "2025-04-01", circuit: { id: 100, name: "C", stages: 4 } },
       ],
     });
-    expect(breakdown.circuitPodiums).toBe(Math.round(40 * 0.7 + 25 * 0.4 * 0.5 + 15 + 5));
+    expect(breakdown.circuitResults).toBe(Math.round(40 * 0.7 + 25 * 0.4 * 0.5 + 15 + 5));
   });
 
   test("each rating step reached, in any format and including legacy ones, is worth 30", () => {

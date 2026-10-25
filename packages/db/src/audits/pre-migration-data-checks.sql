@@ -8,7 +8,7 @@ WITH checks(check_name, invalid_rows) AS (
   ('players.rating', (SELECT COUNT(*) FROM players WHERE blitz NOT BETWEEN 0 AND 4000 OR rapid NOT BETWEEN 0 AND 4000 OR classic NOT BETWEEN 0 AND 4000)),
   ('players_to_tournaments.rating', (SELECT COUNT(*) FROM players_to_tournaments WHERE old_rating NOT BETWEEN 0 AND 4000 OR variation NOT BETWEEN -4000 AND 4000)),
   ('tournament_podiums.place', (SELECT COUNT(*) FROM tournament_podiums WHERE place NOT BETWEEN 1 AND 100000)),
-  ('circuit_podiums.domain_values', (SELECT COUNT(*) FROM circuit_podiums
+  ('circuit_results.domain_values', (SELECT COUNT(*) FROM circuit_results
     WHERE points NOT BETWEEN 0 AND 1000000
        OR (place IS NOT NULL AND place NOT BETWEEN 1 AND 1000)
        OR (category IS NOT NULL AND category NOT IN ('Sub 8 Masculino', 'Sub 10 Masculino', 'Sub 12 Masculino', 'Sub 14 Masculino', 'Sub 16 Masculino', 'Sub 18 Masculino', 'Sub 8 Feminino', 'Sub 10 Feminino', 'Sub 12 Feminino', 'Sub 14 Feminino', 'Sub 16 Feminino', 'Sub 18 Feminino', 'Futuro', 'Juvenil', 'Master'))
@@ -35,7 +35,7 @@ WITH checks(check_name, invalid_rows) AS (
   ('timestamps.announcements', (SELECT COUNT(*) FROM announcements WHERE created_at IS NULL OR updated_at IS NULL)),
   ('timestamps.championships', (SELECT COUNT(*) FROM championships WHERE created_at IS NULL OR updated_at IS NULL)),
   ('timestamps.circuit_phases', (SELECT COUNT(*) FROM circuit_phases WHERE created_at IS NULL OR updated_at IS NULL)),
-  ('timestamps.circuit_podiums', (SELECT COUNT(*) FROM circuit_podiums WHERE created_at IS NULL OR updated_at IS NULL)),
+  ('timestamps.circuit_results', (SELECT COUNT(*) FROM circuit_results WHERE created_at IS NULL OR updated_at IS NULL)),
   ('timestamps.circuits', (SELECT COUNT(*) FROM circuits WHERE created_at IS NULL OR updated_at IS NULL)),
   ('timestamps.clubs', (SELECT COUNT(*) FROM clubs WHERE created_at IS NULL OR updated_at IS NULL)),
   ('timestamps.cup_brackets', (SELECT COUNT(*) FROM cup_brackets WHERE created_at IS NULL OR updated_at IS NULL)),

@@ -17,7 +17,7 @@ would have to be backfilled once and then kept in sync with every correction.
 ## Decision
 
 - Achievements are derived on read from `players_to_tournaments`,
-  `tournament_podiums`, `circuit_podiums`, and `circuit_final_podiums` by one pure
+  `tournament_podiums`, `circuit_results`, and `circuit_final_podiums` by one pure
   module, `packages/api/src/gamification/` (`stats.ts`, `badges.ts`). Every page
   that shows them calls it; nothing else re-implements a rule.
 - Badge definitions and weights are code (`badges.ts`, `constants.ts`), not data.

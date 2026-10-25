@@ -4,8 +4,8 @@ import type { AppRouter } from "@fsx/api/routers/index";
 
 export type Circuit = NonNullable<inferRouterOutputs<AppRouter>["circuits"]["byId"]>;
 export type CircuitPhase = Circuit["circuitPhases"][number];
-export type CircuitPodium = CircuitPhase["circuitPodiums"][number];
-export type CircuitPlayer = CircuitPodium["player"];
+export type CircuitResult = CircuitPhase["circuitResults"][number];
+export type CircuitPlayer = CircuitResult["player"];
 
 export type CircuitType = Circuit["type"];
 

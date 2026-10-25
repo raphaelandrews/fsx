@@ -31,6 +31,8 @@ const IMPACT_NOUNS: Record<string, DeleteEntity> = {
   tournament: "tournament",
   circuit: "circuit",
   event: "event",
+  category: "category",
+  "scoring scheme": "scoringScheme",
 };
 
 /** The impact lookup for a list or edit page's noun, when the API knows how to count what it affects. */

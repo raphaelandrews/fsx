@@ -58,7 +58,7 @@ the affected rows (`.returning()`), except where noted.
 
 | Procedure | Access | Input | Output | Edge TTL |
 | --------- | ------ | ----- | ------ | -------- |
-| `players.byId` | public | `{ id }` | Profile: ratings, photo, IDs, club, location, titles, roles, podiums, rating history, defending championships (nested lists capped at 100) | 120 s |
+| `players.byId` | public | `{ id }` | Profile: ratings, photo, IDs, club, location, titles, roles, podiums, rating history (with the category played at each circuit stage), defending championships (nested lists capped at 100) | 120 s |
 | `players.stats` | public | `{ id }` | `{ stats, level, achievements, upcoming, titlePath, tournaments }` (level with XP and its breakdown; locked next steps with `progress`; unofficial progress toward the next FSX major title; names of the tournaments achievements point at) derived from the whole career (up to 500 results) by `gamification/` ([ADR 0006](/decisions/0006-derived-achievements)); `NOT_FOUND` for an unknown player | 120 s |
 | `players.season` | public | `{ id, year }` | One year of the career: tournaments, months, rating change per type, best gain, podiums, achievements, XP gained (career up to the end of the year minus up to the end of the previous one), level, and the years played; `NOT_FOUND` for an unknown player or a year without dated activity | 300 s |
 | `players.compare` | public | `{ a, b }` | Both players' ratings, level, tournaments played, tournament medals and per-format peak, best gain and best streak, plus the tournaments both have a rating result in (newest first, up to 200) with each side's before-rating and variation. `BAD_REQUEST` for the same player twice, `NOT_FOUND` for either | 300 s |
@@ -142,30 +142,42 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `tournaments.suggestedTier` | admin | `{ id }` | `{ current, suggested, players, strength, reason }`: the tier the field suggests (`null` for Tier S or a tournament without results); `NOT_FOUND` for an unknown tournament. Never applied automatically. Not cached | — |
 | `tournaments.tierCalibration` | admin | — | `{ lines, defaults, calibratedAt }`: the Tier A strength lines per rhythm in use (saved, or `TIER_SUGGESTION` defaults) | — |
 | `tournaments.recalibrateTier` | admin | — | `{ previous, lines, calibratedAt }`. Recomputes the lines as the 75th percentile of recent field strengths (8 events minimum per rhythm) and saves them in `computed_results` (`tier-calibration`); saved tiers are untouched | — |
-| `tournaments.create` / `update` / `delete` | admin | `name`, `ratingType`, `date?`, `chessResults?` (`httpUrl`), `championshipId?`, `tier?` (`S`, `A`, `B`, `school`; default `B`) | Rows; `CONFLICT` when deleting a tournament that has rating results or podiums, or changing the rating type of one with rating results | — |
+| `tournaments.create` / `update` / `delete` | admin | `name`, `ratingType`, `date?`, `chessResults?` (`httpUrl`), `championshipId?`, `tier?` (`S`, `A`, `B`, `school`; default `B`), `scoringSchemeId?`, `hasPodiums?` (default true) | Rows; `update` with `hasPodiums: false` is `CONFLICT` while hand-entered podiums remain (it deletes the synced ones), and with `true` it syncs circuit and School Games podiums; `CONFLICT` when deleting a tournament that has rating results or podiums, or changing the rating type of one with rating results | — |
+| `categories.list` | public | — | Every category with kind, sex, age limit, and order | 300 s |
+| `categories.create` / `update` / `delete` | admin | `{ name, kind, sex?, ageLimit?, sortOrder }` | Rows; `BAD_REQUEST` when an age category lacks a sex or age limit (or an open one has them), `CONFLICT` for a duplicate name or a category still used by podiums or results. Renaming cascades | — |
+| `scoringSchemes.list` | admin | — | Schemes with their places and points | — |
+| `scoringSchemes.create` / `update` / `delete` | admin | `{ name, places: { place, points }[] (1–50) }` | Row; `update` replaces the places in one batch; `BAD_REQUEST` for a repeated place, `CONFLICT` for a duplicate name or a scheme still used by a circuit or tournament | — |
 | `tournamentPodiums.list` | public | — | Podiums with category, player, and tournament | 300 s |
 | `tournamentPodiums.listByTournament` | admin | `{ tournamentId }` | A tournament's podiums with players, for its edit page | — |
 | `tournamentPodiums.bulkDelete` | admin | `{ ids (1–200) }` | `{ deleted, requested }`; `NOT_FOUND` when none exist |
 | `tournamentPodiums.createMany` | admin | `{ tournamentId, podiums: { playerId, place (1–100000), category? }[] }` (1–50) | New podium ids, inserted in one `db.batch`; `BAD_REQUEST` for a player repeated in a category, `CONFLICT` (nothing saved) when any row duplicates an existing podium | — |
-| `tournamentPodiums.create` / `update` / `delete` | admin | `{ playerId, tournamentId, place (1–100000), category? }` | Rows; `CONFLICT` for a second overall podium, or a second podium in the same category, of a player in a tournament | — |
+| `tournamentPodiums.create` / `update` / `delete` | admin | `{ playerId, tournamentId, place (1–100000), category? }` | Rows; `BAD_REQUEST` when the tournament has podiums turned off, `CONFLICT` for a podium synced from a circuit result (`update`, `delete`, `bulkDelete`), a second overall podium, or a second podium in the same category, of a player in a tournament | — |
 | `champions.list` | public | — | Championships `{ id, name }` | 300 s |
 | `champions.gallery` | public | — | Championships with their tournaments' overall podiums (category podiums excluded) and players | 300 s |
 | `champions.create` / `update` / `delete` | admin | `{ name }` | Championship rows | — |
 | `circuits.listSimple` | public | — | `{ id, name, type, year, tier, finishedAt }`, newest season first | 300 s |
-| `circuits.byId` | public | `{ id }` | Circuit with championship, phases, tournaments, clubs, points rows, and final podiums | 300 s |
-| `circuits.create` / `update` / `delete` | admin | `{ name, type, year (1900–2200), tier?, championshipId? }` | Rows; delete cascades to phases and points rows; `CONFLICT` while the circuit has final podiums | — |
+| `circuits.byId` | public | `{ id }` | Circuit with championship, scoring scheme (and its places), phases, tournaments, clubs, points rows, and final podiums | 300 s |
+| `circuits.create` / `update` / `delete` | admin | `{ name, type, year (1900–2200), tier?, championshipId?, scoringSchemeId? }` | Rows; delete cascades to phases and points rows; `CONFLICT` while the circuit has final podiums | — |
 | `circuits.finish` | admin | `{ id, finishedAt }` | Sets `finishedAt` and, in one batch, stores the top 3 of the summed points (per category for `categories` and `school` circuits, shared places for equal totals) as final podiums; `CONFLICT` if already finished, `BAD_REQUEST` without points | — |
 | `circuits.reopen` | admin | `{ id }` | Deletes the final podiums and clears `finishedAt` in one batch | — |
 | `circuits.finalPodiums.create` / `update` / `delete` | admin | `{ circuitId, playerId, place (1–1000), category?, points? }` | Rows; `BAD_REQUEST` on create while the circuit is in progress, `CONFLICT` for a duplicate player in a category | — |
 | `circuits.phases.create` / `update` / `delete` | admin | `{ circuitId, tournamentId, clubId?, sortOrder }` | Rows | — |
-| `circuits.podiums.create` / `update` / `delete` | admin | `{ playerId, circuitId? XOR circuitPhaseId?, category?, place? (1–1000), points }` | Rows; `BAD_REQUEST` unless exactly one target is set | — |
+| `circuits.phases.listByTournament` | admin | `{ tournamentId }` | `{ id, sortOrder, circuit: { id, name, year } }[]`, newest season first | — |
+| `circuits.results.createMany` | admin | `{ circuitPhaseId, category?, results: { playerId, place?, points }[] (1–50) }` | Inserted ids; `BAD_REQUEST` on a repeated player. Also syncs medals | — |
+| `circuits.medalGaps` | admin | `{ id }` | `{ missing }`: stage results in medal places, in tournaments with podiums on, that have no podium yet | — |
+| `circuits.syncPodiums` | admin | `{ id }` | `{ id }`; `NOT_FOUND` for a missing circuit | — |
+| `circuits.results.create` / `update` / `delete` | admin | `{ playerId, circuitId? XOR circuitPhaseId?, category?, place? (1–1000), points }` | Rows; `BAD_REQUEST` unless exactly one target is set. Place 1–3 also writes the tournament podium (see [domain model](/architecture/domain-model)) | — |
 | `cups.list` | public | — | Cup summaries | 300 s |
 | `cups.byId` | public | `{ id }` | Cup with groups, players, rounds, brackets, playoffs, matches, and games | 120 s |
 | `cups.create` / `update` / `delete` | admin | `name`, `imageUrl`, `startDate`, `endDate` (ISO dates, end not before start), `prizePool`, `ratingType`, `championshipId?` | Rows; delete cascades to the whole cup tree and removes the image. No dashboard page uses these yet | — |
-| `tvSergipe.list` | public | — | Every School Games result with school and player | 300 s |
-| `tvSergipe.leaderboard` | public | `{ ageGroup?, sex?, modality? }` | Per school: `{ clubId, name, logoUrl, points, gold, silver, bronze }`, by points | 300 s |
-| `tvSergipe.create` / `update` | admin | `{ clubId, playerId? \| teamName?, ageGroup, sex, modality, place (1–8) }` | Row; points are derived from place | — |
-| `tvSergipe.delete` / `deleteAll` | admin | `{ id }` / — | Deleted rows (`deleteAll` returns `{ deleted }`); a school (club) with results cannot be deleted until they are | — |
+| `tvSergipe.editions` | public | — | Tournaments that have School Games results, newest first | 300 s |
+| `tvSergipe.list` | public | `{ tournamentId? }` | School Games results (of one edition when given) with school and player | 300 s |
+| `tvSergipe.listAdmin` | admin | — | Every result, also naming its edition, for the admin pages | — |
+| `tvSergipe.leaderboard` | public | `{ tournamentId?, ageGroup?, sex?, modality? }` | Per school: `{ clubId, name, logoUrl, points, gold, silver, bronze }`, by points | 300 s |
+| `tvSergipe.create` / `update` | admin | `{ tournamentId, clubId, playerId? \| teamName?, ageGroup, sex, modality, place (1–8), points? (0–1000) }` | Row; points default to the edition tournament's scoring scheme, then to 10, 8, 6, 5, 4, 3, 2, 1. An individual place 1–3 also writes the tournament podium | — |
+| `tvSergipe.delete` | admin | `{ id }` | Deleted row (and its synced podium); a school (club) or tournament with results cannot be deleted until they are | — |
+| `tvSergipe.createMany` | admin | `{ tournamentId, ageGroup, sex, modality, results: { clubId, playerId? \| teamName?, place (1–8), points? }[] (1–50) }` | Inserted ids in one `db.batch`, points from the edition's scheme unless given, medals synced; `BAD_REQUEST` for a repeated player or team, a missing player or team letter | — |
+| `tvSergipe.assignEdition` | admin | `{ tournamentId }` | `{ assigned }`: sets the tournament on every result saved before editions existed and syncs their podiums; `NOT_FOUND` when none are left | — |
 
 ## Directory data
 

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import type { CompetitionCategory } from "@fsx/api/circuit-types";
 import { Button } from "@fsx/ui/components/button";
 import {
   Dialog,
@@ -27,7 +26,7 @@ import { DataTableRowActions } from "@/components/data-table/data-table-row-acti
 import { RowLink } from "@/components/data-table/row-link";
 import { SearchableSelect } from "@/components/form/searchable-select";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { CATEGORY_OPTIONS } from "@/lib/admin-forms";
+import { useCategoryOptions } from "@/lib/reference-options";
 import { getAdminErrorMessage } from "@/lib/errors";
 import { useTRPC } from "@/lib/trpc";
 
@@ -36,6 +35,8 @@ type Podium = {
   playerId: number;
   place: number;
   category: string | null;
+  circuitResultId: number | null;
+  tvSergipeId: number | null;
   player: { id: number; name: string } | null;
 };
 
@@ -53,6 +54,7 @@ const newRow = (place: number): DraftRow => ({
 
 export function TournamentPodiums({ tournamentId }: { tournamentId: number }) {
   const trpc = useTRPC();
+  const categoryOptions = useCategoryOptions();
   const { data: podiums } = useSuspenseQuery(
     trpc.tournamentPodiums.listByTournament.queryOptions({ tournamentId }),
   );
@@ -87,13 +89,24 @@ export function TournamentPodiums({ tournamentId }: { tournamentId: number }) {
       name: "category",
       label: "Category",
       kind: "select",
-      options: CATEGORY_OPTIONS,
+      options: categoryOptions,
       hint: "Leave empty for the overall result.",
     },
   ];
 
   const columns: ColumnDef<Podium>[] = [
-    { id: "category", header: "Category", cell: ({ row }) => row.original.category ?? "Overall" },
+    {
+      id: "category",
+      header: "Category",
+      cell: ({ row }) => (
+        <>
+          {row.original.category ?? "Overall"}
+          {row.original.circuitResultId || row.original.tvSergipeId ? (
+            <span className="ml-2 text-muted-foreground text-xs">from a result</span>
+          ) : null}
+        </>
+      ),
+    },
     {
       id: "place",
       header: "Place",
@@ -114,7 +127,8 @@ export function TournamentPodiums({ tournamentId }: { tournamentId: number }) {
     {
       id: "actions",
       header: () => <span className="sr-only">Actions</span>,
-      cell: ({ row }) => (
+      cell: ({ row }) =>
+        row.original.circuitResultId || row.original.tvSergipeId ? null : (
         <DataTableRowActions
           id={row.original.id}
           noun="podium"
@@ -157,7 +171,7 @@ export function TournamentPodiums({ tournamentId }: { tournamentId: number }) {
             tournamentId,
             playerId: Number(values.playerId),
             place: Number(values.place),
-            category: (values.category || null) as CompetitionCategory | null,
+            category: values.category || null,
           })
         }
         error={update.error}
@@ -197,6 +211,7 @@ function BulkPodiumsDialog({
 
 function BulkPodiumsForm({ tournamentId, onDone }: { tournamentId: number; onDone: () => void }) {
   const trpc = useTRPC();
+  const categoryOptions = useCategoryOptions();
   const [rows, setRows] = useState<DraftRow[]>(() => [1, 2, 3].map(newRow));
 
   const create = useAdminMutation(trpc.tournamentPodiums.createMany.mutationOptions(), {
@@ -237,7 +252,7 @@ function BulkPodiumsForm({ tournamentId, onDone }: { tournamentId: number; onDon
           podiums: filled.map((row) => ({
             playerId: Number(row.playerId),
             place: Number(row.place),
-            category: (row.category || null) as CompetitionCategory | null,
+            category: row.category || null,
           })),
         });
       }}
@@ -277,7 +292,7 @@ function BulkPodiumsForm({ tournamentId, onDone }: { tournamentId: number; onDon
               onChange={(event) => patch(row.key, { category: event.target.value })}
             >
               <option value="">Overall</option>
-              {CATEGORY_OPTIONS.map((option) => (
+              {categoryOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

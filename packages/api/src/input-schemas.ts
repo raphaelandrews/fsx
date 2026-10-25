@@ -16,6 +16,8 @@ export const page = positiveInt.max(1_000).default(1);
 export const limit = positiveInt.max(100).default(20);
 export const searchText = z.string().trim().max(120);
 export const nameText = z.string().trim().min(1).max(160);
+// Categories are rows of `categories`; mutations check the name against it (requireCategories).
+export const categoryName = z.string().trim().min(1).max(60);
 export const isoDate = z.iso.date();
 // Only the year of birth is stored; the newest allowed year is the current one in the federation's calendar.
 export const birthYear = z

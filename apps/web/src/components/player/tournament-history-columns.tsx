@@ -3,7 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import type { PlayerById } from "./player-profile";
 
-type HistoryRow = PlayerById["playersToTournaments"][number];
+type HistoryRow = PlayerById["playersToTournaments"][number] & { category: string | null };
 
 export const tournamentHistoryColumns: ColumnDef<HistoryRow>[] = [
   {
@@ -16,6 +16,7 @@ export const tournamentHistoryColumns: ColumnDef<HistoryRow>[] = [
         className="whitespace-nowrap text-left font-medium text-foreground underline-offset-4 hover:underline"
       >
         {row.original.tournament.name}
+        {row.original.category ? <span className="ms-1.5 font-normal text-muted-foreground">· {row.original.category}</span> : null}
       </Link>
     ),
   },

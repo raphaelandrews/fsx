@@ -44,11 +44,37 @@ are `snake_case` in SQL and `camelCase` in Drizzle. Every table has an integer
   championships, `A` and `B` for other events by importance, `school` for school
   events. Weights podium XP and groups achievements; see [Gamification](/reference/gamification).
 - **Tournament** (`tournaments`): one event with a `rating_type`, a tier, an
-  optional `date` and Chess-Results URL, and an optional championship.
+  optional `date` and Chess-Results URL, an optional championship, and an optional
+  scoring scheme (the default points of a School Games edition). `has_podiums`
+  (default true) says whether the event ranks players: when off it accepts no
+  podiums and the circuit and School Games syncs skip it. Turning it off needs its
+  hand-entered podiums removed first and deletes the synced ones; turning it on
+  syncs again. The category on a podium is optional per row.
+- **Category** (`categories`): a row, not an enum, so a new category needs no
+  migration. `kind` is `age` (a `sex` and an `age_limit`, e.g. `Sub 10 Feminino`
+  is female with limit 10) or `open` (Futuro, Juvenil, Master: no sex or age, and
+  winning one earns no champion emblem). Podium and result tables store the
+  category `name`, a foreign key with `ON UPDATE CASCADE` (renaming a category
+  renames it everywhere) and `ON DELETE RESTRICT`. The API checks every name
+  (`BAD_REQUEST` for an unknown one).
+- **Scoring scheme** (`scoring_schemes`, `scoring_scheme_places`): points by place.
+  A circuit or a tournament points at one, and entry forms prefill points from it.
+  Every result still stores its own points, so editing or replacing a scheme never
+  rewrites history and tied players can share points.
 - **Tournament podium** (`tournament_podiums`): a player's final `place` in a
   tournament, overall (`category` null) or in one category (for example
   `Sub 18 Masculino`). Any tournament can have podiums; the champions gallery
-  shows the overall podiums of championship tournaments.
+  shows the overall podiums of championship tournaments. Any place can be stored
+  (the public tournament page lists the rest), but only the first `MEDAL_PLACES` (3)
+  earn a medal on the player page, in medal counts, and in the podium sync below. A stage result of any
+  circuit with place 1–3 creates its podium automatically, unless the stage's tournament has podiums turned off
+  (`circuit_result_id` links the two): saving, moving, or deleting the result,
+  or changing its phase's tournament, updates the podium, and the synced row
+  replaces a hand-entered podium for the same player, tournament, and category.
+  Synced podiums are read-only in the tournament's Podiums panel; edit the stage
+  result instead. When one tournament is a stage of two circuits, the first
+  synced result keeps the podium. `circuits.syncPodiums` rebuilds a circuit's podiums
+  (the "Sync medals" button), for example for results saved before the sync existed.
 - **Defending champion** (`defending_champions`): the current holder of a
   championship.
 - **Rating history** (`players_to_tournaments`): the rating a player had before
@@ -61,7 +87,7 @@ are `snake_case` in SQL and `camelCase` in Drizzle. Every table has an integer
   `finished_at` is set.
   - **Circuit phase** (`circuit_phases`): one stage, played at a tournament,
     optionally hosted by a club, ordered by `sort_order`.
-  - **Circuit result** (`circuit_podiums`, a historical name): points for a
+  - **Circuit result** (`circuit_results`, formerly `circuit_podiums`): points for a
     player, attached to **either** a phase **or** directly to the circuit
     (`geral` circuits), with an optional stage place (1–1000) and category.
     Standings are the sums of these points.
@@ -125,9 +151,9 @@ erDiagram
   circuits ||--o{ circuit_phases : ""
   tournaments ||--o{ circuit_phases : ""
   clubs |o--o{ circuit_phases : "host"
-  circuits |o--o{ circuit_podiums : "geral"
-  circuit_phases |o--o{ circuit_podiums : "per phase"
-  players ||--o{ circuit_podiums : ""
+  circuits |o--o{ circuit_results : "geral"
+  circuit_phases |o--o{ circuit_results : "per phase"
+  players ||--o{ circuit_results : ""
   circuits ||--o{ circuit_final_podiums : ""
   players ||--o{ circuit_final_podiums : ""
   cups ||--o{ cup_groups : ""
@@ -155,12 +181,14 @@ foreign-key error, which the API returns as `CONFLICT`.
 | ----------- | ------------ | --------------------------- |
 | player (no API procedure) | title, role, norm, and insignia links; ranking snapshots | announcements, rating history, tournament podiums, circuit results and final podiums, defending champions, cup players and matches, School Games results |
 | club | — | players, circuit phases, School Games results |
+| category | — | tournament podiums, circuit results, final podiums using it |
+| scoring scheme | its places | circuits and tournaments pointing at it |
 | location | — | players |
 | title, role, norm, insignia | its player links | — |
 | championship | its defending champions | tournaments, cups, circuits |
 | tournament | — | rating history (revert it first), podiums (remove them first), circuit phases |
-| circuit | its phases and their results, and its own results | final podiums (reopen the season first) |
-| circuit phase | its results | — |
+| circuit | its phases and their results (and the tournament podiums they synced), and its own results | final podiums (reopen the season first) |
+| circuit phase | its results (and the tournament podiums they synced) | — |
 | cup | groups, players, rounds, brackets, playoffs, matches, games | — |
 | event | its link group and links | — |
 | link group | its links | — |
@@ -266,13 +294,22 @@ in one D1 batch, so a failure leaves both records untouched.
 
 A `tv_sergipe` row is one placement:
 
+- `tournament_id` is the edition (for example "TV Sergipe 2027"); one tournament holds
+  both modalities and all 12 age/sex categories. It is null only for results saved
+  before editions existed; `tvSergipe.assignEdition` moves those into a tournament.
 - `club_id` is the school; `age_group` is `8`, `10`, `12`, `14`, `16`, or `18`;
   `sex` is `male` or `female`; `modality` is `individual` or `team`.
 - Individual rows name a `player_id` and no team; team rows name a `team_name`
   (`A`–`J`, to tell apart several teams from one school) and no player.
-- `place` is 1–8, and `points` follow it: 10, 8, 6, 5, 4, 3, 2, 1.
-- A player has at most one individual result per age group and sex; a school's
-  team letter is unique per age group and sex.
+- `place` is 1–8. `points` default to 10, 8, 6, 5, 4, 3, 2, 1 for the place but are
+  stored per result and can be set when the rules of an edition change; old
+  editions keep their points.
+- A player has at most one individual result per edition, age group, and sex; a
+  school's team letter is unique per edition, age group, and sex.
+- An individual place 1–3 creates a tournament podium in the category named by age
+  and sex (`Sub 10 Feminino`), read-only in the tournament's Podiums panel
+  (`tournament_podiums.tv_sergipe_id`). Team results have no player, so they give
+  no podium.
 
 `tvSergipe.leaderboard` groups rows by school, filtered by age group, sex, and
 modality:

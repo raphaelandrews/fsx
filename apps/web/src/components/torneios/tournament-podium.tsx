@@ -1,3 +1,4 @@
+import { isMedalPlace } from "@fsx/api/circuit-types";
 import { Link } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
 
@@ -15,7 +16,7 @@ type Result = inferRouterOutputs<AppRouter>["tournaments"]["results"][number];
 const signed = (value: number) => (value > 0 ? `+${value}` : String(value));
 
 function Place({ place }: { place: number }) {
-  return place >= 1 && place <= 3 ? (
+  return isMedalPlace(place) ? (
     <Medal place={place as 1 | 2 | 3} />
   ) : (
     <span className="inline-flex min-w-9 justify-center font-medium text-muted-foreground tabular-nums">{place}º</span>
@@ -75,9 +76,9 @@ export function TournamentPodium({ podiums, results }: { podiums: Podium[]; resu
   const overall = groups.get("");
   const categories = [...groups].filter(([category]) => category !== "").sort(([a], [b]) => a.localeCompare(b, "pt-BR"));
   // Teams can share a place; the three-card podium only fits one player per medal.
-  const top = overall?.filter((podium) => podium.place <= 3) ?? [];
+  const top = overall?.filter((podium) => isMedalPlace(podium.place)) ?? [];
   const asCards = top.length === 3 && new Set(top.map((podium) => podium.place)).size === 3;
-  const rest = asCards ? (overall ?? []).filter((podium) => podium.place > 3) : (overall ?? []);
+  const rest = asCards ? (overall ?? []).filter((podium) => !isMedalPlace(podium.place)) : (overall ?? []);
 
   return (
     <div className="grid gap-4">

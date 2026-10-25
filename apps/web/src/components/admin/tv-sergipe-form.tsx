@@ -1,6 +1,8 @@
 import type { LinkProps } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 
+import { Input } from "@fsx/ui/components/input";
+
 import { NATIVE_SELECT_CLASS } from "@/components/admin/entity-form";
 import { AdminForm, FormActions, FormSection } from "@/components/admin/form-layout";
 import { FormField } from "@/components/form/form-field";
@@ -17,6 +19,7 @@ import {
 } from "@/routes/_auth/dashboard/tv-sergipe/-constants";
 
 export interface TvSergipeValues {
+  tournamentId: string;
   clubId: string;
   modality: "individual" | "team";
   playerId: string;
@@ -24,11 +27,12 @@ export interface TvSergipeValues {
   ageGroup: string;
   sex: "male" | "female";
   place: string;
+  points: string;
 }
 
 interface TvSergipeFormProps {
   defaultValues: TvSergipeValues;
-  labels?: { club?: string; player?: string };
+  labels?: { tournament?: string; club?: string; player?: string };
   onSubmit: (values: TvSergipeValues) => void;
   error: unknown;
   pending: boolean;
@@ -58,6 +62,27 @@ export function TvSergipeForm({
       onSubmit={() => form.handleSubmit()}
       actions={<FormActions cancelTo={cancelTo} submitLabel={submitLabel} pending={pending} />}
     >
+      <FormSection title="Edition" description="The tournament this result belongs to, such as TV Sergipe 2027.">
+        <form.Field
+          name="tournamentId"
+          validators={{ onDynamic: ({ value }) => (value ? undefined : "Tournament is required") }}
+        >
+          {(f) => (
+            <FormField label="Tournament" htmlFor="tv-tournamentId" required error={fieldError(f, error)}>
+              <SearchableSelect
+                id="tv-tournamentId"
+                value={f.state.value}
+                onChange={f.handleChange}
+                getQueryOptions={(query) => trpc.tournaments.search.queryOptions({ query })}
+                placeholder="Search tournament..."
+                emptyText="No tournament found."
+                initialLabel={labels.tournament}
+              />
+            </FormField>
+          )}
+        </form.Field>
+      </FormSection>
+
       <FormSection
         title="Participant"
         description="A school's individual player or one of its teams."
@@ -222,7 +247,7 @@ export function TvSergipeForm({
 
       <FormSection
         title="Placement"
-        description="Points follow the place: 10, 8, 6, 5, 4, 3, 2, 1. Team places count as two medals."
+        description="Team places count as two medals. Individual places 1–3 also become tournament podiums."
       >
         <form.Field name="place">
           {(f) => (
@@ -238,12 +263,31 @@ export function TvSergipeForm({
                 onChange={(e) => f.handleChange(e.target.value)}
                 className={NATIVE_SELECT_CLASS}
               >
-                {Object.entries(PLACE_POINTS).map(([place, points]) => (
+                {Object.keys(PLACE_POINTS).map((place) => (
                   <option key={place} value={place}>
-                    {place}º · {points} points
+                    {place}º
                   </option>
                 ))}
               </select>
+            </FormField>
+          )}
+        </form.Field>
+        <form.Field name="points">
+          {(f) => (
+            <FormField
+              label="Points"
+              htmlFor="tv-points"
+              hint="Leave empty to use the edition's scoring scheme (set on the tournament)."
+              error={fieldError(f, error)}
+            >
+              <Input
+                id="tv-points"
+                type="number"
+                min={0}
+                max={1000}
+                value={f.state.value}
+                onChange={(e) => f.handleChange(e.target.value)}
+              />
             </FormField>
           )}
         </form.Field>
@@ -254,6 +298,7 @@ export function TvSergipeForm({
 
 export function toTvSergipeInput(values: TvSergipeValues) {
   return {
+    tournamentId: Number(values.tournamentId),
     clubId: Number(values.clubId),
     playerId: values.modality === "individual" ? Number(values.playerId) : null,
     teamName: values.modality === "team" ? (values.teamName as (typeof TEAM_NAMES)[number]) : null,
@@ -261,5 +306,6 @@ export function toTvSergipeInput(values: TvSergipeValues) {
     sex: values.sex,
     modality: values.modality,
     place: Number(values.place),
+    points: values.points === "" ? undefined : Number(values.points),
   };
 }

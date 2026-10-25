@@ -6,7 +6,7 @@ import { createDb } from "@fsx/db";
 import { announcements } from "@fsx/db/schema/announcements";
 import { championships } from "@fsx/db/schema/championships";
 import { circuitPhases } from "@fsx/db/schema/circuit-phases";
-import { circuitPodiums } from "@fsx/db/schema/circuit-podiums";
+import { circuitResults } from "@fsx/db/schema/circuit-results";
 import { circuits } from "@fsx/db/schema/circuits";
 import { clubs } from "@fsx/db/schema/clubs";
 import { cups } from "@fsx/db/schema/cups";
@@ -159,16 +159,16 @@ const cases = (): CrudCase[] => [
     remove: (id) => caller.circuits.phases.delete({ id }),
   },
   {
-    name: "circuits.podiums",
-    table: circuitPodiums,
-    create: () => caller.circuits.podiums.create({
+    name: "circuits.results",
+    table: circuitResults,
+    create: () => caller.circuits.results.create({
       playerId: fixtures.playerId,
       circuitPhaseId: fixtures.phaseId,
       place: 1,
       points: 10,
     }),
     created: { playerId: fixtures.playerId, circuitPhaseId: fixtures.phaseId, place: 1, points: 10 },
-    update: (id) => caller.circuits.podiums.update({
+    update: (id) => caller.circuits.results.update({
       id,
       playerId: fixtures.secondPlayerId,
       circuitPhaseId: fixtures.phaseId,
@@ -176,7 +176,7 @@ const cases = (): CrudCase[] => [
       points: 8,
     }),
     updated: { playerId: fixtures.secondPlayerId, place: 2, points: 8 },
-    remove: (id) => caller.circuits.podiums.delete({ id }),
+    remove: (id) => caller.circuits.results.delete({ id }),
   },
   {
     name: "clubs",
@@ -338,6 +338,7 @@ const cases = (): CrudCase[] => [
     name: "tvSergipe",
     table: tvSergipe,
     create: () => caller.tvSergipe.create({
+      tournamentId: fixtures.tournamentId,
       clubId: fixtures.clubId,
       playerId: fixtures.playerId,
       ageGroup: "12",
@@ -345,9 +346,10 @@ const cases = (): CrudCase[] => [
       modality: "individual",
       place: 1,
     }),
-    created: { clubId: fixtures.clubId, playerId: fixtures.playerId, modality: "individual", place: 1 },
+    created: { tournamentId: fixtures.tournamentId, clubId: fixtures.clubId, playerId: fixtures.playerId, modality: "individual", place: 1 },
     update: (id) => caller.tvSergipe.update({
       id,
+      tournamentId: fixtures.tournamentId,
       clubId: fixtures.clubId,
       teamName: "B",
       ageGroup: "12",
@@ -531,8 +533,8 @@ describe("admin mutations reject missing and invalid ids", () => {
     "circuits.finalPodiums.delete": (id) => caller.circuits.finalPodiums.delete({ id }),
     "circuits.phases.update": (id) => caller.circuits.phases.update({ id, tournamentId: fixtures.tournamentId, sortOrder: 1 }),
     "circuits.phases.delete": (id) => caller.circuits.phases.delete({ id }),
-    "circuits.podiums.update": (id) => caller.circuits.podiums.update({ id, playerId, circuitId: fixtures.circuitId, points: 1 }),
-    "circuits.podiums.delete": (id) => caller.circuits.podiums.delete({ id }),
+    "circuits.results.update": (id) => caller.circuits.results.update({ id, playerId, circuitId: fixtures.circuitId, points: 1 }),
+    "circuits.results.delete": (id) => caller.circuits.results.delete({ id }),
     "clubs.update": (id) => caller.clubs.update({ id, name: "x" }),
     "clubs.delete": (id) => caller.clubs.delete({ id }),
     "cups.update": (id) => caller.cups.update({ id, prizePool: 1 }),
@@ -564,7 +566,7 @@ describe("admin mutations reject missing and invalid ids", () => {
     "tournamentPodiums.delete": (id) => caller.tournamentPodiums.delete({ id }),
     "tournaments.update": (id) => caller.tournaments.update({ id, name: "x" }),
     "tournaments.delete": (id) => caller.tournaments.delete({ id }),
-    "tvSergipe.update": (id) => caller.tvSergipe.update({ id, clubId: fixtures.clubId, playerId, ageGroup: "8", sex: "male", modality: "individual", place: 1 }),
+    "tvSergipe.update": (id) => caller.tvSergipe.update({ id, tournamentId: fixtures.tournamentId, clubId: fixtures.clubId, playerId, ageGroup: "8", sex: "male", modality: "individual", place: 1 }),
     "tvSergipe.delete": (id) => caller.tvSergipe.delete({ id }),
   };
 

@@ -10,6 +10,7 @@ import { CircuitFinalPodiums } from "@/components/circuitos/admin/circuit-final-
 import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { circuitSections } from "@/lib/admin-forms";
+import { useScoringSchemeOptions } from "@/lib/reference-options";
 import { orNotFound } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
 import { useTRPC } from "@/lib/trpc";
@@ -36,6 +37,7 @@ function RouteComponent() {
 
   const { data: circuit } = useSuspenseQuery(trpc.circuits.byId.queryOptions({ id }));
   const { data: championships } = useSuspenseQuery(trpc.champions.list.queryOptions());
+  const schemes = useScoringSchemeOptions();
 
   const updateMutation = useAdminMutation(trpc.circuits.update.mutationOptions(), {
     invalidates: "circuits",
@@ -72,13 +74,14 @@ function RouteComponent() {
         }
       />
       <EntityForm
-        sections={circuitSections(championships)}
+        sections={circuitSections(championships, schemes)}
         defaultValues={{
           name: circuit.name,
           year: circuit.year ? String(circuit.year) : "",
           type: circuit.type,
           tier: circuit.tier,
           championshipId: circuit.championshipId ? String(circuit.championshipId) : "",
+          scoringSchemeId: circuit.scoringSchemeId ? String(circuit.scoringSchemeId) : "",
         }}
         onSubmit={(values) =>
           updateMutation.mutate({
@@ -88,6 +91,7 @@ function RouteComponent() {
             type: values.type as CircuitType,
             tier: values.tier as CompetitionTier,
             championshipId: optionalNumber(values.championshipId!),
+            scoringSchemeId: optionalNumber(values.scoringSchemeId!),
           })
         }
         error={updateMutation.error}

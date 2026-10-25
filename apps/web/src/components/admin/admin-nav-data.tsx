@@ -52,6 +52,8 @@ export const ADMIN_NAV: AdminNavItem[] = [
       { label: "Championships", to: "/dashboard/championships", icon: ChampionIcon },
       { label: "Podiums", to: "/dashboard/tournament-podiums", icon: Medal01Icon },
       { label: "Circuits", to: "/dashboard/circuits", icon: MapPinIcon },
+      { label: "Categories", to: "/dashboard/categories", icon: File01Icon },
+      { label: "Scoring schemes", to: "/dashboard/scoring-schemes", icon: Award01Icon },
       { label: "TV Sergipe", to: "/dashboard/tv-sergipe", icon: SchoolIcon },
     ],
   },

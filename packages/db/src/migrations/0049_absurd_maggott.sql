@@ -1,0 +1,1 @@
+CREATE INDEX `circuit_results_player_idx` ON `circuit_results` (`player_id`);

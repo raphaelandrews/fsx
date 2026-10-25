@@ -16,7 +16,7 @@ WHERE p.active = 1 AND p.created_at < date('now', '-3 years')
     SELECT 1 FROM tournament_podiums tp JOIN tournaments t ON t.id = tp.tournament_id
     WHERE tp.player_id = p.id AND COALESCE(t.date, tp.created_at) >= date('now', '-3 years'))
   AND NOT EXISTS (
-    SELECT 1 FROM circuit_podiums c
+    SELECT 1 FROM circuit_results c
     JOIN circuit_phases f ON f.id = c.circuit_phase_id JOIN tournaments t ON t.id = f.tournament_id
     WHERE c.player_id = p.id AND COALESCE(t.date, c.created_at) >= date('now', '-3 years'))
 ORDER BY p.name;

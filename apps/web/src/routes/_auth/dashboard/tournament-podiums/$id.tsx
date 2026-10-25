@@ -1,13 +1,13 @@
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import type { CompetitionCategory } from "@fsx/api/circuit-types";
 
 import { EntityForm } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { tournamentPodiumSections } from "@/lib/admin-forms";
+import { useCategoryOptions } from "@/lib/reference-options";
 import { idParams } from "@/lib/route-params";
 import { useTRPC } from "@/lib/trpc";
 
@@ -26,6 +26,7 @@ export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/$id")(
 function RouteComponent() {
   const { id } = Route.useParams();
   const trpc = useTRPC();
+  const categoryOptions = useCategoryOptions();
   const navigate = useNavigate();
 
   const { data: podiums } = useSuspenseQuery(trpc.tournamentPodiums.list.queryOptions());
@@ -65,7 +66,7 @@ function RouteComponent() {
         }
       />
       <EntityForm
-        sections={tournamentPodiumSections(trpc, {
+        sections={tournamentPodiumSections(trpc, categoryOptions, {
           player: podium.player?.name,
           tournament: podium.tournament?.name,
         })}
@@ -81,7 +82,7 @@ function RouteComponent() {
             tournamentId: Number(values.tournamentId),
             playerId: Number(values.playerId),
             place: Number(values.place),
-            category: (values.category || null) as CompetitionCategory | null,
+            category: values.category || null,
           })
         }
         error={updateMutation.error}

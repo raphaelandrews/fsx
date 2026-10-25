@@ -31,7 +31,7 @@ SELECT 'circuits' AS table_name, COUNT(*) AS row_count FROM circuits
 UNION ALL
 SELECT 'circuit_phases' AS table_name, COUNT(*) AS row_count FROM circuit_phases
 UNION ALL
-SELECT 'circuit_podiums' AS table_name, COUNT(*) AS row_count FROM circuit_podiums
+SELECT 'circuit_results' AS table_name, COUNT(*) AS row_count FROM circuit_results
 UNION ALL
 SELECT 'posts' AS table_name, COUNT(*) AS row_count FROM posts
 UNION ALL
@@ -54,7 +54,7 @@ SELECT 'cup_games' AS table_name, COUNT(*) AS row_count FROM cup_games;
 SELECT 'max titles per player' AS metric, MAX(c) AS value FROM (SELECT COUNT(*) c FROM players_to_titles GROUP BY player_id)
 UNION ALL SELECT 'max tournaments per player', MAX(c) FROM (SELECT COUNT(*) c FROM players_to_tournaments GROUP BY player_id)
 UNION ALL SELECT 'max players per role', MAX(c) FROM (SELECT COUNT(*) c FROM players_to_roles GROUP BY role_id)
-UNION ALL SELECT 'max podiums per circuit phase', MAX(c) FROM (SELECT COUNT(*) c FROM circuit_podiums GROUP BY circuit_phase_id)
+UNION ALL SELECT 'max podiums per circuit phase', MAX(c) FROM (SELECT COUNT(*) c FROM circuit_results GROUP BY circuit_phase_id)
 UNION ALL SELECT 'max phases per circuit', MAX(c) FROM (SELECT COUNT(*) c FROM circuit_phases GROUP BY circuit_id);
 
 SELECT 'active players' AS metric, COUNT(*) AS value FROM players WHERE active = 1

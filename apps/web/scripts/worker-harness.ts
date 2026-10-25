@@ -101,7 +101,7 @@ async function seedFixtureRows(db: D1Database) {
     db.prepare("INSERT INTO circuits (id, name, type) VALUES (1, 'Circuito Fixture', 'default')"),
     db.prepare("INSERT INTO circuit_phases (id, circuit_id, tournament_id, club_id, sort_order) VALUES (1, 1, 1, 1, 1)"),
     db.prepare(
-      "INSERT INTO circuit_podiums (player_id, circuit_phase_id, category, place, points) VALUES (?, 1, 'Sub 18 Feminino', 1, 10)",
+      "INSERT INTO circuit_results (player_id, circuit_phase_id, category, place, points) VALUES (?, 1, 'Sub 18 Feminino', 1, 10)",
     ).bind(PLAYER.id),
     db.prepare(
       `INSERT INTO ranking_snapshots (player_id, rating_type, position, rating, snapshot_at)

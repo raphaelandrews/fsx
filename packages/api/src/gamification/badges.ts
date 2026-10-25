@@ -8,7 +8,7 @@ import {
   TOURNAMENTS_PLAYED_STEPS,
   VETERAN_SEASON_STEPS,
 } from "./constants";
-import { COMPETITION_CATEGORIES, type CompetitionTier } from "../circuit-types";
+import type { CompetitionTier } from "../circuit-types";
 import { CROWN_FORMATS, SERGIPANO_KINDS, SERGIPANO_LABELS, type CrownFormat, type SergipanoKind } from "./sergipano";
 import type { PlayerStats, Provenance } from "./stats";
 
@@ -82,10 +82,6 @@ const dynastyWinLabel = (label: string, kind: SergipanoKind) => `${label} · ${S
 const dynastyWinText = (kind: SergipanoKind, count: number) => `Venceu o Campeonato Sergipano ${SERGIPANO_LABELS[kind]} ${count} vezes.`;
 const dynastyRunText = (length: number) => `Venceu o mesmo campeonato em ${length} anos consecutivos, qualquer um.`;
 const dynastyRunLabel = (length: number) => `${length} títulos seguidos`;
-
-// Age-less categories are not youth champions, so they earn no category emblem.
-const CATEGORIES_WITHOUT_BADGE: readonly string[] = ["Futuro", "Juvenil", "Master"];
-const hasCategoryBadge = (category: string) => !CATEGORIES_WITHOUT_BADGE.includes(category);
 
 const categoryBadgeId = (category: string) => `category-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
@@ -401,7 +397,7 @@ BADGE_FAMILIES.push(
   {
     id: "category",
     earned: (stats) =>
-      stats.categoryWins.filter(({ category }) => hasCategoryBadge(category)).map(({ category, ...provenance }) => ({
+      stats.categoryWins.filter(({ emblem }) => emblem).map(({ category, emblem: _emblem, ...provenance }) => ({
         ...provenance,
         id: categoryBadgeId(category),
         family: "category",
@@ -681,7 +677,8 @@ export function badgeCatalog(careers: PlayerStats[]): BadgeCatalogEntry[] {
 // Every emblem that can exist, earned or not, so the public list can show what is
 // still out there. Mirrors BADGE_FAMILIES (badges.test.ts checks they agree).
 // The descriptions must not mention one player's own numbers.
-export function allBadges(): BadgeCatalogEntry[] {
+// `ageCategories` are the names of the categories that award a champion emblem.
+export function allBadges(ageCategories: readonly string[]): BadgeCatalogEntry[] {
   const entry = (
     id: string,
     family: string,
@@ -729,7 +726,7 @@ export function allBadges(): BadgeCatalogEntry[] {
     ...STAGE_PODIUM_STEPS.map((count, i) =>
       entry(`stage-podiums-${count}`, "circuit", `${count} pódios de etapa`, `Subiu ao pódio em ${count} etapas de circuito.`, "circuit", LADDER_TIERS[i]!),
     ),
-    ...COMPETITION_CATEGORIES.filter(hasCategoryBadge).map((category) =>
+    ...ageCategories.map((category) =>
       entry(categoryBadgeId(category), "category", `Campeão(ã) · ${category}`, `Venceu a categoria ${category} em um torneio.`, "category", "silver"),
     ),
     ...SERGIPANO_KINDS.flatMap((kind) =>

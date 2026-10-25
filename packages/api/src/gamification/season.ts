@@ -1,3 +1,4 @@
+import { isMedalPlace } from "../circuit-types";
 import { RATING_TYPES, type RatingType } from "../rating-types";
 import { achievementsOf } from "./badges";
 import { playerLevel, type LevelInput } from "./level";
@@ -66,10 +67,10 @@ export function playerSeason(input: CareerInput, year: number) {
     bestGain: best ? { variation: best.variation, tournamentId: best.tournament.id, date: best.tournament.date } : null,
     podiums: [
       ...input.tournamentPodiums
-        .filter((podium) => podium.place <= 3 && inYear(podium.tournament.date))
+        .filter((podium) => isMedalPlace(podium.place) && inYear(podium.tournament.date))
         .map((podium) => ({ place: podium.place, category: podium.category, name: podium.tournament.name, date: podium.tournament.date })),
       ...input.circuitFinalPodiums
-        .filter((podium) => podium.place <= 3 && inYear(podium.circuit.date))
+        .filter((podium) => isMedalPlace(podium.place) && inYear(podium.circuit.date))
         .map((podium) => ({ place: podium.place, category: podium.category, name: podium.circuit.name, date: podium.circuit.date })),
     ].sort((a, b) => (a.date ?? "").localeCompare(b.date ?? "")),
     achievements: achievementsOf(stats).filter((achievement) => inYear(achievement.earnedAt)),

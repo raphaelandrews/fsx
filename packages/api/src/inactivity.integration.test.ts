@@ -69,7 +69,7 @@ describe("automatic inactivity", () => {
     const schoolKid = await veteran("Só Circuito");
     const circuitId = idOf(await caller.circuits.create({ name: "Circuito Escolar Teste", type: "school", year: Number(today.slice(0, 4)) }));
     const phaseId = idOf(await caller.circuits.phases.create({ circuitId, tournamentId: await tournament("Etapa Escolar", yearsAgo(1)), sortOrder: 1 }));
-    await caller.circuits.podiums.create({ playerId: schoolKid, circuitPhaseId: phaseId, points: 3, category: "Sub 10 Masculino" });
+    await caller.circuits.results.create({ playerId: schoolKid, circuitPhaseId: phaseId, points: 3, category: "Sub 10 Masculino" });
 
     const newcomer = idOf(await caller.players.create({ name: "Recém Filiado", blitz: 1900, rapid: 1900, classic: 1900, sex: "female", active: true }));
     const neverPlayed = await veteran("Nunca Jogou");

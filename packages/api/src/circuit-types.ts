@@ -1,8 +1,8 @@
 export {
-  COMPETITION_CATEGORIES,
   COMPETITION_TIER_LABELS,
   COMPETITION_TIERS,
-  type CompetitionCategory,
+  MEDAL_PLACES,
+  isMedalPlace,
   type CompetitionTier,
 } from "@fsx/db/competition";
 

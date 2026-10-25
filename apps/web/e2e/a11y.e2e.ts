@@ -46,7 +46,7 @@ test.describe("dashboard", () => {
 
   const dashboardPages = [
     "/dashboard",
-    ...["announcements", "championships", "circuits", "clubs", "events", "insignias", "links", "locations", "norms", "players", "posts", "roles", "titles", "tournament-podiums", "tournaments", "tv-sergipe"].flatMap(
+    ...["announcements", "categories", "championships", "circuits", "clubs", "events", "insignias", "links", "locations", "norms", "players", "posts", "roles", "scoring-schemes", "titles", "tournament-podiums", "tournaments", "tv-sergipe"].flatMap(
       (section) => [`/dashboard/${section}`],
     ),
     `/dashboard/players/${PLAYER.id}`,

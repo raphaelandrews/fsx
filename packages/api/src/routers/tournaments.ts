@@ -13,6 +13,8 @@ import type { Context } from "../context";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { assertDeletable } from "../services/delete-impact";
+import { syncSchoolGamesEditionPodiums } from "../services/school-games-podium-sync";
+import { syncTournamentStageResults } from "../services/stage-podium-sync";
 import { httpUrl, idInput, isoDate, nameText, page, positiveInt, ratingTypeSchema, searchText, seasonYear } from "../input-schemas";
 import { paginate } from "../lib/pagination";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
@@ -47,7 +49,7 @@ const RATED_TOURNAMENT_MESSAGE =
 export const tournamentsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
     ctx.db.query.tournaments.findMany({
-      columns: { id: true, name: true, chessResults: true, date: true, ratingType: true, championshipId: true, tier: true },
+      columns: { id: true, name: true, chessResults: true, date: true, ratingType: true, championshipId: true, tier: true, scoringSchemeId: true, hasPodiums: true },
       with: {
         championship: { columns: { id: true, name: true } },
       },
@@ -228,7 +230,7 @@ export const tournamentsRouter = router({
       const [tournament, stages] = await Promise.all([
         ctx.db.query.tournaments.findFirst({
         where: eq(tournaments.id, input.id),
-        columns: { id: true, name: true, chessResults: true, date: true, ratingType: true, championshipId: true, tier: true },
+        columns: { id: true, name: true, chessResults: true, date: true, ratingType: true, championshipId: true, tier: true, scoringSchemeId: true, hasPodiums: true },
         with: {
           championship: { columns: { id: true, name: true } },
           tournamentPodiums: {
@@ -259,6 +261,7 @@ export const tournamentsRouter = router({
       ratingType: ratingTypeSchema,
       championshipId: positiveInt.nullable().optional(),
       tier: tierEnum.default("B"),
+      scoringSchemeId: positiveInt.nullable().optional(),
     }))
     .mutation(({ ctx, input }) =>
       ctx.db.insert(tournaments).values(input).returning()
@@ -272,8 +275,20 @@ export const tournamentsRouter = router({
       ratingType: ratingTypeSchema.optional(),
       championshipId: positiveInt.nullable().optional(),
       tier: tierEnum.optional(),
+      scoringSchemeId: positiveInt.nullable().optional(),
+      hasPodiums: z.boolean().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
+      if (input.hasPodiums === false) {
+        const [manual] = await ctx.db
+          .select({ id: tournamentPodiums.id })
+          .from(tournamentPodiums)
+          .where(and(eq(tournamentPodiums.tournamentId, input.id), isNull(tournamentPodiums.circuitResultId), isNull(tournamentPodiums.tvSergipeId)))
+          .limit(1);
+        if (manual) {
+          throw new TRPCError({ code: "CONFLICT", message: "Remove this tournament's podiums before turning podiums off." });
+        }
+      }
       const hasResults = exists(
         ctx.db.select({ id: playersToTournaments.id }).from(playersToTournaments).where(eq(playersToTournaments.tournamentId, input.id)),
       );
@@ -288,7 +303,16 @@ export const tournamentsRouter = router({
       if (rows.length === 0 && input.ratingType && await tournamentExists(ctx.db, input.id)) {
         throw new TRPCError({ code: "CONFLICT", message: RATED_TOURNAMENT_MESSAGE });
       }
-      return requireMutationRows(rows, "Tournament");
+      requireMutationRows(rows, "Tournament");
+      if (input.hasPodiums === false) {
+        await ctx.db.delete(tournamentPodiums).where(eq(tournamentPodiums.tournamentId, input.id));
+      } else if (input.hasPodiums === true) {
+        await ctx.db.batch([
+          ...syncTournamentStageResults(ctx.db, input.id),
+          ...syncSchoolGamesEditionPodiums(ctx.db, input.id),
+        ]);
+      }
+      return rows;
     }),
   delete: adminProcedure.input(idInput).mutation(async ({ ctx, input }) => {
     await assertDeletable(ctx.db, "tournament", input.id);

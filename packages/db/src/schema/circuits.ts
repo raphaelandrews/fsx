@@ -2,7 +2,7 @@ import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { check, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
-import { championships, circuitFinalPodiums, circuitPhases, circuitPodiums } from "./index"
+import { championships, circuitFinalPodiums, circuitPhases, circuitResults, scoringSchemes } from "./index"
 
 export const circuits = sqliteTable("circuits", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
@@ -13,6 +13,7 @@ export const circuits = sqliteTable("circuits", {
 	year: integer("year"),
 	tier: text("tier").notNull().default("B"),
 	championshipId: integer("championship_id").references(() => championships.id),
+	scoringSchemeId: integer("scoring_scheme_id").references(() => scoringSchemes.id, { onDelete: "restrict" }),
 	finishedAt: text("finished_at"),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
@@ -22,8 +23,9 @@ export const circuits = sqliteTable("circuits", {
 
 export const circuitsRelations = relations(circuits, ({ one, many }) => ({
 	championship: one(championships, { fields: [circuits.championshipId], references: [championships.id] }),
+	scoringScheme: one(scoringSchemes, { fields: [circuits.scoringSchemeId], references: [scoringSchemes.id] }),
 	circuitPhases: many(circuitPhases),
-	circuitPodiums: many(circuitPodiums),
+	circuitResults: many(circuitResults),
 	circuitFinalPodiums: many(circuitFinalPodiums),
 }))
 

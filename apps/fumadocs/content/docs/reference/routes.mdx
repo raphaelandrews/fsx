@@ -30,7 +30,7 @@ breadcrumb JSON-LD. **Sitemap** marks URLs listed in `/sitemap.xml`.
 | `/clubes` | [Clubs](/guide/clubs) | `clubs.leaderboard` | `ritmo` (default `rapid`, stripped) | Sitemap |
 | `/clubes/$id` | [Clubs](/guide/clubs) | `clubs.byId` | — | Sitemap (clubs with active players). Invalid or unknown ID → 404 |
 | `/circuitos` | [Circuits](/guide/circuits) | `circuits.listSimple`, `circuits.byId` for the selected circuit | `circuito` | Sitemap; canonical is always `/circuitos` |
-| `/tv-sergipe` | [School Games](/guide/school-games) | `tvSergipe.list`, `tvSergipe.leaderboard` | `view` (`medals` default, stripped), `idade`, `escopo`, `escola` | Sitemap |
+| `/tv-sergipe` | [School Games](/guide/school-games) | `tvSergipe.editions`, `tvSergipe.list`, `tvSergipe.leaderboard` | `view` (`medals` default, stripped), `edicao` (tournament id, newest edition by default), `idade`, `escopo`, `escola` | Sitemap |
 | `/bullet` | [Bullet](/guide/bullet) | `cups.list`, `cups.byId` | — | Sitemap |
 | `/membros` | [Members](/guide/members) | `roles.listWithPlayers` | — | Sitemap |
 | `/noticias` | News list | `posts.byPage` | `page` | Sitemap; page *n* is its own canonical |

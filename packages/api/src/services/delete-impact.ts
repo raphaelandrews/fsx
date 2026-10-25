@@ -5,7 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { championships } from "@fsx/db/schema/championships";
 import { circuitFinalPodiums } from "@fsx/db/schema/circuit-final-podiums";
 import { circuitPhases } from "@fsx/db/schema/circuit-phases";
-import { circuitPodiums } from "@fsx/db/schema/circuit-podiums";
+import { circuitResults } from "@fsx/db/schema/circuit-results";
 import { circuits } from "@fsx/db/schema/circuits";
 import { clubs } from "@fsx/db/schema/clubs";
 import { cups } from "@fsx/db/schema/cups";
@@ -26,6 +26,8 @@ import { roles } from "@fsx/db/schema/roles";
 import { titles } from "@fsx/db/schema/titles";
 import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
 import { tournaments } from "@fsx/db/schema/tournaments";
+import { categories } from "@fsx/db/schema/categories";
+import { scoringSchemes } from "@fsx/db/schema/scoring-schemes";
 import { tvSergipe } from "@fsx/db/schema/tv-sergipe";
 
 import type { Context } from "../context";
@@ -41,6 +43,8 @@ export const DELETE_ENTITIES = [
   "tournament",
   "circuit",
   "event",
+  "category",
+  "scoringScheme",
 ] as const;
 export type DeleteEntity = (typeof DELETE_ENTITIES)[number];
 
@@ -74,14 +78,25 @@ const dependent = (
   fix?: string,
 ): Dependent => ({ singular, plural, count: rowsWhere(table, column), fix });
 
-const circuitResults = async (db: Db, id: number) => {
+const countCircuitResults = async (db: Db, id: number) => {
   const phaseIds = db.select({ id: circuitPhases.id }).from(circuitPhases).where(eq(circuitPhases.circuitId, id));
   const rows = await db
     .select({ value: count() })
-    .from(circuitPodiums)
-    .where(or(eq(circuitPodiums.circuitId, id), inArray(circuitPodiums.circuitPhaseId, phaseIds)));
+    .from(circuitResults)
+    .where(or(eq(circuitResults.circuitId, id), inArray(circuitResults.circuitPhaseId, phaseIds)));
   return rows[0]?.value ?? 0;
 };
+
+const categoryUses = (label: string, table: SQLiteTable, column: SQLiteColumn): Dependent => ({
+  singular: label,
+  plural: `${label}s`,
+  count: async (db: Db, id: number) => {
+    const [category] = await db.select({ name: categories.name }).from(categories).where(eq(categories.id, id)).limit(1);
+    if (!category) return 0;
+    return (await db.select({ value: count() }).from(table).where(eq(column, category.name)))[0]?.value ?? 0;
+  },
+  fix: "Move them to another category first.",
+});
 
 const eventLinks = async (db: Db, id: number) => {
   const groupIds = db.select({ id: linkGroups.id }).from(linkGroups).where(eq(linkGroups.eventId, id));
@@ -163,6 +178,7 @@ const ENTITIES: Record<
       ),
       dependent("podium", "podiums", tournamentPodiums, tournamentPodiums.tournamentId, "Remove them first."),
       dependent("circuit stage", "circuit stages", circuitPhases, circuitPhases.tournamentId, "Remove those stages first."),
+      dependent("School Games result", "School Games results", tvSergipe, tvSergipe.tournamentId, "Delete those results first."),
     ],
     alsoDeletes: [],
   },
@@ -180,8 +196,27 @@ const ENTITIES: Record<
     ],
     alsoDeletes: [
       dependent("stage", "stages", circuitPhases, circuitPhases.circuitId),
-      { singular: "points result", plural: "points results", count: circuitResults },
+      { singular: "points result", plural: "points results", count: countCircuitResults },
     ],
+  },
+  category: {
+    label: "Category",
+    nameOf: nameFrom(categories, categories.id, categories.name),
+    blockedBy: [
+      categoryUses("tournament podium", tournamentPodiums, tournamentPodiums.category),
+      categoryUses("circuit result", circuitResults, circuitResults.category),
+      categoryUses("final podium", circuitFinalPodiums, circuitFinalPodiums.category),
+    ],
+    alsoDeletes: [],
+  },
+  scoringScheme: {
+    label: "Scoring scheme",
+    nameOf: nameFrom(scoringSchemes, scoringSchemes.id, scoringSchemes.name),
+    blockedBy: [
+      dependent("circuit", "circuits", circuits, circuits.scoringSchemeId, "Point them at another scheme first."),
+      dependent("tournament", "tournaments", tournaments, tournaments.scoringSchemeId, "Point them at another scheme first."),
+    ],
+    alsoDeletes: [],
   },
   event: {
     label: "Event",

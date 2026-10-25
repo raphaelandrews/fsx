@@ -1,4 +1,4 @@
-import type { CompetitionTier } from "../circuit-types";
+import { isMedalPlace, type CompetitionTier } from "../circuit-types";
 import { RATING_TYPES, type RatingType } from "../rating-types";
 import { sergipanoKind, type SergipanoKind } from "./sergipano";
 import { COMEBACK_AFTER, DECADE_YEARS, GAIN_STEPS, POSITIVE_STREAK_STEPS, RATING_THRESHOLDS, STARTING_RATING } from "./constants";
@@ -51,6 +51,8 @@ export interface StatsInput {
   circuitFinalPodiums: CircuitFinalPodium[];
   // Cups the player won (the Grand Final winner), such as the Sergipano Bullet.
   cupTitles?: CupTitle[];
+  // Categories with no age (Futuro, Juvenil, Master): winning one earns no champion emblem.
+  openCategories?: readonly string[];
 }
 
 export interface CupTitle {
@@ -124,7 +126,7 @@ export interface PlayerStats {
   // Circuit seasons where the player played every stage (Circuito completo).
   completeCircuits: ({ circuitId: number; name: string } & Provenance)[];
   // First win per tournament category (Campeão de categoria).
-  categoryWins: ({ category: string } & Provenance)[];
+  categoryWins: ({ category: string; emblem: boolean } & Provenance)[];
   // First result DECADE_YEARS or more after the first dated tournament (Década).
   decade: Provenance | null;
   // Overall wins of Sergipano championships (tier S), by kind, in date order.
@@ -187,11 +189,11 @@ export function playerStats(input: StatsInput): PlayerStats {
     seasonStarts: seasonStarts(played),
     allFormatsInYear: allFormatsInYear(input.results),
     stagePodiums: input.circuitStageResults
-      .filter((stage) => stage.place !== null && stage.place <= 3)
+      .filter((stage) => isMedalPlace(stage.place))
       .map((stage) => at({ id: stage.tournamentId, date: stage.date }))
       .sort((a, b) => byDate(a.earnedAt, b.earnedAt)),
     completeCircuits: completeCircuits(input.circuitStageResults),
-    categoryWins: categoryWins(input.tournamentPodiums),
+    categoryWins: categoryWins(input.tournamentPodiums, new Set(input.openCategories)),
     decade: decade(played),
     sergipanoTitles: sergipanoTitles(input.tournamentPodiums, input.cupTitles ?? []),
     tierWins: tierWins(input.tournamentPodiums),
@@ -232,7 +234,7 @@ function tierPodiums(podiums: TournamentPodium[]): PlayerStats["tierPodiums"] {
     TIERS.map((tier) => [
       tier,
       podiums
-        .filter((podium) => podium.place <= 3 && podium.tournament.tier === tier)
+        .filter((podium) => isMedalPlace(podium.place) && podium.tournament.tier === tier)
         .map((podium) => at(podium.tournament))
         .sort((a, b) => byDate(a.earnedAt, b.earnedAt))[0] ?? null,
     ]),
@@ -286,13 +288,13 @@ function completeCircuits(stages: CircuitStageResult[]): PlayerStats["completeCi
     .sort((a, b) => byDate(a.earnedAt, b.earnedAt));
 }
 
-function categoryWins(podiums: TournamentPodium[]): PlayerStats["categoryWins"] {
+function categoryWins(podiums: TournamentPodium[], open: ReadonlySet<string>): PlayerStats["categoryWins"] {
   const wins = new Map<string, Provenance>();
   for (const podium of [...podiums].sort((a, b) => byDate(a.tournament.date, b.tournament.date))) {
     if (podium.place !== 1 || podium.category === null || wins.has(podium.category)) continue;
     wins.set(podium.category, at(podium.tournament));
   }
-  return [...wins].map(([category, provenance]) => ({ category, ...provenance }));
+  return [...wins].map(([category, provenance]) => ({ category, emblem: !open.has(category), ...provenance }));
 }
 
 function decade(played: PlayerStats["played"]): Provenance | null {
@@ -453,12 +455,12 @@ function firsts(input: StatsInput, firstPlayed: PlayerStats["played"][number] | 
     .filter((result) => result.variation > 0)
     .sort((a, b) => byDate(a.tournament.date, b.tournament.date) || a.id - b.id)[0];
   const podiums: Provenance[] = [
-    ...input.tournamentPodiums.filter((podium) => podium.place <= 3).map((podium) => at(podium.tournament)),
+    ...input.tournamentPodiums.filter((podium) => isMedalPlace(podium.place)).map((podium) => at(podium.tournament)),
     ...input.circuitStageResults
-      .filter((stage) => stage.place !== null && stage.place <= 3)
+      .filter((stage) => isMedalPlace(stage.place))
       .map((stage) => at({ id: stage.tournamentId, date: stage.date })),
     ...input.circuitFinalPodiums
-      .filter((podium) => podium.place <= 3)
+      .filter((podium) => isMedalPlace(podium.place))
       .map((podium) => ({ earnedAt: podium.circuit.date, tournamentId: null, legacy: false })),
   ];
   return {

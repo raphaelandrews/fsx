@@ -1,7 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import type { CompetitionCategory } from "@fsx/api/circuit-types";
 import { Button } from "@fsx/ui/components/button";
 
 import { EntityFormDialog, optionalNumber, type EntityField } from "@/components/admin/entity-form";
@@ -10,39 +10,42 @@ import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { BulkStageResultsDialog } from "@/components/circuitos/admin/bulk-stage-results";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { CATEGORY_OPTIONS } from "@/lib/admin-forms";
+import { useCategoryOptions } from "@/lib/reference-options";
 import { useTRPC } from "@/lib/trpc";
 
-import type { Circuit, CircuitPhase, CircuitPodium } from "../types";
+import type { Circuit, CircuitPhase, CircuitResult } from "../types";
 
 type PodiumTarget = { circuitId: number } | { circuitPhaseId: number };
-type EditingPodium = { target: PodiumTarget; podium?: CircuitPodium } | null;
+type EditingPodium = { target: PodiumTarget; podium?: CircuitResult } | null;
 type EditingPhase = { phase?: CircuitPhase } | null;
 
-const podiumPlace = (podium: CircuitPodium) => podium.place ?? Number.MAX_SAFE_INTEGER;
-const byPlaceThenPoints = (a: CircuitPodium, b: CircuitPodium) =>
+const podiumPlace = (podium: CircuitResult) => podium.place ?? Number.MAX_SAFE_INTEGER;
+const byPlaceThenPoints = (a: CircuitResult, b: CircuitResult) =>
   podiumPlace(a) - podiumPlace(b) || (b.points ?? 0) - (a.points ?? 0) || a.id - b.id;
 
 export function CircuitEditor({ circuit }: { circuit: Circuit }) {
   const trpc = useTRPC();
+  const categoryOptions = useCategoryOptions();
   const [editingPodium, setEditingPodium] = useState<EditingPodium>(null);
   const [editingPhase, setEditingPhase] = useState<EditingPhase>(null);
+  const [bulkPhaseId, setBulkPhaseId] = useState<number | null>(null);
 
-  const createPodium = useAdminMutation(trpc.circuits.podiums.create.mutationOptions(), {
+  const createPodium = useAdminMutation(trpc.circuits.results.create.mutationOptions(), {
     invalidates: "circuits",
     success: "Result added",
     failure: "Failed to add result",
     onSuccess: () => setEditingPodium(null),
   });
-  const updatePodium = useAdminMutation(trpc.circuits.podiums.update.mutationOptions(), {
+  const updatePodium = useAdminMutation(trpc.circuits.results.update.mutationOptions(), {
     invalidates: "circuits",
     success: "Result updated",
     failure: "Failed to update result",
     reloadOnConflict: true,
     onSuccess: () => setEditingPodium(null),
   });
-  const deletePodium = useAdminMutation(trpc.circuits.podiums.delete.mutationOptions(), {
+  const deletePodium = useAdminMutation(trpc.circuits.results.delete.mutationOptions(), {
     invalidates: "circuits",
     success: "Result deleted",
     failure: "Failed to delete result",
@@ -59,6 +62,12 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
     failure: "Failed to update stage",
     reloadOnConflict: true,
     onSuccess: () => setEditingPhase(null),
+  });
+  const { data: gaps } = useQuery(trpc.circuits.medalGaps.queryOptions({ id: circuit.id }));
+  const syncPodiums = useAdminMutation(trpc.circuits.syncPodiums.mutationOptions(), {
+    invalidates: "circuits",
+    success: "Medals synced",
+    failure: "Failed to sync medals",
   });
   const deletePhase = useAdminMutation(trpc.circuits.phases.delete.mutationOptions(), {
     invalidates: "circuits",
@@ -90,7 +99,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
       name: "category",
       label: "Category",
       kind: "select",
-      options: CATEGORY_OPTIONS,
+      options: categoryOptions,
     },
   ];
 
@@ -125,8 +134,8 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
     },
   ];
 
-  const podiumTable = (podiums: CircuitPodium[], target: PodiumTarget) => {
-    const columns: ColumnDef<CircuitPodium>[] = [
+  const podiumTable = (podiums: CircuitResult[], target: PodiumTarget) => {
+    const columns: ColumnDef<CircuitResult>[] = [
       {
         id: "place",
         header: "Place",
@@ -186,13 +195,33 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
             </Button>
           }
         >
-          {podiumTable(circuit.circuitPodiums, { circuitId: circuit.id })}
+          {podiumTable(circuit.circuitResults, { circuitId: circuit.id })}
         </AdminSection>
       ) : (
         <AdminSection
           title="Stages"
           description="Each stage is played at a tournament. Its results are the points each player scored there; the standings add them up."
-          actions={<Button onClick={() => setEditingPhase({})}>Add stage</Button>}
+          actions={
+            <>
+              {phases.length > 0 ? (
+                <>
+                  {gaps && gaps.missing > 0 ? (
+                    <span className="text-muted-foreground text-sm">
+                      {gaps.missing} medal result{gaps.missing === 1 ? "" : "s"} without a podium
+                    </span>
+                  ) : null}
+                  <Button
+                    variant="outline"
+                    loading={syncPodiums.isPending}
+                    onClick={() => syncPodiums.mutate({ id: circuit.id })}
+                  >
+                    Sync medals
+                  </Button>
+                </>
+              ) : null}
+              <Button onClick={() => setEditingPhase({})}>Add stage</Button>
+            </>
+          }
         >
           {phases.length === 0 ? (
             <p className="py-6 text-center text-muted-foreground text-sm">No stages yet.</p>
@@ -207,16 +236,19 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
                       </h3>
                       <p className="text-muted-foreground text-sm">
                         {phase.club?.name ? `Hosted by ${phase.club.name} · ` : ""}
-                        {phase.circuitPodiums.length} result(s)
+                        {phase.circuitResults.length} result(s)
                       </p>
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
+                      <Button size="sm" onClick={() => setBulkPhaseId(phase.id)}>
+                        Add results
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setEditingPodium({ target: { circuitPhaseId: phase.id } })}
                       >
-                        Add result
+                        Add one result
                       </Button>
                       <Button
                         size="sm"
@@ -230,13 +262,13 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
                         label="Delete stage"
                         title="Delete this stage?"
                         itemName={`Stage ${phase.sortOrder} · ${phase.tournament?.name ?? ""}`}
-                        description={`The stage and its ${phase.circuitPodiums.length} result(s) will be permanently deleted. This cannot be undone.`}
+                        description={`The stage and its ${phase.circuitResults.length} result(s) will be permanently deleted. This cannot be undone.`}
                         pending={deletePhase.isPending}
                         onConfirm={() => deletePhase.mutate({ id: phase.id })}
                       />
                     </div>
                   </div>
-                  {podiumTable(phase.circuitPodiums, { circuitPhaseId: phase.id })}
+                  {podiumTable(phase.circuitResults, { circuitPhaseId: phase.id })}
                 </div>
               ))}
             </div>
@@ -262,7 +294,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
             playerId: Number(values.playerId),
             place: optionalNumber(values.place!),
             points: Number(values.points),
-            category: (values.category || null) as CompetitionCategory | null,
+            category: values.category || null,
           };
           if (editingPodium.podium)
             updatePodium.mutate({ id: editingPodium.podium.id, ...payload });
@@ -272,6 +304,15 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
         pending={podiumMutation.isPending}
         submitLabel={editingPodium?.podium ? "Save result" : "Add result"}
       />
+
+      {bulkPhaseId !== null ? (
+        <BulkStageResultsDialog
+          circuitPhaseId={bulkPhaseId}
+          scheme={circuit.scoringScheme}
+          open
+          onOpenChange={(open) => !open && setBulkPhaseId(null)}
+        />
+      ) : null}
 
       <EntityFormDialog
         open={editingPhase !== null}

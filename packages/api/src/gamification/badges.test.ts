@@ -115,7 +115,7 @@ describe("phase 8 emblems", () => {
       { place: 1, category: "Sub 14", tournament: tournament(801, "2023-05-01") },
       { place: 2, category: "Sub 16", tournament: tournament(802, "2023-06-01") },
     ];
-    const categories = achievementsOf(playerStats(input({ tournamentPodiums: podiums }))).filter((a) => a.family === "category");
+    const categories = achievementsOf(playerStats(input({ tournamentPodiums: podiums, openCategories: ["Futuro", "Juvenil", "Master"] }))).filter((a) => a.family === "category");
     expect(categories).toHaveLength(1);
     expect(categories[0]).toMatchObject({ id: "category-sub-14", earnedAt: "2022-05-01" });
   });
@@ -231,9 +231,9 @@ describe("categories without an emblem", () => {
       category,
       tournament: tournament(900 + i, "2024-05-01"),
     }));
-    const categories = achievementsOf(playerStats(input({ tournamentPodiums: podiums }))).filter((a) => a.family === "category");
+    const categories = achievementsOf(playerStats(input({ tournamentPodiums: podiums, openCategories: ["Futuro", "Juvenil", "Master"] }))).filter((a) => a.family === "category");
     expect(categories.map((a) => a.id)).toEqual(["category-sub-14-masculino"]);
-    const catalog = allBadges().map((badge) => badge.id);
+    const catalog = allBadges(["Sub 14 Masculino"]).map((badge) => badge.id);
     for (const id of ["category-futuro", "category-juvenil", "category-master"]) expect(catalog).not.toContain(id);
     expect(catalog).toContain("category-sub-14-masculino");
   });
@@ -264,9 +264,11 @@ function sergipanoAt(id: number, date: string, championshipName: string) {
 }
 const win2 = (competition: Competition) => ({ place: 1, category: null, tournament: competition });
 
+const AGE_CATEGORIES = [8, 10, 12, 14, 16, 18].flatMap((age) => [`Sub ${age} Masculino`, `Sub ${age} Feminino`]);
+
 describe("allBadges catalog", () => {
   test("ids are unique and cover every emblem a career can earn, with matching labels", () => {
-    const catalog = allBadges();
+    const catalog = allBadges(AGE_CATEGORIES);
     expect(new Set(catalog.map((badge) => badge.id)).size).toBe(catalog.length);
     const byId = new Map(catalog.map((badge) => [badge.id, badge]));
 

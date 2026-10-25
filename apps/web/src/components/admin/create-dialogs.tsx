@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
-import type { CircuitType, CompetitionCategory, CompetitionTier } from "@fsx/api/circuit-types";
+import type { CircuitType, CompetitionTier } from "@fsx/api/circuit-types";
 
 import { EntityFormDialog, optional, optionalNumber, type EntitySection } from "@/components/admin/entity-form";
 import { EventForm } from "@/components/admin/event-form";
@@ -20,6 +20,7 @@ import {
   tournamentSections,
 } from "@/lib/admin-forms";
 import { showMutationError } from "@/lib/errors";
+import { useCategoryOptions, useScoringSchemeOptions } from "@/lib/reference-options";
 import { scheduleToInstant } from "@/lib/schedule";
 import { useTRPC } from "@/lib/trpc";
 
@@ -180,6 +181,7 @@ export function TvSergipeCreateDialog({ open, onOpenChange }: CreateDialogProps)
     >
       <TvSergipeForm
         defaultValues={{
+          tournamentId: "",
           clubId: "",
           modality: "individual",
           playerId: "",
@@ -187,6 +189,7 @@ export function TvSergipeCreateDialog({ open, onOpenChange }: CreateDialogProps)
           ageGroup: "8",
           sex: "male",
           place: "1",
+          points: "",
         }}
         onSubmit={(values) => createMutation.mutate(toTvSergipeInput(values))}
         error={createMutation.error}
@@ -232,6 +235,7 @@ export function CircuitCreateDialog({ open, onOpenChange }: CreateDialogProps) {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const { data: championships = [] } = useQuery(trpc.champions.list.queryOptions());
+  const schemes = useScoringSchemeOptions();
   const createMutation = useAdminMutation(trpc.circuits.create.mutationOptions(), {
     invalidates: "circuits",
     awaitInvalidation: true,
@@ -250,13 +254,14 @@ export function CircuitCreateDialog({ open, onOpenChange }: CreateDialogProps) {
       onOpenChange={onOpenChange}
       title="New circuit"
       description="Create one circuit per season; you add its stages and points on the next page."
-      fields={fieldsOf(circuitSections(championships))}
+      fields={fieldsOf(circuitSections(championships, schemes))}
       defaultValues={{
         name: "",
         year: String(new Date().getFullYear()),
         type: "default",
         tier: "B",
         championshipId: "",
+        scoringSchemeId: "",
       }}
       onSubmit={(values) =>
         createMutation.mutate({
@@ -265,6 +270,7 @@ export function CircuitCreateDialog({ open, onOpenChange }: CreateDialogProps) {
           type: values.type as CircuitType,
           tier: values.tier as CompetitionTier,
           championshipId: optionalNumber(values.championshipId!),
+          scoringSchemeId: optionalNumber(values.scoringSchemeId!),
         })
       }
       error={createMutation.error}
@@ -322,6 +328,7 @@ export function AnnouncementCreateDialog({ open, onOpenChange }: CreateDialogPro
 export function TournamentCreateDialog({ open, onOpenChange }: CreateDialogProps) {
   const trpc = useTRPC();
   const { data: championships = [] } = useQuery(trpc.champions.list.queryOptions());
+  const schemes = useScoringSchemeOptions();
   const createMutation = useAdminMutation(trpc.tournaments.create.mutationOptions(), {
     invalidates: "tournaments",
     success: "Tournament created",
@@ -335,16 +342,18 @@ export function TournamentCreateDialog({ open, onOpenChange }: CreateDialogProps
       onOpenChange={onOpenChange}
       title="New tournament"
       description="Create the tournament before importing its rating results or podiums."
-      fields={fieldsOf(tournamentSections(championships))}
-      defaultValues={{ name: "", date: "", ratingType: "rapid", tier: "B", championshipId: "", chessResults: "" }}
+      fields={fieldsOf(tournamentSections(championships, schemes))}
+      defaultValues={{ name: "", date: "", ratingType: "rapid", tier: "B", hasPodiums: "true", championshipId: "", chessResults: "", scoringSchemeId: "" }}
       onSubmit={(values) =>
         createMutation.mutate({
           name: values.name!,
           date: optional(values.date!),
           ratingType: values.ratingType as "blitz" | "rapid" | "classic",
           tier: values.tier as CompetitionTier,
+          hasPodiums: values.hasPodiums !== "false",
           championshipId: optionalNumber(values.championshipId!),
           chessResults: optional(values.chessResults!),
+          scoringSchemeId: optionalNumber(values.scoringSchemeId!),
         })
       }
       error={createMutation.error}
@@ -356,6 +365,7 @@ export function TournamentCreateDialog({ open, onOpenChange }: CreateDialogProps
 
 export function PodiumCreateDialog({ open, onOpenChange }: CreateDialogProps) {
   const trpc = useTRPC();
+  const categoryOptions = useCategoryOptions();
   const createMutation = useAdminMutation(trpc.tournamentPodiums.create.mutationOptions(), {
     invalidates: "tournamentPodiums",
     success: "Podium created",
@@ -369,14 +379,14 @@ export function PodiumCreateDialog({ open, onOpenChange }: CreateDialogProps) {
       onOpenChange={onOpenChange}
       title="New podium"
       description="Record a player's final place in a tournament."
-      fields={fieldsOf(tournamentPodiumSections(trpc))}
+      fields={fieldsOf(tournamentPodiumSections(trpc, categoryOptions))}
       defaultValues={{ tournamentId: "", playerId: "", place: "1", category: "" }}
       onSubmit={(values) =>
         createMutation.mutate({
           tournamentId: Number(values.tournamentId),
           playerId: Number(values.playerId),
           place: Number(values.place),
-          category: (values.category || null) as CompetitionCategory | null,
+          category: values.category || null,
         })
       }
       error={createMutation.error}

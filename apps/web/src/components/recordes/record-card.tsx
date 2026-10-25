@@ -1,3 +1,4 @@
+import { isMedalPlace } from "@fsx/api/circuit-types";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
@@ -43,7 +44,7 @@ export function RecordCard({
                 )}
               >
                 <span className="flex w-7 shrink-0 justify-center">
-                  {entry.place <= 3 ? (
+                  {isMedalPlace(entry.place) ? (
                     <Medal place={entry.place as 1 | 2 | 3} className="size-7 justify-center rounded-full p-0" />
                   ) : (
                     <span className="text-muted-foreground text-sm tabular-nums">{entry.place}º</span>

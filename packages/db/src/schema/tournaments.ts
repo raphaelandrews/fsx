@@ -2,7 +2,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { relations, sql } from "drizzle-orm";
 import { check, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-import { championships, circuitPhases, playersToTournaments, tournamentPodiums } from "./index"
+import { championships, circuitPhases, playersToTournaments, scoringSchemes, tournamentPodiums } from "./index"
 
 export const tournaments = sqliteTable(
   "tournaments",
@@ -16,6 +16,9 @@ export const tournaments = sqliteTable(
     // No CHECK: adding one makes drizzle-kit rebuild this referenced table, which
     // D1 cannot do safely. COMPETITION_TIERS is enforced by the API.
     tier: text("tier").notNull().default("B"),
+    // Off for events that rank nobody: no podium rows, so no medals, and the synced sources skip them.
+    hasPodiums: integer("has_podiums", { mode: "boolean" }).notNull().default(true),
+    scoringSchemeId: integer("scoring_scheme_id").references(() => scoringSchemes.id, { onDelete: "restrict" }),
     createdAt: text("created_at")
       .default(sql`(CURRENT_TIMESTAMP)`)
       .notNull(),
@@ -36,6 +39,7 @@ export const tournaments = sqliteTable(
 
 export const tournamentsRelations = relations(tournaments, ({ one, many }) => ({
 	championship: one(championships, { fields: [tournaments.championshipId], references: [championships.id] }),
+	scoringScheme: one(scoringSchemes, { fields: [tournaments.scoringSchemeId], references: [scoringSchemes.id] }),
 	circuitPhases: one(circuitPhases),
 	playersToTournaments: many(playersToTournaments),
 	tournamentPodiums: many(tournamentPodiums),

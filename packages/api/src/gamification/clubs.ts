@@ -1,9 +1,12 @@
 import { sql } from "drizzle-orm";
 
+import { MEDAL_PLACES } from "../circuit-types";
 import type { Context } from "../context";
 import { storedOrComputed } from "./computed";
 import { RATING_TYPES, type RatingType } from "../rating-types";
 import { CLUB_MIN_ACTIVE, CLUB_STRENGTH_SIZE, STARTING_RATING } from "./constants";
+
+const medalPlaces = sql.raw(String(MEDAL_PLACES));
 
 export interface ClubStanding {
   club: { id: number; name: string; logoUrl: string | null };
@@ -38,9 +41,9 @@ async function computeClubStandings(db: Context["db"]): Promise<ClubStanding[]> 
     db.all<MedalRow>(sql`
       SELECT p.club_id AS clubId, m.place AS place, COUNT(*) AS total
       FROM (
-        SELECT player_id, place FROM tournament_podiums WHERE place <= 3
+        SELECT player_id, place FROM tournament_podiums WHERE place <= ${medalPlaces}
         UNION ALL
-        SELECT player_id, place FROM circuit_final_podiums WHERE place <= 3
+        SELECT player_id, place FROM circuit_final_podiums WHERE place <= ${medalPlaces}
       ) m
       JOIN players p ON p.id = m.player_id
       WHERE p.club_id IS NOT NULL

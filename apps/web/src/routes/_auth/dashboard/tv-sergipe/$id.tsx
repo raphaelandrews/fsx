@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/$id")({
   head: () => ({ meta: [{ title: "Edit School Games result - Admin - FSX" }] }),
   loader: async ({ context, params }) => {
     const results = await context.queryClient.ensureQueryData(
-      context.trpc.tvSergipe.list.queryOptions(),
+      context.trpc.tvSergipe.listAdmin.queryOptions(),
     );
     if (!results.some((result) => result.id === params.id)) throw notFound();
   },
@@ -25,7 +25,7 @@ function RouteComponent() {
   const trpc = useTRPC();
   const navigate = useNavigate();
 
-  const { data: results } = useSuspenseQuery(trpc.tvSergipe.list.queryOptions());
+  const { data: results } = useSuspenseQuery(trpc.tvSergipe.listAdmin.queryOptions());
   const result = results.find((candidate) => candidate.id === id);
 
   const updateMutation = useAdminMutation(trpc.tvSergipe.update.mutationOptions(), {
@@ -65,6 +65,7 @@ function RouteComponent() {
       />
       <TvSergipeForm
         defaultValues={{
+          tournamentId: result.tournamentId ? String(result.tournamentId) : "",
           clubId: String(result.clubId),
           modality: result.modality as "individual" | "team",
           playerId: result.playerId ? String(result.playerId) : "",
@@ -72,8 +73,9 @@ function RouteComponent() {
           ageGroup: result.ageGroup,
           sex: result.sex as "male" | "female",
           place: String(result.place),
+          points: String(result.points),
         }}
-        labels={{ club: result.club?.name, player: result.player?.name }}
+        labels={{ tournament: result.tournament?.name, club: result.club?.name, player: result.player?.name }}
         onSubmit={(values) => updateMutation.mutate({ id, ...toTvSergipeInput(values) })}
         error={updateMutation.error}
         pending={updateMutation.isPending}

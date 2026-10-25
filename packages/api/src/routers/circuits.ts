@@ -1,22 +1,23 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 
 import { circuitFinalPodiums } from "@fsx/db/schema/circuit-final-podiums";
 import { circuitPhases } from "@fsx/db/schema/circuit-phases";
-import { circuitPodiums } from "@fsx/db/schema/circuit-podiums";
+import { circuitResults } from "@fsx/db/schema/circuit-results";
 import { circuits } from "@fsx/db/schema/circuits";
-import { COMPETITION_CATEGORIES, COMPETITION_TIERS, CIRCUIT_TYPES, type CircuitType } from "../circuit-types";
+import { COMPETITION_TIERS, CIRCUIT_TYPES, MEDAL_PLACES, type CircuitType } from "../circuit-types";
 import { circuitFinalPodiums as rankFinalPodiums } from "../circuit-standings";
 import type { Context } from "../context";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { requireFound, requireMutationRows } from "../errors";
 import { assertDeletable } from "../services/delete-impact";
-import { idInput, isoDate, nameText, points, positiveInt, seasonYear, sortOrder } from "../input-schemas";
+import { syncCircuitResults, syncJustInsertedStageResultPodium, syncPhasePodiums, syncStageResultPodium } from "../services/stage-podium-sync";
+import { categoryName, idInput, isoDate, nameText, points, positiveInt, seasonYear, sortOrder } from "../input-schemas";
+import { requireCategories } from "../services/categories";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const circuitTypeEnum = z.enum(CIRCUIT_TYPES);
-const categoryEnum = z.enum(COMPETITION_CATEGORIES);
 
 // A season's points rows across all stages; far above any real circuit.
 const CIRCUIT_POINTS_LIMIT = 20_000;
@@ -27,11 +28,12 @@ const circuitInput = z.object({
   year: seasonYear,
   tier: z.enum(COMPETITION_TIERS).default("B"),
   championshipId: positiveInt.nullable().optional(),
+  scoringSchemeId: positiveInt.nullable().optional(),
 });
 
 const finalPodiumInput = z.object({
   playerId: positiveInt,
-  category: categoryEnum.nullable().optional(),
+  category: categoryName.nullable().optional(),
   place: positiveInt.max(1000),
   points: z.number().min(0).max(1_000_000).nullable().optional(),
 });
@@ -58,10 +60,26 @@ const podiumInput = z.object({
   playerId: positiveInt,
   circuitId: positiveInt.nullable().optional(),
   circuitPhaseId: positiveInt.nullable().optional(),
-  category: categoryEnum.nullable().optional(),
+  category: categoryName.nullable().optional(),
   place: positiveInt.max(1000).nullable().optional(),
   points,
 });
+
+const MAX_BULK_RESULTS = 50;
+
+const bulkResultsInput = z
+  .object({
+    circuitPhaseId: positiveInt,
+    category: categoryName.nullable().optional(),
+    results: z
+      .array(z.object({ playerId: positiveInt, place: positiveInt.max(1000).nullable().optional(), points }))
+      .min(1)
+      .max(MAX_BULK_RESULTS),
+  })
+  .refine(({ results }) => new Set(results.map((result) => result.playerId)).size === results.length, {
+    message: "A player can appear only once per category.",
+    path: ["results"],
+  });
 
 const hasSinglePodiumTarget = (value: {
   circuitId?: number | null;
@@ -72,9 +90,13 @@ export const circuitsRouter = router({
   byId: publicProcedure.input(idInput).query(async ({ ctx, input }) =>
     requireFound(await ctx.db.query.circuits.findFirst({
       where: eq(circuits.id, input.id),
-      columns: { id: true, name: true, type: true, year: true, tier: true, championshipId: true, finishedAt: true },
+      columns: { id: true, name: true, type: true, year: true, tier: true, championshipId: true, scoringSchemeId: true, finishedAt: true },
       with: {
         championship: { columns: { id: true, name: true } },
+        scoringScheme: {
+          columns: { id: true, name: true },
+          with: { places: { columns: { place: true, points: true }, orderBy: (place, { asc }) => [asc(place.place)] } },
+        },
         circuitFinalPodiums: {
           limit: PUBLIC_NESTED_COLLECTION_LIMIT,
           columns: { id: true, category: true, place: true, points: true, playerId: true },
@@ -88,7 +110,7 @@ export const circuitsRouter = router({
           with: {
             tournament: { columns: { id: true, name: true } },
             club: { columns: { id: true, name: true } },
-            circuitPodiums: {
+            circuitResults: {
               limit: PUBLIC_NESTED_COLLECTION_LIMIT,
               columns: { id: true, category: true, place: true, points: true, playerId: true },
               orderBy: (podium, { asc, desc }) => [desc(podium.points), asc(podium.id)],
@@ -96,7 +118,7 @@ export const circuitsRouter = router({
             },
           },
         },
-        circuitPodiums: {
+        circuitResults: {
           limit: PUBLIC_NESTED_COLLECTION_LIMIT,
           columns: { id: true, category: true, place: true, points: true, playerId: true },
           orderBy: (podium, { asc, desc }) => [desc(podium.points), asc(podium.id)],
@@ -122,7 +144,10 @@ export const circuitsRouter = router({
   create: adminProcedure
     .input(circuitInput)
     .mutation(({ ctx, input }) =>
-      ctx.db.insert(circuits).values({ ...input, championshipId: input.championshipId ?? null }).returning(),
+      ctx.db
+        .insert(circuits)
+        .values({ ...input, championshipId: input.championshipId ?? null, scoringSchemeId: input.scoringSchemeId ?? null })
+        .returning(),
     ),
   update: adminProcedure
     .input(circuitInput.extend({ id: positiveInt }))
@@ -136,6 +161,7 @@ export const circuitsRouter = router({
             year: input.year,
             tier: input.tier,
             championshipId: input.championshipId ?? null,
+            scoringSchemeId: input.scoringSchemeId ?? null,
           })
           .where(eq(circuits.id, input.id))
           .returning(),
@@ -188,6 +214,32 @@ export const circuitsRouter = router({
     ]);
     return requireMutationRows(reopened, "Circuit");
   }),
+  // Stage results in medal places that have no tournament podium yet (saved before the sync, or
+  // while podiums were off). "Sync medals" fixes them.
+  medalGaps: adminProcedure.input(idInput).query(async ({ ctx, input }) => {
+    const [row] = await ctx.db.all<{ count: number }>(sql`
+      SELECT COUNT(*) AS count
+      FROM circuit_results r
+      JOIN circuit_phases ph ON ph.id = r.circuit_phase_id
+      JOIN tournaments t ON t.id = ph.tournament_id
+      WHERE ph.circuit_id = ${input.id}
+        AND t.has_podiums = 1
+        AND r.place BETWEEN 1 AND ${MEDAL_PLACES}
+        AND NOT EXISTS (
+          SELECT 1 FROM tournament_podiums tp
+          WHERE tp.circuit_result_id = r.id
+            OR (tp.player_id = r.player_id AND tp.tournament_id = ph.tournament_id AND tp.category IS r.category)
+        )`);
+    return { missing: row?.count ?? 0 };
+  }),
+  syncPodiums: adminProcedure.input(idInput).mutation(async ({ ctx, input }) => {
+    requireFound(
+      await ctx.db.query.circuits.findFirst({ where: eq(circuits.id, input.id), columns: { id: true } }),
+      "Circuit",
+    );
+    await ctx.db.batch([...syncCircuitResults(ctx.db, input.id)]);
+    return { id: input.id };
+  }),
   finalPodiums: router({
     create: adminProcedure
       .input(finalPodiumInput.extend({ circuitId: positiveInt }))
@@ -199,6 +251,7 @@ export const circuitsRouter = router({
           }),
           "Circuit",
         );
+        await requireCategories(ctx.db, [input.category]);
         if (!circuit.finishedAt) {
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -218,8 +271,9 @@ export const circuitsRouter = router({
       }),
     update: adminProcedure
       .input(finalPodiumInput.extend({ id: positiveInt }))
-      .mutation(async ({ ctx, input }) =>
-        requireMutationRows(
+      .mutation(async ({ ctx, input }) => {
+        await requireCategories(ctx.db, [input.category]);
+        return requireMutationRows(
           await ctx.db
             .update(circuitFinalPodiums)
             .set({
@@ -231,8 +285,8 @@ export const circuitsRouter = router({
             .where(eq(circuitFinalPodiums.id, input.id))
             .returning(),
           "Final podium",
-        )
-      ),
+        );
+      }),
     delete: adminProcedure
       .input(idInput)
       .mutation(async ({ ctx, input }) =>
@@ -246,6 +300,21 @@ export const circuitsRouter = router({
       ),
   }),
   phases: router({
+    listByTournament: adminProcedure
+      .input(z.object({ tournamentId: positiveInt }))
+      .query(({ ctx, input }) =>
+        ctx.db
+          .select({
+            id: circuitPhases.id,
+            sortOrder: circuitPhases.sortOrder,
+            circuit: { id: circuits.id, name: circuits.name, year: circuits.year },
+          })
+          .from(circuitPhases)
+          .innerJoin(circuits, eq(circuits.id, circuitPhases.circuitId))
+          .where(eq(circuitPhases.tournamentId, input.tournamentId))
+          .orderBy(desc(circuits.year), asc(circuits.name), asc(circuitPhases.sortOrder), asc(circuitPhases.id))
+          .limit(PUBLIC_NESTED_COLLECTION_LIMIT),
+      ),
     create: adminProcedure.input(phaseInput).mutation(({ ctx, input }) =>
       ctx.db
         .insert(circuitPhases)
@@ -266,9 +335,9 @@ export const circuitsRouter = router({
           sortOrder,
         }),
       )
-      .mutation(async ({ ctx, input }) =>
-        requireMutationRows(
-          await ctx.db
+      .mutation(async ({ ctx, input }) => {
+        const [updated] = await ctx.db.batch([
+          ctx.db
             .update(circuitPhases)
             .set({
               tournamentId: input.tournamentId,
@@ -277,9 +346,10 @@ export const circuitsRouter = router({
             })
             .where(eq(circuitPhases.id, input.id))
             .returning(),
-          "Circuit phase",
-        )
-      ),
+          ...syncPhasePodiums(ctx.db, input.id),
+        ]);
+        return requireMutationRows(updated, "Circuit phase");
+      }),
     delete: adminProcedure
       .input(idInput)
       .mutation(async ({ ctx, input }) =>
@@ -289,36 +359,62 @@ export const circuitsRouter = router({
         )
       ),
   }),
-  podiums: router({
+  results: router({
+    createMany: adminProcedure.input(bulkResultsInput).mutation(async ({ ctx, input }) => {
+      await requireCategories(ctx.db, [input.category]);
+      const inserts = input.results.map((result) =>
+        ctx.db
+          .insert(circuitResults)
+          .values({
+            playerId: result.playerId,
+            circuitPhaseId: input.circuitPhaseId,
+            category: input.category ?? null,
+            place: result.place ?? null,
+            points: result.points,
+          })
+          .returning({ id: circuitResults.id }),
+      );
+      const results = await ctx.db.batch([
+        ...(inserts as [(typeof inserts)[number], ...(typeof inserts)[number][]]),
+        ...syncPhasePodiums(ctx.db, input.circuitPhaseId),
+      ]);
+      return results.slice(0, inserts.length).flat();
+    }),
     create: adminProcedure
       .input(
         podiumInput.refine(hasSinglePodiumTarget, {
           message: "Podium must target either a circuit or a phase, not both",
         }),
       )
-      .mutation(({ ctx, input }) =>
-        ctx.db
-          .insert(circuitPodiums)
-          .values({
-            playerId: input.playerId,
-            circuitId: input.circuitId ?? null,
-            circuitPhaseId: input.circuitPhaseId ?? null,
-            category: input.category ?? null,
-            place: input.place ?? null,
-            points: input.points,
-          })
-          .returning(),
-      ),
+      .mutation(async ({ ctx, input }) => {
+        await requireCategories(ctx.db, [input.category]);
+        const [created] = await ctx.db.batch([
+          ctx.db
+            .insert(circuitResults)
+            .values({
+              playerId: input.playerId,
+              circuitId: input.circuitId ?? null,
+              circuitPhaseId: input.circuitPhaseId ?? null,
+              category: input.category ?? null,
+              place: input.place ?? null,
+              points: input.points,
+            })
+            .returning(),
+          ...syncJustInsertedStageResultPodium(ctx.db),
+        ]);
+        return created;
+      }),
     update: adminProcedure
       .input(
         podiumInput.extend({ id: positiveInt }).refine(hasSinglePodiumTarget, {
           message: "Podium must target either a circuit or a phase, not both",
         }),
       )
-      .mutation(async ({ ctx, input }) =>
-        requireMutationRows(
-          await ctx.db
-            .update(circuitPodiums)
+      .mutation(async ({ ctx, input }) => {
+        await requireCategories(ctx.db, [input.category]);
+        const [updated] = await ctx.db.batch([
+          ctx.db
+            .update(circuitResults)
             .set({
               playerId: input.playerId,
               circuitId: input.circuitId ?? null,
@@ -327,17 +423,18 @@ export const circuitsRouter = router({
               place: input.place ?? null,
               points: input.points,
             })
-            .where(eq(circuitPodiums.id, input.id))
+            .where(eq(circuitResults.id, input.id))
             .returning(),
-          "Circuit podium",
-        )
-      ),
+          ...syncStageResultPodium(ctx.db, input.id),
+        ]);
+        return requireMutationRows(updated, "Circuit result");
+      }),
     delete: adminProcedure
       .input(idInput)
       .mutation(async ({ ctx, input }) =>
         requireMutationRows(
-          await ctx.db.delete(circuitPodiums).where(eq(circuitPodiums.id, input.id)).returning({ id: circuitPodiums.id }),
-          "Circuit podium",
+          await ctx.db.delete(circuitResults).where(eq(circuitResults.id, input.id)).returning({ id: circuitResults.id }),
+          "Circuit result",
         )
       ),
   }),
@@ -345,19 +442,19 @@ export const circuitsRouter = router({
 
 function circuitPoints(db: Context["db"], circuit: { id: number; type: string }) {
   const columns = {
-    playerId: circuitPodiums.playerId,
-    points: circuitPodiums.points,
-    category: circuitPodiums.category,
+    playerId: circuitResults.playerId,
+    points: circuitResults.points,
+    category: circuitResults.category,
   };
   const rows =
     circuit.type === "geral"
-      ? db.select(columns).from(circuitPodiums).where(eq(circuitPodiums.circuitId, circuit.id))
+      ? db.select(columns).from(circuitResults).where(eq(circuitResults.circuitId, circuit.id))
       : db
           .select(columns)
-          .from(circuitPodiums)
-          .innerJoin(circuitPhases, eq(circuitPhases.id, circuitPodiums.circuitPhaseId))
+          .from(circuitResults)
+          .innerJoin(circuitPhases, eq(circuitPhases.id, circuitResults.circuitPhaseId))
           .where(eq(circuitPhases.circuitId, circuit.id));
   return rows.limit(CIRCUIT_POINTS_LIMIT) as Promise<
-    { playerId: number; points: number; category: (typeof COMPETITION_CATEGORIES)[number] | null }[]
+    { playerId: number; points: number; category: string | null }[]
   >;
 }

@@ -9,6 +9,7 @@ import {
 } from "./constants";
 
 export interface TvSergipeFilters {
+  tournamentId?: number;
   ageGroup?: AgeGroup;
   sex?: "male" | "female";
   modality?: "individual" | "team";
@@ -19,11 +20,13 @@ export interface TvSergipeFilters {
  * unset scopes so tRPC omits those params from the query key.
  */
 export function resolveTvSergipeFilters(input: {
+  tournamentId?: number;
   idade?: AgeGroup;
   escopo?: SubScopeId;
 }): TvSergipeFilters {
   const filters = input.idade ? subScopeToFilters(input.escopo ?? "geral") : {};
   return {
+    tournamentId: input.tournamentId,
     ageGroup: input.idade,
     sex: filters.sex,
     modality: filters.modality,
@@ -37,10 +40,18 @@ const OPTIONS = {
   gcTime: 30 * 60 * 1000,
 } as const;
 
-/** Full result list (single query), the source for the drilldown. */
-export function tvSergipeListOptions(trpc: TRPCOptionsProxy<AppRouter>) {
+/** Editions with results, newest first; the first is the one shown by default. */
+export function tvSergipeEditionsOptions(trpc: TRPCOptionsProxy<AppRouter>) {
   return {
-    ...trpc.tvSergipe.list.queryOptions(),
+    ...trpc.tvSergipe.editions.queryOptions(),
+    ...OPTIONS,
+  };
+}
+
+/** Full result list of one edition (single query), the source for the drilldown. */
+export function tvSergipeListOptions(trpc: TRPCOptionsProxy<AppRouter>, tournamentId?: number) {
+  return {
+    ...trpc.tvSergipe.list.queryOptions({ tournamentId }),
     ...OPTIONS,
   };
 }
@@ -52,6 +63,7 @@ export function tvSergipeLeaderboardOptions(
 ) {
   return {
     ...trpc.tvSergipe.leaderboard.queryOptions({
+      tournamentId: filters.tournamentId,
       ageGroup: filters.ageGroup,
       sex: filters.sex,
       modality: filters.modality,

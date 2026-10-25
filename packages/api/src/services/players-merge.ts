@@ -4,7 +4,7 @@ import { alias, type SQLiteColumn } from "drizzle-orm/sqlite-core";
 
 import { announcements } from "@fsx/db/schema/announcements";
 import { circuitFinalPodiums } from "@fsx/db/schema/circuit-final-podiums";
-import { circuitPodiums } from "@fsx/db/schema/circuit-podiums";
+import { circuitResults } from "@fsx/db/schema/circuit-results";
 import { cupGames } from "@fsx/db/schema/cup-games";
 import { cupMatches } from "@fsx/db/schema/cup-matches";
 import { cupPlayers } from "@fsx/db/schema/cup-players";
@@ -176,7 +176,7 @@ export async function mergePlayers(db: Database, input: { sourceId: number; targ
     db.update(playersToTournaments).set({ playerId: targetId }).where(eq(playersToTournaments.playerId, sourceId)),
     ...rewrites,
     db.update(tournamentPodiums).set({ playerId: targetId }).where(eq(tournamentPodiums.playerId, sourceId)),
-    db.update(circuitPodiums).set({ playerId: targetId }).where(eq(circuitPodiums.playerId, sourceId)),
+    db.update(circuitResults).set({ playerId: targetId }).where(eq(circuitResults.playerId, sourceId)),
     db.update(circuitFinalPodiums).set({ playerId: targetId }).where(eq(circuitFinalPodiums.playerId, sourceId)),
     db.update(cupPlayers).set({ playerId: targetId }).where(eq(cupPlayers.playerId, sourceId)),
     db.update(tvSergipe).set({ playerId: targetId }).where(eq(tvSergipe.playerId, sourceId)),

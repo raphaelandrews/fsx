@@ -63,6 +63,7 @@ import {
 } from "./constants";
 import {
   resolveTvSergipeFilters,
+  tvSergipeEditionsOptions,
   tvSergipeLeaderboardOptions,
   tvSergipeListOptions,
 } from "./queries";
@@ -84,12 +85,14 @@ export function TvSergipeView() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/_public/tv-sergipe" });
 
-  const filters = resolveTvSergipeFilters({ idade: search.idade, escopo: search.escopo });
+  const { data: editions = [] } = useSuspenseQuery(tvSergipeEditionsOptions(trpc));
+  const tournamentId = search.edicao ?? editions[0]?.id;
+  const filters = resolveTvSergipeFilters({ tournamentId, idade: search.idade, escopo: search.escopo });
 
   const { data: leaderboard = [] } = useSuspenseQuery(
     tvSergipeLeaderboardOptions(trpc, filters),
   );
-  const { data: allResults = [] } = useSuspenseQuery(tvSergipeListOptions(trpc));
+  const { data: allResults = [] } = useSuspenseQuery(tvSergipeListOptions(trpc, tournamentId));
 
   const orderedRows = useMemo(() => {
     if (search.view === "medals") {
@@ -170,6 +173,29 @@ export function TvSergipeView() {
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
+          {editions.length > 1 ? (
+            <Select
+              items={editions.map((edition) => ({ value: String(edition.id), label: edition.name }))}
+              onValueChange={(value) =>
+                navigate({
+                  to: "/tv-sergipe",
+                  search: { ...search, edicao: Number(value), escola: undefined },
+                })
+              }
+              value={String(tournamentId)}
+            >
+              <SelectTrigger className="min-w-48" aria-label="Edição">
+                <SelectValue placeholder="Edição" />
+              </SelectTrigger>
+              <SelectContent>
+                {editions.map((edition) => (
+                  <SelectItem key={edition.id} value={String(edition.id)}>
+                    {edition.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
           <Select
             items={AGE_SELECT_ITEMS}
             onValueChange={(value) =>

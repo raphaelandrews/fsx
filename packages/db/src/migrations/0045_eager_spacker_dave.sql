@@ -1,0 +1,2 @@
+ALTER TABLE `tournament_podiums` ADD `circuit_podium_id` integer REFERENCES circuit_podiums(id) ON DELETE cascade;--> statement-breakpoint
+CREATE INDEX `tournament_podiums_circuit_podium_idx` ON `tournament_podiums` (`circuit_podium_id`);

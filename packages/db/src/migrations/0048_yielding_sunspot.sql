@@ -1,0 +1,1 @@
+ALTER TABLE `tournaments` ADD `has_podiums` integer DEFAULT true NOT NULL;

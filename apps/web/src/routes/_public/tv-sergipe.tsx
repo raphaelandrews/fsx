@@ -3,6 +3,7 @@ import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { TvSergipeView } from "@/components/tv-sergipe/tv-sergipe-view";
 import {
   resolveTvSergipeFilters,
+  tvSergipeEditionsOptions,
   tvSergipeLeaderboardOptions,
   tvSergipeListOptions,
 } from "@/components/tv-sergipe/queries";
@@ -29,18 +30,19 @@ export const Route = createFileRoute("/_public/tv-sergipe")({
       ]),
     }),
   loaderDeps: ({ search }) => ({
+    edicao: search.edicao,
     view: search.view,
     idade: search.idade,
     escopo: search.escopo,
   }),
-  loader: ({ context, deps }) => {
-    // List is always needed — it's the source of the drilldown data.
-    const listPromise = context.queryClient.ensureQueryData(tvSergipeListOptions(context.trpc));
+  loader: async ({ context, deps }) => {
+    const editions = await context.queryClient.ensureQueryData(tvSergipeEditionsOptions(context.trpc));
+    const tournamentId = deps.edicao ?? editions[0]?.id;
+    const filters = resolveTvSergipeFilters({ tournamentId, idade: deps.idade, escopo: deps.escopo });
 
-    const filters = resolveTvSergipeFilters({ idade: deps.idade, escopo: deps.escopo });
-
+    // The list is always needed: it is the source of the drilldown data.
     return Promise.all([
-      listPromise,
+      context.queryClient.ensureQueryData(tvSergipeListOptions(context.trpc, tournamentId)),
       context.queryClient.ensureQueryData(tvSergipeLeaderboardOptions(context.trpc, filters)),
     ]);
   },

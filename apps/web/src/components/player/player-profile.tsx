@@ -28,6 +28,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@fsx/ui/components/popo
 import { SectionHeading } from "@/components/section-heading";
 import { RankingHistoryChart, TotalRatingChart, VariationChart } from "@/components/player/player-charts";
 import { cn } from "@fsx/ui/lib/utils";
+import { isMedalPlace } from "@fsx/api/circuit-types";
 import { podiumIcon } from "@/components/gamification/championship-icons";
 import { formatIsoDate } from "@/components/gamification/tier";
 import { AchievementGrid, Subheading, TrophyCabinet } from "@/components/player/player-achievements";
@@ -89,6 +90,7 @@ export function PlayerProfile({
   const podiumGroups = React.useMemo(() => {
     const groups = new Map<string, NonNullable<PlayerById["tournamentPodiums"]>>();
     for (const podium of player?.tournamentPodiums ?? []) {
+      if (!isMedalPlace(podium.place)) continue;
       const name = podium.tournament.championship?.name ?? "Outros torneios";
       groups.set(name, [...(groups.get(name) ?? []), podium]);
     }
@@ -127,8 +129,14 @@ export function PlayerProfile({
   const medalCount = Object.values(stats.stats.medals).reduce((sum, m) => sum + m.gold + m.silver + m.bronze, 0);
 
   const tournaments = React.useMemo(() => {
-    return player?.playersToTournaments ? [...player.playersToTournaments].reverse() : [];
-  }, [player?.playersToTournaments]);
+    const categories = new Map<number, string>();
+    for (const result of player?.circuitResults ?? []) {
+      if (result.category && result.circuitPhases) categories.set(result.circuitPhases.tournamentId, result.category);
+    }
+    return [...(player?.playersToTournaments ?? [])]
+      .reverse()
+      .map((entry) => ({ ...entry, category: categories.get(entry.tournament.id) ?? null }));
+  }, [player?.playersToTournaments, player?.circuitResults]);
 
   const internalTitle = player?.playersToTitles?.find((title) => title.title.type === "internal");
 

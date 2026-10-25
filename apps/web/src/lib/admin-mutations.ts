@@ -31,8 +31,9 @@ const PLAYER_VIEWS = [
 // list, detail, and public view that renders it.
 export const ADMIN_QUERY_DEPENDENTS = {
   announcements: ["announcements", "records", "stats"],
+  categories: ["categories", "tournamentPodiums", "tournaments", "champions", "circuits", "players", "records", "history", "tvSergipe"],
   champions: ["champions", "tournaments", "circuits", "players", "topPlayers", "records"],
-  circuits: ["circuits", "players", "records", "clubs", "stats"],
+  circuits: ["circuits", "players", "records", "clubs", "stats", "tournamentPodiums", "tournaments", "champions", "history"],
   clubs: ["clubs", "players", "circuits", "tvSergipe", "swissManager", "records"],
   cups: ["cups"],
   events: ["events", "links", "stats"],
@@ -48,10 +49,11 @@ export const ADMIN_QUERY_DEPENDENTS = {
   playersTournament: ["playersTournament", "tournaments", "players", "playersToTitles", "topPlayers", "titledPlayers", "swissManager", "records", "clubs"],
   posts: ["posts", "stats"],
   roles: ["roles", "playersToRoles", "players"],
+  scoringSchemes: ["scoringSchemes", "circuits", "tournaments"],
   titles: ["titles", "playersToTitles", "titledPlayers", "topPlayers", "players", "records"],
   tournamentPodiums: ["tournamentPodiums", "tournaments", "champions", "players", "records", "clubs", "history"],
   tournaments: ["tournaments", "tournamentPodiums", "champions", "circuits", "players", "records", "stats", "history"],
-  tvSergipe: ["tvSergipe", "stats"],
+  tvSergipe: ["tvSergipe", "stats", "tournamentPodiums", "tournaments", "champions", "players", "records", "history"],
 } as const satisfies Partial<Record<RouterKey, readonly RouterKey[]>>;
 
 export type AdminDomain = keyof typeof ADMIN_QUERY_DEPENDENTS;

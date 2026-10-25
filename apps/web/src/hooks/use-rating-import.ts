@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { RatingType } from "@fsx/api/rating-types";
 
@@ -45,6 +45,7 @@ function writeStored(value: { fileName: string; results: ImportResult[] } | null
  */
 export function useRatingImport() {
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const invalidateAdmin = useInvalidateAdmin();
   const link = useMutation(trpc.playersTournament.linkWithRating.mutationOptions());
   const createPlayer = useMutation(trpc.players.create.mutationOptions());
@@ -130,7 +131,8 @@ export function useRatingImport() {
         const problem = columnsError(resultSheet.headerMap);
         if (problem) throw new Error(problem);
         planned = planImport(resultSheet.rows, resultSheet.headerMap);
-        nextPodium = parsePodium(sheets.get(PODIUM_SHEET) ?? []);
+        const categories = await queryClient.ensureQueryData(trpc.categories.list.queryOptions());
+        nextPodium = parsePodium(sheets.get(PODIUM_SHEET) ?? [], categories.map((category) => category.name));
       } else {
         const sheet = await readImportSheet(file);
         planned = planImport(sheet.rows, sheet.headerMap);

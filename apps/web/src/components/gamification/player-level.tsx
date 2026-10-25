@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@fsx/ui/components/popo
 const SOURCES: [keyof Level["breakdown"], string][] = [
   ["tournaments", "Torneios disputados"],
   ["tournamentPodiums", "Pódios em torneios"],
-  ["circuitPodiums", "Pódios em circuitos"],
+  ["circuitResults", "Pódios em circuitos"],
   ["ratingThresholds", "Marcas de rating"],
   ["titles", "Títulos"],
 ];
