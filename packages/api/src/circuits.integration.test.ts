@@ -280,4 +280,47 @@ describe("tournament podium categories", () => {
     expect(await caller.circuits.medalGaps({ id: circuitId })).toEqual({ missing: 0 });
   });
 
+  test("a circuit with a category list accepts only those categories, and the list cannot drop a used one", async () => {
+    const circuitId = idOf(
+      await caller.circuits.create({
+        name: "Circuito Lista",
+        type: "categories",
+        year: 2026,
+        tier: "B",
+        categories: ["Sub 8 Masculino", "Sub 8 Feminino"],
+      }),
+    );
+    const circuit = async () => (await caller.circuits.byId({ id: circuitId })).circuitCategories.map((entry) => entry.category).sort();
+    expect(await circuit()).toEqual(["Sub 8 Feminino", "Sub 8 Masculino"]);
+    const tournamentId = idOf(await caller.tournaments.create({ name: "Etapa Lista", ratingType: "rapid", tier: "B", hasPodiums: false }));
+    const circuitPhaseId = idOf(await caller.circuits.phases.create({ circuitId, tournamentId, sortOrder: 1 }));
+    const base = { playerId: players[0]!, circuitPhaseId, points: 5 };
+
+    await caller.circuits.results.create({ ...base, category: "Sub 8 Feminino" });
+    await caller.circuits.results.create({ ...base, playerId: players[1]! });
+    await expect(caller.circuits.results.create({ ...base, category: "Sub 14 Masculino" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(
+      caller.circuits.results.createMany({ circuitPhaseId, category: "Master", results: [{ playerId: players[2]!, points: 1 }] }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    const [result] = (await caller.circuits.byId({ id: circuitId })).circuitPhases[0]!.circuitResults;
+    await expect(
+      caller.circuits.results.update({ id: result!.id, ...base, category: "Juvenil" }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+
+    const settings = { id: circuitId, name: "Circuito Lista", type: "categories", year: 2026, tier: "B" } as const;
+    await expect(caller.circuits.update({ ...settings, categories: ["Sub 8 Masculino"] })).rejects.toMatchObject({ code: "CONFLICT" });
+    await caller.circuits.update({ ...settings, name: "Circuito Lista" });
+    expect(await circuit()).toEqual(["Sub 8 Feminino", "Sub 8 Masculino"]);
+    await caller.circuits.update({ ...settings, categories: ["Sub 8 Feminino", "Sub 8 Masculino", "Sub 10 Feminino"] });
+    expect(await circuit()).toHaveLength(3);
+    await caller.circuits.results.create({ ...base, playerId: players[2]!, category: "Sub 10 Feminino" });
+
+    const sub10 = (await caller.categories.list()).find((category) => category.name === "Sub 10 Feminino")!;
+    await expect(caller.categories.delete({ id: sub10.id })).rejects.toMatchObject({ code: "CONFLICT" });
+
+    await caller.circuits.update({ ...settings, categories: [] });
+    expect(await circuit()).toEqual([]);
+    await caller.circuits.results.create({ ...base, playerId: players[3]!, category: "Sub 14 Masculino" });
+  });
+
 });

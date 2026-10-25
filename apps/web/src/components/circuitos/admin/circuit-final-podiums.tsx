@@ -10,7 +10,7 @@ import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useCategoryOptions } from "@/lib/reference-options";
+import { circuitCategoryOptions, useCategoryOptions } from "@/lib/reference-options";
 import { useTRPC } from "@/lib/trpc";
 
 import { federationToday } from "@fsx/api/lib/dates";
@@ -22,7 +22,7 @@ type Editing = { podium?: FinalPodium } | null;
 
 export function CircuitFinalPodiums({ circuit }: { circuit: Circuit }) {
   const trpc = useTRPC();
-  const categoryOptions = useCategoryOptions();
+  const categoryOptions = circuitCategoryOptions(useCategoryOptions(), circuit.circuitCategories);
   const [finishing, setFinishing] = useState<string | null>(null);
   const [editing, setEditing] = useState<Editing>(null);
 

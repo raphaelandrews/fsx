@@ -156,8 +156,8 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `champions.gallery` | public | — | Championships with their tournaments' overall podiums (category podiums excluded) and players | 300 s |
 | `champions.create` / `update` / `delete` | admin | `{ name }` | Championship rows | — |
 | `circuits.listSimple` | public | — | `{ id, name, type, year, tier, finishedAt }`, newest season first | 300 s |
-| `circuits.byId` | public | `{ id }` | Circuit with championship, scoring scheme (and its places), phases, tournaments, clubs, points rows, and final podiums | 300 s |
-| `circuits.create` / `update` / `delete` | admin | `{ name, type, year (1900–2200), tier?, championshipId?, scoringSchemeId? }` | Rows; delete cascades to phases and points rows; `CONFLICT` while the circuit has final podiums | — |
+| `circuits.byId` | public | `{ id }` | Circuit with championship, category list, scoring scheme (and its places), phases, tournaments, clubs, points rows, and final podiums | 300 s |
+| `circuits.create` / `update` / `delete` | admin | `{ name, type, year (1900–2200), tier?, championshipId?, scoringSchemeId?, categories? }` | Rows; `categories` is the allowed category list (omitted on `update` keeps it, `CONFLICT` when it leaves out a category the results use); delete cascades to phases and points rows; `CONFLICT` while the circuit has final podiums | — |
 | `circuits.finish` | admin | `{ id, finishedAt }` | Sets `finishedAt` and, in one batch, stores the top 3 of the summed points (per category for `categories` and `school` circuits, shared places for equal totals) as final podiums; `CONFLICT` if already finished, `BAD_REQUEST` without points | — |
 | `circuits.reopen` | admin | `{ id }` | Deletes the final podiums and clears `finishedAt` in one batch | — |
 | `circuits.finalPodiums.create` / `update` / `delete` | admin | `{ circuitId, playerId, place (1–1000), category?, points? }` | Rows; `BAD_REQUEST` on create while the circuit is in progress, `CONFLICT` for a duplicate player in a category | — |

@@ -351,6 +351,13 @@
       "when": 1792959602578,
       "tag": "0049_absurd_maggott",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "6",
+      "when": 1792965282903,
+      "tag": "0050_mature_goblin_queen",
+      "breakpoints": true
     }
   ]
 }

@@ -20,7 +20,7 @@ import {
   tournamentSections,
 } from "@/lib/admin-forms";
 import { showMutationError } from "@/lib/errors";
-import { useCategoryOptions, useScoringSchemeOptions } from "@/lib/reference-options";
+import { parseCategoryList, useCategoryOptions, useScoringSchemeOptions } from "@/lib/reference-options";
 import { scheduleToInstant } from "@/lib/schedule";
 import { useTRPC } from "@/lib/trpc";
 
@@ -236,6 +236,7 @@ export function CircuitCreateDialog({ open, onOpenChange }: CreateDialogProps) {
   const navigate = useNavigate();
   const { data: championships = [] } = useQuery(trpc.champions.list.queryOptions());
   const schemes = useScoringSchemeOptions();
+  const categoryOptions = useCategoryOptions();
   const createMutation = useAdminMutation(trpc.circuits.create.mutationOptions(), {
     invalidates: "circuits",
     awaitInvalidation: true,
@@ -254,7 +255,7 @@ export function CircuitCreateDialog({ open, onOpenChange }: CreateDialogProps) {
       onOpenChange={onOpenChange}
       title="New circuit"
       description="Create one circuit per season; you add its stages and points on the next page."
-      fields={fieldsOf(circuitSections(championships, schemes))}
+      fields={fieldsOf(circuitSections(championships, schemes, categoryOptions))}
       defaultValues={{
         name: "",
         year: String(new Date().getFullYear()),
@@ -262,6 +263,7 @@ export function CircuitCreateDialog({ open, onOpenChange }: CreateDialogProps) {
         tier: "B",
         championshipId: "",
         scoringSchemeId: "",
+        categories: "[]",
       }}
       onSubmit={(values) =>
         createMutation.mutate({
@@ -271,6 +273,7 @@ export function CircuitCreateDialog({ open, onOpenChange }: CreateDialogProps) {
           tier: values.tier as CompetitionTier,
           championshipId: optionalNumber(values.championshipId!),
           scoringSchemeId: optionalNumber(values.scoringSchemeId!),
+          categories: parseCategoryList(values.categories),
         })
       }
       error={createMutation.error}

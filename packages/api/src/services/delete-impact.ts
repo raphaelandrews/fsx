@@ -27,6 +27,7 @@ import { titles } from "@fsx/db/schema/titles";
 import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
 import { tournaments } from "@fsx/db/schema/tournaments";
 import { categories } from "@fsx/db/schema/categories";
+import { circuitCategories } from "@fsx/db/schema/circuit-categories";
 import { scoringSchemes } from "@fsx/db/schema/scoring-schemes";
 import { tvSergipe } from "@fsx/db/schema/tv-sergipe";
 
@@ -206,6 +207,7 @@ const ENTITIES: Record<
       categoryUses("tournament podium", tournamentPodiums, tournamentPodiums.category),
       categoryUses("circuit result", circuitResults, circuitResults.category),
       categoryUses("final podium", circuitFinalPodiums, circuitFinalPodiums.category),
+      categoryUses("circuit category list", circuitCategories, circuitCategories.category),
     ],
     alsoDeletes: [],
   },

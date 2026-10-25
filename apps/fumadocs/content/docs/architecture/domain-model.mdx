@@ -85,6 +85,10 @@ are `snake_case` in SQL and `camelCase` in Drizzle. Every table has an integer
   Its `type` (`default`, `categories`, `school`, or `geral`) selects the
   [layout](/guide/circuits#circuit-types). A season is in progress until
   `finished_at` is set.
+  - **Circuit categories** (`circuit_categories`): the categories a circuit uses. Empty means any
+    category is accepted; once it has rows, its results and final podiums must use one of them
+    (`BAD_REQUEST` otherwise), and a new list cannot leave out a category its results already use
+    (`CONFLICT`). Results without a category are always accepted.
   - **Circuit phase** (`circuit_phases`): one stage, played at a tournament,
     optionally hosted by a club, ordered by `sort_order`.
   - **Circuit result** (`circuit_results`, formerly `circuit_podiums`): points for a
@@ -181,7 +185,7 @@ foreign-key error, which the API returns as `CONFLICT`.
 | ----------- | ------------ | --------------------------- |
 | player (no API procedure) | title, role, norm, and insignia links; ranking snapshots | announcements, rating history, tournament podiums, circuit results and final podiums, defending champions, cup players and matches, School Games results |
 | club | — | players, circuit phases, School Games results |
-| category | — | tournament podiums, circuit results, final podiums using it |
+| category | — | tournament podiums, circuit results, final podiums, circuit category lists using it |
 | scoring scheme | its places | circuits and tournaments pointing at it |
 | location | — | players |
 | title, role, norm, insignia | its player links | — |

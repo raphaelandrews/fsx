@@ -12,7 +12,7 @@ import { DataTablePagination } from "@/components/data-table/data-table-paginati
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { BulkStageResultsDialog } from "@/components/circuitos/admin/bulk-stage-results";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useCategoryOptions } from "@/lib/reference-options";
+import { circuitCategoryOptions, useCategoryOptions } from "@/lib/reference-options";
 import { useTRPC } from "@/lib/trpc";
 
 import type { Circuit, CircuitPhase, CircuitResult } from "../types";
@@ -27,7 +27,7 @@ const byPlaceThenPoints = (a: CircuitResult, b: CircuitResult) =>
 
 export function CircuitEditor({ circuit }: { circuit: Circuit }) {
   const trpc = useTRPC();
-  const categoryOptions = useCategoryOptions();
+  const categoryOptions = circuitCategoryOptions(useCategoryOptions(), circuit.circuitCategories);
   const [editingPodium, setEditingPodium] = useState<EditingPodium>(null);
   const [editingPhase, setEditingPhase] = useState<EditingPhase>(null);
   const [bulkPhaseId, setBulkPhaseId] = useState<number | null>(null);
@@ -309,6 +309,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
         <BulkStageResultsDialog
           circuitPhaseId={bulkPhaseId}
           scheme={circuit.scoringScheme}
+          categories={circuit.circuitCategories}
           open
           onOpenChange={(open) => !open && setBulkPhaseId(null)}
         />

@@ -15,7 +15,7 @@ import { Input } from "@fsx/ui/components/input";
 import { NATIVE_SELECT_CLASS } from "@/components/admin/entity-form";
 import { SearchableSelect } from "@/components/form/searchable-select";
 import { useAdminMutation } from "@/lib/admin-mutations";
-import { useCategoryOptions } from "@/lib/reference-options";
+import { circuitCategoryOptions, useCategoryOptions } from "@/lib/reference-options";
 import { getAdminErrorMessage } from "@/lib/errors";
 import { useTRPC } from "@/lib/trpc";
 
@@ -42,11 +42,13 @@ const newRow = (place: number, scheme: SchemePoints | null): Row => ({
 export function BulkStageResultsDialog({
   circuitPhaseId,
   scheme,
+  categories,
   open,
   onOpenChange,
 }: {
   circuitPhaseId: number;
   scheme: SchemePoints | null;
+  categories: readonly { category: string }[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -61,7 +63,7 @@ export function BulkStageResultsDialog({
           </DialogDescription>
         </DialogHeader>
         {open ? (
-          <BulkStageResultsForm circuitPhaseId={circuitPhaseId} scheme={scheme} onDone={() => onOpenChange(false)} />
+          <BulkStageResultsForm circuitPhaseId={circuitPhaseId} scheme={scheme} categories={categories} onDone={() => onOpenChange(false)} />
         ) : null}
       </DialogContent>
     </Dialog>
@@ -71,14 +73,16 @@ export function BulkStageResultsDialog({
 function BulkStageResultsForm({
   circuitPhaseId,
   scheme,
+  categories,
   onDone,
 }: {
   circuitPhaseId: number;
   scheme: SchemePoints | null;
+  categories: readonly { category: string }[];
   onDone: () => void;
 }) {
   const trpc = useTRPC();
-  const categoryOptions = useCategoryOptions();
+  const categoryOptions = circuitCategoryOptions(useCategoryOptions(), categories);
   const [category, setCategory] = useState("");
   const [rows, setRows] = useState<Row[]>(() =>
     Array.from({ length: Math.min(MAX_ROWS, scheme?.places.length ?? DEFAULT_ROWS) }, (_, index) => newRow(index + 1, scheme)),

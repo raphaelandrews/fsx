@@ -10,7 +10,7 @@ import { CircuitFinalPodiums } from "@/components/circuitos/admin/circuit-final-
 import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { circuitSections } from "@/lib/admin-forms";
-import { useScoringSchemeOptions } from "@/lib/reference-options";
+import { parseCategoryList, stringifyCategoryList, useCategoryOptions, useScoringSchemeOptions } from "@/lib/reference-options";
 import { orNotFound } from "@/lib/errors";
 import { idParams } from "@/lib/route-params";
 import { useTRPC } from "@/lib/trpc";
@@ -38,6 +38,7 @@ function RouteComponent() {
   const { data: circuit } = useSuspenseQuery(trpc.circuits.byId.queryOptions({ id }));
   const { data: championships } = useSuspenseQuery(trpc.champions.list.queryOptions());
   const schemes = useScoringSchemeOptions();
+  const categoryOptions = useCategoryOptions();
 
   const updateMutation = useAdminMutation(trpc.circuits.update.mutationOptions(), {
     invalidates: "circuits",
@@ -74,7 +75,7 @@ function RouteComponent() {
         }
       />
       <EntityForm
-        sections={circuitSections(championships, schemes)}
+        sections={circuitSections(championships, schemes, categoryOptions)}
         defaultValues={{
           name: circuit.name,
           year: circuit.year ? String(circuit.year) : "",
@@ -82,6 +83,7 @@ function RouteComponent() {
           tier: circuit.tier,
           championshipId: circuit.championshipId ? String(circuit.championshipId) : "",
           scoringSchemeId: circuit.scoringSchemeId ? String(circuit.scoringSchemeId) : "",
+          categories: stringifyCategoryList(circuit.circuitCategories.map((entry) => entry.category)),
         }}
         onSubmit={(values) =>
           updateMutation.mutate({
@@ -92,6 +94,7 @@ function RouteComponent() {
             tier: values.tier as CompetitionTier,
             championshipId: optionalNumber(values.championshipId!),
             scoringSchemeId: optionalNumber(values.scoringSchemeId!),
+            categories: parseCategoryList(values.categories),
           })
         }
         error={updateMutation.error}

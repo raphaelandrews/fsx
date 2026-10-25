@@ -34,6 +34,7 @@ The database is Cloudflare D1 (SQLite). The schema is defined with Drizzle in
 | `categories` | `name` | `kind` in `age`, `open`; an `age` row has a `sex` and an `age_limit` 1–100, an `open` row has neither |
 | `scoring_schemes` | `name` | — |
 | `scoring_scheme_places` | `(scheme_id, place)` | `place` 1–1000; `points` 0–1000000 |
+| `circuit_categories` | `(circuit_id, category)` | `category` references `categories(name)`; deleted with its circuit |
 | `defending_champions` | `(player_id, championship_id)` | — |
 | `tournaments`, `cups` | `name` | `rating_type` in `blitz`, `rapid`, `classic`; `prize_pool` ≥ 0; `tournaments.has_podiums` (default true) turns podiums and synced medals off, enforced by the API |
 | `circuits` | `name` | `type` in `default`, `categories`, `school`, `geral` |

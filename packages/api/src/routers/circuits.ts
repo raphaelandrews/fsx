@@ -15,6 +15,12 @@ import { assertDeletable } from "../services/delete-impact";
 import { syncCircuitResults, syncJustInsertedStageResultPodium, syncPhasePodiums, syncStageResultPodium } from "../services/stage-podium-sync";
 import { categoryName, idInput, isoDate, nameText, points, positiveInt, seasonYear, sortOrder } from "../input-schemas";
 import { requireCategories } from "../services/categories";
+import {
+  assertCategoriesCoverResults,
+  circuitOfPhase,
+  replaceCircuitCategories,
+  requireCircuitCategory,
+} from "../services/circuit-categories";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 const circuitTypeEnum = z.enum(CIRCUIT_TYPES);
@@ -29,6 +35,8 @@ const circuitInput = z.object({
   tier: z.enum(COMPETITION_TIERS).default("B"),
   championshipId: positiveInt.nullable().optional(),
   scoringSchemeId: positiveInt.nullable().optional(),
+  // The categories this circuit uses; empty means any. Omitted on update leaves the list as it is.
+  categories: z.array(categoryName).max(30).optional(),
 });
 
 const finalPodiumInput = z.object({
@@ -93,6 +101,7 @@ export const circuitsRouter = router({
       columns: { id: true, name: true, type: true, year: true, tier: true, championshipId: true, scoringSchemeId: true, finishedAt: true },
       with: {
         championship: { columns: { id: true, name: true } },
+        circuitCategories: { columns: { category: true } },
         scoringScheme: {
           columns: { id: true, name: true },
           with: { places: { columns: { place: true, points: true }, orderBy: (place, { asc }) => [asc(place.place)] } },
@@ -141,33 +150,40 @@ export const circuitsRouter = router({
       .orderBy(desc(circuits.year), asc(circuits.name), asc(circuits.id))
       .limit(PUBLIC_COLLECTION_LIMIT),
   ),
-  create: adminProcedure
-    .input(circuitInput)
-    .mutation(({ ctx, input }) =>
+  create: adminProcedure.input(circuitInput).mutation(async ({ ctx, input }) => {
+    const { categories: allowed = [], ...circuit } = input;
+    await requireCategories(ctx.db, allowed);
+    const [created] = await ctx.db.batch([
       ctx.db
         .insert(circuits)
-        .values({ ...input, championshipId: input.championshipId ?? null, scoringSchemeId: input.scoringSchemeId ?? null })
+        .values({ ...circuit, championshipId: circuit.championshipId ?? null, scoringSchemeId: circuit.scoringSchemeId ?? null })
         .returning(),
-    ),
-  update: adminProcedure
-    .input(circuitInput.extend({ id: positiveInt }))
-    .mutation(async ({ ctx, input }) =>
-      requireMutationRows(
-        await ctx.db
-          .update(circuits)
-          .set({
-            name: input.name,
-            type: input.type,
-            year: input.year,
-            tier: input.tier,
-            championshipId: input.championshipId ?? null,
-            scoringSchemeId: input.scoringSchemeId ?? null,
-          })
-          .where(eq(circuits.id, input.id))
-          .returning(),
-        "Circuit",
-      )
-    ),
+      ...replaceCircuitCategories(ctx.db, { name: circuit.name }, allowed),
+    ]);
+    return created;
+  }),
+  update: adminProcedure.input(circuitInput.extend({ id: positiveInt })).mutation(async ({ ctx, input }) => {
+    if (input.categories) {
+      await requireCategories(ctx.db, input.categories);
+      await assertCategoriesCoverResults(ctx.db, input.id, input.categories);
+    }
+    const [updated] = await ctx.db.batch([
+      ctx.db
+        .update(circuits)
+        .set({
+          name: input.name,
+          type: input.type,
+          year: input.year,
+          tier: input.tier,
+          championshipId: input.championshipId ?? null,
+          scoringSchemeId: input.scoringSchemeId ?? null,
+        })
+        .where(eq(circuits.id, input.id))
+        .returning(),
+      ...(input.categories ? replaceCircuitCategories(ctx.db, input.id, input.categories) : []),
+    ]);
+    return requireMutationRows(updated, "Circuit");
+  }),
   delete: adminProcedure
     .input(idInput)
     .mutation(async ({ ctx, input }) => {
@@ -252,6 +268,7 @@ export const circuitsRouter = router({
           "Circuit",
         );
         await requireCategories(ctx.db, [input.category]);
+        await requireCircuitCategory(ctx.db, input.circuitId, input.category);
         if (!circuit.finishedAt) {
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -273,6 +290,12 @@ export const circuitsRouter = router({
       .input(finalPodiumInput.extend({ id: positiveInt }))
       .mutation(async ({ ctx, input }) => {
         await requireCategories(ctx.db, [input.category]);
+        const [podium] = await ctx.db
+          .select({ circuitId: circuitFinalPodiums.circuitId })
+          .from(circuitFinalPodiums)
+          .where(eq(circuitFinalPodiums.id, input.id))
+          .limit(1);
+        await requireCircuitCategory(ctx.db, podium?.circuitId, input.category);
         return requireMutationRows(
           await ctx.db
             .update(circuitFinalPodiums)
@@ -362,6 +385,7 @@ export const circuitsRouter = router({
   results: router({
     createMany: adminProcedure.input(bulkResultsInput).mutation(async ({ ctx, input }) => {
       await requireCategories(ctx.db, [input.category]);
+      await requireCircuitCategory(ctx.db, await circuitOfPhase(ctx.db, input.circuitPhaseId), input.category);
       const inserts = input.results.map((result) =>
         ctx.db
           .insert(circuitResults)
@@ -388,6 +412,7 @@ export const circuitsRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         await requireCategories(ctx.db, [input.category]);
+        await requireCircuitCategory(ctx.db, input.circuitId ?? (await circuitOfPhase(ctx.db, input.circuitPhaseId!)), input.category);
         const [created] = await ctx.db.batch([
           ctx.db
             .insert(circuitResults)
@@ -412,6 +437,7 @@ export const circuitsRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         await requireCategories(ctx.db, [input.category]);
+        await requireCircuitCategory(ctx.db, input.circuitId ?? (await circuitOfPhase(ctx.db, input.circuitPhaseId!)), input.category);
         const [updated] = await ctx.db.batch([
           ctx.db
             .update(circuitResults)

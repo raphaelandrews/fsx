@@ -127,9 +127,10 @@ describe("D1 migrations", () => {
       await applyAsProduction(db, pending);
 
       const countsAfter = await rowCounts(db);
-      // circuit_podiums was renamed, and the migrations seed the categories and the school scoring scheme.
+      // circuit_podiums was renamed, and the migrations seed the categories, the school scoring scheme and
+      // the category list of the one circuit whose results use a category.
       const { circuit_podiums: renamed = 0, ...unchanged } = countsBefore;
-      const seeded = { circuit_results: renamed, categories: 15, scoring_schemes: 1, scoring_scheme_places: 8 };
+      const seeded = { circuit_results: renamed, categories: 15, scoring_schemes: 1, scoring_scheme_places: 8, circuit_categories: 1 };
       const createdTables = Object.keys(countsAfter).filter((table) => !(table in unchanged) && !(table in seeded));
       expect(countsAfter).toEqual({
         ...unchanged,

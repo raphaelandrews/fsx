@@ -5,6 +5,7 @@ import {
   COMPETITION_TIERS,
 } from "@fsx/api/circuit-types";
 
+import { CategoryChecklist } from "@/components/admin/category-checklist";
 import type { EntitySection } from "@/components/admin/entity-form";
 import type { SelectOption } from "@/lib/reference-options";
 import type { useTRPC } from "@/lib/trpc";
@@ -232,6 +233,7 @@ export function parseSchemePoints(text: string): { place: number; points: number
 export function circuitSections(
   championships: { id: number; name: string }[],
   schemes: readonly SelectOption[],
+  categoryOptions: readonly SelectOption[],
 ): EntitySection[] {
   return [
     {
@@ -262,6 +264,15 @@ export function circuitSections(
           kind: "select",
           hint: "Prefills the points when stage results are added. Each result keeps its own points.",
           options: schemes,
+        },
+        {
+          name: "categories",
+          label: "Categories",
+          kind: "custom",
+          hint: "The categories this circuit uses. Results and final podiums accept only these. Leave all unchecked to accept any.",
+          render: ({ id, value, onChange }) => (
+            <CategoryChecklist id={id} value={value} onChange={onChange} options={categoryOptions} />
+          ),
         },
       ],
     },
