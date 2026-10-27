@@ -47,14 +47,9 @@ const FAQ_ITEMS = [
         O cadastro do enxadrista é feito pela FSX assim que ele joga seu primeiro torneio, não é
         preciso fazer nenhuma solicitação. Assim que o enxadrista estiver cadastrado, ele pode
         preencher o{" "}
-        <a
-          className="link-inline"
-          href="https://forms.gle/5JXbBckcWB33EprW8"
-          rel="noreferrer"
-          target="_blank"
-        >
+        <Link className="link-inline" to="/atualizar-cadastro">
           formulário de atualização de dados
-        </a>{" "}
+        </Link>{" "}
         para adicionar algumas informações ao seu perfil. Não é necessário pagar taxas, somente as
         de inscrição dos torneios.
       </>

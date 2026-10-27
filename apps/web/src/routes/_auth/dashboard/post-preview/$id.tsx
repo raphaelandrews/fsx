@@ -33,7 +33,7 @@ function RouteComponent() {
             ? "This article is live."
             : "Only visible in the dashboard until you publish it."}
       </InlineAlert>
-      <PostArticle post={post} />
+      <PostArticle post={post} headingLevel="h2" />
     </>
   );
 }

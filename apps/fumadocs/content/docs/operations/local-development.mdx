@@ -85,7 +85,7 @@ process that is not part of the current `bun dev`, then restart `bun dev`.
 | `bun run lint` | Oxlint |
 | `bun run check:runtime` | Alchemy, Miniflare, workerd, and compatibility-date pins agree |
 | `bun run check:routes` | Every public route is in the sitemap |
-| `bun run build` then `bun run check:ssr` | The production build renders 22 routes with correct status, titles, canonicals, and size budgets |
+| `bun run build` then `bun run check:ssr` | The production build renders 43 routes with correct status, titles, canonicals, and size budgets |
 | `bun run check:bundle` | Client bundle size budgets; no devtools in production |
 | `bun run check:seo` | Prerendered pages carry SEO tags |
 | `bun run test:e2e` | Playwright public, admin, accessibility (axe), request, freshness, and navigation tests against the built Worker with synthetic data |
@@ -101,5 +101,4 @@ CI (`.github/workflows/quality.yml`) runs these on pull requests and pushes to `
 | `bun run hooks:setup` | Installs the Git hooks. |
 | `bun run staged` | Runs the formatter and lint fixes on the staged files; the pre-commit hook calls it. |
 | `bun run deploy` | Deploys with Alchemy, then runs the [deploy smoke test](/operations/runbook#deploy-smoke-test). |
-| `bun run destroy` | Tears down the Alchemy-managed Cloudflare resources (Worker, D1, R2). Destructive: never part of a routine deploy. |
 

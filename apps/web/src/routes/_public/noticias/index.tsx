@@ -64,7 +64,7 @@ function RouteComponent() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {data.posts.map((post) => (
-            <PostCard key={post.id} title={post.title} imageUrl={post.imageUrl} slug={post.slug} />
+            <PostCard key={post.id} headingLevel="h2" title={post.title} imageUrl={post.imageUrl} slug={post.slug} />
           ))}
         </div>
       )}

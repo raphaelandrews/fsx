@@ -36,8 +36,9 @@ export const columnsClassic: ColumnDef<TopPlayer>[] = [
 		),
 		cell: ({ row }) => {
 			const playerTitles = row.original.playersToTitles
-			if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
-				const shortName = playerTitles[0].title.shortName
+			const firstTitle = playerTitles?.[0]?.title
+			if (firstTitle) {
+				const shortName = firstTitle.shortName
 				return (
 					<Actions
 						defendingChampions={row.original.defendingChampions}
@@ -95,8 +96,9 @@ export const columnsRapid: ColumnDef<TopPlayer>[] = [
 		),
 		cell: ({ row }) => {
 			const playerTitles = row.original.playersToTitles
-			if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
-				const shortName = playerTitles[0].title.shortName
+			const firstTitle = playerTitles?.[0]?.title
+			if (firstTitle) {
+				const shortName = firstTitle.shortName
 				return (
 					<Actions
 						defendingChampions={row.original.defendingChampions}
@@ -154,8 +156,9 @@ export const columnsBlitz: ColumnDef<TopPlayer>[] = [
 		),
 		cell: ({ row }) => {
 			const playerTitles = row.original.playersToTitles
-			if (playerTitles && playerTitles.length > 0 && playerTitles[0].title) {
-				const shortName = playerTitles[0].title.shortName
+			const firstTitle = playerTitles?.[0]?.title
+			if (firstTitle) {
+				const shortName = firstTitle.shortName
 				return (
 					<Actions
 						defendingChampions={row.original.defendingChampions}

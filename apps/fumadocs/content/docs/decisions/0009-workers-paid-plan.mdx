@@ -27,6 +27,16 @@ The plan changes what is *allowed*, not what the design *does*:
 | D1 usage | Daily read and write allowances | Larger monthly included usage | Public submissions (update requests) and a change log can write to D1 without competing with admin edits. |
 | Worker size | Smaller limit | Larger limit | Bundling a WASM image renderer and fonts is possible; `bun run check:bundle` still guards size. |
 
+Limits raised because of the plan, each by a small step that costs nothing until the data needs it:
+
+| Limit | Was | Now | Why it was low |
+| ----- | --- | --- | -------------- |
+| Rows per bulk save (stage results, podiums, TV Sergipe) | 50 | 100 | One D1 statement per row in one batch; the free plan allows 50 queries per invocation, the paid plan 1,000. |
+| `PUBLIC_NESTED_COLLECTION_LIMIT` | 100 | 250 | Keeps long careers and stages with many categories from being cut off silently. |
+| `PUBLIC_COLLECTION_LIMIT` | 500 | 1,000 | Headroom before a public list truncates; a list still reads only the rows that exist. |
+
+D1's 100 bound parameters per statement and the 512 KB response budget are not plan limits and did not change.
+
 What does **not** change:
 
 - [ADR 0008](/decisions/0008-stored-computations) stays. Recomputing every career on a

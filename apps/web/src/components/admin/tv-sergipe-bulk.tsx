@@ -26,7 +26,7 @@ import {
 
 type Row = { key: string; place: string; clubId: string; playerId: string; teamName: string; points: string };
 
-const MAX_ROWS = 50;
+const MAX_ROWS = 100;
 
 const newRow = (place: number): Row => ({
   key: crypto.randomUUID(),

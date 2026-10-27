@@ -67,7 +67,7 @@ function RouteComponent() {
 
   const { comparison, lone } = Route.useLoaderData();
   const names = comparison
-    ? { a: comparison.players[0].name, b: comparison.players[1].name }
+    ? { a: comparison.players[0]?.name, b: comparison.players[1]?.name }
     : { a: lone && lone.id === a ? lone.name : undefined, b: lone && lone.id === b ? lone.name : undefined };
 
   return (
@@ -81,11 +81,11 @@ function RouteComponent() {
 
       {comparison ? (
         <div className="grid gap-8">
-          <section>
+          <section className="min-w-0">
             <SectionHeading icon={ChartBarLineIcon} label="Lado a lado" />
             <CompareStats players={comparison.players} />
           </section>
-          <section>
+          <section className="min-w-0">
             <SectionHeading icon={Calendar01Icon} label="Torneios em comum" />
             <CommonTournaments comparison={comparison} />
           </section>

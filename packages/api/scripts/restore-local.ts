@@ -35,6 +35,7 @@ if (!databaseId) {
 }
 
 const persistRoot = `${repoRoot}.alchemy/miniflare/v3`;
+const backup = await readBackup(backupPath!, { excludeRows: withoutAccounts ? ACCOUNT_TABLES : [] });
 rmSync(`${persistRoot}/d1`, { recursive: true, force: true });
 
 const miniflare = new Miniflare({
@@ -47,7 +48,6 @@ const miniflare = new Miniflare({
 
 try {
   const d1 = await miniflare.getD1Database("DB");
-  const backup = await readBackup(backupPath!, { excludeRows: withoutAccounts ? ACCOUNT_TABLES : [] });
   const { appliedAfterRestore, failures } = await restoreBackup(d1, backup);
   if (failures.length) throw new Error(`Restore failed:\n${failures.join("\n")}`);
 

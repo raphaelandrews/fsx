@@ -9,6 +9,10 @@ bun run lint
 bun run build
 ```
 
+CI also runs `check:runtime`, `check:bundle`, `check:seo`, `check:routes`, `check:ssr`, the
+migration check, `bun audit` and `bun run test:e2e`; see
+`apps/fumadocs/content/docs/operations/local-development.mdx` for what each checks.
+
 Database schema changes must include the generated Drizzle migration. Do not
 apply migrations directly to the local Miniflare SQLite file; use the Alchemy
 migration tracker. Generated route trees and migrations require source-review

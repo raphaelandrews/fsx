@@ -64,7 +64,7 @@ Foreign keys and their `ON DELETE` actions are summarized in
 
 Indexes follow the public queries:
 
-- `players`: `active`, `sex`, `club_id`, `location_id`, `name`, each rating,
+- `players`: `active`, `club_id`, `location_id`, `name`, `rapid`,
   `(active, rating)` for each rating, and `(active, birth_year)` for age groups.
 - `players_to_tournaments (tournament_id)`, `tournaments (championship_id)`, `tournaments (date)` (month highlight), `circuit_phases (tournament_id)`.
 - Covering indexes for the hot player scans: `players (active, sex, classic, rapid, blitz)` (ranking counts) and `players (normalized_name, active, name, rapid)` (name search scans the index, not the wide rows).
@@ -72,7 +72,8 @@ Indexes follow the public queries:
 - `ranking_snapshots (player_id, rating_type, snapshot_at)` and `(rating_type, snapshot_at)`, `change_log (entity, record_id, created_at)` and `(created_at)`, `announcements (player_id)`, `player_update_requests (status, created_at)` and `(player_id, status)`.
 - `tournament_podiums (tournament_id, place)`, `circuit_final_podiums (player_id)`, `cup_games (cup_match_id, game_number)`.
 - `events (start_date)`, `events (tournament_id)`, `links (link_group_id)`.
-- `tv_sergipe (age_group, sex, modality)`, `(club_id, age_group)`, and `(tournament_id)`.
+- `tv_sergipe (age_group, sex, modality)`, `(club_id, age_group)`, `(tournament_id)`, and `(player_id)`.
+- `cup_players (player_id)` and `(cup_group_id)`.
 
 Before adding an index, compare plans on production-sized data
 (`packages/db/src/audits/query-plans.sql`, [Query cost baseline](/operations/query-cost-baseline)).

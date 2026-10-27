@@ -1,7 +1,10 @@
 User-agent: *
 Allow: /
+Allow: /api/og/
+Allow: /api/media/
 Disallow: /dashboard
 Disallow: /login
+Disallow: /rating-update
 Disallow: /api/
 
 Sitemap: https://www.fsx.org.br/sitemap.xml

@@ -15,10 +15,10 @@ export function SectionHeading({
   className?: string;
 }) {
   return (
-    <div className={cn("flex items-center p-3 font-bold text-base text-title", className)}>
-      {icon && <HugeiconsIcon icon={icon} className="size-[1em]" />}
+    <h2 className={cn("flex items-center p-3 font-bold text-base text-title", className)}>
+      {icon && <HugeiconsIcon icon={icon} aria-hidden="true" className="size-[1em]" />}
       {icon && <Separator className="!w-0.5 !h-[1em] mx-[0.5em] mt-0.75" orientation="vertical" />}
       <span>{label}</span>
-    </div>
+    </h2>
   );
 }

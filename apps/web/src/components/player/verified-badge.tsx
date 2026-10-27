@@ -1,4 +1,5 @@
 
+import { Link } from "@tanstack/react-router"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { CheckmarkBadge01Icon } from "@hugeicons/core-free-icons"
 
@@ -76,7 +77,7 @@ export function VerifiedBadge({
 
   return (
     <Popover>
-      <PopoverTrigger aria-label={label} className="cursor-pointer">
+      <PopoverTrigger aria-label={label} className="-m-1.5 cursor-pointer rounded-full p-1.5 focus-visible:outline-2 focus-visible:outline-ring">
         <HugeiconsIcon
           icon={CheckmarkBadge01Icon}
           aria-label={label}
@@ -99,17 +100,15 @@ export function VerifiedBadge({
           )}
 
           {verified && (
-            <a
+            <Link
               className={buttonVariants({
                 variant: "default",
                 className: "w-full",
               })}
-              href="https://forms.gle/Nv8nowesZ8pKxgNQ8"
-              target="_blank"
-              rel="noreferrer"
+              to="/atualizar-cadastro"
             >
-              Solicitar verificação
-            </a>
+              Atualizar meus dados
+            </Link>
           )}
         </div>
       </PopoverContent>

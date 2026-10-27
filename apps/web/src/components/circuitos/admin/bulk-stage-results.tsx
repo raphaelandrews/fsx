@@ -23,7 +23,7 @@ type Row = { key: string; playerId: string; place: string; points: string; point
 
 export type SchemePoints = { name: string; places: { place: number; points: number }[] };
 
-const MAX_ROWS = 50;
+const MAX_ROWS = 100;
 const DEFAULT_ROWS = 3;
 
 const suggestedPoints = (place: number, scheme: SchemePoints | null) => {

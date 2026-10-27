@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, type ComponentProps, type ReactNode } from "react";
 
 import { Button } from "@fsx/ui/components/button";
 
@@ -19,6 +19,7 @@ interface ConfirmDeleteButtonProps {
   /** A phrase to type before the confirm button enables. */
   confirmText?: string;
   inline?: boolean;
+  size?: ComponentProps<typeof Button>["size"];
 }
 
 export function ConfirmDeleteButton({
@@ -33,11 +34,12 @@ export function ConfirmDeleteButton({
   target,
   confirmText,
   inline = false,
+  size = "lg",
 }: ConfirmDeleteButtonProps) {
   const [open, setOpen] = useState(false);
 
   const button = (
-    <Button className={className} loading={pending} onClick={() => setOpen(true)} size="lg" type="button" variant="destructive">
+    <Button className={className} loading={pending} onClick={() => setOpen(true)} size={size} type="button" variant="destructive">
       {label}
     </Button>
   );

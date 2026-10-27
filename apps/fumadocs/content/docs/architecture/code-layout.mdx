@@ -38,7 +38,7 @@ stays out of this list.
 | --- | --- |
 | `routes/` | TanStack file routes. `_public` is the Portuguese site, `_auth` the English dashboard (`/dashboard`, `/rating-update`), `api/` the server endpoints. A URL prefix shared by a list and a detail page uses `route.tsx` (layout with `<Outlet/>`) + `index.tsx` + `$param.tsx`. |
 | `components/` | Grouped by feature (`player/`, `circuitos/`, `home/`, `gamification/`, `rating-update/`, and so on) and by role: `admin/` (shell, sidebar, `EntityForm`, `DeleteDialog` and `ConfirmDeleteButton`, `InlineAlert`, `admin-nav-data.tsx`), `data-table/`, `form/`, `header/`, `skeletons/`, `media/`, `markdown/`. Components used across features sit at the top level (`page-header`, `section-heading`, `section-button`, `footer`, `logo`, `social-links`, `not-found`). |
-| `lib/` | Non-visual logic: `trpc.ts`, `errors.ts`, `seo.ts`, `sitemap.ts`, `format.ts`, `slugify.ts`; `admin-mutations.ts` (`useAdminMutation` and `ADMIN_QUERY_DEPENDENTS`); `admin-forms.ts` (field definitions for `EntityForm`); `entity-routes.ts`, `entity-validation.ts`, and `field-rules.ts` (admin form helpers); `search-schemas.ts` (URL search parameters); `route-params.ts` (`idParams`); `rating-import.ts` (parsing a Swiss Manager sheet). |
+| `lib/` | Non-visual logic: `trpc.ts`, `errors.ts`, `seo.ts`, `sitemap.ts`, `format.ts`, `slugify.ts`; `admin-mutations.ts` (`useAdminMutation` and `ADMIN_QUERY_DEPENDENTS`); `admin-forms.tsx` (field definitions for `EntityForm`); `entity-routes.ts`, `entity-validation.ts`, and `field-rules.ts` (admin form helpers); `search-schemas.ts` (URL search parameters); `route-params.ts` (`idParams`); `rating-import.ts` (parsing a Swiss Manager sheet). |
 | `hooks/` | React hooks that are not tied to one component: `use-table-text`, `use-pending-image-deletes`, and `use-rating-import` (the upload, review, import state machine behind `/rating-update`). |
 | `server/` | `createServerFn` functions and server middleware (`get-user`, `auth-middleware`), and the share-image handler and renderer (`og-handler.ts`, `og-render.tsx`; what an image shows is defined in `lib/og.ts`). |
 
@@ -62,7 +62,7 @@ worker harness, the restore drill), and `public/`.
   maps failures to English messages. Add the domain there whenever a mutation
   changes rows another router returns.
 - **Admin pages** start with `AdminPageHeader`. Forms use `EntityForm` with the
-  definitions in `lib/admin-forms.ts`, or `AdminForm` with `FormSection` and
+  definitions in `lib/admin-forms.tsx`, or `AdminForm` with `FormSection` and
   `FormActions` when a form needs custom controls. Every collection is a
   `DataTable`, and every delete is confirmed in a `DeleteDialog` that names the record, shows what it blocks or removes, and asks for a typed phrase when it takes other records with it.
 - **Language.** The public site is Portuguese, the dashboard English. Shared table

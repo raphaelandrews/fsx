@@ -7,12 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn } from "@fsx/ui/lib/utils";
 
 type Comparison = inferRouterOutputs<AppRouter>["players"]["compare"];
+type Side = Comparison["players"][number];
 
 const signed = (value: number) => (value > 0 ? `+${value}` : String(value));
 
 type Row = { label: string; a: number | null; b: number | null };
 
-function rowsOf([a, b]: Comparison["players"]): Row[] {
+function rowsOf(a: Side, b: Side): Row[] {
   return [
     ...RATING_TYPES.map((type) => ({ label: `Rating ${RATING_LABELS_PT[type]}`, a: a.ratings[type], b: b.ratings[type] })),
     ...RATING_TYPES.map((type) => ({ label: `Melhor rating ${RATING_LABELS_PT[type]}`, a: a.formats[type]?.peak ?? null, b: b.formats[type]?.peak ?? null })),
@@ -35,6 +36,7 @@ function Value({ value, better }: { value: number | null; better: boolean }) {
 
 export function CompareStats({ players }: { players: Comparison["players"] }) {
   const [a, b] = players;
+  if (!a || !b) return null;
   return (
     <Table>
       <TableHeader>
@@ -52,7 +54,7 @@ export function CompareStats({ players }: { players: Comparison["players"] }) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {rowsOf([a, b]).map((row) => (
+        {rowsOf(a, b).map((row) => (
           <TableRow key={row.label}>
             <TableCell className="text-muted-foreground">{row.label}</TableCell>
             <TableCell className="text-center">
@@ -74,6 +76,7 @@ function Variation({ value }: { value: number }) {
 
 export function CommonTournaments({ comparison }: { comparison: Comparison }) {
   const [a, b] = comparison.players;
+  if (!a || !b) return null;
   if (comparison.common.length === 0) {
     return <p className="py-6 text-center text-muted-foreground text-sm">Os dois ainda não jogaram o mesmo torneio.</p>;
   }

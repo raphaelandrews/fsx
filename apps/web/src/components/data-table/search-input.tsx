@@ -40,6 +40,7 @@ export const SearchInput = React.forwardRef<
     >
       <InputGroupAddon>
         <HugeiconsIcon
+          aria-hidden="true"
           className="size-4"
           icon={Search01Icon}
           strokeWidth={2}
@@ -48,6 +49,7 @@ export const SearchInput = React.forwardRef<
       <InputGroupInput
         ref={ref}
         placeholder={placeholder ?? text.search}
+        aria-label={placeholder ?? text.search}
         type="search"
         className="h-full"
         {...props}

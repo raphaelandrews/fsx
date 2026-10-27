@@ -5,6 +5,7 @@ import { Button, buttonVariants } from "@fsx/ui/components/button";
 
 import { HEADER_SLOT_ID, InSlot } from "@/components/admin/admin-slots";
 import { InlineAlert } from "@/components/admin/inline-alert";
+import { LeaveGuard } from "@/components/admin/leave-guard";
 import { getAdminErrorMessage, getFieldErrorList } from "@/lib/errors";
 
 interface AdminFormProps {
@@ -16,6 +17,8 @@ interface AdminFormProps {
   error?: unknown;
   /** Cards in a narrower column beside the fields, e.g. the photo. */
   aside?: ReactNode;
+  /** The form has edits that were not saved yet; leaving the page then asks first. */
+  dirty?: boolean;
 }
 
 const FormIdContext = createContext<string | undefined>(undefined);
@@ -52,16 +55,26 @@ export function FormErrorSummary({ error }: { error: unknown }) {
   );
 }
 
-export function AdminForm({ onSubmit, children, actions, error, aside }: AdminFormProps) {
+export function AdminForm({ onSubmit, children, actions, error, aside, dirty = false }: AdminFormProps) {
   const formId = useId();
+  const inDialog = useContext(FormDialogContext) !== null;
+  const saving = useRef(false);
+  useEffect(() => {
+    if (error) saving.current = false;
+  }, [error]);
+
   return (
     <FormIdContext.Provider value={formId}>
       <form
         id={formId}
         className="w-full"
         noValidate
+        onChange={() => {
+          saving.current = false;
+        }}
         onSubmit={(event: FormEvent) => {
           event.preventDefault();
+          saving.current = true;
           onSubmit();
         }}
       >
@@ -72,6 +85,7 @@ export function AdminForm({ onSubmit, children, actions, error, aside }: AdminFo
         <FormErrorSummary error={error} />
         {actions}
       </form>
+      {inDialog ? null : <LeaveGuard dirty={dirty} saving={saving} />}
     </FormIdContext.Provider>
   );
 }

@@ -239,7 +239,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
                         {phase.circuitResults.length} result(s)
                       </p>
                     </div>
-                    <div className="flex shrink-0 flex-wrap gap-2">
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
                       <Button size="sm" onClick={() => setBulkPhaseId(phase.id)}>
                         Add results
                       </Button>
@@ -259,6 +259,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
                       </Button>
                       <ConfirmDeleteButton
                         inline
+                        size="sm"
                         label="Delete stage"
                         title="Delete this stage?"
                         itemName={`Stage ${phase.sortOrder} · ${phase.tournament?.name ?? ""}`}

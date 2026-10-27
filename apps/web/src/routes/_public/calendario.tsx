@@ -47,7 +47,7 @@ export const Route = createFileRoute("/_public/calendario")({
 });
 
 const chip = (active: boolean) =>
-  cn(buttonVariants({ variant: active ? "default" : "outline", size: "sm" }), "capitalize active:scale-[0.96]");
+  cn(buttonVariants({ variant: active ? "default" : "outline", size: "lg" }), "capitalize active:scale-[0.96]");
 
 function RouteComponent() {
   const trpc = useTRPC();
@@ -73,7 +73,7 @@ function RouteComponent() {
         description="Torneios e eventos de xadrez em Sergipe."
       />
 
-      <nav aria-label="Mês" className="mb-6 flex flex-wrap gap-1.5">
+      <nav aria-label="Mês" className="mb-6 flex flex-wrap gap-2">
         <Link to="/calendario" className={chip(upcoming)} aria-current={upcoming ? "page" : undefined}>
           Próximos
         </Link>

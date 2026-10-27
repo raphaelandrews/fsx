@@ -18,7 +18,7 @@ export function Hero({ posts }: PostsSectionProps) {
     <Section main={true}>
       <div className="relative grid sm:grid-cols-2 gap-6">
         {mainPosts.map((post) => (
-          <PostCard key={post.id} main imageUrl={post.imageUrl} slug={post.slug} title={post.title} />
+          <PostCard key={post.id} main headingLevel="h2" imageUrl={post.imageUrl} slug={post.slug} title={post.title} />
         ))}
       </div>
     </Section>

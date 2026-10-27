@@ -552,6 +552,14 @@ One column of fields, `gap-4`, with a title above each group.
 - Color never the only signal (see Semantic mapping).
 - Every `Intl` date format passes an explicit `timeZone` (see AGENTS.md).
 - Images get the global 1px outline from the base layer; avatars handle their own.
+- **Page outline:** one `h1` per page (the home page has a screen-reader-only one). `SectionHeading` is an `h2`,
+  `Subheading` and chart titles are `h3`; a list of cards directly under the `h1` (`/noticias`) uses `h2`
+  (`PostCard headingLevel`). Never skip a level. `a11y.e2e.ts` fails on `heading-order`,
+  `page-has-heading-one`, `landmark-one-main` and `region`, and runs the WCAG 2.2 AA rules (target size).
+- **Skip link:** `SkipLink` is the first tab stop of every public page and jumps to `main#conteudo`.
+- **Comboboxes** (`SearchableSelect`): `role="combobox"` with `aria-activedescendant`; arrows move, Enter picks,
+  Escape closes. Do not build a picker from a bare input and a floating list.
+- **Unsaved changes:** an admin edit page (`AdminForm` with `dirty`) asks before it is left; creation dialogs do not.
 
 ## Language
 

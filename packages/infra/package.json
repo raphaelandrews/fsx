@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "alchemy dev",
+    "check-types": "tsc --noEmit",
     "deploy": "alchemy deploy ./alchemy.deploy.ts && bash ../../scripts/deploy-smoke-test.sh",
     "destroy": "alchemy destroy"
   },

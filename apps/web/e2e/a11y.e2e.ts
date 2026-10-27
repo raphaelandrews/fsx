@@ -7,6 +7,9 @@ import { signInAsOwner } from "./session";
 // The app honors prefers-reduced-motion, so axe never samples mid-fade colors.
 test.use({ reducedMotion: "reduce" });
 
+// Best-practice rules about page structure: the outline a screen reader user navigates by.
+const STRUCTURE_RULES = ["heading-order", "page-has-heading-one", "landmark-one-main", "region"];
+
 async function expectNoSeriousViolations(page: Page, label: string) {
   // Contrast is only meaningful once finite enter animations (fades) have settled.
   await page.waitForFunction(() =>
@@ -14,16 +17,19 @@ async function expectNoSeriousViolations(page: Page, label: string) {
       .getAnimations()
       .every((animation) => animation.playState !== "running" || animation.effect?.getComputedTiming().iterations === Infinity),
   );
-  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .withRules(STRUCTURE_RULES)
+    .analyze();
   const serious = results.violations
-    .filter((violation) => violation.impact === "serious" || violation.impact === "critical")
+    .filter((violation) => violation.impact === "serious" || violation.impact === "critical" || STRUCTURE_RULES.includes(violation.id))
     .map((violation) =>
       `${violation.id}: ${violation.help} → ${violation.nodes.map((node) => node.target.join(" ")).join(", ")}`,
     );
   expect(serious, `${label} accessibility violations`).toEqual([]);
 }
 
-const publicPages = ["/", "/ratings", "/comparar?a=1&b=2", "/noticias", `/noticias/${POST.slug}`, `/jogadores/${PLAYER.id}`, `/jogadores/${PLAYER.id}/temporada/2026`, "/comunicados", "/comunicados/1", "/titulados", "/membros", "/circuitos", "/campeoes", "/torneios", "/torneios/1", "/calendario", "/estatisticas", "/clubes", "/clubes/3", "/tv-sergipe", "/links", "/normas-tecnicas", "/sobre", "/swiss-manager", "/atualizar-cadastro", "/login"];
+const publicPages = ["/", "/ratings", "/comparar?a=1&b=2", "/noticias", `/noticias/${POST.slug}`, `/jogadores/${PLAYER.id}`, `/jogadores/${PLAYER.id}/temporada/2026`, "/comunicados", "/comunicados/1", "/titulados", "/membros", "/circuitos", "/campeoes", "/bullet", "/torneios", "/torneios/1", "/calendario", "/estatisticas", "/clubes", "/clubes/3", "/tv-sergipe", "/links", "/normas-tecnicas", "/sobre", "/swiss-manager", "/atualizar-cadastro", "/login"];
 
 for (const path of publicPages) {
   test(`public page ${path} has no serious accessibility violations`, async ({ page }) => {

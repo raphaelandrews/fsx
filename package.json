@@ -52,7 +52,6 @@
     "check:ssr": "bun apps/web/scripts/check-ssr.ts",
     "measure": "bun packages/api/scripts/measure.ts",
     "deploy": "vp run --filter @fsx/infra deploy",
-    "destroy": "vp run --filter @fsx/infra destroy",
     "test": "bun test",
     "test:e2e": "vp run --filter web test:e2e"
   },

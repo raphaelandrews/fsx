@@ -12,12 +12,12 @@ const MEDAL_GROUPS = [
   ["circuitStage", "Etapas de circuito"],
 ] as const;
 
-export function Subheading({ id, children, aside }: { id?: string; children: ReactNode; aside?: ReactNode }) {
+export function Subheading({ id, children, aside, as: Heading = "h3" }: { id?: string; children: ReactNode; aside?: ReactNode; as?: "h2" | "h3" }) {
   return (
     <div className="mb-2 flex items-baseline justify-between gap-2">
-      <h3 id={id} className="font-medium text-muted-foreground text-sm">
+      <Heading id={id} className="font-medium text-muted-foreground text-sm">
         {children}
-      </h3>
+      </Heading>
       {aside && <span className="text-muted-foreground text-sm tabular-nums">{aside}</span>}
     </div>
   );

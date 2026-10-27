@@ -144,6 +144,23 @@ test("downscales a raster location flag instead of cropping it", async ({ page }
   await expect(page.getByText("Location created")).toBeVisible();
 });
 
+test("an edit page asks before discarding unsaved changes and lets a saved one go", async ({ page }) => {
+  await page.goto("/dashboard/posts/1", { waitUntil: "networkidle" });
+  const title = page.getByLabel("Title");
+  await title.fill(`${await title.inputValue()} (rascunho)`);
+
+  await page.getByRole("link", { name: "Posts", exact: true }).first().click();
+  const guard = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
+  await expect(guard).toBeVisible();
+  await guard.getByRole("button", { name: "Keep editing" }).click();
+  await expect(page).toHaveURL(/\/dashboard\/posts\/1$/);
+  await expect(title).toHaveValue(/\(rascunho\)$/);
+
+  await page.getByRole("link", { name: "Posts", exact: true }).first().click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Discard changes" }).click();
+  await expect(page).toHaveURL(/\/dashboard\/posts$/);
+});
+
 test("assigns and removes a title from the title assignment page", async ({ page }) => {
   await openCreateDialog(page, "titles", "title");
   await page.getByLabel("Name").fill("Título E2E");
@@ -154,7 +171,7 @@ test("assigns and removes a title from the title assignment page", async ({ page
   await page.goto("/dashboard/players/titles", { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Assign titles" })).toBeVisible();
 
-  await page.getByRole("textbox", { name: "Player" }).fill("jogadora");
+  await page.getByRole("combobox", { name: "Player" }).fill("jogadora");
   await page.getByRole("option", { name: PLAYER.name }).click();
   await expect(page).toHaveURL(new RegExp(`playerId=${PLAYER.id}`));
   await expect(page.getByText("No titles assigned.")).toBeVisible();

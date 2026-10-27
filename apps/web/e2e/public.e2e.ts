@@ -207,6 +207,28 @@ test("compares two players from a profile and keeps the pair in the URL", async 
   await expect(page).toHaveURL(new RegExp(`b=${PLAYER.id}`));
 });
 
+test("the player picker works from the keyboard", async ({ page }) => {
+  await page.goto("/comparar", { waitUntil: "networkidle" });
+  const picker = page.getByRole("combobox", { name: "Jogador 1" });
+  await picker.focus();
+  await page.keyboard.type("Atleta Extra");
+  await expect(page.getByRole("option").first()).toBeVisible();
+  await expect(picker).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/a=\d+/);
+});
+
+test("a skip link jumps past the header to the content", async ({ page }) => {
+  await page.goto("/noticias", { waitUntil: "networkidle" });
+  await page.keyboard.press("Tab");
+  const skip = page.getByRole("link", { name: "Pular para o conteúdo" });
+  await expect(skip).toBeFocused();
+  await expect(skip).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("main#conteudo")).toBeFocused();
+});
+
 test("share images: a profile points at a rendered 1200×630 PNG, and unknown subjects 404", async ({ page, request }) => {
   await page.goto(`/jogadores/${PLAYER.id}`);
   const content = await page.locator('meta[property="og:image"]').getAttribute("content");

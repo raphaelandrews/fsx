@@ -71,7 +71,7 @@ Small, independent, and they make the later phases cleaner.
     `apps/web/.env.example`) the form shows the challenge and the server refuses any token Cloudflare does
     not confirm; the CSP allows Cloudflare's script and frame only then. With neither set, nothing changes.
     **To switch it on**, create a Turnstile widget and add both values to `apps/web/.env.common`.
-- [ ] **1.4 Formatting baseline.** Run `oxfmt` over the repository as one dedicated commit (about 500
+- [ ] **1.4 Formatting baseline.** Run `oxfmt` over the repository as one dedicated commit (619 of 958
   files differ today), then keep `bun run check` in the pre-commit hook from there on. Do this between
   phases, never inside one, so it does not bury a feature's diff. **Blocked until the work in progress is
   committed**: `bunx oxfmt --write .` rewrites hundreds of files, and today they are mixed in with all the

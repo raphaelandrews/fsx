@@ -2,6 +2,7 @@ import { Button } from "@fsx/ui/components/button";
 import { Github01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth-client";
@@ -29,10 +30,11 @@ export const Route = createFileRoute("/login")({
 });
 
 function RouteComponent() {
+  const [pending, setPending] = useState(false);
   return (
-    <div className="flex min-h-dvh w-full items-center justify-center p-6">
+    <main className="flex min-h-dvh w-full items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <h1 className="mb-2 text-center text-3xl font-bold">Sign In</h1>
+        <h1 className="mb-2 text-center text-3xl font-bold">Entrar</h1>
         <p className="mb-6 text-center text-muted-foreground">
           Entre com sua conta do GitHub para acessar o painel administrativo.
         </p>
@@ -40,18 +42,23 @@ function RouteComponent() {
         <Button
           variant="outline"
           className="w-full"
+          loading={pending}
           onClick={async () => {
+            setPending(true);
             const { error } = await authClient.signIn.social({
               provider: "github",
               callbackURL: "/dashboard",
             });
-            if (error) toast.error(error.message || "Não foi possível entrar com o GitHub.");
+            if (error) {
+              setPending(false);
+              toast.error(error.message || "Não foi possível entrar com o GitHub.");
+            }
           }}
         >
           <HugeiconsIcon icon={Github01Icon} className="mr-2 size-4" />
           Entrar com GitHub
         </Button>
       </div>
-    </div>
+    </main>
   );
 }

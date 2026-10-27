@@ -42,7 +42,7 @@ type Podium = {
 
 type DraftRow = { key: string; playerId: string; playerLabel: string; place: string; category: string };
 
-const MAX_ROWS = 50;
+const MAX_ROWS = 100;
 
 const newRow = (place: number): DraftRow => ({
   key: crypto.randomUUID(),

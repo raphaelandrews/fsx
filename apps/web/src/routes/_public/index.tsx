@@ -63,6 +63,7 @@ function RouteComponent() {
 
   return (
     <>
+      <h1 className="sr-only">{SITE_NAME}</h1>
       <Hero posts={posts} />
       {events.length > 0 && <Events events={events} />}
       <Posts posts={posts} />

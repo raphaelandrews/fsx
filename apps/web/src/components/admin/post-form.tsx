@@ -1,5 +1,5 @@
 import type { LinkProps } from "@tanstack/react-router";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 
 import { Input } from "@fsx/ui/components/input";
 import { Label } from "@fsx/ui/components/label";
@@ -52,8 +52,11 @@ export function PostForm({
     onSubmit: ({ value }) => onSubmit(value),
   });
 
+  const dirty = useStore(form.store, (state) => state.isDirty);
+
   return (
     <AdminForm
+      dirty={dirty}
       error={error}
       onSubmit={() => form.handleSubmit()}
       aside={

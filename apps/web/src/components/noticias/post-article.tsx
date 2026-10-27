@@ -4,19 +4,21 @@ import { coverImage } from "@/lib/media-image";
 
 export function PostArticle({
   post,
+  headingLevel: Heading = "h1",
 }: {
   post: { slug: string; title: string; createdAt: string | null; imageUrl: string | null; content: string };
+  headingLevel?: "h1" | "h2";
 }) {
   const { slug } = post;
   return (
     <article className="mx-auto max-w-4xl pt-10 md:pt-16">
       <header className="mx-auto max-w-2xl text-center">
-        <h1
+        <Heading
           className="text-balance text-3xl font-semibold tracking-tight text-foreground md:text-4xl"
           style={{ viewTransitionName: `post-title-${slug}` }}
         >
           {post.title}
-        </h1>
+        </Heading>
 
         {post.createdAt && (
           <div className="mt-4 flex items-center justify-center gap-2 text-base text-muted-foreground">

@@ -8,6 +8,7 @@ import { SectionHeading } from "@/components/section-heading";
 import { FlickeringGrid } from "@/components/links/flickering-grid";
 import { Footer } from "@/components/footer";
 import { Logo } from "@/components/logo";
+import { MAIN_ID, SkipLink } from "@/components/skip-link";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/lib/trpc";
 import { resolveLinkIcon } from "@fsx/api/link-icons";
@@ -75,7 +76,8 @@ function RouteComponent() {
 
   return (
     <div className="relative flex min-h-dvh flex-col overflow-x-hidden">
-      <main className="relative flex-1">
+      <SkipLink />
+      <main id={MAIN_ID} tabIndex={-1} className="relative flex-1 outline-none">
         <section>
           <div className="relative mx-2 p-3 sm:mx-8 md:mx-auto md:max-w-[720px] md:p-3">
             <div className="relative h-32 w-full overflow-hidden rounded-lg">

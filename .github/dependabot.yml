@@ -13,3 +13,7 @@ updates:
           - "workerd"
           - "wrangler"
           - "@cloudflare/*"
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

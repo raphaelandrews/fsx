@@ -1,6 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react"
 import { InformationCircleIcon } from "@hugeicons/core-free-icons"
 
+import { cn } from "@fsx/ui/lib/utils"
+
 import {
   Accordion,
   AccordionContent,
@@ -334,11 +336,12 @@ function PrizeTable({ cup }: { cup: Cup }) {
         {[1, 2, 3, 4, 5].map((position) => (
           <TableRow key={position}>
             <TableCell
-              className={`w-10 rounded-md p-0 !pl-0 tabular-nums
-                ${position === 1 && "bg-warning text-warning-foreground"}
-                ${position === 2 && "bg-muted-foreground text-background"}
-                ${position === 3 && "bg-orange-500 text-white"}
-              `}
+              className={cn(
+                "w-10 rounded-md p-0 !pl-0 tabular-nums",
+                position === 1 && "bg-warning text-warning-foreground",
+                position === 2 && "bg-muted-foreground text-background",
+                position === 3 && "bg-orange-fill text-orange-foreground",
+              )}
             >
               {position}
             </TableCell>

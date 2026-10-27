@@ -60,10 +60,11 @@ start `bun dev`, and run `bun run db:seed`.
 
 ## Deploy Smoke Test
 
-Set `BASE_URL` and `MEDIA_SMOKE_URL` to the deployment origin and a known public
-media URL, then run `bash scripts/deploy-smoke-test.sh`. The test covers the
-login/session endpoint, a public page, a public tRPC query, the unauthenticated
-admin guard, and media delivery. Run it after each production deployment.
+Set `BASE_URL` to the deployment origin, then run `bash scripts/deploy-smoke-test.sh`.
+The test covers the login/session endpoint, a public page, a public tRPC query, the
+unauthenticated admin guard, and the 404 status. Set `MEDIA_SMOKE_URL` to a known public
+media URL to also check media delivery; without it that check is skipped.
+`bun run deploy` runs the test after each deployment.
 
 ## Deployment Order
 

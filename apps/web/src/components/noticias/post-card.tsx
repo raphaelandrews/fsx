@@ -12,6 +12,7 @@ interface FreshPost {
 
 type PostCardProps = FreshPost & {
   main?: boolean;
+  headingLevel?: "h2" | "h3";
   onMouseEnter?: () => void;
 };
 
@@ -20,6 +21,7 @@ export function PostCard({
   imageUrl,
   slug,
   main,
+  headingLevel: Heading = "h3",
   onMouseEnter,
   className,
 }: PostCardProps & { className?: string }) {
@@ -54,7 +56,7 @@ export function PostCard({
       </div>
 
       <div className="flex flex-col gap-1 px-2">
-        <h3
+        <Heading
           className={cn(
             "line-clamp-2 font-bold leading-[1.1] text-foreground",
             main ? "text-lg md:text-xl" : "text-[1.1rem]",
@@ -62,7 +64,7 @@ export function PostCard({
           style={slug ? { viewTransitionName: `post-title-${slug}` } : undefined}
         >
           {title}
-        </h3>
+        </Heading>
       </div>
     </Link>
   );

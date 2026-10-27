@@ -19,6 +19,7 @@ const db = await D1Database("database", {
   // Adopt the existing remote D1 database (fsx-database-raphael) if it
   // already exists instead of failing on re-deploy.
   adopt: true,
+  delete: false,
 });
 
 // R2 bucket for player and post images. Objects are served to clients through
@@ -28,6 +29,7 @@ const db = await D1Database("database", {
 const images = await R2Bucket("images", {
   name: "fsx-images",
   adopt: true,
+  delete: false,
   // Photos sent through the public update form wait under pending/ until reviewed; anything left over expires.
   lifecycle: [
     {

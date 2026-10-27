@@ -15,6 +15,9 @@ import {
   BookBookmark01Icon,
   Analytics01Icon,
   Trophy,
+  SchoolIcon,
+  UserMultipleIcon,
+  ZapIcon,
 } from "@hugeicons/core-free-icons"
 
 type NavigationItem = {
@@ -27,7 +30,7 @@ type NavigationItem = {
 
 export const NAVIGATION: NavigationItem[] = [
   {
-    label: "Home",
+    label: "Início",
     href: "/",
     icon: Home01Icon,
     target: "_self",
@@ -78,6 +81,24 @@ export const NAVIGATION: NavigationItem[] = [
         label: "Comunicados",
         href: "/comunicados",
         icon: Megaphone01Icon,
+        target: "_self",
+      },
+      {
+        label: "Comparar",
+        href: "/comparar",
+        icon: UserMultipleIcon,
+        target: "_self",
+      },
+      {
+        label: "Bullet",
+        href: "/bullet",
+        icon: ZapIcon,
+        target: "_self",
+      },
+      {
+        label: "TV Sergipe",
+        href: "/tv-sergipe",
+        icon: SchoolIcon,
         target: "_self",
       },
       {

@@ -6,17 +6,21 @@ import { SocialLinks } from "@/components/social-links";
 import { cn } from "@fsx/ui/lib/utils";
 
 const footerLinks = [
-  { label: "Home", to: "/" },
+  { label: "Início", to: "/" },
   { label: "Notícias", to: "/noticias" },
   { label: "Rating", to: "/ratings" },
   { label: "Campeões", to: "/campeoes" },
   { label: "Torneios", to: "/torneios" },
   { label: "Circuitos", to: "/circuitos" },
+  { label: "TV Sergipe", to: "/tv-sergipe" },
+  { label: "Bullet", to: "/bullet" },
   { label: "Estatísticas", to: "/estatisticas" },
+  { label: "Calendário", to: "/calendario" },
   { label: "Clubes", to: "/clubes" },
   { label: "Comunicados", to: "/comunicados" },
   { label: "Membros", to: "/membros" },
   { label: "Titulados", to: "/titulados" },
+  { label: "Normas Técnicas", to: "/normas-tecnicas" },
   { label: "Sobre", to: "/sobre" },
 ];
 
@@ -24,7 +28,7 @@ export function Footer({ className }: { className?: string }) {
   return (
     <footer className={cn("bg-background text-base font-semibold text-foreground", className)}>
       <div className="container flex max-w-7xl flex-col items-center gap-8 px-3 py-14 sm:px-8">
-        <Link aria-label="FSX — Página inicial" className="text-foreground" to="/">
+        <Link aria-label="FSX — Página inicial" className="-m-3 p-3 text-foreground" to="/">
           <Logo className="h-6 w-auto" />
         </Link>
 
@@ -41,12 +45,12 @@ export function Footer({ className }: { className?: string }) {
 
           <nav
             aria-label="Rodapé"
-            className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
+            className="flex flex-wrap items-center justify-center gap-x-5"
           >
             {footerLinks.map((link) => (
               <Link
                 key={link.to}
-                className="text-base text-muted-foreground transition-colors hover:text-foreground"
+                className="py-2 text-base text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
                 to={link.to}
               >
                 {link.label}

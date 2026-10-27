@@ -73,7 +73,7 @@ const podiumInput = z.object({
   points,
 });
 
-const MAX_BULK_RESULTS = 50;
+const MAX_BULK_RESULTS = 100;
 
 const bulkResultsInput = z
   .object({

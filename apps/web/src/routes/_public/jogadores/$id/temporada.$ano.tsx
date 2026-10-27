@@ -32,6 +32,15 @@ const FORMATS = [
   ["blitz", "Blitz"],
 ] as const;
 
+const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+function busiestMonthOf(days: string[]) {
+  const counts = new Map<number, number>();
+  for (const day of new Set(days)) counts.set(Number(day.slice(5, 7)) - 1, (counts.get(Number(day.slice(5, 7)) - 1) ?? 0) + 1);
+  const top = [...counts].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0];
+  return top ? { label: MONTHS[top[0]]!, count: top[1] } : null;
+}
+
 const signed = (value: number) => (value > 0 ? `+${value}` : String(value));
 
 export const Route = createFileRoute("/_public/jogadores/$id/temporada/$ano")({
@@ -72,6 +81,7 @@ function RouteComponent() {
   const index = season.seasons.indexOf(season.year);
   const previous = season.seasons[index - 1];
   const next = season.seasons[index + 1];
+  const busiestMonth = busiestMonthOf(season.days);
 
   return (
     <div className="mx-auto max-w-[720px]">
@@ -98,10 +108,14 @@ function RouteComponent() {
               name,
               year: season.year,
               tournaments: season.tournamentsPlayed,
-              bestGain: season.bestGain?.variation ?? null,
+              busiestMonth,
+              bestGain: season.bestGain
+                ? { value: season.bestGain.variation, tournament: season.tournaments[season.bestGain.tournamentId]?.name ?? null }
+                : null,
               xpGained: season.xpGained,
               level: season.level,
-              podiums: season.podiums.length,
+              podiums: season.podiums.map((podium) => ({ place: podium.place as 1 | 2 | 3, name: podium.name, category: podium.category })),
+              achievements: season.achievements.map((achievement) => ({ label: achievement.label, tier: achievement.tier })),
               ratingChange: FORMATS.map(([format, label]) => ({ label, value: season.ratingChange[format] })),
             }}
           />

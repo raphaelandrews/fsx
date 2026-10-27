@@ -1,130 +1,181 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Download01Icon } from "@hugeicons/core-free-icons";
+import { ArrowLeft01Icon, ArrowRight01Icon, Download01Icon, Share08Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 
 import { Button } from "@fsx/ui/components/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@fsx/ui/components/dialog";
 
-export interface SeasonCard {
-  playerId: number;
-  name: string;
-  year: number;
-  tournaments: number;
-  bestGain: number | null;
-  xpGained: number;
-  level: number;
-  podiums: number;
-  ratingChange: { label: string; value: number | null }[];
+import { renderSlides, type SeasonCard } from "./season-slides";
+
+export type { SeasonCard } from "./season-slides";
+
+interface Rendered {
+  id: string;
+  alt: string;
+  blob: Blob;
+  url: string;
 }
 
-const WIDTH = 1080;
-const HEIGHT = 1350;
-const PAD = 96;
-// Canvas can't read CSS tokens reliably across browsers, so the brand colors are
-// spelled out here (primary burple and its inverse from globals.css).
-const BURPLE = "#3e66f6";
-const DEEP = "#1d2a7a";
-const WHITE = "#ffffff";
-const SOFT = "rgba(255, 255, 255, 0.72)";
-const FONT = "Fustat, system-ui, sans-serif";
+const fileName = (card: SeasonCard, id: string) => `fsx-retrospectiva-${card.year}-${card.playerId}-${id}.png`;
 
-const signed = (value: number) => (value > 0 ? `+${value}` : String(value));
-
-function fitText(ctx: CanvasRenderingContext2D, text: string, weight: number, size: number, maxWidth: number) {
-  let current = size;
-  ctx.font = `${weight} ${current}px ${FONT}`;
-  while (ctx.measureText(text).width > maxWidth && current > 40) {
-    current -= 4;
-    ctx.font = `${weight} ${current}px ${FONT}`;
-  }
-  return current;
-}
-
-function draw(card: SeasonCard): HTMLCanvasElement {
-  const canvas = document.createElement("canvas");
-  canvas.width = WIDTH;
-  canvas.height = HEIGHT;
-  const ctx = canvas.getContext("2d")!;
-
-  ctx.fillStyle = BURPLE;
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
-  ctx.fillStyle = DEEP;
-  ctx.beginPath();
-  ctx.arc(WIDTH + 60, -60, 340, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = SOFT;
-  ctx.font = `600 40px ${FONT}`;
-  ctx.fillText(`FSX · Temporada ${card.year}`, PAD, PAD + 40);
-
-  ctx.fillStyle = WHITE;
-  const nameSize = fitText(ctx, card.name, 700, 112, WIDTH - PAD * 2);
-  ctx.fillText(card.name, PAD, 340);
-
-  const tiles: [string, string][] = [
-    ["Torneios", String(card.tournaments)],
-    ["Melhor desempenho", card.bestGain === null ? "—" : `+${card.bestGain}`],
-    ["XP no ano", `+${card.xpGained}`],
-    ["Pódios", String(card.podiums)],
-  ];
-  const tileWidth = (WIDTH - PAD * 2 - 32) / 2;
-  const tileHeight = 210;
-  tiles.forEach(([label, value], index) => {
-    const x = PAD + (index % 2) * (tileWidth + 32);
-    const y = 340 + nameSize * 0.6 + 60 + Math.floor(index / 2) * (tileHeight + 32);
-    ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
-    ctx.beginPath();
-    ctx.roundRect(x, y, tileWidth, tileHeight, 40);
-    ctx.fill();
-    ctx.fillStyle = SOFT;
-    ctx.font = `600 36px ${FONT}`;
-    ctx.fillText(label, x + 40, y + 72);
-    ctx.fillStyle = WHITE;
-    ctx.font = `700 88px ${FONT}`;
-    ctx.fillText(value, x + 40, y + 170);
-  });
-
-  const changes = card.ratingChange.filter((change) => change.value !== null);
-  ctx.font = `600 40px ${FONT}`;
-  changes.forEach((change, index) => {
-    const y = HEIGHT - PAD - 140 - (changes.length - 1 - index) * 64;
-    ctx.fillStyle = SOFT;
-    ctx.fillText(change.label, PAD, y);
-    ctx.fillStyle = WHITE;
-    const text = signed(change.value!);
-    ctx.fillText(text, WIDTH - PAD - ctx.measureText(text).width, y);
-  });
-
-  ctx.fillStyle = SOFT;
-  ctx.font = `600 36px ${FONT}`;
-  ctx.fillText(`Nível ${card.level} · fsx.org.br/jogadores/${card.playerId}`, PAD, HEIGHT - PAD);
-  return canvas;
+function save(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 export function SeasonShareButton({ card }: { card: SeasonCard }) {
-  const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [slides, setSlides] = useState<Rendered[]>([]);
+  const [failed, setFailed] = useState(false);
+  const [index, setIndex] = useState(0);
+  const track = useRef<HTMLDivElement>(null);
+  const canShare = typeof navigator !== "undefined" && typeof navigator.canShare === "function";
 
-  const download = async () => {
-    setBusy(true);
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    let urls: string[] = [];
+    setFailed(false);
+    renderSlides(card)
+      .then((rendered) => {
+        if (cancelled) return;
+        const withUrls = rendered.map((slide) => ({ ...slide, url: URL.createObjectURL(slide.blob) }));
+        urls = withUrls.map((slide) => slide.url);
+        setSlides(withUrls);
+        setIndex(0);
+      })
+      .catch(() => !cancelled && setFailed(true));
+    return () => {
+      cancelled = true;
+      urls.forEach((url) => URL.revokeObjectURL(url));
+      setSlides([]);
+    };
+  }, [open, card]);
+
+  const goTo = useCallback((target: number) => {
+    const element = track.current;
+    if (!element || slides.length === 0) return;
+    const next = Math.min(slides.length - 1, Math.max(0, target));
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    element.scrollTo({ left: next * element.clientWidth, behavior: reduced ? "auto" : "smooth" });
+  }, [slides.length]);
+
+  const current = slides[index];
+
+  const share = async () => {
+    const files = slides.map((slide) => new File([slide.blob], fileName(card, slide.id), { type: "image/png" }));
+    if (!navigator.canShare({ files })) return;
     try {
-      await document.fonts.load(`700 112px Fustat`);
-      const blob = await new Promise<Blob | null>((resolve) => draw(card).toBlob(resolve, "image/png"));
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `fsx-temporada-${card.year}-${card.playerId}.png`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setBusy(false);
+      await navigator.share({ files, title: `Retrospectiva ${card.year}` });
+    } catch {
+      return;
     }
   };
 
+  const ready = slides.length > 0;
+
   return (
-    <Button variant="outline" size="lg" onClick={download} disabled={busy}>
-      <HugeiconsIcon icon={Download01Icon} data-icon="inline-start" className="size-4" aria-hidden />
-      {busy ? "Gerando…" : "Baixar imagem"}
-    </Button>
+    <>
+      <Button variant="outline" size="lg" onClick={() => setOpen(true)}>
+        <HugeiconsIcon icon={SparklesIcon} data-icon="inline-start" className="size-4" aria-hidden />
+        Gerar retrospectiva
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Retrospectiva {card.year}</DialogTitle>
+            <DialogDescription>
+              {ready ? `${slides.length} imagens para os stories. Deslize para ver todas.` : "Montando as imagens…"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="relative mx-auto w-fit">
+            <div
+              ref={track}
+              role="group"
+              aria-roledescription="carrossel"
+              aria-label={`Retrospectiva ${card.year}`}
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowRight") goTo(index + 1);
+                if (event.key === "ArrowLeft") goTo(index - 1);
+              }}
+              onScroll={(event) => {
+                const element = event.currentTarget;
+                setIndex(Math.round(element.scrollLeft / element.clientWidth));
+              }}
+              className="no-scrollbar flex h-[min(48vh,520px)] aspect-[9/16] snap-x snap-mandatory overflow-x-auto rounded-2xl bg-muted outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+            >
+              {ready
+                ? slides.map((slide, position) => (
+                    <img
+                      key={slide.id}
+                      src={slide.url}
+                      alt={slide.alt}
+                      aria-hidden={position !== index}
+                      className="size-full shrink-0 snap-center object-cover"
+                      draggable={false}
+                    />
+                  ))
+                : <div className="size-full shrink-0 animate-pulse" aria-hidden />}
+            </div>
+            {failed ? <p role="alert" className="mt-2 text-center text-destructive text-sm">Não foi possível gerar as imagens.</p> : null}
+            {ready ? (
+              <>
+                <Button
+                  variant="secondary"
+                  size="icon-lg"
+                  className="absolute top-1/2 left-2 -translate-y-1/2 rounded-full"
+                  aria-label="Imagem anterior"
+                  disabled={index === 0}
+                  onClick={() => goTo(index - 1)}
+                >
+                  <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" aria-hidden />
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="icon-lg"
+                  className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full"
+                  aria-label="Próxima imagem"
+                  disabled={index === slides.length - 1}
+                  onClick={() => goTo(index + 1)}
+                >
+                  <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" aria-hidden />
+                </Button>
+              </>
+            ) : null}
+          </div>
+
+          <div role="status" className="text-center text-muted-foreground text-sm tabular-nums">
+            {ready ? `${index + 1} de ${slides.length}` : null}
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button size="xl" disabled={!current} onClick={() => current && save(current.blob, fileName(card, current.id))}>
+              <HugeiconsIcon icon={Download01Icon} data-icon="inline-start" className="size-4" aria-hidden />
+              Baixar esta
+            </Button>
+            <Button
+              size="xl"
+              variant="outline"
+              disabled={!ready}
+              onClick={() => slides.forEach((slide) => save(slide.blob, fileName(card, slide.id)))}
+            >
+              Baixar todas
+            </Button>
+            {canShare ? (
+              <Button size="xl" variant="outline" className="sm:col-span-2" disabled={!ready} onClick={share}>
+                <HugeiconsIcon icon={Share08Icon} data-icon="inline-start" className="size-4" aria-hidden />
+                Compartilhar
+              </Button>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

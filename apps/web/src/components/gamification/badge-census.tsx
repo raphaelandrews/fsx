@@ -35,11 +35,11 @@ export function BadgeCensus({ badges, players }: { badges: CensusBadge[]; player
     <div className="flex flex-col gap-6">
       <Tabs value={selected} onValueChange={(value) => setSelected(value as BadgeTier)} className="w-full">
         <div className="flex justify-center">
-          <TabsList aria-label="Nível dos emblemas">
+          <TabsList aria-label="Nível dos emblemas" className="max-w-full overflow-x-auto">
             {groups.map(({ tier, badges: tierBadges }) => (
               <TabsTrigger key={tier} value={tier}>
                 {TIER_LABELS[tier]}
-                <span className="ml-1.5 text-xs tabular-nums opacity-70">{tierBadges.length}</span>
+                <span className="ml-1.5 text-xs font-medium tabular-nums">{tierBadges.length}</span>
               </TabsTrigger>
             ))}
           </TabsList>
@@ -48,6 +48,7 @@ export function BadgeCensus({ badges, players }: { badges: CensusBadge[]; player
       {visible.map(({ tier, badges: tierBadges }) => (
         <section key={tier} aria-labelledby={`badge-census-${tier}`}>
           <Subheading
+            as="h2"
             id={`badge-census-${tier}`}
             aside={`${tierBadges.filter((badge) => badge.holders > 0).length} de ${tierBadges.length} conquistados`}
           >

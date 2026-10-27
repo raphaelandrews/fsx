@@ -53,7 +53,7 @@ export function PlayerStats({
               <Link
                 to="/jogadores/$id/temporada/$ano"
                 params={{ id: playerId, ano: year }}
-                className="rounded-sm text-primary underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+                className="-m-2 inline-block rounded-sm p-2 text-primary underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
                 aria-label={`Temporada ${year}`}
               >
                 {year}

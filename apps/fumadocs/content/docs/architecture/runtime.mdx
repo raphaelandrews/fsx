@@ -81,6 +81,6 @@ error with the procedure path and request ID.
 
 Each procedure call is metered: slow calls (100 ms or more) and calls with 8 or
 more D1 queries log `[cost] costly procedure`, and lists that hit the
-`PUBLIC_COLLECTION_LIMIT` (500 rows) log a warning. Public responses over
+`PUBLIC_COLLECTION_LIMIT` (1,000 rows) log a warning. Public responses over
 512 KB log `[resource] public response size budget exceeded`. Edge cache hits and
 misses log `[cache] public query`. See [Query cost baseline](/operations/query-cost-baseline).

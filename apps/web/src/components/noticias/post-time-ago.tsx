@@ -28,15 +28,15 @@ function elapsedLabel(target: Date, now: Date) {
   if (years > 0) {
     const label = `${years} ano${years > 1 ? "s" : ""}`;
     return remainingMonths > 0
-      ? `${label} e ${remainingMonths} ${remainingMonths > 1 ? "meses" : "mês"}`
-      : label;
+      ? `há ${label} e ${remainingMonths} ${remainingMonths > 1 ? "meses" : "mês"}`
+      : `há ${label}`;
   }
-  if (months > 0) return `${months} ${months > 1 ? "meses" : "mês"}`;
+  if (months > 0) return `há ${months} ${months > 1 ? "meses" : "mês"}`;
   const days = to.ordinal - from.ordinal;
-  return days > 0 ? `${days} dia${days > 1 ? "s" : ""}` : "Hoje";
+  return days > 0 ? `há ${days} dia${days > 1 ? "s" : ""}` : "Hoje";
 }
 
-function PostDate({ date, elapsed }: { date: Date; elapsed: string }) {
+function PostDate({ date, elapsed }: { date: Date; elapsed: string | null }) {
   const fullDate = date.toLocaleString("pt-BR", {
     timeZone: TIME_ZONE,
     month: "long",
@@ -46,11 +46,15 @@ function PostDate({ date, elapsed }: { date: Date; elapsed: string }) {
   return (
     <>
       <p className="flex items-center gap-2">
-        <HugeiconsIcon icon={Calendar01Icon} className="size-4" />
-        <span className="mt-[1px]">{fullDate}</span>
+        <HugeiconsIcon icon={Calendar01Icon} aria-hidden="true" className="size-4" />
+        <time dateTime={date.toISOString()} className="mt-[1px]">{fullDate}</time>
       </p>
-      <div className="h-1 w-1 rounded-full bg-muted-foreground" />
-      <p>{elapsed}</p>
+      {elapsed ? (
+        <>
+          <div aria-hidden="true" className="h-1 w-1 rounded-full bg-muted-foreground" />
+          <p>{elapsed}</p>
+        </>
+      ) : null}
     </>
   )
 }
@@ -63,5 +67,5 @@ export function PostTimeAgo({ date }: { date: Date | string }) {
     setNow(new Date());
   }, []);
 
-  return <PostDate date={target} elapsed={now ? elapsedLabel(target, now) : "..."} />;
+  return <PostDate date={target} elapsed={now ? elapsedLabel(target, now) : null} />;
 }

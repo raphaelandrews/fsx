@@ -42,7 +42,7 @@ marked **convention**; breaking it will not fail a test, so review for it.
 | Stored URLs are `http(s)` or `/api/media/...` of the field's own kind; never `javascript:` or other schemes. Uploaded SVGs are static drawings and served with a sandbox CSP. | Zod `httpUrl`, `imageUrl`; audit `player-names-and-urls.sql` |
 | Dates without time are `YYYY-MM-DD`. | Zod `isoDate`; audit `date-formats.sql` |
 | Link icons come from the allowlist. | `link-icons.ts`; `link-icons.test.ts` |
-| Public lists are capped (500 rows, nested 100). | `resource-bounds.ts`; `resource-caps.integration.test.ts` |
+| Public lists are capped (1,000 rows, nested 250). | `resource-bounds.ts`; `resource-caps.integration.test.ts` |
 | Admin procedures never share an edge-cached batch with public ones. | `getProcedureCachePolicy`; `fetch-handlers.integration.test.ts` |
 | Migrations are applied only through the D1 migration tracker. | **convention** ([ADR 0002](/decisions/0002-d1-migrations)) |
 

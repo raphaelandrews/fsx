@@ -151,7 +151,10 @@ function createOpenApiDocument() {
             },
             "404": {
               description: t.get.notFound,
-              headers: { "Access-Control-Allow-Origin": { $ref: "#/components/headers/AllowOrigin" } },
+              headers: {
+                "Access-Control-Allow-Origin": { $ref: "#/components/headers/AllowOrigin" },
+                "Cache-Control": { $ref: "#/components/headers/CacheControl" },
+              },
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/Error" },

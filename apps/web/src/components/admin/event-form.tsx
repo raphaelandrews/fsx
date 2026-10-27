@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { LinkProps } from "@tanstack/react-router";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 
 import { useTRPC } from "@/lib/trpc";
 
@@ -60,8 +60,11 @@ export function EventForm({
     },
   });
 
+  const dirty = useStore(form.store, (state) => state.isDirty);
+
   return (
     <AdminForm
+      dirty={dirty}
       error={error}
       onSubmit={() => {
         setAttempted(true);

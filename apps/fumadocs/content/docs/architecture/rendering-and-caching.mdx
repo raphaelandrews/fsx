@@ -25,7 +25,7 @@ the React Query cache into the HTML so the client hydrates without refetching
 - A route must prefetch in its `loader` every query its components suspend on.
   A suspense query missing from the loader renders an unresolved boundary on the
   server (React error #419).
-- `bun run check:ssr` renders 22 routes with the production build and fails on
+- `bun run check:ssr` renders 43 routes with the production build and fails on
   errors, status codes, or render-time budgets.
 
 ### Why not prerender data pages

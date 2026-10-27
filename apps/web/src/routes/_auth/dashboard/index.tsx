@@ -65,42 +65,42 @@ function RouteComponent() {
     {
       label: "Content",
       icon: NewsIcon,
-      tone: "text-amber-500",
+      tone: "text-orange",
       items: [
-        { title: "Posts", to: "/dashboard/posts", icon: NewsIcon, description: "Manage site posts.", count: stats.posts, tag: "Content", statusTone: "text-amber-500" },
-        { title: "Announcements", to: "/dashboard/announcements", icon: Megaphone01Icon, description: "Official announcements.", count: stats.announcements, tag: "Content", statusTone: "text-amber-500" },
-        { title: "Events", to: "/dashboard/events", icon: Calendar04Icon, description: "Official events.", count: stats.events, tag: "Content", statusTone: "text-amber-500" },
+        { title: "Posts", to: "/dashboard/posts", icon: NewsIcon, description: "Manage site posts.", count: stats.posts, tag: "Content", statusTone: "text-orange" },
+        { title: "Announcements", to: "/dashboard/announcements", icon: Megaphone01Icon, description: "Official announcements.", count: stats.announcements, tag: "Content", statusTone: "text-orange" },
+        { title: "Events", to: "/dashboard/events", icon: Calendar04Icon, description: "Official events.", count: stats.events, tag: "Content", statusTone: "text-orange" },
       ],
     },
     {
       label: "Competition",
       icon: Route01Icon,
-      tone: "text-sky-500",
+      tone: "text-blue",
       items: [
-        { title: "Tournaments", to: "/dashboard/tournaments", icon: Medal01Icon, description: "Official tournaments.", count: stats.tournaments, tag: "Competition", statusTone: "text-sky-500" },
-        { title: "Circuits", to: "/dashboard/circuits", icon: Route01Icon, description: "Chess circuits.", count: stats.circuits, tag: "Competition", statusTone: "text-sky-500" },
-        { title: "TV Sergipe", to: "/dashboard/tv-sergipe", icon: SchoolIcon, description: "School games results.", count: stats.tvSergipe, tag: "Competition", statusTone: "text-sky-500" },
+        { title: "Tournaments", to: "/dashboard/tournaments", icon: Medal01Icon, description: "Official tournaments.", count: stats.tournaments, tag: "Competition", statusTone: "text-blue" },
+        { title: "Circuits", to: "/dashboard/circuits", icon: Route01Icon, description: "Chess circuits.", count: stats.circuits, tag: "Competition", statusTone: "text-blue" },
+        { title: "TV Sergipe", to: "/dashboard/tv-sergipe", icon: SchoolIcon, description: "School games results.", count: stats.tvSergipe, tag: "Competition", statusTone: "text-blue" },
       ],
     },
     {
       label: "Players",
       icon: UserGroupIcon,
-      tone: "text-emerald-500",
+      tone: "text-green",
       items: [
-        { title: "Players", to: "/dashboard/players", icon: UserGroupIcon, description: "Manage athletes.", count: stats.players, tag: "Players", statusTone: "text-emerald-500" },
-        { title: "Update requests", to: "/dashboard/update-requests", icon: CheckmarkBadge01Icon, description: "Corrections sent by players, waiting for review.", count: stats.pendingRequests, tag: "Players", statusTone: "text-emerald-500" },
-        { title: "Clubs", to: "/dashboard/clubs", icon: User02Icon, description: "Member clubs.", count: stats.clubs, tag: "Players", statusTone: "text-emerald-500" },
-        { title: "Titles", to: "/dashboard/titles", icon: Award01Icon, description: "Chess titles.", tag: "Players", statusTone: "text-emerald-500" },
+        { title: "Players", to: "/dashboard/players", icon: UserGroupIcon, description: "Manage athletes.", count: stats.players, tag: "Players", statusTone: "text-green" },
+        { title: "Update requests", to: "/dashboard/update-requests", icon: CheckmarkBadge01Icon, description: "Corrections sent by players, waiting for review.", count: stats.pendingRequests, tag: "Players", statusTone: "text-green" },
+        { title: "Clubs", to: "/dashboard/clubs", icon: User02Icon, description: "Member clubs.", count: stats.clubs, tag: "Players", statusTone: "text-green" },
+        { title: "Titles", to: "/dashboard/titles", icon: Award01Icon, description: "Chess titles.", tag: "Players", statusTone: "text-green" },
       ],
     },
     {
       label: "System",
       icon: Database01Icon,
-      tone: "text-violet-500",
+      tone: "text-violet",
       items: [
-        { title: "Rating Update", to: "/rating-update", icon: Medal01Icon, description: "Recompute ratings per round.", tag: "System", statusTone: "text-violet-500" },
-        { title: "Swiss Manager", to: "/dashboard/swiss-manager", icon: Download01Icon, description: "Export in CSV format.", tag: "System", statusTone: "text-violet-500" },
-        { title: "Championships", to: "/dashboard/championships", icon: ChampionIcon, description: "Manage championships.", tag: "System", statusTone: "text-violet-500" },
+        { title: "Rating Update", to: "/rating-update", icon: Medal01Icon, description: "Recompute ratings per round.", tag: "System", statusTone: "text-violet" },
+        { title: "Swiss Manager", to: "/dashboard/swiss-manager", icon: Download01Icon, description: "Export in CSV format.", tag: "System", statusTone: "text-violet" },
+        { title: "Championships", to: "/dashboard/championships", icon: ChampionIcon, description: "Manage championships.", tag: "System", statusTone: "text-violet" },
       ],
     },
   ];
@@ -131,7 +131,7 @@ function ColumnHeader({ column }: { column: BoardColumn }) {
     <div className="flex items-center justify-between gap-2 rounded-xl px-3 py-2.5">
       <div className="flex items-center gap-2">
         <HugeiconsIcon className={cn("size-4", column.tone)} icon={column.icon} strokeWidth={2} />
-        <span className="text-sm font-semibold">{column.label}</span>
+        <h2 className="text-sm font-semibold">{column.label}</h2>
         <Badge className="rounded-sm" variant="secondary">
           {column.items.length}
         </Badge>

@@ -15,12 +15,12 @@ breadcrumb JSON-LD. **Sitemap** marks URLs listed in `/sitemap.xml`.
 
 | URL | Purpose | Loader data (tRPC) | Search params | SEO and status |
 | --- | ------- | ------------------ | ------------- | -------------- |
-| `/` | [Home](/guide/home) | `topPlayers.list`, `events.list`, `posts.fresh`, `announcements.fresh` | — | Sitemap |
+| `/` | [Home](/guide/home) | `topPlayers.list`, `events.upcoming`, `posts.fresh`, `announcements.fresh`, `records.recent` | — | Sitemap |
 | `/ratings` | [Ratings](/guide/ratings) | `players.withFilters`, `clubs.list`, `locations.list` | `page`, `ordenar`, `sexo`, `nome`, `local[]`, `clube[]`, `titulo[]`, `grupo[]`; defaults are stripped from the URL | Sitemap. Unfiltered page *n* is its own canonical; filtered views canonicalize to `/ratings` |
-| `/jogadores/$id` | [Player profile](/guide/players) | `players.byId`, `players.stats`, `players.ranking` (including the active Feminino ranking for female players), `players.circuitSeasons`, `announcements.byPlayer`, `clubs.leaderboard` (after the player resolves) | — | Sitemap (active players). Person JSON-LD. Invalid or unknown ID → 404 |
+| `/jogadores/$id` | [Player profile](/guide/players) | `players.byId`, `players.stats`, `players.ranking` (including the active Feminino ranking for female players), `players.circuitSeasons`, `announcements.byPlayer`, `players.rankingHistory`, `clubs.standing` (after the player resolves) | — | Sitemap (active players). Person JSON-LD. Invalid or unknown ID → 404 |
 | `/titulados` | [Titled players](/guide/titled-players) | `titledPlayers.list` | — | Sitemap |
 | `/calendario` | [Calendar](/guide/calendar) | `events.upcoming` (default), `events.calendar` for `mes` or `ver=ano` | `mes`, `ver` | Sitemap. Default view is the next events; the month and whole-year views are always the current federation year |
-| `/comparar` | [Players](/guide/players) | `players.compare` (both chosen), `players.byId` (one chosen) | `a`, `b` | `noindex`, not in the sitemap (every pair is user-generated). Same player twice drops the second; unknown id → 404 |
+| `/comparar` | [Players](/guide/players) | `players.compare` (both chosen), `players.byId` (one chosen), `players.search` (each picker) | `a`, `b` | `noindex`, not in the sitemap (every pair is user-generated). Same player twice drops the second; unknown id → 404 |
 | `/campeoes` | [Champions](/guide/champions) | `champions.gallery` | — | Sitemap |
 | `/torneios` | [Tournaments](/guide/tournaments) | `tournaments.page`, `champions.list` | `page`, `ano`, `nivel`, `ritmo`, `campeonato` | Sitemap |
 | `/torneios/$id` | [Tournaments](/guide/tournaments) | `tournaments.byId`, `tournaments.results` | — | Sitemap. SportsEvent JSON-LD. Invalid or unknown ID → 404 |
@@ -69,4 +69,4 @@ pages read `forEdit` (players, posts) or the public `byId`, and 404 on unknown I
 | `/api/v1/openapi.json` | GET, OPTIONS | OpenAPI 3.1 description of `/api/v1` | `public, max-age=300`; static |
 | `/api/v1/players/{id}` | GET, OPTIONS | [Public API](/reference/public-api): one active player; `404` for unknown, inactive, or malformed IDs | `public, max-age=300`; edge-cached 5 minutes, `404` included |
 | `/rss.xml` | GET | RSS 2.0 with the latest 20 published posts and 20 announcements (a teaser of each); announced in every page's `<head>` | Ten minutes, edge and browser |
-| `/sitemap.xml` | GET | Static pages, active players, published posts, announcements | One hour, edge and browser |
+| `/sitemap.xml` | GET | Static pages, active players, published posts, announcements, tournaments, clubs | One hour, edge and browser |

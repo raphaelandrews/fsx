@@ -18,7 +18,7 @@ const podiumInput = z.object({
   category: categoryName.nullable().optional(),
 });
 
-const MAX_BULK_PODIUMS = 50;
+const MAX_BULK_PODIUMS = 100;
 
 const bulkPodiumsInput = z
   .object({

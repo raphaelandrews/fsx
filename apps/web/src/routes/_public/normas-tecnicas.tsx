@@ -36,7 +36,7 @@ function RouteComponent() {
         <Accordion className="mx-3 w-auto">
           {titulations.map((item) => (
             <AccordionItem key={item.title} value={item.title}>
-              <AccordionTrigger>
+              <AccordionTrigger headingLevel={2}>
                 <span className="flex flex-col gap-0.5">
                   <span>{item.title}</span>
                   <span className="font-medium text-muted-foreground text-sm">{item.description}</span>

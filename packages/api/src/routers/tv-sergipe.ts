@@ -96,7 +96,7 @@ const RESULT_COLUMNS = {
 
 const RESULT_ORDER = [asc(tvSergipe.ageGroup), asc(tvSergipe.sex), asc(tvSergipe.modality), desc(tvSergipe.points), asc(tvSergipe.id)];
 
-const MAX_BULK_RESULTS = 50;
+const MAX_BULK_RESULTS = 100;
 const MAX_SCHEME_PLACES = 50;
 
 const bulkResultsInput = z

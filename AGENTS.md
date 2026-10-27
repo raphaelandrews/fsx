@@ -62,7 +62,7 @@ Local Dev D1 gotchas:
   (`DataTablePagination`, `Pagination`, search, filters) pick their language from the route via
   `useTableText`.
 - **Admin page layout** (`components/admin/`): every page starts with `AdminPageHeader` (edit pages pass
-  `backTo`/`backLabel`; their Save goes in the header and a `ConfirmDeleteButton` at the bottom, via slots; records are created in a dialog over the list, never on a create page). Forms use `EntityForm` with field definitions in `lib/admin-forms.ts`, or `AdminForm` +
+  `backTo`/`backLabel`; their Save goes in the header and a `ConfirmDeleteButton` at the bottom, via slots; records are created in a dialog over the list, never on a create page). Forms use `EntityForm` with field definitions in `lib/admin-forms.tsx`, or `AdminForm` +
   `FormSection` + `FormActions` when a form needs custom controls (players, posts, events, TV Sergipe);
   field errors use `FormField` with `error={fieldError(f, mutation.error)}`. Every collection is a
   `DataTable` (bordered frame from `Table`, paginated) with `DataTableRowActions` (pass `noun`); records that belong to a

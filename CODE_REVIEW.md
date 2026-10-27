@@ -2,7 +2,71 @@
 
 ## Summary
 
-<!-- Filled in Phase 4. -->
+Four phases covered the whole repository: [bugs, security and database](#phase-1-bugs-security-and-database), [performance, architecture and clean code](#phase-2-performance-architecture-and-clean-code), [UX, accessibility and SEO](#phase-3-ux-accessibility-and-seo), and [testing, tooling and docs](#phase-4-testing-tooling-and-docs). Each finding has an ID (`H1`, `M3`, `P2-L5`, `P3-M1`, `P4-M2`) and a checkbox: `[x]` fixed, `[ ]` open.
+
+### Overall assessment
+
+The application code is in good shape for a single-owner site. Every mutation sits behind the administrator check, procedures are bounded and return typed errors, rating arithmetic runs as optimistic-locked batches, uploads are validated by content, and the 530 tests (96 % of lines in the files they load) include D1 integration tests, the public API checked against its OpenAPI document, and a Playwright suite with axe that runs against the built Worker. The 94 findings were mostly of the kind that grows in a feature-rich codebase: limits that did not match D1's, a few accessibility gaps, and duplicated code. Phases 1 to 3 fixed 63 of the 78 findings they raised, including the one High and 19 of the 21 Medium.
+
+What remains is mostly operational, not in the app: how production data is protected and changed (a `destroy` script that can delete the live database, backups that live on one laptop, deploys by hand under the OS user's name), and several guards that cannot fail (the sign-in lock has no test, the CI migration check ignores new files, the import's recovery path is untested). Two open Medium findings are decisions only the federation can make: how much of the players' data is public (`M5`) and whether the HTML should be cached (`P2-M1`).
+
+### Findings per severity
+
+| Severity | Phase 1 | Phase 2 | Phase 3 | Phase 4 | Total | Still open |
+| -------- | ------- | ------- | ------- | ------- | ----- | ---------- |
+| Critical | 0 | 0 | 0 | 0 | 0 | 0 |
+| High | 1 | 0 | 0 | 0 | 1 | 0 |
+| Medium | 7 | 6 | 8 | 5 | 26 | 4 |
+| Low | 12 | 14 | 11 | 8 | 45 | 9 |
+| Nitpick | 5 | 10 | 4 | 3 | 22 | 9 |
+| **Total** | 25 | 30 | 23 | 16 | **94** | **22** |
+
+Phase 4 was written report-only; 9 of its 16 findings were fixed afterwards (`P4-M1`, `M3`, `M4`, `L1`, `L2`, `L3`, `L6`, `L7`, `N2`), so 72 of the 94 are fixed. Six checked-off findings still have a part open: `M3` (set `TURNSTILE_SECRET_KEY` in production), `M6` (a server-side import), `L6` (script nonces), `L7` (a sweeper for uploads that were never saved) and `P3-L4` (links inside table rows are still about 20 px tall), and `P4-L6` (the web app does not extend the base config; the docs site has no type check).
+
+### Top 10 to fix first
+
+IDs link to the phase that holds the finding; the `P4-` ones link to the finding itself.
+
+| # | Finding | Why it is first | Effort |
+| - | ------- | --------------- | ------ |
+| 1 | [P4-M1](#p4-m1) **(fixed)** `bun run destroy` can delete the production database | One command, no backup on a schedule, no guard in the config | 5 min |
+| 2 | [P4-M2](#p4-m2) Backups: one laptop, nothing for the images | A lost laptop or a deleted bucket is unrecoverable for the photos and for any change since the last manual dump | Half a day |
+| 3 | [P4-M3](#p4-m3) **(fixed, direct hook tests)** The sign-in lock is untested | It is the only gate to the admin, and it depends on how a library handles a thrown error | 1 h |
+| 4 | [P4-M4](#p4-m4) **(fixed)** The CI migration check cannot fail | A schema change without its migration passes CI and breaks the deploy | 2 min |
+| 5 | [M3](#phase-1-bugs-security-and-database) (open part): set `TURNSTILE_SECRET_KEY` | Without it the public update form is open to a script that fills the 300 pending slots | 5 min, configuration |
+| 6 | [P4-M5](#p4-m5) and [M6](#phase-1-bugs-security-and-database): the rating import's recovery path | A browser-driven import that writes ratings, with an untested resume | 2 h for the test; a server-side import is larger |
+| 7 | [M5](#phase-1-bugs-security-and-database): minors' birth years and sex are public | A policy decision; the options are listed in the finding | A decision |
+| 8 | [P4-L1](#p4-l1) **(fixed)** The 5-second test timeout | Intermittent red CI runs, seen twice | 2 min |
+| 9 | [P4-L3](#p4-l3) and [P4-L2](#p4-l2) **(fixed)**: workflow permissions, unpinned actions, token scope | Supply-chain hygiene around a token that can read the whole database | 30 min |
+| 10 | [P4-L8](#p4-l8) Deploys: stage named after the OS user, no pre-deploy backup | A deploy from another machine creates a second set of resources | 1 h |
+
+### Quick wins (under 15 minutes each)
+
+The P4 items and the doc-drift edits below are done; the rest is open.
+
+- **P4-M1**: add `delete: false` to the D1 and R2 resources in `alchemy.run.ts`; drop the root `destroy` script.
+- **P4-M4**: replace `git diff --exit-code` with `test -z "$(git status --porcelain -- packages/db/src/migrations)"`.
+- **P4-L1**: a root `bunfig.toml` with `[test]` and `timeout = 30000`.
+- **P4-L2** and **P4-L3**: move the Cloudflare variables to the backup step, add `permissions: contents: read` to the three workflows, add the `github-actions` ecosystem to Dependabot.
+- **P4-L7**: add `/bullet` to `check-ssr.ts` and to `publicPages` in `a11y.e2e.ts`.
+- **P4-N1**: read the backup before deleting the local D1; verify `SHA256SUMS` in `verify-d1-backup.sh`.
+- **P4-N2**: `git rm --cached` the four `.pyc` files and add `__pycache__/` to `.gitignore`.
+- **M3 (configuration)**: set `TURNSTILE_SECRET_KEY` and the matching site key for the production build.
+- **Doc drift**: items 1 to 7 and 10 in [Doc/code drift](#phase-4-testing-tooling-and-docs) are one-line edits each (routes and procedures rows, the index list, "22 routes" → 42, `admin-forms.tsx`).
+- **P3-N4**: change the Bullet round headers from `h3` to `h4`.
+- **P3-L8**: pick one spelling for "Rating"/"Ratings" and "Buscar"/"Procurar" and apply it.
+
+### Things done well (do not "fix" these)
+
+- **One admin gate, enforced on the server.** `adminProcedure` checks the numeric GitHub account id on every call; the UI guard is a convenience. The only public mutation is the update form, and it has caps, a honeypot and optional Turnstile.
+- **Typed errors and safe messages.** `normalizeProcedureError` turns database errors into `CONFLICT`, `NOT_FOUND` and `BAD_REQUEST`, 5xx details never reach the client, and every error carries a `userMessage` only for 4xx.
+- **Rating arithmetic and multi-statement writes** are single `db.batch` calls with optimistic locking; deletions are blocked by `restrict` foreign keys and explained in a confirm dialog that names what they block.
+- **Caching and rate limits.** The per-procedure cache policy, the session-cookie bypass, the per-IP limits and their numbers agree across code, infra and docs. The HTML is not cached on purpose (ADR 0003, `P2-M1`).
+- **Uploads.** Server-side allowlist, magic-byte checks, SVG sanitising, UUID keys, a sandboxed media route and a 30-day expiry for pending photos.
+- **Tests that mean something.** Failure paths are covered, the public API is compared with its OpenAPI document, e2e runs against the built Worker, and the axe test now also fails on heading order, landmarks and target size.
+- **Operational checks that exist.** Runtime pins, the bundle budgets, SSR and SEO checks, the restore drill, the hourly health query and the deploy smoke test are all written and mostly sound; Phase 4 asks for them to be wired up and verified, not rebuilt.
+- **Documentation.** The Fumadocs site is accurate to a degree that is unusual: every internal link works and every cached procedure's TTL, every rate limit and every command matches the code. The 16 drift items in Phase 4 are small.
+- **Accessibility and SEO basics.** Unique titles, descriptions, canonical URLs, Open Graph and JSON-LD on every public page; Portuguese copy and `America/Maceio` formatting; reduced-motion support; visible focus.
 
 ## Phase 1: Bugs, security and database
 
@@ -264,6 +328,8 @@ Counts: 0 Critical, 1 High, 7 Medium, 12 Low, 5 Nitpick.
 - [x] **N5. Spoofable IP fallbacks**: `packages/api/src/http/security.ts:5-11` falls back to `X-Forwarded-For`, then to `127.0.0.1`. Behind Cloudflare `CF-Connecting-IP` is always present, so it is only a risk if the Worker is ever reached another way; a missing IP would put all callers in one bucket. — *Fixed: only `CF-Connecting-IP` is trusted.*
 
 ---
+
+Status: items 1 to 11 and 13 to 15 are fixed in the docs, the OpenAPI spec (`404` now declares `Cache-Control`), `CONTRIBUTING.md` and `IMPLEMENTATION.md`; item 12 (the one-off release checklists in the runbook) needs a decision on what to keep and is open; item 16 is left as written.
 
 ### Checked and found sound
 
@@ -530,3 +596,431 @@ After the fixes (checks in `bun run check-types`, `lint`, `bun test` 528 pass, `
 - **Type discipline**: no `@ts-ignore`, no `as any`, one `as unknown as` (the SheetJS workbook), two `any` (`seed.ts`, `env/web.ts`), no TODO or FIXME. Non-null assertions (about 180) cluster in `gamification/badges.ts`, `seed.ts` and `create-dialogs.tsx`, where the values are checked a few lines earlier.
 - **Layering**: `packages/api` has no React or browser imports; the web app only imports pure modules from it (`rating-types`, `circuit-types`, `age-groups`, `link-icons`, `gamification/*` types and constants) plus the HTTP handlers from server routes. The admin lists, forms and delete dialogs are built from shared components (`EntityListPage`, `EntityForm`, `DeleteDialog`), as `AGENTS.md` prescribes.
 - **Fonts and CSS**: one CSS file of 38 KB gzip; JetBrains Mono's extra scripts are `unicode-range` subsets and load only if used.
+
+---
+
+## Phase 3: UX, accessibility and SEO
+
+Scope: every route in `apps/web/src/routes` (30 public pages, the login and the step-by-step update form, 48 admin pages, the sitemap, RSS, robots and share-image endpoints) and the components behind them. Findings use the `P3-` prefix and the same `[ ]` / `[x]` convention. Phase 1 and 2 findings are not repeated.
+
+### How it was checked
+
+| Check | Result |
+| ----- | ------ |
+| axe-core with the WCAG 2.0 / 2.1 / 2.2 A and AA tags plus the `best-practice` rules, on 29 public pages and 35 admin pages, at 375 and 1280 px (scratch Playwright script, built Worker with seeded data) | Before: 18 findings on 8 public pages (target size, contrast, heading order, missing `h1`, landmarks) and, in the dashboard, `region` on all 35 pages plus heading order, target size and a second `h1` in the post preview. After the fixes: none, on both widths |
+| Same script: horizontal overflow, headings that skip a level, title of every page | Before: overflow on `/comparar` and `/estatisticas?aba=emblemas` at 375 px; `h1` → `h3` on 5 pages. After: none |
+| Server HTML of every public route (status, `<title>`, description, canonical, robots, Open Graph image, JSON-LD, `h1`, `main`, images without `alt`) | All routes have a unique title, a description, a canonical URL, Open Graph and Twitter tags and JSON-LD. Findings below only where something was missing |
+| Keyboard probe of the player picker, the first tab stop and the mobile search | Reproduced P3-M1 and P3-M5 |
+| Code sweeps: `Intl`/`toLocale*` without `timeZone`, raw palette colors, clickable non-buttons, icon buttons without a label, `outline-none`, English text on public pages, missing accents | One raw-color site (P3-L6); the rest are clean |
+
+Counts: 0 Critical, 0 High, 8 Medium, 11 Low, 4 Nitpick. After the fixes, the verification is `check-types`, `lint`, `bun test` (529 pass; one Miniflare test times out only in the full run, as before), `build`, `check:ssr` (42 routes), `check:routes`, `check:bundle` and the Playwright suite (141 pass, including the new keyboard, skip-link and leave-guard tests and a stricter a11y test).
+
+| Measure | Before | After |
+| ------- | ------ | ----- |
+| axe rules failing (public + admin, both widths) | 6 distinct rules | 0 |
+| Findings checked off | | 16 of 23 (P3-L4 only in part); open: P3-L8 (partly fixed), P3-L10, P3-L11, P3-N1 to P3-N4 |
+
+---
+
+### Medium
+
+#### [x] P3-M1. The player picker (`SearchableSelect`) cannot be used with a keyboard or a screen reader
+
+> **Status:** Fixed: `components/form/searchable-select.tsx` is now an ARIA combobox (`role="combobox"`, `aria-expanded`, `aria-controls`, `aria-activedescendant`, a `listbox` with `option` rows). Arrow keys move, Enter picks, Escape closes; the status line (searching, failed, empty) is a live region. The clear button is a 40 px target with a translated label. Covered by the e2e test "the player picker works from the keyboard"; the existing admin test now finds the field by the `combobox` role.
+
+- **Severity**: Medium
+- **Location**: `apps/web/src/components/form/searchable-select.tsx:77-110` (before the fix); used by `/comparar` (both pickers) and by every admin form that picks a player, club or location
+- **Problem**: The field was a bare `<input>` with a floating list. It had no `role="combobox"`, no `aria-expanded`/`aria-controls`, and the `cmdk` list was rendered outside the keyboard handling of `Command`, so the arrow keys did nothing. Verified with Playwright: type "Atl", press ArrowDown, then Enter: 10 options visible, none selected, the URL unchanged. A keyboard-only or screen-reader user cannot compare two players or fill a player field in the dashboard. The clear button was 16×16 px (axe `target-size`, serious), labelled in English ("Clear") on a Portuguese page, and had no focus style.
+- **Fix**: give the input the combobox attributes, keep an active index, handle ArrowUp/ArrowDown/Enter/Escape on the input, and set `aria-activedescendant` to the active option.
+
+#### [x] P3-M2. `robots.txt` blocks the share images and every uploaded photo
+
+> **Status:** Fixed: `Allow: /api/og/` and `Allow: /api/media/` before `Disallow: /api/` (Google and Bing follow the most specific rule), plus `Disallow: /rating-update`. `packages/api/src/http/robots.test.ts` pins the rules.
+
+- **Severity**: Medium
+- **Location**: `apps/web/public/robots.txt:5` (`Disallow: /api/`); `lib/og.ts:55` (`/api/og/...png`), `lib/media-image.ts:1` (`/api/media/`)
+- **Problem**: Post and player pages point `og:image` at `/api/og/...`, and every uploaded photo (news covers, player photos, club logos) lives under `/api/media/`. Both are under the disallowed prefix. Crawlers that honor robots for images (Twitter/X, LinkedIn, Google Images, Bing) are told not to fetch them, so link previews can lose their picture and photos are never indexed. Facebook and WhatsApp mostly ignore it, which hides the problem when testing.
+- **Fix**: allow the two prefixes before the `Disallow: /api/` line.
+
+#### [x] P3-M3. The home page has no `<h1>`
+
+> **Status:** Fixed: a screen-reader-only `<h1>` with the site name in `routes/_public/index.tsx`. The a11y e2e now fails on `page-has-heading-one`.
+
+- **Severity**: Medium
+- **Location**: `apps/web/src/routes/_public/index.tsx:57-70` (`/`); every other public page has exactly one
+- **Problem**: Server HTML of `/` has 0 `h1` and 5 `h2` (axe `page-has-heading-one`). Screen reader users navigating by heading, and search engines reading the page outline, get no page title on the most visited page.
+- **Fix**: `<h1 className="sr-only">{SITE_NAME}</h1>` as the first child.
+
+#### [x] P3-M4. Section labels are not headings, and five pages skip heading levels
+
+> **Status:** Fixed: `SectionHeading` renders an `h2` (32 uses: profile, season, club, tournament, circuit and record pages); `Subheading` takes `as`; `PostCard` and `PostArticle` take a heading level (`/noticias` and the home hero use `h2`, the admin preview uses `h2`); the Normas Técnicas accordion uses `h2` through `AccordionTrigger headingLevel`; the dashboard column labels are `h2`.
+
+- **Severity**: Medium
+- **Location**: `components/section-heading.tsx:16-21` (a `div` and a `span`), `components/noticias/post-card.tsx:57` (`h3` directly under the `h1` on `/noticias`), `components/player/player-charts.tsx:96,159` (chart `h3` with no `h2` above it), `routes/_public/normas-tecnicas.tsx:39` (accordion header is an `h3`), `components/gamification/badge-census.tsx:49-57`, `routes/_auth/dashboard/index.tsx:152`
+- **Problem**: The player profile has one `h1` and no `h2` at all: "Ratings", "Evolução", "Conquistas", "Carreira" and the other sections are styled text, so heading navigation on the longest page of the site jumps from the name to a chart title. The same label component builds the club, season, tournament and statistics pages. On `/noticias`, `/normas-tecnicas`, `/estatisticas?aba=emblemas`, `/jogadores/:id` and `/dashboard` the outline goes `h1` → `h3` (axe `heading-order`).
+- **Fix**: render the label as `h2` and give the card, accordion and subheading components a level prop; fail the e2e on `heading-order`.
+
+#### [x] P3-M5. There is no skip link
+
+> **Status:** Fixed: `components/skip-link.tsx`, the first tab stop of the public layout and of `/links`, jumping to `main#conteudo` (focusable). Covered by the e2e test "a skip link jumps past the header to the content".
+
+- **Severity**: Medium
+- **Location**: `routes/_public/route.tsx:21-24`; first tab stop on `/` is the "Início" link of the header (verified with Playwright)
+- **Problem**: A keyboard user tabs through the logo, the navigation menu (4 items with sub-menus), search and the update link on every page before reaching the content (WCAG 2.4.1 Bypass Blocks).
+- **Fix**: a visually hidden link that appears on focus and targets `main`.
+
+#### [x] P3-M6. `/bullet`, `/tv-sergipe` and `/comparar` cannot be reached from the site
+
+> **Status:** Fixed: all three are in the "Destaques" menu and the drawer; the footer lists them, plus Calendário and Normas Técnicas, which were also missing.
+
+- **Severity**: Medium
+- **Location**: `components/header/header-navigation-data.tsx`, `components/footer.tsx:9-22`
+- **Problem**: A search of every component and route for links to these pages finds none for `/bullet` and `/tv-sergipe` (the sitemap lists them), and `/comparar` is linked only from a profile. A visitor looking for the school games or the Bullet championship has nothing to click; the pages exist for people who already have the address. The footer also omitted Calendário and Normas Técnicas, which the header has.
+- **Fix**: add them to the navigation data and the footer.
+
+#### [x] P3-M7. Admin edit pages lose unsaved changes silently
+
+> **Status:** Fixed: `AdminForm` takes `dirty` (TanStack Form `isDirty`, wired in the five form components) and mounts `components/admin/leave-guard.tsx`: an `AlertDialog` ("Discard unsaved changes?") for in-app navigation and `beforeunload` for closing the tab. It is off in creation dialogs and is released once Save is pressed, so the redirect after a save is not blocked. Known gap: if client-side validation rejects the Save, the guard stays released until the next edit or server error. Covered by the e2e test "an edit page asks before discarding unsaved changes".
+
+- **Severity**: Medium
+- **Location**: `components/admin/form-layout.tsx` (`AdminForm`), all edit pages; the only `beforeunload` in the app is the rating import
+- **Problem**: A long post, player or tournament edit is lost by one click on the sidebar, the breadcrumb or the browser's back button. Posts and tournaments are the longest forms in the dashboard.
+- **Fix**: block navigation while the form is dirty and confirm.
+
+#### [x] P3-M8. The home FAQ and the verified-profile popover send people to Google Forms, and one of them is mislabeled
+
+> **Status:** Fixed: both link to `/atualizar-cadastro`, the site's own request flow that the header already promotes; the popover button now reads "Atualizar meus dados".
+
+- **Severity**: Medium
+- **Location**: `components/home/faq.tsx:52`, `components/player/verified-badge.tsx:103-114`
+- **Problem**: The header's "Atualizar cadastro" opens the built-in flow that the administrators review (`/dashboard/update-requests`), but the FAQ answer to "how do I register" tells people to fill an external Google Form, and the popover on a profile that already is verified (board member, referee) offers "Solicitar verificação" to that other form. Two entry points feed two different inboxes, and the second one asks a verified person to request verification.
+- **Fix**: one flow; link to it.
+
+---
+
+### Low
+
+#### [x] P3-L1. Horizontal scroll on phones: `/comparar` and `/estatisticas?aba=emblemas`
+
+> **Status:** Fixed: the comparison sections get `min-w-0` (a grid item sized itself to the table's content, 422 px in a 375 px view) and the tier tabs scroll inside their track (`max-w-full overflow-x-auto`, as the champions tabs do).
+
+- **Severity**: Low
+- **Location**: `routes/_public/comparar.tsx:84-92`, `components/gamification/badge-census.tsx:36-47`
+- **Problem**: At 375 px the document is 434 px and 443 px wide, so the whole page pans sideways. Found by comparing `scrollWidth` with the viewport on every page.
+- **Fix**: `min-w-0` on the grid items; let the tab list scroll.
+
+#### [x] P3-L2. Low contrast on the tier count in the emblem tabs
+
+> **Status:** Fixed: the `opacity-70` is gone (`font-medium` instead).
+
+- **Severity**: Low (axe: serious)
+- **Location**: `components/gamification/badge-census.tsx:42`
+- **Problem**: 12 px text at 70 % opacity on the burple active tab is below 4.5:1.
+- **Fix**: full-opacity text.
+
+#### [x] P3-L3. Pages without a `main` landmark
+
+> **Status:** Fixed: `/login` is a `<main>`; the desktop sidebar is an `<aside aria-label="Sidebar">`, so no dashboard content sits outside a landmark (axe `region` was flagged on 35 admin pages).
+
+- **Severity**: Low
+- **Location**: `routes/login.tsx:32`, `packages/ui/src/components/sidebar.tsx:240`
+- **Problem**: `/login` had no `main` (axe `landmark-one-main`, `region`); the admin sidebar, logo and user menu were outside any landmark.
+- **Fix**: use `main` and `aside`.
+
+#### [x] P3-L4. Small touch targets (partly fixed)
+
+> **Status:** Partly fixed: footer links (24 px → 40 px, with a focus style), the footer logo link (16 px → 40 px), the calendar month chips (28 px → 36 px), the season links in the activity graph, the verified badge (20 px → 32 px) and the clear button (16 px → 40 px). Not changed: links inside table rows and lists (20 px tall tournament names on a profile, the player names in the compare table), which meet the WCAG 2.2 AA minimum of 24 px with their spacing but not the 44 px in `DESIGN.md`; making them taller would change every table.
+
+- **Severity**: Low
+- **Location**: `components/footer.tsx`, `routes/_public/calendario.tsx:50`, `components/player/player-stats.tsx:54`, `components/player/verified-badge.tsx:77`
+- **Problem**: On a phone, the footer's 12 links are 24 px tall with 8 px between them; the month chips are 28 px.
+- **Fix**: vertical padding on the links.
+
+#### [x] P3-L5. News article: "..." in the server HTML, no `<time>`, "3 dias" instead of "há 3 dias"
+
+> **Status:** Fixed: the elapsed text appears only after hydration (nothing is rendered before, instead of "..."), reads "há 3 dias / há 2 meses / Hoje", and the date is a `<time dateTime>`.
+
+- **Severity**: Low
+- **Location**: `components/noticias/post-time-ago.tsx:30-62`
+- **Problem**: The server HTML of every article contains `<p>...</p>` next to the date, which crawlers and no-JS readers see; the date is not machine-readable; and the elapsed label has no "há".
+- **Fix**: as above.
+
+#### [x] P3-L6. Raw palette colors against `DESIGN.md`
+
+> **Status:** Fixed: the third-place cell of the Bullet prize table uses `bg-orange-fill text-orange-foreground` (white on `orange-500` was about 3:1, and the template string wrote the literal text `false` into the class list); the dashboard board icons use `text-orange`, `text-blue`, `text-green` and `text-violet`.
+
+- **Severity**: Low
+- **Location**: `components/bullet/bullet-client.tsx:340`, `routes/_auth/dashboard/index.tsx:68-103`
+- **Problem**: `bg-orange-500 text-white`, `text-amber-500`, `text-sky-500`, `text-emerald-500`, `text-violet-500`: the rule in `DESIGN.md` and `AGENTS.md` is theme tokens only.
+- **Fix**: use the color-family tokens.
+
+#### [x] P3-L7. Login: English heading among Portuguese text, and no pending state
+
+> **Status:** Fixed: the heading reads "Entrar" (the page title, text and button already were Portuguese) and the button shows a spinner and ignores a second click until the redirect or an error.
+
+- **Severity**: Low
+- **Location**: `routes/login.tsx:35-52`
+- **Problem**: "Sign In" above "Entre com sua conta do GitHub…"; double-clicking starts two OAuth redirects.
+- **Fix**: as above.
+
+#### [ ] P3-L8. Terminology across the public navigation (partly fixed)
+
+> **Status:** Partly fixed: "Home" is now "Início" in the header and footer, matching the breadcrumbs and JSON-LD. Open: the menu says "Rating" while the page, its title and its URL say "Ratings"; the table controls say "Buscar…" while the search field and command menu say "Procurar…"; and the table text has both "Nenhum resultado encontrado." and "Sem resultados.". These are copy decisions for the federation.
+
+- **Severity**: Low
+- **Location**: `components/header/header-navigation-data.tsx:48`, `hooks/use-table-text.ts:17,25`
+
+#### [x] P3-L9. Table search fields have no accessible name
+
+> **Status:** Fixed: `SearchInput` sets `aria-label` from its placeholder.
+
+- **Severity**: Low
+- **Location**: `components/data-table/search-input.tsx:46`; `/ratings`, `/titulados`, `/membros`, the dashboard lists
+- **Problem**: Only the placeholder named the field, and it disappears once the user types.
+- **Fix**: `aria-label`.
+
+#### [ ] P3-L10. 404 pages are titled with the site name and are not `noindex`
+
+> **Status:** Not done: a route `head` does not run when its loader throws `notFound()` (tried on the catch-all route; the title stayed "Federação Sergipana de Xadrez"), so a fix needs the status to be set differently or a title inside `NotFound`, which duplicates the root `<title>`. The status code is already 404, which search engines treat as removal; the visible effect is the browser tab title only.
+
+- **Severity**: Low
+- **Location**: `routes/_public/$.tsx`, `components/not-found.tsx`
+- **Problem**: `/nao-existe`, `/jogadores/9999` and `/jogadores/abc` answer 404 with `robots: index, follow` and the home title.
+
+#### [ ] P3-L11. A profile for the player with id 1 is hard-coded as the "Diretoria" badge
+
+> **Status:** Not done: it changes what the public sees and needs the federation to say who should have it (a role already exists for that).
+
+- **Severity**: Low
+- **Location**: `components/player/verified-badge.tsx:21`
+- **Problem**: `if (playerId === 1) return "admin"` ties a red board badge to a database id.
+- **Fix**: derive it from the management role.
+
+---
+
+### Nitpick
+
+- [ ] **P3-N1. Footer credits are English** ("Built by", "Source code", `components/footer.tsx:60`). `DESIGN.md` documents them as is; left.
+- [ ] **P3-N2. Six hand-written `split("-").reverse().join("/")` date formatters** (`circuit-champions.tsx:13`, `player-charts.tsx:182`, `compare-table.tsx:97`, `import-review.tsx:88`, `schedule.ts:21`) duplicate `formatIsoDate` (`gamification/tier.ts:19`).
+- [ ] **P3-N3. The sitemap has `lastmod` only for news.** Players, tournaments, announcements and clubs have `updatedAt`-style data (`lib/sitemap.ts:37-46`).
+- [ ] **P3-N4. Bullet round headers are `h3` inside an `h3` group** (`bullet-client.tsx:457`); they should be `h4`.
+
+---
+
+### Checked and found sound
+
+- **SEO**: every public page has a unique `<title>` with the `| FSX` suffix, a description of 63–147 characters (the article and announcement descriptions follow the content), a canonical URL (query strings stripped on `/ratings`, `/comparar`), Open Graph and Twitter tags with a 1200×630 image, and JSON-LD (organization, website, breadcrumbs, and article, person and event types where they fit). Utility pages (`/login`, `/atualizar-cadastro`, `/swiss-manager`, `/comparar`) are `noindex`. The sitemap, RSS and `check-prerendered-seo.mjs` are consistent with the route list, and `check:routes` fails when a public route is missing from the sitemap.
+- **Loading, empty and error states**: every route has a skeleton as `pendingComponent` and an error boundary; lists have their own empty text ("Nenhum jogador encontrado.", "Ainda não há torneios cadastrados."); mutations show toasts through `showMutationError`; every admin form has a `loading` Save button, a field error summary that takes focus, and a confirmed `DeleteDialog`.
+- **Accessibility basics**: no clickable `div`s, no icon-only button without a name was found, `lang="pt-BR"`, reduced motion honored globally, visible focus rings, the command menu is a labelled dialog, charts have an `aria-label`, avatars and decorative images use `alt=""` correctly, and the existing axe run found nothing serious before this phase.
+- **Dates and numbers**: every `Intl` date call passes `timeZone`; numbers use `pt-BR`; the calendar groups by month in `America/Maceio`.
+- **Public update form**: step-by-step with a progress indicator, per-step validation, a honeypot, Turnstile, a consent checkbox, a pending submit and a clear summary of what will be sent.
+
+---
+
+## Phase 4: Testing, tooling and docs
+
+Scope: the test suites (`packages/*/src/**/*.test.ts`, `apps/web/e2e`), `.github/workflows`, `scripts/`, `packages/infra`, the lint, format and TypeScript configuration, and every page of `apps/fumadocs/content/docs` plus `README.md`, `AGENTS.md`, `CONTRIBUTING.md` and `IMPLEMENTATION.md`, compared with the code. Read-only; no source file was changed. Findings use the `P4-` prefix and the same `[ ]` / `[x]` convention. Earlier findings are not repeated.
+
+### How it was checked
+
+| Check | Result |
+| ----- | ------ |
+| `bun test` (full run) | 530 tests, 86 files, 67–70 s. 529 pass and 1 fails with the default 5 s timeout (`admin-mutations.integration.test.ts`, "treats LIKE wildcards literally…", 5.05 s). The file passes alone (4.3 s), and `bun test --timeout 30000` passes 530 of 530. See P4-L1 |
+| `bun test --coverage` | 96.5 % of lines and 87.3 % of functions in the files the tests load. Files no test imports are not listed by Bun. Lowest public code: `routers/titled-players.ts` (26 % of lines), `routers/top-players.ts` (0 % of functions), `routers/cups.ts` (50 % of lines); `packages/auth/src/index.ts` lines 57–63 and 77–87 never run (P4-M3) |
+| Test quality | 490 test cases; the only two without a direct `expect` call assert through a helper. No `.only`, `.skip`, `.todo` or `.fixme`. Three `waitForTimeout` calls in e2e. No component tests (no `.test.tsx`) |
+| `bun audit --audit-level=high` with the three ignores from `quality.yml` | Clean |
+| `bunx oxfmt --check` | 619 of 958 files are not formatted (P4-L4) |
+| `oxlint` with the React and jsx-a11y plugins switched on, `apps/web/src` and `packages/ui/src` | 59 warnings the current config does not see (P4-L5) |
+| `tsc --noEmit --noUncheckedIndexedAccess` in `apps/web` | 30 errors; the flag is off there and on in every package that extends the base config (P4-L6) |
+| Procedures: `appRouter._def.procedures` (184) against `procedures.mdx` and `PROCEDURE_CACHE_POLICY` (60 entries) | Every cached procedure's TTL column matches the code. Two public procedures have no row. See the drift list |
+| Docs: 58 pages, every internal link and anchor | 0 broken. All 111 `apps/…`, `packages/…` and `scripts/…` paths named in the docs and root files exist (one, `packages/db/src/migrate.ts`, is named only to say it was removed). Every `bun run <script>` the docs mention exists in `package.json` |
+| Scripts: `bash -n` on the three shell scripts, a read of every script and workflow | Syntax is fine (`shellcheck` is not installed here). Findings below |
+| `check:runtime`, `check:ssr` (42 routes), `lint`, `check-types` | Pass |
+
+Counts: 0 Critical, 0 High, 5 Medium, 8 Low, 3 Nitpick. Nothing is fixed in this phase (report only): 0 of 16 checked off.
+
+---
+
+### Medium
+
+<a id="p4-m1"></a>
+#### [x] P4-M1. `bun run destroy` deletes the production database and Worker, and nothing in the config prevents it
+
+> **Status:** Fixed: `delete: false` on the D1 database and the R2 bucket in `alchemy.run.ts`, and the root `destroy` script is gone (the line in `local-development.mdx` too). `alchemy destroy` still exists in `packages/infra` for a throwaway stage, but it now leaves both data resources alone. Not run, since it would touch the live state.
+
+- **Severity**: Medium. **Verified by reading the Alchemy source and the state files; the command was not run.**
+- **Location**: `packages/infra/package.json:8` (`"destroy": "alchemy destroy"`), `packages/infra/alchemy.run.ts:17-22` (`D1Database`, no `delete: false`), `:28-48` (`R2Bucket`), `:65` (`TanStackStart`), `apps/fumadocs/content/docs/operations/local-development.mdx:104`
+- **Problem**: the stage is `$ALCHEMY_STAGE ?? $USER` (`alchemy/lib/scope.js:24`). On this checkout it is `raphael`, and `packages/infra/.alchemy/fsx/raphael/database.json` and `images.json` hold the production resources `fsx-database-raphael` and `fsx-images`, both created with `adopt: true`. `alchemy destroy` runs `alchemy.run.ts` for that same stage, so one command deletes the D1 database (`delete` defaults to `true`) and the Workers. The R2 bucket delete would fail while it holds objects (`empty` defaults to `false`), but the destroy has already removed the database by then. The docs call the command destructive and say it is never part of a routine deploy; that is the only protection. Backups are manual (P4-M2).
+- **Fix**: mark the data resources as not deletable, and take `destroy` out of the root scripts (run it by hand with an explicit `--stage` for a throwaway environment).
+  ```ts
+  const db = await D1Database("database", { migrationsDir: "…", adopt: true, delete: false });
+  const images = await R2Bucket("images", { name: "fsx-images", adopt: true, delete: false });
+  ```
+
+<a id="p4-m2"></a>
+#### [ ] P4-M2. The only copy of production data outside Cloudflare is a manual backup on one laptop, and the images are not backed up at all
+
+- **Severity**: Medium
+- **Location**: `scripts/d1-backup.sh:13` (`BACKUP_ROOT` defaults to `$HOME/Backups`), `.github/workflows/restore-drill.yml:3-8` (the dump is discarded on purpose), `apps/fumadocs/content/docs/operations/runbook.mdx:6-13` and `:306-320` ("Pending production checks"), `apps/fumadocs/content/docs/operations/incident-response.mdx:50-53` (D1 Time Travel), `packages/infra/alchemy.run.ts:28-48` (the bucket has lifecycle rules and nothing else)
+- **Problem**:
+  1. `bun run db:backup` runs when the owner remembers to. There is no schedule, no second location and no alert when the last backup is old. The documented recovery points are that file and D1 Time Travel.
+  2. The monthly `Restore drill` workflow proves that a dump restores, then throws the dump away. It is a rehearsal, not a recovery point.
+  3. Nothing copies `fsx-images` (player photos, post images, club logos and flags). D1 Time Travel is a D1 feature, so a deleted object, an overwritten file, or a deleted bucket (P4-M1) cannot be undone. The runbook's media section only says to compare R2 keys with the table columns.
+  4. The runbook's "Pending production checks" still list as open: run the restore drill once on a production backup ("by adding the `Restore drill` workflow secrets") and run the `Production health` query against live analytics ("it has not run against production yet"). Repository secrets are not visible from here, so whether either workflow has ever succeeded is unconfirmed.
+- **Fix**: add a weekly workflow that runs `db:backup` and uploads the dump, encrypted, to storage in another account (for example a second R2 bucket with its own token); mirror `fsx-images` there too (`rclone sync`). Tick the two pending checks and record the date of the last successful drill in the runbook. Alert when the newest off-site backup is older than 8 days.
+
+<a id="p4-m3"></a>
+#### [x] P4-M3. The sign-in lock, the single gate to the admin, is not tested
+
+> **Status:** Fixed: `packages/api/src/auth-sign-in.test.ts` calls the real `mapProfileToUser` and `user.create.before` for the owner, another account, an https URL with no `GITHUB_USER_ID`, and the login rule. It does not run Better Auth's handler with GitHub stubbed, so how the library turns the thrown `APIError` into a response is still untested.
+
+- **Severity**: Medium. **Verified with `bun test --coverage` and by reading the tests.**
+- **Location**: `packages/auth/src/index.ts:57-66` (`mapProfileToUser`, `disableSignUp`) and `:77-87` (`databaseHooks.user.create.before`); tests: `packages/auth/src/owner.test.ts`, `packages/api/src/auth-instance.test.ts`, `apps/web/e2e/public.e2e.ts:88-98`
+- **Problem**: `owner.test.ts` tests the pure rule functions, `auth-instance.test.ts` only checks that `createAuth()` returns one instance, and the e2e test stops at the redirect to GitHub's authorize URL. Coverage confirms that the `mapProfileToUser` body and the `user.create.before` hook never execute in any test. Phase 1 listed "Sign-in lock: `mapProfileToUser` rejects a non-owner before any user row is created" as sound, from reading the code. Nothing keeps it that way: the comment in the file says a `false` from an account hook would still create the user and a session, so how Better Auth (pinned `1.7.7`, bumped by Dependabot) propagates a thrown `APIError` is a behavior this project relies on and does not test. M4 in Phase 1 was also closed with "no automated test".
+- **Fix**: add a test that calls the real handler with GitHub's token and profile endpoints stubbed (`fetch` mock), for three cases: the owner's id signs in; another id gets 403 and no `user`, `account` or `session` row; an `https://` `BETTER_AUTH_URL` with an empty `GITHUB_USER_ID` refuses everyone. A cheaper first step is to call `createAuth().options.socialProviders.github.mapProfileToUser` directly for the same cases.
+
+<a id="p4-m4"></a>
+#### [x] P4-M4. The CI check for a missing migration cannot fail
+
+> **Status:** Fixed: `quality.yml` uses `test -z "$(git status --porcelain -- packages/db/src/migrations)"`.
+
+- **Severity**: Medium. **Verified in a scratch repository.**
+- **Location**: `.github/workflows/quality.yml:28-31`
+- **Problem**: the step runs `bun run db:generate` and then `git diff --exit-code -- packages/db/src/migrations`. When someone changes a schema file and forgets to commit the migration, `db:generate` creates a new, untracked `NNNN_*.sql` and snapshot, and `git diff` ignores untracked files. In the scratch repo, a committed `m/0000.sql` plus a new untracked `m/0001.sql` gives `git diff --exit-code -- m` exit code 0. The check therefore only catches an edited, already-tracked migration. The case `CONTRIBUTING.md` asks for ("schema changes must include the generated Drizzle migration") passes CI and fails in production.
+- **Fix**:
+  ```yaml
+  - name: Validate generated database migrations
+    run: |
+      bun run db:generate
+      test -z "$(git status --porcelain -- packages/db/src/migrations)"
+  ```
+
+<a id="p4-m5"></a>
+#### [ ] P4-M5. The rating import's recovery path (Phase 1, M6) has no test
+
+- **Severity**: Medium
+- **Location**: `apps/web/src/hooks/use-rating-import.ts:40-71` (`RESUME_KEY`, saved progress), `:397` (`resume`), `apps/web/e2e/dashboard-crud.e2e.ts:406-439` (the only import test), `apps/web/src/lib/rating-import.test.ts` (parsing only)
+- **Problem**: the M6 fix stores the tournament id, created players and finished rows in `localStorage`, so that uploading the same file again after a crash continues instead of failing on the unique tournament name or creating players twice. The e2e test applies a whole sheet and checks the report after a reload; it never interrupts a run. Nothing exercises "stop after row N, reload, upload the same file, apply only the rest". It is a 447-line hook that writes production ratings, and the logic that decides what has already been applied is the part most likely to break silently.
+- **Fix**: an e2e test that aborts the second `players.create`/`linkWithRating` request with `page.route`, reloads, re-uploads the same workbook, and expects each row applied exactly once and no duplicate player. Or move the "which rows are done" bookkeeping into a pure function and unit-test it.
+
+---
+
+### Low
+
+<a id="p4-l1"></a>
+#### [x] P4-L1. `bun test` runs with Bun's 5-second timeout, and the heaviest integration tests are close to it
+
+> **Status:** Fixed: root `bunfig.toml` with `timeout = 30000`; the full run passes 537 of 537.
+
+- **Severity**: Low (an intermittent red CI run)
+- **Location**: no `bunfig.toml` in the repository; `packages/api/src/admin-mutations.integration.test.ts` ("treats LIKE wildcards literally and validates age groups and birth years")
+- **Problem**: every integration file starts its own Miniflare and D1, and several tests run many procedures in a row. In the full run the test above took 5.05 s and failed; the file alone takes 4.3 s in total, and the full suite passes 530 of 530 with `--timeout 30000`. The same one-off timeout was seen during Phase 3. GitHub's shared runners are slower than this machine. CI retries only Playwright, so a timeout fails the whole job.
+- **Fix**: a root `bunfig.toml` with `[test]` and `timeout = 30000`.
+
+<a id="p4-l2"></a>
+#### [x] P4-L2. The restore-drill job gives the Cloudflare token to every step, including `bun install`
+
+> **Status:** Fixed: the token and account id are set on the `db:backup` step only.
+
+- **Severity**: Low
+- **Location**: `.github/workflows/restore-drill.yml:22-25` (job-level `env`), `:31-34`
+- **Problem**: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are job-level, so `bun install --frozen-lockfile` (which runs dependency install scripts) and `bun run build` can read them. The token is read-only (D1:Read), but it reads the whole production database, including the OAuth `account` and `session` tables.
+- **Fix**: move the two variables to the `bun run db:backup` step. Add `permissions: contents: read` at the top of the workflow.
+
+<a id="p4-l3"></a>
+#### [x] P4-L3. Workflow hardening: no `permissions`, tag-pinned actions, and Dependabot ignores Actions
+
+> **Status:** Fixed: `permissions: contents: read` on all three workflows, actions pinned to commit SHAs (with the tag in a comment), `github-actions` added to Dependabot, and the bun cache and Playwright browsers cached in `quality.yml`. e2e is still in the same job.
+
+- **Severity**: Low
+- **Location**: `.github/workflows/quality.yml`, `restore-drill.yml`, `production-health.yml` (no `permissions:` key); `quality.yml:17,44` and the other `uses:` lines (`actions/checkout@v4`, `oven-sh/setup-bun@v2`, `actions/upload-artifact@v4`); `.github/dependabot.yml` (only the `bun` ecosystem)
+- **Problem**: without a `permissions` block the `GITHUB_TOKEN` gets the repository's default, which is read and write on repositories created before 2023 unless changed. Actions are referenced by movable tags, and Dependabot is not configured to update them. `quality.yml` is one job of 19 steps with no cache for `~/.bun/install/cache` or the Playwright browser (a download on every run), and e2e shares the 25-minute budget with everything before it.
+- **Fix**: `permissions: contents: read` on each workflow; pin the three actions to commit SHAs and add `package-ecosystem: github-actions` to Dependabot; cache the two directories; consider moving e2e to its own job with `needs: quality`.
+
+<a id="p4-l4"></a>
+#### [ ] P4-L4. Formatting is not enforced anywhere
+
+- **Severity**: Low
+- **Location**: `package.json:34` (`"check": "oxlint && oxfmt --write"`), `.github/workflows/quality.yml` (no format step), `vite.config.ts:35-44` (`staged`), `IMPLEMENTATION.md` task 1.4
+- **Problem**: `bunx oxfmt --check` lists 619 of 958 files (task 1.4 says "about 500"). The pre-commit hook formats only the files a commit touches, CI does not check formatting, and `bun run check`, which reads like a read-only gate, rewrites files. Diffs mix real changes with reformatting, and the number grows with every unformatted commit.
+- **Fix**: do the dedicated format commit that 1.4 describes, then run `vp fmt --check` in CI and rename or split `check` so the name matches what it does.
+
+<a id="p4-l5"></a>
+#### [ ] P4-L5. Lint runs only the `correctness` category and leaves the React and accessibility rules off
+
+- **Severity**: Low
+- **Location**: `.oxlintrc.json` (`plugins`: `typescript`, `unicorn`, `oxc`; `categories.correctness`), `vite.config.ts:19-22` (`typeAware: false`)
+- **Problem**: this is a React app whose Phase 3 findings were mostly accessibility, yet `react`, `react-hooks` and `jsx-a11y` are not enabled. Running `oxlint --react-plugin --jsx-a11y-plugin` over `apps/web/src` and `packages/ui/src` gives 59 warnings: 13 `set-state-in-effect`, 11 `prefer-tag-over-role`, 6 `label-has-associated-control` (`delete-dialog.tsx:123`, `reject-request-dialog.tsx:35`, `tv-sergipe-bulk.tsx:117`), 5 `incompatible-library`, 4 `no-noninteractive-element-interactions`, 3 each of `refs`, `preserve-manual-memoization`, `no-autofocus` and `img-redundant-alt`, 2 `exhaustive-deps` (`use-rating-import.ts:177`, `searchable-select.tsx:99`), and a few single hits. Some are noise (`prefer-tag-over-role` on `role="status"`). The warnings were not checked one by one; they are candidates. Type-aware rules (`no-floating-promises`) are also off.
+- **Fix**: enable `react`, `react-hooks` and `jsx-a11y`, set the useful rules (`label-has-associated-control`, `exhaustive-deps`, `no-autofocus`, `img-redundant-alt`) to `error`, fix or disable the rest, and try `typeAware` once for floating promises.
+
+<a id="p4-l6"></a>
+#### [x] P4-L6. Type checking has gaps: the web app is looser than the packages, and infra and docs are not checked
+
+> **Status:** Partly fixed: `apps/web` now has `noUncheckedIndexedAccess` (the 30 errors fixed in five files) and `packages/infra` has a `tsconfig.json` and a `check-types` script. `apps/web` still does not extend the base config, and the docs site has no type check.
+
+- **Severity**: Low
+- **Location**: `apps/web/tsconfig.json` (no `extends`), `packages/config/tsconfig.base.json:13`, `packages/infra` (no `tsconfig.json`, no `check-types` script), `apps/fumadocs/package.json:6-13` (no `check-types` or `astro check`)
+- **Problem**: every package extends `@fsx/config/tsconfig.base.json` and gets `noUncheckedIndexedAccess`, `verbatimModuleSyntax` and `isolatedModules`; `apps/web`, the biggest codebase, has its own config without them. Turning on `noUncheckedIndexedAccess` there produces 30 errors (measured, nothing changed). `packages/infra/alchemy.run.ts` is only type-checked because `packages/env/env.d.ts` imports it, and `alchemy.deploy.ts`, the production entry point, is checked by nothing. The docs site's TypeScript and MDX components have no type check.
+- **Fix**: extend the base in `apps/web` and fix the 30 sites; add a `tsconfig.json` and `check-types` to `packages/infra`; add `astro check` to the docs build.
+
+<a id="p4-l7"></a>
+#### [x] P4-L7. `/bullet` is in no automated page check, and three public procedures have no API test
+
+> **Status:** Fixed: `/bullet` is in `check-ssr.ts` and the a11y e2e list (both run green), and `titled-top-players.integration.test.ts` covers `titledPlayers.list` and `topPlayers.list`. `cups` already had its own integration test, which this review had under-counted.
+
+- **Severity**: Low
+- **Location**: `apps/web/scripts/check-ssr.ts` and `apps/web/e2e/a11y.e2e.ts:32` (neither mentions `/bullet`; no e2e file does either), `packages/api/src/routers/cups.ts:19-96` (`list`, `byId`), `routers/titled-players.ts`, `routers/top-players.ts`
+- **Problem**: `AGENTS.md` ("Making a change", step 4) asks for new public routes to be registered in the sitemap, `check-ssr.ts` and the a11y e2e list. `/bullet` is only in the sitemap, so a broken render, a wrong status or a contrast regression there reaches production. The procedures behind `/bullet` (`cups.list`, `cups.byId`), `/titulados` and the home page's top players have no integration test; the coverage report shows 50 % of the lines of `cups.ts`, 26 % of the lines of `titled-players.ts` and none of the functions of `top-players.ts` running. The a11y e2e renders the last two pages, but asserts nothing about their data.
+- **Fix**: add `/bullet` to both lists; add one integration test per procedure with a seeded row and an empty case.
+
+<a id="p4-l8"></a>
+#### [ ] P4-L8. Production is deployed by hand from one account, named after the OS user, with no gate
+
+- **Severity**: Low
+- **Location**: `packages/infra/package.json:7` (`deploy`), `packages/infra/alchemy.run.ts:12` (`alchemy("fsx")`, no `stage`), `scripts/check-production-health.mjs:12` (`fsx-web-raphael`), `scripts/d1-backup.sh:9` (`fsx-database-raphael`), `scripts/deploy-smoke-test.sh:46-48`
+- **Problem**:
+  1. Resource names come from `$USER` (see P4-M1). Running the deploy from another account, a CI runner or a new laptop creates a second set of resources next to production, because `adopt: true` only matches identical names. The names are also written into two scripts and several docs pages.
+  2. Alchemy's state is `packages/infra/.alchemy`, gitignored and encrypted with `ALCHEMY_PASSWORD` from a gitignored file. It exists on one machine and is not mentioned in the backup docs.
+  3. `bun run deploy` runs `alchemy deploy` and the smoke test, nothing else: no tests, no pre-deploy backup (the runbook asks for one by hand), and the smoke test skips the media check because the script does not set `MEDIA_SMOKE_URL`.
+  4. Dev is `alchemy dev` (local only) and there is a single remote stage, so the runbook's "restore to a separate staging D1" has no configuration behind it.
+- **Fix**: set the stage explicitly to the current value (`process.env.ALCHEMY_STAGE ??= "raphael"` in `alchemy.deploy.ts`, so names do not change); document or move the state; make `deploy` take a backup first and set `MEDIA_SMOKE_URL`. If you want CI to deploy, a `workflow_dispatch` job with a protected environment and the same steps does it.
+
+---
+
+### Nitpick
+
+- [ ] **P4-N1. Backup script details.** Partly fixed: `restore-local.ts` now reads the backup before deleting the local D1; the checksum is still not verified. `scripts/d1-backup.sh:72-74` writes `SHA256SUMS`, and `scripts/verify-d1-backup.sh` never reads it, so a dump that changed on disk still verifies. `packages/api/scripts/restore-local.ts:38` deletes the local D1 before `readBackup` (line 50) parses the file, so a mistyped path wipes the dev database first. Read first, then delete; run `sha256sum -c` in the verify script.
+- [x] **P4-N2. Python bytecode is tracked.** Fixed: the four files are untracked and `.gitignore` covers `__pycache__/` and `*.pyc`. `scripts/__pycache__/export_d1_csv.cpython-314.pyc` and three files under `.agents/skills/ui-ux-pro-max/scripts/__pycache__/` are in the repository, and `.gitignore` has no `__pycache__` or `*.pyc`. `git rm --cached` them and ignore the pattern.
+- [ ] **P4-N3. Three fixed sleeps and one retry in e2e.** `navigation.e2e.ts:118` (500 ms before reading layout shift) and `requests.e2e.ts:60,89` (300 ms before asserting "no further requests") use `waitForTimeout`. They assert that nothing happens, which is the case for waiting, but a request that arrives after 300 ms on a slow runner passes unnoticed. `playwright.config.ts:12` sets `retries: 1` on CI, so a flaky test shows green; the retry is visible only in the report.
+
+---
+
+### Doc/code drift
+
+Every mismatch found, with the page, what it says, and what the code does. All of them were checked against the code; none is changed here.
+
+1. **`reference/routes.mdx`, row `/`**: loader data lists `events.list`. The home loader uses `events.upcoming` and `records.recent` (`routes/_public/index.tsx:30,41`).
+2. **`reference/routes.mdx`, row `/jogadores/$id`**: lists `clubs.leaderboard` "after the player resolves". The loader calls `clubs.standing` (`jogadores/$id/index.tsx:22`) and also `players.rankingHistory` (`:20`), which the row omits.
+3. **`reference/routes.mdx`, row `/comparar`**: the loader data omits `players.search`, which each picker calls (`comparar.tsx:54`).
+4. **`reference/routes.mdx`, `/sitemap.xml` row**: "Static pages, active players, published posts, announcements". `lib/sitemap.ts:42-46` also lists tournaments and clubs.
+5. **`reference/procedures.mdx`**: `clubs.standing` and `records.monthHighlight` are public procedures with a 300 s entry in `PROCEDURE_CACHE_POLICY` and have no row.
+6. **`reference/database.mdx`, Indexes**: lists `players` indexes on `sex` and on "each rating". Migration `0052` dropped `players_sex_idx`, `players_classic_idx` and `players_blitz_idx`; only `players_rapid_idx` remains. The list also lacks the indexes added by `0051`: `cup_players (player_id)`, `cup_players (cup_group_id)` and `tv_sergipe (player_id)`.
+7. **`operations/local-development.mdx:88` and `architecture/rendering-and-caching.mdx:28`**: `check:ssr` "renders 22 routes". It verifies 42.
+8. **`reference/public-api.mdx`, last paragraph**: "update … both languages in `openapi.ts`". The file has a single English text table (`const t`).
+9. **`reference/public-api.mdx` and `http/openapi.ts`**: the spec's `404` response declares only `Access-Control-Allow-Origin`; the handler also sends `Cache-Control: public, max-age=300` (`public-api.ts:102` and `:121`), and the page says the `404` is cached. The spec does not describe the `OPTIONS` `204` either.
+10. **`AGENTS.md:65`, `architecture/code-layout.mdx:65`, `reference/recipes.mdx:37`**: `lib/admin-forms.ts`. The file is `lib/admin-forms.tsx`.
+11. **`operations/runbook.mdx`, "Deploy Smoke Test"**: says the test covers media delivery. `bun run deploy` runs it without `MEDIA_SMOKE_URL`, so the script prints "Skipping media check". The "Deploy verification and alerts" section further down says media is checked only when the variable is set; the two paragraphs disagree.
+12. **`operations/runbook.mdx`, "Gamification release (one time)" and "Results and categories release (one time)" (lines 88–166)**: one-off steps for migrations 0028–0034 and 0045–0049, including production counts "of 2026-10-25", sit among standing procedures. They describe past deploys, not the current process.
+13. **`.github/workflows/production-health.yml:5`**: the header says the alert covers "failed cron cleanups". The cleanup Worker was removed (ADR 0005, migration `0027`), and `alchemy.run.ts` declares no cron trigger.
+14. **`CONTRIBUTING.md`**: "Run the repository gates" lists `test`, `check-types`, `lint` and `build`. CI also runs `check:runtime`, `check:bundle`, `check:seo`, `check:routes`, `check:ssr`, the migration check, `bun audit` and `test:e2e` (the full list is in `local-development.mdx`).
+15. **`IMPLEMENTATION.md`, task 1.4**: "about 500 files differ today". `oxfmt --check` reports 619 of 958.
+16. **Earlier in this file, Phase 1 "Checked and found sound"**: "51 SQL files match 51 journal entries". There are now 53 of each (`0051`, `0052`). The statement was true when written, so it is left as is.
+
+### Checked and found sound
+
+- **CI coverage**: `quality.yml` runs the runtime-pin check, shell syntax checks, the CSV script's Python test, `bun audit`, the migration regeneration (see P4-M4 for its gap), tests, types, lint, build, bundle budgets, prerendered SEO, route-tree and SSR checks, and the Playwright suite with axe, uploading traces on failure. It has a timeout and cancels superseded runs.
+- **Pins and drift guards**: `check-runtime-pins.mjs` ties Alchemy, Miniflare, workerd and the compatibility date together, and runs in CI. `migrations.integration.test.ts` guards the foreign-key rule for table rebuilds. `static-headers.test.ts` and `robots.test.ts` pin the static files to the code.
+- **Backup and restore scripts**: database name validated against a pattern, `umask 077`, `PRAGMA integrity_check` and `foreign_key_check`, CSV export neutralizes spreadsheet formulas, retention runs only after a successful export, and the drill restores into Miniflare and loads real pages. The drill token is read-only.
+- **Smoke test and health check**: the smoke test checks the 401 guard, the 404 status, a public tRPC response and `no-store` on API responses. The hourly health query reports counts only and has thresholds with a minimum request count.
+- **Tests**: 530 tests across 86 files with real assertions and failure paths (`NOT_FOUND`, `CONFLICT`, `BAD_REQUEST`, 429, origin and CORS) for the routers, the public API against its OpenAPI document, uploads, rating arithmetic and the cache policy. E2E runs against the built Worker with seeded data.
+- **Docs accuracy**: cache TTLs, rate limits (`security.ts`, `alchemy.run.ts` and ADR 0005 agree), session lifetime, the `/api/v1` contract and its field lists, the commands, the environment variables and every internal link match the code.

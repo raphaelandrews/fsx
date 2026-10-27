@@ -46,6 +46,7 @@ const checks: Check[] = [
   { path: "/comunicados/1", status: 200, maxKB: 55, canonical: `${SITE_URL}/comunicados/1` },
   { path: "/comunicados/999999", status: 404, maxKB: 60 },
   { path: "/titulados", status: 200, maxKB: 195 },
+  { path: "/bullet", status: 200, maxKB: 100, title: "Sergipano Bullet" },
   { path: "/atualizar-cadastro", status: 200, maxKB: 70 },
   { path: "/membros", status: 200, maxKB: 145 },
   { path: "/circuitos", status: 200, maxKB: 225 },

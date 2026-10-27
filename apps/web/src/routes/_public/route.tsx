@@ -3,6 +3,7 @@ import { Outlet, createFileRoute } from "@tanstack/react-router";
 
 import { Header } from "@/components/header/header";
 import { Footer } from "@/components/footer";
+import { MAIN_ID, SkipLink } from "@/components/skip-link";
 import { ErrorFallback, NotFound } from "@/components/not-found";
 
 export const Route = createFileRoute("/_public")({
@@ -19,8 +20,9 @@ export const Route = createFileRoute("/_public")({
 function PublicChrome({ children }: { children: ReactNode }) {
   return (
     <>
+      <SkipLink />
       <Header />
-      <main className="container max-w-5xl! min-h-dvh pb-16">{children}</main>
+      <main id={MAIN_ID} tabIndex={-1} className="container max-w-5xl! min-h-dvh pb-16 outline-none">{children}</main>
       <Footer />
     </>
   );

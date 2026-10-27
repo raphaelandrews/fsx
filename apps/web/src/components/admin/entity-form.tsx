@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 import type { LinkProps } from "@tanstack/react-router";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 
 import type { MediaKind } from "@fsx/api/media-kinds";
 import { Button } from "@fsx/ui/components/button";
@@ -139,8 +139,11 @@ export function EntityForm({
 }: EntityFormProps) {
   const form = useValuesForm(defaultValues, onSubmit);
 
+  const dirty = useStore(form.store, (state) => state.isDirty);
+
   return (
     <AdminForm
+      dirty={dirty}
       error={error}
       onSubmit={() => form.handleSubmit()}
       aside={sections

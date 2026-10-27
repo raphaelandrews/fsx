@@ -131,6 +131,7 @@ export function CircuitFinalPodiums({ circuit }: { circuit: Circuit }) {
               </Button>
               <ConfirmDeleteButton
                 inline
+                size="default"
                 label="Reopen season"
                 confirmLabel="Reopen"
                 title="Reopen this season?"
