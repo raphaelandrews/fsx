@@ -72,3 +72,14 @@ describe("club standings", () => {
     await expect(caller.clubs.byId({ id: 999_999 })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });
+
+describe("clubs.standing", () => {
+  test("returns one club's standing, or null for a club without members or that does not exist", async () => {
+    const created = await caller.clubs.create({ name: "Clube Posição" });
+    expect(await caller.clubs.standing({ id: created[0]!.id })).toBeNull();
+    await member(created[0]!.id, "Sócio da Posição", 1800);
+    const standing = await caller.clubs.standing({ id: created[0]!.id });
+    expect(standing).toMatchObject({ club: { id: created[0]!.id, name: "Clube Posição" }, members: 1 });
+    expect(await caller.clubs.standing({ id: 999_999 })).toBeNull();
+  });
+});

@@ -9,8 +9,7 @@
   },
   "dependencies": {
     "@fsx/db": "workspace:*",
-    "dotenv": "catalog:",
-    "zod": "catalog:"
+    "dotenv": "catalog:"
   },
   "devDependencies": {
     "@fsx/config": "workspace:*",

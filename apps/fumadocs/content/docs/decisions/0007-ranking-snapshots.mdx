@@ -24,8 +24,7 @@ a whole import.
   active players, all in one batch with a shared `snapshot_at`. Equal ratings
   share a position.
 - Corrections to rating history do not take snapshots; the next import does.
-- Each import also deletes snapshots older than three years (`SNAPSHOT_RETENTION_YEARS`). The archive
-  groups snapshots by the federation's calendar day (America/Maceio), not the UTC day.
+- Each import also deletes snapshots older than three years (`SNAPSHOT_RETENTION_YEARS`).
 - Players the inactivity rule switches off are written to the change log under the `system` actor.
 
 ## Consequences
@@ -71,13 +70,9 @@ reports it.
 
 ## Update 2026-10-14: user-facing history
 
-- Snapshots now feed two public views: the player's position chart
-  (`players.rankingHistory`, the latest 60 per format) and the rating list
-  archive (`ratings.lists`, `ratings.snapshot`).
-- Imports on the same day collapse to the last snapshot of that day, so the
-  archive has one list per day. Days are in UTC, because `snapshot_at` is.
-- The list of days walks the `(rating_type, snapshot_at)` index with a recursive
-  query that reads one row per import, not one per ranked player.
-- The stored history is now product data. Snapshots are never pruned; if the
-  table grows past what the archive needs, thin out old days rather than
-  deleting the newest.
+- Snapshots feed the player's position chart (`players.rankingHistory`, the latest 60 per format), shown
+  as federation calendar days (America/Maceio), and the movement arrows.
+- A public archive of whole rating lists (`ratings.lists`, `ratings.snapshot`) existed briefly; its pages were
+  removed from the site and the two procedures were deleted with them. Restoring it needs the routes and
+  the procedures back (see the git history before the removal).
+- Snapshots older than three years are pruned by the import that writes the next one.

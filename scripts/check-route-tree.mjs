@@ -44,7 +44,6 @@ const SITEMAP_EXCLUDED = new Map([
   ["/$", "catch-all not-found page"],
   ["/swiss-manager", "noindex export tool, reached by direct link"],
   ["/atualizar-cadastro", "noindex utility form, reached from the header"],
-  ["/ratings/lista/$data", "archived rating lists, noindex and reached from the archive index"],
   ["/comparar", "noindex: every pair of players is user-generated, linked from each profile"],
   ["/recordes", "permanent redirect to /estatisticas"],
   ["/jogadores/$id/temporada/$ano", "season recaps, linked from each profile, which is the page to index"],

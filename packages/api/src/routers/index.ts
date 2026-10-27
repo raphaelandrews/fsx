@@ -10,7 +10,7 @@ import { deletionRouter } from "./deletion";
 import { eventsRouter } from "./events";
 import { historyRouter } from "./history";
 import { imagesRouter } from "./images";
-import { insigniaRouter } from "./insignias";
+import { insigniasRouter } from "./insignias";
 import { linkGroupsRouter } from "./link-groups";
 import { locationsRouter } from "./locations";
 import { normsRouter } from "./norms";
@@ -21,7 +21,6 @@ import { playersToRolesRouter } from "./players-to-roles";
 import { playersToTitlesRouter } from "./players-to-titles";
 import { playersTournamentRouter } from "./players-tournament";
 import { postsRouter } from "./posts";
-import { ratingsRouter } from "./ratings";
 import { recordsRouter } from "./records";
 import { rolesRouter } from "./roles";
 import { scoringSchemesRouter } from "./scoring-schemes";
@@ -46,7 +45,7 @@ export const appRouter = router({
   events: eventsRouter,
   history: historyRouter,
   images: imagesRouter,
-  insignias: insigniaRouter,
+  insignias: insigniasRouter,
   links: linkGroupsRouter,
   locations: locationsRouter,
   norms: normsRouter,
@@ -57,7 +56,6 @@ export const appRouter = router({
   playersToTitles: playersToTitlesRouter,
   playersTournament: playersTournamentRouter,
   posts: postsRouter,
-  ratings: ratingsRouter,
   records: recordsRouter,
   roles: rolesRouter,
   scoringSchemes: scoringSchemesRouter,

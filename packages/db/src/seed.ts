@@ -114,7 +114,7 @@ async function seed() {
       .onConflictDoNothing();
 
     console.log("  → players");
-    const playerSeed = [
+    const playerSeed: Array<Omit<schema.NewPlayer, "normalizedName">> = [
         {
           name: "Andrews Souza",
           verified: true,

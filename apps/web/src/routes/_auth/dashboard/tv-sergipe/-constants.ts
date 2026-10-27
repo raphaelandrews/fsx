@@ -12,16 +12,6 @@ export const MODALITY_OPTIONS = [
 
 export const TEAM_NAMES = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] as const;
 
-export const SEX_LABELS: Record<"male" | "female", string> = {
-  male: "Male",
-  female: "Female",
-};
-
-export const MODALITY_LABELS: Record<"individual" | "team", string> = {
-  individual: "Individual",
-  team: "Team",
-};
-
 export const PLACE_POINTS: Record<number, number> = {
   1: 10,
   2: 8,

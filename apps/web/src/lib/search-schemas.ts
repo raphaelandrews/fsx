@@ -79,11 +79,6 @@ export const calendarSearchSchema = z.object({
   ver: z.literal("ano").optional().catch(undefined),
 });
 
-export const ratingArchiveSearchSchema = z.object({
-  ritmo: ratingTypeParam,
-  page: pageParam,
-});
-
 const playerIdParam = z.number().int().positive().safe().optional().catch(undefined);
 
 export const compareSearchSchema = z.object({ a: playerIdParam, b: playerIdParam });

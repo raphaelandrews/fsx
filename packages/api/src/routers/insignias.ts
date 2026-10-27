@@ -8,7 +8,7 @@ import { deleteById } from "../crud";
 import { requireMutationRows } from "../errors";
 import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
-export const insigniaRouter = router({
+export const insigniasRouter = router({
   list: publicProcedure.query(({ ctx }) =>
     ctx.db
       .select({ id: insignias.id, name: insignias.name, level: insignias.level })

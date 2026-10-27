@@ -1,6 +1,6 @@
 # Project Context
 
-This project was migrated from Next.js + Supabase + PostgreSQL to Better-T-Stack (TanStack Start, tRPC, Better Auth, SQLite/D1). Architecture decisions and conventions live in the Fumadocs site (`apps/fumadocs/content/docs/architecture`, `reference`, and `decisions`). The `source-project/` directory contains the old codebase as reference.
+This project was migrated from Next.js + Supabase + PostgreSQL to Better-T-Stack (TanStack Start, tRPC, Better Auth, SQLite/D1). Architecture decisions and conventions live in the Fumadocs site (`apps/fumadocs/content/docs/architecture`, `reference`, and `decisions`).
 
 ## Database
 

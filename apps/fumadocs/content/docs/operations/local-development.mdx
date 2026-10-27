@@ -24,6 +24,10 @@ description: Set up, run, seed, and test the FSX project locally.
    - `packages/infra/.env`: `ALCHEMY_PASSWORD`.
 3. `bun run hooks:setup` installs the Git hooks.
 
+`apps/web/.alchemy/local/wrangler.jsonc` and `apps/web/dist/server/wrangler.json` are generated from the
+environment files and list their values, secrets included, as plain variables. Both are gitignored; do not
+share, back up or deploy them, and rotate the shared secrets if one ever leaves your machine.
+
 ## Run
 
 ```bash

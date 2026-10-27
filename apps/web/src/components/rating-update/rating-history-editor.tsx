@@ -9,14 +9,9 @@ import { DataTablePagination } from "@/components/data-table/data-table-paginati
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/lib/trpc";
+import { RATING_LABELS_EN } from "@fsx/api/rating-types";
 
 type RatingType = "blitz" | "rapid" | "classic";
-
-const RATING_TYPE_LABELS: Record<RatingType, string> = {
-  blitz: "Blitz",
-  rapid: "Rapid",
-  classic: "Classic",
-};
 
 interface RatingHistoryEditorProps {
   playerId: number;
@@ -70,7 +65,7 @@ export function RatingHistoryEditor({ playerId, onRatingChange }: RatingHistoryE
       id: "type",
       header: "Type",
       cell: ({ row }) =>
-        RATING_TYPE_LABELS[row.original.ratingType as RatingType] ?? row.original.ratingType,
+        RATING_LABELS_EN[row.original.ratingType] ?? row.original.ratingType,
     },
     {
       id: "before",
@@ -101,7 +96,7 @@ export function RatingHistoryEditor({ playerId, onRatingChange }: RatingHistoryE
       cell: ({ row }) => {
         const result = row.original;
         const name = result.tournament?.name ?? "this tournament";
-        const type = RATING_TYPE_LABELS[result.ratingType as RatingType] ?? result.ratingType;
+        const type = RATING_LABELS_EN[result.ratingType] ?? result.ratingType;
         return (
           <DataTableRowActions
             id={result.id}

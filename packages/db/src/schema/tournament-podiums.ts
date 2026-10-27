@@ -1,4 +1,3 @@
-import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { check, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
 
@@ -36,6 +35,5 @@ export const tournamentPodiumsRelations = relations(tournamentPodiums, ({ one })
 	tournament: one(tournaments, { fields: [tournamentPodiums.tournamentId], references: [tournaments.id] }),
 }))
 
-export const insertTournamentPodiumSchema = createInsertSchema(tournamentPodiums)
 export type TournamentPodium = typeof tournamentPodiums.$inferSelect
 export type NewTournamentPodium = typeof tournamentPodiums.$inferInsert

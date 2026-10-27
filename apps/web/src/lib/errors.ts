@@ -41,6 +41,16 @@ export function getErrorCode(error: unknown): string | undefined {
   return (error as AppError | undefined)?.data?.code;
 }
 
+/** The message a procedure wrote for the person, when it wrote one (4xx only). */
+export function getServerMessage(error: unknown): string | undefined {
+  return (error as AppError | undefined)?.data?.userMessage ?? undefined;
+}
+
+/** Every field the server rejected with all its messages, keyed by the input's field name. */
+export function getFieldErrors(error: unknown): Record<string, string[] | undefined> {
+  return (error as AppError | undefined)?.data?.zodError?.fieldErrors ?? {};
+}
+
 export function getUserErrorMessage(error: unknown, fallback?: string, locale: Locale = "pt"): string {
   return USER_MESSAGES[locale][getErrorCode(error) ?? ""] ?? fallback ?? DEFAULT_FALLBACK[locale];
 }
@@ -59,9 +69,7 @@ export function getFieldError(error: unknown, field: string): string | undefined
 
 /** Every field the server rejected, with its first message and a readable name ("birthDate" → "Birth date"). */
 export function getFieldErrorList(error: unknown): { field: string; message: string }[] {
-  const fieldErrors = (error as AppError | undefined)?.data?.zodError?.fieldErrors;
-  if (!fieldErrors || typeof fieldErrors !== "object") return [];
-  return Object.entries(fieldErrors as Record<string, unknown>).flatMap(([field, messages]) => {
+  return Object.entries(getFieldErrors(error)).flatMap(([field, messages]) => {
     const message = Array.isArray(messages) ? messages[0] : undefined;
     if (typeof message !== "string") return [];
     const words = field.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase();
@@ -81,7 +89,7 @@ export function fieldError(field: FieldLike, mutationError: unknown): string | u
 
 /** The server's explanation of a rejected admin request, else the generic English message. */
 export function getAdminErrorMessage(error: unknown, fallback: string): string {
-  return (error as AppError | undefined)?.data?.userMessage ?? getUserErrorMessage(error, fallback, "en");
+  return getServerMessage(error) ?? getUserErrorMessage(error, fallback, "en");
 }
 
 /** Admin mutation failure toast; offers a reload when the data changed underneath. */

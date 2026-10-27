@@ -1,4 +1,3 @@
-import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
@@ -37,6 +36,5 @@ export const circuitPhasesRelations = relations(circuitPhases, ({ one, many }) =
 	circuitResults: many(circuitResults),
 }))
 
-export const insertCircuitPhaseSchema = createInsertSchema(circuitPhases)
 export type CircuitPhase = typeof circuitPhases.$inferSelect
 export type NewCircuitPhase = typeof circuitPhases.$inferInsert

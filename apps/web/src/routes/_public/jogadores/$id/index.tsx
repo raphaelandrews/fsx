@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 
 import { PlayerProfile } from "@/components/player/player-profile";
 import { breadcrumbJsonLd, buildSeo, personJsonLd, withBrand } from "@/lib/seo";
@@ -18,8 +18,8 @@ export const Route = createFileRoute("/_public/jogadores/$id/")({
       context.queryClient.ensureQueryData(context.trpc.announcements.byPlayer.queryOptions({ playerId: params.id })),
       orNotFound(context.queryClient.ensureQueryData(context.trpc.players.ranking.queryOptions({ id: params.id }))),
       context.queryClient.ensureQueryData(context.trpc.players.rankingHistory.queryOptions({ id: params.id })),
-      // After the player resolves, so a 404 page does not carry every club.
-      player.then(() => context.queryClient.ensureQueryData(context.trpc.clubs.leaderboard.queryOptions())),
+      // After the player resolves: a 404 has no club, and the club decides which standing to fetch.
+      player.then((found) => (found.club ? context.queryClient.ensureQueryData(context.trpc.clubs.standing.queryOptions({ id: found.club.id })) : null)),
     ]);
     return player;
   },
@@ -59,8 +59,8 @@ function RouteComponent() {
   const { data: circuitSeasons } = useSuspenseQuery(trpc.players.circuitSeasons.queryOptions({ id }));
   const { data: announcements } = useSuspenseQuery(trpc.announcements.byPlayer.queryOptions({ playerId: id }));
   const { data: ranking } = useSuspenseQuery(trpc.players.ranking.queryOptions({ id }));
-  const { data: clubs } = useSuspenseQuery(trpc.clubs.leaderboard.queryOptions());
-  const clubStanding = clubs.find((standing) => standing.club.id === data.club?.id) ?? null;
+  const clubId = data.club?.id;
+  const { data: clubStanding = null } = useQuery({ ...trpc.clubs.standing.queryOptions({ id: clubId ?? 1 }), enabled: clubId !== undefined });
 
   return (
     <div className="mx-auto max-w-[720px]">

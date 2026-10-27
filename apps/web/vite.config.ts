@@ -28,6 +28,18 @@ export default defineConfig({
     alias: cloudflareWorkersAlias,
   },
   plugins: [
+    // SheetJS is only imported dynamically in the browser (spreadsheet import and export). The server build
+    // would still bundle its 820 KB chunk into the Worker, so it gets an empty module instead.
+    {
+      name: "fsx:xlsx-client-only",
+      enforce: "pre",
+      resolveId(id) {
+        if (id === "xlsx" && this.environment?.name !== "client") return "\0xlsx-client-only";
+      },
+      load(id) {
+        if (id === "\0xlsx-client-only") return "export {};";
+      },
+    },
     tailwindcss(),
     // Only truly static pages are prerendered at build time (instant TTFB, never
     // stale). Data-driven pages render on the server per request so they are

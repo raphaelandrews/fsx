@@ -4,6 +4,7 @@ import { Chart } from "@tanstack/react-charts";
 import { scaleBand, scaleLinear } from "d3-scale";
 
 import { formatShare } from "@/lib/format-share";
+import { RATING_LABELS_PT } from "@fsx/api/rating-types";
 
 type RatingThreshold = {
   threshold: number;
@@ -20,9 +21,9 @@ type TournamentTier = {
 const number = new Intl.NumberFormat("pt-BR");
 
 const FORMAT_SERIES = [
-  { id: "classic", label: "Clássico", color: "var(--chart-1)", swatch: "bg-chart-1" },
-  { id: "rapid", label: "Rápido", color: "var(--chart-2)", swatch: "bg-chart-2" },
-  { id: "blitz", label: "Blitz", color: "var(--chart-3)", swatch: "bg-chart-3" },
+  { id: "classic", label: RATING_LABELS_PT.classic, color: "var(--chart-1)", swatch: "bg-chart-1" },
+  { id: "rapid", label: RATING_LABELS_PT.rapid, color: "var(--chart-2)", swatch: "bg-chart-2" },
+  { id: "blitz", label: RATING_LABELS_PT.blitz, color: "var(--chart-3)", swatch: "bg-chart-3" },
 ] as const;
 
 const TIER_ORDER = ["S", "A", "B", "school"] as const;

@@ -15,6 +15,7 @@ import { SearchableSelect } from "@/components/form/searchable-select";
 import { fieldError } from "@/lib/errors";
 import { integerError, maxLengthError, requiredText, submitThenChange, TEXT_MAX } from "@/lib/field-rules";
 import { useTRPC } from "@/lib/trpc";
+import { RATING_LABELS_EN } from "@fsx/api/rating-types";
 
 export type RatingType = "classic" | "rapid" | "blitz";
 const RATING_TYPES: RatingType[] = ["classic", "rapid", "blitz"];
@@ -52,12 +53,6 @@ interface PlayerFormProps {
   /** Lets the page update a rating after a rating-history correction without marking it edited. */
   setRatingRef?: MutableRefObject<((ratingType: RatingType, rating: number) => void) | null>;
 }
-
-const RATING_LABELS: Record<RatingType, string> = {
-  classic: "Classic",
-  rapid: "Rapid",
-  blitz: "Blitz",
-};
 
 export function PlayerForm({
   defaultValues,
@@ -315,12 +310,12 @@ export function PlayerForm({
               key={ratingType}
               name={ratingType}
               validators={{
-                onDynamic: ({ value }) => integerError(RATING_LABELS[ratingType], value, 0, 4000),
+                onDynamic: ({ value }) => integerError(RATING_LABELS_EN[ratingType], value, 0, 4000),
               }}
             >
               {(f) => (
                 <FormField
-                  label={RATING_LABELS[ratingType]}
+                  label={RATING_LABELS_EN[ratingType]}
                   htmlFor={`player-${ratingType}`}
                   required
                   error={fieldError(f, error)}

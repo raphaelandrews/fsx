@@ -40,7 +40,7 @@ export function PlayerHero({
   return (
     <header className="flex flex-col items-center gap-3 px-4 pt-12 pb-4 text-center">
       <Avatar className="size-24 after:border-0 after:mix-blend-normal">
-        <AvatarImage alt={player.name} {...avatarImage(player.imageUrl, 96)} />
+        <AvatarImage alt={player.name} fetchPriority="high" loading="eager" {...avatarImage(player.imageUrl, 96)} />
         <AvatarFallback className={avatarGradient(player.id)} />
       </Avatar>
 

@@ -8,6 +8,7 @@ import { avatarGradientFor } from "@/components/avatar-gradient";
 
 import { usePhaseLabel } from "./phase-labels";
 import type { ClubRow, PlayerRow } from "./types";
+import { avatarImage } from "@/lib/media-image";
 
 function indexColumn<T>(): ColumnDef<T> {
   return {
@@ -131,7 +132,7 @@ export function buildClubColumns(phases: string[]): ColumnDef<ClubRow>[] {
                   loading="lazy"
                   width={20}
                   className="aspect-square size-full object-contain"
-                  src={club.clubLogo}
+                  {...avatarImage(club.clubLogo, 20)}
                 />
               ) : (
                 <span className={cn("relative flex shrink-0 h-5 w-5 overflow-hidden rounded", avatarGradientFor(club.clubName))} />

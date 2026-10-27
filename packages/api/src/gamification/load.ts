@@ -13,7 +13,6 @@ import { tournamentPodiums } from "@fsx/db/schema/tournament-podiums";
 import type { CompetitionTier } from "../circuit-types";
 import type { Context } from "../context";
 import { federationYear } from "../lib/dates";
-import type { RatingType } from "../rating-types";
 import { achievementsOf, upcomingOf } from "./badges";
 import { PLAYER_RESULTS_LIMIT, STARTING_RATING } from "./constants";
 import { playerLevel, type LevelInput } from "./level";
@@ -27,7 +26,7 @@ type CompetitionRow = {
   id: number;
   name: string;
   date: string | null;
-  tier: string;
+  tier: CompetitionTier;
   championshipId: number | null;
   championship: { name: string } | null;
 };
@@ -36,7 +35,7 @@ const competition = (row: CompetitionRow): Competition => ({
   id: row.id,
   name: row.name,
   date: row.date,
-  tier: row.tier as CompetitionTier,
+  tier: row.tier,
   championshipId: row.championshipId,
   championshipName: row.championship?.name ?? null,
 });
@@ -166,7 +165,7 @@ function careers(rows: CareerRows): Map<number, Career> {
     if (!career || !tournament) continue;
     career.input.results.push({
       id: row.id,
-      ratingType: row.ratingType as RatingType,
+      ratingType: row.ratingType,
       oldRating: row.oldRating,
       variation: row.variation,
       tournament,

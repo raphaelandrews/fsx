@@ -8,7 +8,20 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 
 import { isAllowedGithubAccount, resolveAdminRule } from "./owner";
 
+// Building Better Auth costs about 1.5 ms of CPU and everything it reads is fixed for the life of an isolate,
+// so one instance per D1 binding serves every request (a test file gets its own binding, and so its own instance).
+const instances = new WeakMap<object, ReturnType<typeof buildAuth>>();
+
 export function createAuth() {
+  let auth = instances.get(env.DB);
+  if (!auth) {
+    auth = buildAuth();
+    instances.set(env.DB, auth);
+  }
+  return auth;
+}
+
+function buildAuth() {
   const db = createDb(env.DB);
   const ownerRule = resolveAdminRule({
     ownerGithubId: env.GITHUB_USER_ID,
@@ -30,6 +43,9 @@ export function createAuth() {
     session: {
       expiresIn: 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
+      // A signed cookie answers most session checks without a D1 read; signing out clears it, and a session
+      // revoked in the database stays valid for at most this long.
+      cookieCache: { enabled: true, maxAge: 60 * 5 },
     },
     socialProviders: {
       github: {

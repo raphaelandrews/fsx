@@ -1,9 +1,6 @@
-import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
+import { Outlet, createFileRoute, lazyRouteComponent, redirect } from "@tanstack/react-router";
 
 import { AdminShell } from "@/components/admin/admin-shell";
-import { ErrorFallback } from "@/components/not-found";
-import { RoutePending } from "@/components/skeletons/route-pending";
-import { getUser } from "@/server/get-user";
 import { buildSeo, withBrand } from "@/lib/seo";
 
 export const Route = createFileRoute("/_auth")({
@@ -16,15 +13,12 @@ export const Route = createFileRoute("/_auth")({
       canonical: false,
     }),
   component: AuthLayout,
-  errorComponent: ({ error }) => (
-    <AdminShell>
-      <ErrorFallback error={error} locale="en" homeHref="/dashboard" homeLabel="Back to dashboard" />
-    </AdminShell>
-  ),
+  errorComponent: lazyRouteComponent(() => import("@/components/admin/auth-boundary"), "AuthError"),
   // Preserve the admin chrome while the session check / route loaders run, so
   // entering the panel doesn't drop to a bare full-page spinner.
-  pendingComponent: AuthLayoutPending,
+  pendingComponent: lazyRouteComponent(() => import("@/components/admin/auth-boundary"), "AuthPending"),
   beforeLoad: async () => {
+    const { getUser } = await import("@/server/get-user");
     const session = await getUser();
     if (!session) {
       throw redirect({ to: "/login" });
@@ -38,14 +32,6 @@ function AuthLayout() {
   return (
     <AdminShell user={session.user}>
       <Outlet />
-    </AdminShell>
-  );
-}
-
-function AuthLayoutPending() {
-  return (
-    <AdminShell>
-      <RoutePending />
     </AdminShell>
   );
 }

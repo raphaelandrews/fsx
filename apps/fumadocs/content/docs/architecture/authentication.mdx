@@ -44,7 +44,6 @@ The rule is enforced twice:
 | Level | Who | Used by |
 | ----- | --- | ------- |
 | `publicProcedure` | anyone | public reads; may be edge-cached |
-| `protectedProcedure` | any signed-in user | currently unused |
 | `adminProcedure` | the owner | every mutation and every read of private data |
 
 `_auth` routes (`/dashboard`, `/rating-update`) only check that a session
@@ -59,5 +58,5 @@ unpublished posts (`posts.listAdmin`, `posts.forEdit`), and operational status
 
 Multiple editors would need roles stored per user, a `requireRole` middleware
 replacing `requireAdmin`, and an audit log of who changed what. Until then, keep
-every write behind `adminProcedure` and do not introduce `protectedProcedure`
-writes: any GitHub user who manages to sign in must not be able to change data.
+every write behind `adminProcedure` and do not add a procedure for ordinary
+signed-in users: any GitHub user who manages to sign in must not be able to change data.

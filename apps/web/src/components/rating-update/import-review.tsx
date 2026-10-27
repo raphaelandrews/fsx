@@ -6,6 +6,7 @@ import { cn } from "@fsx/ui/lib/utils";
 import { InlineAlert } from "@/components/admin/inline-alert";
 import type { ImportAction, PlanRow, PlanSummary } from "@/lib/rating-import";
 import type { PodiumDraft, TournamentDraft } from "@/lib/tournament-import";
+import { RATING_LABELS_EN } from "@fsx/api/rating-types";
 
 const PAGE = 50;
 const ACTION_LABELS: Record<ImportAction, string> = {
@@ -14,7 +15,6 @@ const ACTION_LABELS: Record<ImportAction, string> = {
   update: "Profile update",
   create: "New player",
 };
-const TYPE_LABELS = { classic: "Classic", rapid: "Rapid", blitz: "Blitz" } as const;
 const signed = (value: number) => (value > 0 ? `+${value}` : String(value));
 
 function Tile({ label, value, tone }: { label: string; value: number; tone?: "bad" }) {
@@ -32,7 +32,7 @@ function details(entry: PlanRow, draft: TournamentDraft | null) {
   if (!tournament) return <span className="text-muted-foreground">—</span>;
   return (
     <span className="tabular-nums">
-      {draft ? "New tournament" : `Tournament ${tournament.tournamentId}`} · {TYPE_LABELS[tournament.ratingType]}{" "}
+      {draft ? "New tournament" : `Tournament ${tournament.tournamentId}`} · {RATING_LABELS_EN[tournament.ratingType]}{" "}
       <strong className={cn("font-semibold", tournament.variation >= 0 ? "text-success" : "text-destructive")}>
         {signed(tournament.variation)}
       </strong>
@@ -85,7 +85,7 @@ export function ImportReview({
             New tournament: {draft.name}
           </h3>
           <p className="text-muted-foreground text-sm">
-            {TYPE_LABELS[draft.ratingType]} · tier {draft.tier} · {draft.date ? draft.date.split("-").reverse().join("/") : "no date"}
+            {RATING_LABELS_EN[draft.ratingType]} · tier {draft.tier} · {draft.date ? draft.date.split("-").reverse().join("/") : "no date"}
             {draft.championshipId ? ` · championship ${draft.championshipId}` : ""}. It is created first; then the results, then the
             podiums.
           </p>
@@ -103,7 +103,7 @@ export function ImportReview({
         <p className="text-muted-foreground text-sm">
           Touches {summary.tournamentIds.length === 1 ? "tournament" : "tournaments"}{" "}
           <span className="font-medium text-foreground tabular-nums">{summary.tournamentIds.join(", ")}</span> ·{" "}
-          {summary.ratingTypes.map((type) => TYPE_LABELS[type]).join(", ")}. Check that these are the tournaments you expect.
+          {summary.ratingTypes.map((type) => RATING_LABELS_EN[type]).join(", ")}. Check that these are the tournaments you expect.
         </p>
       ) : null}
 

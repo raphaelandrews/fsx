@@ -1,18 +1,8 @@
 import type { CompetitionTier } from "@fsx/api/circuit-types";
 import type { RatingType } from "@fsx/api/rating-types";
 
-export const TIER_LABELS: Record<CompetitionTier, string> = {
-  S: "Tier S",
-  A: "Tier A",
-  B: "Tier B",
-  school: "Escolar",
-};
-
-export const RHYTHM_LABELS: Record<RatingType, string> = {
-  classic: "Clássico",
-  rapid: "Rápido",
-  blitz: "Blitz",
-};
+export { COMPETITION_TIER_LABELS_PT as TIER_LABELS } from "@fsx/api/circuit-types";
+export { RATING_LABELS_PT as RHYTHM_LABELS } from "@fsx/api/rating-types";
 
 export type TournamentSearch = {
   page: number;

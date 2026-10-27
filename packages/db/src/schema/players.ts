@@ -4,6 +4,7 @@ import { check, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-cor
 
 import { announcements, circuitFinalPodiums, rankingSnapshots, circuitResults, cupPlayers, clubs, defendingChampions, locations, playersToRoles, playersToTournaments, playersToNorms, tournamentPodiums, cupMatches, cupGames, playersToInsignias, tvSergipe } from "./index"
 import { playersToTitles } from "./players-to-titles"
+import { SEXES } from "../competition"
 
 export const players = sqliteTable(
 	"players",
@@ -25,7 +26,7 @@ export const players = sqliteTable(
 		verified: integer("verified", { mode: "boolean" }).default(false).notNull(),
 		// Only the year is stored: age groups and youth titles use nothing finer, and many players are children.
 		birthYear: integer("birth_year"),
-		sex: text("sex").notNull().default("male"),
+		sex: text("sex", { enum: SEXES }).notNull().default("male"),
 		clubId: integer("club_id").references(() => clubs.id),
 		locationId: integer("location_id").references(() => locations.id),
 	},

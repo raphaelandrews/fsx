@@ -14,6 +14,7 @@ import { ListSkeleton } from "@/components/skeletons/list-skeleton";
 import { getGradient } from "@/lib/gradients";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
 import { useTRPC } from "@/lib/trpc";
+import { avatarImage } from "@/lib/media-image";
 
 export const Route = createFileRoute("/_public/membros")({
   head: () =>
@@ -170,7 +171,7 @@ function MemberCard({ member }: { member: Member }) {
   return (
     <li className="flex items-center gap-3 p-3">
       <Avatar className="size-11">
-        <AvatarImage alt="" src={member.imageUrl ?? undefined} />
+        <AvatarImage alt="" {...avatarImage(member.imageUrl, 44)} />
         <AvatarFallback style={gradient}>
           {initials ? <span className="font-bold text-foreground text-xs uppercase">{initials}</span> : null}
         </AvatarFallback>

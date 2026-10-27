@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import type { RatingType } from "@fsx/api/rating-types";
+import { type RatingType, RATING_LABELS_EN } from "@fsx/api/rating-types";
 
 import { useInvalidateAdmin } from "@/lib/admin-mutations";
 import { getUserErrorMessage } from "@/lib/errors";
@@ -17,7 +17,6 @@ export type ImportPhase = "upload" | "review" | "importing" | "done";
 
 const STORAGE_KEY = "rating-update-import-v2";
 const STORED_RESULTS_LIMIT = 1_000;
-const TYPE_LABELS: Record<RatingType, string> = { classic: "Classic", rapid: "Rapid", blitz: "Blitz" };
 const signed = (value: number) => (value > 0 ? `+${value}` : String(value));
 
 function readStored(): { fileName: string; results: ImportResult[] } | null {
@@ -68,11 +67,8 @@ function writeResume(value: ResumeState | null) {
   }
 }
 
-/**
- * Drives a rating import in three steps: read and plan the file without writing
- * anything, apply the planned rows one at a time, then report. The plan stays in
- * memory so failed or unrun rows can be retried without redoing the rest.
- */
+// Failed or unrun rows can be retried. The tournament, created players and finished rows are saved per file,
+// so a reload resumes the same import.
 export function useRatingImport() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -248,7 +244,7 @@ export function useRatingImport() {
           const { tournamentId, variation, ratingType } = row.tournament;
           const [linked] = await link.mutateAsync({ playerId, tournamentId, variation, ratingType });
           ratedTypes.current.add(ratingType);
-          const change = `${TYPE_LABELS[ratingType]} ${signed(variation)}${linked ? ` (${linked.oldRating} → ${linked.oldRating + variation})` : ""}`;
+          const change = `${RATING_LABELS_EN[ratingType]} ${signed(variation)}${linked ? ` (${linked.oldRating} → ${linked.oldRating + variation})` : ""}`;
           let detail: string | undefined;
           if (entry.action === "rate" && (row.name || row.birthYear || row.sex || row.clubId || row.locationId)) {
             try {

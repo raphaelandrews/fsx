@@ -1,23 +1,25 @@
+import { byteLength, charLength, LONG_TEXT_MAX, LONG_TEXT_MAX_BYTES, TEXT_MAX, URL_MAX } from "@fsx/api/field-limits";
 import { revalidateLogic } from "@tanstack/react-form";
 
 /** Validate on submit, then on every change, so a fixed field stops showing its error. */
 export const submitThenChange = revalidateLogic({ mode: "submit", modeAfterSubmission: "change" });
 
-export const TEXT_MAX = 160;
-export const URL_MAX = 2_048;
-export const LONG_TEXT_MAX = 500_000;
+export { LONG_TEXT_MAX, TEXT_MAX, URL_MAX };
 
 export function requiredText(label: string, max = TEXT_MAX) {
   return ({ value }: { value: string }) => {
     const trimmed = value.trim();
     if (!trimmed) return `${label} is required`;
-    if (trimmed.length > max) return `${label} must be at most ${max} characters`;
+    if (charLength(trimmed) > max) return `${label} must be at most ${max} characters`;
     return undefined;
   };
 }
 
 export function maxLengthError(label: string, value: string, max: number) {
-  return value.trim().length > max ? `${label} must be at most ${max} characters` : undefined;
+  const trimmed = value.trim();
+  if (charLength(trimmed) > max) return `${label} must be at most ${max} characters`;
+  if (max >= LONG_TEXT_MAX && byteLength(trimmed) > LONG_TEXT_MAX_BYTES) return `${label} is too large`;
+  return undefined;
 }
 
 export function httpUrlError(label: string, value: string) {

@@ -23,14 +23,25 @@ function Avatar({
   )
 }
 
-function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
+// A plain <img> over the fallback rather than Base UI's Image part: that one renders nothing until
+// JavaScript has preloaded the file, so the photo is missing from the server HTML and cannot lazy-load.
+function AvatarImage({ className, alt = "", onError, ...props }: React.ComponentProps<"img">) {
+  const [failedSrc, setFailedSrc] = React.useState<string>()
+  if (!props.src || failedSrc === props.src) return null
   return (
-    <AvatarPrimitive.Image
+    <img
       data-slot="avatar-image"
+      alt={alt}
+      loading="lazy"
+      decoding="async"
       className={cn(
-        "aspect-square size-full rounded-avatar object-cover",
+        "absolute inset-0 aspect-square size-full rounded-avatar object-cover",
         className
       )}
+      onError={(event) => {
+        setFailedSrc(props.src)
+        onError?.(event)
+      }}
       {...props}
     />
   )

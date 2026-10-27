@@ -1,17 +1,17 @@
-import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { check, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { championships, circuitCategories, circuitFinalPodiums, circuitPhases, circuitResults, scoringSchemes } from "./index"
+import { COMPETITION_TIERS, CIRCUIT_TYPES } from "../competition"
 
 export const circuits = sqliteTable("circuits", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	name: text("name").notNull().unique(),
-	type: text("type").notNull(),
+	type: text("type", { enum: CIRCUIT_TYPES }).notNull(),
 	// Added to a referenced table, so they stay CHECK-free plain ADD COLUMNs; the
 	// API requires year and validates tier against COMPETITION_TIERS.
 	year: integer("year"),
-	tier: text("tier").notNull().default("B"),
+	tier: text("tier", { enum: COMPETITION_TIERS }).notNull().default("B"),
 	championshipId: integer("championship_id").references(() => championships.id),
 	scoringSchemeId: integer("scoring_scheme_id").references(() => scoringSchemes.id, { onDelete: "restrict" }),
 	finishedAt: text("finished_at"),
@@ -30,6 +30,5 @@ export const circuitsRelations = relations(circuits, ({ one, many }) => ({
 	circuitFinalPodiums: many(circuitFinalPodiums),
 }))
 
-export const insertCircuitSchema = createInsertSchema(circuits)
 export type Circuit = typeof circuits.$inferSelect
 export type NewCircuit = typeof circuits.$inferInsert

@@ -10,6 +10,7 @@
 // project which used `"true"` / `"false"`.
 
 import type { AgeGroup } from "@fsx/api/age-groups"
+import { RATING_LABELS_PT } from "@fsx/api/rating-types";
 
 export const ratingTitles = [
   { value: "GMS", label: "GMS" },
@@ -40,8 +41,4 @@ export const ratingGroups = [
   { value: "senior", label: "Sênior" },
 ] as const satisfies readonly { value: AgeGroup; label: string }[]
 
-export const ratingSortLabels: Record<"classic" | "rapid" | "blitz", string> = {
-  classic: "Clássico",
-  rapid: "Rápido",
-  blitz: "Blitz",
-}
+export const ratingSortLabels = RATING_LABELS_PT

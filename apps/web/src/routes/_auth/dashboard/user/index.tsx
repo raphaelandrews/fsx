@@ -2,11 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { FormSection } from "@/components/admin/form-layout";
 import { AdminPageHeader } from "@/components/admin/page-header";
-import { getUser } from "@/server/get-user";
 
 export const Route = createFileRoute("/_auth/dashboard/user/")({
   head: () => ({ meta: [{ title: "Account - Admin - FSX" }] }),
-  loader: async () => ({ session: await getUser() }),
+  loader: async () => {
+    const { getUser } = await import("@/server/get-user");
+    return { session: await getUser() };
+  },
   component: RouteComponent,
 });
 

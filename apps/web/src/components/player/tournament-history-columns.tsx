@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import type { PlayerById } from "./player-profile";
+import { RATING_LABELS_PT, type RatingType } from "@fsx/api/rating-types";
 
 type HistoryRow = PlayerById["playersToTournaments"][number] & { category: string | null };
 
@@ -60,10 +61,5 @@ export function formatVariationSymbol(variation: number | null | undefined) {
 }
 
 export function formatRatingType(type: string | null | undefined) {
-  const types = {
-    classic: "Clássico",
-    rapid: "Rápido",
-    blitz: "Blitz",
-  };
-  return type ? (types[type as keyof typeof types] ?? "?") : "?";
+  return type ? (RATING_LABELS_PT[type as RatingType] ?? "?") : "?";
 }

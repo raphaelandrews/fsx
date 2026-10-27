@@ -67,6 +67,7 @@ import {
   tvSergipeLeaderboardOptions,
   tvSergipeListOptions,
 } from "./queries";
+import { avatarImage } from "@/lib/media-image";
 
 type LeaderboardRow = inferRouterOutputs<AppRouter>["tvSergipe"]["leaderboard"][number];
 type SchoolResult = inferRouterOutputs<AppRouter>["tvSergipe"]["list"][number];
@@ -368,7 +369,7 @@ function SchoolRows({
                         loading="lazy"
                         width={20}
                         className="aspect-square size-full object-contain"
-                        src={school.logoUrl}
+                        {...avatarImage(school.logoUrl, 20)}
                       />
                     ) : (
                       <span className={cn("relative flex shrink-0 h-5 w-5 overflow-hidden rounded", avatarGradientFor(school.name))} />

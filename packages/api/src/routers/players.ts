@@ -252,7 +252,7 @@ export const playersRouter = router({
 
       if (words.length === 0) {
         // Default suggestion list for the command menu: top active players by
-        // rapid rating. `players_rapid_idx` drives the ORDER BY + LIMIT.
+        // rapid rating. `players_active_rapid_idx` drives the ORDER BY + LIMIT.
         return ctx.db
           .select({ id: playersTable.id, name: playersTable.name })
           .from(playersTable)
@@ -459,8 +459,9 @@ export const playersRouter = router({
 
       const ids = pageIds.map((row) => row.id);
 
-      // Drizzle issues one query per relation keyed on the page ids, so a player
-      // with several titles or championships does not multiply rows.
+      // One statement with a correlated sub-select per relation, so a player with several titles or
+      // championships does not multiply rows. Each relation's `limit` is a bound parameter: at the
+      // maximum page size this binds 96 of D1's 100, so adding a limited relation needs a smaller `limit`.
       const [rows, movements] = await Promise.all([ctx.db.query.players.findMany({
         columns: {
           id: true,

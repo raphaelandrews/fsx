@@ -1,8 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
 
-import type { CompetitionTier } from "@fsx/api/circuit-types";
-import type { RatingType } from "@fsx/api/rating-types";
 import type { AppRouter } from "@fsx/api/routers/index";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fsx/ui/components/table";
 
@@ -35,8 +33,8 @@ export function TournamentTable({ tournaments }: { tournaments: TournamentListIt
           {tournaments.map((tournament) => {
             const winners = winnersText(tournament.winners);
             const date = tournament.date ? formatIsoDate(tournament.date) : "—";
-            const rhythm = RHYTHM_LABELS[tournament.ratingType as RatingType] ?? tournament.ratingType;
-            const tier = TIER_LABELS[tournament.tier as CompetitionTier] ?? tournament.tier;
+            const rhythm = RHYTHM_LABELS[tournament.ratingType] ?? tournament.ratingType;
+            const tier = TIER_LABELS[tournament.tier] ?? tournament.tier;
             return (
               <TableRow key={tournament.id} className="relative">
                 <TableCell className="hidden text-muted-foreground tabular-nums md:table-cell">{date}</TableCell>

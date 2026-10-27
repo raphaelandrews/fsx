@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { COMPETITION_TIER_LABELS, type CompetitionTier } from "@fsx/api/circuit-types";
+import { COMPETITION_TIER_LABELS } from "@fsx/api/circuit-types";
 import { Button } from "@fsx/ui/components/button";
 
 import { useTRPC } from "@/lib/trpc";
@@ -61,7 +61,7 @@ function RouteComponent() {
     {
       accessorKey: "tier",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Tier" />,
-      cell: ({ row }) => <span>{COMPETITION_TIER_LABELS[row.original.tier as CompetitionTier] ?? row.original.tier}</span>,
+      cell: ({ row }) => <span>{COMPETITION_TIER_LABELS[row.original.tier] ?? row.original.tier}</span>,
     },
     {
       accessorKey: "finishedAt",

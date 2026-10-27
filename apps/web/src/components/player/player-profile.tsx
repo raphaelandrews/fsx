@@ -144,7 +144,7 @@ export function PlayerProfile({
   const [selectedRatingType, setSelectedRatingType] = React.useState<RatingType>(() => {
     const played = { classic: 0, rapid: 0, blitz: 0 };
     for (const entry of player.playersToTournaments ?? []) {
-      const type = entry.tournament.ratingType as RatingType;
+      const type = entry.tournament.ratingType;
       if (type in played) played[type] += 1;
     }
     return RATING_FORMATS.reduce((best, { key }) => (played[key] > played[best] ? key : best), "rapid" as RatingType);

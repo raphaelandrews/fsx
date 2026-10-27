@@ -16,7 +16,6 @@
     "@fsx/db": "workspace:*",
     "@fsx/env": "workspace:*",
     "better-auth": "catalog:",
-    "dotenv": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

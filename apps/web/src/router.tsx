@@ -53,12 +53,23 @@ function createQueryClient() {
 // The browser talks to the Worker over HTTP. On the server, calling tRPC over
 // HTTP to the Worker's own origin is unreliable (self-fetch), so we call the
 // router in-process instead — same procedures, no network hop.
+// A page render runs several procedures for one request; they share its session and D1 meter.
+const contexts = new WeakMap<Request, ReturnType<typeof createContext>>();
+function contextOf(req: Request) {
+  let context = contexts.get(req);
+  if (!context) {
+    context = createContext({ req });
+    contexts.set(req, context);
+  }
+  return context;
+}
+
 const trpcLinks = createIsomorphicFn()
   .client((): TRPCLink<AppRouter>[] => [httpBatchLink({ url: "/api/trpc", maxItems: MAX_BATCH_SIZE })])
   .server((): TRPCLink<AppRouter>[] => [
     unstable_localLink({
       router: appRouter,
-      createContext: () => createContext({ req: getRequest() }),
+      createContext: () => contextOf(getRequest()),
     }),
   ]);
 

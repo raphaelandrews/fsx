@@ -18,12 +18,11 @@ import { syncTournamentStageResults } from "../services/stage-podium-sync";
 import { httpUrl, idInput, isoDate, nameText, page, positiveInt, ratingTypeSchema, searchText, seasonYear } from "../input-schemas";
 import { paginate } from "../lib/pagination";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
-import { COMPETITION_TIERS, type CompetitionTier } from "../circuit-types";
+import { COMPETITION_TIERS } from "../circuit-types";
 import { TIER_SUGGESTION } from "../gamification/constants";
 import { calibrateStrengthLines, suggestTier, type StrengthLines } from "../gamification/tier-suggestion";
 import { computedResults } from "@fsx/db/schema/computed-results";
 import { federationToday } from "../lib/dates";
-import type { RatingType } from "../rating-types";
 import { matchesAllWords, SEARCH_RESULT_LIMIT, SEARCH_SCAN_LIMIT, searchWords } from "../lib/name-search";
 
 const tierEnum = z.enum(COMPETITION_TIERS);
@@ -178,10 +177,10 @@ export const tournamentsRouter = router({
       .where(eq(playersToTournaments.tournamentId, input.id))
       .limit(PUBLIC_COLLECTION_LIMIT);
     return {
-      current: tournament.tier as CompetitionTier,
+      current: tournament.tier,
       ...suggestTier({
-        tier: tournament.tier as CompetitionTier,
-        ratingType: tournament.ratingType as RatingType,
+        tier: tournament.tier,
+        ratingType: tournament.ratingType,
         ratings: rows.map((row) => row.oldRating),
         lines: (await loadStrengthLines(ctx.db)).lines,
       }),
@@ -209,7 +208,7 @@ export const tournamentsRouter = router({
       : [];
     const lines = calibrateStrengthLines(
       events.map((event) => ({
-        ratingType: event.ratingType as RatingType,
+        ratingType: event.ratingType,
         date: event.date,
         championship: event.championship,
         ratings: ratings.filter((row) => row.tournamentId === event.id).map((row) => row.oldRating),

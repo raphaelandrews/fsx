@@ -1,5 +1,6 @@
 import { Markdown } from "@/components/markdown/markdown";
 import { PostTimeAgo } from "@/components/noticias/post-time-ago";
+import { coverImage } from "@/lib/media-image";
 
 export function PostArticle({
   post,
@@ -31,7 +32,7 @@ export function PostArticle({
           decoding="async"
           fetchPriority="high"
           height={675}
-          src={post.imageUrl}
+          {...coverImage(post.imageUrl, "(min-width: 768px) 720px, 100vw")}
           style={{ viewTransitionName: `post-image-${slug}` }}
           width={1200}
         />

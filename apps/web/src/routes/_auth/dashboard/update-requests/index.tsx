@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -89,9 +89,15 @@ function RouteComponent() {
   const data = showReviewed || pending.length === 0 ? rows : pending;
 
   const trpc = useTRPC();
-  const old = rows.filter(
-    (row) => row.status !== "pending" && row.reviewedAt && Date.now() - parseDbTimestamp(row.reviewedAt).getTime() > RETENTION_DAYS * 86_400_000,
-  ).length;
+  // Counted after hydration: the server's clock and the browser's would not agree on rows near the cutoff.
+  const [old, setOld] = useState(0);
+  useEffect(() => {
+    setOld(
+      rows.filter(
+        (row) => row.status !== "pending" && row.reviewedAt && Date.now() - parseDbTimestamp(row.reviewedAt).getTime() > RETENTION_DAYS * 86_400_000,
+      ).length,
+    );
+  }, [rows]);
   const cleanup = useAdminMutation(trpc.playerRequests.deleteReviewed.mutationOptions(), {
     invalidates: "playerRequests",
     success: "Old requests deleted",

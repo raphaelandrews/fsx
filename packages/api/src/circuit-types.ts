@@ -1,5 +1,6 @@
 export {
   COMPETITION_TIER_LABELS,
+  COMPETITION_TIER_LABELS_PT,
   COMPETITION_TIERS,
   MEDAL_PLACES,
   isMedalPlace,
@@ -12,9 +13,8 @@ export {
 // - "categories": like default, split into category tabs
 // - "school": club ranking with a players breakdown, category filter
 // - "geral": no phases; a single overall player ranking
-export const CIRCUIT_TYPES = ["default", "categories", "school", "geral"] as const;
-
-export type CircuitType = (typeof CIRCUIT_TYPES)[number];
+export { CIRCUIT_TYPES, type CircuitType } from "@fsx/db/competition";
+import type { CircuitType } from "@fsx/db/competition";
 
 export const CIRCUIT_TYPE_LABELS: Record<CircuitType, string> = {
   default: "By stage (one ranking, a column per stage)",

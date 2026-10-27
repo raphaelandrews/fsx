@@ -11,7 +11,8 @@ packages is in [Contracts](/architecture/contracts); the worked examples are in
 
 | Folder or file | Holds |
 | --- | --- |
-| `index.ts`, `context.ts` | tRPC setup: the error boundary middleware, `publicProcedure`, `protectedProcedure`, `adminProcedure` (which also marks stored computations stale after a mutation), and the per-request context (database, D1 meter, session, request ID). |
+| `index.ts`, `context.ts` | tRPC setup: the error boundary middleware, `publicProcedure`, `adminProcedure` (which also marks stored computations stale after a mutation), and the per-request context (database, D1 meter, session, request ID). |
+| `errors-normalize.ts`, `admin-guard.ts` | The turn of database errors into actionable tRPC codes, and the one function that decides who is an administrator (shared with the dashboard's route guard). |
 | `routers/` | One file per namespace, merged in `routers/index.ts`. A router declares inputs, access, and the queries it needs, and nothing else. |
 | `services/` | Logic that is too large for a procedure or shared between procedures: `rating-update.ts` (apply, correct, remove, and revert results; maintenance and ranking snapshots), `players-merge.ts`, `event-links.ts`, `delete-impact.ts` (what a delete blocks or takes with it), and `media-storage.ts` (R2 object cleanup). A service takes a database handle and never imports a router. |
 | `gamification/` | Pure derivation modules (`stats.ts`, `badges.ts`, `level.ts`, `records.ts`, `season.ts`, `title-path.ts`) plus the code that loads rows for them (`load.ts`, `ranking.ts`, `clubs.ts`, `circuits.ts`, `feed.ts`) and `computed.ts` for stored results. See [Gamification](/reference/gamification). |

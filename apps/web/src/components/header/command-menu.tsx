@@ -33,6 +33,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@fsx/ui/components/dialog"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
 
 const SKELETON_ROWS = Array.from({ length: 10 }, (_, row) => row)
 
@@ -112,9 +113,6 @@ export function CommandMenu() {
   const queryClient = useQueryClient()
   const [open, setOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
-  const [debouncedSearch, setDebouncedSearch] = React.useState("")
-  const [isTyping, setIsTyping] = React.useState(false)
-  const dialogOpenRef = React.useRef(open)
 
   // Warm the default top-rated list on hover/focus so the first open renders
   // instantly. The query key matches the one CommandResults uses.
@@ -125,24 +123,11 @@ export function CommandMenu() {
   }, [queryClient, trpc])
 
   React.useEffect(() => {
-    dialogOpenRef.current = open
-    if (!open) {
-      setSearchValue("")
-      setDebouncedSearch("")
-    }
+    if (!open) setSearchValue("")
   }, [open])
 
-  React.useEffect(() => {
-    if (!dialogOpenRef.current) return
-    if (searchValue !== debouncedSearch) {
-      setIsTyping(true)
-    }
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchValue)
-      setIsTyping(false)
-    }, 600)
-    return () => clearTimeout(timer)
-  }, [searchValue, debouncedSearch])
+  const debouncedSearch = useDebouncedValue(searchValue, 600, !open)
+  const isTyping = open && searchValue !== debouncedSearch
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value)

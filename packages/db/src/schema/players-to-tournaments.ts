@@ -1,8 +1,8 @@
-import { createInsertSchema } from "drizzle-zod";
 import { relations, sql } from "drizzle-orm";
 import { check, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 import { players, tournaments } from "./index"
+import { RATING_TYPES } from "../competition"
 
 export const playersToTournaments = sqliteTable("players_to_tournaments", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
@@ -10,7 +10,7 @@ export const playersToTournaments = sqliteTable("players_to_tournaments", {
 	tournamentId: integer("tournament_id").notNull().references(() => tournaments.id, { onDelete: "restrict" }),
 	oldRating: integer("old_rating").notNull(),
 	variation: integer("variation").notNull(),
-	ratingType: text("rating_type").notNull().default("rapid"),
+	ratingType: text("rating_type", { enum: RATING_TYPES }).notNull().default("rapid"),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 }, (t) => [
@@ -26,6 +26,5 @@ export const playersToTournamentsRelations = relations(playersToTournaments, ({ 
 	tournament: one(tournaments, { fields: [playersToTournaments.tournamentId], references: [tournaments.id] }),
 }))
 
-export const insertPlayerToTournamentSchema = createInsertSchema(playersToTournaments)
 export type PlayerToTournament = typeof playersToTournaments.$inferSelect
 export type NewPlayerToTournament = typeof playersToTournaments.$inferInsert

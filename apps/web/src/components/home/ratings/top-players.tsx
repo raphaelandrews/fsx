@@ -9,13 +9,14 @@ import { Section } from "@/components/home/section"
 import { SectionButton } from "@/components/section-button"
 
 import { columnsBlitz, columnsClassic, columnsRapid } from "./columns"
+import { RATING_LABELS_PT } from "@fsx/api/rating-types";
 
 type TopPlayersData = inferRouterOutputs<AppRouter>["topPlayers"]["list"]
 
 const TABS = [
-  { value: "classic", label: "Clássico", key: "topClassic", columns: columnsClassic },
-  { value: "rapid", label: "Rápido", key: "topRapid", columns: columnsRapid },
-  { value: "blitz", label: "Blitz", key: "topBlitz", columns: columnsBlitz },
+  { value: "classic", label: RATING_LABELS_PT.classic, key: "topClassic", columns: columnsClassic },
+  { value: "rapid", label: RATING_LABELS_PT.rapid, key: "topRapid", columns: columnsRapid },
+  { value: "blitz", label: RATING_LABELS_PT.blitz, key: "topBlitz", columns: columnsBlitz },
 ] as const
 
 export function TopPlayers({ topPlayers }: { topPlayers: TopPlayersData }) {

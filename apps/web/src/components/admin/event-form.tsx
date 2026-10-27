@@ -12,7 +12,7 @@ import { EventLinksEditor, type EventLinkDraft } from "@/components/admin/event-
 import { SearchableSelect } from "@/components/form/searchable-select";
 import { FormField } from "@/components/form/form-field";
 import { fieldError } from "@/lib/errors";
-import { httpUrlError, requiredText, submitThenChange, TEXT_MAX } from "@/lib/field-rules";
+import { httpUrlError, requiredText, submitThenChange, TEXT_MAX, URL_MAX } from "@/lib/field-rules";
 
 export interface EventValues {
   name: string;
@@ -158,7 +158,7 @@ export function EventForm({
                 id="event-venue-url"
                 type="url"
                 inputMode="url"
-                maxLength={2048}
+                maxLength={URL_MAX}
                 placeholder="https://maps.google.com/…"
                 value={f.state.value}
                 onBlur={f.handleBlur}

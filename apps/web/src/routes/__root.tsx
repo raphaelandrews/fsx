@@ -7,10 +7,10 @@ import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
-import { MotionConfig } from "motion/react";
 
 import { SECURITY_HEADERS } from "@fsx/api/http/security-headers";
 
+import fustatLatin from "@fontsource-variable/fustat/files/fustat-latin-wght-normal.woff2?url";
 import appCss from "../index.css?url";
 import { NavigationProgress } from "@/components/navigation-progress";
 import { ErrorFallback, NotFound } from "@/components/not-found";
@@ -81,6 +81,8 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         { name: "view-transition", content: "same-origin" },
       ],
       links: [
+        // The body font: without this the browser finds it only after the CSS is parsed and repaints when it arrives.
+        { rel: "preload", as: "font", type: "font/woff2", href: fustatLatin, crossOrigin: "anonymous" },
         { rel: "stylesheet", href: appCss },
         { rel: "icon", href: "/favicon.ico", sizes: "any" },
         { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
@@ -109,9 +111,7 @@ function RootDocument() {
       </head>
       <body>
         <NavigationProgress />
-        <MotionConfig reducedMotion="user">
-          <Outlet />
-        </MotionConfig>
+        <Outlet />
         <Toaster richColors />
         {import.meta.env.DEV && (
           <TanStackDevtools

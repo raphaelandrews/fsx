@@ -1,13 +1,10 @@
 import { toast } from "sonner";
 
-import { getAdminErrorMessage } from "@/lib/errors";
+import { getAdminErrorMessage, getFieldErrors } from "@/lib/errors";
 
 export function describeError(err: unknown): { message: string; detail?: string } {
   const message = getAdminErrorMessage(err, "Could not update this player.");
-  const fieldErrors = (
-    err as { data?: { zodError?: { fieldErrors?: Record<string, string[] | undefined> } | null } }
-  )?.data?.zodError?.fieldErrors;
-  const fields = Object.entries(fieldErrors ?? {})
+  const fields = Object.entries(getFieldErrors(err))
     .map(([field, issues]) => `${field}: ${issues?.join(", ")}`)
     .join("; ");
   const raw = err instanceof Error ? err.message : undefined;

@@ -2,21 +2,20 @@ import { Link } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
 
 import type { AppRouter } from "@fsx/api/routers/index";
-import { RATING_TYPES, type RatingType } from "@fsx/api/rating-types";
+import { RATING_TYPES, RATING_LABELS_PT } from "@fsx/api/rating-types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fsx/ui/components/table";
 import { cn } from "@fsx/ui/lib/utils";
 
 type Comparison = inferRouterOutputs<AppRouter>["players"]["compare"];
 
-const RHYTHM: Record<RatingType, string> = { classic: "Clássico", rapid: "Rápido", blitz: "Blitz" };
 const signed = (value: number) => (value > 0 ? `+${value}` : String(value));
 
 type Row = { label: string; a: number | null; b: number | null };
 
 function rowsOf([a, b]: Comparison["players"]): Row[] {
   return [
-    ...RATING_TYPES.map((type) => ({ label: `Rating ${RHYTHM[type]}`, a: a.ratings[type], b: b.ratings[type] })),
-    ...RATING_TYPES.map((type) => ({ label: `Melhor rating ${RHYTHM[type]}`, a: a.formats[type]?.peak ?? null, b: b.formats[type]?.peak ?? null })),
+    ...RATING_TYPES.map((type) => ({ label: `Rating ${RATING_LABELS_PT[type]}`, a: a.ratings[type], b: b.ratings[type] })),
+    ...RATING_TYPES.map((type) => ({ label: `Melhor rating ${RATING_LABELS_PT[type]}`, a: a.formats[type]?.peak ?? null, b: b.formats[type]?.peak ?? null })),
     { label: "Nível", a: a.level, b: b.level },
     { label: "Torneios disputados", a: a.tournamentsPlayed, b: b.tournamentsPlayed },
     { label: "Ouros", a: a.medals.gold, b: b.medals.gold },
@@ -97,7 +96,7 @@ export function CommonTournaments({ comparison }: { comparison: Comparison }) {
               </Link>
               {row.date ? <span className="block text-muted-foreground text-xs">{row.date.split("-").reverse().join("/")}</span> : null}
             </TableCell>
-            <TableCell className="text-muted-foreground">{RHYTHM[row.ratingType as RatingType]}</TableCell>
+            <TableCell className="text-muted-foreground">{RATING_LABELS_PT[row.ratingType]}</TableCell>
             <TableCell className="text-center">
               <Variation value={row.a.variation} />
             </TableCell>

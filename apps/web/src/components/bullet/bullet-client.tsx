@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@fsx/ui/components/table"
+import { coverImage } from "@/lib/media-image";
 
 export interface CupGame {
   id: number
@@ -269,7 +270,7 @@ function InfoCard({ cup }: { cup: Cup }) {
         className="aspect-[3/2] w-full object-cover md:max-w-[250px]"
         decoding="async"
         loading="lazy"
-        src={cup.imageUrl}
+        {...coverImage(cup.imageUrl, "(min-width: 768px) 250px, 100vw", [250, 500])}
         title={cup.name}
       />
       <div className="grid grid-cols-2 text-sm">

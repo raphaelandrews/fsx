@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { byteLength, LONG_TEXT_MAX, LONG_TEXT_MAX_BYTES, TEXT_MAX, URL_MAX } from "./field-limits";
 import { federationYear } from "./lib/dates";
 import { mediaPathPatternFor, type MediaKind } from "./media-kinds";
 import { MAX_RATING, RATING_TYPES } from "./rating-types";
@@ -16,7 +17,7 @@ export const page = positiveInt.max(1_000).default(1);
 // D1 binds at most 100 parameters per statement; a page of ids plus the other filters must fit.
 export const limit = positiveInt.max(90).default(20);
 export const searchText = z.string().trim().max(120);
-export const nameText = z.string().trim().min(1).max(160);
+export const nameText = z.string().trim().min(1).max(TEXT_MAX);
 // Categories are rows of `categories`; mutations check the name against it (requireCategories).
 export const categoryName = z.string().trim().min(1).max(60);
 export const isoDate = z.iso.date();
@@ -27,12 +28,11 @@ export const birthYear = z
   .min(1900)
   .refine((year) => year <= federationYear(), "Birth year cannot be in the future");
 export const seasonYear = z.number().int().min(1900).max(2200);
-// D1 rows hold at most 2 MB; multi-byte text counts by bytes, with room left for the other columns.
 export const contentText = z
   .string()
-  .max(500_000)
-  .refine((text) => new TextEncoder().encode(text).byteLength <= 1_800_000, "Text is too large");
-export const httpUrl = z.string().trim().max(2_048).pipe(z.url({ protocol: /^https?$/ }));
+  .max(LONG_TEXT_MAX)
+  .refine((text) => byteLength(text) <= LONG_TEXT_MAX_BYTES, "Text is too large");
+export const httpUrl = z.string().trim().max(URL_MAX).pipe(z.url({ protocol: /^https?$/ }));
 // Uploaded images are stored as relative media paths; older rows may still hold external URLs.
 export const imageUrl = z.union([z.string().trim().regex(mediaPathPatternFor("players", "posts")), httpUrl]);
 // Club logos and location flags only accept uploads of their own kind.

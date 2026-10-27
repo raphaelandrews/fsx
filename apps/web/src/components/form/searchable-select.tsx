@@ -7,6 +7,7 @@ import { cn } from "@fsx/ui/lib/utils";
 import { Command, CommandEmpty, CommandItem, CommandList } from "@fsx/ui/components/command";
 
 import { useTableText } from "@/hooks/use-table-text";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 export interface SearchableOption {
   id: number;
@@ -36,14 +37,9 @@ export function SearchableSelect({
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
-  const [debounced, setDebounced] = React.useState("");
   const [selectedLabel, setSelectedLabel] = React.useState(initialLabel);
   const containerRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => setDebounced(query), 250);
-    return () => clearTimeout(timer);
-  }, [query]);
+  const debounced = useDebouncedValue(query, 250);
 
   React.useEffect(() => {
     function onDocClick(e: MouseEvent) {

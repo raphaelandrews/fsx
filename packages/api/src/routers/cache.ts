@@ -4,10 +4,8 @@ import { env } from "@fsx/env/server";
 
 import { adminProcedure, router } from "../index";
 
-type PurgeEnv = { CLOUDFLARE_ZONE_ID?: string; CLOUDFLARE_CACHE_PURGE_TOKEN?: string };
-
 function purgeCredentials() {
-  const { CLOUDFLARE_ZONE_ID: zoneId, CLOUDFLARE_CACHE_PURGE_TOKEN: token } = env as PurgeEnv;
+  const { CLOUDFLARE_ZONE_ID: zoneId, CLOUDFLARE_CACHE_PURGE_TOKEN: token } = env;
   return zoneId && token ? { zoneId, token } : null;
 }
 

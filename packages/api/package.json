@@ -16,9 +16,7 @@
     "@fsx/auth": "workspace:*",
     "@fsx/db": "workspace:*",
     "@fsx/env": "workspace:*",
-    "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
-    "dotenv": "catalog:",
     "drizzle-orm": "^0.45.2",
     "zod": "catalog:"
   },

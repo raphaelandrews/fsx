@@ -4,7 +4,7 @@ const VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
 /** The secret key when Turnstile is switched on for this deployment; undefined means it is off. */
 export function turnstileSecret(): string | undefined {
-  return (env as { TURNSTILE_SECRET_KEY?: string }).TURNSTILE_SECRET_KEY || undefined;
+  return env.TURNSTILE_SECRET_KEY || undefined;
 }
 
 /** Asks Cloudflare whether a challenge token is genuine. Any failure counts as "not verified". */

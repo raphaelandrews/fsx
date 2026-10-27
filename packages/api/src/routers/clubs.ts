@@ -18,6 +18,10 @@ export const clubsRouter = router({
       .from(clubs).orderBy(asc(clubs.name), asc(clubs.id)).limit(PUBLIC_COLLECTION_LIMIT)
   ),
   leaderboard: publicProcedure.query(({ ctx }) => loadClubStandings(ctx.db)),
+  // One club's row of the leaderboard, for pages that show a single club's standing.
+  standing: publicProcedure
+    .input(idInput)
+    .query(async ({ ctx, input }) => (await loadClubStandings(ctx.db)).find((standing) => standing.club.id === input.id) ?? null),
   byId: publicProcedure.input(idInput).query(async ({ ctx, input }) => {
     const [standings, members] = await Promise.all([
       loadClubStandings(ctx.db),

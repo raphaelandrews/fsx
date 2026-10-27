@@ -17,7 +17,7 @@ import { InlineAlert } from "@/components/admin/inline-alert";
 import { FormField } from "@/components/form/form-field";
 import { SearchableSelect } from "@/components/form/searchable-select";
 import { Turnstile, TURNSTILE_SITE_KEY } from "@/components/player/turnstile";
-import { getErrorCode, getUserErrorMessage } from "@/lib/errors";
+import { getErrorCode, getServerMessage, getUserErrorMessage } from "@/lib/errors";
 import { blobToPhoto, PHOTO_ACCEPT, PHOTO_OUTPUT_WIDTH, readPhotoFile, type PreparedPhoto } from "@/lib/photo-upload";
 import { useTRPC } from "@/lib/trpc";
 
@@ -64,7 +64,7 @@ function validate(values: Values, hasPhoto: boolean, consent: boolean): Errors {
 // The server writes these messages in Portuguese for this form; anything else uses the site's own wording.
 function failureMessage(error: unknown) {
   const code = getErrorCode(error);
-  const server = (error as { data?: { userMessage?: string | null } }).data?.userMessage;
+  const server = getServerMessage(error);
   return (code === "CONFLICT" || code === "TOO_MANY_REQUESTS" || code === "BAD_REQUEST") && server
     ? server
     : getUserErrorMessage(error, "Não foi possível enviar. Confira os dados e tente novamente.");

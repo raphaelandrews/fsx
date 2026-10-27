@@ -1,4 +1,3 @@
-import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { check, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
@@ -34,6 +33,5 @@ export const scoringSchemePlacesRelations = relations(scoringSchemePlaces, ({ on
 	scheme: one(scoringSchemes, { fields: [scoringSchemePlaces.schemeId], references: [scoringSchemes.id] }),
 }))
 
-export const insertScoringSchemeSchema = createInsertSchema(scoringSchemes)
 export type ScoringScheme = typeof scoringSchemes.$inferSelect
 export type NewScoringScheme = typeof scoringSchemes.$inferInsert

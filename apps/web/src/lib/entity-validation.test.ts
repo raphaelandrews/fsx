@@ -38,3 +38,11 @@ describe("validateField", () => {
     expect(validateField(field, "https://example.com/a")).toBeUndefined();
   });
 });
+
+describe("long text", () => {
+  test("rejects text that fits the character limit but not a D1 row", () => {
+    const field = { kind: "textarea", label: "Content", name: "content" } as Parameters<typeof validateField>[0];
+    expect(validateField(field, "😀".repeat(480_000))).toBe("Content is too large");
+    expect(validateField(field, "a".repeat(1000))).toBeUndefined();
+  });
+});

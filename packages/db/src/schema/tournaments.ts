@@ -3,6 +3,7 @@ import { relations, sql } from "drizzle-orm";
 import { check, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 import { championships, circuitPhases, playersToTournaments, scoringSchemes, tournamentPodiums } from "./index"
+import { RATING_TYPES, COMPETITION_TIERS } from "../competition"
 
 export const tournaments = sqliteTable(
   "tournaments",
@@ -11,11 +12,11 @@ export const tournaments = sqliteTable(
     name: text("name").notNull().unique(),
     chessResults: text("chess_results"),
     date: text("date"),
-    ratingType: text("rating_type").notNull(),
+    ratingType: text("rating_type", { enum: RATING_TYPES }).notNull(),
     championshipId: integer("championship_id").references(() => championships.id),
     // No CHECK: adding one makes drizzle-kit rebuild this referenced table, which
     // D1 cannot do safely. COMPETITION_TIERS is enforced by the API.
-    tier: text("tier").notNull().default("B"),
+    tier: text("tier", { enum: COMPETITION_TIERS }).notNull().default("B"),
     // Off for events that rank nobody: no podium rows, so no medals, and the synced sources skip them.
     hasPodiums: integer("has_podiums", { mode: "boolean" }).notNull().default(true),
     scoringSchemeId: integer("scoring_scheme_id").references(() => scoringSchemes.id, { onDelete: "restrict" }),

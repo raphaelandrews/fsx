@@ -10,7 +10,7 @@ import { mockWorkerEnv, testEnv } from "./test-env";
 mockWorkerEnv();
 
 const { appRouter } = await import("./routers/index");
-const { describeUniqueViolation } = await import("./index");
+const { describeUniqueViolation } = await import("./errors-normalize");
 const { handleTrpcRequest } = await import("./http/trpc-handler");
 
 describe("procedure error boundary", () => {

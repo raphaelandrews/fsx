@@ -23,8 +23,9 @@ export function PlayerSheetById({
   const circuitSeasons = useQuery({ ...trpc.players.circuitSeasons.queryOptions({ id }), enabled: open })
   const announcements = useQuery({ ...trpc.announcements.byPlayer.queryOptions({ playerId: id }), enabled: open })
   const ranking = useQuery({ ...trpc.players.ranking.queryOptions({ id }), enabled: open })
-  const clubs = useQuery({ ...trpc.clubs.leaderboard.queryOptions(), enabled: open })
-  const queries = [player, stats, circuitSeasons, announcements, ranking, clubs]
+  const clubId = player.data?.club?.id
+  const clubStanding = useQuery({ ...trpc.clubs.standing.queryOptions({ id: clubId ?? 1 }), enabled: open && clubId !== undefined })
+  const queries = [player, stats, circuitSeasons, announcements, ranking, clubStanding]
   const error = queries.find((query) => query.error)?.error
 
   return (
@@ -39,7 +40,7 @@ export function PlayerSheetById({
         circuitSeasons={circuitSeasons.data}
         announcements={announcements.data}
         ranking={ranking.data}
-        clubStanding={clubs.data?.find((standing) => standing.club.id === player.data?.club?.id) ?? null}
+        clubStanding={clubStanding.data ?? null}
       />
     </Sheet>
   )

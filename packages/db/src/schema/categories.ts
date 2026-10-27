@@ -1,4 +1,3 @@
-import { createInsertSchema } from "drizzle-zod"
 import { sql } from "drizzle-orm"
 import { check, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
@@ -27,6 +26,5 @@ export const categories = sqliteTable(
 	],
 )
 
-export const insertCategorySchema = createInsertSchema(categories)
 export type Category = typeof categories.$inferSelect
 export type NewCategory = typeof categories.$inferInsert

@@ -123,7 +123,7 @@ async function findHistoryRow(db: RatingDatabase, id: number) {
     with: { player: { columns: { blitz: true, rapid: true, classic: true } } },
   });
   if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Rating result not found" });
-  return { ...row, ratingType: row.ratingType as RatingType };
+  return { ...row, ratingType: row.ratingType };
 }
 
 function assertRatingInRange(rating: number) {
@@ -211,7 +211,7 @@ export async function revertTournamentRatings(db: RatingDatabase, input: { tourn
     columns: { id: true, ratingType: true },
   });
   if (!tournament) throw new TRPCError({ code: "NOT_FOUND", message: "Tournament not found" });
-  const ratingType = tournament.ratingType as RatingType;
+  const ratingType = tournament.ratingType;
   const column = ratingColumn(ratingType);
 
   const result = alias(playersToTournaments, "result");
@@ -304,7 +304,7 @@ function youthTitlesWithoutBirthDate(db: RatingDatabase) {
     WHERE t.loses_at_age IS NOT NULL AND p.birth_year IS NULL`);
 }
 
-// Rankings older than this are dropped with every import; the history charts and the archive only reach back so far.
+// Rankings older than this are dropped with every import; the position charts only reach back so far.
 export const SNAPSHOT_RETENTION_YEARS = 3;
 
 function pruneOldSnapshots(db: RatingDatabase, snapshotAt: string) {

@@ -1,8 +1,8 @@
-import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { check, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { players } from "./index"
+import { RATING_TYPES } from "../competition"
 
 // Active players' ranking position per rating type, captured after each rating
 // import, so position changes can be shown later. Derived data, hence cascade.
@@ -11,7 +11,7 @@ export const rankingSnapshots = sqliteTable(
 	{
 		id: integer("id").primaryKey({ autoIncrement: true }),
 		playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
-		ratingType: text("rating_type").notNull(),
+		ratingType: text("rating_type", { enum: RATING_TYPES }).notNull(),
 		position: integer("position").notNull(),
 		rating: integer("rating").notNull(),
 		snapshotAt: text("snapshot_at").notNull(),
@@ -28,6 +28,5 @@ export const rankingSnapshotsRelations = relations(rankingSnapshots, ({ one }) =
 	player: one(players, { fields: [rankingSnapshots.playerId], references: [players.id] }),
 }))
 
-export const insertRankingSnapshotSchema = createInsertSchema(rankingSnapshots)
 export type RankingSnapshot = typeof rankingSnapshots.$inferSelect
 export type NewRankingSnapshot = typeof rankingSnapshots.$inferInsert

@@ -1,16 +1,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import type { RatingType } from "@fsx/api/rating-types";
+import { type RatingType, RATING_LABELS_EN } from "@fsx/api/rating-types";
 import { Button } from "@fsx/ui/components/button";
 
 import { useAdminMutation } from "@/lib/admin-mutations";
 import { useTRPC } from "@/lib/trpc";
 
-const FORMATS: { key: RatingType; label: string }[] = [
-  { key: "classic", label: "Classic" },
-  { key: "rapid", label: "Rapid" },
-  { key: "blitz", label: "Blitz" },
-];
+const FORMATS: { key: RatingType; label: string }[] = (["classic", "rapid", "blitz"] as const).map((key) => ({ key, label: RATING_LABELS_EN[key] }));
 
 const formatDate = (timestamp: number) =>
   new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeZone: "America/Maceio" }).format(timestamp);

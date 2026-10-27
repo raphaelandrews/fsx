@@ -1,4 +1,3 @@
-import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
@@ -17,6 +16,5 @@ export const cupRoundsRelations = relations(cupRounds, ({ one, many }) => ({
 	cupMatches: many(cupMatches),
 }))
 
-export const insertCupRoundSchema = createInsertSchema(cupRounds)
 export type CupRound = typeof cupRounds.$inferSelect
 export type NewCupRound = typeof cupRounds.$inferInsert

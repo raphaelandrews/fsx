@@ -1,15 +1,11 @@
-import type { RatingType } from "@fsx/api/rating-types";
+import { type RatingType, RATING_LABELS_PT } from "@fsx/api/rating-types";
 import { cn } from "@fsx/ui/lib/utils";
 
 import { Movement } from "@/components/gamification/movement";
 
 import type { PlayerRanking } from "./types";
 
-export const RATING_FORMATS: { key: RatingType; label: string }[] = [
-  { key: "classic", label: "Clássico" },
-  { key: "rapid", label: "Rápido" },
-  { key: "blitz", label: "Blitz" },
-];
+export const RATING_FORMATS: { key: RatingType; label: string }[] = (["classic", "rapid", "blitz"] as const).map((key) => ({ key, label: RATING_LABELS_PT[key] }));
 
 // The tiles double as the format selector for the evolution charts below.
 export function RatingPicker({

@@ -9,9 +9,25 @@ export const COMPETITION_TIERS = ["S", "A", "B", "school"] as const;
 
 export type CompetitionTier = (typeof COMPETITION_TIERS)[number];
 
+export const COMPETITION_TIER_LABELS_PT: Record<CompetitionTier, string> = {
+  S: "Tier S",
+  A: "Tier A",
+  B: "Tier B",
+  school: "Escolar",
+};
+
 export const COMPETITION_TIER_LABELS: Record<CompetitionTier, string> = {
   S: "Tier S",
   A: "Tier A",
   B: "Tier B",
   school: "School",
 };
+
+export const RATING_TYPES = ["blitz", "rapid", "classic"] as const;
+export type RatingType = (typeof RATING_TYPES)[number];
+
+export const CIRCUIT_TYPES = ["default", "categories", "school", "geral"] as const;
+export type CircuitType = (typeof CIRCUIT_TYPES)[number];
+
+export const SEXES = ["male", "female"] as const;
+export type Sex = (typeof SEXES)[number];

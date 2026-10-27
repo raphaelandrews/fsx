@@ -276,3 +276,257 @@ Counts: 0 Critical, 1 High, 7 Medium, 12 Low, 5 Nitpick.
 - **Rating arithmetic**: `applyRatingUpdate` is an optimistic-locked `UPDATE` + `INSERT … SELECT … WHERE changes() = 1` in one batch; correction, removal and tournament revert shift the rest of the chain with deltas computed inside the batch. `players.merge` moves every `restrict` foreign key (checked against the schema) in one batch.
 - **Secrets**: `.env*` files are gitignored; no tokens or keys in tracked files; `VITE_` variables used are the analytics token, the Turnstile site key and the image-transformation flag only. The dev-seed/restore scripts exclude logins and sessions.
 - **Migrations**: 51 SQL files match 51 journal entries; table rebuilds on referenced tables use the backup/drop/recreate pattern; `migrations.integration.test.ts` passes.
+
+---
+
+## Phase 2: Performance, architecture and clean code
+
+Scope: `apps/web` (routes, components, hooks, lib, server), `packages/api`, `packages/db`, `packages/ui`, `packages/env`, package manifests and the build output. Read-only; no source file was changed. Findings use the `P2-` prefix and the same `[ ]` / `[x]` convention. Phase 1 findings are not repeated.
+
+### How it was measured
+
+| Check | Result |
+| ----- | ------ |
+| Client build (`dist/client`) | 288 JS chunks, 925 KB gzip in total; `check:bundle` budgets pass |
+| Initial JS graph of a public page (entry plus its static imports) | 98 chunks, about 300 KB gzip; the entry chunk alone is 88 KB gzip |
+| CSS | 238 KB raw, 38 KB gzip, one file |
+| Worker (`dist/server`) | 12 MB on disk, about 2.0 MB JS gzip plus 1.4 MB of WASM (`resvg`, `yoga`) |
+| Worker static graph evaluated at start | 17 modules, 0.9 MB; the first request then loads `auth-middleware` (1.3 MB) and `router` (0.4 MB) |
+| `createAuth()` | 1.6 ms per call; `createContext` 1.7–2.2 ms per call (Bun, no network) |
+| Types | 1 `as unknown as`, 2 `any` in non-test code (`seed.ts`, `env/web.ts`), no `@ts-ignore`, no TODO/FIXME |
+
+Everything marked **Verified** was reproduced with a build artefact or a scratch script outside the repo; the rest was read from the code.
+
+Counts: 0 Critical, 0 High, 6 Medium, 14 Low, 10 Nitpick.
+
+After the fixes (checks in `bun run check-types`, `lint`, `bun test` 528 pass, `build`, `check:bundle`, `check:routes`, `check:ssr` 42 routes, and the Playwright suite, 138 pass):
+
+| Measure | Before | After |
+| ------- | ------ | ----- |
+| Initial JS graph of a public page | 98 chunks, 300 KB gzip | 52 chunks, 204 KB gzip |
+| Worker JS (gzip) | 1.99 MB | 1.79 MB |
+| Findings checked off | | 23 of 30 (P2-M6, P2-L1, P2-L11 and P2-L12 only in part); open: P2-M1 (documented decision), P2-L5, P2-L7, P2-L13, P2-N2, P2-N5, P2-N8 |
+
+---
+
+### Medium
+
+#### [ ] P2-M1. Public pages are rendered from D1 on every view; the edge cache only serves client-side navigation (trade-off)
+
+> **Status:** Not done, on purpose: `rendering-and-caching.mdx` ("Why SSR HTML is not cached") and ADR 0003 record a decision not to cache HTML, with a revisit condition (D1 reads near the plan limit, or Worker CPU visible) that is not met. I built and tested a Worker-side version (anonymous `GET` only, session-cookie bypass, 200 `text/html` only, `X-Page-Cache` header, a custom `src/server.ts` selected through `wrangler.main: "../../src/server.ts"` in `alchemy.run.ts`) and then removed it. Two things it showed: the page TTL must stay below the shortest route `staleTime` (30 s on `/`), or hydrated data is refetched at once and the "hydrates without refetching" e2e fails; and the Worker entry comes from the generated `.alchemy/local/wrangler.jsonc`. Say the word and I will re-apply it.
+
+- **Severity**: Medium
+- **Location**: `apps/web/src/router.tsx:56-62` (server links call the router in-process), `packages/api/src/http/trpc-handler.ts:87-88` (the comment that says so), `apps/web/src/routes/__root.tsx:35` (`headers` only adds security headers). No `Cache-Control` is set for HTML anywhere in `apps/web/src` (the only matches are the sitemap, RSS, OG, auth and media handlers).
+- **Problem**: `PROCEDURE_CACHE_POLICY` (60 s to 5 min per procedure) is applied only to `GET /api/trpc`, which the browser uses after hydration. A first page load never goes through it: the loaders call `appRouter` through `unstable_localLink`, so every anonymous view of `/`, `/ratings`, `/jogadores/:id` and so on runs its D1 queries again. Search engines, social crawlers and first-time visitors, who are most of the public traffic, never benefit. The player profile alone runs seven procedures (`jogadores/$id/index.tsx:12-24`); the home page five. The sitemap and RSS already solved this with `caches.default`, so the pattern exists.
+- **Fix**: add a small server entry (or a TanStack Start middleware) that, for anonymous `GET`/`HEAD` requests to public paths, serves and stores the rendered HTML in `caches.default` with the same TTL logic, and skips it when the request has a session cookie (`hasSessionCookie` already exists). Keep TTL at or below the shortest procedure TTL on the page (60–120 s). Trade-off: data can be that stale on first load, which the client-side cache already accepts.
+
+#### [x] P2-M2. The web app has no `_headers`: static assets and prerendered pages get neither long-lived caching nor security headers
+
+> **Status:** Fixed: `apps/web/public/_headers` makes `/assets/*` immutable and gives the two prerendered pages the same headers as `SECURITY_HEADERS`; `static-headers.test.ts` fails if the file drifts from `SECURITY_HEADERS` or from the prerender list in `vite.config.ts`. The security block is scoped to those pages on purpose: a `/*` block put a CSP on `robots.txt`, which broke the cross-origin API e2e that uses it as a host page.
+
+- **Severity**: Medium
+- **Location**: absence of `apps/web/public/_headers` (`apps/fumadocs/public/_headers` exists and shows the intent); `apps/web/vite.config.ts:41-47` (`/sobre` and `/normas-tecnicas` are prerendered); the generated `apps/web/dist/server/wrangler.json` (`"run_worker_first": false`, so static files are answered without the Worker)
+- **Problem**: `dist/client` contains no `_headers`. Hashed files under `/assets/` (288 JS chunks, CSS, fonts) therefore rely on the platform default, which for Workers static assets is revalidate-on-every-request (`max-age=0, must-revalidate`) unless a zone rule raises it; Phase 1 noted the zone's Browser Cache TTL does override headers, but that gives 4 hours, not a year, and only if that setting is on. The two prerendered pages are served as static files, so the Worker's `headers: () => SECURITY_HEADERS` never runs for them: no CSP, HSTS, `X-Frame-Options` or `nosniff` on those routes, while the same security headers are set for every SSR page and for the docs site. (If a Cloudflare transform rule adds them, this part does not apply; check with `curl -I https://www.fsx.org.br/sobre`.)
+- **Fix**: add `apps/web/public/_headers`:
+  ```
+  /assets/*
+    Cache-Control: public, max-age=31536000, immutable
+  /*
+    Content-Security-Policy: …   # same value as SECURITY_HEADERS
+    Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+    X-Content-Type-Options: nosniff
+    X-Frame-Options: DENY
+  ```
+  Generate it from `SECURITY_HEADERS` in a build step so the two cannot drift.
+
+#### [x] P2-M3. Avatar photos are not in the HTML and cannot be lazy-loaded; the profile's main photo waits for JavaScript
+
+> **Status:** Fixed: `AvatarImage` is a plain `<img>` (lazy, async, with an `onError` fallback) over the fallback, so photos are in the server HTML; the profile hero uses `loading="eager"` and `fetchPriority="high"`. All 138 e2e tests, including the a11y scans, pass.
+
+- **Severity**: Medium. **Verified.**
+- **Location**: `packages/ui/src/components/avatar.tsx:26-35` (`AvatarImage` wraps Base UI), used at `apps/web/src/components/player/player-hero.tsx:43`, `player-sheet-button.tsx:34`, `torneios/tournament-podium.tsx:51,103`, `routes/_public/membros.tsx:173`, `components/player/update-request-form.tsx:270,351`
+- **Problem**: Base UI 1.6 `AvatarImage` creates `new window.Image()` in an effect (`useImageLoadingStatus.js:25`) and renders the real `<img>` only when its status is `loaded` (`AvatarImage.js:42`). Consequences: on the server only the gradient fallback is rendered, so there is no `<img>` for the browser's preload scanner or for crawlers; every avatar on a page is requested right after hydration, whether on screen or not (`/membros` lists every role holder, up to 500 by the procedure's limit; `/ratings` and the podiums dozens); and the profile hero photo, probably the LCP element of `/jogadores/:id` (not measured in a browser), starts downloading only after the JS bundle runs. The `loading="lazy"` attributes used elsewhere in the app (club logos, flags) are not available here.
+- **Fix**: for list rows and podiums render a plain `<img width height loading="lazy" decoding="async" {...avatarImage(url, size)}>` inside the fallback-coloured container (the gradient stays visible until the image paints); for the hero use `fetchPriority="high"` and no lazy loading. Keep `Avatar` only where the load/error fallback matters (upload preview).
+
+#### [x] P2-M4. About 29 KB gzip of admin-only code sits in every public page's initial graph
+
+> **Status:** Fixed and measured: the initial JS graph of a public page went from 98 chunks / 300 KB gzip to 52 chunks / 204 KB (about 96 KB less, more than the 29 KB estimated, because the shell pulled in more). `getUser` is imported inside `beforeLoad` and loaders, and the `/_auth` error and pending components live in `components/admin/auth-boundary.tsx`, loaded with `lazyRouteComponent`. `pendingComponent` is not code-split by default, which is why the shell had leaked.
+
+- **Severity**: Medium. **Verified.**
+- **Location**: `apps/web/src/routes/_auth/route.tsx:4-6` (static imports of `AdminShell`, `getUser`) and `:27-33`; `apps/web/src/routes/login.tsx:8`; `apps/web/src/server/get-user.ts`; `apps/web/src/lib/auth-client.ts`
+- **Problem**: the entry chunk `index-*.js` has static imports of `admin-shell` (6.8 KB gzip), `auth-client` (11.6 KB, Better Auth's React client, pulled in by the shell), and `get-user` (11.1 KB, the server-function client). The `/_auth` route module references them directly (`beforeLoad` calls `getUser`; its inline `errorComponent` and `pendingComponent` render `AdminShell`), and that module is part of the route tree the entry loads, so they end up in the graph every public page loads. That is about a tenth of the 300 KB initial graph, for visitors who can never use it. The 24 KB zod bundle (`schemas-*.js`, from `search-schemas.ts`) is also in that graph; that one is needed for search-param validation, so it is a trade-off, but `zod/mini` would roughly halve it.
+- **Fix**: import `getUser` lazily inside `beforeLoad` (`const { getUser } = await import("@/server/get-user")`) and move the `/_auth` error and pending components to their own file that is referenced through `lazyRouteComponent`, so the shell is not statically reachable from the route module. Re-run `scripts/check-bundle-budgets.mjs` after the change; its `initialGraphGzipBytes` budget is 330 KB against about 300 KB today, so this is where the headroom is.
+
+#### [x] P2-M5. The ratings archive was removed from the UI, but its backend, cache entries, tests, docs and a Phase 1 fix remain
+
+> **Status:** Fixed by removal (the UI was removed on purpose in `9fd12ff`): deleted `routers/ratings.ts`, its two cache-policy entries, its test, `ratings-archive/`, `ratingArchiveSearchSchema`, the `measure.ts` entries, the stale `/ratings/lista/$data` entry in `check-route-tree.mjs`, `federationDayBounds`, and the doc rows; ADR 0007 now says the archive was removed. `federationDayOf` stays for `players.rankingHistory`.
+
+- **Severity**: Medium (dead code that is still maintained). **Verified.**
+- **Location**: `packages/api/src/routers/ratings.ts` (whole router), `packages/api/src/cache/cache-policy.ts:13-14` (`ratings.lists`, `ratings.snapshot`), `packages/api/src/ratings-archive.integration.test.ts`, `apps/web/src/components/ratings-archive/format.ts` (the only file left in that folder), `apps/web/src/lib/search-schemas.ts:82` (`ratingArchiveSearchSchema`), `apps/fumadocs/content/docs/reference/procedures.mdx:67-68`, `decisions/0007-ranking-snapshots.mdx:76`
+- **Problem**: commit `9fd12ff` deleted `routes/_public/ratings/lista/index.tsx` and `lista/$data.tsx`. Nothing in `apps/web/src` calls `ratings.lists` or `ratings.snapshot` any more, yet both are public, cached and documented, `ratingArchiveSearchSchema`, `formatArchiveDate` and `RHYTHM_TABS` are unused, and the snapshot rows that feed the archive are still written and now pruned on every import. The Phase 1 timezone fix (M7) was applied to code no page reaches.
+- **Fix**: decide. Either restore the two routes (the procedures, tests and docs are ready) or delete the router, its two policy entries, its test, `ratings-archive/`, the unused schema and the doc rows. Snapshots themselves stay: `players.ranking`, `rankingHistory` and the movement arrows use them. Trade-off: removal loses a public API surface that someone may have bookmarked.
+
+#### [x] P2-M6. Every in-process tRPC call builds a new Better Auth instance and looks the session up in D1
+
+> **Status:** Mostly fixed: Better Auth is built once per D1 binding (`createAuth`, with a test), `session.cookieCache` is on (5 min), and one request context is shared by all procedures of a server render (`contextOf` in `router.tsx`). Not done: caching the administrator decision per session, because it would let a stale grant outlive a change to `GITHUB_USER_ID` or to the `account` row within one isolate.
+
+- **Severity**: Medium
+- **Location**: `packages/api/src/context.ts:17-24` (`createAuth()` per context), `apps/web/src/router.tsx:59-62` (the context factory runs once per procedure call on the server), `packages/auth/src/index.ts:13-33` (no `session.cookieCache`), `packages/api/src/index.ts` (`requireAdmin` adds one `account` query to every admin call)
+- **Problem**: `createAuth()` costs 1.6 ms of CPU (about 2.2 ms for a whole `createContext`) and runs once per procedure, so the player page spends roughly 12–15 ms of CPU on auth set-up before any SQL, and an anonymous visitor pays it as well. With a session cookie, each call also reads the session and user from D1; with an admin session, `requireAdmin` reads the GitHub account again. A rating import of 300 rows therefore runs about 300 × (session + account + `computed_results` write + the work itself) D1 operations. On Workers CPU time is the quota that matters.
+- **Fix**: build the auth object once per isolate (it only depends on bindings that do not change), reuse one context per request on the server, enable `session: { cookieCache: { enabled: true, maxAge: 300 } }`, and cache the administrator decision per session token for a minute. Trade-off: a revoked session stays valid for up to the cache window.
+
+---
+
+### Low
+
+#### [x] P2-L1. The player profile fetches more than it renders and starts one request after hydration
+
+> **Status:** Partly fixed: `clubs.standing` returns one club's row (public, 300 s) and replaces the whole-leaderboard download on the profile and in the player sheet. Not done: prefetching `records.badges` in the loader; the e2e `requests.e2e.ts` deliberately expects the badge rarity to be a non-blocking client fetch.
+
+- **Severity**: Low
+- **Location**: `apps/web/src/routes/_public/jogadores/$id/index.tsx:20,22,62-63`, `apps/web/src/components/player/player-profile.tsx:113-115`
+- **Problem**: The route downloads the whole club leaderboard (every club's strength, rank and medals) and also embeds it in the dehydrated HTML to look up one club's standing. Also, `records.badges`, the all-players holder map, is requested with a plain `useQuery` after hydration, so the "record holder" and rarity data appear one round trip late and are not in the HTML.
+- **Fix**: add a `clubs.standing({ clubId })` procedure (or return `clubStanding` from `players.byId`); prefetch `records.badges` in the loader without awaiting it, or move it to `useSuspenseQuery` behind a `Suspense` boundary; keep `rankingHistory` out of the awaited list.
+
+#### [x] P2-L2. Rating-format and tier labels are redefined in 14 places
+
+> **Status:** Fixed: `RATING_LABELS_PT` / `RATING_LABELS_EN` in `packages/api/src/rating-types.ts` and `COMPETITION_TIER_LABELS_PT` in `packages/db/src/competition.ts` replace the local copies in 14 files.
+
+- **Severity**: Low
+- **Location**: Portuguese: `components/torneios/labels.ts:11` (`RHYTHM_LABELS`), `components/comparar/compare-table.tsx:11`, `components/home/ratings/data-options.ts:44`, `components/player/player-rating-picker.tsx:9`, `components/campeoes/champions-tabs.tsx:24`, `components/home/ratings/top-players.tsx:16`, `components/recordes/statistics-charts.tsx:23`, `components/player/tournament-history-columns.tsx:64`; English: `components/rating-update/rating-history-editor.tsx:15`, `rating-update/import-review.tsx:17`, `hooks/use-rating-import.ts:20`, `components/swiss-manager/swiss-manager-workbook.ts:9`, `components/admin/player-form.tsx:59`, `components/admin/tier-calibration-card.tsx:12`; tiers: `components/torneios/labels.ts:4` vs `COMPETITION_TIER_LABELS` in `packages/db/src/competition.ts:12`
+- **Problem**: the same three words (and the four tier names) are written out again in each file, with two different spellings of the same label in each language. A new rhythm or a renamed tier means 14 edits and some will be missed.
+- **Fix**: one `RATING_TYPE_LABELS: Record<RatingType, { pt: string; en: string }>` next to `RATING_TYPES` in `packages/api/src/rating-types.ts`, and one tier map with the same shape; delete the local copies.
+
+#### [x] P2-L3. Closed-set text columns are typed as `string`, which forces about 26 casts
+
+> **Status:** Fixed: `rating_type`, `tier`, circuit `type` and player `sex` are typed with `{ enum: … }` (constants moved to `@fsx/db/competition`, re-exported by the old API modules); `drizzle-kit generate` reports no schema change. The `RatingType` / `CompetitionTier` casts on database values are gone; the ones on form strings stay. The `tv_sergipe` columns were left as they are.
+
+- **Severity**: Low
+- **Location**: schema: `packages/db/src/schema/tournaments.ts` (`rating_type`, `tier`), `players-to-tournaments.ts` (`rating_type`), `circuits.ts` (`type`, `tier`), `tv-sergipe.ts` (`age_group`, `sex`, `modality`); casts: `packages/api/src/routers/tournaments.ts:181-184,212`, `services/rating-update.ts:126,214`, `gamification/load.ts:39,169`, `routers/circuits.ts:212`, `gamification/circuits.ts:92`; web: `routes/_public/torneios/$id.tsx:38,66-67`, `components/torneios/tournament-table.tsx:38-39`, `components/player/player-profile.tsx:147`, `components/comparar/compare-table.tsx:100`, `components/tv-sergipe/tv-sergipe-view.tsx:481-482`, `routes/_auth/dashboard/circuits/{$id,index}.tsx`, `tournaments/{$id,index}.tsx`, `components/admin/create-dialogs.tsx:273-274,356` (about seven more)
+- **Problem**: the values are already constrained by `CHECK`s or by zod enums, but Drizzle infers `string`, so every reader casts (`row.ratingType as RatingType`). A wrong cast compiles silently, and `?? row.ratingType` fallbacks next to the casts show the types are not trusted.
+- **Fix**: `text("rating_type", { enum: RATING_TYPES })` (and the same for tier, circuit type, sex, age group, modality). This changes types only, so it needs no migration, and the casts can go.
+
+#### [x] P2-L4. Validation limits are duplicated between the form layer and the API, and have already drifted
+
+> **Status:** Fixed: `packages/api/src/field-limits.ts` holds the limits; `input-schemas.ts`, `field-rules.ts` and `event-form.tsx` use it, the form now also checks the 1.8 MB byte limit, and it counts code points like zod (a test covers it).
+
+- **Severity**: Low
+- **Location**: `apps/web/src/lib/field-rules.ts:6-8` (`TEXT_MAX = 160`, `URL_MAX = 2_048`, `LONG_TEXT_MAX = 500_000`), `apps/web/src/components/admin/event-form.tsx:161` (`maxLength={2048}`), against `packages/api/src/input-schemas.ts` (`nameText`, `httpUrl`, `contentText`)
+- **Problem**: the browser re-implements the server's limits by hand. Since Phase 1 N3, `contentText` also rejects text over 1.8 MB of UTF-8, which the form does not check, so a long multi-byte article passes the form and fails on the server with a generic message.
+- **Fix**: export the three constants from `input-schemas.ts` (it has no server imports) and use them in `field-rules.ts` and `event-form.tsx`; add the byte check to `maxLengthError`.
+
+#### [ ] P2-L5. Three identical join routers
+
+> **Status:** Not done: a typed factory over three Drizzle relations (`title`, `role`, `insignia`) would need casts or loose generics to keep the router output types the dashboard relies on, for about 70 duplicated lines. The over-fetch (`with: { title: true }`) is also unchanged.
+
+- **Severity**: Low
+- **Location**: `packages/api/src/routers/players-to-titles.ts`, `players-to-roles.ts`, `players-to-insignias.ts` (38 lines each; `diff` after renaming the entity shows no differences)
+- **Problem**: copy-pasted `listByPlayer` / `link` / `unlink`. They also load the whole related row (`with: { title: true }`) where the admin UI shows a name.
+- **Fix**: a `playerJoinRouter(table, otherColumn, label)` factory in `crud.ts` (which already holds `deleteById`), with explicit `columns`, as `AGENTS.md` asks for procedures.
+
+#### [x] P2-L6. Two comments in `players.ts` are wrong, and one hides a thin safety margin
+
+> **Status:** Fixed: both comments corrected, and the comment now states the parameter budget (96 of 100 at `limit` 90).
+
+- **Severity**: Low. **Verified.**
+- **Location**: `packages/api/src/routers/players.ts:255` ("`players_rapid_idx` drives the ORDER BY + LIMIT"), `:462-463` ("Drizzle issues one query per relation keyed on the page ids")
+- **Problem**: the plan for that query uses `players_active_rapid_idx` (see the audit in `audits/query-plans.sql`). And `db.query.players.findMany({ with: … })` on SQLite is a single statement with one correlated `json_group_array` sub-select per relation (checked with `.toSQL()`), not a query per relation. That matters for D1's parameter limit: the page query for `limit: 90` binds 96 parameters (90 ids plus a `limit ?` per relation), so adding one more relation with a limit, or a fifth filter, will break the page again.
+- **Fix**: correct both comments; add a test that runs `withFilters` at the maximum `limit` (Phase 1 added one for the ranking path) and note the 100-parameter budget next to `limit`.
+
+#### [ ] P2-L7. Long functions and mixed-concern files
+
+> **Status:** Partly done: `index.ts` was split into `index.ts`, `errors-normalize.ts` and `admin-guard.ts`. The long components and the 451-line import hook were not touched, because there is no way to verify those refactors beyond the e2e suite and they carry no known bug.
+
+- **Severity**: Low
+- **Location**: `components/player/update-request-form.tsx` (one 403-line component in a 483-line file), `components/circuitos/admin/circuit-editor.tsx` (316-line component), `components/bullet/bullet-client.tsx` (287-line component in a 642-line file, inside the public bundle), `routes/_public/ratings/index.tsx` (254-line route component with about 150 lines of inline table rows), `components/tv-sergipe/tv-sergipe-view.tsx` (240 lines), `hooks/use-rating-import.ts` (451 lines: file parsing, planning, applying, persistence and reporting), `packages/api/src/index.ts` (277 lines: tRPC init, unique-violation sentence building, three middlewares and the procedure builders), `gamification/badges.ts` (782 lines)
+- **Problem**: hard to review and to test. The rating-import hook and the request form carry business rules (when a row is created or rated, which fields count as a change) that are only testable through React.
+- **Fix**: split along existing seams: move the planning and apply loop of `use-rating-import.ts` into plain functions in `lib/` (the planning part already is); split `index.ts` into `trpc.ts`, `errors-normalize.ts`, `admin-guard.ts`; extract the ratings table row into `components/ratings/player-row.tsx` (the home page's `columns.tsx` already renders the same data).
+
+#### [x] P2-L8. Dead code in application packages
+
+> **Status:** Fixed: removed `protectedProcedure`, `PENDING_KEY_PATTERN`, `sql-in-list.ts`, `env/web.ts`, `CalendarEventData`, the `tv-sergipe` label maps, 20 unused `insert*Schema` exports, nine unused UI primitives and the five capybara files. Adding `knip` to CI was not done.
+
+- **Severity**: Low. **Verified** with an export-usage scan across the repo (types and Drizzle relations excluded, since they are consumed through `import * as schema`).
+- **Location**: `packages/api/src/index.ts` (`protectedProcedure`), `packages/api/src/media-kinds.ts` (`PENDING_KEY_PATTERN`), `packages/db/src/sql-in-list.ts` (the whole file), `packages/env/src/web.ts` and its dependency `@t3-oss/env-core`, `apps/web/src/components/calendario/calendar-event.tsx` (`CalendarEventData`), `apps/web/src/routes/_auth/dashboard/tv-sergipe/-constants.ts` (`SEX_LABELS`, `MODALITY_LABELS`), the `insert*Schema` exports in `packages/db/src/schema/` that no router uses (about 20, e.g. `insertCupSchema`, `insertTvSergipeSchema`, `insertRankingSnapshotSchema`), `packages/ui/src/components/{attachment,bubble,empty,marker,menubar,message,message-scroller,pagination,scroll-area}.tsx` (about 1,200 lines of unused shadcn primitives), `apps/web/public/capybara*.{gif,webp}` (five files, referenced nowhere)
+- **Problem**: unused surface to read, type-check and keep consistent; several appear in the docs as if they were in use (`env/web`).
+- **Fix**: delete them (the UI primitives can be re-added with the shadcn CLI). Add `knip` (or an equivalent) to CI so this stays at zero.
+
+#### [x] P2-L9. Unused and duplicated dependencies
+
+> **Status:** Fixed: removed the unused dependencies listed (including the `web` self-dependency and the `libsql` pair), de-duplicated the root manifest, and regenerated `bun.lock`; `@fontsource-variable/fustat` was added to `apps/web` for the preload.
+
+- **Severity**: Low. **Verified** with an import scan of each workspace.
+- **Location**: `apps/web/package.json`: `@libsql/client`, `libsql`, `@tanstack/react-pacer`, `@tanstack/react-virtual`, `react-use-measure`, `web-vitals`, `dotenv`, `jsdom`, `@testing-library/dom`, `@testing-library/react`, and `"web": "^0.0.2"` (a package depending on itself: `bun.lock` resolves it to `web@workspace:apps/web`); `packages/db/package.json`: `@libsql/client`, `libsql`; `packages/api/package.json`: `@trpc/client`, `dotenv`; `packages/auth/package.json`: `dotenv`; `packages/env/package.json`: `zod`, `@t3-oss/env-core`; `packages/ui/package.json`: `date-fns`; root `package.json`: `@tanstack/router-plugin`, and runtime copies of `@tanstack/react-query`, `react-router`, `ssr-query`, `motion`, `zod`, `dotenv` that are also declared in `apps/web` with different ranges (`^5.104.5` vs `^5.101.4` for react-query, for example)
+- **Problem**: install time and attack surface (`libsql` ships native binaries and is not used since the move to D1), a self-referencing dependency that looks like a typo-squat on first read, and version ranges declared twice.
+- **Fix**: remove the unused ones; declare shared ranges once in the root `catalog`; delete the `web` self-dependency.
+
+#### [x] P2-L10. Several images are served at full size
+
+> **Status:** Fixed: the article hero, cup image, member avatars and the 16–20 px emblems now use `coverImage` / `avatarImage`.
+
+- **Severity**: Low
+- **Location**: `apps/web/src/components/noticias/post-article.tsx:28` (article hero, `post.imageUrl` as is, with `fetchPriority="high"`; the card on the list page uses `coverImage` correctly), `components/bullet/bullet-client.tsx:267` (`cup.imageUrl`), `routes/_public/membros.tsx:173` (member avatars at 44 px use the original), `components/circuitos/columns.tsx:127`, `components/clubes/club-logo.tsx:7`, `components/tv-sergipe/tv-sergipe-view.tsx:364`, `routes/_public/ratings/index.tsx:287,305` (20 px logos and flags use the original, up to 512 KB each by policy)
+- **Problem**: `lib/media-image.ts` already provides `coverImage` and `avatarImage`, but only some call sites use them. A hero photo is up to 5 MB by policy (cropped in the browser, so usually far less), and a table of 20 players loads 40 emblem files.
+- **Fix**: use `coverImage(post.imageUrl, "(min-width: 768px) 720px, 100vw")` for the hero and cup image, `avatarImage(url, 44)` for members, and a 48-px variant for emblems.
+
+#### [x] P2-L11. Fonts: nothing is preloaded, and two unreferenced font files are emitted
+
+> **Status:** Partly fixed: the Fustat latin file is preloaded from the root route. The two unreferenced font files (`Inter`, `Bricolage`) are still emitted; I did not find what emits them.
+
+- **Severity**: Low
+- **Location**: `apps/web/src/routes/__root.tsx:64-73` (`links` has no `preload`), `packages/ui/src/styles/globals.css:14-35` (Fustat is `font-display: swap`), `apps/web/dist/client/assets/Inter-latin-*.woff2` and `BricolageGrotesque-Bold-*.ttf` (150 KB together)
+- **Problem**: the body font (Fustat, two files) is discovered only after the CSS is parsed, so first paint uses the fallback and then reflows when `swap` kicks in (a possible layout shift on cold visits). The Inter and Bricolage files exist in the public asset directory but no CSS or client chunk references them.
+- **Fix**: import the latin Fustat file with `?url` and add `{ rel: "preload", as: "font", type: "font/woff2", href, crossOrigin: "anonymous" }` to the root `links`; find what emits the two unreferenced fonts (they are not in the site's CSS) and exclude them from the client output.
+
+#### [x] P2-L12. Worker size and cold path
+
+> **Status:** Partly fixed: a Vite plugin gives the server build an empty `xlsx` module; the Worker's JS went from about 1.99 MB to 1.79 MB gzip and the 820 KB chunk is gone. Better Auth's Kysely adapter and SQLite dialects are third-party code and remain.
+
+- **Severity**: Low (trade-off with third-party code)
+- **Location**: `apps/web/dist/server/assets/` — `auth-middleware-*.js` 1.3 MB, `xlsx-*.js` 821 KB, `og-render-*.js` 784 KB plus 1.4 MB of WASM, `sqlite-introspector-*.js` 282 KB and the `bun`/`node`/`d1` SQLite dialect chunks; `apps/web/src/lib/rating-import-file.ts` (dynamic `import("xlsx")`)
+- **Problem**: the Worker is about 3.4 MB (gzipped JS plus the WASM files as they are), above the 3 MB free-plan limit, and a cold isolate loads about 2.9 MB of JS on its first request. Part of it is dead weight: the `xlsx` chunk is built into the server because a client-only dynamic import is also visible to the SSR build, and Better Auth ships its Kysely adapter and SQLite dialects even though the app uses the Drizzle adapter.
+- **Fix**: mark `xlsx` as external (or alias it to an empty module) for the SSR build; check whether the Better Auth version offers an import path without the Kysely adapter. Measure again with `wrangler deploy --dry-run --outdir` to see the real upload size. Trade-off: the SSR alias must not affect the client chunk.
+
+#### [ ] P2-L13. `/ratings` waits for two filter lists it does not need to paint
+
+> **Status:** Not done: I made the two lists non-blocking and reverted it, because `requests.e2e.ts` requires `/ratings` to hydrate without refetching and to reuse prefetched data on click; the lists are cached at the edge and small.
+
+- **Severity**: Low
+- **Location**: `apps/web/src/routes/_public/ratings/index.tsx:55-73,115-116`
+- **Problem**: the loader awaits `clubs.list` and `locations.list` (up to 500 rows each) so that the "Clubes" and "Local" facet menus have options, but the menus are closed on first paint. They add two D1 reads and up to 1,000 rows to the critical path of the most visited data page.
+- **Fix**: prefetch them without awaiting (`void queryClient.prefetchQuery(...)`) and read them with `useQuery`, or load them when the popover first opens.
+
+#### [x] P2-L14. Manual casts of error and environment shapes
+
+> **Status:** Fixed: `getServerMessage` and `getFieldErrors` in `lib/errors.ts` replace the hand-written shapes; the optional Turnstile and purge bindings are declared in `packages/env/env.d.ts`, so the two `env` casts are gone.
+
+- **Severity**: Low
+- **Location**: `apps/web/src/lib/rating-import-feedback.ts:8-9`, `apps/web/src/components/player/update-request-form.tsx:67`, `apps/web/src/lib/errors.ts:41,49,62,84` (the `AppError` shape is cast, not derived); `packages/api/src/http/turnstile.ts:6`, `packages/api/src/routers/cache.ts:8` (`env as PurgeEnv`)
+- **Problem**: three places re-declare the tRPC error shape by hand, and two cast `env` because the optional bindings in `alchemy.run.ts` are added with `...(cond ? { X } : {})` and so do not appear in the inferred `Env` type. A rename of `userMessage` or `zodError` would not be caught by the compiler.
+- **Fix**: type errors as `TRPCClientErrorLike<AppRouter>` once in `lib/errors.ts` and import its helpers; declare the optional bindings in `env.d.ts` as `TURNSTILE_SECRET_KEY?: string`, `CLOUDFLARE_CACHE_PURGE_TOKEN?: string`.
+
+---
+
+### Nitpick
+
+- [x] **P2-N1. `motion` is a dependency that does nothing.** `apps/web/src/routes/__root.tsx:10,111` wraps the app in `MotionConfig`, but no component uses `motion` (the one `motion-reduce` in `import-progress.tsx` is a Tailwind class). The wrapper costs about 1 KB gzip (measured) and the package is declared twice (root and `apps/web`). Remove both. — *Fixed: `MotionConfig` and the `motion` dependency are gone.*
+- [ ] **P2-N2. Doc-style comments against the project rule.** `AGENTS.md` asks for "zero comments by default" and no doc-style prose, yet there are 149 `/** … */` blocks in `apps/web/src` and `packages/*/src` (most in `data-table-row-actions.tsx`, `form-layout.tsx`, `tournament-import.ts`, `seo.ts`, `entity-pages.tsx`). The header of `hooks/use-rating-import.ts` ("The plan stays in memory so failed or unrun rows can be retried…") is also out of date since the Phase 1 fix persists progress in `localStorage`. — *Partly done: the stale header of `use-rating-import.ts` is fixed. The other 148 doc-style blocks were left; removing them is a style pass of its own.*
+- [x] **P2-N3. `AGENTS.md` describes a directory that does not exist.** Line 3 says `source-project/` holds the old codebase; the directory is not in the repository. Remove the sentence. — *Fixed: the sentence is removed from `AGENTS.md`.*
+- [x] **P2-N4. `.wrangler` state is tracked.** Six files under `apps/fumadocs/.wrangler/state/` (SQLite metadata, 96 KB) are committed; `apps/fumadocs/.gitignore` lacks `.wrangler/`. `git rm --cached` them and add the ignore. — *Fixed: the six files are untracked and `apps/fumadocs/.gitignore` ignores `.wrangler/`.*
+- [ ] **P2-N5. Local build outputs hold production secret values.** `apps/web/.alchemy/local/wrangler.jsonc` and `apps/web/dist/server/wrangler.json` (both gitignored) list the GitHub OAuth client secret, the auth secret and the Turnstile secret as plain `vars`. They are not committed, but a `wrangler deploy` from `dist/` would store them as visible variables instead of secrets, and the files sit unencrypted on the developer's disk. Generate the local config from `.env` (dev) values only, and rotate the secrets if either file was ever shared or backed up. — *Documented only: `operations/local-development.mdx` now warns about the two generated files. The generation itself is Alchemy's, and the secrets should be rotated if either file was shared.*
+- [x] **P2-N6. Naming drift in routers.** `insigniaRouter` (singular) next to `insigniasRouter`-style names, `titledPlayers` / `topPlayers` / `swissManager` as top-level routers for single procedures, and `tv-sergipe/-constants.ts` exporting unused labels. Pick one convention in `routers/index.ts`. — *Fixed for `insigniaRouter` → `insigniasRouter`; the single-procedure routers keep their names.*
+- [x] **P2-N7. Two hand-rolled debounces next to an installed library.** `components/header/command-menu.tsx:137-145` and `components/form/searchable-select.tsx` each implement `setTimeout` debouncing while `@tanstack/react-pacer` sits unused in `package.json` (P2-L9). Use one `useDebouncedValue`. — *Fixed: `hooks/use-debounced-value.ts` replaces both hand-rolled debounces; `@tanstack/react-pacer` is removed.*
+- [ ] **P2-N8. Admin lists repeat a little boilerplate.** `clubs/index.tsx`, `locations/index.tsx`, `roles/index.tsx` and the other simple lists differ only in labels and columns; `EntityListPage` already removes most of it, and a `useEntityDelete(noun, router)` hook would remove the rest. Do it only if a new list is added. — *Left as is, as the finding says: nothing to do until a new list is added.*
+- [x] **P2-N9. Date used in render on an admin page.** `routes/_auth/dashboard/update-requests/index.tsx:93` calls `Date.now()` during render; the page is server-rendered, so a row that crosses the age cutoff between server and client render would hydrate differently. Compute it in the loader or an effect. — *Fixed: the count is computed in an effect.*
+- [x] **P2-N10. `apps/web/src/components/ratings-archive/format.ts` and `lib/search-schemas.ts:82`** are covered by P2-M5; listed here so they are not forgotten if that finding is resolved by restoring the routes (they would then need tests). — *Moot: the ratings archive code was removed (P2-M5).*
+
+---
+
+### Checked and found sound
+
+- **Loaders and suspense queries**: every public route that uses `useSuspenseQuery` primes the same queries in its `loader` (the counts match route by route; the profile page awaits all of them with `Promise.all`, and `clubs.leaderboard` waits for the player so a 404 does not carry it). Search params are validated with `validateSearch` and feed `loaderDeps`.
+- **Code splitting**: the client has 288 chunks; `xlsx` (481 KB raw, 159 KB gzip) and the chart libraries load only on the pages that use them; devtools and the OG renderer are absent from the production client (tree-shaken or lazily imported).
+- **Caching of what is cached**: the procedure policy table, the sitemap and RSS Cache API entries, the immutable `/api/media/*` responses with ETag, and the 5-minute public API are consistent with one another; the authenticated bypass is correct.
+- **Type discipline**: no `@ts-ignore`, no `as any`, one `as unknown as` (the SheetJS workbook), two `any` (`seed.ts`, `env/web.ts`), no TODO or FIXME. Non-null assertions (about 180) cluster in `gamification/badges.ts`, `seed.ts` and `create-dialogs.tsx`, where the values are checked a few lines earlier.
+- **Layering**: `packages/api` has no React or browser imports; the web app only imports pure modules from it (`rating-types`, `circuit-types`, `age-groups`, `link-icons`, `gamification/*` types and constants) plus the HTTP handlers from server routes. The admin lists, forms and delete dialogs are built from shared components (`EntityListPage`, `EntityForm`, `DeleteDialog`), as `AGENTS.md` prescribes.
+- **Fonts and CSS**: one CSS file of 38 KB gzip; JetBrains Mono's extra scripts are `unicode-range` subsets and load only if used.

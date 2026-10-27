@@ -56,7 +56,7 @@ async function playerWithResults(name: string, count: number) {
         .values(
           Array.from({ length: Math.min(20, count - i) }, (_, j) => ({
             name: `${name} ${i + j + 1}`,
-            ratingType: "rapid",
+            ratingType: "rapid" as const,
             date: "2025-01-01",
           })),
         )
@@ -70,7 +70,7 @@ async function playerWithResults(name: string, count: number) {
         tournamentId: tournament.id,
         oldRating: 1900 + i + j,
         variation: 1,
-        ratingType: "rapid",
+        ratingType: "rapid" as const,
       })),
     );
   }

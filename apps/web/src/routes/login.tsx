@@ -5,7 +5,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth-client";
-import { getUser } from "@/server/get-user";
 import { buildSeo, withBrand } from "@/lib/seo";
 
 export const Route = createFileRoute("/login")({
@@ -20,6 +19,7 @@ export const Route = createFileRoute("/login")({
   // Resolve the session on the server before rendering, so the form paints
   // immediately instead of flashing a client-side loading spinner.
   beforeLoad: async () => {
+    const { getUser } = await import("@/server/get-user");
     const session = await getUser();
     if (session) {
       throw redirect({ to: "/dashboard" });

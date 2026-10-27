@@ -35,6 +35,7 @@ import { cn } from "@fsx/ui/lib/utils";
 import { avatarGradientFor } from "@/components/avatar-gradient";
 import { ratingsSearchSchema } from "@/lib/search-schemas";
 import { breadcrumbJsonLd, buildSeo, withBrand } from "@/lib/seo";
+import { avatarImage } from "@/lib/media-image";
 
 type SortBy = "classic" | "rapid" | "blitz";
 
@@ -291,7 +292,7 @@ function RouteComponent() {
                           loading="lazy"
                           width={16}
                           className="aspect-square size-4 rounded object-contain"
-                          src={player.location.flagUrl}
+                          {...avatarImage(player.location.flagUrl, 16)}
                         />
                       </span>
                     ) : null}
@@ -309,7 +310,7 @@ function RouteComponent() {
                           loading="lazy"
                           width={20}
                           className="aspect-square size-full object-contain"
-                          src={player.club.logoUrl}
+                          {...avatarImage(player.club.logoUrl, 20)}
                         />
                       </span>
                     ) : player.club?.name ? (

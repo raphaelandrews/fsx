@@ -6,8 +6,6 @@ import { EventLinkButton, EventVenue, orderedEventLinks, type EventData } from "
 
 import { eventPeriod, isFinished, monthShort } from "./dates";
 
-export type CalendarEventData = EventData;
-
 const DAY_MS = 86_400_000;
 const dayNumber = (isoDate: string) => Date.parse(`${isoDate.slice(0, 10)}T00:00:00Z`) / DAY_MS;
 

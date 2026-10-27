@@ -3,8 +3,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowUpRight01Icon, Trophy } from "@hugeicons/core-free-icons";
 
-import type { CompetitionTier } from "@fsx/api/circuit-types";
-import type { RatingType } from "@fsx/api/rating-types";
 import { buttonVariants } from "@fsx/ui/components/button";
 import { cn } from "@fsx/ui/lib/utils";
 
@@ -35,7 +33,7 @@ export const Route = createFileRoute("/_public/torneios/$id")({
     const tournament = loaderData?.tournament;
     const path = `/torneios/${params.id}`;
     if (!tournament) return buildSeo({ title: withBrand("Torneio"), path });
-    const rhythm = RHYTHM_LABELS[tournament.ratingType as RatingType] ?? tournament.ratingType;
+    const rhythm = RHYTHM_LABELS[tournament.ratingType] ?? tournament.ratingType;
     const description = `${tournament.name}${tournament.date ? `, ${formatIsoDate(tournament.date)}` : ""}: campeões, classificação e variação de rating (${rhythm}) da Federação Sergipana de Xadrez.`;
     return buildSeo({
       title: withBrand(tournament.name),
@@ -63,8 +61,8 @@ function RouteComponent() {
 
   const details = [
     tournament.date ? formatIsoDate(tournament.date) : null,
-    RHYTHM_LABELS[tournament.ratingType as RatingType] ?? tournament.ratingType,
-    TIER_LABELS[tournament.tier as CompetitionTier] ?? tournament.tier,
+    RHYTHM_LABELS[tournament.ratingType] ?? tournament.ratingType,
+    TIER_LABELS[tournament.tier] ?? tournament.tier,
   ].filter(Boolean);
 
   return (
