@@ -1,9 +1,10 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, lt } from "drizzle-orm";
 import type { Miniflare } from "miniflare";
 
 import { createDb } from "@fsx/db";
 import { players } from "@fsx/db/schema/players";
+import { rankingSnapshots } from "@fsx/db/schema/ranking-snapshots";
 
 import { yearsBefore } from "./services/rating-update";
 import { createTestD1 } from "./test-d1";
@@ -30,7 +31,7 @@ afterAll(async () => {
 });
 
 const idOf = (rows: { id: number }[]) => rows[0]!.id;
-const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Maceio" }).format(new Date());
 const yearsAgo = (years: number) => yearsBefore(today, years);
 
 // Registered long ago, so only their tournaments decide.
@@ -90,6 +91,17 @@ describe("automatic inactivity", () => {
     await caller.playersTournament.linkWithRating({ playerId: stale, tournamentId: await tournament("Aberto de Volta", today), variation: 3, ratingType: "rapid" });
     expect((await activeOf([stale]))[stale]).toBe(true);
     expect((await caller.playersTournament.snapshotRankings({ ratingTypes: ["rapid"] })).deactivated).toBe(0);
+
+    const trail = await caller.history.list({ page: 1, entity: "player", recordId: stale });
+    expect(trail.entries.some((entry) => entry.actor === "system" && entry.procedure === "playersTournament.snapshotRankings")).toBe(true);
+  });
+
+  test("rankings older than the retention window are dropped with the next import", async () => {
+    const id = await veteran("Ranking Antigo");
+    await db.insert(rankingSnapshots).values({ playerId: id, ratingType: "rapid", position: 1, rating: 1900, snapshotAt: "2000-01-01 10:00:00.000" });
+    await caller.playersTournament.snapshotRankings({ ratingTypes: ["rapid"] });
+    const old = await db.select({ id: rankingSnapshots.id }).from(rankingSnapshots).where(lt(rankingSnapshots.snapshotAt, "2001-01-01"));
+    expect(old).toHaveLength(0);
   });
 });
 

@@ -115,7 +115,7 @@ Example: `/torneios/$id`, a tournament page.
      `useSuspenseQuery`; search-param inputs go through `validateSearch` and
      `loaderDeps`.
    - Put `head` after `loader` so `loaderData` is typed.
-   - Format dates with an explicit `timeZone` (`"UTC"` for stored dates, `"America/Sao_Paulo"` for local times).
+   - Format dates with an explicit `timeZone` (`"UTC"` for stored dates, `"America/Maceio"` for local times).
 3. **Sitemap.** Add list pages to `STATIC_PATHS` in `apps/web/src/lib/sitemap.ts`;
    for detail pages, add their IDs in `packages/api/src/http/sitemap.ts`.
    `bun run check:routes` fails otherwise.

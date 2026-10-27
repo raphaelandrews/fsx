@@ -292,7 +292,7 @@ export const tournamentsRouter = router({
       const hasResults = exists(
         ctx.db.select({ id: playersToTournaments.id }).from(playersToTournaments).where(eq(playersToTournaments.tournamentId, input.id)),
       );
-      const rows = await ctx.db
+      const update = ctx.db
         .update(tournaments)
         .set(input)
         .where(and(
@@ -300,18 +300,22 @@ export const tournamentsRouter = router({
           input.ratingType ? or(eq(tournaments.ratingType, input.ratingType), not(hasResults)) : undefined,
         ))
         .returning();
+      // One batch, so the flag and the podiums it governs change together. The delete re-reads the flag, so a
+      // refused update (rating type guard) never removes podiums.
+      const [rows] = await ctx.db.batch([
+        update,
+        ...(input.hasPodiums === false
+          ? [ctx.db.delete(tournamentPodiums).where(and(eq(tournamentPodiums.tournamentId, input.id), exists(
+              ctx.db.select({ id: tournaments.id }).from(tournaments).where(and(eq(tournaments.id, input.id), eq(tournaments.hasPodiums, false))),
+            )))]
+          : input.hasPodiums === true
+            ? [...syncTournamentStageResults(ctx.db, input.id), ...syncSchoolGamesEditionPodiums(ctx.db, input.id)]
+            : []),
+      ]);
       if (rows.length === 0 && input.ratingType && await tournamentExists(ctx.db, input.id)) {
         throw new TRPCError({ code: "CONFLICT", message: RATED_TOURNAMENT_MESSAGE });
       }
       requireMutationRows(rows, "Tournament");
-      if (input.hasPodiums === false) {
-        await ctx.db.delete(tournamentPodiums).where(eq(tournamentPodiums.tournamentId, input.id));
-      } else if (input.hasPodiums === true) {
-        await ctx.db.batch([
-          ...syncTournamentStageResults(ctx.db, input.id),
-          ...syncSchoolGamesEditionPodiums(ctx.db, input.id),
-        ]);
-      }
       return rows;
     }),
   delete: adminProcedure.input(idInput).mutation(async ({ ctx, input }) => {

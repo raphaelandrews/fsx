@@ -13,7 +13,7 @@ const FORMATS: { key: RatingType; label: string }[] = [
 ];
 
 const formatDate = (timestamp: number) =>
-  new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeZone: "America/Sao_Paulo" }).format(timestamp);
+  new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeZone: "America/Maceio" }).format(timestamp);
 
 /** The Tier A strength lines behind the "Suggested tier" note, and the button that recomputes them. */
 export function TierCalibrationCard() {

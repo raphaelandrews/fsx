@@ -89,3 +89,18 @@ describe("a player's ranking history", () => {
     await expect(caller.players.rankingHistory({ id: 999999 })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });
+
+describe("archive days follow the federation calendar", () => {
+  test("an evening import belongs to its local day, not the next UTC day", async () => {
+    const test = await createTestD1("fsx-ratings-archive-tz");
+    const db = createDb(test.binding);
+    const admin = await ownerCaller(appRouter.createCaller, db);
+    const [p] = await db.insert(players).values({ name: "Noite Local", rapid: 1900 }).returning();
+    // 22:30 in Sao Paulo (UTC-3) is 01:30 UTC of the next day.
+    await db.insert(rankingSnapshots).values({ playerId: p!.id, ratingType: "rapid", position: 1, rating: 1900, snapshotAt: "2030-03-11 01:30:00.000" });
+    expect((await admin.ratings.lists({ ratingType: "rapid" })).dates).toEqual(["2030-03-10"]);
+    expect((await admin.ratings.snapshot({ date: "2030-03-10", ratingType: "rapid", page: 1 })).players).toHaveLength(1);
+    await expect(admin.ratings.snapshot({ date: "2030-03-11", ratingType: "rapid", page: 1 })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await test.miniflare.dispose();
+  });
+});

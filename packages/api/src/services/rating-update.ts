@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, exists, gt, inArray, sql } from "drizzle-orm";
+import { and, eq, exists, gt, inArray, lt, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 
 import type { createDb } from "@fsx/db";
@@ -10,6 +10,7 @@ import { rankingSnapshots } from "@fsx/db/schema/ranking-snapshots";
 import { tournaments } from "@fsx/db/schema/tournaments";
 
 import { MAX_RATING, type RatingType } from "../rating-types";
+import { recordDeactivations } from "./change-log";
 
 export interface RatingUpdateInput {
   playerId: number;
@@ -278,7 +279,7 @@ function deactivateStalePlayers(db: RatingDatabase, cutoff: string) {
         SELECT 1 FROM circuit_results c
         JOIN circuit_phases f ON f.id = c.circuit_phase_id JOIN tournaments t ON t.id = f.tournament_id
         WHERE c.player_id = ${players.id} AND COALESCE(t.date, c.created_at) >= ${cutoff})`)
-    .returning({ id: players.id });
+    .returning({ id: players.id, name: players.name });
 }
 
 // Youth titles (titles.loses_at_age) are lost from 1 January of the year the
@@ -301,6 +302,15 @@ function youthTitlesWithoutBirthDate(db: RatingDatabase) {
     SELECT COUNT(*) AS total FROM players_to_titles pt
     JOIN titles t ON t.id = pt.title_id JOIN players p ON p.id = pt.player_id
     WHERE t.loses_at_age IS NOT NULL AND p.birth_year IS NULL`);
+}
+
+// Rankings older than this are dropped with every import; the history charts and the archive only reach back so far.
+export const SNAPSHOT_RETENTION_YEARS = 3;
+
+function pruneOldSnapshots(db: RatingDatabase, snapshotAt: string) {
+  const cutoff = new Date(`${snapshotAt.replace(" ", "T")}Z`);
+  cutoff.setUTCFullYear(cutoff.getUTCFullYear() - SNAPSHOT_RETENTION_YEARS);
+  return db.delete(rankingSnapshots).where(lt(rankingSnapshots.snapshotAt, cutoff.toISOString().replace("T", " ").slice(0, 23)));
 }
 
 // Applies the FSX maintenance rules, then records the ranking, all in one batch:
@@ -332,7 +342,14 @@ export async function snapshotRankings(db: RatingDatabase, ratingTypes: readonly
     expireYouthTitles(db, Number(today.slice(0, 4))),
     youthTitlesWithoutBirthDate(db),
     ...(first ? [first, ...rest] : []),
+    pruneOldSnapshots(db, snapshotAt),
   ]);
+  // The rule can undo an administrator's manual "active", so each deactivation leaves a trace in the change log.
+  try {
+    await recordDeactivations(db, deactivated);
+  } catch (error) {
+    console.error("[change-log] could not record the deactivations", { error: String(error) });
+  }
   return {
     snapshotAt,
     deactivated: deactivated.length,

@@ -157,7 +157,7 @@ describe("emblem rarity and record holders", () => {
 
 describe("month highlight", () => {
   test("is the biggest gain in the current month and ignores other months", async () => {
-    const month = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date()).slice(0, 7);
+    const month = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Maceio" }).format(new Date()).slice(0, 7);
     const playerId = idOf(await caller.players.create({ name: "Dora Destaque", blitz: 1900, rapid: 1900, classic: 1900, sex: "female", active: true }));
     const thisMonth = idOf(await caller.tournaments.create({ name: "Aberto do Mês", ratingType: "rapid", date: `${month}-02` }));
     const longAgo = idOf(await caller.tournaments.create({ name: "Aberto Antigo", ratingType: "blitz", date: "2001-01-10" }));

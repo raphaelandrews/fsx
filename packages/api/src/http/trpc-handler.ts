@@ -8,7 +8,7 @@ import {
 } from "../cache/cache-policy";
 import { createContext } from "../context";
 import { dropFromEdge, edgeCache, isCachedEntryFresh, storeAtEdge, toClientResponse } from "../cache/edge-cache";
-import { measureResponseBytes, PUBLIC_RESPONSE_SIZE_BUDGET_BYTES } from "../lib/resource-bounds";
+import { MAX_BATCH_SIZE, measureResponseBytes, PUBLIC_RESPONSE_SIZE_BUDGET_BYTES } from "../lib/resource-bounds";
 import { appRouter } from "../routers/index";
 import {
   getClientIp,
@@ -24,6 +24,7 @@ import { applySecurityHeaders } from "./security-headers";
 // and the zone's Browser Cache TTL raises any shorter max-age (it turned
 // max-age=0 into 4 hours). Only the stored edge entry carries s-maxage.
 const CLIENT_CACHE_CONTROL = "no-store";
+
 
 // A session cookie means the request is authenticated. Cache API entries are
 // keyed by URL + method only, so caching authenticated GETs would both serve
@@ -53,6 +54,7 @@ function handleWithRouter(request: Request): Promise<Response> {
     router: appRouter,
     createContext,
     endpoint: "/api/trpc",
+    maxBatchSize: MAX_BATCH_SIZE,
   });
 }
 

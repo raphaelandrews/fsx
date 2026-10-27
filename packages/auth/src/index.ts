@@ -15,6 +15,9 @@ export function createAuth() {
     configuredUsername: env.GITHUB_USERNAME,
   });
 
+  // The login and first-user rules let any GitHub account in; they are for local development only.
+  const requireOwnerId = env.BETTER_AUTH_URL.startsWith("https://") && ownerRule.kind !== "githubId";
+
   return betterAuth({
     database: drizzleAdapter(db, {
       provider: "sqlite",
@@ -36,6 +39,9 @@ export function createAuth() {
         // returning users; a `false` from an account hook would still create
         // the user and a session.
         mapProfileToUser: (profile) => {
+          if (requireOwnerId) {
+            throw new APIError("FORBIDDEN", { message: "Sign-in is disabled until GITHUB_USER_ID is configured." });
+          }
           if (!isAllowedGithubAccount(ownerRule, String(profile.id))) {
             throw new APIError("FORBIDDEN", { message: "This GitHub account cannot sign in." });
           }

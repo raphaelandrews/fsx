@@ -1,6 +1,9 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 
+import { eq } from "drizzle-orm";
+
 import { createDb } from "@fsx/db";
+import { posts } from "@fsx/db/schema/posts";
 
 import { callerAs, ownerCaller, type AdminCaller } from "./test-admin";
 import { createTestD1 } from "./test-d1";
@@ -67,5 +70,22 @@ describe("scheduled posts", () => {
 
   test("rejects a schedule that is not an instant", async () => {
     await expect(post("invalido", { publishAt: "amanhã" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});
+
+describe("post slugs and publication date", () => {
+  test("a slug must survive a URL path segment", async () => {
+    for (const slug of ["com espaco", "a/b", "q?x", "h#x"]) {
+      await expect(post(slug)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    }
+    await expect(post("acentuação-ok_1")).resolves.toHaveLength(1);
+  });
+
+  test("a draft published later is dated when it goes live", async () => {
+    const [draft] = await post("rascunho-antigo", { published: false });
+    await db.update(posts).set({ createdAt: "2020-01-01 10:00:00" }).where(eq(posts.id, draft!.id));
+    await admin.posts.update({ id: draft!.id, published: true });
+    const [after] = await db.select({ createdAt: posts.createdAt }).from(posts).where(eq(posts.id, draft!.id));
+    expect(after!.createdAt > "2020-01-02").toBe(true);
   });
 });

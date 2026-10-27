@@ -5,11 +5,14 @@ import { posts, insertPostSchema } from "@fsx/db/schema/posts";
 import { adminProcedure, publicProcedure, router } from "../index";
 import { contentText, idInput, imageUrl, nameText, page, positiveInt, searchText } from "../input-schemas";
 import { requireFound, requireMutationRows } from "../errors";
+import { PUBLIC_COLLECTION_LIMIT } from "../lib/resource-bounds";
 import { paginate } from "../lib/pagination";
 import { publiclyVisiblePost, toDbTimestamp } from "../lib/post-visibility";
 import { deleteMediaUrl, deleteReplacedMedia } from "../services/media-storage";
 
 const scheduleInstant = z.iso.datetime();
+// Must survive a URL path segment unchanged: no "/", "?", "#" or spaces.
+const slugText = z.string().trim().min(1).max(200).regex(/^[\p{L}\p{N}_-]+$/u, "Use letters, numbers, hyphens and underscores only");
 
 export const postsRouter = router({
   list: publicProcedure.query(({ ctx }) =>
@@ -34,6 +37,7 @@ export const postsRouter = router({
       })
       .from(posts)
       .orderBy(desc(posts.createdAt), desc(posts.id))
+      .limit(PUBLIC_COLLECTION_LIMIT)
   ),
   forEdit: adminProcedure
     .input(idInput)
@@ -86,7 +90,7 @@ export const postsRouter = router({
       title: nameText,
       imageUrl: imageUrl.nullable().optional(),
       content: contentText,
-      slug: z.string().trim().min(1).max(200),
+      slug: slugText,
       published: z.boolean(),
       publishAt: scheduleInstant.nullable().optional(),
     }))
@@ -103,7 +107,7 @@ export const postsRouter = router({
         title: nameText.optional(),
         imageUrl: imageUrl.nullable().optional(),
         content: contentText.optional(),
-        slug: z.string().trim().min(1).max(200).optional(),
+        slug: slugText.optional(),
         published: z.boolean().optional(),
         publishAt: scheduleInstant.nullable().optional(),
       }),
@@ -111,7 +115,7 @@ export const postsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const previous = await ctx.db.query.posts.findFirst({
         where: eq(posts.id, input.id),
-        columns: { imageUrl: true, publishAt: true, createdAt: true },
+        columns: { imageUrl: true, publishAt: true, createdAt: true, published: true },
       });
       const { publishAt, ...values } = input;
       const schedule =
@@ -124,11 +128,16 @@ export const postsRouter = router({
                 // Taking a post off its schedule publishes it now, not at the date it was waiting for.
                 ...(previous?.publishAt && previous.publishAt === previous.createdAt ? { createdAt: sql`(CURRENT_TIMESTAMP)` } : {}),
               };
+      // News is sorted and dated by createdAt, so a draft published later is dated when it went live.
+      const goingLive =
+        publishAt === undefined && input.published === true && previous && !previous.published && !previous.publishAt
+          ? { createdAt: sql`(CURRENT_TIMESTAMP)` }
+          : {};
       const updated = requireMutationRows(
-        await ctx.db.update(posts).set({ ...values, ...schedule }).where(eq(posts.id, input.id)).returning(),
+        await ctx.db.update(posts).set({ ...values, ...schedule, ...goingLive }).where(eq(posts.id, input.id)).returning(),
         "Post",
       );
-      await deleteReplacedMedia(previous?.imageUrl, input.imageUrl);
+      await deleteReplacedMedia(ctx.db, previous?.imageUrl, input.imageUrl);
       return updated;
     }),
   delete: adminProcedure.input(idInput).mutation(async ({ ctx, input }) => {
@@ -139,7 +148,7 @@ export const postsRouter = router({
         .returning({ id: posts.id, imageUrl: posts.imageUrl }),
       "Post",
     );
-    await deleteMediaUrl(deleted[0]?.imageUrl);
+    await deleteMediaUrl(ctx.db, deleted[0]?.imageUrl);
     return deleted.map(({ id }) => ({ id }));
   }),
 });

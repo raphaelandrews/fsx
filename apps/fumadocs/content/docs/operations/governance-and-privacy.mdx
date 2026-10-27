@@ -26,7 +26,7 @@ requests page offers "Delete old decisions" for anything decided more than 90 da
 
 A photo sent with a request (often of a child) sits in R2 under `pending/`, which no public URL serves; only
 the review page reads it. It moves to the public `players/` key on approval and is deleted on rejection or
-when the request is deleted. An R2 lifecycle rule also deletes anything left under `pending/` after 30 days.
+when the request is deleted. An R2 lifecycle rule also deletes anything left under `pending/` after 30 days; share images under `og/` expire after 90 days and are rendered again on demand.
 The form has the visitor crop the photo to a 400 px square (tens of KB) in the browser, which also drops its
 EXIF data (camera, location), before upload. At most 100 photos wait at once; approving one photo deletes the
 others waiting for the same player, rejecting or deleting a request deletes its photo, and merging two players

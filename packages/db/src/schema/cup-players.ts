@@ -1,6 +1,6 @@
 import { createInsertSchema } from "drizzle-zod"
 import { relations, sql } from "drizzle-orm"
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { players, cupGroups } from "./index"
 
@@ -12,7 +12,10 @@ export const cupPlayers = sqliteTable("cup_players", {
 	position: integer("position"),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 	updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-})
+}, (t) => [
+	index("cup_players_player_idx").on(t.playerId),
+	index("cup_players_group_idx").on(t.cupGroupId),
+])
 
 export const cupPlayersRelations = relations(cupPlayers, ({ one }) => ({
 	player: one(players, { fields: [cupPlayers.playerId], references: [players.id] }),

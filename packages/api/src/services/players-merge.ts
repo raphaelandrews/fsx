@@ -196,7 +196,7 @@ export async function mergePlayers(db: Database, input: { sourceId: number; targ
 
   await Promise.all(sourcePhotos.map((row) => deletePendingPhoto(row.photoKey)));
   if (source.imageUrl && source.imageUrl !== (inherited.imageUrl ?? target.imageUrl))
-    await deleteMediaUrl(source.imageUrl);
+    await deleteMediaUrl(db, source.imageUrl);
 
   return { id: targetId };
 }

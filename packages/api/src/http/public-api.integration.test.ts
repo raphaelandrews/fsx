@@ -192,7 +192,7 @@ describe("GET /api/v1/players/{id}", () => {
   });
 
   test("rejects malformed IDs without reaching the limiter or the database", async () => {
-    for (const id of ["abc", "0", "007", "-1", "1.5", "99999999999"]) {
+    for (const id of ["abc", "0", "007", "-1", "1.5", "99999999999", "1000001"]) {
       const response = await getOne(id);
       expect(response.status).toBe(404);
       expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");

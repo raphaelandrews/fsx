@@ -9,6 +9,7 @@ import type { Context } from "../context";
 import { MAX_BULK_IDS } from "../input-schemas";
 
 export const CHANGE_LOG_RETENTION_YEARS = 2;
+const ROWS_PER_INSERT = 12;
 
 type Values = Record<string, unknown>;
 type Snapshot = { label: string; values: Values };
@@ -136,6 +137,24 @@ export async function captureBefore(db: Context["db"], path: string, input: unkn
   return { specs, before };
 }
 
+/** Players the inactivity rule switched off, recorded under a system actor. */
+export async function recordDeactivations(db: Context["db"], deactivated: { id: number; name: string }[]) {
+  if (deactivated.length === 0) return;
+  const rows = deactivated.map(({ id, name }) => ({
+    actor: "system",
+    entity: "player" as const,
+    recordId: id,
+    label: name,
+    action: "update" as const,
+    procedure: "playersTournament.snapshotRankings",
+    changes: JSON.stringify({ active: [true, false] }),
+  }));
+  const inserts = Array.from({ length: Math.ceil(rows.length / ROWS_PER_INSERT) }, (_, index) =>
+    db.insert(changeLog).values(rows.slice(index * ROWS_PER_INSERT, (index + 1) * ROWS_PER_INSERT)),
+  );
+  await db.batch(inserts as [(typeof inserts)[number], ...(typeof inserts)[number][]]);
+}
+
 export async function writeChanges(
   db: Context["db"],
   pending: PendingChange,
@@ -164,8 +183,12 @@ export async function writeChanges(
   }
   if (rows.length === 0) return;
   // The retention rule runs with every write, so no scheduled job is needed.
+  // Seven bound columns per row against D1's 100-parameter limit.
+  const inserts = Array.from({ length: Math.ceil(rows.length / ROWS_PER_INSERT) }, (_, index) =>
+    db.insert(changeLog).values(rows.slice(index * ROWS_PER_INSERT, (index + 1) * ROWS_PER_INSERT)),
+  );
   await db.batch([
-    db.insert(changeLog).values(rows),
+    ...(inserts as [(typeof inserts)[number], ...(typeof inserts)[number][]]),
     db.delete(changeLog).where(sql`${changeLog.createdAt} < datetime('now', ${`-${CHANGE_LOG_RETENTION_YEARS} years`})`),
   ]);
 }

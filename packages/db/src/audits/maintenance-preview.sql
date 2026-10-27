@@ -1,7 +1,7 @@
 -- What the next ranking update (rating import or "Update rankings now") would
 -- change, before it runs. Mirrors snapshotRankings in
 -- packages/api/src/services/rating-update.ts; uses D1's UTC date, so around
--- midnight it can differ by a day from the federation's (America/Sao_Paulo).
+-- midnight it can differ by a day from the federation's (America/Maceio).
 -- Read-only. Run after the migrations that add titles.tier and loses_at_age.
 
 -- Active players who would become inactive: no dated rating result, podium, or

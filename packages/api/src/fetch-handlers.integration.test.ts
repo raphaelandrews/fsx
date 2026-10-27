@@ -251,6 +251,12 @@ describe("tRPC fetch handler: batching and sessions", () => {
     expect(body).toHaveLength(2);
   });
 
+  test("rejects a batch larger than the cap", async () => {
+    const paths = Array.from({ length: 11 }, () => "norms.list").join(",");
+    const response = await trpcGet(`${paths}?batch=1&input=${encodeURIComponent(JSON.stringify(Object.fromEntries(Array.from({ length: 11 }, (_, i) => [i, {}]))))}`);
+    expect(response.status).toBe(400);
+  });
+
   test("never caches a batch that contains an admin procedure", async () => {
     const response = await trpcGet("norms.list,stats.counts?batch=1&input=%7B%7D");
     expect(response.headers.get("Cache-Control")).toBe("no-store");

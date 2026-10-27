@@ -358,6 +358,20 @@
       "when": 1792965282903,
       "tag": "0050_mature_goblin_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "6",
+      "when": 1793062032065,
+      "tag": "0051_luxuriant_nextwave",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "6",
+      "when": 1793063869989,
+      "tag": "0052_conscious_demogoblin",
+      "breakpoints": true
     }
   ]
 }

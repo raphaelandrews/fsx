@@ -43,7 +43,7 @@ export const locationsRouter = router({
         await ctx.db.update(locations).set(input).where(eq(locations.id, input.id)).returning(),
         "Location",
       );
-      await deleteReplacedMedia(previous?.flagUrl, input.flagUrl);
+      await deleteReplacedMedia(ctx.db, previous?.flagUrl, input.flagUrl);
       return updated;
     }),
   delete: adminProcedure.input(idInput).mutation(async ({ ctx, input }) => {
@@ -56,7 +56,7 @@ export const locationsRouter = router({
         .returning({ id: locations.id, flagUrl: locations.flagUrl }),
       "Location",
     );
-    await deleteMediaUrl(deleted[0]?.flagUrl);
+    await deleteMediaUrl(ctx.db, deleted[0]?.flagUrl);
     return deleted.map(({ id }) => ({ id }));
   }),
 });

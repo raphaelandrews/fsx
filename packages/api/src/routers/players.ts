@@ -31,7 +31,7 @@ import {
   sexSchema,
 } from "../input-schemas";
 import type { RatingType } from "../rating-types";
-import { federationYear } from "../lib/dates";
+import { federationDayOf, federationYear } from "../lib/dates";
 import { paginate } from "../lib/pagination";
 import { containsText, escapeLike, like } from "../lib/sql-like";
 import { PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
@@ -236,7 +236,7 @@ export const playersRouter = router({
       pointsOf("blitz"),
     ]);
     requireFound(player[0], "Player");
-    const oldestFirst = (rows: typeof classic) => rows.reverse().map((row) => ({ ...row, at: row.at.slice(0, 10) }));
+    const oldestFirst = (rows: typeof classic) => rows.reverse().map((row) => ({ ...row, at: federationDayOf(row.at) }));
     return { classic: oldestFirst(classic), rapid: oldestFirst(rapid), blitz: oldestFirst(blitz) };
   }),
 
@@ -354,7 +354,7 @@ export const playersRouter = router({
           .returning(),
         "Player",
       );
-      await deleteReplacedMedia(previous?.imageUrl, rest.imageUrl);
+      await deleteReplacedMedia(ctx.db, previous?.imageUrl, rest.imageUrl);
       return updated;
     }),
 

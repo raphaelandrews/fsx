@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_auth/dashboard/update-requests/$id")({
   component: RouteComponent,
 });
 
-const sentAt = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Sao_Paulo" });
+const sentAt = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Maceio" });
 const show = (value: string | number | null | undefined) => (value === null || value === undefined || value === "" ? "—" : String(value));
 
 function RouteComponent() {

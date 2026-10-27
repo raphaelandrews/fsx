@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { federationYear } from "@fsx/api/lib/dates";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
@@ -258,7 +259,7 @@ export function CircuitCreateDialog({ open, onOpenChange }: CreateDialogProps) {
       fields={fieldsOf(circuitSections(championships, schemes, categoryOptions))}
       defaultValues={{
         name: "",
-        year: String(new Date().getFullYear()),
+        year: String(federationYear()),
         type: "default",
         tier: "B",
         championshipId: "",
@@ -287,7 +288,7 @@ export function AnnouncementCreateDialog({ open, onOpenChange }: CreateDialogPro
   const trpc = useTRPC();
   const navigate = useNavigate();
   const { data: announcements = [] } = useQuery(trpc.announcements.list.queryOptions());
-  const year = new Date().getFullYear();
+  const year = federationYear();
   const nextNumber =
     announcements.filter((announcement) => announcement.year === year).reduce((max, a) => Math.max(max, a.number), 0) + 1;
 

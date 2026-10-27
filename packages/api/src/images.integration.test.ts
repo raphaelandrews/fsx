@@ -121,4 +121,18 @@ describe("club logos and location flags in R2", () => {
     await expect(caller.locations.delete({ id: location!.id })).resolves.toEqual([{ id: location!.id }]);
     expect(await images.head(keyOf(flag))).toBeNull();
   });
+
+  test("an image another record still uses survives a replace, a delete and images.delete", async () => {
+    const { url: shared } = await caller.images.upload({ kind: "clubs", mime: "image/svg+xml", data: svgData(LOGO_SVG) });
+    const [first] = await caller.clubs.create({ name: "Clube Compartilha 1", logoUrl: shared });
+    await caller.clubs.create({ name: "Clube Compartilha 2", logoUrl: shared });
+    await caller.clubs.delete({ id: first!.id });
+    expect(await images.head(keyOf(shared))).not.toBeNull();
+    await caller.images.delete({ url: shared });
+    expect(await images.head(keyOf(shared))).not.toBeNull();
+
+    const { url: loose } = await caller.images.upload({ kind: "clubs", mime: "image/svg+xml", data: svgData(LOGO_SVG) });
+    await caller.images.delete({ url: loose });
+    expect(await images.head(keyOf(loose))).toBeNull();
+  });
 });

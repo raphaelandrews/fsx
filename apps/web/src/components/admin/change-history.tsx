@@ -10,7 +10,7 @@ import { useTRPC } from "@/lib/trpc";
 
 export type HistoryEntry = inferRouterOutputs<AppRouter>["history"]["list"]["entries"][number];
 
-const timestamp = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Sao_Paulo" });
+const timestamp = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Maceio" });
 
 const FIELD_LABELS: Record<string, string> = {
   birthYear: "birth year",

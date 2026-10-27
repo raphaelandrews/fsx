@@ -38,6 +38,36 @@ function writeStored(value: { fileName: string; results: ImportResult[] } | null
   }
 }
 
+const RESUME_KEY = "rating-update-resume-v1";
+
+type ResumeState = {
+  fileName: string;
+  draftName: string | null;
+  tournamentId: number | null;
+  podiumsDone: boolean;
+  created: [number, number][];
+  resultPlayers: [number, number][];
+  results: ImportResult[];
+};
+
+function readResume(fileName: string, draftName: string | null): ResumeState | null {
+  try {
+    const saved = JSON.parse(localStorage.getItem(RESUME_KEY) ?? "null") as ResumeState | null;
+    return saved && saved.fileName === fileName && saved.draftName === draftName ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeResume(value: ResumeState | null) {
+  try {
+    if (value) localStorage.setItem(RESUME_KEY, JSON.stringify({ ...value, results: value.results.slice(-STORED_RESULTS_LIMIT) }));
+    else localStorage.removeItem(RESUME_KEY);
+  } catch {
+    /* storage blocked or full: a reload will start the file over */
+  }
+}
+
 /**
  * Drives a rating import in three steps: read and plan the file without writing
  * anything, apply the planned rows one at a time, then report. The plan stays in
@@ -74,6 +104,23 @@ export function useRatingImport() {
   const tournamentId = useRef<number | null>(null);
   const podiumsDone = useRef(false);
   const resultPlayers = useRef(new Map<number, number>());
+  // What a reload needs to continue the same file: the tournament and players already created, and the rows done.
+  const resultsRef = useRef<ImportResult[]>([]);
+  const fileNameRef = useRef("");
+  const draftNameRef = useRef<string | null>(null);
+
+  const persist = useCallback(() => {
+    if (!fileNameRef.current) return;
+    writeResume({
+      fileName: fileNameRef.current,
+      draftName: draftNameRef.current,
+      tournamentId: tournamentId.current,
+      podiumsDone: podiumsDone.current,
+      created: [...createdPlayers.current],
+      resultPlayers: [...resultPlayers.current],
+      results: resultsRef.current,
+    });
+  }, []);
 
   useEffect(() => {
     const stored = readStored();
@@ -141,14 +188,22 @@ export function useRatingImport() {
       setDraft(nextDraft);
       setPodium(nextPodium);
       setFileName(file.name);
-      setResults([]);
       setMaintenance(null);
       setRestored(false);
       createdPlayers.current.clear();
       ratedTypes.current.clear();
       resultPlayers.current.clear();
-      tournamentId.current = null;
-      podiumsDone.current = false;
+      fileNameRef.current = file.name;
+      draftNameRef.current = nextDraft?.name ?? null;
+      // The same file after a closed tab or a reload continues where it stopped instead of creating everything twice.
+      const saved = readResume(file.name, draftNameRef.current);
+      tournamentId.current = saved?.tournamentId ?? null;
+      podiumsDone.current = saved?.podiumsDone ?? false;
+      for (const [sheetRow, id] of saved?.created ?? []) createdPlayers.current.set(sheetRow, id);
+      for (const [sheetRow, id] of saved?.resultPlayers ?? []) resultPlayers.current.set(sheetRow, id);
+      resultsRef.current = saved?.results ?? [];
+      setResults(resultsRef.current);
+      if (!saved) writeResume(null);
       writeStored(null);
       setPhase("review");
     } catch (error) {
@@ -237,7 +292,9 @@ export function useRatingImport() {
       const finished: ImportResult[] = [];
       const record = (result: ImportResult) => {
         finished.push(result);
-        setResults((previous) => [...previous.filter((item) => item.sheetRow !== result.sheetRow), result]);
+        resultsRef.current = [...resultsRef.current.filter((item) => item.sheetRow !== result.sheetRow), result];
+        setResults(resultsRef.current);
+        persist();
       };
 
       if (draft && tournamentId.current === null) {
@@ -322,9 +379,10 @@ export function useRatingImport() {
         }
         ratedTypes.current.clear();
       }
+      persist();
       setPhase("done");
     },
-    [applyRow, createPodiums, createTournament, draft, invalidateAdmin, podium, snapshot],
+    [applyRow, createPodiums, createTournament, draft, invalidateAdmin, persist, podium, snapshot],
   );
 
   // Rows from the plan that still need to run: never started, or failed last time.
@@ -339,7 +397,7 @@ export function useRatingImport() {
     if (phase === "done" && !restored && results.length + skipped.length > 0) writeStored({ fileName, results: [...results, ...skipped] });
   }, [phase, restored, results, skipped, fileName]);
 
-  const start = useCallback(() => run(plan.filter((entry) => entry.action !== null)), [plan, run]);
+  const start = useCallback(() => run(pending(resultsRef.current)), [pending, run]);
   const resume = useCallback(() => run(pending(results)), [pending, results, run]);
   const stop = useCallback(() => {
     abortRef.current = true;
@@ -349,6 +407,9 @@ export function useRatingImport() {
     abortRef.current = true;
     setPhase("upload");
     setPlan([]);
+    resultsRef.current = [];
+    fileNameRef.current = "";
+    writeResume(null);
     setResults([]);
     setFileName("");
     setLoadError(null);

@@ -1,5 +1,6 @@
 import { appRouter, type AppRouter } from "@fsx/api/routers/index";
 import { createContext } from "@fsx/api/context";
+import { MAX_BATCH_SIZE } from "@fsx/api/lib/resource-bounds";
 import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
@@ -53,7 +54,7 @@ function createQueryClient() {
 // HTTP to the Worker's own origin is unreliable (self-fetch), so we call the
 // router in-process instead — same procedures, no network hop.
 const trpcLinks = createIsomorphicFn()
-  .client((): TRPCLink<AppRouter>[] => [httpBatchLink({ url: "/api/trpc" })])
+  .client((): TRPCLink<AppRouter>[] => [httpBatchLink({ url: "/api/trpc", maxItems: MAX_BATCH_SIZE })])
   .server((): TRPCLink<AppRouter>[] => [
     unstable_localLink({
       router: appRouter,

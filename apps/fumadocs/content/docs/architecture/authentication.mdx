@@ -25,6 +25,8 @@ The site has one administrator (ADR [0001](/decisions/0001-single-owner-admin)).
 | only `GITHUB_USERNAME` set | Legacy: only that login may sign up. Logins can be renamed and reclaimed. |
 | neither | Legacy: the first user to sign up becomes the owner. |
 
+The two legacy rules are for local development. On an `https://` `BETTER_AUTH_URL`, `mapProfileToUser` refuses every sign-in unless `GITHUB_USER_ID` is set, and `packages/infra/alchemy.deploy.ts` refuses to deploy without it.
+
 The rule is enforced twice:
 
 1. **At sign-in.** `mapProfileToUser` throws `FORBIDDEN` for any other GitHub

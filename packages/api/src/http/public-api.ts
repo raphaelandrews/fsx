@@ -11,6 +11,8 @@ import { limitUncachedRead } from "./security";
 export { PUBLIC_API_TTL_SECONDS, type PublicPlayer, type PublicPlayerDetail } from "./public-api-contract";
 
 const PLAYERS_LIMIT = 20_000;
+// Ids are autoincrement; anything above this cannot exist, so it is answered without a D1 read or a cache entry per id.
+const MAX_PLAYER_ID = 1_000_000;
 const TITLES_PER_PLAYER_LIMIT = 20;
 const CLIENT_CACHE_CONTROL = `public, max-age=${PUBLIC_API_TTL_SECONDS}`;
 
@@ -114,7 +116,7 @@ export function handlePublicPlayersRequest(request: Request): Promise<Response> 
 
 export async function handlePublicPlayerRequest(request: Request, rawId: string): Promise<Response> {
   // Canonical positive integers only, so `007` and `7` cannot be two cache entries.
-  if (!/^[1-9]\d{0,9}$/.test(rawId) || !Number.isSafeInteger(Number(rawId))) {
+  if (!/^[1-9]\d{0,9}$/.test(rawId) || Number(rawId) > MAX_PLAYER_ID) {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: PUBLIC_API_HEADERS });
     return json(JSON.stringify(notFound().data), 404, { "Cache-Control": CLIENT_CACHE_CONTROL });
   }

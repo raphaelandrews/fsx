@@ -13,7 +13,8 @@ export const points = z.number().int().safe().min(0).max(1_000_000);
 export const sortOrder = nonNegativeInt.max(100_000);
 
 export const page = positiveInt.max(1_000).default(1);
-export const limit = positiveInt.max(100).default(20);
+// D1 binds at most 100 parameters per statement; a page of ids plus the other filters must fit.
+export const limit = positiveInt.max(90).default(20);
 export const searchText = z.string().trim().max(120);
 export const nameText = z.string().trim().min(1).max(160);
 // Categories are rows of `categories`; mutations check the name against it (requireCategories).
@@ -26,7 +27,11 @@ export const birthYear = z
   .min(1900)
   .refine((year) => year <= federationYear(), "Birth year cannot be in the future");
 export const seasonYear = z.number().int().min(1900).max(2200);
-export const contentText = z.string().max(500_000);
+// D1 rows hold at most 2 MB; multi-byte text counts by bytes, with room left for the other columns.
+export const contentText = z
+  .string()
+  .max(500_000)
+  .refine((text) => new TextEncoder().encode(text).byteLength <= 1_800_000, "Text is too large");
 export const httpUrl = z.string().trim().max(2_048).pipe(z.url({ protocol: /^https?$/ }));
 // Uploaded images are stored as relative media paths; older rows may still hold external URLs.
 export const imageUrl = z.union([z.string().trim().regex(mediaPathPatternFor("players", "posts")), httpUrl]);
@@ -37,6 +42,6 @@ export const optionalHttpUrl = z.union([httpUrl, z.literal("")]);
 export const filterArray = z.array(z.string().trim().min(1).max(80)).max(50);
 
 export const idInput = z.object({ id: positiveInt });
-export const MAX_BULK_IDS = 200;
+export const MAX_BULK_IDS = 90;
 // Ids selected in a list for one batch action; duplicates collapse so the count stays honest.
 export const bulkIds = z.array(positiveInt).min(1).max(MAX_BULK_IDS).transform((ids) => [...new Set(ids)]);

@@ -38,7 +38,8 @@ From `packages/api/src/input-schemas.ts`:
 | Schema | Rule |
 | ------ | ---- |
 | `positiveInt` | safe integer ≥ 1 (all IDs) |
-| `page` / `limit` | 1–1000, default 1 / 1–100, default 20 |
+| `page` / `limit` | 1–1000, default 1 / 1–90, default 20 (D1 binds at most 100 parameters per statement) |
+| batch | at most 10 procedures per `/api/trpc` request (`MAX_BATCH_SIZE`); larger batches return `BAD_REQUEST` |
 | `nameText` | trimmed, 1–160 characters |
 | `searchText` | trimmed, up to 120 characters |
 | `contentText` | up to 500,000 characters (Markdown) |
@@ -80,7 +81,7 @@ the affected rows (`.returning()`), except where noted.
 | `players.forEdit` | admin | `{ id }` | Every editable column, including birth year and sex | — |
 | `players.create` | admin | Player fields; `name` and `sex` required | Created row | — |
 | `players.update` | admin | `{ id, ...fields }` | Updated row; renaming also updates `normalized_name`. Changing a rating here does not write rating history; use **Rebuild ratings** afterwards if the history disagrees | — |
-| `players.bulkSetActive` / `bulkSetClub` | admin | `{ ids (1–200, duplicates collapsed), active }` / `{ ids, clubId \| null }` | `{ updated, requested }`; one statement over the selected rows. `NOT_FOUND` when none exist or the club does not; unknown ids are counted in `requested` only |
+| `players.bulkSetActive` / `bulkSetClub` | admin | `{ ids (1–90, duplicates collapsed), active }` / `{ ids, clubId \| null }` | `{ updated, requested }`; one statement over the selected rows. `NOT_FOUND` when none exist or the club does not; unknown ids are counted in `requested` only |
 | `players.merge` | admin | `{ sourceId, targetId }` | `{ id }` of the kept player, which is the one with the lowest ID. Folds a duplicate record into the other in one D1 batch ([Merging players](/architecture/domain-model#merging-players)). `BAD_REQUEST` for the same player twice, `NOT_FOUND` for an unknown one, `CONFLICT` naming each overlap (both have a rating result in the same tournament, a podium in the same tournament and category, a final podium in the same circuit and category, or a School Games result in the same age group) | — |
 | `players.rebuildRatings` | admin | `{ id }` | `{ id, classic, rapid, blitz }`. Replays each rating type's history chain in `id` order: every row's `old_rating` is rewritten to follow the previous row, and the player's current rating becomes the chain's end. A type without history keeps its rating. `NOT_FOUND` for an unknown player | — |
 | `topPlayers.list` | public | — | `{ topClassic, topRapid, topBlitz }`, 10 active players each | 300 s |
@@ -149,7 +150,7 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `scoringSchemes.create` / `update` / `delete` | admin | `{ name, places: { place, points }[] (1–50) }` | Row; `update` replaces the places in one batch; `BAD_REQUEST` for a repeated place, `CONFLICT` for a duplicate name or a scheme still used by a circuit or tournament | — |
 | `tournamentPodiums.list` | public | — | Podiums with category, player, and tournament | 300 s |
 | `tournamentPodiums.listByTournament` | admin | `{ tournamentId }` | A tournament's podiums with players, for its edit page | — |
-| `tournamentPodiums.bulkDelete` | admin | `{ ids (1–200) }` | `{ deleted, requested }`; `NOT_FOUND` when none exist |
+| `tournamentPodiums.bulkDelete` | admin | `{ ids (1–90) }` | `{ deleted, requested }`; `NOT_FOUND` when none exist |
 | `tournamentPodiums.createMany` | admin | `{ tournamentId, podiums: { playerId, place (1–100000), category? }[] }` (1–50) | New podium ids, inserted in one `db.batch`; `BAD_REQUEST` for a player repeated in a category, `CONFLICT` (nothing saved) when any row duplicates an existing podium | — |
 | `tournamentPodiums.create` / `update` / `delete` | admin | `{ playerId, tournamentId, place (1–100000), category? }` | Rows; `BAD_REQUEST` when the tournament has podiums turned off, `CONFLICT` for a podium synced from a circuit result (`update`, `delete`, `bulkDelete`), a second overall podium, or a second podium in the same category, of a player in a tournament | — |
 | `champions.list` | public | — | Championships `{ id, name }` | 300 s |
@@ -209,7 +210,7 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `posts.listAdmin` | admin | — | All posts, including drafts | — |
 | `posts.forEdit` | admin | `{ id }` | Full post | — |
 | `history.list` | admin | `{ page, entity?, recordId? }` | 30 change-log entries per page, newest first, each with actor, record label, action, procedure, and `changes` as `{ field: [before, after] }` |
-| `posts.create` / `update` / `delete` | admin | `{ title, slug, content, imageUrl?, published, publishAt? }` (`publishAt` an ISO instant or `null`) | Rows; `CONFLICT` for a duplicate slug. A `publishAt` also becomes the post's `created_at`, the date shown and sorted by; clearing it publishes now. Public reads, the sitemap, and the feed show a post only when `published` and `publish_at` is empty or past, so a scheduled post appears when the cached responses expire (at most a few minutes) | — |
+| `posts.create` / `update` / `delete` | admin | `{ title, slug, content, imageUrl?, published, publishAt? }` (`publishAt` an ISO instant or `null`) | Rows; `slug` may hold only letters, numbers, `-` and `_` (`BAD_REQUEST` otherwise); `CONFLICT` for a duplicate slug. Publishing a draft with no schedule dates the post when it goes live. A `publishAt` also becomes the post's `created_at`, the date shown and sorted by; clearing it publishes now. Public reads, the sitemap, and the feed show a post only when `published` and `publish_at` is empty or past, so a scheduled post appears when the cached responses expire (at most a few minutes) | — |
 | `announcements.list` | public | — | Announcements with the linked player's name | 120 s |
 | `announcements.fresh` | public | — | Latest announcements for the home page (200-character excerpts) | 60 s |
 | `announcements.byPage` | public | `{ page }` | 12 per page with pagination (200-character excerpts; the full text comes from `announcements.byId`) | 120 s |
@@ -217,7 +218,7 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `announcements.byPlayer` | public | `{ playerId }` | The player's announcements `{ id, year, number, excerpt }`, newest first | 120 s |
 | `announcements.suggestPlayers` | admin | `{ content }` | Up to 5 players whose full name (two words or more) appears in the text, ignoring accents and case, by whole words | — |
 | `announcements.create` / `update` / `delete` | admin | `{ year (1900–2200), number, content, playerId? }` | Rows; `CONFLICT` for a duplicate `(year, number)` or an unknown player | — |
-| `events.upcoming` | public | — | The next 12 events that have not ended (America/Sao_Paulo), with their links; used by the home page | 60 s |
+| `events.upcoming` | public | — | The next 12 events that have not ended (America/Maceio), with their links; used by the home page | 60 s |
 | `events.list` | public | — | Events by start date, with their links | 60 s |
 | `events.calendar` | public | `{ year, month? }` | Events that overlap the year or month (multi-day events show in every month they touch), up to 200, with links, venue, end date, and the tournament they are tied to | 60 s |
 | `events.create` / `update` / `delete` | admin | `{ name, startDate, endDate?, venue?, venueUrl?, tournamentId? }` | Rows; `BAD_REQUEST` when the end date is before the start date or the tournament does not exist; deleting an event cascades to its links (one statement); deleting its tournament only clears the tie | — |

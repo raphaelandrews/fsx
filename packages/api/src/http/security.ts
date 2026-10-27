@@ -3,12 +3,8 @@ import { env } from "@fsx/env/server";
 import { isTrustedOrigin } from "./request-origin";
 
 export function getClientIp(request: Request): string {
-  return (
-    request.headers.get("CF-Connecting-IP") ||
-    request.headers.get("X-Forwarded-For")?.split(",")[0]?.trim() ||
-    request.headers.get("X-Real-IP") ||
-    "127.0.0.1"
-  );
+  // Only Cloudflare's header is trusted: X-Forwarded-For is client-controlled and would let a caller pick its own rate-limit bucket.
+  return request.headers.get("CF-Connecting-IP") || "127.0.0.1";
 }
 
 export function isTrustedRequest(request: Request, options?: { requireOrigin?: boolean }): boolean {
@@ -44,8 +40,14 @@ export const RATE_LIMITS = {
 // Cloudflare's native limiter keeps request checks off D1, so D1 writes follow
 // content changes, not page views. Counters are per location and approximate,
 // which still stops a single client hammering an endpoint.
+const reportedMissing = new Set<string>();
+
 export async function rateLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
   const limiter: RateLimit | undefined = env[config.binding];
+  if (!limiter && !reportedMissing.has(config.binding)) {
+    reportedMissing.add(config.binding);
+    console.error("[security] rate limit binding missing, requests are not limited", { binding: config.binding });
+  }
   const { success } = limiter ? await limiter.limit({ key }) : { success: true };
   return {
     ok: success,

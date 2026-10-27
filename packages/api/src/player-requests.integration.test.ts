@@ -220,3 +220,16 @@ describe("the optional Turnstile challenge", () => {
     });
   });
 });
+
+describe("pending caps under parallel submits", () => {
+  test("never store more than the per-player cap", async () => {
+    const { MAX_PENDING_PER_PLAYER } = await import("./routers/player-requests");
+    const target = (await admin.players.create({ name: "Alvo Paralelo", blitz: 1900, rapid: 1900, classic: 1900, sex: "male", active: true }))[0]!.id;
+    const results = await Promise.allSettled(
+      Array.from({ length: 12 }, (_, index) => visitor.playerRequests.submit({ playerId: target, birthYear: 2000 + (index % 5), consent: true })),
+    );
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(MAX_PENDING_PER_PLAYER);
+    const stored = await admin.playerRequests.list({ status: "pending" });
+    expect(stored.filter((row) => row.player.id === target)).toHaveLength(MAX_PENDING_PER_PLAYER);
+  });
+});

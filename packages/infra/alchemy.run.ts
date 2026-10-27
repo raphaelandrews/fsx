@@ -35,6 +35,12 @@ const images = await R2Bucket("images", {
       conditions: { prefix: "pending/" },
       deleteObjectsTransition: { condition: { type: "Age", maxAge: 30 * 24 * 60 * 60 } },
     },
+    // Share images are rendered again on demand; each content version leaves its own object behind.
+    {
+      id: "expire-share-images",
+      conditions: { prefix: "og/" },
+      deleteObjectsTransition: { condition: { type: "Age", maxAge: 90 * 24 * 60 * 60 } },
+    },
   ],
 });
 

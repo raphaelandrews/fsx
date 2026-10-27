@@ -24,6 +24,9 @@ a whole import.
   active players, all in one batch with a shared `snapshot_at`. Equal ratings
   share a position.
 - Corrections to rating history do not take snapshots; the next import does.
+- Each import also deletes snapshots older than three years (`SNAPSHOT_RETENTION_YEARS`). The archive
+  groups snapshots by the federation's calendar day (America/Maceio), not the UTC day.
+- Players the inactivity rule switches off are written to the change log under the `system` actor.
 
 ## Consequences
 
@@ -50,7 +53,7 @@ reports it.
 - The FSX treats a player without a tournament in three years as inactive. The
   same batch that records a snapshot first sets `active = 0` for players with no
   dated rating result, tournament podium, or circuit stage result since the day
-  three years before (in America/Sao_Paulo), unless they registered after it.
+  three years before (in America/Maceio), unless they registered after it.
   One `UPDATE` per import, evaluated by D1; no scheduled job.
 - `linkWithRating` sets `active = 1` with the rating write, so playing again
   restores a player.

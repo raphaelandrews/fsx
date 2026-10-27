@@ -51,6 +51,8 @@ export const tvSergipe = sqliteTable(
     // A school can't field two teams with the same suffix in the same category.
     teamUnique: uniqueIndex("tv_sergipe_team_unique_idx").on(t.tournamentId, t.clubId, t.ageGroup, t.sex, t.teamName),
     tournamentIdx: index("tv_sergipe_tournament_idx").on(t.tournamentId),
+    // The player profile, merge and delete checks look results up by player.
+    playerIdx: index("tv_sergipe_player_idx").on(t.playerId),
     teamNameCheck: check("tv_sergipe_team_name_check", sql`"team_name" IS NULL OR "team_name" IN ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J')`),
     ageGroupCheck: check("tv_sergipe_age_group_check", sql`${t.ageGroup} IN ('8', '10', '12', '14', '16', '18')`),
     sexCheck: check("tv_sergipe_sex_check", sql`${t.sex} IN ('male', 'female')`),

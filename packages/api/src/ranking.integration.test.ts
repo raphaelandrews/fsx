@@ -82,3 +82,13 @@ describe("ranking position and movement", () => {
     expect((await caller.players.ranking({ id: inactiveFemale })).rapid).toBeNull();
   });
 });
+
+describe("full-size ranking page", () => {
+  test("a page at the maximum limit loads movements within D1's parameter limit", async () => {
+    for (let i = 0; i < 90; i++) await player(`Pagina Cheia ${i}`, 1500 + i);
+    await caller.playersTournament.snapshotRankings({ ratingTypes: ["rapid"] });
+    const { players } = await caller.players.withFilters({ page: 1, limit: 90, sortBy: "rapid" });
+    expect(players).toHaveLength(90);
+    await expect(caller.players.withFilters({ page: 1, limit: 91, sortBy: "rapid" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});

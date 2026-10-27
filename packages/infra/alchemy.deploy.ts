@@ -7,6 +7,10 @@ import { config } from "dotenv";
 config({ path: "../../apps/web/.env.common", override: true });
 config({ path: "../../apps/web/.env.prod", override: true });
 
+if (!process.env.GITHUB_USER_ID?.trim()) {
+  throw new Error("GITHUB_USER_ID is empty: refusing to deploy a site where any GitHub account could become the admin.");
+}
+
 // Dev entrypoint — its non-overriding config() calls become no-ops because
 // process.env already holds the prod values loaded above.
 await import("./alchemy.run");

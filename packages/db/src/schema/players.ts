@@ -31,16 +31,14 @@ export const players = sqliteTable(
 	},
 	(table) => [
 		index("players_active_idx").on(table.active),
-		index("players_sex_idx").on(table.sex),
 		index("players_club_idx").on(table.clubId),
 		index("players_location_idx").on(table.locationId),
 		// Group/age filters combine `active = true` with a birth_year range.
 		index("players_active_birth_year_idx").on(table.active, table.birthYear),
-		// Rating sorts (top-players, /ratings, /titulados) scan the whole table
-		// without these; the index lets ORDER BY + LIMIT avoid a full scan.
-		index("players_classic_idx").on(table.classic),
+		// The unfiltered rapid sorts (Swiss Manager export, /titulados, name search) walk this one in order.
+		// Every classic/blitz sort and the sex filter also filter on `active`, so the composites below serve them
+		// (query plans and rows read are identical without separate indexes; see audits/query-plans.sql).
 		index("players_rapid_idx").on(table.rapid),
-		index("players_blitz_idx").on(table.blitz),
 		// `WHERE active = true ORDER BY <rating> LIMIT n` is the hot path for the
 		// command-menu default list, top-players and /ratings. The composite lets
 		// the planner walk the index in order and stop at LIMIT instead of

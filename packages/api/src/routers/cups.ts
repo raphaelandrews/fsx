@@ -137,7 +137,7 @@ export const cupsRouter = router({
         await ctx.db.update(cups).set(input).where(eq(cups.id, input.id)).returning(),
         "Cup",
       );
-      await deleteReplacedMedia(previous?.imageUrl, input.imageUrl);
+      await deleteReplacedMedia(ctx.db, previous?.imageUrl, input.imageUrl);
       return updated;
     }),
 
@@ -149,7 +149,7 @@ export const cupsRouter = router({
         .returning({ id: cups.id, imageUrl: cups.imageUrl }),
       "Cup",
     );
-    await deleteMediaUrl(deleted[0]?.imageUrl);
+    await deleteMediaUrl(ctx.db, deleted[0]?.imageUrl);
     return deleted.map(({ id }) => ({ id }));
   }),
 });

@@ -175,6 +175,40 @@ const requireSession = t.middleware(({ ctx, next }) => {
   });
 });
 
+// The one place that decides who is an administrator, shared by the procedures and the dashboard's route guard.
+export async function isSessionAdministrator(
+  db: Context["db"],
+  session: { user: { id: string; name: string } },
+): Promise<boolean> {
+  const rule = resolveAdminRule({
+    ownerGithubId: env.GITHUB_USER_ID,
+    configuredUsername: env.GITHUB_USERNAME,
+  });
+
+  const githubAccountIds = rule.kind === "githubId"
+    ? (await db
+        .select({ accountId: account.accountId })
+        .from(account)
+        .where(and(eq(account.userId, session.user.id), eq(account.providerId, "github"))))
+        .map((row) => row.accountId)
+    : undefined;
+
+  const firstUserId = rule.kind === "firstUser"
+    ? (await db
+        .select({ id: user.id })
+        .from(user)
+        .orderBy(asc(user.createdAt), asc(user.id))
+        .limit(1))[0]?.id
+    : undefined;
+
+  return isAdministrator(rule, {
+    userId: session.user.id,
+    userName: session.user.name,
+    githubAccountIds,
+    firstUserId,
+  });
+}
+
 const requireAdmin = t.middleware(async ({ ctx, next }) => {
   if (!ctx.session) {
     throw new TRPCError({
@@ -184,33 +218,7 @@ const requireAdmin = t.middleware(async ({ ctx, next }) => {
     });
   }
 
-  const rule = resolveAdminRule({
-    ownerGithubId: env.GITHUB_USER_ID,
-    configuredUsername: env.GITHUB_USERNAME,
-  });
-
-  const githubAccountIds = rule.kind === "githubId"
-    ? (await ctx.db
-        .select({ accountId: account.accountId })
-        .from(account)
-        .where(and(eq(account.userId, ctx.session.user.id), eq(account.providerId, "github"))))
-        .map((row) => row.accountId)
-    : undefined;
-
-  const firstUserId = rule.kind === "firstUser"
-    ? (await ctx.db
-        .select({ id: user.id })
-        .from(user)
-        .orderBy(asc(user.createdAt), asc(user.id))
-        .limit(1))[0]?.id
-    : undefined;
-
-  if (!isAdministrator(rule, {
-    userId: ctx.session.user.id,
-    userName: ctx.session.user.name,
-    githubAccountIds,
-    firstUserId,
-  })) {
+  if (!(await isSessionAdministrator(ctx.db, ctx.session))) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Administrator access required",
@@ -229,9 +237,16 @@ export const protectedProcedure = t.procedure.use(errorBoundary).use(requireSess
 
 // Stored computations (records, club standings) are reused until data changes;
 // every successful admin mutation is such a change.
-const markComputedStale = t.middleware(async ({ ctx, next, type }) => {
+// Uploads and cache purges write no rows, and a failure here must not turn a committed change into an error.
+const markComputedStale = t.middleware(async ({ ctx, next, type, path }) => {
   const result = await next();
-  if (type === "mutation" && result.ok) await markDataChanged(ctx.db);
+  if (type === "mutation" && result.ok && !path.startsWith("images.") && path !== "cache.purgePublic") {
+    try {
+      await markDataChanged(ctx.db);
+    } catch (error) {
+      console.error("[computed] could not mark results stale", { path, requestId: ctx.requestId, error: String(error) });
+    }
+  }
   return result;
 });
 

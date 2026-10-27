@@ -8,17 +8,12 @@ import { rankingSnapshots } from "@fsx/db/schema/ranking-snapshots";
 import type { Context } from "../context";
 import { publicProcedure, router } from "../index";
 import { isoDate, page, ratingTypeSchema } from "../input-schemas";
+import { federationDayBounds, federationDayOf } from "../lib/dates";
 import { paginate } from "../lib/pagination";
 import type { RatingType } from "../rating-types";
 
 export const SNAPSHOT_LIST_PAGE_SIZE = 50;
 const ARCHIVE_SNAPSHOTS_LIMIT = 150;
-
-const nextDay = (date: string) => {
-  const next = new Date(`${date}T00:00:00Z`);
-  next.setUTCDate(next.getUTCDate() + 1);
-  return next.toISOString().slice(0, 10);
-};
 
 // Walks the (rating_type, snapshot_at) index one snapshot at a time, newest first, so the cost follows the
 // number of imports instead of the number of ranked players in each.
@@ -37,14 +32,15 @@ const recentSnapshotTimes = async (db: Context["db"], ratingType: RatingType) =>
 
 // Several imports can land on one day; the last one of the day is that day's list.
 const snapshotOfDay = async (db: Context["db"], ratingType: RatingType, date: string) => {
+  const { start, end } = federationDayBounds(date);
   const [row] = await db
     .select({ at: sql<string | null>`max(${rankingSnapshots.snapshotAt})` })
     .from(rankingSnapshots)
     .where(
       and(
         eq(rankingSnapshots.ratingType, ratingType),
-        gte(rankingSnapshots.snapshotAt, date),
-        lt(rankingSnapshots.snapshotAt, nextDay(date)),
+        gte(rankingSnapshots.snapshotAt, start),
+        lt(rankingSnapshots.snapshotAt, end),
       ),
     );
   return row?.at ?? null;
@@ -54,7 +50,7 @@ export const ratingsRouter = router({
   // Days with a recorded rating list, newest first. The archive starts at the first import after snapshots began.
   lists: publicProcedure.input(z.object({ ratingType: ratingTypeSchema })).query(async ({ ctx, input }) => {
     const times = await recentSnapshotTimes(ctx.db, input.ratingType);
-    return { dates: [...new Set(times.map((at) => at.slice(0, 10)))] };
+    return { dates: [...new Set(times.map(federationDayOf))] };
   }),
   snapshot: publicProcedure
     .input(z.object({ date: isoDate, ratingType: ratingTypeSchema, page }))

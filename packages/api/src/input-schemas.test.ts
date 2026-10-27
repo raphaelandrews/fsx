@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { emblemUrl, filterArray, httpUrl, idInput, imageUrl, isoDate, limit, optionalHttpUrl, page, rating } from "./input-schemas";
+import { contentText, emblemUrl, filterArray, httpUrl, idInput, imageUrl, isoDate, limit, optionalHttpUrl, page, rating } from "./input-schemas";
 
 describe("bounded API inputs", () => {
   test("rejects invalid identifiers and fractional pagination", () => {
@@ -9,7 +9,7 @@ describe("bounded API inputs", () => {
     expect(page.safeParse(0).success).toBe(false);
     expect(page.safeParse(1.5).success).toBe(false);
     expect(page.safeParse(1_001).success).toBe(false);
-    expect(limit.safeParse(101).success).toBe(false);
+    expect(limit.safeParse(91).success).toBe(false);
   });
 
   test("bounds ratings and filter arrays", () => {
@@ -54,5 +54,12 @@ describe("date inputs", () => {
     for (const value of ["03/05/2010", "2010-13-01", "2010-05-03T00:00:00Z", ""]) {
       expect(isoDate.safeParse(value).success).toBe(false);
     }
+  });
+});
+
+describe("text bounds", () => {
+  test("content is limited by bytes as well as characters, to stay inside a D1 row", () => {
+    expect(contentText.safeParse("a".repeat(500_000)).success).toBe(true);
+    expect(contentText.safeParse("😀".repeat(480_000)).success).toBe(false);
   });
 });

@@ -35,7 +35,7 @@ const FIELD_LABELS = [
 // Mirrors RETENTION_DAYS on the server, which does the actual deletion.
 const RETENTION_DAYS = 90;
 
-const sentAt = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Sao_Paulo" });
+const sentAt = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Maceio" });
 
 function useRows() {
   const trpc = useTRPC();

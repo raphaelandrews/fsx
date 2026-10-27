@@ -4,7 +4,7 @@ import { Calendar01Icon } from "@hugeicons/core-free-icons"
 
 import { parseDbTimestamp } from "@/lib/format";
 
-const TIME_ZONE = "America/Sao_Paulo";
+const TIME_ZONE = "America/Maceio";
 
 const dayParts = new Intl.DateTimeFormat("en-CA", {
   timeZone: TIME_ZONE,

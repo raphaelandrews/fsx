@@ -126,7 +126,22 @@ export const playerRequestsRouter = router({
       await env.IMAGES.put(photoKey, bytes, { httpMetadata: { contentType: photo.mime } });
     }
     try {
-      await ctx.db.insert(playerUpdateRequests).values({ ...fields, photoKey });
+      // The caps above only give friendly messages; this insert re-checks them in the same statement,
+      // so parallel submits cannot all pass a count that is stale by the time they write.
+      const inserted = await ctx.db.all<{ id: number }>(sql`
+        INSERT INTO player_update_requests (player_id, birth_year, club_id, location_id, cbx_id, fide_id, photo_key)
+        SELECT ${fields.playerId}, ${fields.birthYear ?? null}, ${fields.clubId ?? null}, ${fields.locationId ?? null},
+               ${fields.cbxId ?? null}, ${fields.fideId ?? null}, ${photoKey ?? null}
+        WHERE (SELECT count(*) FROM player_update_requests WHERE player_id = ${fields.playerId} AND status = 'pending') < ${MAX_PENDING_PER_PLAYER}
+          AND (SELECT count(*) FROM player_update_requests WHERE status = 'pending') < ${MAX_PENDING_TOTAL}
+          AND (${photoKey ?? null} IS NULL OR (SELECT count(*) FROM player_update_requests WHERE status = 'pending' AND photo_key IS NOT NULL) < ${MAX_PENDING_PHOTOS})
+        RETURNING id`);
+      if (inserted.length === 0) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Já existem solicitações em análise. Aguarde a resposta da FSX ou tente novamente mais tarde.",
+        });
+      }
     } catch (error) {
       await deletePendingPhoto(photoKey);
       throw error;
@@ -207,7 +222,10 @@ export const playerRequestsRouter = router({
         ctx.db
           .update(players)
           .set({ ...proposedFields(request), ...(photoUrl ? { imageUrl: photoUrl } : {}), verified: true })
-          .where(eq(players.id, request.playerId)),
+          .where(and(
+            eq(players.id, request.playerId),
+            sql`EXISTS (SELECT 1 FROM player_update_requests WHERE id = ${input.id} AND status = 'pending')`,
+          )),
         ctx.db
           .update(playerUpdateRequests)
           .set({ status: "approved", photoKey: null, reviewedAt: sql`(CURRENT_TIMESTAMP)` })
@@ -215,11 +233,15 @@ export const playerRequestsRouter = router({
           .returning({ id: playerUpdateRequests.id }),
       ]);
     } catch (error) {
-      await deleteMediaUrl(photoUrl);
+      await deleteMediaUrl(ctx.db, photoUrl);
       throw error;
     }
+    if (closed.length === 0) {
+      await deleteMediaUrl(ctx.db, photoUrl);
+      throw new TRPCError({ code: "CONFLICT", message: "This request was already reviewed." });
+    }
     await deletePendingPhoto(request.photoKey);
-    await deleteReplacedMedia(previous, photoUrl);
+    await deleteReplacedMedia(ctx.db, previous, photoUrl);
     // The player's photo is decided, so other photos still waiting for the same player are moot: their
     // objects go, and their requests stay for their other fields.
     if (photoUrl) {

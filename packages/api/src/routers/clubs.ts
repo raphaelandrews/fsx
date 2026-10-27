@@ -79,7 +79,7 @@ export const clubsRouter = router({
         await ctx.db.update(clubs).set(input).where(eq(clubs.id, input.id)).returning(),
         "Club",
       );
-      await deleteReplacedMedia(previous?.logoUrl, input.logoUrl);
+      await deleteReplacedMedia(ctx.db, previous?.logoUrl, input.logoUrl);
       return updated;
     }),
   delete: adminProcedure.input(idInput).mutation(async ({ ctx, input }) => {
@@ -92,7 +92,7 @@ export const clubsRouter = router({
         .returning({ id: clubs.id, logoUrl: clubs.logoUrl }),
       "Club",
     );
-    await deleteMediaUrl(deleted[0]?.logoUrl);
+    await deleteMediaUrl(ctx.db, deleted[0]?.logoUrl);
     return deleted.map(({ id }) => ({ id }));
   }),
 });

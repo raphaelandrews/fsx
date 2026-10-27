@@ -59,7 +59,13 @@ describe("bulk player actions", () => {
     await expect(admin.players.bulkSetActive({ ids: [999998], active: true })).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(admin.players.bulkSetClub({ ids: [ids[0]!], clubId: 999999 })).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(admin.players.bulkSetActive({ ids: [], active: true })).rejects.toMatchObject({ code: "BAD_REQUEST" });
-    await expect(admin.players.bulkSetActive({ ids: Array.from({ length: 201 }, (_, index) => index + 1), active: true })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(admin.players.bulkSetActive({ ids: Array.from({ length: 91 }, (_, index) => index + 1), active: true })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  test("handles a full-size selection within D1's parameter limit", async () => {
+    const many = [] as number[];
+    for (let i = 0; i < 90; i++) many.push(idOf(await admin.players.create({ name: `Lote Cheio ${i}`, blitz: 1900, rapid: 1900, classic: 1900, sex: "male", active: true })));
+    expect(await admin.players.bulkSetActive({ ids: many, active: false })).toEqual({ updated: 90, requested: 90 });
   });
 
   test("need an administrator", async () => {

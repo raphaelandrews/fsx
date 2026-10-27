@@ -15,7 +15,7 @@ import {
   type MediaMime,
 } from "../media-kinds";
 import { ensureSvgViewBox, findSvgProblem } from "../lib/svg-safety";
-import { urlToKey } from "../services/media-storage";
+import { deleteMediaUrl, urlToKey } from "../services/media-storage";
 
 function badRequest(message: string): never {
   throw new TRPCError({ code: "BAD_REQUEST", message });
@@ -61,12 +61,13 @@ export const imagesRouter = router({
       return { url: `/api/media/${key}` };
     }),
 
-  delete: adminProcedure.input(z.object({ url: z.string().max(2_048) })).mutation(async ({ input }) => {
+  delete: adminProcedure.input(z.object({ url: z.string().max(2_048) })).mutation(async ({ ctx, input }) => {
     const key = urlToKey(input.url);
     if (!key) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid image URL" });
     }
-    await env.IMAGES.delete(key);
+    // An image a record still uses is kept, so a stale form cannot break another page.
+    await deleteMediaUrl(ctx.db, input.url);
     return { ok: true };
   }),
 });

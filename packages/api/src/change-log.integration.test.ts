@@ -97,3 +97,15 @@ describe("the change history", () => {
     expect((await historyOf("player", 424242)).entries).toHaveLength(0);
   });
 });
+
+describe("change log with many records", () => {
+  test("records every player of a bulk action beyond one insert's parameter budget", async () => {
+    const created: number[] = [];
+    for (let i = 0; i < 30; i++) created.push(idOf(await admin.players.create({ name: `Registro ${i}`, blitz: 1900, rapid: 1900, classic: 1900, sex: "male", active: true })));
+    await admin.players.bulkSetActive({ ids: created, active: false });
+    for (const id of created) {
+      const entries = await historyOf("player", id);
+      expect(entries.entries.some((entry) => entry.procedure === "players.bulkSetActive")).toBe(true);
+    }
+  });
+});

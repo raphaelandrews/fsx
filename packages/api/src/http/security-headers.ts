@@ -16,7 +16,7 @@ export const SECURITY_HEADERS: Record<string, string> = {
     "style-src 'self' 'unsafe-inline'",
     `script-src ${scriptSrc}`,
     "worker-src 'self' blob:",
-    "connect-src 'self' https:",
+    "connect-src 'self' https://cloudflareinsights.com https://static.cloudflareinsights.com",
     "form-action 'self'",
     ...(TURNSTILE ? [`frame-src${TURNSTILE}`] : []),
   ].join("; "),

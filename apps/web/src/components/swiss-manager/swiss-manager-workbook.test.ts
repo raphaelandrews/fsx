@@ -32,7 +32,7 @@ describe("Swiss Manager workbook", () => {
       { id: 1, name: "A", sex: "male", birthYear: 2010, classic: 1, rapid: 1, blitz: 1, club: null },
     ] as SwissManagerPlayer[];
     const previous = process.env.TZ;
-    process.env.TZ = "America/Sao_Paulo";
+    process.env.TZ = "America/Maceio";
     try {
       const blob = await buildSwissManagerWorkbook(players, "rapid");
       const rows = XLSX.utils.sheet_to_json<{ Birthday: string }>(
