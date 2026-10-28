@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "@fsx/ui/components/button";
 
+import { createIntentSearch, useCreateIntent } from "@/hooks/use-create-intent";
 import { useTRPC } from "@/lib/trpc";
 import { padNumber } from "@/lib/format";
 import { AdminPageHeader } from "@/components/admin/page-header";
@@ -19,13 +19,14 @@ import { EmptyCollection } from "@/components/admin/empty-collection";
 import { AnnouncementCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/announcements/")({
+  validateSearch: createIntentSearch,
   head: () => ({ meta: [{ title: "Announcements - Admin - FSX" }] }),
   loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.announcements.list.queryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useCreateIntent();
   const trpc = useTRPC();
 
   const { data = [] } = useSuspenseQuery(trpc.announcements.list.queryOptions());

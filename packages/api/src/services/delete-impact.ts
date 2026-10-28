@@ -122,6 +122,7 @@ const ENTITIES: Record<
     blockedBy: [
       dependent("player", "players", players, players.clubId, reassign),
       dependent("circuit stage", "circuit stages", circuitPhases, circuitPhases.clubId, reassign),
+      dependent("circuit result", "circuit results", circuitResults, circuitResults.clubId, reassign),
       dependent("School Games result", "School Games results", tvSergipe, tvSergipe.clubId, "Delete those results first."),
     ],
     alsoDeletes: [],

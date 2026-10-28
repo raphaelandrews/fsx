@@ -1,11 +1,12 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { COMPETITION_TIER_LABELS } from "@fsx/api/circuit-types";
+import { Badge } from "@fsx/ui/components/badge";
 import { Button } from "@fsx/ui/components/button";
 
+import { createIntentSearch, useCreateIntent } from "@/hooks/use-create-intent";
 import { useTRPC } from "@/lib/trpc";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/data-table/data-table";
@@ -19,6 +20,7 @@ import { EmptyCollection } from "@/components/admin/empty-collection";
 import { CircuitCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/circuits/")({
+  validateSearch: createIntentSearch,
   head: () => ({ meta: [{ title: "Circuits - Admin - FSX" }] }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.circuits.listSimple.queryOptions()),
@@ -26,7 +28,7 @@ export const Route = createFileRoute("/_auth/dashboard/circuits/")({
 });
 
 function RouteComponent() {
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useCreateIntent();
   const trpc = useTRPC();
 
   const { data = [] } = useSuspenseQuery(trpc.circuits.listSimple.queryOptions());
@@ -67,7 +69,7 @@ function RouteComponent() {
       accessorKey: "finishedAt",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
       cell: ({ row }) => (
-        <span className="text-muted-foreground">{row.original.finishedAt ? "Finished" : "In progress"}</span>
+        <Badge variant={row.original.finishedAt ? "outline" : "default"}>{row.original.finishedAt ? "Finished" : "In progress"}</Badge>
       ),
     },
     {

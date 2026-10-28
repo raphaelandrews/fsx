@@ -324,3 +324,36 @@ describe("tournament podium categories", () => {
   });
 
 });
+
+describe("a player who changes club during a circuit", () => {
+  test("each result keeps the club the player had when it was saved", async () => {
+    const clubA = idOf(await caller.clubs.create({ name: "Colégio A" }));
+    const clubB = idOf(await caller.clubs.create({ name: "Colégio B" }));
+    const moveTo = (clubId: number) => binding.prepare("UPDATE players SET club_id = ? WHERE id = ?").bind(clubId, players[0]!).run();
+
+    const circuitId = idOf(await caller.circuits.create({ name: "Escolar Transferência", type: "school", year: 2026, tier: "school" }));
+    const stage = async (order: number) =>
+      idOf(await caller.circuits.phases.create({
+        circuitId,
+        tournamentId: idOf(await caller.tournaments.create({ name: `Transferência · Etapa ${order}`, ratingType: "rapid", tier: "school" })),
+        sortOrder: order,
+      }));
+    const [first, second] = [await stage(1), await stage(2)];
+
+    await moveTo(clubA);
+    const firstResult = idOf(await caller.circuits.results.create({ playerId: players[0]!, circuitPhaseId: first, points: 10, category: "Sub 12 Masculino" }));
+    await moveTo(clubB);
+    await caller.circuits.results.create({ playerId: players[0]!, circuitPhaseId: second, points: 7, category: "Sub 12 Masculino" });
+    await caller.circuits.results.update({ id: firstResult, playerId: players[0]!, circuitPhaseId: first, points: 12, category: "Sub 12 Masculino" });
+
+    const clubOfStage = async () =>
+      Object.fromEntries((await caller.circuits.byId({ id: circuitId })).circuitPhases.map((phase) => [phase.sortOrder, phase.circuitResults[0]!.club?.id]));
+    expect(await clubOfStage()).toEqual({ 1: clubA, 2: clubB });
+
+    await caller.circuits.results.update({ id: firstResult, playerId: players[0]!, circuitPhaseId: first, points: 12, category: "Sub 12 Masculino", clubId: clubB });
+    expect((await clubOfStage())[1]).toBe(clubB);
+
+    await moveTo(clubA);
+    await expect(caller.clubs.delete({ id: clubB })).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+});

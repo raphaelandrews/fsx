@@ -377,7 +377,7 @@ export function ImageUpload({
         className="sr-only"
       />
 
-      <p id={descriptionId} className="mt-1.5 text-xs text-muted-foreground">
+      <p id={descriptionId} className="mt-1.5 text-sm text-muted-foreground">
         {describePolicy(kind)}
       </p>
 

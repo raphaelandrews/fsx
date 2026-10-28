@@ -62,7 +62,7 @@ export function HistoryRow({ entry, showRecord }: { entry: HistoryEntry; showRec
           {timestamp.format(parseDbTimestamp(entry.createdAt))}
         </time>
         <span className="text-muted-foreground">by {entry.actor}</span>
-        <span className="text-muted-foreground text-xs">{entry.procedure}</span>
+        <span className="text-muted-foreground text-sm">{entry.procedure}</span>
       </div>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 text-muted-foreground tabular-nums">
         {changes.map((change) => (

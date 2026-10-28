@@ -93,6 +93,16 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
       initialLabel: editingPodium?.podium?.player?.name,
       getQueryOptions: (query) => trpc.players.search.queryOptions({ query }),
     },
+    {
+      name: "clubId",
+      label: "Club",
+      kind: "search",
+      placeholder: "Search club...",
+      emptyText: "No club found.",
+      hint: "The club that gets these points. Leave empty to use the player's current club.",
+      initialLabel: editingPodium?.podium?.club?.name,
+      getQueryOptions: (query) => trpc.clubs.search.queryOptions({ query }),
+    },
     { name: "place", label: "Stage place", kind: "number", min: 1, max: 1000 },
     { name: "points", label: "Points", kind: "number", required: true, min: 0, max: 1_000_000 },
     {
@@ -284,6 +294,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
         fields={podiumFields}
         defaultValues={{
           playerId: editingPodium?.podium ? String(editingPodium.podium.playerId) : "",
+          clubId: editingPodium?.podium?.club ? String(editingPodium.podium.club.id) : "",
           place: editingPodium?.podium?.place ? String(editingPodium.podium.place) : "",
           points: editingPodium?.podium ? String(editingPodium.podium.points) : "",
           category: editingPodium?.podium?.category ?? "",
@@ -293,6 +304,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
           const payload = {
             ...editingPodium.target,
             playerId: Number(values.playerId),
+            clubId: optionalNumber(values.clubId!) ?? undefined,
             place: optionalNumber(values.place!),
             points: Number(values.points),
             category: values.category || null,
@@ -330,7 +342,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
           const payload = {
             circuitId: circuit.id,
             tournamentId: Number(values.tournamentId),
-            clubId: optionalNumber(values.clubId!),
+            clubId: optionalNumber(values.clubId!) ?? undefined,
             sortOrder: Number(values.sortOrder),
           };
           if (editingPhase?.phase) updatePhase.mutate({ id: editingPhase.phase.id, ...payload });

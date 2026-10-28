@@ -331,13 +331,19 @@ export function AnnouncementCreateDialog({ open, onOpenChange }: CreateDialogPro
 
 export function TournamentCreateDialog({ open, onOpenChange }: CreateDialogProps) {
   const trpc = useTRPC();
+  const navigate = useNavigate();
   const { data: championships = [] } = useQuery(trpc.champions.list.queryOptions());
   const schemes = useScoringSchemeOptions();
   const createMutation = useAdminMutation(trpc.tournaments.create.mutationOptions(), {
     invalidates: "tournaments",
-    success: "Tournament created",
+    awaitInvalidation: true,
+    success: "Tournament created. Import its results or add podiums below.",
     failure: "Failed to create tournament",
-    onSuccess: () => onOpenChange(false),
+    onSuccess: (created) => {
+      onOpenChange(false);
+      const id = created[0]?.id;
+      return id ? navigate({ to: "/dashboard/tournaments/$id", params: { id } }) : undefined;
+    },
   });
 
   return (

@@ -1,5 +1,6 @@
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { z } from "zod";
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -44,6 +45,7 @@ function busiestMonthOf(days: string[]) {
 const signed = (value: number) => (value > 0 ? `+${value}` : String(value));
 
 export const Route = createFileRoute("/_public/jogadores/$id/temporada/$ano")({
+  validateSearch: z.object({ retro: z.boolean().optional().catch(undefined) }),
   params: {
     parse: ({ ano }: { ano: string }): { ano: number } => {
       const year = Number(ano);
@@ -76,6 +78,7 @@ export const Route = createFileRoute("/_public/jogadores/$id/temporada/$ano")({
 function RouteComponent() {
   const trpc = useTRPC();
   const { id, ano } = Route.useParams();
+  const { retro } = Route.useSearch();
   const { data: season } = useSuspenseQuery(trpc.players.season.queryOptions({ id, year: ano }));
   const name = season.player.nickname || season.player.name;
   const index = season.seasons.indexOf(season.year);
@@ -103,6 +106,7 @@ function RouteComponent() {
         </nav>
         <div className="mt-3 flex justify-center">
           <SeasonShareButton
+            defaultOpen={retro === true}
             card={{
               playerId: id,
               name,

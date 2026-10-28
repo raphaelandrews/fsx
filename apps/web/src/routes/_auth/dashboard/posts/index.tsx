@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -7,6 +6,7 @@ import { Badge } from "@fsx/ui/components/badge";
 import { Button } from "@fsx/ui/components/button";
 
 import { formatSchedule, isScheduledInFuture } from "@/lib/schedule";
+import { createIntentSearch, useCreateIntent } from "@/hooks/use-create-intent";
 import { useTRPC } from "@/lib/trpc";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/data-table/data-table";
@@ -20,13 +20,14 @@ import { EmptyCollection } from "@/components/admin/empty-collection";
 import { PostCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/posts/")({
+  validateSearch: createIntentSearch,
   head: () => ({ meta: [{ title: "Posts - Admin - FSX" }] }),
   loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.posts.listAdmin.queryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useCreateIntent();
   const trpc = useTRPC();
 
   const { data = [] } = useSuspenseQuery(trpc.posts.listAdmin.queryOptions());
@@ -50,10 +51,10 @@ function RouteComponent() {
     },
     {
       accessorKey: "published",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Published" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
       cell: ({ row }) => (
         <Badge variant={row.original.published ? "default" : "outline"}>
-          {row.original.published ? (isScheduledInFuture(row.original.publishAt) ? `Scheduled · ${formatSchedule(row.original.publishAt!)}` : "Yes") : "No"}
+          {row.original.published ? (isScheduledInFuture(row.original.publishAt) ? `Scheduled · ${formatSchedule(row.original.publishAt!)}` : "Published") : "Draft"}
         </Badge>
       ),
     },

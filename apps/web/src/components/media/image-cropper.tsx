@@ -166,7 +166,7 @@ export function ImageCropper({
           {didImageFail ? (
             <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-2 p-6 text-center">
               <p className="text-sm font-medium text-destructive">{labels.previewFailed}</p>
-              <p className="text-xs text-muted-foreground">{labels.previewFailedHint}</p>
+              <p className="text-sm text-muted-foreground">{labels.previewFailedHint}</p>
             </div>
           ) : (
             <ReactCrop

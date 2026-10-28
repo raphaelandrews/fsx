@@ -104,26 +104,14 @@ function background(ctx: CanvasRenderingContext2D, palette: Palette, variant: nu
   ctx.globalAlpha = 1;
 }
 
-function chrome(ctx: CanvasRenderingContext2D, card: SeasonCard, palette: Palette, index: number, total: number) {
+// Instagram covers roughly the top 250px and bottom 270px of a story with its own UI; keep content above y=1650.
+const SAFE_TOP = 290;
+
+function chrome(ctx: CanvasRenderingContext2D, card: SeasonCard, palette: Palette) {
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = palette.soft;
   ctx.font = font(700, 38);
-  ctx.fillText(`FSX · ${card.year}`, PAD, PAD + 36);
-
-  const gap = 14;
-  const width = (SLIDE_WIDTH - PAD * 2 - gap * (total - 1)) / total;
-  for (let step = 0; step < total; step++) {
-    ctx.globalAlpha = step === index ? 1 : 0.28;
-    ctx.fillStyle = palette.ink;
-    ctx.beginPath();
-    ctx.roundRect(PAD + step * (width + gap), PAD + 72, width, 8, 4);
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-
-  ctx.fillStyle = palette.soft;
-  ctx.font = font(600, 34);
-  ctx.fillText(`fsx.org.br/jogadores/${card.playerId}`, PAD, SLIDE_HEIGHT - PAD);
+  ctx.fillText(`FSX · ${card.year}`, PAD, SAFE_TOP);
 }
 
 function eyebrow(ctx: CanvasRenderingContext2D, palette: Palette, text: string, y: number) {
@@ -174,12 +162,12 @@ export function buildSlides(card: SeasonCard): { palette: Palette; slide: Season
     slides.push({
       id: "tournaments",
       palette: PALETTES.pink,
-      alt: `${card.tournaments} torneios disputados em ${card.year}`,
+      alt: `${card.tournaments} ${plural(card.tournaments, "torneio", "torneios")} em ${card.year}`,
       draw: (ctx) => {
         const palette = PALETTES.pink;
-        eyebrow(ctx, palette, "Você entrou em campo", 620);
+        eyebrow(ctx, palette, `Em ${card.year} você jogou`, 620);
         bigNumber(ctx, palette, String(card.tournaments), 1000);
-        const end = body(ctx, palette, plural(card.tournaments, "torneio disputado", "torneios disputados"), 1120, 76, 2);
+        const end = body(ctx, palette, plural(card.tournaments, "torneio", "torneios"), 1120, 76, 2);
         if (card.busiestMonth) {
           ctx.fillStyle = palette.soft;
           ctx.font = font(600, 48);
@@ -249,7 +237,7 @@ export function buildSlides(card: SeasonCard): { palette: Palette; slide: Season
   }
 
   if (card.podiums.length > 0) {
-    const shown = card.podiums.slice(0, 5);
+    const shown = card.podiums.slice(0, 4);
     slides.push({
       id: "podiums",
       palette: PALETTES.gold,
@@ -292,7 +280,7 @@ export function buildSlides(card: SeasonCard): { palette: Palette; slide: Season
 
   if (card.achievements.length > 0) {
     const ranked = [...card.achievements].sort((a, b) => TIER_RANK[b.tier] - TIER_RANK[a.tier]);
-    const shown = ranked.slice(0, 5);
+    const shown = ranked.slice(0, 4);
     slides.push({
       id: "achievements",
       palette: PALETTES.violet,
@@ -394,7 +382,7 @@ export async function renderSlides(card: SeasonCard): Promise<{ id: string; alt:
     ctx.clearRect(0, 0, SLIDE_WIDTH, SLIDE_HEIGHT);
     ctx.textAlign = "left";
     background(ctx, palette, index);
-    chrome(ctx, card, palette, index, built.length);
+    chrome(ctx, card, palette);
     slide.draw(ctx, card);
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
     if (blob) rendered.push({ id: slide.id, alt: slide.alt, blob });

@@ -93,7 +93,7 @@ function RatingThresholdChart({ ratings }: { ratings: RatingThreshold[] }) {
         ariaLabel="Jogadores ativos por faixa de rating e formato"
         className="mt-2 w-full text-muted-foreground"
       />
-      <p className="mt-2 text-muted-foreground text-xs">
+      <p className="mt-2 text-muted-foreground text-sm">
         Baseado no ranking Absoluto, que inclui também as jogadoras do Feminino.
       </p>
     </figure>

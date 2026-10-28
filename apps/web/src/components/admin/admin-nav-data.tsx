@@ -49,11 +49,8 @@ export const ADMIN_NAV: AdminNavItem[] = [
     items: [
       { label: "Tournaments", to: "/dashboard/tournaments", icon: Route01Icon },
       { label: "Rating Update", to: "/rating-update", icon: Medal01Icon },
-      { label: "Championships", to: "/dashboard/championships", icon: ChampionIcon },
-      { label: "Podiums", to: "/dashboard/tournament-podiums", icon: Medal01Icon },
       { label: "Circuits", to: "/dashboard/circuits", icon: MapPinIcon },
-      { label: "Categories", to: "/dashboard/categories", icon: File01Icon },
-      { label: "Scoring schemes", to: "/dashboard/scoring-schemes", icon: Award01Icon },
+      { label: "Podiums", to: "/dashboard/tournament-podiums", icon: Medal01Icon },
       { label: "TV Sergipe", to: "/dashboard/tv-sergipe", icon: SchoolIcon },
     ],
   },
@@ -71,10 +68,13 @@ export const ADMIN_NAV: AdminNavItem[] = [
     ],
   },
   {
-    label: "Entities",
-    to: "/dashboard/clubs",
+    label: "Setup",
+    to: "/dashboard/championships",
     icon: Building01Icon,
     items: [
+      { label: "Championships", to: "/dashboard/championships", icon: ChampionIcon },
+      { label: "Categories", to: "/dashboard/categories", icon: File01Icon },
+      { label: "Scoring schemes", to: "/dashboard/scoring-schemes", icon: Award01Icon },
       { label: "Clubs", to: "/dashboard/clubs", icon: Building01Icon },
       { label: "Locations", to: "/dashboard/locations", icon: MapPinIcon },
       { label: "Links", to: "/dashboard/links", icon: Link01Icon },

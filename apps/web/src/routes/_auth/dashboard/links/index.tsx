@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -14,10 +13,12 @@ import { DataTableRowActions } from "@/components/data-table/data-table-row-acti
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { RowLink } from "@/components/data-table/row-link";
 import { useAdminMutation } from "@/lib/admin-mutations";
+import { createIntentSearch, useCreateIntent } from "@/hooks/use-create-intent";
 import { useTRPC } from "@/lib/trpc";
 import { LinkGroupCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/links/")({
+  validateSearch: createIntentSearch,
   head: () => ({ meta: [{ title: "Links - Admin - FSX" }] }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.links.list.queryOptions()),
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/_auth/dashboard/links/")({
 });
 
 function RouteComponent() {
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useCreateIntent();
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.links.list.queryOptions());
   const groups = data.filter((group) => group.eventId == null);

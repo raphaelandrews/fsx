@@ -115,7 +115,7 @@ function TvSergipeBulkForm({ onDone }: { onDone: () => void }) {
     >
       <div className="grid gap-3 sm:grid-cols-4">
         <label className="space-y-1 text-sm sm:col-span-4">
-          <span className="text-muted-foreground text-xs">Edition</span>
+          <span className="text-muted-foreground text-sm">Edition</span>
           <SearchableSelect
             value={tournamentId}
             initialLabel=""
@@ -126,7 +126,7 @@ function TvSergipeBulkForm({ onDone }: { onDone: () => void }) {
           />
         </label>
         <label className="space-y-1 text-sm">
-          <span className="text-muted-foreground text-xs">Age group</span>
+          <span className="text-muted-foreground text-sm">Age group</span>
           <select aria-label="Age group" className={NATIVE_SELECT_CLASS} value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)}>
             {AGE_GROUPS.map((age) => (
               <option key={age} value={age}>
@@ -136,7 +136,7 @@ function TvSergipeBulkForm({ onDone }: { onDone: () => void }) {
           </select>
         </label>
         <label className="space-y-1 text-sm">
-          <span className="text-muted-foreground text-xs">Sex</span>
+          <span className="text-muted-foreground text-sm">Sex</span>
           <select aria-label="Sex" className={NATIVE_SELECT_CLASS} value={sex} onChange={(e) => setSex(e.target.value as "male" | "female")}>
             {SEX_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -146,7 +146,7 @@ function TvSergipeBulkForm({ onDone }: { onDone: () => void }) {
           </select>
         </label>
         <label className="space-y-1 text-sm">
-          <span className="text-muted-foreground text-xs">Modality</span>
+          <span className="text-muted-foreground text-sm">Modality</span>
           <select
             aria-label="Modality"
             className={NATIVE_SELECT_CLASS}
@@ -163,7 +163,7 @@ function TvSergipeBulkForm({ onDone }: { onDone: () => void }) {
       </div>
 
       <div className="space-y-2">
-        <div className="hidden grid-cols-[4.5rem_1fr_1fr_5rem_2rem] gap-2 text-xs text-muted-foreground sm:grid">
+        <div className="hidden grid-cols-[4.5rem_1fr_1fr_5rem_2rem] gap-2 text-sm text-muted-foreground sm:grid">
           <span>Place</span>
           <span>School</span>
           <span>{modality === "individual" ? "Player" : "Team"}</span>

@@ -137,7 +137,7 @@ function BulkStageResultsForm({
       }}
     >
       <label className="block space-y-1 text-sm">
-        <span className="text-muted-foreground text-xs">Category</span>
+        <span className="text-muted-foreground text-sm">Category</span>
         <select
           aria-label="Category"
           className={NATIVE_SELECT_CLASS}
@@ -153,7 +153,7 @@ function BulkStageResultsForm({
         </select>
       </label>
       <div className="space-y-2">
-        <div className="hidden grid-cols-[5rem_1fr_6rem_2rem] gap-2 text-xs text-muted-foreground sm:grid">
+        <div className="hidden grid-cols-[5rem_1fr_6rem_2rem] gap-2 text-sm text-muted-foreground sm:grid">
           <span>Place</span>
           <span>Player</span>
           <span>Points</span>

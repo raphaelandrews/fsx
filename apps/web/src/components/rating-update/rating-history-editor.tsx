@@ -56,7 +56,7 @@ export function RatingHistoryEditor({ playerId, onRatingChange }: RatingHistoryE
         <div>
           <div className="font-medium">{row.original.tournament?.name ?? "Unknown tournament"}</div>
           {row.original.tournament?.date ? (
-            <div className="text-muted-foreground text-xs">{row.original.tournament.date}</div>
+            <div className="text-muted-foreground text-sm">{row.original.tournament.date}</div>
           ) : null}
         </div>
       ),

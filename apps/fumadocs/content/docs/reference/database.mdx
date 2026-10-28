@@ -39,7 +39,7 @@ The database is Cloudflare D1 (SQLite). The schema is defined with Drizzle in
 | `tournaments`, `cups` | `name` | `rating_type` in `blitz`, `rapid`, `classic`; `prize_pool` ≥ 0; `tournaments.has_podiums` (default true) turns podiums and synced medals off, enforced by the API |
 | `circuits` | `name` | `type` in `default`, `categories`, `school`, `geral` |
 | `circuit_final_podiums` | `(circuit_id, player_id)` overall; `(circuit_id, category, player_id)` per category | `place` 1–1000; `points` null or 0–1000000; `category` null (overall) or references `categories(name)` |
-| `circuit_results` | — | exactly one of `circuit_id`, `circuit_phase_id`; `points` 0–1000000; `place` null or 1–1000; `category` null or references `categories(name)` |
+| `circuit_results` | — | exactly one of `circuit_id`, `circuit_phase_id`; `points` 0–1000000; `place` null or 1–1000; `category` null or references `categories(name)`; `club_id` is the club at save time (nullable, indexed) |
 | `cup_brackets` | — | `bracket_type` in `UB`, `LB`, `GF` |
 | `cup_playoffs` | — | `phase_type` in a fixed list of upper/lower bracket phases and `Grande Final` |
 | `tv_sergipe` | individual `(tournament, player, age, sex)`; team `(tournament, club, age, sex, team_name)` | age group, sex, modality, team letter `A`–`J`, place 1–8, points 0–1000; `tournament_id` is the edition (null only for results saved before editions existed); individual ↔ player, team ↔ team name |

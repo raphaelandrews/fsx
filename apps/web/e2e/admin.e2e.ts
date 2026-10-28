@@ -264,3 +264,21 @@ test("a missing dashboard record shows an English 404 inside the admin shell", a
   await expect(page.getByRole("link", { name: "Back to clubs" })).toHaveAttribute("href", "/dashboard/clubs");
   await expect(page.getByRole("button", { name: "Toggle Sidebar" }).first()).toBeVisible();
 });
+
+test("the dashboard task board opens a create dialog straight from a task and closes it cleanly", async ({ page }) => {
+  await page.goto("/dashboard", { waitUntil: "networkidle" });
+  await expect(page.getByRole("heading", { name: "What do you want to do?" })).toBeVisible();
+  await page.getByRole("article").filter({ hasText: "Add a tournament" }).getByRole("link", { name: "New tournament" }).click();
+  await expect(page).toHaveURL(/\/dashboard\/tournaments\?novo=true$/);
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(page).toHaveURL(/\/dashboard\/tournaments$/);
+});
+
+test("the notifications bell opens from every dashboard page", async ({ page }) => {
+  await page.goto("/dashboard", { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: /^Notifications/ }).click();
+  await expect(page.getByText("Notifications", { exact: true })).toBeVisible();
+});

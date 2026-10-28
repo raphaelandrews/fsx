@@ -33,6 +33,9 @@ const linkIcon = z.string().max(5_000).refine(isKnownLinkIcon, "Unknown link ico
 // The public links page shows every standalone group but only the next few events, so the page stays short.
 const LINKS_PAGE_EVENTS = 3;
 
+// Participants still look for results and photos after an event ends.
+const LINKS_GRACE_DAYS = 7;
+
 export const linkGroupsRouter = router({
   page: publicProcedure.query(async ({ ctx }) => {
     const [groups, upcoming] = await Promise.all([
@@ -49,7 +52,7 @@ export const linkGroupsRouter = router({
         orderBy: (lg, { asc }) => asc(lg.id),
         limit: PUBLIC_COLLECTION_LIMIT,
       }),
-      listEvents(ctx.db, { upcoming: true, limit: UPCOMING_EVENTS_LIMIT }),
+      listEvents(ctx.db, { upcoming: true, limit: UPCOMING_EVENTS_LIMIT, graceDays: LINKS_GRACE_DAYS }),
     ]);
     return {
       groups: groups.filter((group) => group.links.length > 0),

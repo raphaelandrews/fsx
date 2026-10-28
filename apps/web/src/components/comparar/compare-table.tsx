@@ -97,7 +97,7 @@ export function CommonTournaments({ comparison }: { comparison: Comparison }) {
               <Link to="/torneios/$id" params={{ id: row.tournamentId }} className="link-inline font-medium">
                 {row.name}
               </Link>
-              {row.date ? <span className="block text-muted-foreground text-xs">{row.date.split("-").reverse().join("/")}</span> : null}
+              {row.date ? <span className="block text-muted-foreground text-sm">{row.date.split("-").reverse().join("/")}</span> : null}
             </TableCell>
             <TableCell className="text-muted-foreground">{RATING_LABELS_PT[row.ratingType]}</TableCell>
             <TableCell className="text-center">

@@ -224,7 +224,7 @@ has history for the tournament). Corrections keep the history chain intact; see
 | `events.create` / `update` / `delete` | admin | `{ name, startDate, endDate?, venue?, venueUrl?, tournamentId? }` | Rows; `BAD_REQUEST` when the end date is before the start date or the tournament does not exist; deleting an event cascades to its links (one statement); deleting its tournament only clears the tie | — |
 | `events.setLinks` | admin | `{ eventId, links: [{ id?, type: regulation\|form\|results, href? }] }` | Replaces the event's links in one D1 batch; labels and icons are derived from the type | — |
 | `links.list` | public | — | Every link group with its links, event-owned ones included (the dashboard list) | 300 s |
-| `links.page` | public | — | For the public `/links` page: every standalone group that has links, and only the next 3 upcoming events that have links | 300 s |
+| `links.page` | public | — | For the public `/links` page: every standalone group that has links, and only the next 3 events that have links (an event stays for 7 days after it ends) | 300 s |
 | `links.create` / `updateGroup` / `deleteGroup` | admin | `{ label, eventId? }` | Group rows; `updateGroup` and `deleteGroup` only touch groups without an event (`NOT_FOUND` otherwise) | — |
 | `links.createLink` / `updateLink` / `deleteLink` | admin | `{ linkGroupId, label, href?, icon, type?, sortOrder }` | Link rows; `icon` must be in the allowlist (`link-icons.ts`); `BAD_REQUEST` when the link or target group belongs to an event (edit those with `events.setLinks`) | — |
 
@@ -242,7 +242,7 @@ do not match `mime`. See [Media](/architecture/media).
 
 | Procedure | Access | Output |
 | --------- | ------ | ------ |
-| `stats.counts` | admin | Row counts of players, posts, announcements, events, tournaments, circuits, School Games results, and clubs |
+| `stats.counts` | admin | Row counts of players, posts, announcements, events, tournaments, circuits, School Games results, and clubs, plus pending update requests, unpublished posts, and unfinished circuits |
 | `deletion.impact` | admin | `{ entity, id }` with `entity` one of `club`, `location`, `championship`, `title`, `role`, `norm`, `insignia`, `tournament`, `circuit`, `event` | `{ name, blockedBy, alsoDeletes }`: what stops the delete until it is moved or removed, and what disappears with it, each as `{ singular, plural, count, fix? }`. The dashboard shows it in the delete confirmation; the matching `delete` procedures refuse with the same information. `NOT_FOUND` for an unknown record |
 | `cache.status` | admin | `{ purgeConfigured }` |
 | `cache.purgePublic` | admin | Purges the zone cache; `PRECONDITION_FAILED` when the zone ID or purge token is missing |

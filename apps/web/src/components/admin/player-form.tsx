@@ -126,7 +126,7 @@ export function PlayerForm({
           />
           <div>
             <Label htmlFor={`player-${field}`}>{label}</Label>
-            <p id={`player-${field}-hint`} className="text-muted-foreground text-xs">
+            <p id={`player-${field}-hint`} className="text-muted-foreground text-sm">
               {hint}
             </p>
           </div>
@@ -146,7 +146,7 @@ export function PlayerForm({
         <FormAsideCard>
           <div>
             <h2 className="font-medium text-sm">Photo</h2>
-            <p className="mt-1 text-muted-foreground text-xs">Cropped to a square.</p>
+            <p className="mt-1 text-muted-foreground text-sm">Cropped to a square.</p>
           </div>
         <form.Field name="imageUrl">
           {(f) => (

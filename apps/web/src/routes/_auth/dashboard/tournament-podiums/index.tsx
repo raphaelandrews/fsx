@@ -5,6 +5,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "@fsx/ui/components/button";
 
+import { createIntentSearch, useCreateIntent } from "@/hooks/use-create-intent";
 import { useTRPC } from "@/lib/trpc";
 import { DeleteDialog } from "@/components/admin/delete-dialog";
 import { AdminPageHeader } from "@/components/admin/page-header";
@@ -19,13 +20,14 @@ import { EmptyCollection } from "@/components/admin/empty-collection";
 import { PodiumCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/tournament-podiums/")({
+  validateSearch: createIntentSearch,
   head: () => ({ meta: [{ title: "Podiums - Admin - FSX" }] }),
   loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.tournamentPodiums.list.queryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useCreateIntent();
   const trpc = useTRPC();
 
   const { data = [] } = useSuspenseQuery(trpc.tournamentPodiums.list.queryOptions());

@@ -94,7 +94,10 @@ are `snake_case` in SQL and `camelCase` in Drizzle. Every table has an integer
   - **Circuit result** (`circuit_results`, formerly `circuit_podiums`): points for a
     player, attached to **either** a phase **or** directly to the circuit
     (`geral` circuits), with an optional stage place (1–1000) and category.
-    Standings are the sums of these points.
+    Standings are the sums of these points. Each result also stores the `club_id` the
+    player had when it was saved, so a player who changes club mid-season leaves the
+    earlier points with the old club; the club ranking groups by it, and the result form
+    can override it.
   - **Circuit final podium** (`circuit_final_podiums`): the official top 3 of a
     finished season, per category for `categories` and `school` circuits.
     Snapshotted from the standings when the season is finished, then editable,

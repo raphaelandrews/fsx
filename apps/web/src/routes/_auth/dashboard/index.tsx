@@ -1,31 +1,13 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Award01Icon,
-  Calendar04Icon,
-  ChampionIcon,
-  Database01Icon,
-  Download01Icon,
-  EllipsisIcon,
-  Medal01Icon,
-  Megaphone01Icon,
-  NewsIcon,
-  Route01Icon,
-  SchoolIcon,
-  CheckmarkBadge01Icon,
-  User02Icon,
-  UserGroupIcon,
-} from "@hugeicons/core-free-icons";
-import type { IconSvgElement } from "@hugeicons/react";
+import { Alert02Icon } from "@hugeicons/core-free-icons";
 
-import { Card, CardContent } from "@fsx/ui/components/card";
-import { Badge } from "@fsx/ui/components/badge";
-import { cn } from "@fsx/ui/lib/utils";
+import { buttonVariants } from "@fsx/ui/components/button";
 
 import { useTRPC } from "@/lib/trpc";
 import { AdminPageHeader } from "@/components/admin/page-header";
-import { avatarGradient } from "@/components/avatar-gradient";
+import { SAFETY_LINKS, TaskBoard } from "@/components/admin/task-board";
 
 export const Route = createFileRoute("/_auth/dashboard/")({
   head: () => ({
@@ -39,145 +21,91 @@ export const Route = createFileRoute("/_auth/dashboard/")({
   component: RouteComponent,
 });
 
-type BoardItem = {
-  title: string;
-  to: string;
-  icon: IconSvgElement;
-  description: string;
-  count?: number;
-  tag: string;
-  statusTone: string;
-};
-
-type BoardColumn = {
-  label: string;
-  icon: IconSvgElement;
-  tone: string;
-  items: BoardItem[];
-};
+const GLOSSARY: [string, string][] = [
+  ["Championship", "A recurring competition (for example the Sergipano). It groups tournaments, cups and circuit seasons."],
+  ["Tournament", "One event on one date. It holds rating results and podiums."],
+  ["Circuit", "One season of stages. Each stage is linked to a tournament, and points add up across stages."],
+  ["Category", "Where a result counts, such as Sub 10 Feminino or Master. Set up once, used everywhere."],
+  ["Scoring scheme", "Points by place (10, 8, 6…). It prefills points; each result can still be changed."],
+  ["Podium", "A medal place in a tournament. Many are created for you by circuit and School Games results."],
+];
 
 function RouteComponent() {
   const trpc = useTRPC();
+  const { data: counts } = useSuspenseQuery(trpc.stats.counts.queryOptions());
 
-  const { data: stats } = useSuspenseQuery(trpc.stats.counts.queryOptions());
-
-  const columns: BoardColumn[] = [
-    {
-      label: "Content",
-      icon: NewsIcon,
-      tone: "text-orange",
-      items: [
-        { title: "Posts", to: "/dashboard/posts", icon: NewsIcon, description: "Manage site posts.", count: stats.posts, tag: "Content", statusTone: "text-orange" },
-        { title: "Announcements", to: "/dashboard/announcements", icon: Megaphone01Icon, description: "Official announcements.", count: stats.announcements, tag: "Content", statusTone: "text-orange" },
-        { title: "Events", to: "/dashboard/events", icon: Calendar04Icon, description: "Official events.", count: stats.events, tag: "Content", statusTone: "text-orange" },
-      ],
-    },
-    {
-      label: "Competition",
-      icon: Route01Icon,
-      tone: "text-blue",
-      items: [
-        { title: "Tournaments", to: "/dashboard/tournaments", icon: Medal01Icon, description: "Official tournaments.", count: stats.tournaments, tag: "Competition", statusTone: "text-blue" },
-        { title: "Circuits", to: "/dashboard/circuits", icon: Route01Icon, description: "Chess circuits.", count: stats.circuits, tag: "Competition", statusTone: "text-blue" },
-        { title: "TV Sergipe", to: "/dashboard/tv-sergipe", icon: SchoolIcon, description: "School games results.", count: stats.tvSergipe, tag: "Competition", statusTone: "text-blue" },
-      ],
-    },
-    {
-      label: "Players",
-      icon: UserGroupIcon,
-      tone: "text-green",
-      items: [
-        { title: "Players", to: "/dashboard/players", icon: UserGroupIcon, description: "Manage athletes.", count: stats.players, tag: "Players", statusTone: "text-green" },
-        { title: "Update requests", to: "/dashboard/update-requests", icon: CheckmarkBadge01Icon, description: "Corrections sent by players, waiting for review.", count: stats.pendingRequests, tag: "Players", statusTone: "text-green" },
-        { title: "Clubs", to: "/dashboard/clubs", icon: User02Icon, description: "Member clubs.", count: stats.clubs, tag: "Players", statusTone: "text-green" },
-        { title: "Titles", to: "/dashboard/titles", icon: Award01Icon, description: "Chess titles.", tag: "Players", statusTone: "text-green" },
-      ],
-    },
-    {
-      label: "System",
-      icon: Database01Icon,
-      tone: "text-violet",
-      items: [
-        { title: "Rating Update", to: "/rating-update", icon: Medal01Icon, description: "Recompute ratings per round.", tag: "System", statusTone: "text-violet" },
-        { title: "Swiss Manager", to: "/dashboard/swiss-manager", icon: Download01Icon, description: "Export in CSV format.", tag: "System", statusTone: "text-violet" },
-        { title: "Championships", to: "/dashboard/championships", icon: ChampionIcon, description: "Manage championships.", tag: "System", statusTone: "text-violet" },
-      ],
-    },
+  const attention: { text: string; to: "/dashboard/update-requests" | "/dashboard/posts" | "/dashboard/circuits"; action: string }[] = [
+    ...(counts.pendingRequests > 0
+      ? [{ text: `${counts.pendingRequests} update ${counts.pendingRequests === 1 ? "request is" : "requests are"} waiting for review.`, to: "/dashboard/update-requests" as const, action: "Review" }]
+      : []),
+    ...(counts.draftPosts > 0
+      ? [{ text: `${counts.draftPosts} ${counts.draftPosts === 1 ? "post is" : "posts are"} not published (drafts or scheduled).`, to: "/dashboard/posts" as const, action: "Open posts" }]
+      : []),
+    ...(counts.openCircuits > 0
+      ? [{ text: `${counts.openCircuits} circuit ${counts.openCircuits === 1 ? "season is" : "seasons are"} still in progress.`, to: "/dashboard/circuits" as const, action: "Open circuits" }]
+      : []),
   ];
 
   return (
     <div>
       <AdminPageHeader
-        title="Overview"
-        description="A snapshot of the federation's admin areas."
+        title="What do you want to do?"
+        description="Pick a task. Each card says when to use it and what to expect; “How it works” lists the steps."
       />
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-        {columns.map((column) => (
-          <div key={column.label} className="flex flex-col gap-3">
-            <ColumnHeader column={column} />
-            {column.items.map((item) => (
-              <ModuleCard key={item.title} item={item} />
+      {attention.length > 0 ? (
+        <section aria-labelledby="attention" className="mb-6 rounded-2xl bg-muted p-4">
+          <h2 id="attention" className="flex items-center gap-2 font-bold text-base">
+            <HugeiconsIcon className="size-5 text-warning-foreground" icon={Alert02Icon} strokeWidth={2} aria-hidden />
+            Needs your attention
+          </h2>
+          <ul className="mt-2 divide-y divide-border">
+            {attention.map((item) => (
+              <li key={item.to} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <span>{item.text}</span>
+                <Link to={item.to} className={buttonVariants({ variant: "outline", size: "lg" })}>
+                  {item.action}
+                </Link>
+              </li>
             ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+          </ul>
+        </section>
+      ) : null}
 
-function ColumnHeader({ column }: { column: BoardColumn }) {
-  return (
-    <div className="flex items-center justify-between gap-2 rounded-xl px-3 py-2.5">
-      <div className="flex items-center gap-2">
-        <HugeiconsIcon className={cn("size-4", column.tone)} icon={column.icon} strokeWidth={2} />
-        <h2 className="text-sm font-semibold">{column.label}</h2>
-        <Badge className="rounded-sm" variant="secondary">
-          {column.items.length}
-        </Badge>
-      </div>
-      <HugeiconsIcon className="size-4 text-muted-foreground/60" icon={EllipsisIcon} strokeWidth={2} />
-    </div>
-  );
-}
+      <TaskBoard counts={counts} />
 
-function ModuleCard({ item }: { item: BoardItem }) {
-  return (
-    <Link to={item.to}>
-      <Card
-        className="group transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-md"
-      >
-        <CardContent className="p-4">
-          <div className="flex items-start gap-2">
-            <HugeiconsIcon className={cn("mt-0.5 size-4 shrink-0", item.statusTone)} icon={item.icon} strokeWidth={2} />
-            <h3 className="font-semibold leading-tight">{item.title}</h3>
-            {typeof item.count === "number" ? (
-              <Badge className="ml-auto rounded-full px-1.5 font-normal" variant="secondary">
-                {item.count}
-              </Badge>
-            ) : null}
-          </div>
-
-          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-            {item.description}
-          </p>
-
-          <div className="mt-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-xs text-muted-foreground">
-                {item.title.replace(/\s+/g, "-").slice(0, 8).toUpperCase()}
+      <section aria-labelledby="safety" className="mt-8">
+        <h2 id="safety" className="mb-3 font-bold text-base">
+          Safety and records
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {SAFETY_LINKS.map((link) => (
+            <Link key={link.to} to={link.to} className="flex items-start gap-3 rounded-2xl bg-muted p-4 transition-colors duration-200 ease-out hover:bg-accent">
+              <HugeiconsIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" icon={link.icon} strokeWidth={2} aria-hidden />
+              <span>
+                <span className="block font-semibold leading-tight">{link.title}</span>
+                <span className="mt-1 block text-muted-foreground text-sm">{link.description}</span>
               </span>
-              <Badge className="rounded-sm" variant="outline">
-                {item.tag}
-              </Badge>
-            </div>
-            <span
-              aria-hidden
-              className={cn("size-6 rounded-full", avatarGradient(item.title.length))}
-            />
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="glossary" className="mt-8">
+        <details className="rounded-2xl bg-muted p-4">
+          <summary id="glossary" className="cursor-pointer select-none font-bold text-base focus-visible:outline-2 focus-visible:outline-ring">
+            How the pieces fit together
+          </summary>
+          <dl className="mt-3 grid gap-x-8 gap-y-3 text-sm md:grid-cols-2">
+            {GLOSSARY.map(([term, meaning]) => (
+              <div key={term}>
+                <dt className="font-medium">{term}</dt>
+                <dd className="text-muted-foreground">{meaning}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      </section>
+    </div>
   );
 }

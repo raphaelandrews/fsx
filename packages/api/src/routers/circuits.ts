@@ -6,6 +6,7 @@ import { circuitFinalPodiums } from "@fsx/db/schema/circuit-final-podiums";
 import { circuitPhases } from "@fsx/db/schema/circuit-phases";
 import { circuitResults } from "@fsx/db/schema/circuit-results";
 import { circuits } from "@fsx/db/schema/circuits";
+import { players } from "@fsx/db/schema/players";
 import { COMPETITION_TIERS, CIRCUIT_TYPES, MEDAL_PLACES, type CircuitType } from "../circuit-types";
 import { circuitFinalPodiums as rankFinalPodiums } from "../circuit-standings";
 import type { Context } from "../context";
@@ -46,6 +47,8 @@ const finalPodiumInput = z.object({
   points: z.number().min(0).max(1_000_000).nullable().optional(),
 });
 
+const clubColumns = { columns: { id: true, name: true, logoUrl: true } } as const;
+
 const playerColumns = {
   columns: { id: true, name: true, nickname: true, imageUrl: true },
   with: {
@@ -71,7 +74,10 @@ const podiumInput = z.object({
   category: categoryName.nullable().optional(),
   place: positiveInt.max(1000).nullable().optional(),
   points,
+  clubId: positiveInt.optional(),
 });
+
+const clubAtSave = (playerId: number) => sql`(SELECT ${players.clubId} FROM ${players} WHERE ${players.id} = ${playerId})`;
 
 const MAX_BULK_RESULTS = 100;
 
@@ -123,7 +129,7 @@ export const circuitsRouter = router({
               limit: PUBLIC_NESTED_COLLECTION_LIMIT,
               columns: { id: true, category: true, place: true, points: true, playerId: true },
               orderBy: (podium, { asc, desc }) => [desc(podium.points), asc(podium.id)],
-              with: { player: playerColumns },
+              with: { player: playerColumns, club: clubColumns },
             },
           },
         },
@@ -131,7 +137,7 @@ export const circuitsRouter = router({
           limit: PUBLIC_NESTED_COLLECTION_LIMIT,
           columns: { id: true, category: true, place: true, points: true, playerId: true },
           orderBy: (podium, { asc, desc }) => [desc(podium.points), asc(podium.id)],
-          with: { player: playerColumns },
+          with: { player: playerColumns, club: clubColumns },
         },
       },
     }), "Circuit"),
@@ -391,6 +397,7 @@ export const circuitsRouter = router({
           .insert(circuitResults)
           .values({
             playerId: result.playerId,
+            clubId: clubAtSave(result.playerId),
             circuitPhaseId: input.circuitPhaseId,
             category: input.category ?? null,
             place: result.place ?? null,
@@ -418,6 +425,7 @@ export const circuitsRouter = router({
             .insert(circuitResults)
             .values({
               playerId: input.playerId,
+              clubId: input.clubId ?? clubAtSave(input.playerId),
               circuitId: input.circuitId ?? null,
               circuitPhaseId: input.circuitPhaseId ?? null,
               category: input.category ?? null,
@@ -443,6 +451,7 @@ export const circuitsRouter = router({
             .update(circuitResults)
             .set({
               playerId: input.playerId,
+              clubId: input.clubId ?? sql`CASE WHEN ${circuitResults.playerId} = ${input.playerId} THEN ${circuitResults.clubId} ELSE ${clubAtSave(input.playerId)} END`,
               circuitId: input.circuitId ?? null,
               circuitPhaseId: input.circuitPhaseId ?? null,
               category: input.category ?? null,

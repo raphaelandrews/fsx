@@ -6,6 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { COMPETITION_TIER_LABELS } from "@fsx/api/circuit-types";
 import { Button } from "@fsx/ui/components/button";
 
+import { createIntentSearch, useCreateIntent } from "@/hooks/use-create-intent";
 import { useTRPC } from "@/lib/trpc";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/data-table/data-table";
@@ -20,6 +21,7 @@ import { TournamentCreateDialog } from "@/components/admin/create-dialogs";
 import { TierCalibrationCard } from "@/components/admin/tier-calibration-card";
 
 export const Route = createFileRoute("/_auth/dashboard/tournaments/")({
+  validateSearch: createIntentSearch,
   head: () => ({ meta: [{ title: "Tournaments - Admin - FSX" }] }),
   loader: ({ context }) =>
     Promise.all([
@@ -30,7 +32,7 @@ export const Route = createFileRoute("/_auth/dashboard/tournaments/")({
 });
 
 function RouteComponent() {
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useCreateIntent();
   const trpc = useTRPC();
 
   const { data: all = [] } = useSuspenseQuery(trpc.tournaments.list.queryOptions());

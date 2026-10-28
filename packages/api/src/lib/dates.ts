@@ -4,6 +4,12 @@ const FEDERATION_TIME_ZONE = "America/Maceio";
 export const federationToday = () =>
   new Intl.DateTimeFormat("en-CA", { timeZone: FEDERATION_TIME_ZONE }).format(new Date());
 
+export const federationDaysAgo = (days: number) => {
+  const date = new Date(`${federationToday()}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - days);
+  return date.toISOString().slice(0, 10);
+};
+
 export const federationYear = () => Number(federationToday().slice(0, 4));
 
 const dayFormat = new Intl.DateTimeFormat("en-CA", { timeZone: FEDERATION_TIME_ZONE });

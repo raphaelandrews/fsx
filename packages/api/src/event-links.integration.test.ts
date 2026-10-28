@@ -92,3 +92,23 @@ describe("the public links page", () => {
     expect(page.events[0]!.linkGroup!.links[0]).toMatchObject({ label: "Formulário" });
   });
 });
+
+describe("the public links page after an event ends", () => {
+  test("keeps an event's links for a week", async () => {
+    const dayOffset = (days: number) => {
+      const date = new Date();
+      date.setUTCDate(date.getUTCDate() + days);
+      return date.toISOString().slice(0, 10);
+    };
+    const dated = async (name: string, startDate: string) => {
+      const id = idOf(await caller.events.create({ name, startDate }));
+      await caller.events.setLinks({ eventId: id, links: [{ type: "results", href: "https://example.com/r" }] });
+    };
+    await dated("Terminou Há Três Dias", dayOffset(-3));
+    await dated("Terminou Há Dez Dias", dayOffset(-10));
+
+    const names = (await caller.links.page()).events.map((event) => event.name);
+    expect(names).toContain("Terminou Há Três Dias");
+    expect(names).not.toContain("Terminou Há Dez Dias");
+  });
+});

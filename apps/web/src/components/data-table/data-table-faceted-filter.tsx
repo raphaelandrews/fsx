@@ -137,7 +137,7 @@ export function DataTableFacetedFilter({
                       className={cn(
                         "flex h-5 w-5 shrink-0 items-center justify-center rounded-md [&_svg]:!text-current",
                         isSelected
-                          ? "bg-primary text-primary-foreground shadow-sm"
+                          ? "bg-primary text-primary-foreground"
                           : "bg-muted ring-1 ring-inset ring-border"
                       )}
                     >

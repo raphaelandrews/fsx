@@ -17,6 +17,7 @@ import { Pagination } from "@/components/data-table/pagination";
 import { RowLink } from "@/components/data-table/row-link";
 import { SearchInput } from "@/components/data-table/search-input";
 import { useAdminMutation } from "@/lib/admin-mutations";
+import { useCreateIntent } from "@/hooks/use-create-intent";
 import { useTRPC } from "@/lib/trpc";
 import { PlayerCreateDialog } from "@/components/admin/create-dialogs";
 
@@ -25,6 +26,7 @@ const PER_PAGE = 20;
 const searchSchema = z.object({
   page: z.coerce.number().int().min(1).max(1_000).catch(1).optional(),
   name: z.string().trim().max(120).optional(),
+  novo: z.boolean().optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/_auth/dashboard/players/")({
@@ -39,7 +41,7 @@ export const Route = createFileRoute("/_auth/dashboard/players/")({
 });
 
 function RouteComponent() {
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useCreateIntent();
   const trpc = useTRPC();
   const router = useRouter();
   const navigate = useNavigate();

@@ -13,7 +13,7 @@ import type { Context } from "../context";
 import { requireFound, requireMutationRows } from "../errors";
 import { requireOwnedEventLink, validateEventLinkTypes } from "../services/event-links";
 import { idInput, isoDate, nameText, optionalHttpUrl, positiveInt, searchText, seasonYear, sortOrder } from "../input-schemas";
-import { federationToday } from "../lib/dates";
+import { federationDaysAgo } from "../lib/dates";
 import { PUBLIC_COLLECTION_LIMIT, PUBLIC_NESTED_COLLECTION_LIMIT } from "../lib/resource-bounds";
 
 export const UPCOMING_EVENTS_LIMIT = 12;
@@ -38,7 +38,7 @@ async function assertTournamentExists(db: Context["db"], tournamentId: number | 
   if (!found) throw new TRPCError({ code: "BAD_REQUEST", message: "Tournament not found" });
 }
 
-export const listEvents = (db: Context["db"], options: { upcoming: boolean; limit: number; from?: string; to?: string }) =>
+export const listEvents = (db: Context["db"], options: { upcoming: boolean; limit: number; from?: string; to?: string; graceDays?: number }) =>
   db.query.events.findMany({
     columns: { id: true, name: true, startDate: true, endDate: true, venue: true, venueUrl: true, tournamentId: true },
     with: {
@@ -57,7 +57,7 @@ export const listEvents = (db: Context["db"], options: { upcoming: boolean; limi
     where: options.from && options.to
       ? and(lte(events.startDate, options.to), gte(sql`coalesce(${events.endDate}, ${events.startDate})`, options.from))
       : options.upcoming
-        ? gte(sql`coalesce(${events.endDate}, ${events.startDate})`, federationToday())
+        ? gte(sql`coalesce(${events.endDate}, ${events.startDate})`, federationDaysAgo(options.graceDays ?? 0))
         : undefined,
     orderBy: (e, { asc }) => [asc(e.startDate), asc(e.id)],
     limit: options.limit,

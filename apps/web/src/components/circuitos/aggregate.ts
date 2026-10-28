@@ -28,14 +28,16 @@ export function circuitCategories(circuit: Circuit): string[] {
   });
 }
 
-export function aggregatePlayers(circuit: Circuit, categories?: string[]): PlayerRow[] {
-  const map = new Map<number, PlayerRow>();
+export function aggregatePlayers(circuit: Circuit, categories?: string[], splitByClub = false): PlayerRow[] {
+  const map = new Map<string, PlayerRow>();
 
   const included = (category: string | null) =>
     !categories || categories.length === 0 || (category != null && categories.includes(category));
 
-  const upsert = (player: CircuitPlayer): PlayerRow => {
-    let row = map.get(player.id);
+  const upsert = (player: CircuitPlayer, resultClub: CircuitPlayer["club"]): PlayerRow => {
+    const club = resultClub ?? player.club;
+    const key = splitByClub ? `${player.id}:${club?.id ?? ""}` : String(player.id);
+    let row = map.get(key);
     if (!row) {
       row = {
         id: player.id,
@@ -43,23 +45,24 @@ export function aggregatePlayers(circuit: Circuit, categories?: string[]): Playe
         nickname: player.nickname,
         imageUrl: player.imageUrl,
         playersToTitles: player.playersToTitles,
-        club: player.club,
+        club: splitByClub ? club : player.club,
         categories: [],
         total: 0,
         pointsByPhase: {},
       };
-      map.set(player.id, row);
+      map.set(key, row);
     }
     return row;
   };
 
   const apply = (
     player: CircuitPlayer,
+    resultClub: CircuitPlayer["club"],
     points: number,
     category: string | null,
     phase?: string,
   ) => {
-    const row = upsert(player);
+    const row = upsert(player, resultClub);
     row.total += points;
     if (phase) {
       row.pointsByPhase[phase] = (row.pointsByPhase[phase] ?? 0) + points;
@@ -73,13 +76,13 @@ export function aggregatePlayers(circuit: Circuit, categories?: string[]): Playe
     const name = phaseName(phase);
     for (const podium of phase.circuitResults) {
       if (!included(podium.category)) continue;
-      apply(podium.player, podium.points ?? 0, podium.category, name);
+      apply(podium.player, podium.club, podium.points ?? 0, podium.category, name);
     }
   }
 
   for (const podium of circuit.circuitResults) {
     if (!included(podium.category)) continue;
-    apply(podium.player, podium.points ?? 0, podium.category);
+    apply(podium.player, podium.club, podium.points ?? 0, podium.category);
   }
 
   return Array.from(map.values()).sort(
@@ -88,7 +91,7 @@ export function aggregatePlayers(circuit: Circuit, categories?: string[]): Playe
 }
 
 export function aggregateClubs(circuit: Circuit, categories?: string[]): ClubRow[] {
-  const players = aggregatePlayers(circuit, categories);
+  const players = aggregatePlayers(circuit, categories, true);
   const map = new Map<string, ClubRow>();
 
   for (const player of players) {

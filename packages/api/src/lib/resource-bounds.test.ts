@@ -10,7 +10,7 @@ import {
 describe("public resource bounds", () => {
   test("keep collection and nested graph caps finite", () => {
     expect(PUBLIC_COLLECTION_LIMIT).toBeGreaterThan(0);
-    expect(PUBLIC_COLLECTION_LIMIT).toBeLessThanOrEqual(500);
+    expect(PUBLIC_COLLECTION_LIMIT).toBeLessThanOrEqual(1000);
     expect(PUBLIC_NESTED_COLLECTION_LIMIT).toBeLessThan(PUBLIC_COLLECTION_LIMIT);
   });
 

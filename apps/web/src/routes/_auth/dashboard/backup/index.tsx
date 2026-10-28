@@ -59,7 +59,7 @@ function RouteComponent() {
             — one CSV per table
           </li>
         </ul>
-        <p className="mt-3 text-muted-foreground text-xs">
+        <p className="mt-3 text-muted-foreground text-sm">
           Backups are private to the local account and pruned after 90 days by default. Set{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-foreground">BACKUP_RETENTION_DAYS</code> to change it.
           Requires <code className="rounded bg-muted px-1 py-0.5 text-foreground">sqlite3</code> on your PATH. The
@@ -96,7 +96,7 @@ function RouteComponent() {
             <em>restore</em> (not a file download).
           </li>
         </ol>
-        <p className="mt-3 text-muted-foreground text-xs">
+        <p className="mt-3 text-muted-foreground text-sm">
           Docs:{" "}
           <a
             className="text-foreground underline underline-offset-2"

@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "@fsx/ui/components/button";
 
+import { createIntentSearch, useCreateIntent } from "@/hooks/use-create-intent";
 import { useTRPC } from "@/lib/trpc";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/data-table/data-table";
@@ -18,6 +18,7 @@ import { EmptyCollection } from "@/components/admin/empty-collection";
 import { EventCreateDialog } from "@/components/admin/create-dialogs";
 
 export const Route = createFileRoute("/_auth/dashboard/events/")({
+  validateSearch: createIntentSearch,
   head: () => ({ meta: [{ title: "Events - Admin - FSX" }] }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.trpc.events.list.queryOptions()),
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/_auth/dashboard/events/")({
 });
 
 function RouteComponent() {
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useCreateIntent();
   const trpc = useTRPC();
 
   const { data = [] } = useSuspenseQuery(trpc.events.list.queryOptions());

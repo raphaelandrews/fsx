@@ -17,3 +17,10 @@ test("season retrospective renders slides that can be browsed", async ({ page })
     await page.screenshot({ path: process.env.RETRO_SHOT });
   }
 });
+
+test("the player profile offers the retrospective and opens it ready to use", async ({ page }) => {
+  await page.goto(`/jogadores/${PLAYER.id}`, { waitUntil: "networkidle" });
+  await page.getByRole("link", { name: "Gerar retrospectiva" }).click();
+  await expect(page).toHaveURL(/\/temporada\/\d{4}\?retro=true$/);
+  await expect(page.getByRole("dialog", { name: /Retrospectiva/ }).locator("img").first()).toBeVisible();
+});

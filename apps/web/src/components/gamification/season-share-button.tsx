@@ -27,8 +27,8 @@ function save(blob: Blob, name: string) {
   URL.revokeObjectURL(url);
 }
 
-export function SeasonShareButton({ card }: { card: SeasonCard }) {
-  const [open, setOpen] = useState(false);
+export function SeasonShareButton({ card, defaultOpen = false }: { card: SeasonCard; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   const [slides, setSlides] = useState<Rendered[]>([]);
   const [failed, setFailed] = useState(false);
   const [index, setIndex] = useState(0);

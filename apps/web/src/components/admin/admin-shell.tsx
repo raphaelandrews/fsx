@@ -7,6 +7,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@fsx/ui/component
 import { DANGER_SLOT_ID } from "@/components/admin/admin-slots";
 import { AdminSidebar, type SidebarUser } from "@/components/admin/admin-sidebar";
 import { findActiveNav } from "@/components/admin/admin-nav-data";
+import { NotificationsBell } from "@/components/admin/notifications-bell";
 
 // A gray canvas with a white sidebar on the left and the page as a white rounded panel, under a breadcrumb bar.
 export function AdminShell({ user, children }: { user?: SidebarUser; children: ReactNode }) {
@@ -60,6 +61,9 @@ function AdminTopbar() {
           </span>
         </nav>
       ) : null}
+      <div className="ml-auto">
+        <NotificationsBell />
+      </div>
     </header>
   );
 }

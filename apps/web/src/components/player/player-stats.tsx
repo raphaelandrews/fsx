@@ -1,4 +1,8 @@
 import { Link } from "@tanstack/react-router";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { SparklesIcon } from "@hugeicons/core-free-icons";
+
+import { buttonVariants } from "@fsx/ui/components/button";
 
 import { ActivityGraph } from "@/components/gamification/activity-graph";
 import { StatTile } from "@/components/gamification/stat-tile";
@@ -20,6 +24,7 @@ export function PlayerStats({
   const bestStreak = Math.max(0, ...formats.map((format) => format.bestStreak));
   const currentStreak = Math.max(0, ...formats.map((format) => format.currentStreak));
   const firstYear = stats.seasons[0];
+  const latestYear = stats.seasons[stats.seasons.length - 1];
 
   return (
     <div className="space-y-6 px-2 pb-4 sm:px-4">
@@ -42,6 +47,25 @@ export function PlayerStats({
           hint={currentStreak > 0 ? `atual: ${currentStreak} subindo` : "torneios seguidos subindo"}
         />
       </div>
+      {latestYear ? (
+        <div className="flex flex-col gap-3 rounded-2xl bg-muted p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <HugeiconsIcon icon={SparklesIcon} className="mt-0.5 size-6 shrink-0 text-primary" aria-hidden />
+            <div>
+              <p className="font-semibold">Retrospectiva {latestYear}</p>
+              <p className="text-muted-foreground text-sm">Seu ano em imagens, prontas para postar nos stories.</p>
+            </div>
+          </div>
+          <Link
+            to="/jogadores/$id/temporada/$ano"
+            params={{ id: playerId, ano: latestYear }}
+            search={{ retro: true }}
+            className={buttonVariants({ size: "lg" })}
+          >
+            Gerar retrospectiva
+          </Link>
+        </div>
+      ) : null}
       {stats.seasons.length > 0 && (
         <section aria-labelledby="player-activity">
           <Subheading id="player-activity" aside="Toque num ano para ver a temporada">

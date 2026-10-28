@@ -102,7 +102,7 @@ export function TournamentPodiums({ tournamentId }: { tournamentId: number }) {
         <>
           {row.original.category ?? "Overall"}
           {row.original.circuitResultId || row.original.tvSergipeId ? (
-            <span className="ml-2 text-muted-foreground text-xs">from a result</span>
+            <span className="ml-2 text-muted-foreground text-sm">from a result</span>
           ) : null}
         </>
       ),
@@ -258,7 +258,7 @@ function BulkPodiumsForm({ tournamentId, onDone }: { tournamentId: number; onDon
       }}
     >
       <div className="space-y-2">
-        <div className="hidden grid-cols-[5rem_1fr_12rem_2rem] gap-2 text-xs text-muted-foreground sm:grid">
+        <div className="hidden grid-cols-[5rem_1fr_12rem_2rem] gap-2 text-sm text-muted-foreground sm:grid">
           <span>Place</span>
           <span>Player</span>
           <span>Category</span>

@@ -63,7 +63,7 @@ export function PostForm({
         <FormAsideCard>
           <div>
             <h2 className="font-medium text-sm">Cover image</h2>
-            <p className="mt-1 text-muted-foreground text-xs">Shown on the news list and when the article is shared. Cropped to 16:9.</p>
+            <p className="mt-1 text-muted-foreground text-sm">Shown on the news list and when the article is shared. Cropped to 16:9.</p>
           </div>
         <form.Field name="imageUrl">
           {(f) => (

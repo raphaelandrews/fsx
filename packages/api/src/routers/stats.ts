@@ -29,6 +29,8 @@ export const statsRouter = router({
         tvSergipe: total(tvSergipe),
         clubs: total(clubs),
         pendingRequests: sql<number>`(select count(*) from ${playerUpdateRequests} where ${playerUpdateRequests.status} = 'pending')`,
+        draftPosts: sql<number>`(select count(*) from ${posts} where ${posts.published} = 0)`,
+        openCircuits: sql<number>`(select count(*) from ${circuits} where ${circuits.finishedAt} is null)`,
       })
       .from(sql`(select 1)`);
     return counts!;

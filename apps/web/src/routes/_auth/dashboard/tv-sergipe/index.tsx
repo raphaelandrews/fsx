@@ -5,6 +5,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "@fsx/ui/components/button";
 
+import { createIntentSearch, useCreateIntent } from "@/hooks/use-create-intent";
 import { useTRPC } from "@/lib/trpc";
 import { EntityFormDialog } from "@/components/admin/entity-form";
 import { AdminPageHeader } from "@/components/admin/page-header";
@@ -20,13 +21,14 @@ import { TvSergipeCreateDialog } from "@/components/admin/create-dialogs";
 import { TvSergipeBulkDialog } from "@/components/admin/tv-sergipe-bulk";
 
 export const Route = createFileRoute("/_auth/dashboard/tv-sergipe/")({
+  validateSearch: createIntentSearch,
   head: () => ({ meta: [{ title: "TV Sergipe - Admin - FSX" }] }),
   loader: ({ context }) => context.queryClient.ensureQueryData(context.trpc.tvSergipe.listAdmin.queryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useCreateIntent();
   const trpc = useTRPC();
   const [assigning, setAssigning] = useState(false);
   const [bulk, setBulk] = useState(false);
