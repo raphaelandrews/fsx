@@ -11,8 +11,11 @@ import { dropFromEdge, edgeCache, isCachedEntryFresh, storeAtEdge, toClientRespo
 import { MAX_BATCH_SIZE, measureResponseBytes, PUBLIC_RESPONSE_SIZE_BUDGET_BYTES } from "../lib/resource-bounds";
 import { appRouter } from "../routers/index";
 import {
+  BODY_LIMITS,
   getClientIp,
   isTrustedRequest,
+  limitRequestBody,
+  payloadTooLargeResponse,
   limitUncachedRead,
   RATE_LIMITS,
   rateLimit,
@@ -78,7 +81,14 @@ export async function handleTrpcRequest(request: Request): Promise<Response> {
       return response;
     }
 
-    const response = await handleWithRouter(request);
+    const bounded = await limitRequestBody(request, isAuthenticated(request) ? BODY_LIMITS.sessionTrpc : BODY_LIMITS.anonymousTrpc);
+    if (!bounded) {
+      const tooLarge = payloadTooLargeResponse();
+      applySecurityHeaders(tooLarge.headers);
+      return tooLarge;
+    }
+
+    const response = await handleWithRouter(bounded);
     response.headers.set("Cache-Control", "no-store");
     applySecurityHeaders(response.headers);
     return response;

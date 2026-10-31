@@ -83,6 +83,7 @@ export function TournamentPodiums({ tournamentId }: { tournamentId: number }) {
       emptyText: "No player found.",
       initialLabel: editing?.player?.name,
       getQueryOptions: (query) => trpc.players.search.queryOptions({ query }),
+      showId: true,
     },
     { name: "place", label: "Place", kind: "number", required: true, min: 1, max: 100000 },
     {
@@ -284,6 +285,7 @@ function BulkPodiumsForm({ tournamentId, onDone }: { tournamentId: number; onDon
               placeholder="Search player..."
               emptyText="No player found."
               getQueryOptions={(query) => trpc.players.search.queryOptions({ query })}
+              showId
             />
             <select
               aria-label={`Category, row ${index + 1}`}
@@ -320,7 +322,7 @@ function BulkPodiumsForm({ tournamentId, onDone }: { tournamentId: number; onDon
         </p>
       ) : null}
       <DialogFooter>
-        <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
+        <DialogClose render={<Button type="button" variant="secondary" />}>Cancel</DialogClose>
         <Button type="submit" loading={create.isPending} disabled={filled.length === 0 || problem !== null}>
           {create.isPending ? "Saving..." : `Create ${filled.length} podium${filled.length === 1 ? "" : "s"}`}
         </Button>

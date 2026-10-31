@@ -189,7 +189,7 @@ export function ImageCropper({
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel} disabled={isProcessing}>
+          <Button variant="secondary" onClick={handleCancel} disabled={isProcessing}>
             {labels.cancel}
           </Button>
           <Button onClick={handleApply} disabled={isProcessing || !completedCrop || didImageFail}>

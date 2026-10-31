@@ -1,5 +1,8 @@
 import {
+  BODY_LIMITS,
   RATE_LIMITS,
+  limitRequestBody,
+  payloadTooLargeResponse,
   getClientIp,
   isTrustedRequest,
   rateLimit,
@@ -32,8 +35,15 @@ async function handler({ request }: { request: Request }) {
     return response;
   }
 
+  const bounded = await limitRequestBody(request, BODY_LIMITS.auth);
+  if (!bounded) {
+    const tooLarge = payloadTooLargeResponse();
+    applySecurityHeaders(tooLarge.headers);
+    return tooLarge;
+  }
+
   const auth = createAuth();
-  const response = await auth.handler(request);
+  const response = await auth.handler(bounded);
   applySecurityHeaders(response.headers);
   return response;
 }

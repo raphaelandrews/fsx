@@ -318,6 +318,7 @@ export function announcementSections(trpc: TRPC, playerLabel?: string): EntitySe
           emptyText: "No player found.",
           initialLabel: playerLabel,
           getQueryOptions: (query) => trpc.players.search.queryOptions({ query }),
+          showId: true,
           hint: "The player this announcement is about. It is listed on their profile.",
         },
       ],
@@ -409,6 +410,7 @@ export function tournamentPodiumSections(
           emptyText: "No player found.",
           initialLabel: labels.player,
           getQueryOptions: (query) => trpc.players.search.queryOptions({ query }),
+          showId: true,
         },
         { name: "place", label: "Place", kind: "number", required: true, min: 1, max: 100000 },
         {

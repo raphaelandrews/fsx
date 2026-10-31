@@ -30,11 +30,12 @@ export function BulkClubDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Set the club of {noun}</DialogTitle>
           <DialogDescription>Replaces their current club. Search for the club, or clear it to leave them without one.</DialogDescription>
         </DialogHeader>
+        <div className="min-h-72">
         <SearchableSelect
           id="bulk-club"
           value={clubId}
@@ -43,8 +44,9 @@ export function BulkClubDialog({
           placeholder="Search the club..."
           emptyText="No club found."
         />
+        </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button type="button" variant="outline" disabled={pending} onClick={() => onConfirm(null)}>

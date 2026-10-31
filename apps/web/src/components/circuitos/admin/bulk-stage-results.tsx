@@ -176,6 +176,7 @@ function BulkStageResultsForm({
               placeholder="Search player..."
               emptyText="No player found."
               getQueryOptions={(query) => trpc.players.search.queryOptions({ query })}
+              showId
             />
             <Input
               type="number"
@@ -211,7 +212,7 @@ function BulkStageResultsForm({
         </p>
       ) : null}
       <DialogFooter>
-        <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
+        <DialogClose render={<Button type="button" variant="secondary" />}>Cancel</DialogClose>
         <Button type="submit" loading={create.isPending} disabled={filled.length === 0 || problem !== null}>
           {create.isPending ? "Saving..." : `Add ${filled.length} result${filled.length === 1 ? "" : "s"}`}
         </Button>

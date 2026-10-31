@@ -14,6 +14,7 @@ Requirements: [bun](https://bun.sh) 1.3+ and a GitHub OAuth app (callback
 
 ```bash
 bun install
+bun run hooks:setup   # Git hooks (lint and format staged files)
 ```
 
 Environment files (all variables are explained in `apps/web/.env.example`):
@@ -22,17 +23,28 @@ Environment files (all variables are explained in `apps/web/.env.example`):
 | ---- | ----- |
 | `apps/web/.env.common` | Shared secrets: `BETTER_AUTH_SECRET`, `GITHUB_USER_ID` (the only account that can sign in) |
 | `apps/web/.env` | Dev URLs (`BETTER_AUTH_URL` and `CORS_ORIGIN` = `http://localhost:3001`) and the dev GitHub OAuth app (`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`) |
-| `apps/web/.env.prod` | Production URLs and the production GitHub OAuth app (`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`) |
+| `apps/web/.env.prod` | Production only (deploys): production URLs and the production GitHub OAuth app. Not needed locally. |
 | `packages/infra/.env` | `ALCHEMY_PASSWORD` (any stable string) |
+
+Generate `BETTER_AUTH_SECRET` with `openssl rand -hex 32`, and find your `GITHUB_USER_ID` at
+`https://api.github.com/users/<login>` (`id`). Everything else in `.env.example`
+(Cloudflare, Turnstile, analytics, image transformations) is optional locally.
 
 ```bash
 bun run dev       # web on http://localhost:3001, docs on http://localhost:4000
-bun run db:seed   # in another terminal, after dev has started: sample data
-                  # (or `bun run db:seed:remote` for a copy of the real data)
 ```
 
-`bun run dev` creates the local D1 database and applies the migrations. If the
-local database gets into a bad state, see `AGENTS.md` → "Local Dev D1 gotchas".
+The first `bun run dev` creates the local D1 database and applies the migrations.
+Stop it (a running server keeps a stale D1 connection), seed, and start it again:
+
+```bash
+bun run db:seed   # sample data (or `bun run db:seed:remote` for a copy of the real data)
+bun run dev
+```
+
+Then sign in at `http://localhost:3001/login` with the GitHub account whose ID is
+`GITHUB_USER_ID`. If the local database gets into a bad state, see `AGENTS.md` →
+"Local Dev D1 gotchas".
 
 ## Public API
 

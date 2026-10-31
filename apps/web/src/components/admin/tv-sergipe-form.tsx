@@ -160,6 +160,7 @@ export function TvSergipeForm({
                       value={f.state.value}
                       onChange={f.handleChange}
                       getQueryOptions={(query) => trpc.players.search.queryOptions({ query })}
+                      showId
                       placeholder="Search player..."
                       emptyText="No player found."
                       initialLabel={labels.player}

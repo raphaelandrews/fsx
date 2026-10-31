@@ -78,6 +78,7 @@ function RouteComponent() {
               navigate({ search: { playerId: value ? Number(value) : undefined } })
             }
             getQueryOptions={(query) => trpc.players.search.queryOptions({ query })}
+            showId
             placeholder="Search player..."
             emptyText="No player found."
             initialLabel={selected?.name}

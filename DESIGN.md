@@ -2,7 +2,7 @@
 
 The visual language of the FSX public site and admin dashboard: one action color, neutral text,
 cool blue-grays for structure, green/red/yellow for status, Fustat throughout, pill-shaped
-controls, and flat surfaces. **Burple** is the brand color, and the site is data-dense (ratings
+controls, and flat surfaces: muted tiles, or white cards with a hairline border. **Burple** is the brand color, and the site is data-dense (ratings
 tables, stats, records), so spacious marketing-style choices are deliberately left out (see
 [Deliberate exclusions](#deliberate-exclusions)).
 
@@ -15,8 +15,9 @@ Tokens live in `packages/ui/src/styles/globals.css`. Shared components live in
    headings, names, and body text stay neutral, and positive change is green.
 2. **Gray carries structure.** Surfaces, tiles, borders, and secondary text use the cool grays.
    Hierarchy comes from surface, spacing, and type weight before color.
-3. **Flat before deep.** Separate blocks with a muted surface and spacing, not shadows or borders.
-   Borders are for dividers, inputs, and state; shadows only for floating layers.
+3. **Flat before deep.** Separate blocks with a muted surface or a 1px `border`, plus spacing, never
+   with shadows. Use a muted tile for a standalone figure or summary and a bordered white card for
+   a container of data (see [Elevation](#elevation)). Shadows are only for floating layers.
 4. **Soft, consistent shapes.** Controls are pills; containers use the radius scale below, with
    nested corners concentric.
 5. **Clear before clever.** Short Portuguese labels on the public site, the benefit or the number
@@ -143,9 +144,19 @@ Base `--radius` is 8px, so the scale lands on 8 / 16 / 24:
 
 ## Elevation
 
-Flat by default. Separate blocks with `bg-muted`, not borders or shadows. Shadows are reserved
-for floating layers (popovers, dialogs, toasts) and come from the components. Don't add shadows
-to tiles or cards.
+Flat by default: nothing is lifted with a shadow. Blocks are separated by one of two surfaces,
+chosen by what they hold:
+
+| Surface | Classes | Use |
+| --- | --- | --- |
+| Muted tile | `bg-muted rounded-2xl`, no border | A standalone figure or summary: `StatTile`, podium cards, event tiles, rating tiles, "Destaque do mês", info blocks, the tier note |
+| Bordered card | `bg-background rounded-2xl border` | A container of data or controls: `Table` frames, `RecordCard`, chart cards, `BadgeCensus` tiles, admin aside cards (`FormAsideCard`), upload areas, change history, import steps |
+
+Don't put a border on a muted tile or fill a bordered card with muted; a muted element inside a
+bordered card (a row, a track, an icon circle) is fine. Borders are 1px `border`; focus and
+selected state use `ring`/`primary`, not a thicker border. Shadows are reserved for floating
+layers (popovers, dialogs, toasts) and come from the components. Don't add shadows to tiles or
+cards.
 
 ## Motion
 
@@ -255,8 +266,8 @@ All controls are 40px tall: nav triggers (`h-10`, pill hover), search (`size="xl
 
 ### Footer
 
-No divider above it; spacing separates it from the page. Centered stack: logo, flag, social buttons
-(`secondary`, `icon-xl`, 20px icons), nav links (16px, `text-muted-foreground`,
+No divider above it; spacing separates it from the page. The nav links are left out on `/links`. Centered stack: logo, flag, social buttons
+(`secondary`, `icon-xl`, 20px icons), five nav links (Início, Notícias, Rating, Calendário, Sobre; 16px, `text-muted-foreground`,
 `hover:text-foreground`), and credits. The credit links have no underline at rest: "Raphael" is
 `text-primary` and "Source code" is `text-foreground`, both turning `link-hover` on hover, at the
 line's own weight (600). On hover and keyboard focus, a 2px underline expands from the center.
@@ -380,7 +391,7 @@ for "Ver menos". Its button uses `rounded-lg` inside the `rounded-2xl` card: 8px
   avatar, 3º right; each with medal, avatar, name, rating after and the signed variation in
   `success`/`destructive`; on phones they stack in rank order). Places 4+ follow in one muted list. When
   teams share a place and there is no single 1º/2º/3º, the whole classification stays a list.
-  Category podiums are smaller `bg-muted` tiles in two columns. No bordered cards.
+  Category podiums are smaller `bg-muted` tiles in two columns, with no border.
 - Circuit stages are a list of rows (36px `bg-muted` "E1" circle, name, host club, arrow) under a
   "Etapas" `SectionHeading`; the points table uses the same "E1" short labels as column headers
   (full name in the `title`), so it stays narrow on phones.
@@ -434,7 +445,12 @@ sits directly under it, and reference data closes the page.
   check when met, help icon when the data can't tell) and an unofficial note. Major-title goals
   advance one at a time: CMS → MSE → GMS. Locked emblem cards retain their own progress bars.
 - Home: "Destaque do mês" is a single centered `bg-muted` card with the gain in `text-success`.
-- `/links`: rows hover to a `bg-primary/5` tint, the icon chip fills with `primary`.
+- `/links` is a link-in-bio page: one centered column (`max-w-md`) with a 96px `rounded-avatar` logo tile,
+  the `h1`, then groups of full-width pill buttons (`min-h-14`, 1px `border`, icon chip
+  left, centered `font-semibold` label) under a small centered `text-sm` muted group label. Buttons hover to
+  `bg-muted` with the chip filling `primary`, and press with `active:scale-[0.98]`. A link without a URL is
+  a dashed pill ("em breve"). The footer there has no navigation links (`Footer showNav={false}`); those
+  appear only on the main site. No decorative animation.
 
 ### Tiles (`StatTile`)
 
@@ -558,7 +574,10 @@ One column of fields, `gap-4`, with a title above each group.
   `page-has-heading-one`, `landmark-one-main` and `region`, and runs the WCAG 2.2 AA rules (target size).
 - **Skip link:** `SkipLink` is the first tab stop of every public page and jumps to `main#conteudo`.
 - **Comboboxes** (`SearchableSelect`): `role="combobox"` with `aria-activedescendant`; arrows move, Enter picks,
-  Escape closes. Do not build a picker from a bare input and a floating list.
+  Escape closes. Do not build a picker from a bare input and a floating list. The list is at most 256px and
+  never taller than the room left in its dialog, so a dialog whose main field is a picker wraps it in a
+  `min-h-72`/`min-h-80` block. Player pickers in the dashboard pass `showId` (an `ID 123` suffix), because
+  many players share a name.
 - **Unsaved changes:** an admin edit page (`AdminForm` with `dirty`) asks before it is left; creation dialogs do not.
 
 ## Language
@@ -576,7 +595,7 @@ dashboard (`/dashboard`, `/rating-update`) is English.
 | Headline weight 600, tight tracking | Headings `font-semibold tracking-tight`, header and footer 600 |
 | Pills (999px) for buttons, 16px cards, 24px highlight blocks | `rounded-full` controls, `rounded-2xl` tiles, `rounded-4xl` dialogs, `rounded-xl` form fields |
 | Primary button: brand fill, 600 weight, pill, 48px with trailing icon | `Button` `default` + `size="pill"`, `SectionButton` |
-| Flat hierarchy, shadow only for floating layers | Muted surfaces, no shadows on tiles or cards |
+| Flat hierarchy, shadow only for floating layers | Muted tiles or 1px-bordered white cards, no shadows on tiles or cards |
 | 40px desktop / 44px touch targets | Header controls 40px, badges and medal buttons 44px |
 | Visible focus outline in the brand color | `ring` is burple |
 | Error and alert colors that don't compete with the brand | Crimson `destructive`, gold `warning` |
@@ -587,7 +606,7 @@ dashboard (`/dashboard`, `/rating-update`) is English.
 | --- | --- |
 | Green or teal as brand colors; a second blue accent | Burple is the FSX brand, and one action color keeps actions obvious. Green appears only as the `success` status color. |
 | 18px body text, 1.8 line height, +0.9px letter spacing | The site is tables and stats; that sizing makes them sparse and harder to scan. Body is 16px with normal spacing. |
-| `#E2E7F1` page background with white bordered cards | FSX uses borderless muted tiles on white; borders are kept for tables, dividers, and inputs |
+| `#E2E7F1` page background with white bordered cards | FSX pages stay white. Standalone figures are borderless muted tiles; containers of data (tables, record and chart cards) are white with a 1px `border` |
 | 500ms base transitions, 1800ms reveals | Too slow for tabs, filters, and buttons used repeatedly; FSX uses 150–200ms |
 | Brand-tinted card shadows on hover | Surfaces stay flat |
 | Custom breakpoint list (390 … 1699px) | Tailwind breakpoints cover the same ranges |

@@ -104,7 +104,7 @@ export function MergePlayerButton({ playerId, playerName }: { playerId: number; 
         Merge with…
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{step === "pick" ? `Merge “${playerName}” with another player` : "Review the merge"}</DialogTitle>
             <DialogDescription>
@@ -115,14 +115,17 @@ export function MergePlayerButton({ playerId, playerName }: { playerId: number; 
           </DialogHeader>
 
           {step === "pick" ? (
+            <div className="min-h-80">
             <SearchableSelect
               id="merge-target"
+              showId
               value={targetId}
               onChange={setTargetId}
               getQueryOptions={(query) => trpc.players.search.queryOptions({ query })}
               placeholder="Search the other record..."
               emptyText="No player found."
             />
+            </div>
           ) : (
             <div className="grid gap-4">
               {players ? (
@@ -159,7 +162,7 @@ export function MergePlayerButton({ playerId, playerName }: { playerId: number; 
           <DialogFooter>
             {step === "pick" ? (
               <>
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
                   Cancel
                 </Button>
                 <Button
@@ -172,7 +175,7 @@ export function MergePlayerButton({ playerId, playerName }: { playerId: number; 
               </>
             ) : (
               <>
-                <Button type="button" variant="outline" disabled={mutation.isPending} onClick={() => setStep("pick")}>
+                <Button type="button" variant="secondary" disabled={mutation.isPending} onClick={() => setStep("pick")}>
                   Back
                 </Button>
                 <Button

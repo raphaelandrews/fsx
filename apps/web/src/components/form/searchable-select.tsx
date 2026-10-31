@@ -23,6 +23,7 @@ interface SearchableSelectProps {
   emptyText?: string;
   initialLabel?: string;
   id?: string;
+  showId?: boolean;
 }
 
 const LIST_MAX = 256;
@@ -44,6 +45,7 @@ export function SearchableSelect({
   emptyText = "No results.",
   initialLabel = "",
   id,
+  showId = false,
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -91,7 +93,7 @@ export function SearchableSelect({
 
   const handleSelect = (opt: SearchableOption) => {
     onChange(String(opt.id));
-    setSelectedLabel(opt.name);
+    setSelectedLabel(showId ? `${opt.name} · ID ${opt.id}` : opt.name);
     setQuery("");
     setOpen(false);
   };
@@ -186,7 +188,8 @@ export function SearchableSelect({
                   onMouseMove={() => setActiveIndex(index)}
                   onClick={() => handleSelect(opt)}
                 >
-                  {opt.name}
+                  <span className="min-w-0 flex-1 truncate">{opt.name}</span>
+                  {showId ? <span className="ml-3 shrink-0 text-muted-foreground text-sm tabular-nums">ID {opt.id}</span> : null}
                 </li>
               ))
             : null}

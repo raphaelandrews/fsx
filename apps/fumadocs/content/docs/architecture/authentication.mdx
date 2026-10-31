@@ -12,7 +12,8 @@ signed with `BETTER_AUTH_SECRET` and is `Secure` when `BETTER_AUTH_URL` is
 
 `/api/auth/*` rejects cross-origin POSTs and applies per-IP rate limits through
 Cloudflare's native `RateLimit` bindings (20 mutations and 120 queries per
-minute), so auth traffic never writes to D1.
+minute), so auth traffic never writes to D1. Request bodies are capped (16 KB for auth; 3 MB for tRPC
+without a session cookie, 8 MB with one) and larger ones get `413` before parsing.
 
 ## The owner binding
 

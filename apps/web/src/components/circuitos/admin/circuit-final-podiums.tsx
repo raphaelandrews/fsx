@@ -71,6 +71,7 @@ export function CircuitFinalPodiums({ circuit }: { circuit: Circuit }) {
       emptyText: "No player found.",
       initialLabel: editing?.podium?.player?.name,
       getQueryOptions: (query) => trpc.players.search.queryOptions({ query }),
+      showId: true,
     },
     {
       name: "category",

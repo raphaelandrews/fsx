@@ -9,22 +9,11 @@ const footerLinks = [
   { label: "Início", to: "/" },
   { label: "Notícias", to: "/noticias" },
   { label: "Rating", to: "/ratings" },
-  { label: "Campeões", to: "/campeoes" },
-  { label: "Torneios", to: "/torneios" },
-  { label: "Circuitos", to: "/circuitos" },
-  { label: "TV Sergipe", to: "/tv-sergipe" },
-  { label: "Bullet", to: "/bullet" },
-  { label: "Estatísticas", to: "/estatisticas" },
   { label: "Calendário", to: "/calendario" },
-  { label: "Clubes", to: "/clubes" },
-  { label: "Comunicados", to: "/comunicados" },
-  { label: "Membros", to: "/membros" },
-  { label: "Titulados", to: "/titulados" },
-  { label: "Normas Técnicas", to: "/normas-tecnicas" },
   { label: "Sobre", to: "/sobre" },
 ];
 
-export function Footer({ className }: { className?: string }) {
+export function Footer({ className, showNav = true }: { className?: string; showNav?: boolean }) {
   return (
     <footer className={cn("bg-background text-base font-semibold text-foreground", className)}>
       <div className="container flex max-w-7xl flex-col items-center gap-8 px-3 py-14 sm:px-8">
@@ -43,20 +32,22 @@ export function Footer({ className }: { className?: string }) {
         <div className="flex flex-col items-center gap-6">
           <SocialLinks className="flex items-center gap-3" />
 
-          <nav
-            aria-label="Rodapé"
-            className="flex flex-wrap items-center justify-center gap-x-5"
-          >
-            {footerLinks.map((link) => (
-              <Link
-                key={link.to}
-                className="py-2 text-base text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-                to={link.to}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          {showNav ? (
+            <nav
+              aria-label="Rodapé"
+              className="flex flex-wrap items-center justify-center gap-x-5"
+            >
+              {footerLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  className="py-2 text-base text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+                  to={link.to}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          ) : null}
 
           <div className="text-balance text-center text-muted-foreground text-base leading-loose">
             Built by 📟{" "}

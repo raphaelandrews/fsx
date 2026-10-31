@@ -75,6 +75,13 @@ DMARC, CAA, and `docs` records are untouched, so email and docs keep working.
 - **The `Production health` workflow is failing** on missing Cloudflare secrets
   (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID`), so
   nothing currently alerts on an outage of this layer.
+- **Zone security does not cover `www.fsx.org.br`.** Grey-cloud records mean the Cloudflare zone's
+  WAF, Bot Fight Mode, rate-limiting rules, and "Under Attack" mode never see visitor traffic.
+  Only Cloudflare's network-level DDoS protection on the `workers.dev` hostname and Vercel's
+  own protections apply. Set up Vercel Firewall rules instead.
+- **Per-IP rate limits may key on Vercel's egress IP.** The Worker reads `CF-Connecting-IP`, which
+  through the proxy is the address Vercel connects from, not the visitor's. Unverified: if many
+  visitors share a bucket, the limits in [ADR 0005](/decisions/0005-rate-limiting) are shared too.
 - Vercel is now a second point of failure in front of the Worker.
 
 ## Verify

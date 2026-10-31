@@ -49,6 +49,7 @@ export type EntityField = BaseField &
         getQueryOptions: ComponentProps<typeof SearchableSelect>["getQueryOptions"];
         initialLabel?: string;
         emptyText?: string;
+        showId?: boolean;
       }
     | {
         kind: "custom";
@@ -250,6 +251,7 @@ function renderControl(
           placeholder={field.placeholder}
           emptyText={field.emptyText}
           initialLabel={field.initialLabel}
+          showId={field.showId}
         />
       );
     default:

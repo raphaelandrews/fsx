@@ -92,6 +92,7 @@ export function CircuitEditor({ circuit }: { circuit: Circuit }) {
       emptyText: "No player found.",
       initialLabel: editingPodium?.podium?.player?.name,
       getQueryOptions: (query) => trpc.players.search.queryOptions({ query }),
+      showId: true,
     },
     {
       name: "clubId",

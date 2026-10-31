@@ -2,6 +2,8 @@ import { env } from "@fsx/env/server";
 
 import { isTrustedOrigin } from "./request-origin";
 
+export { BODY_LIMITS, limitRequestBody, payloadTooLargeResponse } from "./request-body";
+
 export function getClientIp(request: Request): string {
   // Only Cloudflare's header is trusted: X-Forwarded-For is client-controlled and would let a caller pick its own rate-limit bucket.
   return request.headers.get("CF-Connecting-IP") || "127.0.0.1";

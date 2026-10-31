@@ -41,6 +41,12 @@ Local Dev D1 gotchas:
 - **Always pass an explicit `timeZone`** to `Intl.DateTimeFormat`/`toLocaleString`. The server runs
   in UTC (Cloudflare) and the client in the user's timezone; omitting `timeZone` causes SSR/client
   hydration mismatches.
+- **Request bodies are capped** before parsing (`BODY_LIMITS` in `packages/api/src/http/request-body.ts`: 16 KB
+  for auth, 3 MB for tRPC without a session cookie, 8 MB with one). A new upload larger than 8 MB as base64
+  needs a higher limit there. Rate limits key on `CF-Connecting-IP`; behind the Vercel proxy that may be
+  Vercel's address (`operations/vercel-proxy.mdx`).
+- **Pickers in dialogs:** `SearchableSelect` is clamped to the room left in its dialog, so give a dialog whose
+  main field is a picker a `min-h-72` wrapper, and pass `showId` for player pickers in the dashboard.
 - **CSP** (`packages/api/src/http/security-headers.ts`) adds `unsafe-eval` only in dev (Vite tooling
   needs it); production stays strict. The Cloudflare analytics beacon is gated on
   `VITE_CLOUDFLARE_ANALYTICS_TOKEN`.
