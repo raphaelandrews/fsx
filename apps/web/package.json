@@ -20,7 +20,7 @@
     "@hugeicons/core-free-icons": "catalog:",
     "@hugeicons/react": "catalog:",
     "@tailwindcss/vite": "^4.3.3",
-    "@tanstack/charts": "^0.6.4",
+    "@tanstack/charts": "^1.1.0",
     "@tanstack/markdown": "^0.0.12",
     "@tanstack/react-charts": "^0.6.4",
     "@tanstack/react-devtools": "^0.10.9",
