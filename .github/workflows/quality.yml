@@ -38,9 +38,9 @@ jobs:
           bun run db:generate
           test -z "$(git status --porcelain -- packages/db/src/migrations)"
       - run: bun test
+      - run: bun run build
       - run: bun run check-types
       - run: bun run lint
-      - run: bun run build
       - run: bun run check:bundle
       - run: bun run check:seo
       - run: bun run check:routes

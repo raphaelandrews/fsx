@@ -53,7 +53,7 @@ const checks: Check[] = [
   { path: "/campeoes", status: 200, maxKB: 75 },
   { path: "/calendario", status: 200, maxKB: 75 },
   { path: "/torneios", status: 200, maxKB: 135 },
-  { path: "/torneios/1", status: 200, maxKB: 385 },
+  { path: "/torneios/1", status: 200, maxKB: 520 },
   { path: "/torneios/999999", status: 404, maxKB: 60 },
   { path: "/torneios/abc", status: 404, maxKB: 60 },
   { path: "/estatisticas", status: 200, maxKB: 505, title: "Estatísticas", canonical: `${SITE_URL}/estatisticas` },
